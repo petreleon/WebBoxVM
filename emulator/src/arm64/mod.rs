@@ -1,9 +1,13 @@
 //! ARM64 (AArch64) CPU core.
 
+mod instr;
+mod interpreter;
 mod pstate;
 mod registers;
 mod system_regs;
 
+pub use instr::{decode, execute, Instr, Opcode};
+pub use interpreter::{run, RunError};
 pub use pstate::ProcessorState;
 pub use registers::RegisterFile;
 pub use system_regs::SystemRegisters;

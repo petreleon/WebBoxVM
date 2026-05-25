@@ -14,6 +14,14 @@ pub struct SystemRegisters {
     pub far_el1: u64,
     pub cpacr_el1: u64,
     pub cntfrq_el0: u64,
+    // Boot stub (EL3)
+    pub scr_el3: u64,
+    pub spsr_el3: u64,
+    pub elr_el3: u64,
+    // Boot stub (EL2)
+    pub hcr_el2: u64,
+    pub spsr_el2: u64,
+    pub elr_el2: u64,
 }
 
 impl Default for SystemRegisters {
@@ -31,6 +39,12 @@ impl Default for SystemRegisters {
             far_el1: 0,
             cpacr_el1: 0,
             cntfrq_el0: 62_500_000,
+            scr_el3: 0,
+            spsr_el3: 0,
+            elr_el3: 0,
+            hcr_el2: 0,
+            spsr_el2: 0,
+            elr_el2: 0,
         }
     }
 }
