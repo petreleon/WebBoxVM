@@ -156,4 +156,28 @@ mod tests {
         // We should execute at least 15 real kernel instructions before hitting a limitation
         assert!(steps >= 15, "Only executed {} instructions, expected at least 15", steps);
     }
+
+    #[test]
+    fn synthetic_kernel_boots_to_uart() {
+        use crate::loader::{load_raw_image, KERNEL_LOAD};
+        use std::fs;
+        
+        let mut cpu = Armv8Cpu::new();
+        let mut bus = SystemBus::new();
+        
+        // Load the externally-assembled synthetic kernel
+        let data = fs::read("/tmp/kernel.img").expect("synthetic kernel not found; run assemble_kernel.py first");
+        load_raw_image(&mut bus, &data);
+        
+        // Set a valid stack pointer
+        cpu.regs.sp = 0x43FF_F000;
+        
+        // Run the synthetic kernel
+        let result = run(&mut cpu, &mut bus, KERNEL_LOAD, 50);
+        // Should exhaust steps (hit infinite loop) or succeed
+        assert!(result.is_ok(), "Synthetic kernel crashed: {:?}", result);
+        
+        // Verify UART output is "Booted\n"
+        assert_eq!(bus.uart.output_string(), "Booted\n");
+    }
 }

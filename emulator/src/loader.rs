@@ -3,7 +3,7 @@
 use crate::bus::SystemBus;
 use std::fs;
 
-const KERNEL_LOAD: u64 = 0x4008_0000;
+pub const KERNEL_LOAD: u64 = 0x4008_0000;
 
 /// ARM64 kernel Image header (64 bytes).
 struct KernelHeader {
@@ -45,6 +45,14 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
     }
 
     Ok(entry)
+}
+
+/// Load raw instruction bytes directly into RAM at `KERNEL_LOAD`.
+/// Returns `KERNEL_LOAD` as the entry point.
+pub fn load_raw_image(bus: &mut SystemBus, data: &[u8]) {
+    for (i, &byte) in data.iter().enumerate() {
+        bus.write(KERNEL_LOAD + i as u64, 1, byte as u64);
+    }
 }
 
 fn parse_header(data: &[u8]) -> Result<KernelHeader, &'static str> {
