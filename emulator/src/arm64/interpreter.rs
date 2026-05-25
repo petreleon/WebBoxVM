@@ -165,8 +165,9 @@ mod tests {
         let mut cpu = Armv8Cpu::new();
         let mut bus = SystemBus::new();
         
-        // Load the externally-assembled synthetic kernel
-        let data = fs::read("/tmp/kernel.img").expect("synthetic kernel not found; run assemble_kernel.py first");
+        // Load the properly assembled ARM64 kernel binary
+        // Built from /tmp/kernel.S using: aarch64-elf-as, aarch64-elf-ld, aarch64-elf-objcopy
+        let data = fs::read("/tmp/kernel_raw.bin").expect("kernel not found; run build_kernel.sh first");
         load_raw_image(&mut bus, &data);
         
         // Set a valid stack pointer
