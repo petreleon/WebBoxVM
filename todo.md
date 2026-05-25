@@ -10,7 +10,7 @@
 - [x] Unit test: SUB X0, X1, X2
 - [x] Unit test: MOVZ X0, #0x1234
 - [x] Unit test: MOVZ X0, #0x1234, LSL #16
-- [x] Unit test: LDR/STR roundtrip  
+- [x] Unit test: LDR/STR roundtrip
 - [x] Unit test: branch forward
 - [x] Unit test: hello_uart end-to-end
 - [x] System bus with MMIO dispatch (RAM + UART)
@@ -39,19 +39,30 @@
 - [x] Load kernel into RAM at `0x4008_0000`
 - [x] Boot stub: set X0=DTB addr, branch to kernel entry `0x41da7ee0`
 - [x] Run kernel: successfully decode and execute 22 real kernel instructions
-- [x] **Synthetic kernel test prints "Uncompressing Linux...\n" on UART**
+- [x] Synthetic kernel test prints "Uncompressing Linux...\n" on UART
   - PE-wrapped Debian kernel requires EFI runtime services (not implemented)
   - Raw kernel boot deferred to Sprint 3 (needs DTB + memory layout)
 
 **Result:** 40 tests pass (1 slow test ignored), zero warnings.
 
-## Sprint 3 — Raw Kernel Boot (Current)
-- [ ] Extract or download raw ARM64 Image (no PE wrapper)
-- [ ] Create minimal Device Tree Blob (memory + UART + timer)
-- [ ] Implement MSR/MRS for system register access
-- [ ] Boot raw kernel to `printk("Uncompressing Linux...")`
-- [ ] GICv2 distributor stub (enough for timer IRQ 30)
-- [ ] ARM Generic Timer (`CNTPCT` increments, comparator fires)
+## Sprint 3 — EFI Stub Protocols (Current)
+- [x] Code reorganization: split EFI into `encode.rs`, `layout.rs`, `tables.rs`, `mod.rs`
+- [x] Minimal EFI SystemTable + BootServices + RuntimeServices trampolines (return EFI_SUCCESS)
+- [x] Extend PhysicalMemory to support EFI region (`0x8000_0000 – 0x8FFF_FFFF`)
+- [x] Fix synthetic kernel test (`/tmp/kernel_raw.bin` overwritten, MOVZ encoding bug)
+- [x] Real kernel executes **34 PE-stub instructions** before `RET X30` where `X30=0`
+- [ ] Implement `HandleProtocol` Loaded Image Protocol callback
+  - Return pointer to `EFI_LOADED_IMAGE_PROTOCOL` structure with image_base, image_size
+- [ ] Implement `AllocatePages` / `FreePages` callback
+  - Track a simple allocator, reserve pages for kernel relocation
+- [ ] Implement `GetMemoryMap` callback
+  - Return RAM ranges: `0x4000_0000 – 0x7FFF_FFFF`
+- [ ] Implement `ExitBootServices` callback
+  - Final step before jumping to decompressed kernel
+- [ ] Trace which protocol offsets the Debian stub calls, verify return values
+- [ ] Boot real kernel past EFI stub → decompressor → `printk("Uncompressing Linux...")`
+
+**Result:** TBD.
 
 ## Sprint 4 — MMU
 - [ ] 3-level page table walk (39-bit VA)
