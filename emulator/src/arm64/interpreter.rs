@@ -136,10 +136,10 @@ mod tests {
         cpu.regs.set_x(0, 0); // no DTB yet
         cpu.regs.sp = 0x43FF_F000; // near top of 1 GiB RAM
 
-        // Run step by step for first 20 instructions to verify real kernel code executes
+        // Run step by step for first 25 instructions to verify real kernel code executes
         cpu.regs.pc = entry;
         let mut steps = 0;
-        for _ in 0..20 {
+        for _ in 0..25 {
             let raw = bus.read(cpu.regs.pc, 4).unwrap();
             let decoded = decode(raw as u32);
             if let Some(instr) = decoded {

@@ -14,7 +14,7 @@ struct KernelHeader {
     _flags: u64,
     _res1: u64,
     _res2: u64,
-    magic: u32,
+    _magic: u32,
     _res3: u32,
 }
 
@@ -69,7 +69,7 @@ fn parse_header(data: &[u8]) -> Result<KernelHeader, &'static str> {
         _flags: read_u64(24),
         _res1: read_u64(32),
         _res2: read_u64(40),
-        magic,
+        _magic: read_u32(56),
         _res3: read_u32(60),
     })
 }
@@ -96,7 +96,7 @@ mod tests {
     fn parse_real_kernel_header() {
         let data = fs::read("/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
         let h = parse_header(&data).unwrap();
-        assert_eq!(h.magic, 0x644d5241);
+        assert_eq!(h._magic, 0x644d5241);
         assert_eq!(h.text_offset, 0);
         assert!(h.image_size > 0);
     }
