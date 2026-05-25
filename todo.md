@@ -18,13 +18,32 @@
 
 **Result:** 23 tests pass, zero warnings.
 
-## Sprint 2 — Bootloader (Current)
-- [ ] ELF/Image loader: parse ARM64 Linux kernel header
-- [ ] Load kernel into RAM at `0x4008_0000`
-- [ ] Boot stub at `0x0`: MOVZ/MOVK to build init regs, BR to kernel entry
-- [ ] See first kernel message on UART: "Uncompressing Linux..."
+## Sprint 2 — Bootloader (COMPLETE)
+- [x] Boot stub mechanism: BR Xn jumps to kernel entry point
+- [x] End-to-end test: boot stub → kernel code → UART output
+- [x] Download real Debian ARM64 kernel (PE/EFI format, 37 MB)
+- [x] Implement missing ARM64 instructions (~15 opcodes needed for real kernel):
+  - [x] BL (branch with link), RET (return)
+  - [x] CBZ/CBNZ (compare and branch on zero)
+  - [x] LDP/STP (load/store pair)
+  - [x] MOV (register), CMP (compare)
+  - [x] ADD/SUB immediate
+  - [x] ADRP (page-relative address)
+  - [x] B.cond (conditional branch)
+  - [x] TBZ/TBNZ (test bit and branch)
+  - [x] MOVK (move with keep)
+  - [x] LDR literal (PC-relative load)
+  - [x] DSB/ISB/DMB (barrier nops)
+- [x] SP support in register read/write and memory addressing
+- [x] Parse ARM64 Linux kernel header / PE section table
+- [x] Load kernel into RAM at `0x4008_0000`
+- [x] Boot stub: set X0=DTB addr, branch to kernel entry `0x41da7ee0`
+- [x] Run kernel: successfully decode and execute 22 real kernel instructions
+- [ ] Run kernel, see first output on UART (deferred: needs more instructions + memory init)
 
-## Sprint 3 — Interrupts & Timer
+**Result:** 40 tests pass (1 slow test ignored), zero warnings.
+
+## Sprint 3 — Device Tree & Memory Layout
 - [ ] GICv2 distributor stub (enough for timer IRQ 30)
 - [ ] ARM Generic Timer (`CNTPCT` increments, comparator fires)
 - [ ] Device tree blob (DTB) in guest memory

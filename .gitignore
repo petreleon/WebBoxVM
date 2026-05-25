@@ -10,3 +10,9 @@ Cargo.lock
 
 # OS
 .DS_Store
+
+# Kernel images (large binaries, download on demand)
+Image.gz
+vmlinuz
+*.vmlinuz
+*.img

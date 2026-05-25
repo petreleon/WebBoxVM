@@ -122,4 +122,38 @@ mod tests {
         let _ = run(&mut cpu, &mut bus, kernel_pc, 3).unwrap();
         assert_eq!(bus.uart.output_string(), "4");
     }
+
+    #[test]
+    #[ignore = "slow: loads 37 MB kernel"]
+    fn real_kernel_runs_past_prologue() {
+        use crate::loader::load_kernel;
+        let mut cpu = Armv8Cpu::new();
+        let mut bus = SystemBus::new();
+
+        let entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+
+        // Linux boot convention: X0 = DTB (null for now), SP = top of RAM
+        cpu.regs.set_x(0, 0); // no DTB yet
+        cpu.regs.sp = 0x43FF_F000; // near top of 1 GiB RAM
+
+        // Run step by step for first 20 instructions to verify real kernel code executes
+        cpu.regs.pc = entry;
+        let mut steps = 0;
+        for _ in 0..20 {
+            let raw = bus.read(cpu.regs.pc, 4).unwrap();
+            let decoded = decode(raw as u32);
+            if let Some(instr) = decoded {
+                if execute(&mut cpu, &mut bus, instr).is_ok() {
+                    steps += 1;
+                } else {
+                    break; // expected: kernel reads unmapped addresses
+                }
+            } else {
+                break; // expected: unknown instruction
+            }
+        }
+
+        // We should execute at least 15 real kernel instructions before hitting a limitation
+        assert!(steps >= 15, "Only executed {} instructions, expected at least 15", steps);
+    }
 }
