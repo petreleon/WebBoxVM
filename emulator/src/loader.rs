@@ -26,7 +26,11 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
 
     // If this is a PE/EFI image, find the ARM64 entry point
     let entry = if is_pe(&data) {
-        parse_pe_entry(&data)?
+        let entry = parse_pe_entry(&data)?;
+        // Setup minimal EFI environment for PE/EFI boot
+        let img_size = header.image_size.max(data.len() as u64);
+        let (_handle, _st) = crate::efi::setup_efi_tables(bus, KERNEL_LOAD, img_size);
+        entry
     } else {
         KERNEL_LOAD + header.text_offset
     };
