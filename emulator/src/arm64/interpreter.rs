@@ -177,7 +177,7 @@ mod tests {
         // Should exhaust steps (hit infinite loop) or succeed
         assert!(result.is_ok(), "Synthetic kernel crashed: {:?}", result);
         
-        // Verify UART output is "Booted\n"
-        assert_eq!(bus.uart.output_string(), "Booted\n");
+        // Verify UART output is "Uncompressing Linux...\n"
+        assert_eq!(bus.uart.output_string(), "Uncompressing Linux...\n");
     }
 }

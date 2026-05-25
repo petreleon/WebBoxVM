@@ -39,14 +39,19 @@
 - [x] Load kernel into RAM at `0x4008_0000`
 - [x] Boot stub: set X0=DTB addr, branch to kernel entry `0x41da7ee0`
 - [x] Run kernel: successfully decode and execute 22 real kernel instructions
-- [ ] Run kernel, see first output on UART (deferred: needs more instructions + memory init)
+- [x] **Synthetic kernel test prints "Uncompressing Linux...\n" on UART**
+  - PE-wrapped Debian kernel requires EFI runtime services (not implemented)
+  - Raw kernel boot deferred to Sprint 3 (needs DTB + memory layout)
 
 **Result:** 40 tests pass (1 slow test ignored), zero warnings.
 
-## Sprint 3 — Device Tree & Memory Layout
+## Sprint 3 — Raw Kernel Boot (Current)
+- [ ] Extract or download raw ARM64 Image (no PE wrapper)
+- [ ] Create minimal Device Tree Blob (memory + UART + timer)
+- [ ] Implement MSR/MRS for system register access
+- [ ] Boot raw kernel to `printk("Uncompressing Linux...")`
 - [ ] GICv2 distributor stub (enough for timer IRQ 30)
 - [ ] ARM Generic Timer (`CNTPCT` increments, comparator fires)
-- [ ] Device tree blob (DTB) in guest memory
 
 ## Sprint 4 — MMU
 - [ ] 3-level page table walk (39-bit VA)

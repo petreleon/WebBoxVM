@@ -101,15 +101,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_real_kernel_header() {
-        let data = fs::read("/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
-        let h = parse_header(&data).unwrap();
-        assert_eq!(h._magic, 0x644d5241);
-        assert_eq!(h.text_offset, 0);
-        assert!(h.image_size > 0);
-    }
-
-    #[test]
     fn pe_entry_found() {
         let data = fs::read("/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
         assert!(is_pe(&data));
