@@ -31,7 +31,7 @@ pub fn decode(raw: u32) -> Option<Instr> {
         if opc == 3 { return decode_movk(raw); }
     }
     if bits28_24 == 0b10011 { return decode_bitfield(raw); }
-    if bits28_21 == 0b11010100 { return decode_condsel(raw); }
+    if bits28_21 == 0b11010100 || bits28_21 == 0b11010010 { return decode_condsel(raw); }
 
     // ADD/SUB register — 0b11010 or 0b01011
     let dp_reg_pat = bits28_24;
@@ -266,17 +266,28 @@ fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
 
 fn decode_condsel(raw: u32) -> Option<Instr> {
     let sf = ((raw >> 31) & 1) != 0;
-    let o2 = ((raw >> 20) & 1) != 0;
-    let cond = ((raw >> 16) & 0xF) as u8;
-    let o3 = ((raw >> 15) & 1) != 0;
-    let rm = ((raw >> 10) & 0x1F) as u8;
+    let op = (raw >> 30) & 1;
+    let o2 = ((raw >> 10) & 1) != 0;
+    let cond = if op == 1 { ((raw >> 12) & 0xF) as u8 } else { ((raw >> 12) & 0xF) as u8 };
+    let o3 = ((raw >> 11) & 1) != 0;
+    let _rm = ((raw >> 16) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
 
-    if !o2 || !o3 {
-        return Some(Instr { size: 0, op: Opcode::Csel, rd, rn, rm, imm: 0, sf, cond });
+    if op == 1 {
+        // CCMP or CCMN
+        let is_register = ((raw >> 21) & 3) == 3; // bits22:21 = 11
+        let is_immediate = ((raw >> 21) & 3) == 2; // bits22:21 = 10
+        if !is_register && !is_immediate { return None; }
+        let nzcv = (raw & 0xF) as u64;
+        let rm_or_imm = ((raw >> 16) & 0x1F) as u64;
+        return Some(Instr { size: 0, op: Opcode::Ccmp, rd: rd, rn, rm: rm_or_imm as u8, imm: nzcv, sf, cond });
     }
-    Some(Instr { size: 0, op: Opcode::Ccmp, rd: 0, rn, rm, imm: rd as u64, sf, cond })
+
+    if !o2 || !o3 {
+        return Some(Instr { size: 0, op: Opcode::Csel, rd, rn, rm: _rm, imm: 0, sf, cond });
+    }
+    None
 }
 
 fn decode_b(raw: u32) -> Option<Instr> {
@@ -329,5 +340,14 @@ mod tests {
         let instr = decode(0xD63F0000).unwrap();
         assert_eq!(instr.op, Opcode::Blr);
         assert_eq!(instr.rn, 0);
+    }
+
+    #[test]
+    fn decode_ccmp_imm_pl_imm_d() {
+        let raw: u32 = 0xFA405A4D;
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::Ccmp);
+        assert_eq!(instr.cond, 5); // PL
+        assert_eq!(instr.imm, 0xD); // nzcv
     }
 }
