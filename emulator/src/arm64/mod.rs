@@ -1,12 +1,18 @@
 //! ARM64 (AArch64) CPU core.
 
-mod instr;
+mod decode;
+mod execute;
+mod helpers;
+mod opcodes;
 mod interpreter;
 mod pstate;
 mod registers;
 mod system_regs;
 
-pub use instr::{decode, execute, Instr, Opcode};
+pub use decode::decode;
+pub use execute::execute;
+pub use helpers::{cond_taken, read_reg, read_base, write_reg};
+pub use opcodes::{Instr, Opcode};
 pub use interpreter::{run, RunError};
 pub use pstate::ProcessorState;
 pub use registers::RegisterFile;
@@ -21,13 +27,8 @@ pub struct Armv8Cpu {
 }
 
 impl Armv8Cpu {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn reset(&mut self) {
-        *self = Self::default();
-    }
+    pub fn new() -> Self { Self::default() }
+    pub fn reset(&mut self) { *self = Self::default(); }
 }
 
 impl Default for Armv8Cpu {
