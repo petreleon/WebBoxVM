@@ -37,9 +37,9 @@ fn bump_allocator_trampoline(head: u64, _base: u64) -> [u32; 8] {
         movz_x(4, (head & 0xFFFF) as u16),
         movk_x(4, 1, ((head >> 16) & 0xFFFF) as u16),
         0xF9400085,              // LDR  X5, [X4]      // read current pool head
-        0x8B0200A0,              // ADD  X0, X5, X2    // allocated = head + size
+        0x8B0100A0,              // ADD  X0, X5, X1    // X0 = head + size (X1=Size)
         0xF9000080,              // STR  X0, [X4]      // update pool head
-        0xF9000065,              // STR  X5, [X3]      // return old head as *Buffer
+        0xF9000045,              // STR  X5, [X2]      // *Buffer = old head (X2=**Buffer)
         movz_x(0, 0),            // MOVZ X0, #0      // EFI_SUCCESS
         ret(),
     ]
@@ -115,10 +115,11 @@ pub fn setup_efi_tables(bus: &mut SystemBus, image_base: u64, image_size: u64) -
     }
 
     // Fix AllocatePool to use the bump allocator.
-    let pool_tp = EFI_SERVICE_TRAMPOLINES + (256 + 9) * TRAMPOLINE_STRIDE;
+    // AllocatePool is boot slot i=5 (offset 0x40). Use its trampoline slot.
+    let pool_tp = EFI_SERVICE_TRAMPOLINES + (256 + 5) * TRAMPOLINE_STRIDE;
     let bump = bump_allocator_trampoline(POOL_HEAD, POOL_BASE);
     write_trampoline(bus, pool_tp, &bump);
-    write64(bus, EFI_BOOT_SERVICES + 0x48, pool_tp);
+    write64(bus, EFI_BOOT_SERVICES + 0x40, pool_tp);
     // Prime the bump head so the first allocation starts at POOL_BASE.
     write64(bus, POOL_HEAD, POOL_BASE);
 

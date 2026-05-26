@@ -1,6 +1,6 @@
 //! Instruction execution helpers: condition evaluation and register access.
 
-use super::{Armv8Cpu, ProcessorState};
+use super::Armv8Cpu;
 
 /// Evaluate an AArch64 condition code using current NZCV flags.
 pub fn cond_taken(cpu: &Armv8Cpu, cond: u8) -> bool {

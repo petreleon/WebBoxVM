@@ -119,7 +119,7 @@ fn real_kernel_runs_past_prologue() {
     }
 
     println!("EFI stub executed {} instructions, X0=0x{:016x}", steps, cpu.regs.x(0));
-    assert!(steps >= 30, "Only executed {} instructions, expected at least 30", steps);
+    assert!(steps >= 200, "Only executed {} instructions, expected at least 200", steps);
 }
 
 #[test]
