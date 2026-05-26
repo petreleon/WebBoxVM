@@ -1,5 +1,6 @@
 //! ARM64 (AArch64) CPU core.
 
+mod bitmask_imm;
 mod decode;
 mod execute;
 mod helpers;

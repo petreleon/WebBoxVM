@@ -97,7 +97,8 @@ fn real_kernel_runs_past_prologue() {
     cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
 
     let mut steps = 0;
-    for _ in 0..400 {
+    let mut last_pc = cpu.regs.pc;
+    for _ in 0..1000 {
         let raw = match bus.read(cpu.regs.pc, 4) {
             Some(v) => v as u32,
             None => {
@@ -111,7 +112,11 @@ fn real_kernel_runs_past_prologue() {
                 break;
             }
             steps += 1;
-            if steps >= 200 { break; }
+            if cpu.regs.pc == last_pc {
+                println!("Stalled at PC=0x{:016x} after {} steps", cpu.regs.pc, steps);
+                break;
+            }
+            last_pc = cpu.regs.pc;
         } else {
             println!("UNKNOWN INSTRUCTION at step {} PC=0x{:016x} raw=0x{:08x}", steps, cpu.regs.pc, raw);
             break;
@@ -119,7 +124,63 @@ fn real_kernel_runs_past_prologue() {
     }
 
     println!("EFI stub executed {} instructions, X0=0x{:016x}", steps, cpu.regs.x(0));
+    println!("  Final: PC=0x{:016x} SP=0x{:016x}", cpu.regs.pc, cpu.regs.sp);
     assert!(steps >= 200, "Only executed {} instructions, expected at least 200", steps);
+}
+
+#[test]
+#[ignore = "slow: loads 37 MB kernel"]
+fn real_kernel_runs_past_prologue_trace() {
+    // Debug-only test: prints trace
+    use crate::loader::kernel::{load_kernel, KERNEL_LOAD};
+    use crate::efi::setup_efi_tables;
+
+    let mut cpu = Armv8Cpu::new();
+    let mut bus = SystemBus::new();
+
+    let _entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+
+    let (handle, st) = setup_efi_tables(&mut bus, KERNEL_LOAD, 0x024f_0000);
+    cpu.regs.set_x(0, handle);
+    cpu.regs.set_x(1, st);
+    cpu.regs.sp = 0x43FF_F000;
+
+    bus.write(0x43FFE000, 4, 0xD65F03C0);
+    cpu.regs.set_x(30, 0x43FFE000);
+
+    cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
+
+    let mut steps = 0;
+    let mut last_pc = cpu.regs.pc;
+    for _ in 0..1000 {
+        let raw = match bus.read(cpu.regs.pc, 4) {
+            Some(v) => v as u32,
+            None => {
+                println!("Memory fault at step {} PC=0x{:016x}", steps, cpu.regs.pc);
+                break;
+            }
+        };
+        if let Some(instr) = decode(raw) {
+            if let Err(e) = execute(&mut cpu, &mut bus, instr) {
+                println!("EXECUTE ERROR at step {} PC=0x{:016x}: {:?}", steps, cpu.regs.pc, e);
+                break;
+            }
+            steps += 1;
+            if cpu.regs.pc == last_pc {
+                println!("Stalled at PC=0x{:016x} after {} steps", cpu.regs.pc, steps);
+                break;
+            }
+            last_pc = cpu.regs.pc;
+        } else {
+            println!("UNKNOWN INSTRUCTION at step {} PC=0x{:016x} raw=0x{:08x}", steps, cpu.regs.pc, raw);
+            break;
+        }
+    }
+
+    println!("EFI stub executed {} instructions", steps);
+    println!("  X0=0x{:016x} X1=0x{:016x} X2=0x{:016x}", cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2));
+    println!("  PC=0x{:016x} SP=0x{:016x} X30=0x{:016x}", cpu.regs.pc, cpu.regs.sp, cpu.regs.x(30));
+    // No assert — this is just a debug trace
 }
 
 #[test]
