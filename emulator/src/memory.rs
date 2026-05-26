@@ -6,25 +6,22 @@ const RAM_TOP: u64 = RAM_BASE + RAM_SIZE as u64;
 
 const EFI_SIZE: usize = efi::EFI_MEM_SIZE as usize;
 
-/// Base address for the kernel PE image (where the Debian kernel expects to run).
-/// The PE has ImageBase=0 and .text at 0x10000.  We carve out a 64 MiB
-/// region at 0x10000 so the EFI stub’s check_image_region succeeds.
-const KERNEL_REGION_BASE: u64 = 0x1_0000;
-const KERNEL_REGION_SIZE: usize = 64 * 1024 * 1024; // 64 MiB
-const KERNEL_REGION_TOP: u64 = KERNEL_REGION_BASE + KERNEL_REGION_SIZE as u64;
+/// Unified low-memory region: covers 0x0->0x4000_0000 with a single flat
+/// array. Ends exactly where RAM starts so there is no overlap.
+const LOW_REGION_SIZE: usize = 0x4000_0000;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PhysicalMemory {
-    ram: Vec<u8>,
-    kernel_region: Vec<u8>,
-    efi: Vec<u8>,
+    low: Vec<u8>,       // 0x0        -> 0x7000_0000
+    ram: Vec<u8>,       // 0x4000_0000-> 0x7FFF_FFFF (shadowed by low[])
+    efi: Vec<u8>,       // 0x8000_0000-> 0x8FFF_FFFF
 }
 
 impl PhysicalMemory {
     pub fn new() -> Self {
         Self {
+            low: vec![0u8; LOW_REGION_SIZE],
             ram: vec![0u8; RAM_SIZE],
-            kernel_region: vec![0u8; KERNEL_REGION_SIZE],
             efi: vec![0u8; EFI_SIZE],
         }
     }
@@ -52,28 +49,6 @@ impl PhysicalMemory {
                 ]),
                 _ => return None,
             })
-        } else if let Some(offset) = self.kernel_region_offset(addr) {
-            Some(match size {
-                1 => self.kernel_region[offset] as u64,
-                2 => u16::from_le_bytes([self.kernel_region[offset], self.kernel_region[offset + 1]]) as u64,
-                4 => u32::from_le_bytes([
-                    self.kernel_region[offset],
-                    self.kernel_region[offset + 1],
-                    self.kernel_region[offset + 2],
-                    self.kernel_region[offset + 3],
-                ]) as u64,
-                8 => u64::from_le_bytes([
-                    self.kernel_region[offset],
-                    self.kernel_region[offset + 1],
-                    self.kernel_region[offset + 2],
-                    self.kernel_region[offset + 3],
-                    self.kernel_region[offset + 4],
-                    self.kernel_region[offset + 5],
-                    self.kernel_region[offset + 6],
-                    self.kernel_region[offset + 7],
-                ]),
-                _ => return None,
-            })
         } else if let Some(offset) = self.efi_offset(addr) {
             Some(match size {
                 1 => self.efi[offset] as u64,
@@ -96,6 +71,28 @@ impl PhysicalMemory {
                 ]),
                 _ => return None,
             })
+        } else if let Some(offset) = self.low_offset(addr) {
+            Some(match size {
+                1 => self.low[offset] as u64,
+                2 => u16::from_le_bytes([self.low[offset], self.low[offset + 1]]) as u64,
+                4 => u32::from_le_bytes([
+                    self.low[offset],
+                    self.low[offset + 1],
+                    self.low[offset + 2],
+                    self.low[offset + 3],
+                ]) as u64,
+                8 => u64::from_le_bytes([
+                    self.low[offset],
+                    self.low[offset + 1],
+                    self.low[offset + 2],
+                    self.low[offset + 3],
+                    self.low[offset + 4],
+                    self.low[offset + 5],
+                    self.low[offset + 6],
+                    self.low[offset + 7],
+                ]),
+                _ => return None,
+            })
         } else {
             None
         }
@@ -111,21 +108,21 @@ impl PhysicalMemory {
                 _ => return None,
             }
             Some(())
-        } else if let Some(offset) = self.kernel_region_offset(addr) {
-            match size {
-                1 => self.kernel_region[offset] = value as u8,
-                2 => self.kernel_region[offset..][..2].copy_from_slice(&(value as u16).to_le_bytes()),
-                4 => self.kernel_region[offset..][..4].copy_from_slice(&(value as u32).to_le_bytes()),
-                8 => self.kernel_region[offset..][..8].copy_from_slice(&value.to_le_bytes()),
-                _ => return None,
-            }
-            Some(())
         } else if let Some(offset) = self.efi_offset(addr) {
             match size {
                 1 => self.efi[offset] = value as u8,
                 2 => self.efi[offset..][..2].copy_from_slice(&(value as u16).to_le_bytes()),
                 4 => self.efi[offset..][..4].copy_from_slice(&(value as u32).to_le_bytes()),
                 8 => self.efi[offset..][..8].copy_from_slice(&value.to_le_bytes()),
+                _ => return None,
+            }
+            Some(())
+        } else if let Some(offset) = self.low_offset(addr) {
+            match size {
+                1 => self.low[offset] = value as u8,
+                2 => self.low[offset..][..2].copy_from_slice(&(value as u16).to_le_bytes()),
+                4 => self.low[offset..][..4].copy_from_slice(&(value as u32).to_le_bytes()),
+                8 => self.low[offset..][..8].copy_from_slice(&value.to_le_bytes()),
                 _ => return None,
             }
             Some(())
@@ -138,12 +135,20 @@ impl PhysicalMemory {
         if let Some(offset) = self.ram_offset(addr) {
             dst.copy_from_slice(&self.ram[offset..offset + dst.len()]);
             Some(())
-        } else if let Some(offset) = self.kernel_region_offset(addr) {
-            dst.copy_from_slice(&self.kernel_region[offset..offset + dst.len()]);
-            Some(())
         } else if let Some(offset) = self.efi_offset(addr) {
             dst.copy_from_slice(&self.efi[offset..offset + dst.len()]);
             Some(())
+        } else if let Some(offset) = self.low_offset(addr) {
+            dst.copy_from_slice(&self.low[offset..offset + dst.len()]);
+            Some(())
+        } else {
+            None
+        }
+    }
+
+    fn low_offset(&self, addr: u64) -> Option<usize> {
+        if addr < LOW_REGION_SIZE as u64 {
+            Some(addr as usize)
         } else {
             None
         }
@@ -152,14 +157,6 @@ impl PhysicalMemory {
     fn ram_offset(&self, addr: u64) -> Option<usize> {
         if addr >= RAM_BASE && addr < RAM_TOP {
             Some((addr - RAM_BASE) as usize)
-        } else {
-            None
-        }
-    }
-
-    fn kernel_region_offset(&self, addr: u64) -> Option<usize> {
-        if addr >= KERNEL_REGION_BASE && addr < KERNEL_REGION_TOP {
-            Some((addr - KERNEL_REGION_BASE) as usize)
         } else {
             None
         }
@@ -208,6 +205,6 @@ mod tests {
     #[test]
     fn unmapped_fails() {
         let m = PhysicalMemory::new();
-        assert_eq!(m.read(0x0000_0000, 4), None);
+        assert_eq!(m.read(0x0000_0000, 4), Some(0)); // low_region covers 0..0x7000_0000
     }
 }

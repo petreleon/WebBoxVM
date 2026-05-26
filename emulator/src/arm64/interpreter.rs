@@ -153,12 +153,12 @@ mod tests {
                 }
             };
             if let Some(instr) = decode(raw) {
-                if steps >= 70 {
+                if steps >= 60 {
                 println!("Step {:3} PC=0x{:016x}: raw=0x{:08x} {:10?}  X0={:016x} X1={:016x} X2={:016x} X30={:016x}",
                     steps, cpu.regs.pc, raw, instr.op,
                     cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2),
                     cpu.regs.x(30));
-            }
+                }
                 if let Err(e) = execute(&mut cpu, &mut bus, instr) {
                     println!("EXECUTE ERROR at step {} PC=0x{:016x}: {:?}", steps, cpu.regs.pc, e);
                     break;

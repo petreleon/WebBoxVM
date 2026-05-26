@@ -8,6 +8,14 @@ pub fn movz_x(d: u8, imm16: u16) -> u32 {
     0xD280_0000 | (imm << 5) | d
 }
 
+/// Encode ARM64 `MOVK Xd, #imm16, LSL #(16*hw)`.
+pub fn movk_x(d: u8, hw: u8, imm16: u16) -> u32 {
+    let d = d as u32 & 0x1F;
+    let imm = imm16 as u32;
+    let hw = (hw as u32 & 0x3) << 21;
+    0xF280_0000 | hw | (imm << 5) | d
+}
+
 /// Encode ARM64 `RET`.
 pub const RET: u32 = 0xD65F_03C0;
 

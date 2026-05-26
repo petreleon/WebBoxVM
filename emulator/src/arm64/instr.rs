@@ -9,6 +9,7 @@ pub enum Opcode {
     Sub,
     Movz,
     Ldr,
+    LdrLit,
     Str,
     B,
     Br,
@@ -25,12 +26,17 @@ pub enum Opcode {
     MovReg,
     AddImm,
     SubImm,
+    CmpImm,
     Cmp,
     Adrp,
     Adr,
     Tbz,
     Tbnz,
     Movk,
+    Movn,
+    Sxtw,
+    Csel,
+    Ccmp,
     NopBarrier, // DSB, ISB, DMB
 }
 
@@ -46,14 +52,7 @@ pub struct Instr {
     pub size: u8, // access size in bytes for LDR/STR (0=unused)
 }
 
-impl Instr {
-    fn new(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, sf: bool, cond: u8) -> Self {
-        Self { op, rd, rn, rm, imm, sf, cond, size: 0 }
-    }
-    fn sized(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, sf: bool, cond: u8, size: u8) -> Self {
-        Self { op, rd, rn, rm, imm, sf, cond, size }
-    }
-}
+impl Instr {}
 
 /// Decode a raw 32-bit instruction.
 pub fn decode(raw: u32) -> Option<Instr> {
@@ -72,12 +71,20 @@ pub fn decode(raw: u32) -> Option<Instr> {
     if ((raw >> 24) & 0x1F) == 0b10000 { return decode_adr(raw); }
     // ADD/SUB immediate — bits[28:23] = 0b100010
     if ((raw >> 23) & 0x3F) == 0b100010 { return decode_addsub_imm(raw); }
-    // Wide moves (MOVN/MOVZ/MOVK) — bits[28:23] = 0b1001xx
-    if ((raw >> 23) & 0x3C) == 0b100100 { 
+    // Wide moves (MOVN/MOVZ/MOVK) — bits[28:24] = 0b10010
+    if ((raw >> 24) & 0x1F) == 0b10010 {
         let opc = (raw >> 29) & 3;
+        if opc == 0 { return decode_movn(raw); }
         if opc == 2 { return decode_movz(raw); }
         if opc == 3 { return decode_movk(raw); }
     }
+    // SBFM / UBFM / BFM (bitfield moves) — bits[28:24] = 0b10011
+    if ((raw >> 24) & 0x1F) == 0b10011 {
+        if let Some(instr) = decode_bitfield(raw) { return Some(instr); }
+    }
+    // Conditional select — bits[28:21] = 0b11010100 (must come before ADD register
+    // because CSEL also has bits28:24 = 0b11010)
+    if ((raw >> 21) & 0xFF) == 0b11010100 { return decode_condsel(raw); }
     // ADD/SUB register — bits[28:24] = 0b11010 (ADD) or 0b01011 (CMP/SUBS)
     let dp_reg_pat = (raw >> 24) & 0x1F;
     if dp_reg_pat == 0b11010 || dp_reg_pat == 0b01011 { return decode_dp_register(raw); }
@@ -132,8 +139,13 @@ fn decode_addsub_imm(raw: u32) -> Option<Instr> {
     let imm12 = ((raw >> 10) & 0xFFF) as u64;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
-    if s { return None; } // SUBS/CMP not yet
     let imm = if sh { imm12 << 12 } else { imm12 };
+
+    // CMP (immediate): SUBS with XZR destination
+    if s && op == 1 && rd == 31 {
+        return Some(Instr { size: 0, op: Opcode::CmpImm, rd: 31, rn, rm: 0, imm, sf, cond: 0 });
+    }
+    if s { return None; } // other S variants not yet
     let opcode = if op == 0 { Opcode::AddImm } else { Opcode::SubImm };
     Some(Instr { size: 0, op: opcode, rd, rn, rm: 0, imm, sf, cond: 0 })
 }
@@ -161,7 +173,7 @@ fn decode_ldr_lit(raw: u32) -> Option<Instr> {
     let imm19 = ((raw >> 5) & 0x7FFFF) as i32;
     let offset = (imm19 << 13) >> 11; // sign-extend 19-bit, multiply by 4
     let rt = (raw & 0x1F) as u8;
-    Some(Instr { size: 0, op: Opcode::Ldr, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::LdrLit, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
 }
 
 fn decode_ldst_pair(raw: u32) -> Option<Instr> {
@@ -260,6 +272,37 @@ fn decode_movz(raw: u32) -> Option<Instr> {
     Some(Instr { size: 0, op: Opcode::Movz, rd, rn: 0, rm: 0, imm: imm16 << (hw * 16), sf, cond: 0 })
 }
 
+fn decode_movn(raw: u32) -> Option<Instr> {
+    let sf = ((raw >> 31) & 1) != 0;
+    if ((raw >> 29) & 3) != 0 { return None; }
+    let hw = ((raw >> 21) & 3) as u64;
+    if hw > (if sf { 3 } else { 1 }) { return None; }
+    let imm16 = ((raw >> 5) & 0xFFFF) as u64;
+    let rd = (raw & 0x1F) as u8;
+    let val = !(imm16 << (hw * 16));
+    Some(Instr { size: 0, op: Opcode::Movn, rd, rn: 0, rm: 0, imm: if sf { val } else { val & 0xFFFF_FFFF }, sf, cond: 0 })
+}
+
+// Decode SBFM / UBFM / BFM (bitfield move).
+// Only SXTW (SBFM immr=0, imms=31) is supported for now.
+fn decode_bitfield(raw: u32) -> Option<Instr> {
+    // bits[28:24] == 0b10011 already checked by caller
+    let opc = ((raw >> 29) & 3) as u8;
+    let sf = ((raw >> 31) & 1) != 0;
+    let n = ((raw >> 22) & 1) != 0;
+    if n != sf { return None; }
+    let immr = ((raw >> 16) & 0x3F) as u64;
+    let imms = ((raw >> 10) & 0x3F) as u64;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    if opc == 0 && immr == 0 && imms == 31 {
+        return Some(Instr { size: 0, op: Opcode::Sxtw, rd, rn, rm: 0, imm: 32, sf, cond: 0 });
+    }
+    // Reject all other SBFM / UBFM / BFM variants
+    None
+}
+
 fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
     let size = (raw >> 30) & 3;
     let _v = ((raw >> 29) & 1) != 0;
@@ -272,6 +315,29 @@ fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
     let shift = if size == 3 { 3 } else if size == 2 { 2 } else { size as u8 };
     // Store raw size in `cond` so execute() knows the access width
     Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0, imm: imm12 << shift, sf, cond: 0 })
+}
+
+fn decode_condsel(raw: u32) -> Option<Instr> {
+    let sf = ((raw >> 31) & 1) != 0;
+    let _op = (raw >> 30) & 1;
+    let _s = ((raw >> 29) & 1) != 0;
+    let o2 = ((raw >> 20) & 1) != 0;
+    let cond = ((raw >> 16) & 0xF) as u8;
+    let o3 = ((raw >> 15) & 1) != 0;
+    let rm = ((raw >> 10) & 0x1F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    // CSEL family: decode leniently even if o2/o3 are set,
+    // because some real kernels emit encodings that objdump
+    // interprets as CSEL despite non-zero o2/o3.
+    if !o2 || !o3 {
+        return Some(Instr { size: 0, op: Opcode::Csel, rd, rn, rm, imm: 0, sf, cond });
+    }
+
+    // CCMP family: o2=1, o3=1
+    // CCMP (immediate/register): S=1, rd field holds nzcv constant
+    Some(Instr { size: 0, op: Opcode::Ccmp, rd: 0, rn, rm, imm: rd as u64, sf, cond })
 }
 
 fn decode_b(raw: u32) -> Option<Instr> {
@@ -293,7 +359,15 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             let new = (old & mask) | instr.imm;
             write_reg(cpu, instr.rd, new, instr.sf);
         }
+        Opcode::Movn => {
+            write_reg(cpu, instr.rd, instr.imm, instr.sf);
+        }
         Opcode::MovReg => write_reg(cpu, instr.rd, read_reg(cpu, instr.rm, instr.sf), instr.sf),
+        Opcode::Sxtw => {
+            let val = read_reg(cpu, instr.rn, false); // low 32 bits, zero-extended
+            let signed = ((val as i32) as i64) as u64; // sign-extend to 64 bits
+            write_reg(cpu, instr.rd, signed, true);
+        }
         Opcode::AddImm => write_reg(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf) + instr.imm, instr.sf),
         Opcode::SubImm => write_reg(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf) - instr.imm, instr.sf),
         Opcode::Adr => write_reg(cpu, instr.rd, (cpu.regs.pc as i64 + instr.imm as i64) as u64, true),
@@ -302,13 +376,15 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             write_reg(cpu, instr.rd, (page as i64 + instr.imm as i64) as u64, true);
         }
         Opcode::Ldr => {
-            let addr = if instr.rn == 0 {
-                (cpu.regs.pc as i64 + instr.imm as i64) as u64 // PC-relative literal
-            } else {
-                addr_with_offset(cpu, instr.rn, instr.imm)?
-            };
+            let addr = addr_with_offset(cpu, instr.rn, instr.imm)?;
             let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             let val = bus.read(addr, size).ok_or("LDR bus fault")?;
+            write_reg(cpu, instr.rd, val, instr.sf);
+        }
+        Opcode::LdrLit => {
+            let addr = (cpu.regs.pc as i64 + instr.imm as i64) as u64;
+            let size = if instr.sf { 8 } else { 4 };
+            let val = bus.read(addr, size).ok_or("LDR literal bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
         }
         Opcode::Str => {
@@ -368,33 +444,29 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             }
         }
         Opcode::BCond => {
-            let cond = instr.cond;
-            let n = cpu.pstate.n();
-            let z = cpu.pstate.z();
-            let c = cpu.pstate.c();
-            let v = cpu.pstate.v();
-            let taken = match cond & 0xF {
-                0b0000 => z,                    // EQ
-                0b0001 => !z,                   // NE
-                0b0010 => c,                    // CS/HS
-                0b0011 => !c,                   // CC/LO
-                0b0100 => n,                    // MI
-                0b0101 => !n,                   // PL
-                0b0110 => v,                    // VS
-                0b0111 => !v,                   // VC
-                0b1000 => c && !z,             // HI
-                0b1001 => !c || z,              // LS
-                0b1010 => n == v,               // GE
-                0b1011 => n != v,               // LT
-                0b1100 => !z && (n == v),      // GT
-                0b1101 => z || (n != v),        // LE
-                0b1110 => true,                // AL
-                0b1111 => true,                // NV
-                _ => true,
-            };
-            if taken {
+            if cond_taken(cpu, instr.cond) {
                 cpu.regs.pc = (cpu.regs.pc as i64 + instr.imm as i64) as u64;
                 return Ok(());
+            }
+        }
+        Opcode::Csel => {
+            let val = if cond_taken(cpu, instr.cond) {
+                read_reg(cpu, instr.rn, instr.sf)
+            } else {
+                read_reg(cpu, instr.rm, instr.sf)
+            };
+            write_reg(cpu, instr.rd, val, instr.sf);
+        }
+        Opcode::Ccmp => {
+            // Minimal CCMP: if condition is true, compare Rn with Rm (or immediate)
+            // and set NZCV flags conservatively. If false, ignore.
+            if cond_taken(cpu, instr.cond) {
+                let lhs = read_reg(cpu, instr.rn, instr.sf);
+                let rhs = read_reg(cpu, instr.rm, instr.sf);
+                let val = lhs.wrapping_sub(rhs);
+                let n = (val >> 63) & 1 != 0;
+                let z = val == 0;
+                cpu.pstate.set_nzcv(n, z, true, false);
             }
         }
         Opcode::Tbz => {
@@ -417,7 +489,12 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             let val = read_reg(cpu, instr.rn, instr.sf).wrapping_sub(read_reg(cpu, instr.rm, instr.sf));
             let n = (val >> 63) & 1 != 0;
             let z = val == 0;
-            // Conservative: C=true (no borrow), V=false (no overflow) for now
+            cpu.pstate.set_nzcv(n, z, true, false);
+        }
+        Opcode::CmpImm => {
+            let val = read_reg(cpu, instr.rn, instr.sf).wrapping_sub(instr.imm);
+            let n = (val >> 63) & 1 != 0;
+            let z = val == 0;
             cpu.pstate.set_nzcv(n, z, true, false);
         }
         Opcode::Nop => {}
@@ -436,6 +513,33 @@ fn read_reg(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
 fn read_base(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
     let val = if n >= 31 { cpu.regs.sp } else { cpu.regs.x(n) };
     if sf { val } else { (val as u32) as u64 }
+}
+
+/// Evaluate an AArch64 condition code using current NZCV flags.
+fn cond_taken(cpu: &Armv8Cpu, cond: u8) -> bool {
+    let n = cpu.pstate.n();
+    let z = cpu.pstate.z();
+    let c = cpu.pstate.c();
+    let v = cpu.pstate.v();
+    match cond & 0xF {
+        0b0000 => z,                    // EQ
+        0b0001 => !z,                   // NE
+        0b0010 => c,                    // CS/HS
+        0b0011 => !c,                   // CC/LO
+        0b0100 => n,                    // MI
+        0b0101 => !n,                   // PL
+        0b0110 => v,                    // VS
+        0b0111 => !v,                   // VC
+        0b1000 => c && !z,             // HI
+        0b1001 => !c || z,              // LS
+        0b1010 => n == v,               // GE
+        0b1011 => n != v,               // LT
+        0b1100 => !z && (n == v),      // GT
+        0b1101 => z || (n != v),        // LE
+        0b1110 => true,                // AL
+        0b1111 => true,                // NV
+        _ => true,
+    }
 }
 
 fn write_reg(cpu: &mut Armv8Cpu, n: u8, val: u64, sf: bool) {

@@ -1,5 +1,5 @@
 use crate::bus::SystemBus;
-use super::encode::{write64, write32, write_success_trampoline};
+use super::encode::{movz_x, movk_x, write64, write32};
 use super::layout::*;
 
 // ── Custom trampolines ──────────────────────────────────────────
@@ -11,24 +11,48 @@ const HANDLE_PROTO_INST: [u32; 5] = [
     0xD65F_03C0, // RET
 ];
 
-// GetMemoryMap: return EFI_SUCCESS and set *MemoryMapSize = 0
 const GET_MEMMAP_INST: [u32; 3] = [
     0xD280_0000, // MOVZ X0, #0
     0xD65F_03C0, // RET
-    // no-op pad
-    0xD503_201F,
+    0xD503_201F, // no-op pad
 ];
 
-/// Write a sequence of ARM64 instruction words to a trampoline slot.
+fn ret() -> u32 { 0xD65F_03C0 }
+
+// Pool base inside RAM. Must remain below 0x43FF_F000 (our SP).
+const POOL_BASE: u64 = 0x43A0_A000;
+// Bump-head pointer lives inside the EFI scratch area (16 MiB above EFI_MEM_BASE).
+const POOL_HEAD: u64 = EFI_MEM_BASE + 0x0FFF8;
+
 fn write_trampoline(bus: &mut SystemBus, addr: u64, insts: &[u32]) {
     for (i, &inst) in insts.iter().enumerate() {
         write32(bus, addr + (i as u64 * 4), inst);
     }
 }
 
+// Encode the bump-allocator trampoline at runtime so the address constants are
+// guaranteed correct (no risk of hand-typos).
+fn bump_allocator_trampoline(head: u64, _base: u64) -> [u32; 8] {
+    [
+        movz_x(4, (head & 0xFFFF) as u16),
+        movk_x(4, 1, ((head >> 16) & 0xFFFF) as u16),
+        0xF9400085,              // LDR  X5, [X4]      // read current pool head
+        0x8B0200A0,              // ADD  X0, X5, X2    // allocated = head + size
+        0xF9000080,              // STR  X0, [X4]      // update pool head
+        0xF9000065,              // STR  X5, [X3]      // return old head as *Buffer
+        movz_x(0, 0),            // MOVZ X0, #0      // EFI_SUCCESS
+        ret(),
+    ]
+}
+
 pub fn setup_efi_tables(bus: &mut SystemBus, image_base: u64, image_size: u64) -> (u64, u64) {
     let handle = EFI_HANDLE_ADDR;
-    write64(bus, handle, 0xDEAD_BEEF_CAFE_BABE);
+    // The EFI stub dereferences ImageHandle (e.g. LDR X0,[X0,#96]).
+    // Point it at the kernel region base so the load succeeds but the
+    // actual LoadedImageProtocol is still returned by HandleProtocol.
+    // The EFI stub dereferences ImageHandle (e.g. LDR X0,[X0,#96]).
+    // Point it at the kernel region base so the read succeeds.
+    write64(bus, handle, 0x1_0000);
     write64(bus, EFI_ST_PTR_ADDR, EFI_SYSTEM_TABLE);
 
     let st = EFI_SYSTEM_TABLE;
@@ -57,18 +81,19 @@ pub fn setup_efi_tables(bus: &mut SystemBus, image_base: u64, image_size: u64) -
     ];
     for (i, off) in rt_offsets.iter().enumerate() {
         let tp = EFI_SERVICE_TRAMPOLINES + (i as u64) * TRAMPOLINE_STRIDE;
-        let ptr = write_success_trampoline(bus, tp, EFI_SUCCESS);
+        let ptr = super::encode::write_success_trampoline(bus, tp, EFI_SUCCESS);
         write64(bus, EFI_RUNTIME_SERVICES + off, ptr);
     }
 
     // ── Boot Services ──
-    let bs_slots: &[(u64, Option<&[u32]>)] = &[
+    // Slots 0..41 cover offsets 0x18..0x170 (step 8)
+    let boot_slots = [
         (0x18, None), (0x20, None), (0x28, None), (0x30, None),
-        (0x38, Some(&GET_MEMMAP_INST)),
+        (0x38, Some(&GET_MEMMAP_INST[..])),
         (0x40, None), (0x48, None), (0x50, None), (0x58, None),
         (0x60, None), (0x68, None), (0x70, None), (0x78, None),
         (0x80, None), (0x88, None), (0x90, None),
-        (0x98, Some(&HANDLE_PROTO_INST)),
+        (0x98, Some(&HANDLE_PROTO_INST[..])),
         (0xA0, None), (0xA8, None), (0xB0, None), (0xB8, None),
         (0xC0, None), (0xC8, None), (0xD0, None), (0xD8, None),
         (0xE0, None), (0xE8, None), (0xF0, None), (0xF8, None),
@@ -78,16 +103,29 @@ pub fn setup_efi_tables(bus: &mut SystemBus, image_base: u64, image_size: u64) -
         (0x160, None), (0x168, None), (0x170, None),
     ];
 
-    for (i, &(off, maybe_custom)) in bs_slots.iter().enumerate() {
+    for (i, &(off, maybe_custom)) in boot_slots.iter().enumerate() {
         let tp = EFI_SERVICE_TRAMPOLINES + (256 + i as u64) * TRAMPOLINE_STRIDE;
         if let Some(custom) = maybe_custom {
             write_trampoline(bus, tp, custom);
             write64(bus, EFI_BOOT_SERVICES + off, tp);
         } else {
-            let ptr = write_success_trampoline(bus, tp, EFI_SUCCESS);
+            let ptr = super::encode::write_success_trampoline(bus, tp, EFI_SUCCESS);
             write64(bus, EFI_BOOT_SERVICES + off, ptr);
         }
     }
+
+    // Fix AllocatePool to use the bump allocator.
+    let pool_tp = EFI_SERVICE_TRAMPOLINES + (256 + 9) * TRAMPOLINE_STRIDE;
+    let bump = bump_allocator_trampoline(POOL_HEAD, POOL_BASE);
+    write_trampoline(bus, pool_tp, &bump);
+    write64(bus, EFI_BOOT_SERVICES + 0x48, pool_tp);
+    // Prime the bump head so the first allocation starts at POOL_BASE.
+    write64(bus, POOL_HEAD, POOL_BASE);
+
+    // The EFI stub dereferences a NULL vtable pointer (LDR X0, [X0, #96]
+    // where X0 is zero).  To keep that dispatch working, prime the
+    // low-memory slot at 0x60 so it points at the BootServices table.
+    write64(bus, 0x60, EFI_BOOT_SERVICES);
 
     // Install EFI_LOADED_IMAGE_PROTOCOL
     super::protocols::install_loaded_image_protocol(bus, image_base, image_size);
