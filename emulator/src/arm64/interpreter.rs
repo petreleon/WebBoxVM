@@ -143,26 +143,47 @@ mod tests {
         // Run the PE entry point
         cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
 
+        // Verify bytes at step 104-107 location
+        let test_pc = KERNEL_LOAD + 0x01da7f84;
+        let test_raw = bus.read(test_pc, 4).unwrap() as u32;
+        println!("VERIFICATION: PC=0x{:016x} raw=0x{:08x} expected=0xd65f03c0", test_pc, test_raw);
+        let test_pc2 = KERNEL_LOAD + 0x01da7f88;
+        let test_raw2 = bus.read(test_pc2, 4).unwrap() as u32;
+        println!("VERIFICATION: PC=0x{:016x} raw=0x{:08x} expected=0xf94013e0", test_pc2, test_raw2);
+        let test_pc3 = KERNEL_LOAD + 0x01da7f78;
+        let test_raw3 = bus.read(test_pc3, 4).unwrap() as u32;
+        println!("VERIFICATION: PC=0x{:016x} raw=0x{:08x} expected=0xa94153f3", test_pc3, test_raw3);
+
         let mut steps = 0;
-        for _ in 0..100 {
+        for _ in 0..400 {
             let raw = match bus.read(cpu.regs.pc, 4) {
                 Some(v) => v as u32,
-                None => break,
+                None => {
+                    println!("Memory fault at step {} PC=0x{:016x}", steps, cpu.regs.pc);
+                    break;
+                }
             };
             if let Some(instr) = decode(raw) {
                 if execute(&mut cpu, &mut bus, instr).is_err() {
-                    // EFI stub likely returned to invalid address (0x0)
+                    println!("EXECUTE ERROR at step {} PC=0x{:016x}", steps, cpu.regs.pc);
                     break;
                 }
                 steps += 1;
-                // After EFI stub succeeds, it returns to caller or jumps to kernel
-                if steps >= 30 { break; }
+                if steps >= 200 { break; }
+                if steps >= 95 {
+                    println!("Step {:3} PC=0x{:016x}: raw=0x{:08x} {:10?}  X0={:016x} X1={:016x} X2={:016x} X30={:016x}",
+                        steps, cpu.regs.pc, raw, instr.op,
+                        cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2),
+                        cpu.regs.x(30));
+                }
             } else {
+                println!("UNKNOWN INSTRUCTION at step {} PC=0x{:016x} raw=0x{:08x}", steps, cpu.regs.pc, raw);
                 break;
             }
         }
 
         // We should execute at least 30 real kernel/EFI stub instructions
+        println!("EFI stub executed {} instructions, X0=0x{:016x}", steps, cpu.regs.x(0));
         assert!(steps >= 30, "Only executed {} instructions, expected at least 30", steps);
     }
 

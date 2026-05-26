@@ -15,6 +15,7 @@ pub enum Opcode {
     Nop,
     // Sprint 2 additions
     Bl,
+    Blr,
     Ret,
     Cbz,
     Cbnz,
@@ -42,15 +43,31 @@ pub struct Instr {
     pub imm: u64,
     pub sf: bool,
     pub cond: u8,
+    pub size: u8, // access size in bytes for LDR/STR (0=unused)
+}
+
+impl Instr {
+    fn new(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, sf: bool, cond: u8) -> Self {
+        Self { op, rd, rn, rm, imm, sf, cond, size: 0 }
+    }
+    fn sized(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, sf: bool, cond: u8, size: u8) -> Self {
+        Self { op, rd, rn, rm, imm, sf, cond, size }
+    }
 }
 
 /// Decode a raw 32-bit instruction.
 pub fn decode(raw: u32) -> Option<Instr> {
     if raw == 0xD503_201F { return decode_nop(); }
-    // Barriers: DSB/ISB/DMB — bits[31:12] = 0xD503_3
-    if ((raw >> 12) & 0xFFFFF) == 0b11010101000000110010 { return decode_barrier(); }
-    if ((raw >> 12) & 0xFFFFF) == 0b11010101000000110011 { return decode_barrier(); }
-    if ((raw >> 12) & 0xFFFFF) == 0b11010101000000110001 { return decode_barrier(); }
+    // Hints / barriers / PAuth: bits[31:12] = 0xD5032 (CRm op2 Rt)
+    if ((raw >> 12) & 0xFFFFF) == 0xD5032 {
+        let crm = ((raw >> 8) & 0xF) as u8;
+        let op2 = ((raw >> 5) & 0x7) as u8;
+        let _rt = (raw & 0x1F) as u8;
+        let is_barrier = op2 == 1 && (crm == 0b1010 || crm == 0b1011 || crm == 0b1101);
+        if is_barrier { return decode_barrier(); }
+        // Treat all other HINTs (including PAuth) as NOP
+        return decode_nop();
+    }
     // ADR/ADRP — bits[28:24] = 0b10000
     if ((raw >> 24) & 0x1F) == 0b10000 { return decode_adr(raw); }
     // ADD/SUB immediate — bits[28:23] = 0b100010
@@ -61,16 +78,21 @@ pub fn decode(raw: u32) -> Option<Instr> {
         if opc == 2 { return decode_movz(raw); }
         if opc == 3 { return decode_movk(raw); }
     }
-    // ADD/SUB register — bits[28:24] = 0b11010
-    if ((raw >> 24) & 0x1F) == 0b11010 { return decode_dp_register(raw); }
+    // ADD/SUB register — bits[28:24] = 0b11010 (ADD) or 0b01011 (CMP/SUBS)
+    let dp_reg_pat = (raw >> 24) & 0x1F;
+    if dp_reg_pat == 0b11010 || dp_reg_pat == 0b01011 { return decode_dp_register(raw); }
     // ORR (register) — bits[28:21] = 0b01010000, used for MOV register
     if ((raw >> 21) & 0xFF) == 0b01010000 { return decode_mov_reg(raw); }
-    // LDR/STR unsigned immediate — bits[28:24] = 0b11111
-    if ((raw >> 24) & 0xF8) == 0xF8 { return decode_ldst_unsigned(raw); }
+    // LDR/STR unsigned immediate — size+V in {0x38,0x78,0xB8,0xF8}
+    let ldst_family = (raw >> 24) & 0xF8;
+    if ldst_family == 0x38 || ldst_family == 0x78 || ldst_family == 0xB8 || ldst_family == 0xF8 {
+        return decode_ldst_unsigned(raw);
+    }
     // LDR literal — bits[31:24] = 0x58-0x5F
     if ((raw >> 24) & 0xF8) == 0x58 { return decode_ldr_lit(raw); }
-    // LDP/STP (GP regs) — bits[28:26] = 0b010 (V=0)
-    if ((raw >> 26) & 0b111) == 0b010 { return decode_ldst_pair(raw); }
+    // LDP/STP (GP regs) — bits[28:24] = 0b01000/0b01001/0b01010
+    let ldp_pat = (raw >> 24) & 0x1F;
+    if ldp_pat & 0b11100 == 0b01000 && ldp_pat != 0b01011 { return decode_ldst_pair(raw); }
     // B/BL — bits[31:26] = 0b000101 / 0b100101
     if ((raw >> 26) & 0x3F) == 0b000101 { return decode_b(raw); }
     if ((raw >> 26) & 0x3F) == 0b100101 { return decode_bl(raw); }
@@ -86,7 +108,7 @@ pub fn decode(raw: u32) -> Option<Instr> {
 }
 
 fn decode_barrier() -> Option<Instr> {
-    Some(Instr { op: Opcode::NopBarrier, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0 })
+    Some(Instr { op: Opcode::NopBarrier, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0 })
 }
 
 fn decode_adr(raw: u32) -> Option<Instr> {
@@ -99,7 +121,7 @@ fn decode_adr(raw: u32) -> Option<Instr> {
     if op { // ADRP
         imm <<= 12;
     }
-    Some(Instr { op: if op { Opcode::Adrp } else { Opcode::Adr }, rd, rn: 0, rm: 0, imm: imm as u64, sf: true, cond: 0 })
+    Some(Instr { size: 0, op: if op { Opcode::Adrp } else { Opcode::Adr }, rd, rn: 0, rm: 0, imm: imm as u64, sf: true, cond: 0 })
 }
 
 fn decode_addsub_imm(raw: u32) -> Option<Instr> {
@@ -113,7 +135,7 @@ fn decode_addsub_imm(raw: u32) -> Option<Instr> {
     if s { return None; } // SUBS/CMP not yet
     let imm = if sh { imm12 << 12 } else { imm12 };
     let opcode = if op == 0 { Opcode::AddImm } else { Opcode::SubImm };
-    Some(Instr { op: opcode, rd, rn, rm: 0, imm, sf, cond: 0 })
+    Some(Instr { size: 0, op: opcode, rd, rn, rm: 0, imm, sf, cond: 0 })
 }
 
 fn decode_movk(raw: u32) -> Option<Instr> {
@@ -123,7 +145,7 @@ fn decode_movk(raw: u32) -> Option<Instr> {
     if hw > (if sf { 3 } else { 1 }) { return None; }
     let imm16 = ((raw >> 5) & 0xFFFF) as u64;
     let rd = (raw & 0x1F) as u8;
-    Some(Instr { op: Opcode::Movk, rd, rn: 0, rm: 0, imm: imm16 << (hw * 16), sf, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::Movk, rd, rn: 0, rm: 0, imm: imm16 << (hw * 16), sf, cond: 0 })
 }
 
 fn decode_mov_reg(raw: u32) -> Option<Instr> {
@@ -132,14 +154,14 @@ fn decode_mov_reg(raw: u32) -> Option<Instr> {
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
     if rn != 31 { return None; } // Only ORR with XZR -> MOV
-    Some(Instr { op: Opcode::MovReg, rd, rn: 0, rm, imm: 0, sf, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::MovReg, rd, rn: 0, rm, imm: 0, sf, cond: 0 })
 }
 
 fn decode_ldr_lit(raw: u32) -> Option<Instr> {
     let imm19 = ((raw >> 5) & 0x7FFFF) as i32;
     let offset = (imm19 << 13) >> 11; // sign-extend 19-bit, multiply by 4
     let rt = (raw & 0x1F) as u8;
-    Some(Instr { op: Opcode::Ldr, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::Ldr, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
 }
 
 fn decode_ldst_pair(raw: u32) -> Option<Instr> {
@@ -154,20 +176,20 @@ fn decode_ldst_pair(raw: u32) -> Option<Instr> {
     let offset = (imm7 as i64) * (1i64 << scale);
     let op = if l { Opcode::Ldp } else { Opcode::Stp };
     // Encode: rd=rt, rn=rn, rm=rt2 (second reg), imm=offset, cond=post-index flag
-    Some(Instr { op, rd: rt, rn, rm: rt2, imm: offset as u64, sf, cond: op2 })
+    Some(Instr { size: 0, op, rd: rt, rn, rm: rt2, imm: offset as u64, sf, cond: op2 })
 }
 
 fn decode_bl(raw: u32) -> Option<Instr> {
     let imm26 = (raw & 0x3FF_FFFF) as i32;
     let offset = (imm26 << 6) >> 4; // sign-extend and multiply by 4
-    Some(Instr { op: Opcode::Bl, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::Bl, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
 }
 
 fn decode_bcond(raw: u32) -> Option<Instr> {
     let imm19 = ((raw >> 5) & 0x7FFFF) as i32;
     let offset = (imm19 << 13) >> 11; // sign-extend and multiply by 4
     let cond = (raw & 0xF) as u8;
-    Some(Instr { op: Opcode::BCond, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond })
+    Some(Instr { size: 0, op: Opcode::BCond, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond })
 }
 
 fn decode_cbz(raw: u32) -> Option<Instr> {
@@ -177,7 +199,7 @@ fn decode_cbz(raw: u32) -> Option<Instr> {
     let offset = (imm19 << 13) >> 11;
     let rt = (raw & 0x1F) as u8;
     let opcode = if op { Opcode::Cbnz } else { Opcode::Cbz };
-    Some(Instr { op: opcode, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf, cond: 0 })
+    Some(Instr { size: 0, op: opcode, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf, cond: 0 })
 }
 
 fn decode_tbz(raw: u32) -> Option<Instr> {
@@ -189,22 +211,22 @@ fn decode_tbz(raw: u32) -> Option<Instr> {
     let rt = (raw & 0x1F) as u8;
     let bit = (b5 as u64) * 32 + (b40 as u64);
     let opcode = if op { Opcode::Tbnz } else { Opcode::Tbz };
-    Some(Instr { op: opcode, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: bit as u8 })
+    Some(Instr { size: 0, op: opcode, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: bit as u8 })
 }
 
 fn decode_branch_reg(raw: u32) -> Option<Instr> {
     let opc = ((raw >> 21) & 0xF) as u8; // bits[24:21] distinguish BR/BLR/RET
     let rn = ((raw >> 5) & 0x1F) as u8;
     match opc {
-        0b0000 => Some(Instr { op: Opcode::Br, rd: 0, rn, rm: 0, imm: 0, sf: true, cond: 0 }),
-        0b0001 => Some(Instr { op: Opcode::Bl, rd: 0, rn, rm: 0, imm: 0, sf: true, cond: 0 }),
-        0b0010 => Some(Instr { op: Opcode::Ret, rd: 0, rn: if rn == 31 { 30 } else { rn }, rm: 0, imm: 0, sf: true, cond: 0 }),
+        0b0000 => Some(Instr { size: 0, op: Opcode::Br, rd: 0, rn, rm: 0, imm: 0, sf: true, cond: 0 }),
+        0b0001 => Some(Instr { size: 0, op: Opcode::Blr, rd: 0, rn, rm: 0, imm: 0, sf: true, cond: 0 }),
+        0b0010 => Some(Instr { size: 0, op: Opcode::Ret, rd: 0, rn: if rn == 31 { 30 } else { rn }, rm: 0, imm: 0, sf: true, cond: 0 }),
         _ => None,
     }
 }
 
 fn decode_nop() -> Option<Instr> {
-    Some(Instr { op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0 })
 }
 
 fn decode_dp_register(raw: u32) -> Option<Instr> {
@@ -217,13 +239,15 @@ fn decode_dp_register(raw: u32) -> Option<Instr> {
     let rm = ((raw >> 16) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
-    if s && rd == 31 && op == 1 {
+    if s {
         // CMP: SUBS with XZR destination
-        return Some(Instr { op: Opcode::Cmp, rd: 31, rn, rm, imm: 0, sf, cond: 0 });
+        if rd == 31 && op == 1 {
+            return Some(Instr { size: 0, op: Opcode::Cmp, rd: 31, rn, rm, imm: 0, sf, cond: 0 });
+        }
+        return None; // other S variants not yet
     }
-    if s { return None; }
     let opcode = if op == 0 { Opcode::Add } else { Opcode::Sub };
-    Some(Instr { op: opcode, rd, rn, rm, imm: 0, sf, cond: 0 })
+    Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: 0, sf, cond: 0 })
 }
 
 fn decode_movz(raw: u32) -> Option<Instr> {
@@ -233,25 +257,27 @@ fn decode_movz(raw: u32) -> Option<Instr> {
     if hw > (if sf { 3 } else { 1 }) { return None; }
     let imm16 = ((raw >> 5) & 0xFFFF) as u64;
     let rd = (raw & 0x1F) as u8;
-    Some(Instr { op: Opcode::Movz, rd, rn: 0, rm: 0, imm: imm16 << (hw * 16), sf, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::Movz, rd, rn: 0, rm: 0, imm: imm16 << (hw * 16), sf, cond: 0 })
 }
 
 fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
     let size = (raw >> 30) & 3;
     let _v = ((raw >> 29) & 1) != 0;
     let l = ((raw >> 22) & 1) != 0;
-    if size != 3 { return None; }
     let imm12 = ((raw >> 10) & 0xFFF) as u64;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
     let op = if l { Opcode::Ldr } else { Opcode::Str };
-    Some(Instr { op, rd: rt, rn, rm: 0, imm: imm12 << 3, sf: true, cond: 0 })
+    let sf = size >= 2; // 32-bit or 64-bit (not 8/16)
+    let shift = if size == 3 { 3 } else if size == 2 { 2 } else { size as u8 };
+    // Store raw size in `cond` so execute() knows the access width
+    Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0, imm: imm12 << shift, sf, cond: 0 })
 }
 
 fn decode_b(raw: u32) -> Option<Instr> {
     let imm26 = (raw & 0x3FF_FFFF) as i32;
     let offset = (imm26 << 6) >> 4;
-    Some(Instr { op: Opcode::B, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
+    Some(Instr { size: 0, op: Opcode::B, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
 }
 
 /// Execute a decoded instruction, mutating CPU and bus state.
@@ -268,8 +294,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             write_reg(cpu, instr.rd, new, instr.sf);
         }
         Opcode::MovReg => write_reg(cpu, instr.rd, read_reg(cpu, instr.rm, instr.sf), instr.sf),
-        Opcode::AddImm => write_reg(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf) + instr.imm, instr.sf),
-        Opcode::SubImm => write_reg(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf) - instr.imm, instr.sf),
+        Opcode::AddImm => write_reg(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf) + instr.imm, instr.sf),
+        Opcode::SubImm => write_reg(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf) - instr.imm, instr.sf),
         Opcode::Adr => write_reg(cpu, instr.rd, (cpu.regs.pc as i64 + instr.imm as i64) as u64, true),
         Opcode::Adrp => {
             let page = cpu.regs.pc & !0xFFF;
@@ -281,19 +307,19 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             } else {
                 addr_with_offset(cpu, instr.rn, instr.imm)?
             };
-            let size = if instr.sf { 8 } else { 4 };
+            let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             let val = bus.read(addr, size).ok_or("LDR bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
         }
         Opcode::Str => {
             let addr = addr_with_offset(cpu, instr.rn, instr.imm)?;
             let val = read_reg(cpu, instr.rd, instr.sf);
-            let size = if instr.sf { 8 } else { 4 };
+            let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             bus.write(addr, size, val);
         }
         Opcode::Ldp => {
             let base = addr_with_offset(cpu, instr.rn, instr.imm)?;
-            let size = if instr.sf { 8u64 } else { 4u64 };
+            let size = if instr.size != 0 { instr.size as u64 } else if instr.sf { 8u64 } else { 4u64 };
             let val1 = bus.read(base, size as u8).ok_or("LDP bus fault")?;
             let val2 = bus.read(base + size, size as u8).ok_or("LDP bus fault")?;
             write_reg(cpu, instr.rd, val1, instr.sf);
@@ -301,7 +327,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         }
         Opcode::Stp => {
             let base = addr_with_offset(cpu, instr.rn, instr.imm)?;
-            let size = if instr.sf { 8u64 } else { 4u64 };
+            let size = if instr.size != 0 { instr.size as u64 } else if instr.sf { 8u64 } else { 4u64 };
             let val1 = read_reg(cpu, instr.rd, instr.sf);
             let val2 = read_reg(cpu, instr.rm, instr.sf);
             bus.write(base, size as u8, val1);
@@ -314,6 +340,11 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Bl => {
             cpu.regs.set_x(30, cpu.regs.pc + 4); // LR = X30
             cpu.regs.pc = (cpu.regs.pc as i64 + instr.imm as i64) as u64;
+            return Ok(());
+        }
+        Opcode::Blr => {
+            cpu.regs.set_x(30, cpu.regs.pc + 4); // LR = X30
+            cpu.regs.pc = read_reg(cpu, instr.rn, true);
             return Ok(());
         }
         Opcode::Br => {
@@ -397,6 +428,12 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
 }
 
 fn read_reg(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
+    let val = if n >= 31 { 0 } else { cpu.regs.x(n) };
+    if sf { val } else { (val as u32) as u64 }
+}
+
+/// Read a base register (SP when n==31, otherwise X[n]).
+fn read_base(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
     let val = if n >= 31 { cpu.regs.sp } else { cpu.regs.x(n) };
     if sf { val } else { (val as u32) as u64 }
 }
@@ -572,6 +609,58 @@ mod tests {
     }
 
     #[test]
+    fn decode_cmp_x3_x2() {
+        let instr = decode(0xEB02007F).unwrap();
+        assert_eq!(instr.op, Opcode::Cmp);
+        assert_eq!(instr.rn, 3);
+        assert_eq!(instr.rm, 2);
+    }
+
+    #[test]
+    fn cmp_sets_flags() {
+        let (mut cpu, mut bus) = setup_bus();
+        // CMP X3, X2  -> X3 - X2 = 5 - 10 = -5  (N=1, Z=0)
+        cpu.regs.set_x(2, 10);
+        cpu.regs.set_x(3, 5);
+        execute(&mut cpu, &mut bus, decode(0xEB02007F).unwrap()
+        ).unwrap();
+        assert!(!cpu.pstate.z()); // not zero
+        assert!(cpu.pstate.n()); // negative
+    }
+
+    #[test]
+    fn cmp_equal_sets_z() {
+        let (mut cpu, mut bus) = setup_bus();
+        cpu.regs.set_x(2, 5);
+        cpu.regs.set_x(3, 5);
+        execute(&mut cpu, &mut bus, decode(0xEB02007F).unwrap()
+        ).unwrap();
+        assert!(cpu.pstate.z()); // zero
+        assert!(!cpu.pstate.n());
+    }
+
+    #[test]
+    fn cmp_less_than_sets_n() {
+        let (mut cpu, mut bus) = setup_bus();
+        // X3 - X2 = 10 - 3 = 7 (positive, N=0)
+        cpu.regs.set_x(2, 3);
+        cpu.regs.set_x(3, 10);
+        execute(&mut cpu, &mut bus, decode(0xEB02007F).unwrap()
+        ).unwrap();
+        assert!(!cpu.pstate.n()); // positive
+        assert!(!cpu.pstate.z());
+    }
+
+    #[test]
+    fn str_wzr_sp_60() {
+        let (mut cpu, mut bus) = setup_bus();
+        cpu.regs.sp = 0x4000_0000;
+        execute(&mut cpu, &mut bus, decode(0xB900_3FFF).unwrap()
+        ).unwrap(); // STR WZR, [SP, #60]
+        assert_eq!(bus.mem.read(0x4000_003C, 4), Some(0));
+    }
+
+    #[test]
     fn decode_br_x0() {
         let instr = decode(0xD61F0000).unwrap();
         assert_eq!(instr.op, Opcode::Br);
@@ -588,7 +677,7 @@ mod tests {
     #[test]
     fn decode_blr() {
         let instr = decode(0xD63F0000).unwrap();
-        assert_eq!(instr.op, Opcode::Bl);
+        assert_eq!(instr.op, Opcode::Blr);
         assert_eq!(instr.rn, 0);
     }
 }

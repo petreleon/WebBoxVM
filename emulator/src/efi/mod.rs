@@ -2,9 +2,12 @@
 
 pub mod encode;
 pub mod layout;
+pub mod protocols;
 pub mod tables;
 
-pub use layout::{is_efi_addr, EFI_MEM_BASE, EFI_MEM_SIZE, EFI_HANDLE_ADDR, EFI_SYSTEM_TABLE};
+pub use layout::{
+    is_efi_addr, EFI_HANDLE_ADDR, EFI_MEM_BASE, EFI_MEM_SIZE, EFI_SYSTEM_TABLE,
+};
 pub use tables::setup_efi_tables;
 
 #[cfg(test)]
