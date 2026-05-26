@@ -65,21 +65,31 @@
 **Result:** Real kernel executes **200+ PE-stub instructions** without crashing. EFI stub completes and returns to caller.
 
 ## Sprint 4 — PE Relocations & Decompressor (Current)
-- [ ] Process PE `.reloc` section and patch literal pool addresses
-  - Convert file-relative offsets to KERNEL_LOAD-relative addresses
-- [ ] Trace stub → decompressor transition
-- [ ] Boot real kernel to `printk("Uncompressing Linux...")`  
-- [ ] GICv2 stub + ARM Generic Timer (timer IRQ 30)
+- [x] Refactor: split `arm64/instr.rs` (814 lines) into `opcodes.rs`, `decode.rs`, `execute.rs`, `helpers.rs`
+- [x] Refactor: split `arm64/interpreter.rs` into `interpreter/mod.rs` + `interpreter/tests.rs`
+- [x] Refactor: deduplicate `memory.rs` read/write logic into unified `select_region` helpers
+- [x] Implement PE32+ `.reloc` section parsing
+  - Read `ImageBase`, `DataDirectory[5]` from PE optional header
+  - Iterate relocation blocks, extract type (ABSOLUTE/HIGHLOW/DIR64) and offset
+  - Apply fixups: `target += KERNEL_LOAD - preferred_base`
+- [x] `loader.rs` → `loader/kernel.rs` + `loader/relocations.rs` + `loader/mod.rs`
+- [x] 4 unit tests for relocations (parse, DIR64, no-delta, zero-size)
+- [ ] Trace stub return after `ExitBootServices` / `RET` to caller
+- [ ] Identify decompressor entry point and set PC
+- [ ] Boot real kernel to `printk("Uncompressing Linux...")`
+- [ ] Implement remaining ALU ops as decompressor needs them
 
 ## Sprint 5 — MMU
 - [ ] 3-level page table walk (39-bit VA)
 - [ ] 2048-entry software TLB
 - [ ] `SCTLR_EL1` enables MMU
 
-## Sprint 5 — Busybox Shell
+## Sprint 6 — Busybox Shell
 - [ ] Initrd: load cpio ramdisk into memory
 - [ ] Kernel boots to Busybox `ash` shell
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
+
+**Result:** 51 tests pass, 0 compiler warnings.
 
 ## Backlog — Do Not Touch Until Shell Works
 - x86_64 interpreter (QEMU or from scratch)
