@@ -177,17 +177,22 @@ fn decode_ldr_lit(raw: u32) -> Option<Instr> {
 }
 
 fn decode_ldst_pair(raw: u32) -> Option<Instr> {
-    let sf = ((raw >> 30) & 1) != 0;
+    // bits31:30 = opc: 00=32-bit, 10=64-bit (X regs), 01=LDPSW, 11=SIMD
+    let sf = ((raw >> 30) & 0b11) == 0b10;
     let l = ((raw >> 22) & 1) != 0;
     let op2 = ((raw >> 23) & 0x3) as u8;
-    let imm7 = ((raw >> 15) & 0x7F) as i8;
+    let imm7_raw = (raw >> 15) & 0x7F;
+    let imm7 = if imm7_raw & 0x40 != 0 {
+        (imm7_raw as i64) - 0x80
+    } else {
+        imm7_raw as i64
+    };
     let rt2 = ((raw >> 10) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
     let scale = if sf { 3 } else { 2 };
-    let offset = (imm7 as i64) * (1i64 << scale);
+    let offset = imm7 * (1i64 << scale);
     let op = if l { Opcode::Ldp } else { Opcode::Stp };
-    // Encode: rd=rt, rn=rn, rm=rt2 (second reg), imm=offset, cond=post-index flag
     Some(Instr { size: 0, op, rd: rt, rn, rm: rt2, imm: offset as u64, sf, cond: op2 })
 }
 
@@ -394,20 +399,42 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             bus.write(addr, size, val);
         }
         Opcode::Ldp => {
-            let base = addr_with_offset(cpu, instr.rn, instr.imm)?;
+            let base = read_base(cpu, instr.rn, true);
             let size = if instr.size != 0 { instr.size as u64 } else if instr.sf { 8u64 } else { 4u64 };
-            let val1 = bus.read(base, size as u8).ok_or("LDP bus fault")?;
-            let val2 = bus.read(base + size, size as u8).ok_or("LDP bus fault")?;
+            let (addr, new_base) = match instr.cond {
+                1 => (base, (base as i64).wrapping_add(instr.imm as i64) as u64),
+                3 => {
+                    let b = (base as i64).wrapping_add(instr.imm as i64) as u64;
+                    (b, b)
+                }
+                _ => ((base as i64).wrapping_add(instr.imm as i64) as u64, base),
+            };
+            let val1 = bus.read(addr, size as u8).ok_or("LDP bus fault")?;
+            let val2 = bus.read(addr + size, size as u8).ok_or("LDP bus fault")?;
             write_reg(cpu, instr.rd, val1, instr.sf);
             write_reg(cpu, instr.rm, val2, instr.sf);
+            if new_base != base {
+                write_reg(cpu, instr.rn, new_base, true);
+            }
         }
         Opcode::Stp => {
-            let base = addr_with_offset(cpu, instr.rn, instr.imm)?;
+            let base = read_base(cpu, instr.rn, true);
             let size = if instr.size != 0 { instr.size as u64 } else if instr.sf { 8u64 } else { 4u64 };
+            let (addr, new_base) = match instr.cond {
+                1 => (base, (base as i64).wrapping_add(instr.imm as i64) as u64),
+                3 => {
+                    let b = (base as i64).wrapping_add(instr.imm as i64) as u64;
+                    (b, b)
+                }
+                _ => ((base as i64).wrapping_add(instr.imm as i64) as u64, base),
+            };
             let val1 = read_reg(cpu, instr.rd, instr.sf);
             let val2 = read_reg(cpu, instr.rm, instr.sf);
-            bus.write(base, size as u8, val1);
-            bus.write(base + size, size as u8, val2);
+            bus.write(addr, size as u8, val1);
+            bus.write(addr + size, size as u8, val2);
+            if new_base != base {
+                write_reg(cpu, instr.rn, new_base, true);
+            }
         }
         Opcode::B => {
             cpu.regs.pc = (cpu.regs.pc as i64 + instr.imm as i64) as u64;
@@ -666,7 +693,7 @@ mod tests {
         cpu.regs.set_x(1, 0x4000_0000);
         bus.mem.write(0x4000_0000, 8, 0xDEAD_BEEF);
         bus.mem.write(0x4000_0008, 8, 0xCAFE_BABE);
-        execute(&mut cpu, &mut bus, decode(0xE940_0C22).unwrap()).unwrap(); // LDP X2, X3, [X1]
+        execute(&mut cpu, &mut bus, decode(0xA940_0C22).unwrap()).unwrap(); // LDP X2, X3, [X1]
         assert_eq!(cpu.regs.x(2), 0xDEAD_BEEF);
         assert_eq!(cpu.regs.x(3), 0xCAFE_BABE);
     }
