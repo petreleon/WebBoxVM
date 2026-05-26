@@ -144,6 +144,10 @@ fn real_kernel_runs_past_prologue_trace() {
     cpu.regs.set_x(0, handle);
     cpu.regs.set_x(1, st);
     cpu.regs.sp = 0x43FF_F000;
+    // Seed X18 with ImageHandle — EFI stub uses it as platform pointer.
+    // In real UEFI boot, firmware may pass ImageHandle in X0 and stub
+    // copies it to X18 internally.
+    cpu.regs.set_x(18, handle);
 
     bus.write(0x43FFE000, 4, 0xD65F03C0);
     cpu.regs.set_x(30, 0x43FFE000);
@@ -161,6 +165,9 @@ fn real_kernel_runs_past_prologue_trace() {
             }
         };
         if let Some(instr) = decode(raw) {
+            if steps >= 560 {
+                println!("[{:>3}] PC=0x{:016x} {:?} X2=0x{:016x} X18=0x{:016x}", steps, cpu.regs.pc, instr.op, cpu.regs.x(2), cpu.regs.x(18));
+            }
             if let Err(e) = execute(&mut cpu, &mut bus, instr) {
                 println!("EXECUTE ERROR at step {} PC=0x{:016x}: {:?}", steps, cpu.regs.pc, e);
                 break;
@@ -178,7 +185,7 @@ fn real_kernel_runs_past_prologue_trace() {
     }
 
     println!("EFI stub executed {} instructions", steps);
-    println!("  X0=0x{:016x} X1=0x{:016x} X2=0x{:016x}", cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2));
+    println!("  X0=0x{:016x} X1=0x{:016x} X2=0x{:016x} X18=0x{:016x}", cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2), cpu.regs.x(18));
     println!("  PC=0x{:016x} SP=0x{:016x} X30=0x{:016x}", cpu.regs.pc, cpu.regs.sp, cpu.regs.x(30));
     // No assert — this is just a debug trace
 }
