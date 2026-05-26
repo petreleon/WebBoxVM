@@ -1,11 +1,11 @@
 //! Load an ARM64 Linux kernel image into emulator RAM.
 
+use super::relocations;
 use crate::bus::SystemBus;
 use std::fs;
 
 pub const KERNEL_LOAD: u64 = 0x4008_0000;
 
-/// ARM64 kernel Image header (64 bytes).
 struct KernelHeader {
     _code0: u32,
     _code1: u32,
@@ -18,18 +18,15 @@ struct KernelHeader {
     _res3: u32,
 }
 
-/// Parse header and load kernel at `KERNEL_LOAD`.
-/// Returns the physical entry point address.
 pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str> {
     let data = fs::read(path).map_err(|_| "read failed")?;
     let header = parse_header(&data)?;
 
-    // If this is a PE/EFI image, find the ARM64 entry point
     let entry = if is_pe(&data) {
         let entry = parse_pe_entry(&data)?;
-        // Setup minimal EFI environment for PE/EFI boot
         let img_size = header.image_size.max(data.len() as u64);
         let (_handle, _st) = crate::efi::setup_efi_tables(bus, KERNEL_LOAD, img_size);
+        relocations::apply_pe_relocations(bus, KERNEL_LOAD, &data)?;
         entry
     } else {
         KERNEL_LOAD + header.text_offset
@@ -41,8 +38,6 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
         data.len()
     };
 
-    // Copy kernel payload into RAM starting at KERNEL_LOAD
-    // For PE files, file offset N maps to KERNEL_LOAD + N
     let payload = &data[..load_size.min(data.len())];
     for (i, &byte) in payload.iter().enumerate() {
         bus.write(KERNEL_LOAD + i as u64, 1, byte as u64);
@@ -51,8 +46,6 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
     Ok(entry)
 }
 
-/// Load raw instruction bytes directly into RAM at `KERNEL_LOAD`.
-/// Returns `KERNEL_LOAD` as the entry point.
 pub fn load_raw_image(bus: &mut SystemBus, data: &[u8]) {
     for (i, &byte) in data.iter().enumerate() {
         bus.write(KERNEL_LOAD + i as u64, 1, byte as u64);
@@ -63,26 +56,26 @@ fn parse_header(data: &[u8]) -> Result<KernelHeader, &'static str> {
     if data.len() < 64 {
         return Err("file too small");
     }
-    let read_u32 = |o: usize| u32::from_le_bytes([data[o], data[o + 1], data[o + 2], data[o + 3]]);
-    let read_u64 = |o: usize| {
+    let r32 = |o: usize| u32::from_le_bytes([data[o], data[o + 1], data[o + 2], data[o + 3]]);
+    let r64 = |o: usize| {
         let mut b = [0u8; 8];
         b.copy_from_slice(&data[o..o + 8]);
         u64::from_le_bytes(b)
     };
-    let magic = read_u32(56);
+    let magic = r32(56);
     if magic != 0x644d5241 {
         return Err("bad ARM64 magic");
     }
     Ok(KernelHeader {
-        _code0: read_u32(0),
-        _code1: read_u32(4),
-        text_offset: read_u64(8),
-        image_size: read_u64(16),
-        _flags: read_u64(24),
-        _res1: read_u64(32),
-        _res2: read_u64(40),
-        _magic: read_u32(56),
-        _res3: read_u32(60),
+        _code0: r32(0),
+        _code1: r32(4),
+        text_offset: r64(8),
+        image_size: r64(16),
+        _flags: r64(24),
+        _res1: r64(32),
+        _res2: r64(40),
+        _magic: r32(56),
+        _res3: r32(60),
     })
 }
 

@@ -78,7 +78,7 @@ fn boot_stub_to_kernel() {
 #[test]
 #[ignore = "slow: loads 37 MB kernel"]
 fn real_kernel_runs_past_prologue() {
-    use crate::loader::{load_kernel, KERNEL_LOAD};
+    use crate::loader::kernel::{load_kernel, KERNEL_LOAD};
     use crate::efi::setup_efi_tables;
 
     let mut cpu = Armv8Cpu::new();
@@ -124,7 +124,7 @@ fn real_kernel_runs_past_prologue() {
 
 #[test]
 fn synthetic_kernel_boots_to_uart() {
-    use crate::loader::{load_raw_image, KERNEL_LOAD};
+    use crate::loader::kernel::{load_raw_image, KERNEL_LOAD};
     use std::fs;
 
     let mut cpu = Armv8Cpu::new();
