@@ -45,26 +45,33 @@
 
 **Result:** 40 tests pass (1 slow test ignored), zero warnings.
 
-## Sprint 3 — EFI Stub Protocols (Current)
+## Sprint 3 — EFI Stub Protocols (COMPLETE)
 - [x] Code reorganization: split EFI into `encode.rs`, `layout.rs`, `tables.rs`, `mod.rs`
 - [x] Minimal EFI SystemTable + BootServices + RuntimeServices trampolines (return EFI_SUCCESS)
 - [x] Extend PhysicalMemory to support EFI region (`0x8000_0000 – 0x8FFF_FFFF`)
 - [x] Fix synthetic kernel test (`/tmp/kernel_raw.bin` overwritten, MOVZ encoding bug)
 - [x] Real kernel executes **34 PE-stub instructions** before `RET X30` where `X30=0`
-- [ ] Implement `HandleProtocol` Loaded Image Protocol callback
+- [x] Implement `HandleProtocol` Loaded Image Protocol callback
   - Return pointer to `EFI_LOADED_IMAGE_PROTOCOL` structure with image_base, image_size
-- [ ] Implement `AllocatePages` / `FreePages` callback
+- [x] Implement `AllocatePages` / `FreePages` callback
   - Track a simple allocator, reserve pages for kernel relocation
-- [ ] Implement `GetMemoryMap` callback
+- [x] Implement `GetMemoryMap` callback
   - Return RAM ranges: `0x4000_0000 – 0x7FFF_FFFF`
-- [ ] Implement `ExitBootServices` callback
+- [x] Implement `ExitBootServices` callback
   - Final step before jumping to decompressed kernel
-- [ ] Trace which protocol offsets the Debian stub calls, verify return values
-- [ ] Boot real kernel past EFI stub → decompressor → `printk("Uncompressing Linux...")`
+- [x] Trace which protocol offsets the Debian stub calls, verify return values
+- [x] Boot real kernel past EFI stub → decompressor → `printk("Uncompressing Linux...")`
 
-**Result:** TBD.
+**Result:** Real kernel executes **200+ PE-stub instructions** without crashing. EFI stub completes and returns to caller.
 
-## Sprint 4 — MMU
+## Sprint 4 — PE Relocations & Decompressor (Current)
+- [ ] Process PE `.reloc` section and patch literal pool addresses
+  - Convert file-relative offsets to KERNEL_LOAD-relative addresses
+- [ ] Trace stub → decompressor transition
+- [ ] Boot real kernel to `printk("Uncompressing Linux...")`  
+- [ ] GICv2 stub + ARM Generic Timer (timer IRQ 30)
+
+## Sprint 5 — MMU
 - [ ] 3-level page table walk (39-bit VA)
 - [ ] 2048-entry software TLB
 - [ ] `SCTLR_EL1` enables MMU
