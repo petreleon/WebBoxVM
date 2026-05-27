@@ -90,9 +90,10 @@ Development progress is organized around consecutive sprints outlined in [todo.m
 
 * **Sprint 1: CPU Core** (Complete) ✅
 * **Sprint 2: Bootloader** (Complete) ✅
-* **Sprint 3: EFI Stub Protocols** (Active development) 🚀
-* **Sprint 4: MMU Integration** (Planned) 📅
-* **Sprint 5: Interactive BusyBox Shell** (Planned) 📅
+* **Sprint 3: EFI Stub Protocols** (Complete) ✅
+* **Sprint 4: PE Relocations & Decompressor** (Complete) ✅
+* **Sprint 5: MMU & TLB Walks** (Active development) 🚀
+* **Sprint 6: Interactive BusyBox Shell** (Planned) 📅
 
 ---
 
