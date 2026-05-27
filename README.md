@@ -3,17 +3,20 @@
 [![Language](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%2F%20Commercial-blue.svg)](LICENSE.md)
 
-**WebBoxVM** is a client-side, high-performance ARM64 virtual machine designed to run entirely in the browser using WebAssembly (Wasm) and WebGPU. 
+**WebBoxVM** is a client-side **Windows 11 ARM64** virtual machine designed to run entirely in the browser using WebAssembly (Wasm) and WebGPU.
 
-Unlike traditional emulators that rely on heavy cloud infrastructures or lack modern graphics capabilities, WebBoxVM aims to bring lightweight, zero-latency virtualization directly to client browsers with zero server hosting costs.
+The end goal is booting a retail Windows 11 ARM64 ISO to the desktop inside any browser tab — zero server cost, zero latency, native ARM64 app compatibility on Snapdragon X Elite and Apple Silicon laptops.
+
+Linux + Busybox is the current stepping stone (Sprints 1–6). Windows 11 is the destination (Phase 2).
 
 ---
 
 ## 🚀 Vision & Key Features
 
+* **Windows 11 ARM64 in the browser**: The main objective. Linux + Busybox is the proof-of-concept stepping stone.
 * **Bare-Metal ARM64 first**: Dedicated interpreting engine for AArch64 architectures before any legacy x86 support.
-* **Boot real OS Kernels**: Custom PE/EFI segment parsing to boot genuine production-grade kernels (like the Debian Linux kernel).
-* **High-fidelity systems modeling**: Pure-Rust simulation of registers, status words (`PState`), exception levels (`EL3`), and memory-mapped IO (MMIO).
+* **Boot real OS Kernels**: Custom PE/EFI segment parsing to boot genuine production-grade kernels (Debian Linux today, Windows 11 tomorrow).
+* **High-fidelity systems modeling**: Pure-Rust simulation of registers, status words (`PState`), exception levels (`EL3`), MMU/TLB, and memory-mapped IO (MMIO).
 * **Hardware-accelerated console**: Built-in support for simulated hardware serial interfaces (**PL011 UART**) with a roadmap for canvas and WebGPU-based framebuffers.
 * **Permissive, clean design**: Implemented using modular systems architecture to prevent copyleft dependency pollution, making the codebase perfectly dual-licensed.
 
@@ -33,7 +36,7 @@ WebBoxVM/
 │   │   │   ├── execute.rs # Instruction execution engine
 │   │   │   └── interpreter/ # Fetch-decode-execute loop
 │   │   ├── efi/           # Minimal UEFI bootloader, runtime structures, and trampolines
-│   │   ├── devices/       # Hardware device simulation (PL011 UART console, GIC stubs)
+│   │   ├── devices/       # Hardware device simulation (PL011 UART, GICv3, TPM 2.0)
 │   │   ├── bus.rs         # System MMIO memory router
 │   │   ├── memory.rs      # Flat physical memory with RAM + EFI regions
 │   │   ├── loader/        # PE-COFF kernel loader, relocations, and boot preparation
@@ -96,12 +99,24 @@ cargo test hello_uart
 
 Development progress is organized around consecutive sprints outlined in [todo.md](file:///Users/petreleon/code/WebBoxVM/todo.md):
 
+### Phase 1 — Linux Proof of Concept
+
 * **Sprint 1: CPU Core** (Complete) ✅
 * **Sprint 2: Bootloader** (Complete) ✅
 * **Sprint 3: EFI Stub Protocols** (Complete) ✅
 * **Sprint 4: PE Relocations & Decompressor** (Complete) ✅
 * **Sprint 5: MMU & TLB Walks** (Complete) ✅
 * **Sprint 6: Interactive BusyBox Shell** (Active development) 🚀
+
+### Phase 2 — Windows 11 ARM64
+
+* **Sprint 7: Exception Model & Interrupts** (Planned) 📅
+* **Sprint 8: ISA Completeness (NEON, Crypto, Atomics)** (Planned) 📅
+* **Sprint 9: ACPI & Firmware Tables** (Planned) 📅
+* **Sprint 10: Storage & Windows Boot** (Planned) 📅
+* **Sprint 11: Windows Kernel Bring-up** (Planned) 📅
+* **Sprint 12: Display & Input** (Planned) 📅
+* **Sprint 13: Windows 11 Desktop** (Planned) 📅
 
 ---
 

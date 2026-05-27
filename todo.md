@@ -93,11 +93,55 @@
 
 **Result:** 80 tests pass, 0 compiler warnings.
 
-## Backlog — Do Not Touch Until Shell Works
+---
+
+## Phase 2 — Windows 11 ARM64
+
+> The main objective. Everything above is scaffolding.
+
+### Sprint 7 — Exception Model & Interrupts
+- [ ] GICv3 distributor and redistributor emulation
+- [ ] IRQ delivery path: `VBAR_EL1` + exception entry
+- [ ] Timer interrupts (ARM Generic Timer)
+- [ ] `SPSR_EL1` / `ELR_EL1` save/restore on exception
+
+### Sprint 8 — ISA Completeness
+- [ ] NEON / SIMD ( AdvSIMD load/store, vector arithmetic )
+- [ ] Crypto extensions (AES, SHA-1, SHA-256)
+- [ ] ARMv8.1 Atomics (LDADD, CAS, SWP)
+- [ ] DC ZVA, cache maintenance ops
+- [ ] Remaining system instructions (AT S1E1R, DC IVAC, etc.)
+
+### Sprint 9 — ACPI & Firmware
+- [ ] Generate ACPI tables (RSDP, DSDT, MADT, GTDT, FADT)
+- [ ] UEFI runtime services required by Windows
+- [ ] SMBIOS tables
+
+### Sprint 10 — Storage & Boot
+- [ ] NVMe controller emulation (VirtIO-NVMe or simple MMIO)
+- [ ] Parse Windows 11 ARM64 ISO / WIM
+- [ ] Boot Windows PE → kernel loader → `ntoskrnl.exe`
+
+### Sprint 11 — Windows Kernel Bring-up
+- [ ] TPM 2.0 MMIO stub (Windows 11 hard-requires TPM)
+- [ ] Complete enough ISA for `ntoskrnl` init
+- [ ] Reach `KDPOLL` or early video output
+
+### Sprint 12 — Display & Input
+- [ ] Basic framebuffer (VirtIO GPU or simple Bochs VBE)
+- [ ] WebGPU output path
+- [ ] Keyboard/mouse input via HID
+
+### Sprint 13 — Desktop
+- [ ] Windows 11 desktop boots
+- [ ] Basic app launch (Notepad, Calculator)
+- [ ] Network adapter (VirtIO Net)
+
+---
+
+## Backlog — General
 - x86_64 interpreter (QEMU or from scratch)
-- VirtIO GPU / WebGPU display
-- JIT compilation (x86→Wasm)
+- JIT compilation (ARM64 → Wasm)
 - OPFS persistent disk
-- Networking (VirtIO Net + wsproxy)
 - Multicore (SMP)
 - Commercial licensing / dual-license
