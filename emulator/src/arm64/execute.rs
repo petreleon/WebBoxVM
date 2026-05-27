@@ -220,33 +220,28 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             let src = read_reg(cpu, instr.rn, instr.sf);
 
             let val = if instr.op == Opcode::Ubfm {
-                let mut result = 0u64;
-                if s >= r {
+                let result = if s >= r {
                     let len = s - r + 1;
                     let mask = if len >= 64 { !0 } else { (1u64 << len) - 1 };
-                    result = (src >> r) & mask;
+                    (src >> r) & mask
                 } else {
                     let len = s + 1;
                     let mask = if len >= 64 { !0 } else { (1u64 << len) - 1 };
                     let shift = size - r;
-                    result = (src & mask) << shift;
-                }
-                if !instr.sf {
-                    result &= 0xFFFFFFFF;
-                }
-                result
+                    (src & mask) << shift
+                };
+                if !instr.sf { result & 0xFFFFFFFF } else { result }
             } else if instr.op == Opcode::Sbfm {
-                let mut result = 0u64;
-                if s >= r {
+                let result = if s >= r {
                     let len = s - r + 1;
                     let mask = if len >= 64 { !0 } else { (1u64 << len) - 1 };
                     let extracted = (src >> r) & mask;
                     let sign_bit = s - r;
                     if sign_bit < 63 && (extracted & (1u64 << sign_bit)) != 0 {
                         let extend_mask = !((1u64 << (sign_bit + 1)) - 1);
-                        result = extracted | (extend_mask & if instr.sf { !0 } else { 0xFFFFFFFF });
+                        extracted | (extend_mask & if instr.sf { !0 } else { 0xFFFFFFFF })
                     } else {
-                        result = extracted;
+                        extracted
                     }
                 } else {
                     let len = s + 1;
@@ -256,34 +251,27 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
                     let sign_bit = shift + s;
                     if sign_bit < 63 && (extracted & (1u64 << sign_bit)) != 0 {
                         let extend_mask = !((1u64 << (sign_bit + 1)) - 1);
-                        result = extracted | (extend_mask & if instr.sf { !0 } else { 0xFFFFFFFF });
+                        extracted | (extend_mask & if instr.sf { !0 } else { 0xFFFFFFFF })
                     } else {
-                        result = extracted;
+                        extracted
                     }
-                }
-                if !instr.sf {
-                    result &= 0xFFFFFFFF;
-                }
-                result
+                };
+                if !instr.sf { result & 0xFFFFFFFF } else { result }
             } else {
                 let dst = read_reg(cpu, instr.rd, instr.sf);
-                let mut result = dst;
-                if s >= r {
+                let result = if s >= r {
                     let len = s - r + 1;
                     let mask = if len >= 64 { !0 } else { (1u64 << len) - 1 };
                     let dst_mask = !(mask << r);
-                    result = (dst & dst_mask) | ((src & mask) << r);
+                    (dst & dst_mask) | ((src & mask) << r)
                 } else {
                     let len = s + 1;
                     let mask = if len >= 64 { !0 } else { (1u64 << len) - 1 };
                     let shift = size - r;
-                    let dst_mask = !mask;
-                    result = (dst & dst_mask) | ((src >> shift) & mask);
-                }
-                if !instr.sf {
-                    result &= 0xFFFFFFFF;
-                }
-                result
+                    let dst_mask = !(mask << shift);
+                    (dst & dst_mask) | ((src & mask) << shift)
+                };
+                if !instr.sf { result & 0xFFFFFFFF } else { result }
             };
             write_reg(cpu, instr.rd, val, instr.sf);
         }

@@ -87,7 +87,6 @@ fn real_kernel_runs_past_prologue() {
     let _entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
 
     let (handle, st) = setup_efi_tables(&mut bus, KERNEL_LOAD, 0x024f_0000);
-    println!("POST SETUP: bus[0x60]=0x{:016x}", bus.read(0x60, 8).unwrap_or(0xDEAD));
     cpu.regs.set_x(0, handle);
     cpu.regs.set_x(1, st);
     cpu.regs.sp = 0x43FF_F000;
@@ -155,8 +154,6 @@ fn real_kernel_runs_past_prologue_trace() {
 
     let mut steps = 0;
     let mut last_pc = cpu.regs.pc;
-    let mut prev_x19 = 0;
-    let mut prev_pc = cpu.regs.pc;
     for _ in 0..20000 {
         let raw = match bus.read(cpu.regs.pc, 4) {
             Some(v) => v as u32,
@@ -166,23 +163,6 @@ fn real_kernel_runs_past_prologue_trace() {
             }
         };
         if let Some(instr) = decode(raw) {
-            if (cpu.regs.pc as i64 - prev_pc as i64).abs() > 0x1000 {
-                println!(">>> PC jumped from 0x{:016x} to 0x{:016x} at step {}", prev_pc, cpu.regs.pc, steps);
-            }
-            prev_pc = cpu.regs.pc;
-            if cpu.regs.x(19) != prev_x19 {
-                println!(">>> X19 changed from 0x{:016x} to 0x{:016x} at step {}", prev_x19, cpu.regs.x(19), steps);
-                prev_x19 = cpu.regs.x(19);
-            }
-            if steps >= 400 && steps <= 460 {
-                let sp_18 = bus.read(cpu.regs.sp + 0x18, 8).unwrap_or(0xDEADBEEF);
-                let sp_30 = bus.read(cpu.regs.sp + 0x30, 8).unwrap_or(0xDEADBEEF);
-                let x1_val = cpu.regs.x(1);
-                let x1_guid_lo = if x1_val >= 0x4000_0000 { bus.read(x1_val, 8).unwrap_or(0) } else { 0 };
-                let x1_guid_hi = if x1_val >= 0x4000_0000 { bus.read(x1_val + 8, 8).unwrap_or(0) } else { 0 };
-                println!("[{:>3}] PC=0x{:016x} raw=0x{:08x} {:?} X0=0x{:016x} X1=0x{:016x} X2=0x{:016x} X3=0x{:016x} X4=0x{:016x} SP=0x{:016x}",
-                         steps, cpu.regs.pc, raw, instr.op, cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2), cpu.regs.x(3), cpu.regs.x(4), cpu.regs.sp);
-            }
             if let Err(e) = execute(&mut cpu, &mut bus, instr) {
                 println!("EXECUTE ERROR at step {} PC=0x{:016x}: {:?}", steps, cpu.regs.pc, e);
                 break;

@@ -4,12 +4,6 @@ use super::layout::*;
 
 // ── Custom trampolines ──────────────────────────────────────────
 
-const GET_MEMMAP_INST: [u32; 3] = [
-    0xD280_0000, // MOVZ X0, #0
-    0xD65F_03C0, // RET
-    0xD503_201F, // no-op pad
-];
-
 const LOCATE_PROTO_INST: [u32; 3] = [
     0xD280_01C0, // MOVZ X0, #0xE
     0xF2BF_FFC0, // MOVK X0, #0x8000, LSL #48

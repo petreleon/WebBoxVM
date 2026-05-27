@@ -87,13 +87,13 @@ mod tests {
     }
 
     #[test]
-    fn decode_bitmask_0xF_64bit() {
+    fn decode_bitmask_0x_f_64bit() {
         let v = decode_bitmask_imm(1, 0, 3, true).unwrap();
         assert_eq!(v, 0xF);
     }
 
     #[test]
-    fn decode_bitmask_0xFF_64bit() {
+    fn decode_bitmask_0xff_64bit() {
         let v = decode_bitmask_imm(1, 0, 7, true).unwrap();
         assert_eq!(v, 0xFF);
     }
@@ -133,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn decode_bitmask_32bit_0xFF() {
+    fn decode_bitmask_32bit_0xff() {
         let v = decode_bitmask_imm(0, 0, 7, false).unwrap();
         assert_eq!(v, 0xFF);
     }
@@ -145,7 +145,7 @@ mod tests {
     }
 
     #[test]
-    fn decode_bitmask_invalid_32bit_with_N1() {
+    fn decode_bitmask_invalid_32bit_with_n1() {
         assert!(decode_bitmask_imm(1, 0, 0, false).is_none());
     }
 
