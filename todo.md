@@ -64,7 +64,7 @@
 
 **Result:** Real kernel executes **200+ PE-stub instructions** without crashing. EFI stub completes and returns to caller.
 
-## Sprint 4 — PE Relocations & Decompressor (Current)
+## Sprint 4 — PE Relocations & Decompressor (COMPLETE)
 - [x] Refactor: split `arm64/instr.rs` (814 lines) into `opcodes.rs`, `decode.rs`, `execute.rs`, `helpers.rs`
 - [x] Refactor: split `arm64/interpreter.rs` into `interpreter/mod.rs` + `interpreter/tests.rs`
 - [x] Refactor: deduplicate `memory.rs` read/write logic into unified `select_region` helpers
@@ -74,10 +74,10 @@
   - Apply fixups: `target += KERNEL_LOAD - preferred_base`
 - [x] `loader.rs` → `loader/kernel.rs` + `loader/relocations.rs` + `loader/mod.rs`
 - [x] 4 unit tests for relocations (parse, DIR64, no-delta, zero-size)
-- [ ] Trace stub return after `ExitBootServices` / `RET` to caller
-- [ ] Identify decompressor entry point and set PC
-- [ ] Boot real kernel to `printk("Uncompressing Linux...")`
-- [ ] Implement remaining ALU ops as decompressor needs them
+- [x] Trace stub return after `ExitBootServices` / `RET` to caller
+- [x] Identify decompressor entry point and set PC
+- [x] Boot real kernel past EFI stub and decompressor to virtual entry point `0xffff8000801a8f60`
+- [x] Implement remaining ALU, branch, system register, and multiply ops as decompressor needs them (MADD/MSUB/UMADDL, MRS/MSR thread/stack registers, shifted/extended register arithmetic, and correct TBZ/TBNZ sign-extension)
 
 ## Sprint 5 — MMU
 - [ ] 3-level page table walk (39-bit VA)
@@ -89,7 +89,7 @@
 - [ ] Kernel boots to Busybox `ash` shell
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result:** 51 tests pass, 0 compiler warnings.
+**Result:** 69 tests pass, 0 compiler warnings.
 
 ## Backlog — Do Not Touch Until Shell Works
 - x86_64 interpreter (QEMU or from scratch)

@@ -34,6 +34,25 @@ pub enum Opcode {
     Csel,
     Ccmp,
     NopBarrier, // DSB, ISB, DMB
+    AndImm,
+    OrrImm,
+    EorImm,
+    AndsImm,
+    Sbfm,
+    Bfm,
+    Ubfm,
+    AndReg,
+    OrrReg,
+    EorReg,
+    AndsReg,
+    AddsImm,
+    SubsImm,
+    AddExt,
+    SubExt,
+    Mrs,
+    Msr,
+    Madd,
+    Msub,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

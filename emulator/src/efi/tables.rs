@@ -3,18 +3,17 @@ use super::encode::{movz_x, movk_x, write64, write32};
 use super::layout::*;
 
 // ── Custom trampolines ──────────────────────────────────────────
-const HANDLE_PROTO_INST: [u32; 5] = [
-    0xD290_0003, // MOVZ X3, #0x8000
-    0xF2B0_0003, // MOVK X3, #0x8000, LSL #16
-    0xF900_0043, // STR  X3, [X2]
-    0xD280_0000, // MOVZ X0, #0
-    0xD65F_03C0, // RET
-];
 
 const GET_MEMMAP_INST: [u32; 3] = [
     0xD280_0000, // MOVZ X0, #0
     0xD65F_03C0, // RET
     0xD503_201F, // no-op pad
+];
+
+const LOCATE_PROTO_INST: [u32; 3] = [
+    0xD280_01C0, // MOVZ X0, #0xE
+    0xF2BF_FFC0, // MOVK X0, #0x8000, LSL #48
+    0xD65F_03C0, // RET
 ];
 
 fn ret() -> u32 { 0xD65F_03C0 }
@@ -89,17 +88,17 @@ pub fn setup_efi_tables(bus: &mut SystemBus, image_base: u64, image_size: u64) -
     // Slots 0..41 cover offsets 0x18..0x170 (step 8)
     let boot_slots = [
         (0x18, None), (0x20, None), (0x28, None), (0x30, None),
-        (0x38, Some(&GET_MEMMAP_INST[..])),
+        (0x38, None),
         (0x40, None), (0x48, None), (0x50, None), (0x58, None),
         (0x60, None), (0x68, None), (0x70, None), (0x78, None),
         (0x80, None), (0x88, None), (0x90, None),
-        (0x98, Some(&HANDLE_PROTO_INST[..])),
+        (0x98, None),
         (0xA0, None), (0xA8, None), (0xB0, None), (0xB8, None),
         (0xC0, None), (0xC8, None), (0xD0, None), (0xD8, None),
         (0xE0, None), (0xE8, None), (0xF0, None), (0xF8, None),
         (0x100, None), (0x108, None), (0x110, None), (0x118, None),
         (0x120, None), (0x128, None), (0x130, None), (0x138, None),
-        (0x140, None), (0x148, None), (0x150, None), (0x158, None),
+        (0x140, Some(&LOCATE_PROTO_INST[..])), (0x148, None), (0x150, None), (0x158, None),
         (0x160, None), (0x168, None), (0x170, None),
     ];
 
@@ -122,6 +121,81 @@ pub fn setup_efi_tables(bus: &mut SystemBus, image_base: u64, image_size: u64) -
     write64(bus, EFI_BOOT_SERVICES + 0x40, pool_tp);
     // Prime the bump head so the first allocation starts at POOL_BASE.
     write64(bus, POOL_HEAD, POOL_BASE);
+
+    // Fix GetMemoryMap (offset 0x38) using a dynamic trampoline at safe/empty slot 50.
+    let memmap_tp = EFI_SERVICE_TRAMPOLINES + 50 * TRAMPOLINE_STRIDE;
+    let memmap = [
+        0xf9400005, // LDR X5, [X0]           // load *MemoryMapSize
+        0xF100C0BF, // CMP X5, #48            // compare size with 48
+        0x54000122, // B.HS label_fill        // if size >= 48, jump to fill
+        
+        // size < 48:
+        movz_x(5, 48),                        // MOV X5, #48
+        0xf9000005,                           // STR X5, [X0]   // *MemoryMapSize = 48
+        movz_x(5, 48),                        // MOV X5, #48
+        0xf9000065,                           // STR X5, [X3]   // *DescriptorSize = 48
+        movz_x(5, 1),                         // MOV X5, #1
+        0xb9000085,                           // STR W5, [X4]   // *DescriptorVersion = 1
+        movz_x(0, 5),                         // MOV X0, #5     // EFI_BUFFER_TOO_SMALL
+        movk_x(0, 3, 0x8000),                 // MOVK X0, #0x8000, LSL #48
+        0x14000015,                           // B label_ret    // jump to ret
+        
+        // label_fill:
+        movz_x(5, 7),                         // MOV X5, #7     // Type = EfiConventionalMemory
+        0xb9000025,                           // STR W5, [X1]   // store Type
+        movz_x(5, 0),                         // MOV X5, #0
+        0xb9000425,                           // STR W5, [X1, #4] // store Pad
+        movz_x(5, 0x0000),                    // MOV X5, #0x0000
+        movk_x(5, 2, 0x4000),                 // MOVK X5, #0x4000, LSL #32
+        0xf9000425,                           // STR X5, [X1, #8] // PhysicalStart
+        0xf900083f,                           // STR XZR, [X1, #16] // VirtualStart
+        movz_x(5, 0x0000),                    // MOV X5, #0x0000
+        movk_x(5, 1, 0x0004),                 // MOVK X5, #4, LSL #16 // 262144 pages
+        0xf9000c25,                           // STR X5, [X1, #24] // NumberOfPages
+        movz_x(5, 0x000F),                    // MOV X5, #0xF   // Attribute = 0xF
+        0xf9001025,                           // STR X5, [X1, #32] // Attribute
+        0xf900143f,                           // STR XZR, [X1, #40] // Pad2
+        
+        // set outputs:
+        movz_x(5, 48),                        // MOV X5, #48
+        0xf9000005,                           // STR X5, [X0]   // *MemoryMapSize = 48
+        movz_x(5, 17),                        // MOV X5, #17
+        0xf9000045,                           // STR X5, [X2]   // *MapKey = 17
+        movz_x(5, 48),                        // MOV X5, #48
+        0xf9000065,                           // STR X5, [X3]   // *DescriptorSize = 48
+        movz_x(5, 1),                         // MOV X5, #1
+        0xb9000085,                           // STR W5, [X4]   // *DescriptorVersion = 1
+        movz_x(0, 0),                         // MOV X0, #0     // EFI_SUCCESS
+        
+        // label_ret:
+        ret(),                                // RET
+    ];
+    write_trampoline(bus, memmap_tp, &memmap);
+    write64(bus, EFI_BOOT_SERVICES + 0x38, memmap_tp);
+
+    // Fix HandleProtocol (offset 0x98) using a dynamic trampoline at safe/empty slot 60.
+    let handle_proto_tp = EFI_SERVICE_TRAMPOLINES + 60 * TRAMPOLINE_STRIDE;
+    let handle_proto = [
+        0xf9400024,                              // LDR X4, [X1]
+        movz_x(3, 0x31A1),                       // MOVZ X3, #0x31A1
+        movk_x(3, 1, 0x5B1B),                    // MOVK X3, #0x5B1B, LSL #16
+        movk_x(3, 2, 0x9562),                    // MOVK X3, #0x9562, LSL #32
+        movk_x(3, 3, 0x11D2),                    // MOVK X3, #0x11D2, LSL #48
+        0xCB030084,                              // SUB X4, X4, X3
+        0xB50000C4,                              // CBNZ X4, label_unsupported
+        movz_x(3, 0x8000),                       // MOVZ X3, #0x8000
+        movk_x(3, 1, 0x8000),                    // MOVK X3, #0x8000, LSL #16
+        0xf9000043,                              // STR X3, [X2]
+        movz_x(0, 0),                            // MOVZ X0, #0 (EFI_SUCCESS)
+        0x14000003,                              // B label_ret
+        // label_unsupported:
+        movz_x(0, 3),                            // MOVZ X0, #3 (EFI_UNSUPPORTED)
+        movk_x(0, 3, 0x8000),                    // MOVK X0, #0x8000, LSL #48
+        // label_ret:
+        ret(),                                   // RET
+    ];
+    write_trampoline(bus, handle_proto_tp, &handle_proto);
+    write64(bus, EFI_BOOT_SERVICES + 0x98, handle_proto_tp);
 
     // The EFI stub dereferences a NULL vtable pointer (LDR X0, [X0, #96]
     // where X0 is zero).  To keep that dispatch working, prime the

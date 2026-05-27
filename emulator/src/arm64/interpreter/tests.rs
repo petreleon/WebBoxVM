@@ -1,5 +1,5 @@
 use super::*;
-use crate::arm64::{Armv8Cpu, decode, execute};
+use crate::arm64::{Armv8Cpu, decode, execute, Opcode};
 use crate::bus::SystemBus;
 
 #[test]
@@ -87,6 +87,7 @@ fn real_kernel_runs_past_prologue() {
     let _entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
 
     let (handle, st) = setup_efi_tables(&mut bus, KERNEL_LOAD, 0x024f_0000);
+    println!("POST SETUP: bus[0x60]=0x{:016x}", bus.read(0x60, 8).unwrap_or(0xDEAD));
     cpu.regs.set_x(0, handle);
     cpu.regs.set_x(1, st);
     cpu.regs.sp = 0x43FF_F000;
@@ -154,7 +155,9 @@ fn real_kernel_runs_past_prologue_trace() {
 
     let mut steps = 0;
     let mut last_pc = cpu.regs.pc;
-    for _ in 0..1000 {
+    let mut prev_x19 = 0;
+    let mut prev_pc = cpu.regs.pc;
+    for _ in 0..20000 {
         let raw = match bus.read(cpu.regs.pc, 4) {
             Some(v) => v as u32,
             None => {
@@ -163,8 +166,22 @@ fn real_kernel_runs_past_prologue_trace() {
             }
         };
         if let Some(instr) = decode(raw) {
-            if steps >= 560 {
-                println!("[{:>3}] PC=0x{:016x} {:?} X2=0x{:016x} X18=0x{:016x} bus[0x60]=0x{:016x}", steps, cpu.regs.pc, instr.op, cpu.regs.x(2), cpu.regs.x(18), bus.read(0x60, 8).unwrap_or(0xDEAD));
+            if (cpu.regs.pc as i64 - prev_pc as i64).abs() > 0x1000 {
+                println!(">>> PC jumped from 0x{:016x} to 0x{:016x} at step {}", prev_pc, cpu.regs.pc, steps);
+            }
+            prev_pc = cpu.regs.pc;
+            if cpu.regs.x(19) != prev_x19 {
+                println!(">>> X19 changed from 0x{:016x} to 0x{:016x} at step {}", prev_x19, cpu.regs.x(19), steps);
+                prev_x19 = cpu.regs.x(19);
+            }
+            if steps >= 400 && steps <= 460 {
+                let sp_18 = bus.read(cpu.regs.sp + 0x18, 8).unwrap_or(0xDEADBEEF);
+                let sp_30 = bus.read(cpu.regs.sp + 0x30, 8).unwrap_or(0xDEADBEEF);
+                let x1_val = cpu.regs.x(1);
+                let x1_guid_lo = if x1_val >= 0x4000_0000 { bus.read(x1_val, 8).unwrap_or(0) } else { 0 };
+                let x1_guid_hi = if x1_val >= 0x4000_0000 { bus.read(x1_val + 8, 8).unwrap_or(0) } else { 0 };
+                println!("[{:>3}] PC=0x{:016x} raw=0x{:08x} {:?} X0=0x{:016x} X1=0x{:016x} X2=0x{:016x} X3=0x{:016x} X4=0x{:016x} SP=0x{:016x}",
+                         steps, cpu.regs.pc, raw, instr.op, cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2), cpu.regs.x(3), cpu.regs.x(4), cpu.regs.sp);
             }
             if let Err(e) = execute(&mut cpu, &mut bus, instr) {
                 println!("EXECUTE ERROR at step {} PC=0x{:016x}: {:?}", steps, cpu.regs.pc, e);
@@ -185,6 +202,7 @@ fn real_kernel_runs_past_prologue_trace() {
     println!("EFI stub executed {} instructions", steps);
     println!("  X0=0x{:016x} X1=0x{:016x} X2=0x{:016x} X18=0x{:016x}", cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2), cpu.regs.x(18));
     println!("  PC=0x{:016x} SP=0x{:016x} X30=0x{:016x}", cpu.regs.pc, cpu.regs.sp, cpu.regs.x(30));
+    println!("  UART output: {:?}", bus.uart.output_string());
     // No assert — this is just a debug trace
 }
 
@@ -207,4 +225,90 @@ fn synthetic_kernel_boots_to_uart() {
     println!("UART output bytes: {:?}", bus.uart.output);
     assert!(result.is_ok(), "Synthetic kernel crashed: {:?}", result);
     assert!(bus.uart.output_string().contains("Uncompressing Linux..."), "UART output missing expected message");
+}
+
+#[test]
+fn test_mrs_msr_roundtrip() {
+    let mut cpu = Armv8Cpu::new();
+    let mut bus = SystemBus::new();
+
+    // 1. Test MRS CurrentEL (read-only, EL3 by default)
+    // CurrentEL: raw = 0xd5384241 (MRS X1, CurrentEL)
+    // 0xd5384241: top12=0xD53, Rd=1 (X1), sysreg=0x4212
+    let instr = decode(0xd5384241).unwrap();
+    assert_eq!(instr.op, Opcode::Mrs);
+    assert_eq!(instr.rd, 1);
+    assert_eq!(instr.imm, 0x4212);
+    execute(&mut cpu, &mut bus, instr).unwrap();
+    assert_eq!(cpu.regs.x(1), 12); // EL3 << 2 = 12
+
+    // 2. Test MSR SP_EL0 (write SP_EL0 with value from X2)
+    // MSR SP_EL0, X2: raw = 0xd5184102
+    // 0xd5184102: top12=0xD51, Rd=2 (X2), sysreg=0x4208
+    cpu.regs.set_x(2, 0xCAFE_BABE_0000);
+    let instr_msr = decode(0xd5184102).unwrap();
+    assert_eq!(instr_msr.op, Opcode::Msr);
+    assert_eq!(instr_msr.rd, 2);
+    assert_eq!(instr_msr.imm, 0x4208);
+    execute(&mut cpu, &mut bus, instr_msr).unwrap();
+    assert_eq!(cpu.sys.sp_el0, 0xCAFE_BABE_0000);
+
+    // 3. Test MRS X3, SP_EL0 (read SP_EL0 back into X3)
+    // MRS X3, SP_EL0: raw = 0xd5384103
+    // 0xd5384103: top12=0xD53, Rd=3 (X3), sysreg=0x4208
+    let instr_mrs = decode(0xd5384103).unwrap();
+    assert_eq!(instr_mrs.op, Opcode::Mrs);
+    assert_eq!(instr_mrs.rd, 3);
+    assert_eq!(instr_mrs.imm, 0x4208);
+    execute(&mut cpu, &mut bus, instr_mrs).unwrap();
+    assert_eq!(cpu.regs.x(3), 0xCAFE_BABE_0000);
+}
+
+#[test]
+fn test_madd_msub() {
+    let mut cpu = Armv8Cpu::new();
+    let mut bus = SystemBus::new();
+
+    // 1. Test MADD W0, W1, W2, W3 (32-bit: W0 = W3 + W1 * W2)
+    // raw = 0x1B020C20 -> MADD W0, W1, W2, W3 (rd=0, rn=1, rm=2, ra=3, sf=false, size=0)
+    cpu.regs.set_x(1, 10);
+    cpu.regs.set_x(2, 3);
+    cpu.regs.set_x(3, 5);
+    let instr_madd = decode(0x1B02_0C20).unwrap();
+    assert_eq!(instr_madd.op, Opcode::Madd);
+    assert_eq!(instr_madd.rd, 0);
+    assert_eq!(instr_madd.rn, 1);
+    assert_eq!(instr_madd.rm, 2);
+    assert_eq!(instr_madd.cond, 3); // Ra
+    assert_eq!(instr_madd.sf, false);
+    assert_eq!(instr_madd.size, 0);
+    execute(&mut cpu, &mut bus, instr_madd).unwrap();
+    assert_eq!(cpu.regs.x(0), 35); // 5 + 10 * 3 = 35
+
+    // 2. Test MSUB X0, X1, X2, X3 (64-bit: X0 = X3 - X1 * X2)
+    // raw = 0x9B028C20 -> MSUB X0, X1, X2, X3 (rd=0, rn=1, rm=2, ra=3, sf=true, size=0)
+    cpu.regs.set_x(1, 4);
+    cpu.regs.set_x(2, 5);
+    cpu.regs.set_x(3, 30);
+    let instr_msub = decode(0x9B02_8C20).unwrap();
+    assert_eq!(instr_msub.op, Opcode::Msub);
+    assert_eq!(instr_msub.sf, true);
+    assert_eq!(instr_msub.size, 0);
+    execute(&mut cpu, &mut bus, instr_msub).unwrap();
+    assert_eq!(cpu.regs.x(0), 10); // 30 - 4 * 5 = 10
+
+    // 3. Test UMADDL X21, W21, W24, XZR (UMULL X21, W21, W24)
+    // raw = 0x9bb87eb5 (rd=21, rn=21, rm=24, ra=31, sf=true, size=1)
+    cpu.regs.set_x(21, 0xFFFFFFFF_00000003); // W21 is 3
+    cpu.regs.set_x(24, 0x4);                 // W24 is 4
+    let instr_umull = decode(0x9bb87eb5).unwrap();
+    assert_eq!(instr_umull.op, Opcode::Madd);
+    assert_eq!(instr_umull.rd, 21);
+    assert_eq!(instr_umull.rn, 21);
+    assert_eq!(instr_umull.rm, 24);
+    assert_eq!(instr_umull.cond, 31); // XZR
+    assert_eq!(instr_umull.sf, true);
+    assert_eq!(instr_umull.size, 1);  // UMADDL
+    execute(&mut cpu, &mut bus, instr_umull).unwrap();
+    assert_eq!(cpu.regs.x(21), 12);   // 0 + 3 * 4 = 12
 }

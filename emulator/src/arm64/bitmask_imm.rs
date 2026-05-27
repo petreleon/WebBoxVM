@@ -16,6 +16,14 @@ pub fn decode_bitmask_imm(n: u32, immr: u32, imms: u32, is_64bit: bool) -> Optio
         return None;
     }
 
+    // ARM reserved patterns: N:imms == '1 111111' (64-bit) or '0 011111' (32-bit)
+    if is_64bit && n == 1 && imms == 0b111111 {
+        return None;
+    }
+    if !is_64bit && n == 0 && imms == 0b011111 {
+        return None;
+    }
+
     // Step 1: compute len
     let combined: u32 = (n << 6) | ((!imms) & 0x3f);
     let len = 31i32 - (combined.leading_zeros() as i32);
@@ -29,11 +37,6 @@ pub fn decode_bitmask_imm(n: u32, immr: u32, imms: u32, is_64bit: bool) -> Optio
     // Step 3: extract S and R
     let r = immr & (size - 1);
     let s = imms & (size - 1);
-
-    // Step 4: S == size-1 is reserved
-    if s == size - 1 {
-        return None;
-    }
 
     // Step 5: base pattern
     let mut pattern = (1u64 << (s + 1)) - 1;

@@ -1,6 +1,7 @@
 //! AArch64 instruction decoder (pattern-based).
 
 use super::opcodes::{Instr, Opcode};
+use super::bitmask_imm::decode_bitmask_imm;
 
 /// Decode a raw 32-bit word into an instruction.
 pub fn decode(raw: u32) -> Option<Instr> {
@@ -22,18 +23,51 @@ pub fn decode(raw: u32) -> Option<Instr> {
         return decode_nop();
     }
 
-    // MRS/MSR stubs — return NOP for now
+    // MRS/MSR decoding
     let top12 = (raw >> 20) & 0xFFF;
-    if top12 == 0xD53 { return decode_nop(); } // MRS: read system reg → NOP
-    if top12 == 0xD51 { return decode_nop(); } // MSR: write system reg → NOP
+    if top12 == 0xD53 {
+        // MRS Xt, sysreg
+        let rd = (raw & 0x1F) as u8;
+        let sysreg_id = ((raw >> 5) & 0x7FFF) as u16;
+        return Some(Instr {
+            op: Opcode::Mrs,
+            rd,
+            rn: 0,
+            rm: 0,
+            imm: sysreg_id as u64,
+            sf: true,
+            cond: 0,
+            size: 0,
+        });
+    }
+    if top12 == 0xD51 {
+        // MSR sysreg, Xt
+        let rd = (raw & 0x1F) as u8; // Rt source
+        let sysreg_id = ((raw >> 5) & 0x7FFF) as u16;
+        return Some(Instr {
+            op: Opcode::Msr,
+            rd,
+            rn: 0,
+            rm: 0,
+            imm: sysreg_id as u64,
+            sf: true,
+            cond: 0,
+            size: 0,
+        });
+    }
+    if (raw >> 24) == 0xD5 { return decode_nop(); } // Remaining system / cache maintenance / TLB instructions → NOP
 
     if bits28_24 == 0b10000 { return decode_adr(raw); }
     if bits28_23 == 0b100010 { return decode_addsub_imm(raw); }
-    if bits28_24 == 0b10010 {
+    if bits28_23 == 0b100101 {
         let opc = (raw >> 29) & 3;
         if opc == 0 { return decode_movn(raw); }
         if opc == 2 { return decode_movz(raw); }
         if opc == 3 { return decode_movk(raw); }
+    }
+    // Logical-immediate: AND, ORR, EOR, ANDS (N = bit22 = 0)
+    if bits28_23 == 0b100100 {
+        return decode_logical_imm(raw);
     }
     if bits28_24 == 0b10011 { return decode_bitfield(raw); }
     if bits28_21 == 0b11010100 || bits28_21 == 0b11010010 { return decode_condsel(raw); }
@@ -44,7 +78,7 @@ pub fn decode(raw: u32) -> Option<Instr> {
         return decode_dp_register(raw);
     }
 
-    if bits28_21 == 0b01010000 { return decode_mov_reg(raw); }
+    if bits28_24 == 0b01010 { return decode_logical_reg(raw); }
 
     // LDR/STR unsigned immediate — size+V in {0x38,0x78,0xB8,0xF8}
     let ldst_family = (raw >> 24) & 0xF8;
@@ -67,6 +101,7 @@ pub fn decode(raw: u32) -> Option<Instr> {
     if bits31_24_masked_7e == 0b00110100 { return decode_cbz(raw); }
     if bits31_24_masked_7e == 0b00110110 { return decode_tbz(raw); }
     if bits31_24 == 0xD6 { return decode_branch_reg(raw); }
+    if bits28_24 == 0b11011 { return decode_mul(raw); }
 
     None
 }
@@ -81,7 +116,7 @@ fn decode_barrier() -> Option<Instr> {
 
 fn decode_adr(raw: u32) -> Option<Instr> {
     let op = ((raw >> 31) & 1) != 0; // 0=ADR, 1=ADRP
-    let immlo = (raw & 0x3) as i64;
+    let immlo = ((raw >> 29) & 0x3) as i64;
     let immhi = ((raw >> 5) & 0x7FFFF) as i64;
     let mut imm = (immhi << 2) | immlo;
     if imm & (1 << 20) != 0 { imm -= 1 << 21; }
@@ -100,10 +135,13 @@ fn decode_addsub_imm(raw: u32) -> Option<Instr> {
     let rd = (raw & 0x1F) as u8;
     let imm = if sh { imm12 << 12 } else { imm12 };
 
-    if s && op == 1 && rd == 31 {
-        return Some(Instr { size: 0, op: Opcode::CmpImm, rd: 31, rn, rm: 0, imm, sf, cond: 0 });
+    if s {
+        if op == 1 && rd == 31 {
+            return Some(Instr { size: 0, op: Opcode::CmpImm, rd: 31, rn, rm: 0, imm, sf, cond: 0 });
+        }
+        let opcode = if op == 0 { Opcode::AddsImm } else { Opcode::SubsImm };
+        return Some(Instr { size: 0, op: opcode, rd, rn, rm: 0, imm, sf, cond: 0 });
     }
-    if s { return None; }
     let opcode = if op == 0 { Opcode::AddImm } else { Opcode::SubImm };
     Some(Instr { size: 0, op: opcode, rd, rn, rm: 0, imm, sf, cond: 0 })
 }
@@ -139,13 +177,30 @@ fn decode_movn(raw: u32) -> Option<Instr> {
     Some(Instr { size: 0, op: Opcode::Movn, rd, rn: 0, rm: 0, imm: if sf { val } else { val & 0xFFFF_FFFF }, sf, cond: 0 })
 }
 
-fn decode_mov_reg(raw: u32) -> Option<Instr> {
+fn decode_logical_reg(raw: u32) -> Option<Instr> {
     let sf = ((raw >> 31) & 1) != 0;
+    let opc = (raw >> 30) & 3;
+    let shift = ((raw >> 22) & 3) as u8;
+    let n = ((raw >> 21) & 1) != 0;
     let rm = ((raw >> 16) & 0x1F) as u8;
+    let imm6 = ((raw >> 10) & 0x3F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
-    if rn != 31 { return None; } // Only ORR with XZR -> MOV
-    Some(Instr { size: 0, op: Opcode::MovReg, rd, rn: 0, rm, imm: 0, sf, cond: 0 })
+
+    if rn == 31 && opc == 1 && shift == 0 && !n && imm6 == 0 {
+        return Some(Instr { size: 0, op: Opcode::MovReg, rd, rn: 0, rm, imm: 0, sf, cond: 0 });
+    }
+
+    let op = match opc {
+        0 => Opcode::AndReg,
+        1 => Opcode::OrrReg,
+        2 => Opcode::EorReg,
+        3 => Opcode::AndsReg,
+        _ => return None,
+    };
+
+    let cond = ((n as u8) << 2) | shift;
+    Some(Instr { size: 0, op, rd, rn, rm, imm: imm6 as u64, sf, cond })
 }
 
 fn decode_ldr_lit(raw: u32) -> Option<Instr> {
@@ -201,7 +256,10 @@ fn decode_tbz(raw: u32) -> Option<Instr> {
     let b5 = ((raw >> 31) & 1) as u8;
     let op = ((raw >> 24) & 1) != 0; // 0=TBZ, 1=TBNZ
     let b40 = ((raw >> 19) & 0x1F) as u8;
-    let imm14 = ((raw >> 5) & 0x3FFF) as i16;
+    let mut imm14 = ((raw >> 5) & 0x3FFF) as i16;
+    if imm14 & 0x2000 != 0 {
+        imm14 -= 0x4000;
+    }
     let offset = (imm14 as i64) << 2;
     let rt = (raw & 0x1F) as u8;
     let bit = (b5 as u64) * 32 + (b40 as u64);
@@ -226,18 +284,29 @@ fn decode_dp_register(raw: u32) -> Option<Instr> {
     let s = ((raw >> 29) & 1) != 0;
     let shift = ((raw >> 22) & 3) as u8;
     let n = ((raw >> 21) & 1) != 0;
-    if shift != 0 || n { return None; }
     let rm = ((raw >> 16) & 0x1F) as u8;
+    let imm6 = ((raw >> 10) & 0x3F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
+
+    if n {
+        // Add/subtract (extended register)
+        if shift != 0 { return None; }
+        let option = (imm6 >> 3) & 7;
+        let imm3 = imm6 & 7;
+        if s { return None; } // CMP/CMN (extended register) not yet supported
+        let opcode = if op == 0 { Opcode::AddExt } else { Opcode::SubExt };
+        return Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: imm3 as u64, sf, cond: option });
+    }
+
     if s {
         if rd == 31 && op == 1 {
-            return Some(Instr { size: 0, op: Opcode::Cmp, rd: 31, rn, rm, imm: 0, sf, cond: 0 });
+            return Some(Instr { size: 0, op: Opcode::Cmp, rd: 31, rn, rm, imm: imm6 as u64, sf, cond: shift });
         }
         return None;
     }
     let opcode = if op == 0 { Opcode::Add } else { Opcode::Sub };
-    Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: 0, sf, cond: 0 })
+    Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: imm6 as u64, sf, cond: shift })
 }
 
 fn decode_bitfield(raw: u32) -> Option<Instr> {
@@ -245,20 +314,47 @@ fn decode_bitfield(raw: u32) -> Option<Instr> {
     let sf = ((raw >> 31) & 1) != 0;
     let n = ((raw >> 22) & 1) != 0;
     if n != sf { return None; }
-    let immr = ((raw >> 16) & 0x3F) as u64;
-    let imms = ((raw >> 10) & 0x3F) as u64;
+    let immr = ((raw >> 16) & 0x3F) as u8;
+    let imms = ((raw >> 10) & 0x3F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
 
     if opc == 0 && immr == 0 && imms == 31 {
         return Some(Instr { size: 0, op: Opcode::Sxtw, rd, rn, rm: 0, imm: 32, sf, cond: 0 });
     }
-    None
+
+    let op = match opc {
+        0 => Opcode::Sbfm,
+        1 => Opcode::Bfm,
+        2 => Opcode::Ubfm,
+        _ => return None,
+    };
+
+    Some(Instr { size: 0, op, rd, rn, rm: immr, imm: imms as u64, sf, cond: 0 })
+}
+
+fn decode_logical_imm(raw: u32) -> Option<Instr> {
+    let sf = ((raw >> 31) & 1) != 0;
+    let opc = (raw >> 29) & 0x3;
+    let n = (raw >> 22) & 1;
+    let immr = ((raw >> 16) & 0x3F) as u32;
+    let imms = ((raw >> 10) & 0x3F) as u32;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    let imm = decode_bitmask_imm(n, immr, imms, sf)?;
+    let op = match opc {
+        0 => Opcode::AndImm,
+        1 => Opcode::OrrImm,
+        2 => Opcode::EorImm,
+        3 => Opcode::AndsImm,
+        _ => return None,
+    };
+    Some(Instr { size: 0, op, rd, rn, rm: 0, imm, sf, cond: 0 })
 }
 
 fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
     let size = (raw >> 30) & 3;
-    let _v = ((raw >> 29) & 1) != 0; // Ignore V bit for now — scalar loads work fine
     let l = ((raw >> 22) & 1) != 0;
     let imm12 = ((raw >> 10) & 0xFFF) as u64;
     let rn = ((raw >> 5) & 0x1F) as u8;
@@ -293,6 +389,47 @@ fn decode_condsel(raw: u32) -> Option<Instr> {
         return Some(Instr { size: 0, op: Opcode::Csel, rd, rn, rm: _rm, imm: 0, sf, cond });
     }
     None
+}
+
+fn decode_mul(raw: u32) -> Option<Instr> {
+    let bits31_29 = (raw >> 29) & 0x7;
+    let op54 = (raw >> 21) & 0x7;
+    let o0 = ((raw >> 15) & 1) != 0;
+    let rd = (raw & 0x1F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let ra = ((raw >> 10) & 0x1F) as u8;
+    let rm = ((raw >> 16) & 0x1F) as u8;
+
+    let (sf, size) = match bits31_29 {
+        0b000 => {
+            if op54 == 0b000 {
+                (false, 0) // W-variant normal
+            } else {
+                return None;
+            }
+        }
+        0b100 => {
+            match op54 {
+                0b000 => (true, 0),  // X-variant normal
+                0b001 => (true, 2),  // SMADDL / SMSUBL
+                0b101 => (true, 1),  // UMADDL / UMSUBL
+                _ => return None,
+            }
+        }
+        _ => return None,
+    };
+
+    let op = if o0 { Opcode::Msub } else { Opcode::Madd };
+    Some(Instr {
+        op,
+        rd,
+        rn,
+        rm,
+        imm: 0,
+        sf,
+        cond: ra,
+        size,
+    })
 }
 
 fn decode_b(raw: u32) -> Option<Instr> {
@@ -354,5 +491,14 @@ mod tests {
         assert_eq!(instr.op, Opcode::Ccmp);
         assert_eq!(instr.cond, 5); // PL
         assert_eq!(instr.imm, 0xD); // nzcv
+    }
+
+    #[test]
+    fn decode_adrp_non_zero_immlo() {
+        let raw: u32 = 0xf0000d61;
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::Adrp);
+        assert_eq!(instr.rd, 1);
+        assert_eq!(instr.imm, 0x1af000);
     }
 }

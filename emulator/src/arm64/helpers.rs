@@ -41,9 +41,26 @@ pub fn read_base(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
     if sf { val } else { (val as u32) as u64 }
 }
 
-/// Write general-purpose register (SP when n==31).
+/// Write general-purpose register or SP (if n==31). Used by arithmetic instructions.
+pub fn write_reg_sp(cpu: &mut Armv8Cpu, n: u8, val: u64, sf: bool) {
+    if n >= 31 {
+        if sf {
+            cpu.regs.sp = val;
+        } // 32-bit SP write is not supported/no-op
+    } else if sf {
+        cpu.regs.set_x(n, val);
+    } else {
+        cpu.regs.set_w(n, val as u32);
+    }
+}
+
+/// Write general-purpose register (XZR = no-op when n >= 31).
 pub fn write_reg(cpu: &mut Armv8Cpu, n: u8, val: u64, sf: bool) {
-    if n >= 31 { cpu.regs.sp = val; }
-    else if sf { cpu.regs.set_x(n, val); }
-    else { cpu.regs.set_w(n, val as u32); }
+    if n >= 31 {
+        // XZR/WZR write is a no-op
+    } else if sf {
+        cpu.regs.set_x(n, val);
+    } else {
+        cpu.regs.set_w(n, val as u32);
+    }
 }
