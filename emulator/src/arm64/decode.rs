@@ -55,7 +55,15 @@ pub fn decode(raw: u32) -> Option<Instr> {
             size: 0,
         });
     }
-    if (raw >> 24) == 0xD5 { return decode_nop(); } // Remaining system / cache maintenance / TLB instructions → NOP
+    if (raw >> 24) == 0xD5 {
+        let op0 = (raw >> 19) & 0x3;
+        let l = (raw >> 21) & 1;
+        let crn = (raw >> 12) & 0xF;
+        if l == 0 && op0 == 1 && crn == 8 {
+            return decode_tlbi(raw);
+        }
+        return decode_nop(); // Remaining system / cache maintenance instructions → NOP
+    }
 
     if bits28_24 == 0b10000 { return decode_adr(raw); }
     if bits28_23 == 0b100010 { return decode_addsub_imm(raw); }
@@ -108,6 +116,15 @@ pub fn decode(raw: u32) -> Option<Instr> {
 
 fn decode_nop() -> Option<Instr> {
     Some(Instr { op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0 })
+}
+
+fn decode_tlbi(raw: u32) -> Option<Instr> {
+    let op1 = ((raw >> 16) & 0x7) as u8;
+    let crm = ((raw >> 8) & 0xF) as u8;
+    let op2 = ((raw >> 5) & 0x7) as u8;
+    let rt = (raw & 0x1F) as u8;
+    let variant = ((op1 as u64) << 16) | ((crm as u64) << 8) | ((op2 as u64) << 4) | (rt as u64);
+    Some(Instr { op: Opcode::Tlbi, rd: 0, rn: 0, rm: 0, imm: variant, sf: true, cond: 0, size: 0 })
 }
 
 fn decode_barrier() -> Option<Instr> {

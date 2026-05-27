@@ -53,6 +53,7 @@ pub enum Opcode {
     Msr,
     Madd,
     Msub,
+    Tlbi,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

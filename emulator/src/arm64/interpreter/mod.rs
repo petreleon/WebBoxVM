@@ -2,6 +2,7 @@
 
 use super::{Armv8Cpu, decode, execute};
 use crate::bus::SystemBus;
+use crate::arm64::mmu::translate;
 
 #[cfg(test)]
 mod tests;
@@ -24,7 +25,9 @@ pub enum RunError {
     Exec(&'static str, u64),
 }
 
-fn fetch32(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<u32, RunError> {
-    let word = bus.read(cpu.regs.pc, 4).ok_or(RunError::Fetch(cpu.regs.pc))?;
+fn fetch32(cpu: &mut Armv8Cpu, bus: &SystemBus) -> Result<u32, RunError> {
+    let pa = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, cpu.regs.pc)
+        .map_err(|_| RunError::Fetch(cpu.regs.pc))?;
+    let word = bus.mem.read(pa, 4).ok_or(RunError::Fetch(cpu.regs.pc))?;
     Ok(word as u32)
 }

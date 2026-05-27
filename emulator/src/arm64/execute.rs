@@ -4,12 +4,13 @@ use super::opcodes::{Instr, Opcode};
 use super::helpers::{cond_taken, read_reg, read_base, write_reg, write_reg_sp};
 use super::Armv8Cpu;
 use crate::bus::SystemBus;
+use crate::arm64::mmu::translate;
 
 /// Mutate CPU and bus state according to the decoded instruction.
 pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(), &'static str> {
     match instr.op {
-        Opcode::Add  => write_reg_sp(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf) + shifted_reg_val(cpu, instr.rm, instr.cond, instr.imm as u8, instr.sf), instr.sf),
-        Opcode::Sub  => write_reg_sp(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf) - shifted_reg_val(cpu, instr.rm, instr.cond, instr.imm as u8, instr.sf), instr.sf),
+        Opcode::Add  => write_reg_sp(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf).wrapping_add(shifted_reg_val(cpu, instr.rm, instr.cond, instr.imm as u8, instr.sf)), instr.sf),
+        Opcode::Sub  => write_reg_sp(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf).wrapping_sub(shifted_reg_val(cpu, instr.rm, instr.cond, instr.imm as u8, instr.sf)), instr.sf),
         Opcode::Movz => write_reg(cpu, instr.rd, instr.imm, instr.sf),
         Opcode::Movk => {
             let hw = instr.imm.trailing_zeros() / 16;
@@ -24,8 +25,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             let signed = ((val as i32) as i64) as u64;
             write_reg(cpu, instr.rd, signed, true);
         }
-        Opcode::AddImm => write_reg_sp(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf) + instr.imm, instr.sf),
-        Opcode::SubImm => write_reg_sp(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf) - instr.imm, instr.sf),
+        Opcode::AddImm => write_reg_sp(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf).wrapping_add(instr.imm), instr.sf),
+        Opcode::SubImm => write_reg_sp(cpu, instr.rd, read_base(cpu, instr.rn, instr.sf).wrapping_sub(instr.imm), instr.sf),
         Opcode::AddsImm => {
             let lhs = read_base(cpu, instr.rn, instr.sf);
             let val = add_flags(cpu, lhs, instr.imm, instr.sf);
@@ -42,19 +43,22 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             write_reg(cpu, instr.rd, (page as i64 + instr.imm as i64) as u64, true);
         }
         Opcode::Ldr => {
-            let addr = addr_with_offset(cpu, instr.rn, instr.imm)?;
+            let va = addr_with_offset(cpu, instr.rn, instr.imm)?;
+            let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR translation fault")?;
             let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             let val = bus.read(addr, size).ok_or("LDR bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
         }
         Opcode::LdrLit => {
-            let addr = (cpu.regs.pc as i64 + instr.imm as i64) as u64;
+            let va = (cpu.regs.pc as i64 + instr.imm as i64) as u64;
+            let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR literal translation fault")?;
             let size = if instr.sf { 8 } else { 4 };
             let val = bus.read(addr, size).ok_or("LDR literal bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
         }
         Opcode::Str => {
-            let addr = addr_with_offset(cpu, instr.rn, instr.imm)?;
+            let va = addr_with_offset(cpu, instr.rn, instr.imm)?;
+            let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "STR translation fault")?;
             let val = read_reg(cpu, instr.rd, instr.sf);
             let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             bus.write(addr, size, val);
@@ -135,7 +139,15 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         }
         Opcode::Msr => {
             let val = read_reg(cpu, instr.rd, true);
-            cpu.sys.write_sys_reg(instr.imm as u16, val);
+            let sysreg_id = instr.imm as u16;
+            cpu.sys.write_sys_reg(sysreg_id, val);
+            match sysreg_id {
+                0x4100 | 0x4101 | 0x4102 => cpu.tlb.invalidate_all(),
+                _ => {}
+            }
+        }
+        Opcode::Tlbi => {
+            cpu.tlb.invalidate_all();
         }
         Opcode::Madd => {
             let sf_src = instr.size == 0 && instr.sf;
@@ -404,7 +416,7 @@ fn shifted_reg_val(cpu: &Armv8Cpu, rm: u8, shift_type: u8, amount: u8, sf: bool)
 fn exec_ldp_stp(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr, is_load: bool) -> Result<(), &'static str> {
     let base = read_base(cpu, instr.rn, true);
     let size = if instr.size != 0 { instr.size as u64 } else if instr.sf { 8u64 } else { 4u64 };
-    let (addr, new_base) = match instr.cond {
+    let (va, new_base) = match instr.cond {
         1 => (base, (base as i64).wrapping_add(instr.imm as i64) as u64),
         3 => {
             let b = (base as i64).wrapping_add(instr.imm as i64) as u64;
@@ -412,12 +424,14 @@ fn exec_ldp_stp(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr, is_load: 
         }
         _ => ((base as i64).wrapping_add(instr.imm as i64) as u64, base),
     };
+    let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDP translation fault")?;
+    let addr2 = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va + size).map_err(|_| "LDP translation fault")?;
     if is_load {
         write_reg(cpu, instr.rd, bus.read(addr, size as u8).ok_or("LDP bus fault")?, instr.sf);
-        write_reg(cpu, instr.rm, bus.read(addr + size, size as u8).ok_or("LDP bus fault")?, instr.sf);
+        write_reg(cpu, instr.rm, bus.read(addr2, size as u8).ok_or("LDP bus fault")?, instr.sf);
     } else {
         bus.write(addr, size as u8, read_reg(cpu, instr.rd, instr.sf));
-        bus.write(addr + size, size as u8, read_reg(cpu, instr.rm, instr.sf));
+        bus.write(addr2, size as u8, read_reg(cpu, instr.rm, instr.sf));
     }
     if new_base != base {
         write_reg_sp(cpu, instr.rn, new_base, true);

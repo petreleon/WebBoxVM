@@ -79,17 +79,19 @@
 - [x] Boot real kernel past EFI stub and decompressor to virtual entry point `0xffff8000801a8f60`
 - [x] Implement remaining ALU, branch, system register, and multiply ops as decompressor needs them (MADD/MSUB/UMADDL, MRS/MSR thread/stack registers, shifted/extended register arithmetic, and correct TBZ/TBNZ sign-extension)
 
-## Sprint 5 — MMU
-- [ ] 3-level page table walk (39-bit VA)
-- [ ] 2048-entry software TLB
-- [ ] `SCTLR_EL1` enables MMU
+## Sprint 5 — MMU (COMPLETE)
+- [x] 3-level page table walk (39-bit VA)
+- [x] 2048-entry software TLB
+- [x] `SCTLR_EL1` enables MMU
+
+**Result:** 80 tests pass, 0 compiler warnings.
 
 ## Sprint 6 — Busybox Shell
 - [ ] Initrd: load cpio ramdisk into memory
 - [ ] Kernel boots to Busybox `ash` shell
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result:** 69 tests pass, 0 compiler warnings.
+**Result:** 80 tests pass, 0 compiler warnings.
 
 ## Backlog — Do Not Touch Until Shell Works
 - x86_64 interpreter (QEMU or from scratch)

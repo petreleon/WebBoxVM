@@ -27,12 +27,16 @@ The emulator workspace is split into clean, logical segments mimicking physical 
 WebBoxVM/
 ├── emulator/              # Core emulator crate
 │   ├── src/
-│   │   ├── arm64/         # CPU instruction interpreter, decoder, and state registers
+│   │   ├── arm64/         # CPU instruction interpreter, decoder, execute, and state registers
+│   │   │   ├── mmu.rs     # MMU: 3-level page table walk + 2048-entry software TLB
+│   │   │   ├── decode.rs  # AArch64 instruction decoder
+│   │   │   ├── execute.rs # Instruction execution engine
+│   │   │   └── interpreter/ # Fetch-decode-execute loop
 │   │   ├── efi/           # Minimal UEFI bootloader, runtime structures, and trampolines
 │   │   ├── devices/       # Hardware device simulation (PL011 UART console, GIC stubs)
 │   │   ├── bus.rs         # System MMIO memory router
-│   │   ├── memory.rs      # Flat 1 GiB Physical Memory RAM simulation
-│   │   ├── loader.rs      # PE-COFF kernel loader and boot preparation
+│   │   ├── memory.rs      # Flat physical memory with RAM + EFI regions
+│   │   ├── loader/        # PE-COFF kernel loader, relocations, and boot preparation
 │   │   └── lib.rs         # Module registry
 │   └── tests/             # Workspace integration tests
 ├── Image.gz               # Debian Linux ARM64 kernel image
@@ -47,16 +51,20 @@ WebBoxVM/
 
 ### The ARM64 CPU Core
 * **[registers.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/registers.rs)**: Manages 31 general-purpose 64-bit registers (`X0..X30`), the Stack Pointer (`SP`), and the Program Counter (`PC`).
-* **[instr.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/instr.rs)**: The opcode decoder which decodes raw bytes into runnable instruction models (e.g., `ADD`, `SUB`, `MOVZ`, `LDP/STP`, conditional branches).
-* **[interpreter.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/interpreter.rs)**: Runs the fetch-decode-execute instruction cycle.
+* **[decode.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/decode.rs)**: The opcode decoder which decodes raw 32-bit ARM64 words into runnable instruction models (e.g., `ADD`, `SUB`, `MOVZ`, `LDP/STP`, conditional branches, `TLBI`).
+* **[execute.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/execute.rs)**: The execution engine that mutates CPU and bus state per decoded instruction.
+* **[interpreter/](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/interpreter/)**: Runs the fetch-decode-execute instruction cycle with MMU-aware PC translation.
+
+### Memory Management Unit (MMU)
+* **[mmu.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/mmu.rs)**: Implements a 3-level page table walk for 39-bit virtual addresses (4 KB granule), a 2048-entry software TLB, and `SCTLR_EL1.M` gating. Supports 4 KB pages, 2 MB blocks, and 1 GB blocks.
 
 ### The System Motherboard & I/O
-* **[memory.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/memory.rs)**: Allocates a flat 1 GiB address space as a contiguous virtual RAM block.
+* **[memory.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/memory.rs)**: Simulates three disjoint physical regions (low, RAM, EFI) with flat byte backing.
 * **[bus.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/bus.rs)**: Dispatches read/write operations depending on target addresses, automatically directing serial outputs to the UART and relocations to physical memory.
 * **[pl011.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/devices/pl011.rs)**: Mimics a standard ARM PL011 UART serial interface, redirecting output string logs to the virtual console.
 
 ### The UEFI Bootloader Stubs
-* **[efi/](file:///Users/petreleon/code/WebBoxVM/emulator/src/efi/)**: Models the minimal System Table, Boot Services, and Runtime Services requested by modern OS kernels during bootup, preventing execution crashes before OS initialization completes.
+* **[efi/](file:///Users/petreleon/code/WebBoxVM/emulator/src/efi/)**: Models the minimal System Table, Boot Services, and Runtime Services requested by modern OS kernels during bootup, preventing execution crashes before OS initialization completes. PE relocations, `AllocatePages`, `GetMemoryMap`, and `ExitBootServices` are all implemented.
 
 ---
 
@@ -72,7 +80,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Running Tests
 
-The workspace features a comprehensive suite of 40+ unit and integration tests confirming core instruction decodes, bootloader relocations, and UART outputs:
+The workspace features a comprehensive suite of 80+ unit and integration tests confirming core instruction decodes, bootloader relocations, MMU page table walks, TLB behavior, and UART outputs:
 
 ```bash
 # Run all tests
@@ -92,8 +100,8 @@ Development progress is organized around consecutive sprints outlined in [todo.m
 * **Sprint 2: Bootloader** (Complete) ✅
 * **Sprint 3: EFI Stub Protocols** (Complete) ✅
 * **Sprint 4: PE Relocations & Decompressor** (Complete) ✅
-* **Sprint 5: MMU & TLB Walks** (Active development) 🚀
-* **Sprint 6: Interactive BusyBox Shell** (Planned) 📅
+* **Sprint 5: MMU & TLB Walks** (Complete) ✅
+* **Sprint 6: Interactive BusyBox Shell** (Active development) 🚀
 
 ---
 

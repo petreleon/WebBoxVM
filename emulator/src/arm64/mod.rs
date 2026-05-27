@@ -4,6 +4,7 @@ mod bitmask_imm;
 mod decode;
 mod execute;
 mod helpers;
+mod mmu;
 mod opcodes;
 mod interpreter;
 mod pstate;
@@ -13,18 +14,20 @@ mod system_regs;
 pub use decode::decode;
 pub use execute::execute;
 pub use helpers::{cond_taken, read_reg, read_base, write_reg};
+pub use mmu::{Tlb, translate};
 pub use opcodes::{Instr, Opcode};
 pub use interpreter::{run, RunError};
 pub use pstate::ProcessorState;
 pub use registers::RegisterFile;
 pub use system_regs::SystemRegisters;
 
-/// ARM64 CPU: combines register file, processor state, and system registers.
+/// ARM64 CPU: combines register file, processor state, system registers, and TLB.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Armv8Cpu {
     pub regs: RegisterFile,
     pub pstate: ProcessorState,
     pub sys: SystemRegisters,
+    pub tlb: Tlb,
 }
 
 impl Armv8Cpu {
@@ -38,6 +41,7 @@ impl Default for Armv8Cpu {
             regs: RegisterFile::default(),
             pstate: ProcessorState::new(),
             sys: SystemRegisters::default(),
+            tlb: Tlb::default(),
         }
     }
 }
