@@ -144,10 +144,8 @@ fn real_kernel_runs_past_prologue_trace() {
     cpu.regs.set_x(0, handle);
     cpu.regs.set_x(1, st);
     cpu.regs.sp = 0x43FF_F000;
-    // Seed X18 with ImageHandle — EFI stub uses it as platform pointer.
-    // In real UEFI boot, firmware may pass ImageHandle in X0 and stub
-    // copies it to X18 internally.
-    cpu.regs.set_x(18, handle);
+    // Seed X18 — EFI stub may dereference it via [X18, #offset].
+    cpu.regs.set_x(18, st);
 
     bus.write(0x43FFE000, 4, 0xD65F03C0);
     cpu.regs.set_x(30, 0x43FFE000);
@@ -166,7 +164,7 @@ fn real_kernel_runs_past_prologue_trace() {
         };
         if let Some(instr) = decode(raw) {
             if steps >= 560 {
-                println!("[{:>3}] PC=0x{:016x} {:?} X2=0x{:016x} X18=0x{:016x}", steps, cpu.regs.pc, instr.op, cpu.regs.x(2), cpu.regs.x(18));
+                println!("[{:>3}] PC=0x{:016x} {:?} X2=0x{:016x} X18=0x{:016x} bus[0x60]=0x{:016x}", steps, cpu.regs.pc, instr.op, cpu.regs.x(2), cpu.regs.x(18), bus.read(0x60, 8).unwrap_or(0xDEAD));
             }
             if let Err(e) = execute(&mut cpu, &mut bus, instr) {
                 println!("EXECUTE ERROR at step {} PC=0x{:016x}: {:?}", steps, cpu.regs.pc, e);

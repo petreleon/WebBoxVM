@@ -22,6 +22,11 @@ pub fn decode(raw: u32) -> Option<Instr> {
         return decode_nop();
     }
 
+    // MRS/MSR stubs — return NOP for now
+    let top12 = (raw >> 20) & 0xFFF;
+    if top12 == 0xD53 { return decode_nop(); } // MRS: read system reg → NOP
+    if top12 == 0xD51 { return decode_nop(); } // MSR: write system reg → NOP
+
     if bits28_24 == 0b10000 { return decode_adr(raw); }
     if bits28_23 == 0b100010 { return decode_addsub_imm(raw); }
     if bits28_24 == 0b10010 {
@@ -253,7 +258,7 @@ fn decode_bitfield(raw: u32) -> Option<Instr> {
 
 fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
     let size = (raw >> 30) & 3;
-    let _v = ((raw >> 29) & 1) != 0;
+    let _v = ((raw >> 29) & 1) != 0; // Ignore V bit for now — scalar loads work fine
     let l = ((raw >> 22) & 1) != 0;
     let imm12 = ((raw >> 10) & 0xFFF) as u64;
     let rn = ((raw >> 5) & 0x1F) as u8;
