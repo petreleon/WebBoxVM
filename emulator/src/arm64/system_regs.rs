@@ -104,6 +104,9 @@ impl SystemRegisters {
             0x403A => 0x0000000000000000, // ID_AA64MMFR2_EL1
             0x5801 => 0x8444c004, // CTR_EL0 (Cache Type Register)
             0x5807 => 0x0000000000000010, // DCZID_EL0 (DC ZVA block size = 16 bytes)
+            // Generic Timer: monotonic counter for spinlock backoff / udelay
+            0x5F01 => 0, // CNTPCT_EL0 (physical counter, returns 0 — no timer emulation yet)
+            0x5F02 => 0, // CNTVCT_EL0 (virtual counter)
 
             _ => 0,
         }
