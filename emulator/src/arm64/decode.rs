@@ -283,9 +283,8 @@ fn decode_ldst_pair(raw: u32) -> Option<Instr> {
 }
 
 fn decode_bl(raw: u32) -> Option<Instr> {
-    let imm26 = (raw & 0x3FF_FFFF) as i32;
-    let offset = (imm26 << 6) >> 4; // sign-extend and multiply by 4
-    Some(Instr { size: 0, op: Opcode::Bl, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
+    let imm26 = ((raw & 0x3FF_FFFF) as i64) << 38 >> 38;
+    Some(Instr { size: 0, op: Opcode::Bl, rd: 0, rn: 0, rm: 0, imm: (imm26 << 2) as u64, sf: true, cond: 0 })
 }
 
 fn decode_bcond(raw: u32) -> Option<Instr> {
@@ -599,8 +598,9 @@ fn decode_mul(raw: u32) -> Option<Instr> {
 }
 
 fn decode_b(raw: u32) -> Option<Instr> {
-    let imm26 = (raw & 0x3FF_FFFF) as i32;
-    let offset = (imm26 << 6) >> 4;
+    // Sign-extend 26-bit immediate using u64 shift (no overflow) then cast to i64
+    let imm26 = (raw & 0x3FF_FFFF) as u64;
+    let offset = (((imm26 << 38) as i64) >> 38) << 2;
     Some(Instr { size: 0, op: Opcode::B, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
 }
 
