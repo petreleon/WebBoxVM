@@ -115,7 +115,7 @@ fn real_kernel_runs_past_prologue() {
     let mut history = std::collections::VecDeque::with_capacity(105);
     let mut decode_cache = crate::arm64::DecodeCache::new();
 
-    let total_steps = 200_000_000usize;
+    let total_steps = 500_000_000usize;
     for _ in 0..total_steps {
         if steps % 5_000_000 == 0 {
             eprintln!("PROGRESS: {:.1}M steps, cache {}/{}", steps as f64 / 1_000_000.0, decode_cache.hits, decode_cache.misses);

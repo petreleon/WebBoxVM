@@ -33,18 +33,14 @@ impl SystemBus {
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
-        // Redirect fixmap OA-offset UART writes: catch single-byte ASCII writes
-        // to any PA whose lower 21 bits are in UART range (0x090000-0x090FFF)
+        // Redirect fixmap OA-offset UART writes: any PA whose low 21 bits
+        // are in UART range goes to the real UART device (bypasses fixmap OA bug)
         let low = addr & 0x001F_FFFF;
-        if size == 1 && low >= 0x090000 && low < 0x091000 
-            && addr != (0x09000000 | (addr & 0xFFF)) {
-            let b = value as u8;
-            if b >= 0x20 && b <= 0x7E || b == b'\n' || b == b'\r' {
-                let corrected = 0x09000000 | (addr & 0xFFF);
-                self.uart.write(corrected, size, value);
-                let _ = self.mem.write(addr, size, value);
-                return;
-            }
+        if low >= 0x090000 && low < 0x091000 {
+            let corrected = 0x09000000 | (addr & 0xFFF);
+            self.uart.write(corrected, size, value);
+            let _ = self.mem.write(addr, size, value);
+            return;
         }
         self.uart.write(addr, size, value);
         let _ = self.mem.write(addr, size, value);
