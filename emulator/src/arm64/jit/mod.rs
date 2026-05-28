@@ -26,14 +26,13 @@ impl JitEngine {
     ) -> Result<usize, &'static str> {
         cpu.regs.pc = entry;
 
-        for _ in 0..max_steps {
+        for step in 0..max_steps {
+            if step % 5_000_000 == 0 {
+                eprintln!("JIT PROGRESS: {:.1}M steps", step as f64 / 1_000_000.0);
+            }
             let pc = cpu.regs.pc;
             let pa = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, pc)
-                .map_err(|e| {
-                    eprintln!("JIT TRANSLATE FAULT: PC={:#018x} SCTLR={:#018x} TTBR1={:#018x} TCR={:#018x}",
-                        pc, cpu.sys.sctlr_el1, cpu.sys.ttbr1_el1, cpu.sys.tcr_el1);
-                    "PC translation fault"
-                })?;
+                .map_err(|_| "PC translation fault")?;
 
             let instr = match self.get_cached(pa, &bus.mem) {
                 Some(i) => { self.hits += 1; i }

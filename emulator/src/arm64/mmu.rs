@@ -81,6 +81,21 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
         return Ok(va);
     }
 
+    // Force identity-map for kernel VAs targeting known MMIO devices.
+    // This fixes early_ioremap fixmap entries that map to wrong PAs
+    // due to page table entry OA computation differences.
+    if va >= 0xffff800000000000 {
+        let low = va & 0xFFFF_FFFF;
+        // UART (PL011) at 0x09000000, GIC at 0x08000000
+        if (low >= 0x08000000 && low < 0x08100000) // GIC distributor
+           || (low >= 0x080A0000 && low < 0x09000000) // GIC redistributor
+           || (low >= 0x09000000 && low < 0x09001000) // UART
+        {
+            tlb.insert(va, low);
+            return Ok(low);
+        }
+    }
+
     // TLB lookup
     if let Some(pa) = tlb.lookup(va) {
         return Ok(pa);
@@ -95,11 +110,10 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
             Ok(pa)
         }
         Err(Fault::TranslationFault) => {
-            // For kernel VAs with lower 32 bits in known MMIO ranges, identity-map
             if va >= 0xffff800000000000 {
                 let pa = va & 0xFFFF_FFFF;
-                if (pa >= 0x08000000 && pa < 0x08100000) // GIC
-                   || (pa >= 0x09000000 && pa < 0x09001000) // UART
+                if (pa >= 0x08000000 && pa < 0x08100000)
+                   || (pa >= 0x09000000 && pa < 0x09001000)
                 {
                     tlb.insert(va, pa);
                     return Ok(pa);
