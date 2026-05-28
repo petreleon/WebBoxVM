@@ -33,10 +33,15 @@ impl JitEngine {
         entry: u64, max_steps: usize,
     ) -> Result<usize, &'static str> {
         cpu.regs.pc = entry;
+        let max = max_steps as u64;
 
-        for step in 0..max_steps {
-            if step % 5_000_000 == 0 {
-                eprintln!("JIT: {:.1}M steps, {} native, {} pages", step as f64 / 1_000_000.0, self.native_hits, self.pages.len());
+        let mut last_progress = 0u64;
+        while self.steps < max {
+            // Progress every 5M steps
+            let milestone = self.steps / 5_000_000;
+            if milestone > last_progress {
+                eprintln!("JIT: {:.1}M steps, {} native, {} pages", self.steps as f64 / 1_000_000.0, self.native_hits, self.pages.len());
+                last_progress = milestone;
             }
 
             let pc = cpu.regs.pc;
@@ -48,7 +53,6 @@ impl JitEngine {
                 self.native_hits += 1;
                 let count = block.guest_instr_count;
                 unsafe { block.execute(cpu, bus); }
-                // Update guest PC past the executed block
                 cpu.regs.pc = block.exit_pc;
                 self.steps += count as u64;
                 continue;
@@ -66,15 +70,15 @@ impl JitEngine {
                 e
             })?;
 
-            // Periodically compile blocks for native execution
-            // TODO: enable after fixing block_from_pc page table walk
-            if false && step > 100_000 && step % 100_000 == 0 {
+            // JIT compilation: disabled pending page table walk fix
+            // (block_from_pc hangs on swapper_pg_dir walks)
+            if false && self.steps > 1_000_000 && self.steps % 5_000_000 == 0 {
                 let _ = self.try_compile_block(cpu, bus);
             }
         }
 
-        eprintln!("JIT DONE: {} steps, {} native blocks, {} pages",
-            self.steps, self.compiler.block_count(), self.pages.len());
+        eprintln!("JIT DONE: {:.0}M steps, {} native blocks, {} pages",
+            self.steps as f64 / 1_000_000.0, self.compiler.block_count(), self.pages.len());
         Ok(max_steps)
     }
 
