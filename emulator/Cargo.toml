@@ -11,9 +11,9 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 log = "0.4"
-wasm-bindgen = { version = "0.2", optional = true }
-js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", optional = true }
+wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
+js-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
+web-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
 
 [features]
 default = []

@@ -12,21 +12,24 @@ mod interpreter;
 mod pstate;
 mod registers;
 mod system_regs;
+pub mod machine;
 
 pub use decode::decode;
 pub use decode_cache::DecodeCache;
 pub use execute::execute;
-pub use helpers::{cond_taken, read_reg, read_base, write_reg};
+pub use helpers::{cond_taken, read_reg, read_base, write_reg, write_reg_sp};
 pub use mmu::{Tlb, translate};
 pub use opcodes::{Instr, Opcode};
 pub use interpreter::{run, RunError};
 pub use pstate::ProcessorState;
 pub use registers::RegisterFile;
 pub use system_regs::SystemRegisters;
+pub use machine::Machine;
 
 /// ARM64 CPU: combines register file, processor state, system registers, and TLB.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Armv8Cpu {
+    pub core_id: u32,
     pub regs: RegisterFile,
     pub pstate: ProcessorState,
     pub sys: SystemRegisters,
@@ -35,12 +38,19 @@ pub struct Armv8Cpu {
 
 impl Armv8Cpu {
     pub fn new() -> Self { Self::default() }
+    pub fn with_core(core_id: u32) -> Self {
+        let mut cpu = Self::default();
+        cpu.core_id = core_id;
+        // Set MPIDR_EL1 to reflect core ID
+        cpu
+    }
     pub fn reset(&mut self) { *self = Self::default(); }
 }
 
 impl Default for Armv8Cpu {
     fn default() -> Self {
         Self {
+            core_id: 0,
             regs: RegisterFile::default(),
             pstate: ProcessorState::new(),
             sys: SystemRegisters::default(),

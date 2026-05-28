@@ -8,3 +8,9 @@ pub mod efi;
 pub mod initrd;
 pub mod loader;
 pub mod memory;
+
+#[cfg(target_arch = "wasm64")]
+pub mod wasi64;
+
+#[cfg(feature = "wasm")]
+pub mod wasm_main;
