@@ -34,6 +34,11 @@ impl PhysicalMemory {
             .and_then(|(bytes, offset)| write_bytes(bytes, offset, size, value))
     }
 
+    /// Returns a pointer to guest RAM for JIT direct memory access.
+    pub fn ram_data(&self) -> *const u8 {
+        self.ram.as_ptr()
+    }
+
     pub fn read_bytes(&self, addr: u64, dst: &mut [u8]) -> Option<()> {
         self.select_region(addr)
             .map(|(bytes, offset)| dst.copy_from_slice(&bytes[offset..offset + dst.len()]))

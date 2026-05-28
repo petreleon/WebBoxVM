@@ -8,7 +8,7 @@ use crate::arm64::mmu::translate;
 pub struct Block {
     pub start_pc: u64,
     pub start_pa: u64,
-    pub instructions: Vec<Instr>,
+    pub instructions: Vec<(Instr, u32)>, // (decoded, raw)
 }
 
 /// Discover block starting at current PC. Does NOT execute.
@@ -35,7 +35,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
                 | Opcode::Eret
         );
 
-        instructions.push(instr);
+        instructions.push((instr, raw));
         pc += 4;
 
         if is_terminator || instructions.len() >= 64 {
