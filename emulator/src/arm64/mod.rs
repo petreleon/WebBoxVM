@@ -2,6 +2,7 @@
 
 mod bitmask_imm;
 mod decode;
+mod decode_cache;
 mod execute;
 mod helpers;
 mod mmu;
@@ -12,6 +13,7 @@ mod registers;
 mod system_regs;
 
 pub use decode::decode;
+pub use decode_cache::DecodeCache;
 pub use execute::execute;
 pub use helpers::{cond_taken, read_reg, read_base, write_reg};
 pub use mmu::{Tlb, translate};

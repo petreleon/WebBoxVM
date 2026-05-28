@@ -113,8 +113,12 @@ fn real_kernel_runs_past_prologue() {
 
     let mut pages_bump = 0x4800_0000u64;
     let mut history = std::collections::VecDeque::with_capacity(105);
+    let mut decode_cache = crate::arm64::DecodeCache::new();
 
-    for _ in 0..1_000_000usize {
+    for _ in 0..20_000_000usize {
+        if steps % 2_000_000 == 0 {
+            eprintln!("PROGRESS: {:.1}M steps, cache {}/{}", steps as f64 / 1_000_000.0, decode_cache.hits, decode_cache.misses);
+        }
         if !efi_stub_done && cpu.regs.pc == 0 {
             println!("EFI Stub completed in {} steps. Transitioning to main kernel...", steps);
             efi_stub_done = true;
@@ -219,7 +223,9 @@ fn real_kernel_runs_past_prologue() {
                 break;
             }
         };
-        if let Some(instr) = decode(raw) {
+        // Use decode cache: fetches pre-decoded Instr by PA
+        let maybe_instr = decode_cache.fetch(&bus.mem, pa);
+        if let Some(instr) = maybe_instr {
             history.push_back((cpu.regs.pc, raw, instr));
             if history.len() > 100 {
                 history.pop_front();
