@@ -94,10 +94,24 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
         }
         Err(Fault::TranslationFault) if va == 0 => {
             // Map VA 0 to PA 0 — used by kernel for null-pointer checks
-            // with subsequent CBZ. Real ARM Linux maps a zero page at boot.
             let pa = 0;
             tlb.insert(va, pa);
             Ok(pa)
+        }
+        Err(Fault::TranslationFault) => {
+            // For kernel VAs, if the lower 32 bits correspond to a known MMIO
+            // address (0x08000000-0x10000000) and translation fails, identity-map.
+            // This handles early_ioremap fixmap entries the page table walk misses.
+            if va >= 0xffff800000000000 {
+                let pa = va & 0xFFFF_FFFF;
+                if (pa >= 0x08000000 && pa < 0x08100000) // GIC
+                   || (pa >= 0x09000000 && pa < 0x09001000) // UART
+                {
+                    tlb.insert(va, pa);
+                    return Ok(pa);
+                }
+            }
+            Err(Fault::TranslationFault)
         }
         Err(e) => Err(e),
     }
