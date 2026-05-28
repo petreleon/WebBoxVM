@@ -84,6 +84,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
                 }
             };
             let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR translation fault")?;
+            let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR translation fault")?;
             let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             let val = bus.read(addr, size).ok_or("LDR bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
@@ -300,7 +301,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         }
         Opcode::Mrs => {
             let el = cpu.pstate.el();
-            let val = cpu.sys.read_sys_reg(instr.imm as u16, el);
+            let sys_id = instr.imm as u16;
+            let val = cpu.sys.read_sys_reg(sys_id, el);
             write_reg(cpu, instr.rd, val, true);
         }
         Opcode::Msr => {
@@ -750,6 +752,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         }
     }
     cpu.regs.pc += 4;
+    cpu.sys.cycle_count = cpu.sys.cycle_count.wrapping_add(1);
     Ok(())
 }
 

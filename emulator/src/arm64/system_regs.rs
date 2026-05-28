@@ -28,6 +28,9 @@ pub struct SystemRegisters {
     pub tpidr_el0: u64,
     pub tpidr_el1: u64,
     pub tpidrro_el0: u64,
+
+    // Cycle counter (incremented per instruction)
+    pub cycle_count: u64,
 }
 
 impl Default for SystemRegisters {
@@ -55,6 +58,7 @@ impl Default for SystemRegisters {
             tpidr_el0: 0,
             tpidr_el1: 0,
             tpidrro_el0: 0,
+            cycle_count: 0,
         }
     }
 }
@@ -105,8 +109,8 @@ impl SystemRegisters {
             0x5801 => 0x8444c004, // CTR_EL0 (Cache Type Register)
             0x5807 => 0x0000000000000010, // DCZID_EL0 (DC ZVA block size = 16 bytes)
             // Generic Timer: monotonic counter for spinlock backoff / udelay
-            0x5F01 => 0, // CNTPCT_EL0 (physical counter, returns 0 — no timer emulation yet)
-            0x5F02 => 0, // CNTVCT_EL0 (virtual counter)
+            0x5F01 => self.cycle_count, // CNTPCT_EL0 (physical counter)
+            0x5F02 => self.cycle_count, // CNTVCT_EL0 (virtual counter)
 
             _ => 0,
         }
