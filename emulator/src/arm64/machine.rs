@@ -1,7 +1,7 @@
 //! Multi-core ARM64 machine: orchestrates N CPU cores sharing a SystemBus.
 //! Round-robin scheduling: each core executes a timeslice, then yields.
 
-use crate::arm64::{Armv8Cpu, decode, execute, mmu::translate, opcodes::{Instr, Opcode}};
+use crate::arm64::{Armv8Cpu, decode, execute, translate, write_reg, Instr, Opcode};
 use crate::bus::SystemBus;
 use std::collections::HashMap;
 
