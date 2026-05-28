@@ -87,21 +87,15 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
     }
 
     // Page table walk
-    match page_table_walk(sys, mem, va) {
-        Ok(pa) => {
-            tlb.insert(va, pa);
-            Ok(pa)
-        }
+    let result = match page_table_walk(sys, mem, va) {
+        Ok(pa) => Ok(pa),
         Err(Fault::TranslationFault) if va == 0 => {
-            // Map VA 0 to PA 0 — used by kernel for null-pointer checks
             let pa = 0;
             tlb.insert(va, pa);
             Ok(pa)
         }
         Err(Fault::TranslationFault) => {
-            // For kernel VAs, if the lower 32 bits correspond to a known MMIO
-            // address (0x08000000-0x10000000) and translation fails, identity-map.
-            // This handles early_ioremap fixmap entries the page table walk misses.
+            // For kernel VAs with lower 32 bits in known MMIO ranges, identity-map
             if va >= 0xffff800000000000 {
                 let pa = va & 0xFFFF_FFFF;
                 if (pa >= 0x08000000 && pa < 0x08100000) // GIC
@@ -114,7 +108,12 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
             Err(Fault::TranslationFault)
         }
         Err(e) => Err(e),
+    };
+
+    if let Ok(pa) = result {
+        tlb.insert(va, pa);
     }
+    result
 }
 
 fn page_table_walk(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) -> Result<u64, Fault> {
