@@ -1,0 +1,16 @@
+{
+  "arch": "wasm64",
+  "data-layout": "e-m:e-p:64:64-p10:8:8-p20:8:8-i64:64-i128:128-n32:64-S128-ni:1:10:20",
+  "llvm-target": "wasm64-unknown-unknown",
+  "linker-flavor": "wasm-lld",
+  "max-atomic-width": 64,
+  "os": "wasi",
+  "panic-strategy": "abort",
+  "target-pointer-width": 64,
+  "target-family": [
+    "wasm"
+  ],
+  "vendor": "unknown",
+  "singlethread": true,
+  "is-like-wasm": true
+}
