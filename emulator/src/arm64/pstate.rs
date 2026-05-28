@@ -11,9 +11,19 @@ impl ProcessorState {
     const C_SHIFT: u32 = 29;
     const V_SHIFT: u32 = 28;
     const EL_SHIFT: u32 = 2;
+    const I_SHIFT: u32 = 7;  // IRQ mask (1 = masked)
 
     pub fn new() -> Self {
-        Self { bits: 0 }.with_el(3) // Boot at EL3
+        Self { bits: 0 }.with_el(3).with_irq_masked(true) // Boot at EL3 with IRQ masked
+    }
+
+    // --- Interrupt masks ---
+
+    pub fn irq_masked(&self) -> bool { self.bit(Self::I_SHIFT) }
+    pub fn with_irq_masked(mut self, masked: bool) -> Self {
+        if masked { self.bits |= 1 << Self::I_SHIFT; }
+        else { self.bits &= !(1 << Self::I_SHIFT); }
+        self
     }
 
     // --- Condition flags ---

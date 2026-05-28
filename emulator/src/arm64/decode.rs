@@ -566,9 +566,15 @@ fn decode_mul(raw: u32) -> Option<Instr> {
         }
         0b100 => {
             match op54 {
-                0b000 => (true, 0),  // X-variant normal
+                0b000 => (true, 0),  // X-variant normal (MADD/MSUB)
                 0b001 => (true, 2),  // SMADDL / SMSUBL
                 0b101 => (true, 1),  // UMADDL / UMSUBL
+                0b010 => { // SMULH
+                    return Some(Instr { op: Opcode::Smulh, rd, rn, rm, imm: 0, sf: true, cond: 0, size: 0 });
+                }
+                0b110 => { // UMULH
+                    return Some(Instr { op: Opcode::Umulh, rd, rn, rm, imm: 0, sf: true, cond: 0, size: 0 });
+                }
                 _ => return None,
             }
         }

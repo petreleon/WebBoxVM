@@ -60,6 +60,8 @@ pub enum Opcode {
     Msr,
     Madd,
     Msub,
+    Umulh,
+    Smulh,
     Tlbi,
     Svc,
     Eret,

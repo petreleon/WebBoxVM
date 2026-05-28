@@ -317,6 +317,18 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Tlbi => {
             cpu.tlb.invalidate_all();
         }
+        Opcode::Umulh => {
+            let n = read_reg(cpu, instr.rn, true);
+            let m = read_reg(cpu, instr.rm, true);
+            let res = ((n as u128).wrapping_mul(m as u128) >> 64) as u64;
+            write_reg(cpu, instr.rd, res, true);
+        }
+        Opcode::Smulh => {
+            let n = read_reg(cpu, instr.rn, true) as i64;
+            let m = read_reg(cpu, instr.rm, true) as i64;
+            let res = ((n as i128).wrapping_mul(m as i128) >> 64) as u64;
+            write_reg(cpu, instr.rd, res, true);
+        }
         Opcode::Madd => {
             let sf_src = instr.size == 0 && instr.sf;
             let n = read_reg(cpu, instr.rn, sf_src);
@@ -753,6 +765,32 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
     }
     cpu.regs.pc += 4;
     cpu.sys.cycle_count = cpu.sys.cycle_count.wrapping_add(1);
+
+    // Check timer: if enabled (bit0=1), not masked (bit2=0), and counter >= compare
+    if (cpu.sys.cntp_ctl_el0 & 1) != 0 && (cpu.sys.cntp_ctl_el0 & 4) == 0 {
+        if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
+            cpu.sys.irq_pending = true;
+            cpu.sys.last_irq_id = 30; // PPI 30 = physical timer
+        }
+    }
+
+    // Check for pending IRQ delivery
+    if cpu.sys.irq_pending && !cpu.pstate.irq_masked() {
+        // Save state
+        cpu.sys.spsr_el1 = cpu.pstate.to_u64();
+        cpu.sys.elr_el1 = cpu.regs.pc; // return to current instruction (retry)
+        cpu.sys.esr_el1 = 0; // IRQ syndrome
+
+        // Switch to EL1 with IRQ masked
+        let pstate_el1 = cpu.pstate.with_el(1).with_irq_masked(true);
+        // Set PSTATE bits: EL=1, IRQ masked, AArch64
+        let spsr_bits = pstate_el1.to_u64() | (0xF << 6); // mask all DAIF
+        cpu.pstate = crate::arm64::pstate::ProcessorState::from_u64(spsr_bits);
+
+        // Jump to IRQ vector
+        cpu.regs.pc = cpu.sys.vbar_el1 + 0x80;
+    }
+
     Ok(())
 }
 
