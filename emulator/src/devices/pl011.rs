@@ -12,12 +12,16 @@ impl Pl011Uart {
         Self { output: Vec::new() }
     }
 
-    /// Handle MMIO read. Returns value or None if not handled.
+    /// Handle MMIO read. Returns value or 0 for all registers in range.
     pub fn read(&self, addr: u64, _size: u8) -> Option<u64> {
-        match addr {
-            UARTDR => Some(0), // No input buffer yet
-            UARTFR => Some(0x90), // TXFF=0 (ready), RXFE=1 (empty)
-            _ => None,
+        if addr >= 0x09000000 && addr < 0x09001000 {
+            match addr {
+                UARTDR => Some(0),         // No input
+                UARTFR => Some(0x90),      // TXFF=0, RXFE=1 → ready to transmit
+                _ => Some(0),              // All other registers return 0 (no errors)
+            }
+        } else {
+            None
         }
     }
 

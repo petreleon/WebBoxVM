@@ -20,19 +20,32 @@ impl SystemBus {
     }
 
     pub fn read(&self, addr: u64, size: u8) -> Option<u64> {
-        // GIC distributor (0x08000000 - 0x0800FFFF)
-        if addr >= 0x08000000 && addr < 0x08010000 {
-            return self.gic.gicd_read(addr - 0x08000000, size);
-        }
-        // GIC redistributor (0x080A0000 - 0x08100000)
-        if addr >= 0x080A0000 && addr < 0x08100000 {
-            return self.gic.gicr_read(addr - 0x080A0000, size);
+        // Redirect fixmap OA-offset UART reads to correct device
+        let low = addr & 0x001F_FFFF;
+        if low >= 0x090000 && low < 0x091000 {
+            let corrected = 0x09000000 | (addr & 0xFFF);
+            if let Some(val) = self.uart.read(corrected, size) {
+                return Some(val);
+            }
         }
         self.uart.read(addr, size)
             .or_else(|| self.mem.read(addr, size))
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
+        // Redirect fixmap OA-offset UART writes: catch single-byte ASCII writes
+        // to any PA whose lower 21 bits are in UART range (0x090000-0x090FFF)
+        let low = addr & 0x001F_FFFF;
+        if size == 1 && low >= 0x090000 && low < 0x091000 
+            && addr != (0x09000000 | (addr & 0xFFF)) {
+            let b = value as u8;
+            if b >= 0x20 && b <= 0x7E || b == b'\n' || b == b'\r' {
+                let corrected = 0x09000000 | (addr & 0xFFF);
+                self.uart.write(corrected, size, value);
+                let _ = self.mem.write(addr, size, value);
+                return;
+            }
+        }
         self.uart.write(addr, size, value);
         let _ = self.mem.write(addr, size, value);
         if addr <= 0x41fdf70d && addr + size as u64 > 0x41fdf70d {
