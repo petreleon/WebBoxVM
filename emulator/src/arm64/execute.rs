@@ -257,6 +257,13 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
                 let lhs = read_reg(cpu, instr.rn, instr.sf);
                 let rhs = read_reg(cpu, instr.rm, instr.sf);
                 let _ = sub_flags(cpu, lhs, rhs, instr.sf);
+            } else {
+                // CCMP nzcv field: n=bit3=8, z=bit2=4, c=bit1=2, v=bit0=1
+                let n = (instr.imm & 8) != 0;
+                let z = (instr.imm & 4) != 0;
+                let c = (instr.imm & 2) != 0;
+                let v = (instr.imm & 1) != 0;
+                cpu.pstate.set_nzcv(n, z, c, v);
             }
         }
         Opcode::Tbz => {

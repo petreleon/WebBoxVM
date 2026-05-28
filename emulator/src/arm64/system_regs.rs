@@ -86,12 +86,24 @@ impl SystemRegisters {
             0x6200 => self.spsr_el2,
             0x6201 => self.elr_el2,
 
-            // Read-only / feature / status registers
-            0x4000 => 0x410FD030, // MIDR_EL1 (Cortex-A53 or similar)
-            0x4005 => 0x80000000, // MPIDR_EL1 (Single core, core 0)
+            // Read-only / feature / status registers — ARMv8.0-A values
+            0x4000 => 0x410FD083, // MIDR_EL1 (Cortex-A72 r0p3)
+            0x4005 => 0x80000000, // MPIDR_EL1 (Single core, cluster 0, core 0)
             0x4212 => (current_el as u64) << 2, // CurrentEL
-            0x5801 => 0x83338003, // CTR_EL0 (Cache Type Register)
-            0x4038 => 0x00000000_00001122, // ID_AA64MMFR0_EL1
+            // ID registers: indicate ARMv8.0-A, AArch64 at all ELs, FP+SIMD, no crypto (use software)
+            0x4020 => 0x0000000000000011, // ID_AA64PFR0_EL1: EL0/1/2/3=A64-only, FP+SIMD
+            0x4021 => 0x0000000000000000, // ID_AA64PFR1_EL1
+            0x4028 => 0x0000000000000000, // ID_AA64PFR2_EL1
+            0x4030 => 0x0000000000103106, // ID_AA64DFR0_EL1: debug v8, PMU v3
+            0x4031 => 0x0000000000000000, // ID_AA64DFR1_EL1
+            0x4032 => 0x0000000000101001, // ID_AA64ISAR0_EL1: AES+PMULL+SHA1+SHA256+CRC32
+            0x4033 => 0x0000000000000121, // ID_AA64ISAR1_EL1: DP+LRCPC+FCMA+JSCVT
+            0x4034 => 0x0000000000000000, // ID_AA64ISAR2_EL1
+            0x4038 => 0x0000000000001122, // ID_AA64MMFR0_EL1: 4K+64K granule, 48-bit PA
+            0x4039 => 0x0000000000000000, // ID_AA64MMFR1_EL1
+            0x403A => 0x0000000000000000, // ID_AA64MMFR2_EL1
+            0x5801 => 0x8444c004, // CTR_EL0 (Cache Type Register)
+            0x5807 => 0x0000000000000010, // DCZID_EL0 (DC ZVA block size = 16 bytes)
 
             _ => 0,
         }
