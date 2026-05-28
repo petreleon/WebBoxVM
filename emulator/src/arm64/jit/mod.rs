@@ -65,6 +65,12 @@ impl JitEngine {
                 eprintln!("JIT EXEC ERROR: {} at PC={:#018x}", e, cpu.regs.pc);
                 e
             })?;
+
+            // Periodically compile blocks for native execution
+            // TODO: enable after fixing block_from_pc page table walk
+            if false && step > 100_000 && step % 100_000 == 0 {
+                let _ = self.try_compile_block(cpu, bus);
+            }
         }
 
         eprintln!("JIT DONE: {} steps, {} native blocks, {} pages",
