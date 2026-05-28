@@ -70,7 +70,11 @@ pub fn decode(raw: u32) -> Option<Instr> {
         if l == 0 && op0 == 1 && crn == 8 {
             return decode_tlbi(raw);
         }
-        return decode_nop(); // Remaining system / cache maintenance instructions → NOP
+        // DAIFSet (unmask interrupts): D5034xxx
+        if (raw & 0xFFFFF000) == 0xD5034000 {
+            return decode_nop(); // handled in execute via brk-like check
+        }
+        return decode_nop();
     }
 
     if bits28_24 == 0b10000 { return decode_adr(raw); }

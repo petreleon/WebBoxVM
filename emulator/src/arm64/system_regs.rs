@@ -191,6 +191,9 @@ impl SystemRegisters {
             }
             0x5F11 => { self.cntp_ctl_el0 = val; }
             0x5F12 => { self.cntp_cval_el0 = val; }
+            // DAIF (interrupt mask): bit 9=D, 8=A, 7=I, 6=F
+            0x5A11 => { // We don't directly map DAIF to PSTATE — handle via MSR DAIF
+            }
             0x7088 => self.scr_el3 = val,
             0x7200 => self.spsr_el3 = val,
             0x7201 => self.elr_el3 = val,

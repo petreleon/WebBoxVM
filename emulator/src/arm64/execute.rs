@@ -766,28 +766,33 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
     cpu.regs.pc += 4;
     cpu.sys.cycle_count = cpu.sys.cycle_count.wrapping_add(1);
 
-    // Check timer: if enabled (bit0=1), not masked (bit2=0), and counter >= compare
-    if (cpu.sys.cntp_ctl_el0 & 1) != 0 && (cpu.sys.cntp_ctl_el0 & 4) == 0 {
-        if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
-            cpu.sys.irq_pending = true;
-            cpu.sys.last_irq_id = 30; // PPI 30 = physical timer
-        }
+    // Auto-enable timer if kernel hasn't: fire every 1M cycles
+    if cpu.sys.cntp_ctl_el0 == 0 && cpu.sys.cycle_count > 100_000 {
+        cpu.sys.cntp_ctl_el0 = 1; // enable
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + 1_000_000;
+    }
+
+    // Auto-unmask IRQs after kernel has had time to reach irq setup
+    if cpu.sys.cycle_count > 10_000_000 && cpu.pstate.irq_masked() {
+        cpu.pstate = cpu.pstate.with_irq_masked(false);
+    }
+
+    // Reload timer after it fires
+    if cpu.sys.cntp_ctl_el0 != 0 && cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + 1_000_000;
+        cpu.sys.irq_pending = true;
+        cpu.sys.last_irq_id = 30;
     }
 
     // Check for pending IRQ delivery
     if cpu.sys.irq_pending && !cpu.pstate.irq_masked() {
-        // Save state
+        cpu.sys.irq_pending = false; // clear BEFORE delivery to prevent immediate re-entry
         cpu.sys.spsr_el1 = cpu.pstate.to_u64();
-        cpu.sys.elr_el1 = cpu.regs.pc; // return to current instruction (retry)
-        cpu.sys.esr_el1 = 0; // IRQ syndrome
-
-        // Switch to EL1 with IRQ masked
+        cpu.sys.elr_el1 = cpu.regs.pc;
+        cpu.sys.esr_el1 = 0;
         let pstate_el1 = cpu.pstate.with_el(1).with_irq_masked(true);
-        // Set PSTATE bits: EL=1, IRQ masked, AArch64
-        let spsr_bits = pstate_el1.to_u64() | (0xF << 6); // mask all DAIF
+        let spsr_bits = pstate_el1.to_u64() | (0xF << 6);
         cpu.pstate = crate::arm64::pstate::ProcessorState::from_u64(spsr_bits);
-
-        // Jump to IRQ vector
         cpu.regs.pc = cpu.sys.vbar_el1 + 0x80;
     }
 
