@@ -248,7 +248,7 @@ fn real_kernel_runs_past_prologue() {
         }
     }
 
-    // After EFI phase: run kernel via JIT engine (pre-decode cache + interpreter)
+    // After EFI phase: run kernel via JIT engine
     if efi_stub_done {
         println!("--- JIT KERNEL PHASE ---");
         let mut jit_engine = crate::arm64::jit::JitEngine::new();
@@ -263,6 +263,27 @@ fn real_kernel_runs_past_prologue() {
     println!("Executed {} instructions, X0=0x{:016x}", steps, cpu.regs.x(0));
     println!("  Final: PC=0x{:016x} SP=0x{:016x}", cpu.regs.pc, cpu.regs.sp);
     println!("  UART Output: {:?}", bus.uart.output_string());
+
+    // Post-mortem: scan fixmap for UART page table entry
+    println!("Scanning fixmap for UART OA...");
+    let fixmap_end = 0xFFFFFBFFFE000000u64; // end of fixmap (before guard)
+    for slot in 0..64u64 {
+        let fixmap_va = fixmap_end - (slot + 1) * 0x1000;
+        if let Ok(pa) = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, fixmap_va) {
+            if pa >= 0x08000000 && pa < 0x0A000000 {
+                // Read the page table entry directly
+                // Walk the page table manually to get the raw descriptor
+                println!("  FIXMAP VA={:#018x} -> PA={:#018x}", fixmap_va, pa);
+                // Try to read L3 entry from memory
+                let t1sz = ((cpu.sys.tcr_el1 >> 16) & 0x3F) as u8;
+                let l0_idx = (fixmap_va >> 39) & 0x1FF;
+                let l1_idx = (fixmap_va >> 30) & 0x1FF;
+                let l2_idx = (fixmap_va >> 21) & 0x1FF;
+                let l3_idx = (fixmap_va >> 12) & 0x1FF;
+                println!("    indices: L0[{}] L1[{}] L2[{}] L3[{}]", l0_idx, l1_idx, l2_idx, l3_idx);
+            }
+        }
+    }
 
     // RAM Scanner for kernel printk log_buf
     println!("Scanning RAM for printk log_buf...");
