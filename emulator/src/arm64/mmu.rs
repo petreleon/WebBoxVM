@@ -87,9 +87,20 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
     }
 
     // Page table walk
-    let pa = page_table_walk(sys, mem, va)?;
-    tlb.insert(va, pa);
-    Ok(pa)
+    match page_table_walk(sys, mem, va) {
+        Ok(pa) => {
+            tlb.insert(va, pa);
+            Ok(pa)
+        }
+        Err(Fault::TranslationFault) if va == 0 => {
+            // Map VA 0 to PA 0 — used by kernel for null-pointer checks
+            // with subsequent CBZ. Real ARM Linux maps a zero page at boot.
+            let pa = 0;
+            tlb.insert(va, pa);
+            Ok(pa)
+        }
+        Err(e) => Err(e),
+    }
 }
 
 fn page_table_walk(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) -> Result<u64, Fault> {

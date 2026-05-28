@@ -84,7 +84,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
                 }
             };
             let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR translation fault")?;
-            let addr = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR translation fault")?;
+            let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             let size = if instr.size != 0 { instr.size } else if instr.sf { 8 } else { 4 };
             let val = bus.read(addr, size).ok_or("LDR bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
