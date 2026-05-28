@@ -24,6 +24,9 @@ impl SystemBus {
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
         self.uart.write(addr, size, value);
         let _ = self.mem.write(addr, size, value);
+        if addr <= 0x41fdf70d && addr + size as u64 > 0x41fdf70d {
+            eprintln!("BUS WRITE: addr=0x{:016x} size={} value=0x{:016x}", addr, size, value);
+        }
     }
 }
 

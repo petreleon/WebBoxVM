@@ -18,7 +18,7 @@ mod tests {
     #[test]
     fn efi_tables_initialised() {
         let mut bus = SystemBus::new();
-        let (handle, st) = tables::setup_efi_tables(&mut bus, 0x4000_0000, 0x100_0000);
+        let (handle, st) = tables::setup_efi_tables(&mut bus, 0x4000_0000, 0x100_0000, 0x4700_0000);
         assert!(handle != 0);
         let sig = bus.read(st, 8).unwrap();
         assert_eq!(sig, 0x5453_5953_2049_4249);

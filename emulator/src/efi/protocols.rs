@@ -27,6 +27,10 @@ const LIP_OFFSET: u64 = EFI_MEM_BASE + 0x8000;
 pub const LOADED_IMAGE_PROTOCOL_GUID: u128 =
     0x5B1B31A1_9562_11D2_8E3F_00A0C969723B;
 
+/// First 8 bytes of EFI_LOADED_IMAGE_PROTOCOL GUID as they appear in EFI memory
+/// (Data1 LE u32, Data2 LE u16, Data3 LE u16 = 0x11D2_9562_5B1B_31A1)
+pub const LOADED_IMAGE_GUID_LO: u64 = 0x11D2_9562_5B1B_31A1;
+
 /// Install EFI_LOADED_IMAGE_PROTOCOL on the image handle.
 /// Returns the address of the installed protocol structure.
 pub fn install_loaded_image_protocol(

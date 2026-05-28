@@ -1,6 +1,5 @@
 use super::*;
 use crate::arm64::{Armv8Cpu, decode, execute};
-use crate::arm64::mmu::translate;
 use crate::bus::SystemBus;
 
 #[test]

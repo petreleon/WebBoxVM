@@ -46,7 +46,9 @@ pub fn write_reg_sp(cpu: &mut Armv8Cpu, n: u8, val: u64, sf: bool) {
     if n >= 31 {
         if sf {
             cpu.regs.sp = val;
-        } // 32-bit SP write is not supported/no-op
+        } else {
+            cpu.regs.sp = (val as u32) as u64;
+        }
     } else if sf {
         cpu.regs.set_x(n, val);
     } else {

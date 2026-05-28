@@ -55,6 +55,14 @@ pub fn decode(raw: u32) -> Option<Instr> {
             size: 0,
         });
     }
+    if (raw & 0xFFE0001F) == 0xD4000001 {
+        let imm16 = ((raw >> 5) & 0xFFFF) as u64;
+        return Some(Instr { size: 0, op: Opcode::Svc, rd: 0, rn: 0, rm: 0, imm: imm16, sf: true, cond: 0 });
+    }
+    if (raw & 0xFFE0001F) == 0xD4200000 {
+        let imm16 = ((raw >> 5) & 0xFFFF) as u64;
+        return Some(Instr { size: 0, op: Opcode::Brk, rd: 0, rn: 0, rm: 0, imm: imm16, sf: true, cond: 0 });
+    }
     if (raw >> 24) == 0xD5 {
         let op0 = (raw >> 19) & 0x3;
         let l = (raw >> 21) & 1;
@@ -79,6 +87,14 @@ pub fn decode(raw: u32) -> Option<Instr> {
     }
     if bits28_24 == 0b10011 { return decode_bitfield(raw); }
     if bits28_21 == 0b11010100 || bits28_21 == 0b11010010 { return decode_condsel(raw); }
+    if bits28_21 == 0b11010110 {
+        let bit30 = (raw >> 30) & 1;
+        if bit30 == 1 {
+            return decode_dp_1src(raw);
+        } else {
+            return decode_dp_2src(raw);
+        }
+    }
 
     // ADD/SUB register — 0b11010 or 0b01011
     let dp_reg_pat = bits28_24;
@@ -88,19 +104,24 @@ pub fn decode(raw: u32) -> Option<Instr> {
 
     if bits28_24 == 0b01010 { return decode_logical_reg(raw); }
 
-    // LDR/STR unsigned immediate — size+V in {0x38,0x78,0xB8,0xF8}
+    // LDR/STR — size+V in {0x38,0x78,0xB8,0xF8}
     let ldst_family = (raw >> 24) & 0xF8;
     if ldst_family == 0x38 || ldst_family == 0x78 || ldst_family == 0xB8 || ldst_family == 0xF8 {
-        return decode_ldst_unsigned(raw);
+        return decode_ldst(raw);
     }
 
     // LDR literal
     if ((raw >> 24) & 0xF8) == 0x58 { return decode_ldr_lit(raw); }
 
-    // LDP/STP
+    // LDP/STP and Load/Store Exclusive
     let ldp_pat = (raw >> 24) & 0x1F;
     if ldp_pat & 0b11100 == 0b01000 && ldp_pat != 0b01011 {
-        return decode_ldst_pair(raw);
+        let is_excl = ((raw >> 29) & 1) == 0;
+        if is_excl {
+            return decode_ldst_excl(raw);
+        } else {
+            return decode_ldst_pair(raw);
+        }
     }
 
     if bits31_26 == 0b000101 { return decode_b(raw); }
@@ -176,11 +197,12 @@ fn decode_movz(raw: u32) -> Option<Instr> {
 fn decode_movk(raw: u32) -> Option<Instr> {
     let sf = ((raw >> 31) & 1) != 0;
     if ((raw >> 29) & 3) != 3 { return None; }
-    let hw = ((raw >> 21) & 3) as u64;
+    let hw = ((raw >> 21) & 3) as u8;
     if hw > (if sf { 3 } else { 1 }) { return None; }
     let imm16 = ((raw >> 5) & 0xFFFF) as u64;
     let rd = (raw & 0x1F) as u8;
-    Some(Instr { size: 0, op: Opcode::Movk, rd, rn: 0, rm: 0, imm: imm16 << (hw * 16), sf, cond: 0 })
+    // Store hw in cond so execute can compute the mask even when imm16=0.
+    Some(Instr { size: 0, op: Opcode::Movk, rd, rn: 0, rm: 0, imm: imm16 << (hw as u64 * 16), sf, cond: hw })
 }
 
 fn decode_movn(raw: u32) -> Option<Instr> {
@@ -196,7 +218,7 @@ fn decode_movn(raw: u32) -> Option<Instr> {
 
 fn decode_logical_reg(raw: u32) -> Option<Instr> {
     let sf = ((raw >> 31) & 1) != 0;
-    let opc = (raw >> 30) & 3;
+    let opc = (raw >> 29) & 3;
     let shift = ((raw >> 22) & 3) as u8;
     let n = ((raw >> 21) & 1) != 0;
     let rm = ((raw >> 16) & 0x1F) as u8;
@@ -240,9 +262,14 @@ fn decode_ldst_pair(raw: u32) -> Option<Instr> {
     let rt2 = ((raw >> 10) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
+    let v = ((raw >> 26) & 1) != 0;
     let scale = if sf { 3 } else { 2 };
     let offset = imm7 * (1i64 << scale);
-    let op = if l { Opcode::Ldp } else { Opcode::Stp };
+    let op = if v {
+        if l { Opcode::SimdLdp } else { Opcode::SimdStp }
+    } else {
+        if l { Opcode::Ldp } else { Opcode::Stp }
+    };
     Some(Instr { size: 0, op, rd: rt, rn, rm: rt2, imm: offset as u64, sf, cond: op2 })
 }
 
@@ -281,10 +308,14 @@ fn decode_tbz(raw: u32) -> Option<Instr> {
     let rt = (raw & 0x1F) as u8;
     let bit = (b5 as u64) * 32 + (b40 as u64);
     let opcode = if op { Opcode::Tbnz } else { Opcode::Tbz };
-    Some(Instr { size: 0, op: opcode, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: bit as u8 })
+    let sf = ((raw >> 31) & 1) != 0;
+    Some(Instr { size: 0, op: opcode, rd: rt, rn: 0, rm: 0, imm: offset as u64, sf, cond: bit as u8 })
 }
 
 fn decode_branch_reg(raw: u32) -> Option<Instr> {
+    if raw == 0xD69F03E0 {
+        return Some(Instr { size: 0, op: Opcode::Eret, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0 });
+    }
     let opc = ((raw >> 21) & 0xF) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     match opc {
@@ -311,19 +342,69 @@ fn decode_dp_register(raw: u32) -> Option<Instr> {
         if shift != 0 { return None; }
         let option = (imm6 >> 3) & 7;
         let imm3 = imm6 & 7;
-        if s { return None; } // CMP/CMN (extended register) not yet supported
-        let opcode = if op == 0 { Opcode::AddExt } else { Opcode::SubExt };
+        // CMP (extended register) = SUBS Xd/Wd, Xn, Rm, extend with Rd=31
+        if s && op == 1 && rd == 31 {
+            return Some(Instr { size: 0, op: Opcode::Cmp, rd: 31, rn, rm, imm: imm3 as u64, sf, cond: option });
+        }
+        let opcode = if s {
+            if op == 0 { Opcode::AddsExt } else { Opcode::SubsExt }
+        } else {
+            if op == 0 { Opcode::AddExt } else { Opcode::SubExt }
+        };
         return Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: imm3 as u64, sf, cond: option });
     }
 
     if s {
-        if rd == 31 && op == 1 {
+        if op == 1 && rd == 31 {
             return Some(Instr { size: 0, op: Opcode::Cmp, rd: 31, rn, rm, imm: imm6 as u64, sf, cond: shift });
         }
-        return None;
+        let opcode = if op == 0 { Opcode::Adds } else { Opcode::Subs };
+        return Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: imm6 as u64, sf, cond: shift });
     }
     let opcode = if op == 0 { Opcode::Add } else { Opcode::Sub };
     Some(Instr { size: 0, op: opcode, rd, rn, rm, imm: imm6 as u64, sf, cond: shift })
+}
+
+fn decode_dp_1src(raw: u32) -> Option<Instr> {
+    let sf = ((raw >> 31) & 1) != 0;
+    let opcode2 = ((raw >> 16) & 0x1F) as u8;
+    let opcode = ((raw >> 10) & 0x3F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    if opcode2 == 0 {
+        match opcode {
+            0b000000 => Some(Instr { size: 0, op: Opcode::Rbit, rd, rn, rm: 0, imm: 0, sf, cond: 0 }),
+            0b000001 => Some(Instr { size: 0, op: Opcode::Rev16, rd, rn, rm: 0, imm: 0, sf, cond: 0 }),
+            0b000010 => {
+                let op = if sf { Opcode::Rev32 } else { Opcode::Rev };
+                Some(Instr { size: 0, op, rd, rn, rm: 0, imm: 0, sf, cond: 0 })
+            }
+            0b000011 => Some(Instr { size: 0, op: Opcode::Rev, rd, rn, rm: 0, imm: 0, sf, cond: 0 }),
+            0b000100 => Some(Instr { size: 0, op: Opcode::Clz, rd, rn, rm: 0, imm: 0, sf, cond: 0 }),
+            _ => None,
+        }
+    } else {
+        None
+    }
+}
+
+fn decode_dp_2src(raw: u32) -> Option<Instr> {
+    let sf = ((raw >> 31) & 1) != 0;
+    let rm = ((raw >> 16) & 0x1F) as u8;
+    let opcode = ((raw >> 10) & 0x3F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    match opcode {
+        0b000010 => Some(Instr { size: 0, op: Opcode::Udiv, rd, rn, rm, imm: 0, sf, cond: 0 }),
+        0b000011 => Some(Instr { size: 0, op: Opcode::Sdiv, rd, rn, rm, imm: 0, sf, cond: 0 }),
+        0b001000 => Some(Instr { size: 0, op: Opcode::Lslv, rd, rn, rm, imm: 0, sf, cond: 0 }),
+        0b001001 => Some(Instr { size: 0, op: Opcode::Lsrv, rd, rn, rm, imm: 0, sf, cond: 0 }),
+        0b001010 => Some(Instr { size: 0, op: Opcode::Asrv, rd, rn, rm, imm: 0, sf, cond: 0 }),
+        0b001011 => Some(Instr { size: 0, op: Opcode::Rorv, rd, rn, rm, imm: 0, sf, cond: 0 }),
+        _ => None,
+    }
 }
 
 fn decode_bitfield(raw: u32) -> Option<Instr> {
@@ -370,42 +451,95 @@ fn decode_logical_imm(raw: u32) -> Option<Instr> {
     Some(Instr { size: 0, op, rd, rn, rm: 0, imm, sf, cond: 0 })
 }
 
-fn decode_ldst_unsigned(raw: u32) -> Option<Instr> {
+fn decode_ldst(raw: u32) -> Option<Instr> {
     let size = (raw >> 30) & 3;
     let l = ((raw >> 22) & 1) != 0;
-    let imm12 = ((raw >> 10) & 0xFFF) as u64;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
     let op = if l { Opcode::Ldr } else { Opcode::Str };
     let sf = size >= 2;
-    let shift = if size == 3 { 3 } else if size == 2 { 2 } else { size as u8 };
-    Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0, imm: imm12 << shift, sf, cond: 0 })
+
+    let bit24 = (raw >> 24) & 1;
+    if bit24 == 1 {
+        // Unsigned immediate offset
+        let imm12 = ((raw >> 10) & 0xFFF) as u64;
+        let shift = if size == 3 { 3 } else if size == 2 { 2 } else { size as u8 };
+        return Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0xFF, imm: imm12 << shift, sf, cond: 0 });
+    }
+
+    let bit21 = (raw >> 21) & 1;
+    let bits11_10 = (raw >> 10) & 3;
+
+    // simm9 helper for pre/post-index and unscaled
+    let simm9 = || -> i64 {
+        let raw9 = (raw >> 12) & 0x1FF;
+        if raw9 & 0x100 != 0 { (raw9 as i64) - 0x200 } else { raw9 as i64 }
+    };
+
+    // Unscaled immediate (LDUR/STUR): bit21=0, bits[11:10]=00
+    if bit21 == 0 && bits11_10 == 0b00 {
+        return Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0xFF, imm: simm9() as u64, sf, cond: 0 });
+    }
+
+    // Post-index: bit21=0, bits[11:10]=01  → LDR Xt, [Xn], #simm9
+    // cond=1 signals post-index in exec_ldst (we also use it for LDP)
+    if bit21 == 0 && bits11_10 == 0b01 {
+        return Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0xFF, imm: simm9() as u64, sf, cond: 1 });
+    }
+
+    // Unprivileged (LDTR/STTR): bit21=0, bits[11:10]=10 — treat as unscaled
+    if bit21 == 0 && bits11_10 == 0b10 {
+        return Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0xFF, imm: simm9() as u64, sf, cond: 0 });
+    }
+
+    // Pre-index: bit21=0, bits[11:10]=11 → LDR Xt, [Xn, #simm9]!
+    // cond=3 signals pre-index
+    if bit21 == 0 && bits11_10 == 0b11 {
+        return Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm: 0xFF, imm: simm9() as u64, sf, cond: 3 });
+    }
+
+    // Register offset: bit21=1, bits[11:10]=10
+    if bit21 == 1 && bits11_10 == 2 {
+        let rm = ((raw >> 16) & 0x1F) as u8;
+        let option = ((raw >> 13) & 7) as u8;
+        let s = ((raw >> 12) & 1) as u64;
+        return Some(Instr { size: 1u8 << size, op, rd: rt, rn, rm, imm: s, sf, cond: option });
+    }
+
+    None
 }
+
 
 fn decode_condsel(raw: u32) -> Option<Instr> {
     let sf = ((raw >> 31) & 1) != 0;
     let op = (raw >> 30) & 1;
     let o2 = ((raw >> 10) & 1) != 0;
-    let cond = if op == 1 { ((raw >> 12) & 0xF) as u8 } else { ((raw >> 12) & 0xF) as u8 };
+    let cond = ((raw >> 12) & 0xF) as u8;
     let o3 = ((raw >> 11) & 1) != 0;
     let _rm = ((raw >> 16) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
+    let bits22_21 = (raw >> 21) & 3;
 
-    if op == 1 {
-        // CCMP or CCMN
-        let is_register = ((raw >> 21) & 3) == 3; // bits22:21 = 11
-        let is_immediate = ((raw >> 21) & 3) == 2; // bits22:21 = 10
-        if !is_register && !is_immediate { return None; }
-        let nzcv = (raw & 0xF) as u64;
-        let rm_or_imm = ((raw >> 16) & 0x1F) as u64;
-        return Some(Instr { size: 0, op: Opcode::Ccmp, rd: rd, rn, rm: rm_or_imm as u8, imm: nzcv, sf, cond });
+    if bits22_21 == 0 {
+        // CSEL, CSINC, CSINV, CSNEG
+        let opcode = match (op, o2, o3) {
+            (0, false, false) => Opcode::Csel,
+            (0, true, false) => Opcode::Csinc,
+            (1, false, false) => Opcode::Csinv,
+            (1, true, false) => Opcode::Csneg,
+            _ => return None,
+        };
+        return Some(Instr { size: 0, op: opcode, rd, rn, rm: _rm, imm: 0, sf, cond });
     }
 
-    if !o2 || !o3 {
-        return Some(Instr { size: 0, op: Opcode::Csel, rd, rn, rm: _rm, imm: 0, sf, cond });
-    }
-    None
+    // CCMP or CCMN
+    let is_register = bits22_21 == 3; // bits22:21 = 11
+    let is_immediate = bits22_21 == 2; // bits22:21 = 10
+    if !is_register && !is_immediate { return None; }
+    let nzcv = (raw & 0xF) as u64;
+    let rm_or_imm = ((raw >> 16) & 0x1F) as u64;
+    Some(Instr { size: 0, op: Opcode::Ccmp, rd: rd, rn, rm: rm_or_imm as u8, imm: nzcv, sf, cond })
 }
 
 fn decode_mul(raw: u32) -> Option<Instr> {
@@ -453,6 +587,79 @@ fn decode_b(raw: u32) -> Option<Instr> {
     let imm26 = (raw & 0x3FF_FFFF) as i32;
     let offset = (imm26 << 6) >> 4;
     Some(Instr { size: 0, op: Opcode::B, rd: 0, rn: 0, rm: 0, imm: offset as u64, sf: true, cond: 0 })
+}
+
+fn decode_ldst_excl(raw: u32) -> Option<Instr> {
+    let size = (raw >> 30) & 3; // bits 31:30
+    let l = (raw >> 22) & 1;     // bit 22
+    let o1 = (raw >> 23) & 1;   // bit 23
+    let o0 = (raw >> 15) & 1;   // bit 15
+    let rs = ((raw >> 16) & 0x1F) as u8; // bits 20:16
+    let rt2 = ((raw >> 10) & 0x1F) as u8; // bits 14:10
+    let rn = ((raw >> 5) & 0x1F) as u8;   // bits 9:5
+    let rt = (raw & 0x1F) as u8;          // bits 4:0
+
+    if l == 1 {
+        // Load
+        if o1 == 1 {
+            // Load Exclusive Pair (LDXP/LDAXP)
+            let sf = (size & 1) != 0; // bit 30
+            Some(Instr {
+                op: Opcode::Ldxp,
+                rd: rt,
+                rn,
+                rm: rt2,
+                imm: 0,
+                sf,
+                cond: o0 as u8,
+                size: 0,
+            })
+        } else {
+            // Load Exclusive/Acquire Register (LDXR/LDAXR/LDAR)
+            let op = if o0 == 1 && rt2 == 31 { Opcode::Ldar } else { Opcode::Ldxr };
+            let sz_bytes = 1 << size;
+            Some(Instr {
+                op,
+                rd: rt,
+                rn,
+                rm: rt2,
+                imm: 0,
+                sf: size == 3,
+                cond: o0 as u8,
+                size: sz_bytes,
+            })
+        }
+    } else {
+        // Store
+        if o1 == 1 {
+            // Store Exclusive Pair (STXP/STLXP)
+            let sf = (size & 1) != 0; // bit 30
+            Some(Instr {
+                op: Opcode::Stxp,
+                rd: rt,
+                rn,
+                rm: rt2,
+                imm: rs as u64, // Store status register Ws in imm field!
+                sf,
+                cond: o0 as u8,
+                size: 0,
+            })
+        } else {
+            // Store Exclusive/Release Register (STXR/STLXR/STLR)
+            let op = if o0 == 0 && rt2 == 31 && rs == 31 { Opcode::Stlr } else { Opcode::Stxr };
+            let sz_bytes = 1 << size;
+            Some(Instr {
+                op,
+                rd: rt,
+                rn,
+                rm: rt2,
+                imm: rs as u64, // Store status register Ws in imm field!
+                sf: size == 3,
+                cond: o0 as u8,
+                size: sz_bytes,
+            })
+        }
+    }
 }
 
 #[cfg(test)]

@@ -22,7 +22,7 @@ Running **Windows 11 ARM64** in the browser means:
 
 **Primary:** Boot a retail Windows 11 ARM64 ISO to the desktop in the browser.
 
-**Milestone 1:** Boot a minimal ARM64 Linux kernel (vmlinuz + busybox) to an interactive shell.
+**Milestone 1:** Boot a minimal ARM64 Linux kernel (vmlinuz + busybox) to an interactive shell. Kernel reaches main code past EFI stub and MMU enable, but crashes on `BRK #0x800` in `__ll_sc__cmpxchg` before earlycon init — data corruption under investigation.
 **Milestone 2:** Boot Windows 11 ARM64 PE loader and kernel initialization.
 **Milestone 3:** Reach Windows desktop with basic input (keyboard/mouse) and display.
 

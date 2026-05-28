@@ -93,9 +93,12 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
 }
 
 fn page_table_walk(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) -> Result<u64, Fault> {
-    let is_kernel = va >= 0xFFFF_FF80_0000_0000;
+    let t1sz = ((sys.tcr_el1 >> 16) & 0x3F) as u8;
+    let va_bits = 64u8.saturating_sub(t1sz);
+    let kernel_threshold = if va_bits >= 64 { 0u64 } else { (!0u64) << va_bits };
+    let is_kernel = va >= kernel_threshold;
     let (ttbr, tnsz) = if is_kernel {
-        (sys.ttbr1_el1, ((sys.tcr_el1 >> 16) & 0x3F) as u8)
+        (sys.ttbr1_el1, t1sz)
     } else {
         (sys.ttbr0_el1, (sys.tcr_el1 & 0x3F) as u8)
     };
@@ -161,12 +164,16 @@ fn read_descriptor(mem: &PhysicalMemory, addr: u64) -> Result<u64, Fault> {
     mem.read(addr, 8).ok_or(Fault::TranslationFault)
 }
 
-fn decode_descriptor(desc: u64, _level: u8) -> Result<(bool, u64), Fault> {
+fn decode_descriptor(desc: u64, level: u8) -> Result<(bool, u64), Fault> {
     if (desc & 1) == 0 {
         return Err(Fault::TranslationFault);
     }
     let is_table = (desc & 2) != 0;
     let base = desc & 0x0000_FFFF_FFFF_F000;
+    // At L3, 0b11 is a page descriptor, not a table descriptor.
+    if level == 3 && is_table {
+        return Ok((false, base));
+    }
     Ok((is_table, base))
 }
 

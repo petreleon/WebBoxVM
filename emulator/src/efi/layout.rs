@@ -9,8 +9,14 @@ pub const EFI_RUNTIME_SERVICES: u64 = EFI_MEM_BASE + 0x2000;
 pub const EFI_BOOT_SERVICES: u64 = EFI_MEM_BASE + 0x3000;
 pub const EFI_SERVICE_TRAMPOLINES: u64 = EFI_MEM_BASE + 0x4000;
 
+/// Dedicated area for large trampolines that exceed TRAMPOLINE_STRIDE.
+/// Placed at 0x8000_C000, well above the stride-based slot table (ends at 0x8000_C000).
+pub const EFI_LARGE_CODE: u64 = EFI_MEM_BASE + 0xC000;
+/// Each large code block is 512 bytes — plenty for complex services.
+pub const LARGE_CODE_STRIDE: u64 = 512;
+
 pub const TRAMPOLINE_STRIDE: u64 = 32;
-pub const MAX_TRAMPOLINES: usize = 512;
+pub const MAX_TRAMPOLINES: usize = 256;
 pub const EFI_SUCCESS: u64 = 0;
 
 pub fn is_efi_addr(addr: u64) -> bool {

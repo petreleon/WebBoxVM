@@ -43,6 +43,14 @@ impl ProcessorState {
         self
     }
 
+    pub fn to_u64(&self) -> u64 {
+        self.bits
+    }
+
+    pub fn from_u64(val: u64) -> Self {
+        Self { bits: val }
+    }
+
     // --- Private helpers ---
 
     fn bit(&self, shift: u32) -> bool {

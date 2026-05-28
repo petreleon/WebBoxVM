@@ -32,14 +32,21 @@ WebBoxVM/
 │   ├── src/
 │   │   ├── arm64/         # CPU instruction interpreter, decoder, execute, and state registers
 │   │   │   ├── mmu.rs     # MMU: 3-level page table walk + 2048-entry software TLB
+│   │   │   ├── opcodes.rs # Instruction opcodes and decoded representation
+│   │   │   ├── pstate.rs  # Processor state (NZCV flags, exception level)
+│   │   │   ├── system_regs.rs  # System register file (TTBR, TCR, SCTLR, VBAR, etc.)
 │   │   │   ├── decode.rs  # AArch64 instruction decoder
 │   │   │   ├── execute.rs # Instruction execution engine
+│   │   │   ├── helpers.rs # Register read/write helpers, condition codes
+│   │   │   ├── bitmask_imm.rs  # Bitmask immediate decoder
 │   │   │   └── interpreter/ # Fetch-decode-execute loop
 │   │   ├── efi/           # Minimal UEFI bootloader, runtime structures, and trampolines
 │   │   ├── devices/       # Hardware device simulation (PL011 UART, GICv3, TPM 2.0)
+│   │   ├── initrd/        # cpio newc initrd builder and loader
+│   │   ├── dtb.rs         # Device Tree Blob generator
+│   │   ├── loader/        # PE-COFF kernel loader, relocations, and boot preparation
 │   │   ├── bus.rs         # System MMIO memory router
 │   │   ├── memory.rs      # Flat physical memory with RAM + EFI regions
-│   │   ├── loader/        # PE-COFF kernel loader, relocations, and boot preparation
 │   │   └── lib.rs         # Module registry
 │   └── tests/             # Workspace integration tests
 ├── Image.gz               # Debian Linux ARM64 kernel image
@@ -83,7 +90,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Running Tests
 
-The workspace features a comprehensive suite of 80+ unit and integration tests confirming core instruction decodes, bootloader relocations, MMU page table walks, TLB behavior, and UART outputs:
+The workspace features a comprehensive suite of 97 unit and integration tests confirming core instruction decodes, bootloader relocations, MMU page table walks, TLB behavior, and UART outputs:
 
 ```bash
 # Run all tests
@@ -106,7 +113,7 @@ Development progress is organized around consecutive sprints outlined in [todo.m
 * **Sprint 3: EFI Stub Protocols** (Complete) ✅
 * **Sprint 4: PE Relocations & Decompressor** (Complete) ✅
 * **Sprint 5: MMU & TLB Walks** (Complete) ✅
-* **Sprint 6: Interactive BusyBox Shell** (Active development) 🚀
+* **Sprint 6: Interactive BusyBox Shell** (Active — blocked on BRK #0x800 crash) 🚀
 
 ### Phase 2 — Windows 11 ARM64
 

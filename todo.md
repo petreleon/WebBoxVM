@@ -87,11 +87,18 @@
 **Result:** 80 tests pass, 0 compiler warnings.
 
 ## Sprint 6 — Busybox Shell
-- [ ] Initrd: load cpio ramdisk into memory
+- [x] Initrd: load cpio ramdisk into memory
+- [x] Exclusive load/store (LDXR/LDXP/STXR/STXP/LDAR/STLR) decode & execute
+- [x] DTB: GICv3 interrupt controller node, ARMv8 timer node, UART interrupts, `interrupt-parent`
+- [x] Bootargs: `earlycon=pl011,0x09000000 console=ttyAMA0 rdinit=/init`
 - [ ] Kernel boots to Busybox `ash` shell
+  - Kernel passes EFI stub (~8K steps), transitions to main kernel at `0xffff800080080000`, runs 1M instructions
+  - Hits `BRK #0x800` at `0xffff80008014bc90` — `__ll_sc__cmpxchg` with null pointer (`X0 = 0`, loaded value = `0x40044ffff`, expected = `0xffff8000820c2b58`)
+  - Data corruption upstream prevents earlycon init → UART empty → no shell
+- [ ] Debug `BRK #0x800` — `__ll_sc__cmpxchg` null pointer (caller passes `X23 = 0` as argument)
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result:** 80 tests pass, 0 compiler warnings.
+**Result:** 97 tests pass, 0 compiler warnings. Exclusive load/store fully decoded and executed. DTB extended with GICv3, timer, UART interrupts, interrupt-parent. Kernel boots past EFI stub, decompressor, and MMU enable to main kernel code at `0xffff800080080000`, running 1M instructions. Blocked by `BRK #0x800` crash in `__ll_sc__cmpxchg` — null pointer passed to atomic cmpxchg indicates upstream data corruption in kernel page tables or data structures.
 
 ---
 

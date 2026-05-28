@@ -22,16 +22,6 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
     let data = fs::read(path).map_err(|_| "read failed")?;
     let header = parse_header(&data)?;
 
-    let entry = if is_pe(&data) {
-        let entry = parse_pe_entry(&data)?;
-        let img_size = header.image_size.max(data.len() as u64);
-        let (_handle, _st) = crate::efi::setup_efi_tables(bus, KERNEL_LOAD, img_size);
-        relocations::apply_pe_relocations(bus, KERNEL_LOAD, &data)?;
-        entry
-    } else {
-        KERNEL_LOAD + header.text_offset
-    };
-
     let load_size = if header.image_size > 0 {
         header.image_size as usize
     } else {
@@ -42,6 +32,16 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
     for (i, &byte) in payload.iter().enumerate() {
         bus.write(KERNEL_LOAD + i as u64, 1, byte as u64);
     }
+
+    let entry = if is_pe(&data) {
+        let entry = parse_pe_entry(&data)?;
+        let img_size = header.image_size.max(data.len() as u64);
+        let (_handle, _st) = crate::efi::setup_efi_tables(bus, KERNEL_LOAD, img_size, 0x4700_0000);
+        // relocations::apply_pe_relocations(bus, KERNEL_LOAD, &data)?;
+        entry
+    } else {
+        KERNEL_LOAD + header.text_offset
+    };
 
     Ok(entry)
 }
