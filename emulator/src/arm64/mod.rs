@@ -5,7 +5,7 @@ mod decode;
 mod decode_cache;
 mod execute;
 mod helpers;
-mod jit;
+pub mod jit;
 mod mmu;
 mod opcodes;
 mod interpreter;

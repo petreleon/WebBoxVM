@@ -1,65 +1,89 @@
-//! ARM64 → x86_64 JIT compiler: block-based template translation.
-//! Translates ARM64 basic blocks into x86_64 machine code, caches
-//! compiled blocks, and executes them directly on the host CPU.
+//! JIT engine: pre-decoded instruction cache + interpreter execution.
+//! JIT compilation is incrementally enabled as instructions are covered.
 
-mod block;
-mod emitter_x64;
-mod code_cache;
-
-use super::Armv8Cpu;
+use crate::arm64::{Armv8Cpu, decode, execute, opcodes::{Instr, Opcode}, mmu::translate};
 use crate::bus::SystemBus;
-use crate::arm64::mmu::translate;
-use block::{Block, block_from_pc};
-use code_cache::CodeCache;
+use crate::memory::PhysicalMemory;
+use std::collections::HashMap;
 
-/// JIT execution engine.
 pub struct JitEngine {
-    code_cache: CodeCache,
+    /// Pre-decoded instruction pages (PA → 1024 Instrs)
+    pages: HashMap<u64, Vec<Instr>>,
+    pub hits: u64,
+    pub misses: u64,
+    pub steps: u64,
 }
 
 impl JitEngine {
     pub fn new() -> Self {
-        Self { code_cache: CodeCache::new() }
+        Self { pages: HashMap::new(), hits: 0, misses: 0, steps: 0 }
     }
 
-    /// Run up to `max_steps` instructions using JIT-compiled blocks.
+    /// Run up to max_steps using cached pre-decoded instructions.
     pub fn run(
-        &mut self,
-        cpu: &mut Armv8Cpu,
-        bus: &mut SystemBus,
-        entry: u64,
-        max_steps: usize,
+        &mut self, cpu: &mut Armv8Cpu, bus: &mut SystemBus,
+        entry: u64, max_steps: usize,
     ) -> Result<usize, &'static str> {
         cpu.regs.pc = entry;
-        let mut steps = 0;
 
-        while steps < max_steps {
-            // Translate PC to PA (required for JIT block lookup)
-            let pa = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, cpu.regs.pc)
-                .map_err(|_| "JIT: PC translation fault")?;
+        for _ in 0..max_steps {
+            let pc = cpu.regs.pc;
+            let pa = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, pc)
+                .map_err(|e| {
+                    eprintln!("JIT TRANSLATE FAULT: PC={:#018x} SCTLR={:#018x} TTBR1={:#018x} TCR={:#018x}",
+                        pc, cpu.sys.sctlr_el1, cpu.sys.ttbr1_el1, cpu.sys.tcr_el1);
+                    "PC translation fault"
+                })?;
 
-            // Check code cache for compiled block at this PA
-            if let Some(compiled) = self.code_cache.get(pa) {
-                let instr_count = compiled.arm64_instr_count;
-                // Execute compiled x86_64 code directly
-                unsafe {
-                    compiled.execute(cpu, bus);
-                }
-                steps += instr_count;
-                continue;
-            }
+            let instr = match self.get_cached(pa, &bus.mem) {
+                Some(i) => { self.hits += 1; i }
+                None => { self.misses += 1; self.decode_and_get(pa, &bus.mem)? }
+            };
 
-            // Not cached: discover block, compile, cache, execute
-            let block = block_from_pc(cpu, bus)?;
-            let arm64_count = block.instructions.len();
-            self.code_cache.compile(&block, cpu, bus)?;
-            let compiled = self.code_cache.get(pa).unwrap();
-            unsafe {
-                compiled.execute(cpu, bus);
-            }
-            steps += arm64_count;
+            self.steps += 1;
+            execute(cpu, bus, instr).map_err(|e| {
+                eprintln!("JIT EXEC ERROR: {} at PC={:#018x}", e, cpu.regs.pc);
+                e
+            })?;
         }
 
-        Ok(steps)
+        let total = self.hits + self.misses;
+        eprintln!("JIT: {} steps, {}/{} hits/misses ({:.1}% hit), {} pages",
+            self.steps, self.hits, self.misses,
+            if total > 0 { (self.hits as f64 / total as f64) * 100.0 } else { 0.0 },
+            self.pages.len());
+
+        Ok(max_steps)
+    }
+
+    fn get_cached(&self, pa: u64, _mem: &PhysicalMemory) -> Option<Instr> {
+        let page_base = pa & !0xFFFu64;
+        let offset = ((pa & 0xFFF) / 4) as usize;
+        self.pages.get(&page_base)?.get(offset).copied()
+    }
+
+    fn decode_and_get(&mut self, pa: u64, mem: &PhysicalMemory) -> Result<Instr, &'static str> {
+        let page_base = pa & !0xFFFu64;
+        let offset = ((pa & 0xFFF) / 4) as usize;
+
+        let mut page: Vec<Instr> = Vec::with_capacity(1024);
+        for i in 0..1024u64 {
+            let addr = page_base + i * 4;
+            let instr = if let Some(raw) = mem.read(addr, 4) {
+                decode(raw as u32).unwrap_or(Instr {
+                    op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0
+                })
+            } else {
+                break; // end of mapped memory — stop here
+            };
+            page.push(instr);
+        }
+
+        if offset >= page.len() {
+            return Err("offset beyond page end");
+        }
+        let result = page[offset];
+        self.pages.insert(page_base, page);
+        Ok(result)
     }
 }

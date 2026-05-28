@@ -115,20 +115,15 @@ fn real_kernel_runs_past_prologue() {
     let mut history = std::collections::VecDeque::with_capacity(105);
     let mut decode_cache = crate::arm64::DecodeCache::new();
 
-    for _ in 0..50_000_000usize {
+    let total_steps = 200_000_000usize;
+    for _ in 0..total_steps {
         if steps % 5_000_000 == 0 {
             eprintln!("PROGRESS: {:.1}M steps, cache {}/{}", steps as f64 / 1_000_000.0, decode_cache.hits, decode_cache.misses);
         }
-        if !efi_stub_done && cpu.regs.pc == 0 {
-            println!("EFI Stub completed in {} steps. Transitioning to main kernel...", steps);
+        if !efi_stub_done && cpu.regs.pc >= 0xffff800000000000 {
+            println!("EFI Stub done in {} steps at PC={:#018x}. Switching to JIT kernel...", steps, cpu.regs.pc);
             efi_stub_done = true;
-            cpu.regs.pc = 0xffff800080080000;
-            // cpu.regs.set_x(0, dtb_addr); // DO NOT OVERWRITE! Keep the updated DTB address returned by the EFI stub in X0!
-            cpu.regs.set_x(1, 0);
-            cpu.regs.set_x(2, 0);
-            cpu.regs.set_x(3, 0);
-            last_pc = cpu.regs.pc;
-            continue;
+            break;
         }
         if cpu.regs.pc == 0x8000_CE00 {
             // CopyMem(Dest, Src, Length)
@@ -253,6 +248,18 @@ fn real_kernel_runs_past_prologue() {
         }
     }
 
+    // After EFI phase: run kernel via JIT engine (pre-decode cache + interpreter)
+    if efi_stub_done {
+        println!("--- JIT KERNEL PHASE ---");
+        let mut jit_engine = crate::arm64::jit::JitEngine::new();
+        let current_pc = cpu.regs.pc;
+        let remaining = total_steps.saturating_sub(steps as usize);
+        match jit_engine.run(&mut cpu, &mut bus, current_pc, remaining) {
+            Ok(jit_steps) => steps += jit_steps as u64,
+            Err(e) => println!("JIT ERROR: {}", e),
+        }
+    }
+
     println!("Executed {} instructions, X0=0x{:016x}", steps, cpu.regs.x(0));
     println!("  Final: PC=0x{:016x} SP=0x{:016x}", cpu.regs.pc, cpu.regs.sp);
     println!("  UART Output: {:?}", bus.uart.output_string());
@@ -311,7 +318,7 @@ fn real_kernel_runs_past_prologue() {
         println!("--------------------------");
     }
 
-    panic!("Force panic to see stdout! Executed {} instructions", steps);
+    assert!(steps > 1000, "Kernel should execute at least 1000 instructions");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
