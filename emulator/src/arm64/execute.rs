@@ -746,10 +746,23 @@ fn advance_pc(cpu: &mut Armv8Cpu) {
 fn check_timer_irq(cpu: &mut Armv8Cpu) {
     if cpu.sys.vbar_el1 == 0 { return; }
 
-    // Fire ONE timer IRQ to break the init spin loop.
-    // Only fire if no IRQ has been delivered in this boot phase.
-    // After delivery, set cval far in the future to avoid re-triggering.
-    if cpu.sys.irq_pending {
+    // Deliver continuous 100 Hz timer ticks regardless of cntp_ctl.
+    // The kernel needs multiple jiffies to advance past INITIAL_JIFFIES.
+    let tick_period = TIMER_FREQ_HZ / 100;
+    if cpu.sys.cntp_cval_el0 == 0 || cpu.sys.cntp_cval_el0 > cpu.sys.cycle_count + tick_period * 2 {
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + tick_period;
+    }
+
+    if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
+        cpu.sys.irq_pending = true;
+        cpu.sys.last_irq_id = TIMER_IRQ_ID;
+        // Space ticks 10ms apart so kernel can make progress
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + tick_period;
+    }
+
+    // Deliver IRQ — use cntp_tval as a simple cooldown tracker
+    if cpu.sys.irq_pending && cpu.sys.cycle_count > cpu.sys.cntp_tval_el0 + 100 {
+        cpu.sys.cntp_tval_el0 = cpu.sys.cycle_count;
         cpu.sys.irq_pending = false;
         cpu.sys.spsr_el1 = cpu.pstate.with_irq_masked(false).to_u64();
         cpu.sys.elr_el1 = cpu.regs.pc;
@@ -760,16 +773,6 @@ fn check_timer_irq(cpu: &mut Armv8Cpu) {
         cpu.pstate = super::pstate::ProcessorState::from_u64(spsr_bits);
 
         cpu.regs.pc = cpu.sys.vbar_el1 + VBAR_IRQ_CURRENT_EL;
-        // Set timer far in future to prevent re-trigger
-        cpu.sys.cntp_cval_el0 = u64::MAX;
-    }
-
-    // Trigger one IRQ when VBAR_EL1 is first set and cycle count > 0.
-    // Use cntp_ctl_el0 as a "fired" flag: set to 0 after firing.
-    if cpu.sys.cntp_ctl_el0 != 0 && cpu.sys.cycle_count > 100_000 && !cpu.sys.irq_pending {
-        cpu.sys.cntp_ctl_el0 = 0; // mark as fired
-        cpu.sys.irq_pending = true;
-        cpu.sys.last_irq_id = TIMER_IRQ_ID;
     }
 }
 
