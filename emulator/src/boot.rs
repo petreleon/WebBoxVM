@@ -140,11 +140,18 @@ impl BootContext {
                 let retval = cpu.regs.x(0);
                 // High bit set = EFI error code, not a valid address
                 if (retval >> 63) != 0 {
-                    // EFI stub failed — continue with fallback kernel entry
-                    let fallback = KERNEL_LOAD_ADDR;
-                    cpu.regs.pc = fallback;
+                    // EFI stub failed.  Jump to .text section and NOP out
+                    // the RET instruction so execution falls through into
+                    // the real kernel code instead of returning to trampoline.
+                    let entry = KERNEL_LOAD_ADDR + 0x10000; // .text RVA
+                    // NOP-out the RET at .text+0x50 (0x40090050)
+                    self.machine.bus.write(entry + 0x50, 4, 0xD503201F);
+                    // Also NOP-out RET at +0x9c and +0xc4
+                    self.machine.bus.write(entry + 0x9c, 4, 0xD503201F);
+                    self.machine.bus.write(entry + 0xc4, 4, 0xD503201F);
+                    cpu.regs.pc = entry;
                     cpu.regs.set_x(0, self.dtb_addr);
-                    eprintln!("EFI stub returned error 0x{:x}, entering kernel at fallback 0x{:x}", retval, fallback);
+                    eprintln!("EFI error 0x{:x}, NOP'd RETs at .text, entering 0x{:x}", retval, entry);
                 } else {
                     cpu.regs.pc = retval;
                     cpu.regs.set_x(0, self.dtb_addr);
