@@ -26,7 +26,7 @@ impl BootContext {
         // R_AARCH64_RELATIVE relocs add delta to each absolute address.
         // NOTE: vmlinux linking is complex (PAGE_OFFSET-aware). For now we rely on
         // the kernel's own head.S relocation and only fix known bad literal pools.
-        // apply_kernel_relocations(&mut machine.bus);
+        apply_kernel_relocations(&mut machine.bus);
 
         // Standard ARM64 Linux boot protocol:
         // X0 = physical address of DTB, X1-X3 = 0, MMU off
@@ -78,7 +78,8 @@ impl BootContext {
 fn apply_kernel_relocations(bus: &mut SystemBus) {
     let data = include_bytes!("../../rela.dyn");
     let n = data.len() / 24;
-    const DELTA: u64 = KERNEL_LOAD_ADDR; // kernel linked at 0x0, loaded at KERNEL_LOAD_ADDR
+    // vmlinux p_vaddr = 0xffff800080000000, loaded at KERNEL_LOAD_ADDR
+    const DELTA: u64 = KERNEL_LOAD_ADDR.wrapping_sub(0xffff800080000000);
     const PAGE_OFFSET: u64 = 0xffff800080000000;
 
     let mut applied = 0usize;
@@ -88,19 +89,14 @@ fn apply_kernel_relocations(bus: &mut SystemBus) {
             data[off], data[off+1], data[off+2], data[off+3],
             data[off+4], data[off+5], data[off+6], data[off+7],
         ]);
-        // r_info and r_addend not needed for R_AARCH64_RELATIVE: value += delta
-
-        // Convert vmlinux VA to loaded PA
         if r_offset < PAGE_OFFSET { continue; }
         let pa = KERNEL_LOAD_ADDR + (r_offset - PAGE_OFFSET);
-
-        // Read current value, add delta, write back
         if let Some(val) = bus.mem.read(pa, 8) {
             bus.mem.write(pa, 8, val.wrapping_add(DELTA));
             applied += 1;
         }
     }
-    eprintln!("Applied {} of {} relocations", applied, n);
+    eprintln!("Applied {} of {} R_AARCH64_RELATIVE relocations (delta=0x{:x})", applied, n, DELTA);
 }
 
 
