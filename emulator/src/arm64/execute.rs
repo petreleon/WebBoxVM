@@ -746,9 +746,9 @@ fn advance_pc(cpu: &mut Armv8Cpu) {
 fn check_timer_irq(cpu: &mut Armv8Cpu) {
     if cpu.sys.vbar_el1 == 0 { return; }
 
-    // Deliver continuous 100 Hz timer ticks regardless of cntp_ctl.
+    // Deliver continuous 1000 Hz timer ticks regardless of cntp_ctl.
     // The kernel needs multiple jiffies to advance past INITIAL_JIFFIES.
-    let tick_period = TIMER_FREQ_HZ / 100;
+    let tick_period = TIMER_FREQ_HZ / 1000;
     if cpu.sys.cntp_cval_el0 == 0 || cpu.sys.cntp_cval_el0 > cpu.sys.cycle_count + tick_period * 2 {
         cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + tick_period;
     }
