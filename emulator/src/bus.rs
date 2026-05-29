@@ -38,12 +38,14 @@ impl SystemBus {
     }
 
     pub fn read(&mut self, addr: u64, size: u8) -> Option<u64> {
-        // Fixup: kernel fixmap may redirect UART accesses through a
-        // different mapping (0xFFFF_8000_0009_XXXX → 0x0900_0XXX).
-        let low = addr & FIXMAP_LOW_MASK;
-        if in_uart_fixmap_range(low) {
-            let uart_offset = addr & PAGE_OFFSET_MASK;
-            return self.uart.read(UART_BASE | uart_offset, size);
+        // Redirect fixmap kernel VA UART reads to the correct device.
+        // Only applies to kernel VAs (>= 0xffff000000000000), not physical addresses.
+        if addr >= KERNEL_VA_BASE {
+            let low = addr & FIXMAP_LOW_MASK;
+            if in_uart_fixmap_range(low) {
+                let uart_offset = addr & PAGE_OFFSET_MASK;
+                return self.uart.read(UART_BASE | uart_offset, size);
+            }
         }
 
         // Standard MMIO dispatch
@@ -60,15 +62,14 @@ impl SystemBus {
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
-        // Fixup: kernel fixmap UART redirect
-        let low = addr & FIXMAP_LOW_MASK;
-        if in_uart_fixmap_range(low) && size == 1 {
-            let b = value as u8;
-            // Only redirect printable ASCII, newline, and carriage return
-            if is_printable_or_control(b) {
+        // Redirect fixmap kernel VA UART writes to the correct device.
+        // Only applies to kernel VAs (>= 0xffff000000000000), not physical addresses.
+        if addr >= KERNEL_VA_BASE {
+            let low = addr & FIXMAP_LOW_MASK;
+            if in_uart_fixmap_range(low) && size == 1 && is_printable_or_control(value as u8) {
                 let uart_offset = addr & PAGE_OFFSET_MASK;
                 self.uart.write(UART_BASE | uart_offset, size, value);
-                self.mem.write(addr, size, value);
+                let _ = self.mem.write(addr, size, value);
                 return;
             }
         }
@@ -76,6 +77,7 @@ impl SystemBus {
         // Standard MMIO dispatch
         if in_uart_range(addr) {
             self.uart.write(addr, size, value);
+            // Trace: kernel wrote to the UART physical address
         } else if in_gicd_range(addr) {
             self.gic.gicd_write(addr - GICD_BASE, value, size);
         } else if in_gicr_range(addr) {
