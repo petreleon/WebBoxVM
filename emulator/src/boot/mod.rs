@@ -1,190 +1,64 @@
-//! Kernel boot pipeline — loads an ARM64 Linux kernel Image and boots it to a shell.
-//!
-//! The boot flow has two phases:
-//!   1. **EFI stub phase** — runs the kernel's built-in EFI stub (PE/COFF entry point).
-//!      The stub calls UEFI services to discover memory and devices.
-//!   2. **Kernel phase** — the real kernel entry point, running with MMU enabled.
-//!
-//! For a beginner: think of the EFI stub as a "bootstrap loader" that hands
-//! control to the actual Linux kernel after setting up a minimal environment.
-
-use crate::arm64::{Armv8Cpu, Machine, decode, execute, translate, Opcode};
+use crate::arm64::{Armv8Cpu, Machine};
 use crate::bus::SystemBus;
 use crate::constants::*;
-use crate::efi::setup_efi_tables;
 use crate::dtb::{build_dtb, load_dtb};
 use crate::initrd::{build_cpio, load_initrd};
-
-mod page_tables;
-mod efi_traps;
 
 /// Holds everything needed to boot and run a Linux kernel.
 pub struct BootContext {
     pub machine: Machine,
     pub dtb_addr: u64,
-    pub entry_pc: u64,
-    efi_stub_done: bool,
-    pages_bump: u64,
-    history: Vec<(u64, u32, Opcode)>,
 }
 
 impl BootContext {
-    /// Create a boot context from a raw kernel image (already decompressed).
-    ///
-    /// This:
-    ///   1. Copies the kernel into RAM at KERNEL_LOAD_ADDR
-    ///   2. Sets up UEFI firmware tables (SystemTable, BootServices, etc.)
-    ///   3. Builds a minimal initrd (busybox)
-    ///   4. Creates a Device Tree Blob (DTB) describing the virtual hardware
-    ///   5. Configures boot page tables for the MMU
-    ///   6. Prepares CPU registers (X0=handle, X1=system_table, SP, LR)
     pub fn new(kernel_image: &[u8], num_cores: usize) -> Result<Self, String> {
         let mut machine = Machine::new(num_cores);
 
-        // Copy kernel image into RAM
+        // Copy kernel image into RAM at KERNEL_LOAD_ADDR
         for (i, &byte) in kernel_image.iter().enumerate() {
             machine.bus.write(KERNEL_LOAD_ADDR + i as u64, 1, byte as u64);
         }
 
-        // Parse kernel header at offset 16:8 → image_size (little-endian u64)
         let image_size = read_kernel_image_size(kernel_image);
 
-        // Patch the in-memory PE header: set ImageBase to our actual load
-        // address.  The kernel Image has image_base=0x0 and NO .reloc section,
-        // so the EFI stub's relocation fails with EFI_LOAD_ERROR.  By setting
-        // ImageBase = KERNEL_LOAD_ADDR, the delta is zero and relocation is
-        // skipped.
-        // PE optional header offset: PE_sig(0x40) + COFF(20) = 0x58
-        // ImageBase is at offset 24 within the optional header = 0x58+24 = 0x70
-        // Set ImageBase to match our load address so delta=0 for any relocations.
-        machine.bus.write(KERNEL_LOAD_ADDR + 0x70, 8, KERNEL_LOAD_ADDR);
+        // Apply .rela.dyn ELF relocations from vmlinux.
+        // The kernel is linked at ImageBase=0x0 but loaded at KERNEL_LOAD_ADDR.
+        // R_AARCH64_RELATIVE relocs add delta to each absolute address.
+        // NOTE: vmlinux linking is complex (PAGE_OFFSET-aware). For now we rely on
+        // the kernel's own head.S relocation and only fix known bad literal pools.
+        // apply_kernel_relocations(&mut machine.bus);
 
-        // DO NOT patch .reloc — the kernel Image has RVA=0 Size=0 for .reloc,
-        // which tells efi_relocate_kernel() to use the kernel's own .rela.dyn
-        // ELF relocations embedded in the binary (processed by the kernel's
-        // relocation code, not our PE loader).
-
-        // Set up EFI firmware tables
-        let (handle, system_table) = setup_efi_tables(
-            &mut machine.bus, KERNEL_LOAD_ADDR, image_size, DTB_BASE,
-        );
-
-        // Configure core 0 as the boot CPU
+        // Standard ARM64 Linux boot protocol:
+        // X0 = physical address of DTB, X1-X3 = 0, MMU off
         let cpu0 = &mut machine.cpus[0];
-        cpu0.regs.set_x(0, handle);        // X0 = EFI image handle
-        cpu0.regs.set_x(1, system_table);  // X1 = EFI SystemTable pointer
-        cpu0.regs.sp = BOOT_STACK_POINTER;
+        cpu0.regs.set_x(0, DTB_BASE);
+        cpu0.regs.set_x(1, 0);
+        cpu0.regs.set_x(2, 0);
+        cpu0.regs.set_x(3, 0);
+        cpu0.sys.sctlr_el1 = 0; // MMU disabled — kernel's head.S enables it
+        // Jump to ARM64 Image header (code0+cod1 branch to primary_entry)
+        cpu0.regs.pc = KERNEL_LOAD_ADDR;
 
-        // Safety net: RET at trampoline catches EFI stub return (error path)
-        machine.bus.write(RETURN_TRAMPOLINE_ADDR, 4, INSTR_RET as u64);
-        cpu0.regs.set_x(LINK_REGISTER_INDEX, RETURN_TRAMPOLINE_ADDR);
-
-        // Build boot page tables (identity map + kernel VA → PA mapping)
-        page_tables::setup_boot_page_tables(cpu0, &mut machine.bus);
-        // Enable the MMU with identity mapping so the EFI stub runs in 1:1 PA=VA
-        cpu0.sys.sctlr_el1 = SCTLR_MMU_ENABLE;
-
-        // Read PE entry_RVA from the loaded kernel header instead of using
-        // a hardcoded constant (which only matches one specific kernel).
-        // PE optional header offset: PE_sig(0x40) + COFF(20) + entry_rva(16) = 0x68
-        let pe_entry_rva = read_pe_entry_rva(&mut machine.bus);
-        let entry = KERNEL_LOAD_ADDR + pe_entry_rva;
-        cpu0.regs.pc = entry;
-
-        // Build a minimal initrd (busybox + init script)
+        // Build initrd and DTB
         let initrd = build_minimal_initrd();
         let initrd_end = INITRD_BASE + initrd.len() as u64;
-
-        // Build Device Tree Blob
         let dtb = build_dtb(
-            RAM_BASE,
-            RAM_SIZE,
-            Some(INITRD_BASE),
-            Some(initrd_end),
+            RAM_BASE, RAM_SIZE,
+            Some(INITRD_BASE), Some(initrd_end),
             Some("earlycon=pl011,0x09000000 console=ttyAMA0 rdinit=/init"),
         );
-
         load_initrd(&mut machine.bus, INITRD_BASE, &initrd);
         load_dtb(&mut machine.bus, DTB_BASE, &dtb);
 
         Ok(BootContext {
             machine,
             dtb_addr: DTB_BASE,
-            entry_pc: entry,
-            efi_stub_done: false,
-            pages_bump: PAGE_ALLOCATOR_BASE,
-            history: Vec::new(),
         })
     }
 
-    /// Run the EFI stub phase — up to `max_steps` instructions.
-    /// Returns true when the EFI stub has successfully transitioned to the kernel.
-    pub fn run_efi_phase(&mut self, max_steps: usize) -> usize {
-        let mut steps = 0;
-        let cpu = &mut self.machine.cpus[0];
-
-        for _ in 0..max_steps {
-            // Detect kernel handoff: PC entered kernel text VA space
-            if !self.efi_stub_done && cpu.pstate.el() == 1 && cpu.regs.pc >= 0xffff800000000000 {
-                self.efi_stub_done = true;
-                eprintln!("EFI phase complete at step {}: PC=0x{:016x} EL={} X0=0x{:016x}",
-                    steps, cpu.regs.pc, cpu.pstate.el(), cpu.regs.x(0));
-                break;
-            }
-
-            // Log every 500K steps
-            if steps % 500_000 == 0 {
-                eprintln!("EFI step {}: PC=0x{:016x}", steps, cpu.regs.pc);
-            }
-
-            // Safety net: catch EFI stub return and log state
-            if !self.efi_stub_done && cpu.regs.pc == RETURN_TRAMPOLINE_ADDR {
-                self.efi_stub_done = true;
-                eprintln!("EFI stub returned at step {}: X0=0x{:016x} X1=0x{:016x}",
-                    steps, cpu.regs.x(0), cpu.regs.x(1));
-                eprintln!("  X2=0x{:016x} X3=0x{:016x} X4=0x{:016x} X5=0x{:016x}",
-                    cpu.regs.x(2), cpu.regs.x(3), cpu.regs.x(4), cpu.regs.x(5));
-                // Try jumping to primary_entry PA
-                cpu.sys.sctlr_el1 = 0;
-                cpu.regs.pc = 0x419EB0A0;  // primary_entry PA
-                cpu.regs.set_x(0, self.dtb_addr);
-                cpu.tlb.invalidate_all();
-                break;
-            }
-
-            // ── EFI service traps (PC-based dispatch) ──
-            if efi_traps::handle_efi_service_trap(cpu, &mut self.machine.bus, &mut self.pages_bump) {
-                steps += 1;
-                continue;
-            }
-
-            // ── Fast-forward cache maintenance loops ──
-            if efi_traps::handle_cache_loop_fast_forward(cpu) {
-                continue;
-            }
-
-            // ── Normal instruction execution ──
-            let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.machine.bus.mem, cpu.regs.pc) {
-                Ok(pa) => pa,
-                Err(_) => { cpu.regs.pc += INSTRUCTION_SIZE; steps += 1; continue; }
-            };
-            let raw = match self.machine.bus.mem.read(pa, 4) {
-                Some(v) => v as u32,
-                None => { cpu.regs.pc += INSTRUCTION_SIZE; steps += 1; continue; }
-            };
-            if let Some(instr) = decode(raw) {
-                self.history.push((cpu.regs.pc, raw, instr.op));
-                if self.history.len() > INSTR_HISTORY_SIZE { self.history.remove(0); }
-                if let Err(_) = execute(cpu, &mut self.machine.bus, instr) {
-                    cpu.regs.pc += INSTRUCTION_SIZE;
-                }
-            } else {
-                cpu.regs.pc += INSTRUCTION_SIZE;
-            }
-            steps += 1;
-        }
-
-        steps
+    /// No-op: EFI stub is skipped.  We boot via the standard ARM64 protocol.
+    pub fn run_efi_phase(&mut self, _max_steps: usize) -> usize {
+        0
     }
 
     /// Run the multi-core kernel phase (round-robin scheduling).
@@ -196,6 +70,39 @@ impl BootContext {
     pub fn total_steps(&self) -> u64 { self.machine.total_steps }
     pub fn pc(&self) -> u64 { self.machine.cpus[0].regs.pc }
 }
+
+// ── Relocation application ──
+
+/// Apply R_AARCH64_RELATIVE relocations from the vmlinux .rela.dyn section.
+/// Each entry: add delta (KERNEL_LOAD_ADDR - 0) to the 64-bit value at r_offset.
+fn apply_kernel_relocations(bus: &mut SystemBus) {
+    let data = include_bytes!("../../rela.dyn");
+    let n = data.len() / 24;
+    const DELTA: u64 = KERNEL_LOAD_ADDR; // kernel linked at 0x0, loaded at KERNEL_LOAD_ADDR
+    const PAGE_OFFSET: u64 = 0xffff800080000000;
+
+    let mut applied = 0usize;
+    for i in 0..n {
+        let off = i * 24;
+        let r_offset = u64::from_le_bytes([
+            data[off], data[off+1], data[off+2], data[off+3],
+            data[off+4], data[off+5], data[off+6], data[off+7],
+        ]);
+        // r_info and r_addend not needed for R_AARCH64_RELATIVE: value += delta
+
+        // Convert vmlinux VA to loaded PA
+        if r_offset < PAGE_OFFSET { continue; }
+        let pa = KERNEL_LOAD_ADDR + (r_offset - PAGE_OFFSET);
+
+        // Read current value, add delta, write back
+        if let Some(val) = bus.mem.read(pa, 8) {
+            bus.mem.write(pa, 8, val.wrapping_add(DELTA));
+            applied += 1;
+        }
+    }
+    eprintln!("Applied {} of {} relocations", applied, n);
+}
+
 
 // ── Boot helpers ──
 
@@ -210,16 +117,8 @@ fn read_kernel_image_size(data: &[u8]) -> u64 {
     }
 }
 
-/// Read the PE/COFF entry point RVA from the loaded kernel image in memory.
-fn read_pe_entry_rva(bus: &crate::bus::SystemBus) -> u64 {
-    // PE signature at offset 0x40 from kernel start
-    // COFF header: 20 bytes → optional header starts at 0x40+4+20 = 0x58
-    // Entry point RVA at optional_header + 16 = 0x58 + 16 = 0x68
-    bus.mem.read(KERNEL_LOAD_ADDR + 0x68, 4).unwrap_or(0) as u64
-}
-
 fn build_minimal_initrd() -> Vec<u8> {
-    let busybox_data = vec![0u8; 100]; // dummy busybox — 100 bytes of zeros
+    let busybox_data = vec![0u8; 100];
     let init_script = b"#!/bin/sh\necho '=== WEBBOXVM ==='\nmount -t proc proc /proc\nexec /bin/sh\n".to_vec();
     let entries = vec![
         ("bin/busybox".to_string(), busybox_data.clone(), 0o100755u32),
