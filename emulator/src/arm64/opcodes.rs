@@ -6,6 +6,7 @@ pub enum Opcode {
     Sub,
     Movz,
     Ldr,
+    LdrSign,
     LdrLit,
     Str,
     B,
@@ -36,6 +37,7 @@ pub enum Opcode {
     Csinv,
     Csneg,
     Ccmp,
+    Ccmn,
     NopBarrier, // DSB, ISB, DMB
     AndImm,
     OrrImm,
@@ -85,6 +87,9 @@ pub enum Opcode {
     Stxp,
     Ldar,
     Stlr,
+    Atomic,
+    Cas,
+    Casp,
     Wfi,   // Wait For Interrupt
     Wfe,   // Wait For Event
 }

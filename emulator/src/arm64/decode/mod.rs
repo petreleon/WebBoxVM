@@ -85,6 +85,10 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
 
     if bits28_24 == 0b01010 { return data_proc::decode_logical_reg(raw); }
 
+    if let Some(instr) = ldst::decode_lse_atomic(raw) {
+        return Some(instr);
+    }
+
     let ldst_family = (raw >> 24) & 0xF8;
     if ldst_family == 0x38 || ldst_family == 0x78 || ldst_family == 0xB8 || ldst_family == 0xF8 {
         if ((raw >> 22) & 0x3FF) == 0b1111100110 { return system::decode_nop(); }

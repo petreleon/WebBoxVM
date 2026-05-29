@@ -237,12 +237,22 @@ pub(super) fn decode_condsel(raw: u32) -> Option<Instr> {
         return Some(Instr { size: 0, op: opcode, rd, rn, rm: _rm, imm: 0, sf, cond });
     }
 
-    let is_register = bits22_21 == 3;
-    let is_immediate = bits22_21 == 2;
-    if !is_register && !is_immediate { return None; }
+    if bits22_21 != 2 { return None; }
+    let is_immediate = ((raw >> 10) & 0x3) == 0b10;
+    if !is_immediate && ((raw >> 10) & 0x3) != 0 { return None; }
     let nzcv = (raw & 0xF) as u64;
     let rm_or_imm = ((raw >> 16) & 0x1F) as u64;
-    Some(Instr { size: 0, op: Opcode::Ccmp, rd, rn, rm: rm_or_imm as u8, imm: nzcv, sf, cond })
+    let opcode = if op == 0 { Opcode::Ccmn } else { Opcode::Ccmp };
+    Some(Instr {
+        size: is_immediate as u8,
+        op: opcode,
+        rd,
+        rn,
+        rm: rm_or_imm as u8,
+        imm: nzcv,
+        sf,
+        cond,
+    })
 }
 
 pub(super) fn decode_mul(raw: u32) -> Option<Instr> {

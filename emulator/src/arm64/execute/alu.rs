@@ -176,11 +176,19 @@ fn full_width_mask(size: u32) -> u64 {
 
 // ── Conditional compare ──
 
-pub(super) fn exec_ccmp(cpu: &mut Armv8Cpu, instr: Instr) {
+pub(super) fn exec_condcmp(cpu: &mut Armv8Cpu, instr: Instr) {
     if cond_taken(cpu, instr.cond) {
         let lhs = read_reg(cpu, instr.rn, instr.sf);
-        let rhs = read_reg(cpu, instr.rm, instr.sf);
-        let _ = sub_flags(cpu, lhs, rhs, instr.sf);
+        let rhs = if instr.size == 1 {
+            instr.rm as u64
+        } else {
+            read_reg(cpu, instr.rm, instr.sf)
+        };
+        if instr.op == Opcode::Ccmn {
+            let _ = add_flags(cpu, lhs, rhs, instr.sf);
+        } else {
+            let _ = sub_flags(cpu, lhs, rhs, instr.sf);
+        }
     } else {
         let n = (instr.imm & 8) != 0;
         let z = (instr.imm & 4) != 0;

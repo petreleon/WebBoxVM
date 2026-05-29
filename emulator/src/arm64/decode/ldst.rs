@@ -33,13 +33,47 @@ pub(super) fn decode_ldst_pair(raw: u32) -> Option<Instr> {
     Some(Instr { size: 0, op, rd: rt, rn, rm: rt2, imm: offset as u64, sf, cond: op2 })
 }
 
-pub(super) fn decode_ldst(raw: u32) -> Option<Instr> {
-    let size = (raw >> 30) & 3;
-    let l = ((raw >> 22) & 1) != 0;
+pub(super) fn decode_lse_atomic(raw: u32) -> Option<Instr> {
+    let size_field = ((raw >> 30) & 3) as u8;
+    let size = 1u8 << size_field;
+    let rs = ((raw >> 16) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
-    let op = if l { Opcode::Ldr } else { Opcode::Str };
-    let sf = size >= 2;
+    let sf = size == 8;
+
+    if (raw & 0x3F20_7C00) == 0x0820_7C00 {
+        if size_field <= 1 {
+            let elem_size = if size_field == 0 { 4 } else { 8 };
+            return Some(Instr { size: elem_size, op: Opcode::Casp, rd: rs, rn, rm: rt, imm: 0, sf: elem_size == 8, cond: 0 });
+        }
+        return Some(Instr { size, op: Opcode::Cas, rd: rs, rn, rm: rt, imm: 0, sf, cond: 0 });
+    }
+
+    if (raw & 0x3F20_0C00) == 0x3820_0000 {
+        let atomic_op = ((raw >> 12) & 0xF) as u64;
+        return Some(Instr { size, op: Opcode::Atomic, rd: rt, rn, rm: rs, imm: atomic_op, sf, cond: 0 });
+    }
+
+    None
+}
+
+pub(super) fn decode_ldst(raw: u32) -> Option<Instr> {
+    let size = (raw >> 30) & 3;
+    let opc = (raw >> 22) & 3;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rt = (raw & 0x1F) as u8;
+    let op = match opc {
+        0 => Opcode::Str,
+        1 => Opcode::Ldr,
+        2 | 3 => Opcode::LdrSign,
+        _ => return None,
+    };
+    let sf = match op {
+        Opcode::Str => size == 3,
+        Opcode::Ldr => size == 3,
+        Opcode::LdrSign => size == 2 || opc == 3,
+        _ => unreachable!(),
+    };
 
     let bit24 = (raw >> 24) & 1;
     if bit24 == 1 {
@@ -83,28 +117,28 @@ pub(super) fn decode_ldst_excl(raw: u32) -> Option<Instr> {
     let l = (raw >> 22) & 1;
     let o1 = (raw >> 23) & 1;
     let o0 = (raw >> 15) & 1;
+    let pair = ((raw >> 21) & 1) != 0;
     let rs = ((raw >> 16) & 0x1F) as u8;
     let rt2 = ((raw >> 10) & 0x1F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
 
-    if l == 1 {
-        if o1 == 1 {
-            let sf = (size & 1) != 0;
+    if pair {
+        let sf = size == 3;
+        return if l == 1 {
             Some(Instr { op: Opcode::Ldxp, rd: rt, rn, rm: rt2, imm: 0, sf, cond: o0 as u8, size: 0 })
         } else {
-            let op = if o0 == 1 && rt2 == 31 { Opcode::Ldar } else { Opcode::Ldxr };
-            let sz_bytes = 1 << size;
-            Some(Instr { op, rd: rt, rn, rm: rt2, imm: 0, sf: size == 3, cond: o0 as u8, size: sz_bytes })
-        }
-    } else {
-        if o1 == 1 {
-            let sf = (size & 1) != 0;
             Some(Instr { op: Opcode::Stxp, rd: rt, rn, rm: rt2, imm: rs as u64, sf, cond: o0 as u8, size: 0 })
-        } else {
-            let op = if o0 == 0 && rt2 == 31 && rs == 31 { Opcode::Stlr } else { Opcode::Stxr };
-            let sz_bytes = 1 << size;
-            Some(Instr { op, rd: rt, rn, rm: rt2, imm: rs as u64, sf: size == 3, cond: o0 as u8, size: sz_bytes })
-        }
+        };
+    }
+
+    if l == 1 {
+        let op = if o1 == 1 && o0 == 1 && rs == 31 && rt2 == 31 { Opcode::Ldar } else { Opcode::Ldxr };
+        let sz_bytes = 1 << size;
+        Some(Instr { op, rd: rt, rn, rm: rt2, imm: 0, sf: size == 3, cond: o0 as u8, size: sz_bytes })
+    } else {
+        let op = if o1 == 1 && o0 == 1 && rt2 == 31 && rs == 31 { Opcode::Stlr } else { Opcode::Stxr };
+        let sz_bytes = 1 << size;
+        Some(Instr { op, rd: rt, rn, rm: rt2, imm: rs as u64, sf: size == 3, cond: o0 as u8, size: sz_bytes })
     }
 }

@@ -15,7 +15,7 @@ mod debug;
 
 pub(super) use super::opcodes::{Instr, Opcode};
 use branch::{branch, branch_link, branch_reg, branch_link_reg, branch_target};
-use load_store::{exec_ldr_str, exec_ldr_lit, exec_ldp_stp, exec_exclusive};
+use load_store::{exec_ldr_str, exec_ldr_lit, exec_ldp_stp, exec_exclusive, exec_atomic};
 use system::{exec_msr, exec_svc, exec_eret, exec_brk};
 use alu::*;
 
@@ -50,10 +50,11 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Adrp => { let page = cpu.regs.pc & !PAGE_OFFSET_MASK; write_reg(cpu, instr.rd, (page as i64 + instr.imm as i64) as u64, true); }
 
         // ── Load / Store ──
-        Opcode::Ldr | Opcode::Str => exec_ldr_str(cpu, bus, instr)?,
+        Opcode::Ldr | Opcode::LdrSign | Opcode::Str => exec_ldr_str(cpu, bus, instr)?,
         Opcode::LdrLit            => exec_ldr_lit(cpu, bus, instr)?,
         Opcode::Ldp | Opcode::Stp | Opcode::SimdLdp | Opcode::SimdStp => exec_ldp_stp(cpu, bus, instr)?,
         Opcode::Ldxr | Opcode::Ldar | Opcode::Stxr | Opcode::Stlr | Opcode::Ldxp | Opcode::Stxp => exec_exclusive(cpu, bus, instr)?,
+        Opcode::Atomic | Opcode::Cas | Opcode::Casp => exec_atomic(cpu, bus, instr)?,
 
         // ── Branches ──
         Opcode::B   => return branch(cpu, instr.imm),
@@ -72,7 +73,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Csinc => write_reg(cpu, instr.rd, if cond_taken(cpu, instr.cond) { read_reg(cpu, instr.rn, instr.sf) } else { read_reg(cpu, instr.rm, instr.sf).wrapping_add(1) }, instr.sf),
         Opcode::Csinv => write_reg(cpu, instr.rd, if cond_taken(cpu, instr.cond) { read_reg(cpu, instr.rn, instr.sf) } else { !read_reg(cpu, instr.rm, instr.sf) }, instr.sf),
         Opcode::Csneg => write_reg(cpu, instr.rd, if cond_taken(cpu, instr.cond) { read_reg(cpu, instr.rn, instr.sf) } else { 0u64.wrapping_sub(read_reg(cpu, instr.rm, instr.sf)) }, instr.sf),
-        Opcode::Ccmp  => exec_ccmp(cpu, instr),
+        Opcode::Ccmp | Opcode::Ccmn => exec_condcmp(cpu, instr),
 
         // ── Logical (immediate) ──
         Opcode::AndImm  => write_reg(cpu, instr.rd, read_reg(cpu, instr.rn, instr.sf) & instr.imm, instr.sf),

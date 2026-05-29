@@ -46,11 +46,14 @@ fn ldst_size(instr: &Instr) -> u8 {
 pub(super) fn exec_ldr_str(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(), &'static str> {
     let (va, writeback) = compute_ldst_va(cpu, &instr);
     let size = ldst_size(&instr);
-    let is_load = instr.op == Opcode::Ldr;
+    let is_load = matches!(instr.op, Opcode::Ldr | Opcode::LdrSign);
 
     let pa = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).map_err(|_| "LDR/STR translation fault")?;
     if is_load {
-        let val = bus.read(pa, size).ok_or("LDR bus fault")?;
+        let mut val = bus.read(pa, size).ok_or("LDR bus fault")?;
+        if instr.op == Opcode::LdrSign {
+            val = sign_extend_load(val, size, instr.sf);
+        }
         write_reg(cpu, instr.rd, val, instr.sf);
     } else {
         let val = read_reg(cpu, instr.rd, instr.sf);
@@ -60,6 +63,17 @@ pub(super) fn exec_ldr_str(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr
         write_reg_sp(cpu, instr.rn, new_base, true);
     }
     Ok(())
+}
+
+fn sign_extend_load(val: u64, size: u8, sf: bool) -> u64 {
+    match (size, sf) {
+        (1, false) => (val as i8 as i32) as u32 as u64,
+        (1, true) => val as i8 as i64 as u64,
+        (2, false) => (val as i16 as i32) as u32 as u64,
+        (2, true) => val as i16 as i64 as u64,
+        (4, true) => val as u32 as i32 as i64 as u64,
+        _ => val,
+    }
 }
 
 pub(super) fn exec_ldr_lit(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(), &'static str> {
@@ -126,4 +140,84 @@ pub(super) fn exec_exclusive(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Ins
         _ => unreachable!(),
     }
     Ok(())
+}
+
+pub(super) fn exec_atomic(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(), &'static str> {
+    let base = base_addr(cpu, instr.rn);
+    let pa = translate(&cpu.sys, &mut cpu.tlb, &bus.mem, base).map_err(|_| "atomic translation fault")?;
+
+    match instr.op {
+        Opcode::Atomic => {
+            let size = instr.size;
+            let old = bus.read(pa, size).ok_or("atomic bus fault")?;
+            let source = read_reg(cpu, instr.rm, instr.sf) & access_mask(size);
+            let new = atomic_result(instr.imm as u8, old, source, size)?;
+            bus.write(pa, size, new);
+            write_reg(cpu, instr.rd, old, instr.sf);
+        }
+        Opcode::Cas => {
+            let size = instr.size;
+            let mask = access_mask(size);
+            let old = bus.read(pa, size).ok_or("CAS bus fault")?;
+            let expected = read_reg(cpu, instr.rd, instr.sf) & mask;
+            if old == expected {
+                bus.write(pa, size, read_reg(cpu, instr.rm, instr.sf) & mask);
+            }
+            write_reg(cpu, instr.rd, old, instr.sf);
+        }
+        Opcode::Casp => {
+            let size = instr.size;
+            let mask = access_mask(size);
+            let old_lo = bus.read(pa, size).ok_or("CASP bus fault")?;
+            let old_hi = bus.read(pa + size as u64, size).ok_or("CASP bus fault")?;
+            let expected_lo = read_reg(cpu, instr.rd, instr.sf) & mask;
+            let expected_hi = read_reg(cpu, instr.rd + 1, instr.sf) & mask;
+            if old_lo == expected_lo && old_hi == expected_hi {
+                bus.write(pa, size, read_reg(cpu, instr.rm, instr.sf) & mask);
+                bus.write(pa + size as u64, size, read_reg(cpu, instr.rm + 1, instr.sf) & mask);
+            }
+            write_reg(cpu, instr.rd, old_lo, instr.sf);
+            write_reg(cpu, instr.rd + 1, old_hi, instr.sf);
+        }
+        _ => unreachable!(),
+    }
+
+    Ok(())
+}
+
+fn atomic_result(op: u8, old: u64, source: u64, size: u8) -> Result<u64, &'static str> {
+    let mask = access_mask(size);
+    let result = match op & 0xF {
+        0x0 => old.wrapping_add(source),
+        0x1 => old & !source,
+        0x2 => old ^ source,
+        0x3 => old | source,
+        0x4 => signed_ext(old, size).max(signed_ext(source, size)) as u64,
+        0x5 => signed_ext(old, size).min(signed_ext(source, size)) as u64,
+        0x6 => old.max(source),
+        0x7 => old.min(source),
+        0x8 => source,
+        _ => return Err("unsupported atomic operation"),
+    };
+    Ok(result & mask)
+}
+
+fn access_mask(size: u8) -> u64 {
+    match size {
+        1 => 0xFF,
+        2 => 0xFFFF,
+        4 => 0xFFFF_FFFF,
+        8 => u64::MAX,
+        _ => 0,
+    }
+}
+
+fn signed_ext(val: u64, size: u8) -> i64 {
+    match size {
+        1 => val as i8 as i64,
+        2 => val as i16 as i64,
+        4 => val as u32 as i32 as i64,
+        8 => val as i64,
+        _ => val as i64,
+    }
 }
