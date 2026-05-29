@@ -85,6 +85,8 @@ pub enum Opcode {
     Stxp,
     Ldar,
     Stlr,
+    Wfi,   // Wait For Interrupt
+    Wfe,   // Wait For Event
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

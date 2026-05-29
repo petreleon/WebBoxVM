@@ -110,6 +110,21 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Eret   => return exec_eret(cpu),
         Opcode::Brk    => return exec_brk(cpu, bus, instr),
         Opcode::Nop | Opcode::NopBarrier => {},
+        Opcode::Wfi => {
+            // Fast-forward cycle count to next timer expiry so any
+            // pending timer IRQ fires immediately.  The kernel uses
+            // WFI in idle/spin loops waiting for timer ticks.
+            if cpu.sys.cntp_cval_el0 > cpu.sys.cycle_count {
+                cpu.sys.cycle_count = cpu.sys.cntp_cval_el0;
+            }
+        },
+        Opcode::Wfe => {
+            // WFE: like WFI but can also be woken by events.
+            // We treat it the same as WFI for now.
+            if cpu.sys.cntp_cval_el0 > cpu.sys.cycle_count {
+                cpu.sys.cycle_count = cpu.sys.cntp_cval_el0;
+            }
+        },
     }
 
     advance_pc(cpu);
@@ -715,15 +730,19 @@ fn advance_pc(cpu: &mut Armv8Cpu) {
 
 /// Check if the physical timer has expired and deliver an IRQ if so.
 fn check_timer_irq(cpu: &mut Armv8Cpu) {
-    // Only fire if kernel has enabled the timer (ENABLE=1, IMASK=0)
-    if (cpu.sys.cntp_ctl_el0 & TIMER_CTL_ENABLE) != 0 && (cpu.sys.cntp_ctl_el0 & TIMER_CTL_IMASK) == 0 {
-        if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
-            cpu.sys.irq_pending = true;
-            cpu.sys.last_irq_id = TIMER_IRQ_ID;
-        }
+    if cpu.sys.vbar_el1 == 0 { return; }
+
+    cpu.sys.cntp_ctl_el0 |= TIMER_CTL_ENABLE;
+    if cpu.sys.cntp_cval_el0 == 0 {
+        cpu.sys.cntp_cval_el0 = TIMER_FREQ_HZ / 100;
     }
 
-    // Deliver pending IRQ if the CPU has interrupts unmasked
+    if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
+        cpu.sys.irq_pending = true;
+        cpu.sys.last_irq_id = TIMER_IRQ_ID;
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + TIMER_FREQ_HZ / 100;
+    }
+
     if cpu.sys.irq_pending && !cpu.pstate.irq_masked() {
         cpu.sys.irq_pending = false;
         cpu.sys.spsr_el1 = cpu.pstate.to_u64();

@@ -18,6 +18,10 @@ pub fn decode(raw: u32) -> Option<Instr> {
     if ((raw >> 12) & 0xFFFFF) == 0xD5032 {
         let crm = ((raw >> 8) & 0xF) as u8;
         let op2 = ((raw >> 5) & 0x7) as u8;
+        // WFI: CRm=2, op2=3  → 0xD503207F
+        if crm == 0b0010 && op2 == 0b011 { return decode_wfi(); }
+        // WFE: CRm=2, op2=2  → 0xD503205F
+        if crm == 0b0010 && op2 == 0b010 { return decode_wfe(); }
         let is_barrier = op2 == 1 && (crm == 0b1010 || crm == 0b1011 || crm == 0b1101);
         if is_barrier { return decode_barrier(); }
         return decode_nop();
@@ -146,6 +150,14 @@ pub fn decode(raw: u32) -> Option<Instr> {
 
 fn decode_nop() -> Option<Instr> {
     Some(Instr { op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0 })
+}
+
+fn decode_wfi() -> Option<Instr> {
+    Some(Instr { op: Opcode::Wfi, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0 })
+}
+
+fn decode_wfe() -> Option<Instr> {
+    Some(Instr { op: Opcode::Wfe, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0 })
 }
 
 fn decode_tlbi(raw: u32) -> Option<Instr> {

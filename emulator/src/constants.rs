@@ -120,9 +120,8 @@ pub const RAM_END: u64 = RAM_BASE + RAM_SIZE;
 /// UEFI Page Zero (the kernel's own relocation dance).
 pub const KERNEL_LOAD_ADDR: u64 = RAM_BASE + 0x8_0000; // 0x4008_0000
 
-/// PE/EFI entry-point RVA for the Debian kernel Image.
-/// Computed from the PE optional header at build time; cached here for boot.
-pub const KERNEL_PE_ENTRY_OFFSET: u64 = 0x01da7ee0;
+/// PE/EFI entry-point RVA for the custom-built kernel Image (6.6.70, CONFIG_RELOCATABLE=y).
+pub const KERNEL_PE_ENTRY_OFFSET: u64 = 0x19ef668;
 
 /// Kernel text-entry virtual address (VA) after the EFI stub exits.
 /// This is the arch/arm64/kernel/head.S entry point in the kernel's VA space.
