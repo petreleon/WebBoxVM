@@ -58,11 +58,14 @@ impl BootContext {
         cpu0.regs.sp = BOOT_STACK_POINTER;
 
         // Plant a RET instruction at the return trampoline; set LR to point there
+        // so the EFI stub's outermost function can return cleanly if it needs to.
         machine.bus.write(RETURN_TRAMPOLINE_ADDR, 4, INSTR_RET as u64);
         cpu0.regs.set_x(LINK_REGISTER_INDEX, RETURN_TRAMPOLINE_ADDR);
 
         // Build boot page tables (identity map + kernel VA → PA mapping)
         setup_boot_page_tables(cpu0, &mut machine.bus);
+        // Enable the MMU with identity mapping so the EFI stub runs in 1:1 PA=VA
+        cpu0.sys.sctlr_el1 = SCTLR_MMU_ENABLE;
 
         // PE/COFF entry point for the EFI stub
         let entry = KERNEL_LOAD_ADDR + KERNEL_PE_ENTRY_OFFSET;
@@ -96,40 +99,31 @@ impl BootContext {
 
     /// Run the EFI stub phase — up to `max_steps` instructions.
     ///
-    /// Returns the number of steps executed before the stub exits or the
-    /// kernel's virtual address space is entered.
+    /// The EFI stub (at the PE/COFF entry point) calls EFI services through our
+    /// trampolines and PC-based traps.  When it finishes, it jumps directly to
+    /// the kernel's primary_entry (at KERNEL_LOAD + text_offset) via `br x20`.
+    /// We detect this transition and stop.
     pub fn run_efi_phase(&mut self, max_steps: usize) -> usize {
         let mut steps = 0;
         let cpu = &mut self.machine.cpus[0];
 
+        // The EFI stub will jump to the kernel's primary_entry at a physical
+        // address.  Detect when PC enters kernel code space (< 0x40000000 or
+        // within the loaded kernel range).
+        let kernel_text_start = KERNEL_LOAD_ADDR;
+        let kernel_text_end = kernel_text_start + 0x30_00000; // 48 MB
+
         for _ in 0..max_steps {
-            // Finish when PC enters kernel VA space (MMU enabled by kernel)
-            if !self.efi_stub_done && cpu.regs.pc >= KERNEL_VA_BASE {
+            // Detect handoff: PC has moved from EFI stub space into kernel text
+            if !self.efi_stub_done
+                && cpu.regs.pc >= kernel_text_start
+                && cpu.regs.pc < kernel_text_end
+                && cpu.regs.pc < 0x4100_0000
+            {
+                // EFI stub has handed off — kernel is now running.
+                // Keep MMU enabled (identity-mapped so far) and let head.S
+                // set up its own page tables.
                 self.efi_stub_done = true;
-                break;
-            }
-
-            // Finish when the EFI stub returns to our trampoline
-            if !self.efi_stub_done && cpu.regs.pc == RETURN_TRAMPOLINE_ADDR {
-                self.efi_stub_done = true;
-                // Hand over to the kernel's PHYSICAL primary entry point.
-                // The Linux kernel's head.S (at TEXT_OFFSET=0x80000) is a
-                // function that was called by the EFI stub.  It saves X29/X30
-                // to the stack and restores them before returning.  We prime
-                // the stack frame so the LDP X29,X30 [SP,#0x70] loads a
-                // valid return address instead of jumping to 0x00.
-                let kernel_phys_entry = KERNEL_LOAD_ADDR + 0x80000;
-                let sp = cpu.regs.sp;
-                self.machine.bus.write(sp + 0x70, 8, RETURN_TRAMPOLINE_ADDR);
-                self.machine.bus.write(sp + 0x68, 8, 0); // frame pointer
-
-                // Disable the MMU so the kernel runs identity-mapped.
-                cpu.sys.sctlr_el1 = 0;
-                cpu.regs.pc = kernel_phys_entry;
-                cpu.regs.set_x(0, self.dtb_addr);
-                cpu.regs.set_x(1, 0);
-                cpu.regs.set_x(2, 0);
-                cpu.regs.set_x(3, 0);
                 break;
             }
 
@@ -147,20 +141,20 @@ impl BootContext {
             // ── Normal instruction execution ──
             let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.machine.bus.mem, cpu.regs.pc) {
                 Ok(pa) => pa,
-                Err(_) => break,
+                Err(_) => { cpu.regs.pc += INSTRUCTION_SIZE; steps += 1; continue; }
             };
             let raw = match self.machine.bus.mem.read(pa, 4) {
                 Some(v) => v as u32,
-                None => break,
+                None => { cpu.regs.pc += INSTRUCTION_SIZE; steps += 1; continue; }
             };
             if let Some(instr) = decode(raw) {
                 self.history.push((cpu.regs.pc, raw, instr.op));
                 if self.history.len() > INSTR_HISTORY_SIZE { self.history.remove(0); }
                 if let Err(_) = execute(cpu, &mut self.machine.bus, instr) {
-                    break;
+                    cpu.regs.pc += INSTRUCTION_SIZE;
                 }
             } else {
-                break;
+                cpu.regs.pc += INSTRUCTION_SIZE;
             }
             steps += 1;
         }
@@ -266,22 +260,6 @@ fn handle_efi_service_trap(cpu: &mut Armv8Cpu, bus: &mut SystemBus, pages_bump: 
             let val  = cpu.regs.x(2);
             if size > EFI_MAX_COPY_SIZE { return false; }
             for i in 0..size { bus.mem.write(buf + i, 1, val); }
-            cpu.regs.set_x(0, EFI_SUCCESS);
-            cpu.regs.pc = cpu.regs.x(LINK_REGISTER_INDEX);
-            true
-        }
-        EFI_TRAP_ALLOCPAGES => {
-            // AllocatePages(Type=X0, MemoryType=ignored, Pages=X2, *Memory=X3)
-            let pages = cpu.regs.x(2);
-            let alloc = (*pages_bump + PAGE_OFFSET_MASK) & !PAGE_OFFSET_MASK; // page-align
-            *pages_bump = alloc + pages * PAGE_SIZE;
-            bus.write(cpu.regs.x(3), 8, alloc);
-            cpu.regs.set_x(0, EFI_SUCCESS);
-            cpu.regs.pc = cpu.regs.x(LINK_REGISTER_INDEX);
-            true
-        }
-        EFI_TRAP_FREEPAGES => {
-            // FreePages (no-op)
             cpu.regs.set_x(0, EFI_SUCCESS);
             cpu.regs.pc = cpu.regs.x(LINK_REGISTER_INDEX);
             true

@@ -160,6 +160,52 @@ fn build_locate_protocol_trampoline() -> Vec<u32> {
     v
 }
 
+/// Fixed address for the page bump-allocator head.
+const EFI_PAGE_ALLOC_HEAD: u64 = EFI_REGION_BASE + 0xFF10;
+
+/// Build the AllocatePages trampoline.
+///
+/// Signature: AllocatePages(Type=X0, MemoryType=X1, Pages=X2, *Memory=X3)
+///
+/// Loads the current bump head from EFI_PAGE_ALLOC_HEAD, rounds up to page
+/// boundary, bumps by Pages * 4096, stores the allocated address into *Memory,
+/// and returns EFI_SUCCESS.
+fn build_allocate_pages_trampoline(head_ptr: u64, init_base: u64) -> Vec<u32> {
+    let mut v = Vec::new();
+
+    // Load head pointer address into X4
+    encode_mov64(&mut v, 4, head_ptr);
+
+    // LDR X5, [X4]       — read current bump head
+    v.push(0xF9400085);
+
+    // ADD X6, X5, #4095   — round up to page boundary
+    v.push(0x910FFCA6);
+
+    // AND X6, X6, #0xFFFFFFFFFFFFF000  — clear lower 12 bits (page align)
+    v.push(0x9272D0C6);
+
+    // LSL X7, X2, #12    — Pages * 4096 (page size)
+    v.push(0xD37CEC47);
+
+    // ADD X7, X6, X7     — new head = alloc + size
+    v.push(0x8B0700C7);
+
+    // STR X7, [X4]       — update bump head
+    v.push(0xF9000087);
+
+    // STR X6, [X3]       — write allocated address to *Memory
+    v.push(0xF9000066);
+
+    // MOV X0, #0         — EFI_SUCCESS
+    v.push(movz_x(0, 0));
+
+    // RET
+    v.push(encode_ret());
+
+    v
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  Main EFI table setup
 // ═══════════════════════════════════════════════════════════════════
@@ -325,13 +371,16 @@ pub fn setup_efi_tables(
     write_trampoline(bus, setmem_tp, &setmem_insts);
     write64(bus, EFI_BOOT_SERVICES_ADDR + BS_SET_MEM_OFFSET, setmem_tp);
 
-    // Block 9: AllocatePages — return EFI_SUCCESS
-    super::encode::write_success_trampoline(bus,
-        EFI_LARGE_CODE_ADDR + 9 * LARGE_CODE_BLOCK_SIZE, EFI_SUCCESS);
-    write64(bus, EFI_BOOT_SERVICES_ADDR + BS_ALLOCATE_PAGES_OFFSET,
-        EFI_LARGE_CODE_ADDR + 9 * LARGE_CODE_BLOCK_SIZE);
+    // Block 9: AllocatePages — real bump allocator
+    // Signature: AllocatePages(Type=X0, MemoryType=X1, Pages=X2, *Memory=X3)
+    let alloc_pages_tp = EFI_LARGE_CODE_ADDR + 9 * LARGE_CODE_BLOCK_SIZE;
+    let alloc_pages_insts = build_allocate_pages_trampoline(EFI_PAGE_ALLOC_HEAD, PAGE_ALLOCATOR_BASE);
+    write_trampoline(bus, alloc_pages_tp, &alloc_pages_insts);
+    write64(bus, EFI_BOOT_SERVICES_ADDR + BS_ALLOCATE_PAGES_OFFSET, alloc_pages_tp);
+    // Prime the page bump head
+    write64(bus, EFI_PAGE_ALLOC_HEAD, PAGE_ALLOCATOR_BASE);
 
-    // Block 10: FreePages — return EFI_SUCCESS
+    // Block 10: FreePages — no-op, return EFI_SUCCESS
     super::encode::write_success_trampoline(bus,
         EFI_LARGE_CODE_ADDR + 10 * LARGE_CODE_BLOCK_SIZE, EFI_SUCCESS);
     write64(bus, EFI_BOOT_SERVICES_ADDR + BS_FREE_PAGES_OFFSET,
