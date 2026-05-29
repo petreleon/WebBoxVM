@@ -1,5 +1,6 @@
 use super::*;
 use crate::bus::SystemBus;
+use crate::constants::*;
 
 #[test]
 fn mmu_off_passes_through() {
@@ -113,4 +114,65 @@ fn tlbi_invalidates_tlb() {
     assert!(tlb.lookup(0xFFFF_FF80_0000_0000).is_some());
     tlb.invalidate_all();
     assert!(tlb.lookup(0xFFFF_FF80_0000_0000).is_none());
+}
+
+/// Test that TTBR1 maps kernel VAs to the correct physical address where
+/// the kernel code is actually loaded (KERNEL_LOAD_ADDR, not RAM_BASE).
+/// This is a regression test for the mapping bug that causes the kernel
+/// to execute wrong code after MMU enable.
+///
+/// The kernel's .text section starts at RVA 0x10000, so the first real
+/// instruction (at VA PAGE_OFFSET, the _text symbol) should map to
+/// KERNEL_LOAD + 0x10000, not KERNEL_LOAD + 0.
+#[test]
+fn ttbr1_maps_kernel_va_to_kernel_load_pa() {
+    let mut bus = SystemBus::new();
+    let mut sys = SystemRegisters::default();
+
+    // Replicate setup_boot_page_tables from boot.rs — same L0/L1/L2/L3 layout
+    let l1_block = |pa: u64| -> u64 { pa | DESC_AF_BIT | DESC_BLOCK };
+    let l3_page  = |pa: u64| -> u64 { pa | DESC_AF_BIT | DESC_VALID };
+
+    // TTBR0: identity map first 4 GB
+    bus.write(BOOT_TTBR0_L0, 8, (BOOT_TTBR0_L1 & DESC_ADDR_MASK) | DESC_VALID);
+    for i in 0..IDENTITY_MAP_BLOCKS {
+        bus.write(BOOT_TTBR0_L1 + i as u64 * 8, 8, l1_block(i as u64 * L1_BLOCK_SIZE));
+    }
+
+    // TTBR1: map kernel VA → KERNEL_LOAD_ADDR via L3 pages
+    bus.write(BOOT_TTBR1_L0 + 256 * 8, 8, (BOOT_TTBR1_L1 & DESC_ADDR_MASK) | DESC_VALID);
+    bus.write(BOOT_TTBR1_L1 + 0 * 8, 8, (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID);
+    bus.write(BOOT_TTBR1_L1 + 2 * 8, 8, (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID);
+
+    for tbl in 0..BOOT_TTBR1_L3_COUNT {
+        let l3_table_addr = BOOT_TTBR1_L3_BASE + (tbl as u64) * PAGE_SIZE;
+        bus.write(BOOT_TTBR1_L2 + (tbl as u64) * 8, 8, (l3_table_addr & DESC_ADDR_MASK) | DESC_VALID);
+        for i in 0..PT_ENTRIES as usize {
+            let va_offset = (tbl as u64) * L2_BLOCK_SIZE + (i as u64) * PAGE_SIZE;
+            bus.write(l3_table_addr + i as u64 * 8, 8, l3_page(KERNEL_LOAD_ADDR + 0x10000 + va_offset));
+        }
+    }
+
+    sys.ttbr0_el1 = BOOT_TTBR0_L0;
+    sys.ttbr1_el1 = BOOT_TTBR1_L0;
+    sys.tcr_el1 = (16 << TCR_T1SZ_SHIFT) | 16;
+    sys.mair_el1 = MAIR_EL1_DEFAULT;
+    sys.sctlr_el1 = SCTLR_MMU_ENABLE;
+
+    // The kernel's _text symbol is at PAGE_OFFSET + text_offset (= KERNEL_VA_BASE + 0).
+    // The actual code for _text lives in the .text section at file offset 0x10000.
+    // So VA KERNEL_VA_BASE should map to PA KERNEL_LOAD_ADDR + 0x10000.
+    // (This is the bug: currently we map to KERNEL_LOAD_ADDR + 0, not + 0x10000)
+    let test_va: u64 = KERNEL_VA_BASE;
+    let text_rva: u64 = 0x10000; // .text section RVA from PE header
+    let expected_pa: u64 = KERNEL_LOAD_ADDR + text_rva;
+
+    let mut tlb = Tlb::new();
+    let pa = translate(&sys, &mut tlb, &bus.mem, test_va)
+        .expect("translation should succeed");
+
+    assert_eq!(pa, expected_pa,
+        "VA 0x{:016x} (_text) should map to KERNEL_LOAD + .text_RVA = 0x{:016x}, got 0x{:016x}\n\
+         (The kernel's .text section starts at file offset 0x10000, not 0x0)",
+        test_va, expected_pa, pa);
 }

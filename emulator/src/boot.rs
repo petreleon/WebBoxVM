@@ -258,7 +258,7 @@ fn setup_boot_page_tables(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
         // Fill L3 with 4 KiB page entries
         for i in 0..PT_ENTRIES as usize {
             let va_offset = (tbl as u64) * L2_BLOCK_SIZE + (i as u64) * PAGE_SIZE;
-            bus.write(l3_table_addr + i as u64 * 8, 8, l3_page(KERNEL_LOAD_ADDR + va_offset));
+            bus.write(l3_table_addr + i as u64 * 8, 8, l3_page(KERNEL_LOAD_ADDR + 0x10000 + va_offset));
         }
     }
 
