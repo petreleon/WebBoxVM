@@ -218,8 +218,8 @@ impl SystemRegisters {
             SYSREG_CNTP_CTL_EL0 => self.cntp_ctl_el0 = val,
             SYSREG_CNTP_CVAL_EL0 => self.cntp_cval_el0 = val,
 
-            // DAIF / EL3 / EL2 — mostly no-ops for boot stub
-            SYSREG_DAIF => {}
+            // DAIF: bits [9:6] = D, A, I, F.  Bit 7 = IRQ mask.
+            SYSREG_DAIF => {} // handled in execute.rs MSR path
             SYSREG_SCR_EL3  => self.scr_el3 = val,
             SYSREG_SPSR_EL3 => self.spsr_el3 = val,
             SYSREG_ELR_EL3  => self.elr_el3 = val,

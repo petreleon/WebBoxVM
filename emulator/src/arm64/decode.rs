@@ -74,9 +74,15 @@ pub fn decode(raw: u32) -> Option<Instr> {
         if l == 0 && op0 == 1 && crn == 8 {
             return decode_tlbi(raw);
         }
-        // DAIFSet (unmask interrupts): D5034xxx
+        // DAIFSet (unmask interrupts): D5034xxx — set bits in DAIF
         if (raw & 0xFFFFF000) == 0xD5034000 {
-            return decode_nop(); // handled in execute via brk-like check
+            let daif_bits = (raw & 0xF) as u8;
+            return Some(Instr { size: 0, op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: daif_bits as u64, sf: true, cond: 1 }); // cond=1 means DAIFSet
+        }
+        // DAIFClr (mask interrupts): D50340xx — clear bits in DAIF  
+        if ((raw >> 8) & 0xF) == 0b0111 {
+            let daif_bits = (raw & 0xF) as u8;
+            return Some(Instr { size: 0, op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: daif_bits as u64, sf: true, cond: 2 }); // cond=2 means DAIFClr
         }
         return decode_nop();
     }

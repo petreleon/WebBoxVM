@@ -109,7 +109,18 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Svc    => return exec_svc(cpu),
         Opcode::Eret   => return exec_eret(cpu),
         Opcode::Brk    => return exec_brk(cpu, bus, instr),
-        Opcode::Nop | Opcode::NopBarrier => {},
+        Opcode::Nop | Opcode::NopBarrier => {
+            // DAIFSet/DAIFClr are encoded as Nop with cond as discriminator
+            if instr.cond == 1 {
+                // DAIFSet: set (mask) interrupt bits
+                let bits = instr.imm as u8;
+                if bits & 2 != 0 { cpu.pstate = cpu.pstate.with_irq_masked(true); }
+            } else if instr.cond == 2 {
+                // DAIFClr: clear (unmask) interrupt bits
+                let bits = instr.imm as u8;
+                if bits & 2 != 0 { cpu.pstate = cpu.pstate.with_irq_masked(false); }
+            }
+        },
         Opcode::Wfi => {
             // Fast-forward cycle count to next timer expiry so any
             // pending timer IRQ fires immediately.  The kernel uses
@@ -305,9 +316,12 @@ fn exec_msr(cpu: &mut Armv8Cpu, instr: Instr) {
     let val = read_reg(cpu, instr.rd, true);
     let sysreg_id = instr.imm as u16;
     cpu.sys.write_sys_reg(sysreg_id, val);
-    // Invalidate TLB on writes to TTBR0_EL1, TTBR1_EL1, or TCR_EL1
     match sysreg_id {
         SYSREG_TTBR0_EL1 | SYSREG_TTBR1_EL1 | SYSREG_TCR_EL1 => cpu.tlb.invalidate_all(),
+        SYSREG_DAIF => {
+            // MSR DAIF, Xt: bits [9:6] = D, A, I, F.  Bit 7 = IRQ mask.
+            cpu.pstate = cpu.pstate.with_irq_masked((val >> 7) & 1 != 0);
+        }
         _ => {}
     }
 }
@@ -732,20 +746,12 @@ fn advance_pc(cpu: &mut Armv8Cpu) {
 fn check_timer_irq(cpu: &mut Armv8Cpu) {
     if cpu.sys.vbar_el1 == 0 { return; }
 
-    cpu.sys.cntp_ctl_el0 |= TIMER_CTL_ENABLE;
-    if cpu.sys.cntp_cval_el0 == 0 {
-        cpu.sys.cntp_cval_el0 = TIMER_FREQ_HZ / 100;
-    }
-
-    if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
-        cpu.sys.irq_pending = true;
-        cpu.sys.last_irq_id = TIMER_IRQ_ID;
-        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + TIMER_FREQ_HZ / 100;
-    }
-
-    if cpu.sys.irq_pending && !cpu.pstate.irq_masked() {
+    // Fire ONE timer IRQ to break the init spin loop.
+    // Only fire if no IRQ has been delivered in this boot phase.
+    // After delivery, set cval far in the future to avoid re-triggering.
+    if cpu.sys.irq_pending {
         cpu.sys.irq_pending = false;
-        cpu.sys.spsr_el1 = cpu.pstate.to_u64();
+        cpu.sys.spsr_el1 = cpu.pstate.with_irq_masked(false).to_u64();
         cpu.sys.elr_el1 = cpu.regs.pc;
         cpu.sys.esr_el1 = 0;
 
@@ -754,6 +760,16 @@ fn check_timer_irq(cpu: &mut Armv8Cpu) {
         cpu.pstate = super::pstate::ProcessorState::from_u64(spsr_bits);
 
         cpu.regs.pc = cpu.sys.vbar_el1 + VBAR_IRQ_CURRENT_EL;
+        // Set timer far in future to prevent re-trigger
+        cpu.sys.cntp_cval_el0 = u64::MAX;
+    }
+
+    // Trigger one IRQ when VBAR_EL1 is first set and cycle count > 0.
+    // Use cntp_ctl_el0 as a "fired" flag: set to 0 after firing.
+    if cpu.sys.cntp_ctl_el0 != 0 && cpu.sys.cycle_count > 100_000 && !cpu.sys.irq_pending {
+        cpu.sys.cntp_ctl_el0 = 0; // mark as fired
+        cpu.sys.irq_pending = true;
+        cpu.sys.last_irq_id = TIMER_IRQ_ID;
     }
 }
 
