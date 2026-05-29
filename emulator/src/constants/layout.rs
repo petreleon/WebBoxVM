@@ -85,7 +85,7 @@ pub const RAM_SIZE: u64 = 0x4000_0000;
 pub const RAM_END: u64 = RAM_BASE + RAM_SIZE;
 
 /// Physical address where the kernel Image is loaded.
-pub const KERNEL_LOAD_ADDR: u64 = RAM_BASE + 0x8_0000; // 0x4008_0000
+pub const KERNEL_LOAD_ADDR: u64 = RAM_BASE; // 0x4000_0000 (2MB-aligned, no UEFI Page Zero)
 
 /// PE/EFI entry-point RVA for the custom-built kernel Image (6.6.70, CONFIG_RELOCATABLE=y).
 pub const KERNEL_PE_ENTRY_OFFSET: u64 = 0x19ef668;

@@ -19,15 +19,6 @@ impl BootContext {
             machine.bus.write(KERNEL_LOAD_ADDR + i as u64, 1, byte as u64);
         }
 
-        let image_size = read_kernel_image_size(kernel_image);
-
-        // Apply .rela.dyn ELF relocations from vmlinux.
-        // The kernel is linked at ImageBase=0x0 but loaded at KERNEL_LOAD_ADDR.
-        // R_AARCH64_RELATIVE relocs add delta to each absolute address.
-        // NOTE: vmlinux linking is complex (PAGE_OFFSET-aware). For now we rely on
-        // the kernel's own head.S relocation and only fix known bad literal pools.
-        apply_kernel_relocations(&mut machine.bus);
-
         // Standard ARM64 Linux boot protocol:
         // X0 = physical address of DTB, X1-X3 = 0, MMU off
         let cpu0 = &mut machine.cpus[0];
@@ -70,35 +61,6 @@ impl BootContext {
     pub fn total_steps(&self) -> u64 { self.machine.total_steps }
     pub fn pc(&self) -> u64 { self.machine.cpus[0].regs.pc }
 }
-
-// ── Relocation application ──
-
-/// Apply R_AARCH64_RELATIVE relocations from the vmlinux .rela.dyn section.
-/// Each entry: add delta (KERNEL_LOAD_ADDR - 0) to the 64-bit value at r_offset.
-fn apply_kernel_relocations(bus: &mut SystemBus) {
-    let data = include_bytes!("../../rela.dyn");
-    let n = data.len() / 24;
-    // vmlinux p_vaddr = 0xffff800080000000, loaded at KERNEL_LOAD_ADDR
-    const DELTA: u64 = KERNEL_LOAD_ADDR.wrapping_sub(0xffff800080000000);
-    const PAGE_OFFSET: u64 = 0xffff800080000000;
-
-    let mut applied = 0usize;
-    for i in 0..n {
-        let off = i * 24;
-        let r_offset = u64::from_le_bytes([
-            data[off], data[off+1], data[off+2], data[off+3],
-            data[off+4], data[off+5], data[off+6], data[off+7],
-        ]);
-        if r_offset < PAGE_OFFSET { continue; }
-        let pa = KERNEL_LOAD_ADDR + (r_offset - PAGE_OFFSET);
-        if let Some(val) = bus.mem.read(pa, 8) {
-            bus.mem.write(pa, 8, val.wrapping_add(DELTA));
-            applied += 1;
-        }
-    }
-    eprintln!("Applied {} of {} R_AARCH64_RELATIVE relocations (delta=0x{:x})", applied, n, DELTA);
-}
-
 
 // ── Boot helpers ──
 

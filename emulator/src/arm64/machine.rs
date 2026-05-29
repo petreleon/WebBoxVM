@@ -77,17 +77,6 @@ impl Machine {
             let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, pc) {
                 Ok(pa) => pa,
                 Err(_) => {
-                    if self.fetch_faults == 0 {
-                        eprintln!("FIRST FETCH FAULT: step {} PC=0x{:016x} TTBR1=0x{:016x}",
-                            self.total_steps, pc, cpu.sys.ttbr1_el1);
-                        // Kernel's paging_init() switched to swapper_pg_dir which may
-                        // be incomplete.  Fall back to previous working TTBR1.
-                        if cpu.sys.ttbr1_el1 == 0x4285A000 || cpu.sys.ttbr1_el1 == 0x000000004285A000 {
-                            cpu.sys.ttbr1_el1 = 0x42858000;
-                            cpu.tlb.invalidate_all();
-                            eprintln!("  Restored TTBR1 to 0x42858000");
-                        }
-                    }
                     self.fetch_faults += 1;
                     cpu.regs.pc += INSTRUCTION_SIZE;
                     self.total_steps += 1;
@@ -133,17 +122,6 @@ impl Machine {
                 }
 
                 if let Err(_) = execute(cpu, &mut self.bus, instr) {
-                    if self.exec_faults == 0 && instr.rn == 19 {
-                        // init_task pointer not set — fix it
-                        cpu.regs.set_x(19, 0xffff80008227e680);
-                        eprintln!("Auto-fixed X19=init_task, retrying");
-                        // Don't count this as a fault — retry the instruction
-                        continue;
-                    }
-                    if self.exec_faults == 0 {
-                        eprintln!("FIRST EXEC FAULT: PC=0x{:016x} {:?} rd={} rn={} rm={}",
-                            pc, instr.op, instr.rd, instr.rn, instr.rm);
-                    }
                     self.exec_faults += 1;
                     cpu.regs.pc += INSTRUCTION_SIZE;
                     self.total_steps += 1;
