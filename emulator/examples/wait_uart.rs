@@ -10,7 +10,7 @@ fn main() {
     let mut ctx = BootContext::new(&kernel, 1).expect("boot");
     println!("Boot context ready");
 
-    ctx.run_efi_phase(5_000_000);
+    ctx.run_efi_phase(50_000_000);
     println!("EFI done, entering kernel...");
 
     let t0 = Instant::now();

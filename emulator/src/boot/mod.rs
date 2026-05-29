@@ -75,8 +75,7 @@ impl BootContext {
         cpu0.regs.set_x(1, system_table);  // X1 = EFI SystemTable pointer
         cpu0.regs.sp = BOOT_STACK_POINTER;
 
-        // Plant a RET instruction at the return trampoline; set LR to point there
-        // so the EFI stub's outermost function can return cleanly if it needs to.
+        // Safety net: RET at trampoline catches EFI stub return (error path)
         machine.bus.write(RETURN_TRAMPOLINE_ADDR, 4, INSTR_RET as u64);
         cpu0.regs.set_x(LINK_REGISTER_INDEX, RETURN_TRAMPOLINE_ADDR);
 
@@ -119,31 +118,37 @@ impl BootContext {
     }
 
     /// Run the EFI stub phase — up to `max_steps` instructions.
-    ///
-    /// The PE entry at 0x41E27EE0 runs the EFI stub.  When it finishes,
-    /// it RETs through X30 to our trampoline (0x43EFE000) with the kernel
-    /// entry address in X0.  We detect this handoff and jump there.
+    /// Returns true when the EFI stub has successfully transitioned to the kernel.
     pub fn run_efi_phase(&mut self, max_steps: usize) -> usize {
         let mut steps = 0;
         let cpu = &mut self.machine.cpus[0];
 
         for _ in 0..max_steps {
-            // Detect handoff: PE entry returned to our trampoline with
-            // kernel entry address in X0.
+            // Detect kernel handoff: PC entered kernel text VA space
+            if !self.efi_stub_done && cpu.pstate.el() == 1 && cpu.regs.pc >= 0xffff800000000000 {
+                self.efi_stub_done = true;
+                eprintln!("EFI phase complete at step {}: PC=0x{:016x} EL={} X0=0x{:016x}",
+                    steps, cpu.regs.pc, cpu.pstate.el(), cpu.regs.x(0));
+                break;
+            }
+
+            // Log every 500K steps
+            if steps % 500_000 == 0 {
+                eprintln!("EFI step {}: PC=0x{:016x}", steps, cpu.regs.pc);
+            }
+
+            // Safety net: catch EFI stub return and log state
             if !self.efi_stub_done && cpu.regs.pc == RETURN_TRAMPOLINE_ADDR {
                 self.efi_stub_done = true;
-                // The PE entry function RETs with whatever efi_main returned.
-                // For this kernel (no .reloc), efi_main always fails with
-                // EFI_LOAD_ERROR.  Just enter the kernel at KERNEL_LOAD with
-                // MMU off and identity map.
-                let _retval = cpu.regs.x(0);
-                eprintln!("EFI phase complete (X0=0x{:x}), entering kernel at PE entry 0x{:x}", _retval, self.entry_pc);
+                eprintln!("EFI stub returned at step {}: X0=0x{:016x} X1=0x{:016x}",
+                    steps, cpu.regs.x(0), cpu.regs.x(1));
+                eprintln!("  X2=0x{:016x} X3=0x{:016x} X4=0x{:016x} X5=0x{:016x}",
+                    cpu.regs.x(2), cpu.regs.x(3), cpu.regs.x(4), cpu.regs.x(5));
+                // Try jumping to primary_entry PA
                 cpu.sys.sctlr_el1 = 0;
-                cpu.regs.pc = KERNEL_LOAD_ADDR;  // start of Image (ARM64 header has branch to _head)
+                cpu.regs.pc = 0x419EB0A0;  // primary_entry PA
                 cpu.regs.set_x(0, self.dtb_addr);
-                cpu.regs.set_x(1, 0);
-                cpu.regs.set_x(2, 0);
-                cpu.regs.set_x(3, 0);
+                cpu.tlb.invalidate_all();
                 break;
             }
 
