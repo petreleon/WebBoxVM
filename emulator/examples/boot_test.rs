@@ -18,7 +18,7 @@ fn main() {
     println!("BootContext ready in {:.1}s", t0.elapsed().as_secs_f32());
 
     // ── EFI phase ──
-    let efi_steps = ctx.run_efi_phase(100_000);
+    let efi_steps = ctx.run_efi_phase(500_000);
     let u1 = ctx.uart_output();
     println!("EFI phase: {} steps in {:.1}s, PC=0x{:x}, UART={}B",
         efi_steps, t0.elapsed().as_secs_f32(), ctx.pc(), u1.len());

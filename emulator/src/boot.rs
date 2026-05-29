@@ -99,32 +99,44 @@ impl BootContext {
 
     /// Run the EFI stub phase — up to `max_steps` instructions.
     ///
-    /// The EFI stub (at the PE/COFF entry point) calls EFI services through our
-    /// trampolines and PC-based traps.  When it finishes, it jumps directly to
-    /// the kernel's primary_entry (at KERNEL_LOAD + text_offset) via `br x20`.
-    /// We detect this transition and stop.
+    /// The EFI stub (at the PE/COFF entry point, ~0x41E27EE0) calls EFI
+    /// services through our trampolines.  When it finishes it jumps directly
+    /// to the kernel's primary_entry (KERNEL_LOAD + text_offset = 0x40100000)
+    /// via `br x20`.  We detect this handover by watching for PC to land at
+    /// the kernel entry.
     pub fn run_efi_phase(&mut self, max_steps: usize) -> usize {
         let mut steps = 0;
         let cpu = &mut self.machine.cpus[0];
 
-        // The EFI stub will jump to the kernel's primary_entry at a physical
-        // address.  Detect when PC enters kernel code space (< 0x40000000 or
-        // within the loaded kernel range).
-        let kernel_text_start = KERNEL_LOAD_ADDR;
-        let kernel_text_end = kernel_text_start + 0x30_00000; // 48 MB
+        // The EFI stub PE code lives at ~0x41E27EE0.
+        // We detect handoff when PC jumps into the kernel entry range:
+        // [KERNEL_LOAD + text_offset - 4KiB .. KERNEL_LOAD + text_offset + 4KiB]
+        let kernel_text = KERNEL_LOAD_ADDR;
+        let text_offset = 0x0008_0000u64;
+        let kernel_entry = kernel_text + text_offset;
+        let entry_window = 0x1000u64; // 4 KiB window around the entry
 
         for _ in 0..max_steps {
-            // Detect handoff: PC has moved from EFI stub space into kernel text
+            // Detect handoff: PC enters the kernel's primary_entry window
             if !self.efi_stub_done
-                && cpu.regs.pc >= kernel_text_start
-                && cpu.regs.pc < kernel_text_end
-                && cpu.regs.pc < 0x4100_0000
+                && cpu.regs.pc >= kernel_entry - entry_window
+                && cpu.regs.pc <= kernel_entry + entry_window
             {
-                // EFI stub has handed off — kernel is now running.
-                // Keep MMU enabled (identity-mapped so far) and let head.S
-                // set up its own page tables.
                 self.efi_stub_done = true;
                 break;
+            }
+
+            // Safety valve: if EFI stub code jumps to a totally unexpected
+            // address in kernel space, we may be stuck.  Detect if PC is
+            // in the kernel text range but NOT near the entry after many steps.
+            if steps > 5_000
+                && cpu.regs.pc >= kernel_text
+                && cpu.regs.pc < kernel_text + 2_000_000
+                && (cpu.regs.pc < kernel_entry - entry_window
+                    || cpu.regs.pc > kernel_entry + entry_window + 0x10_0000)
+            {
+                // We wandered into kernel code far from the entry — assume
+                // something went wrong, but keep going.
             }
 
             // ── EFI service traps (PC-based dispatch) ──
