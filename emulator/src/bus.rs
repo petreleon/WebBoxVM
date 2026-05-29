@@ -1,8 +1,26 @@
-//! MMIO dispatch table: routes physical addresses to device handlers.
+//! MMIO dispatch table — routes physical addresses to the correct device handler.
+//!
+//! Physical addresses are checked in this order:
+//!   1. UART (PL011 at 0x0900_0000)
+//!   2. GICv3 (distributor at 0x0800_0000, redistributor at 0x080A_0000)
+//!   3. Physical memory (fallback for RAM, EFI, and low region)
 
+use crate::constants::*;
 use crate::devices::pl011::Pl011Uart;
 use crate::devices::gicv3::Gicv3;
 use crate::memory::PhysicalMemory;
+
+/// Mask for the bottom 21 bits of an address, used for UART fixmap remapping.
+const FIXMAP_LOW_MASK: u64 = 0x001F_FFFF;
+
+/// Lower 16 bits of the UART fixmap address (0x09_0000 within a 2 MiB block).
+const UART_FIXMAP_BASE: u64 = 0x090000;
+
+/// Upper bound of the UART fixmap address (0x09_1000 = UART_FIXMAP_BASE + 4 KiB page).
+const UART_FIXMAP_END: u64 = 0x091000;
+
+/// Mask for the bottom 12 bits — in-page offset.
+const PAGE_OFFSET_MASK: u64 = 0xFFF;
 
 pub struct SystemBus {
     pub mem: PhysicalMemory,
@@ -20,39 +38,74 @@ impl SystemBus {
     }
 
     pub fn read(&self, addr: u64, size: u8) -> Option<u64> {
-        // Redirect fixmap OA-offset UART reads to correct device
-        let low = addr & 0x001F_FFFF;
-        if low >= 0x090000 && low < 0x091000 {
-            let corrected = 0x09000000 | (addr & 0xFFF);
-            if let Some(val) = self.uart.read(corrected, size) {
-                return Some(val);
-            }
+        // Fixup: kernel fixmap may redirect UART accesses through a
+        // different mapping (0xFFFF_8000_0009_XXXX → 0x0900_0XXX).
+        let low = addr & FIXMAP_LOW_MASK;
+        if in_uart_fixmap_range(low) {
+            let uart_offset = addr & PAGE_OFFSET_MASK;
+            return self.uart.read(UART_BASE | uart_offset, size);
         }
-        self.uart.read(addr, size)
-            .or_else(|| self.mem.read(addr, size))
+
+        // Standard MMIO dispatch
+        if in_uart_range(addr) {
+            return self.uart.read(addr, size);
+        }
+        if in_gicd_range(addr) {
+            return self.gic.gicd_read(addr - GICD_BASE, size);
+        }
+        if in_gicr_range(addr) {
+            return self.gic.gicr_read(addr - GICR_BASE, size);
+        }
+        self.mem.read(addr, size)
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
-        // Redirect fixmap OA-offset UART writes: byte-sized printable ASCII
-        let low = addr & 0x001F_FFFF;
-        if low >= 0x090000 && low < 0x091000 {
-            let corrected = 0x09000000 | (addr & 0xFFF);
-            // Only redirect byte-sized printable chars + newline
-            if size == 1 {
-                let b = value as u8;
-                if b >= 0x20 && b <= 0x7E || b == b'\n' || b == b'\r' {
-                    self.uart.write(corrected, size, value);
-                    let _ = self.mem.write(addr, size, value);
-                    return;
-                }
+        // Fixup: kernel fixmap UART redirect
+        let low = addr & FIXMAP_LOW_MASK;
+        if in_uart_fixmap_range(low) && size == 1 {
+            let b = value as u8;
+            // Only redirect printable ASCII, newline, and carriage return
+            if is_printable_or_control(b) {
+                let uart_offset = addr & PAGE_OFFSET_MASK;
+                self.uart.write(UART_BASE | uart_offset, size, value);
+                self.mem.write(addr, size, value);
+                return;
             }
         }
-        self.uart.write(addr, size, value);
-        let _ = self.mem.write(addr, size, value);
-        if addr <= 0x41fdf70d && addr + size as u64 > 0x41fdf70d {
-            eprintln!("BUS WRITE: addr=0x{:016x} size={} value=0x{:016x}", addr, size, value);
+
+        // Standard MMIO dispatch
+        if in_uart_range(addr) {
+            self.uart.write(addr, size, value);
+        } else if in_gicd_range(addr) {
+            self.gic.gicd_write(addr - GICD_BASE, value, size);
+        } else if in_gicr_range(addr) {
+            self.gic.gicr_write(addr - GICR_BASE, value, size);
         }
+        self.mem.write(addr, size, value);
     }
+}
+
+// ── Address range predicates ──
+
+fn in_uart_range(addr: u64) -> bool {
+    addr >= UART_BASE && addr < UART_END
+}
+
+fn in_uart_fixmap_range(low: u64) -> bool {
+    low >= UART_FIXMAP_BASE && low < UART_FIXMAP_END
+}
+
+fn in_gicd_range(addr: u64) -> bool {
+    addr >= GICD_BASE && addr < GICD_BASE + GICD_SIZE
+}
+
+fn in_gicr_range(addr: u64) -> bool {
+    addr >= GICR_BASE && addr < GICR_BASE + GICR_SIZE
+}
+
+/// Returns true for printable ASCII (0x20–0x7E), newline (0x0A), or CR (0x0D).
+fn is_printable_or_control(b: u8) -> bool {
+    matches!(b, b' '..=b'~' | b'\n' | b'\r')
 }
 
 #[cfg(test)]
@@ -62,16 +115,14 @@ mod tests {
     #[test]
     fn uart_priority_over_ram() {
         let mut bus = SystemBus::new();
-        bus.write(0x0900_0000, 1, b'A' as u64);
-        // Should go to UART, not RAM
+        bus.write(UART_BASE, 1, b'A' as u64);
         assert_eq!(bus.uart.output_string(), "A");
-        // RAM at same address should be unmapped (UART intercepts)
     }
 
     #[test]
     fn ram_read_write() {
         let mut bus = SystemBus::new();
-        bus.write(0x4000_0000, 8, 0xDEADBEEF);
-        assert_eq!(bus.read(0x4000_0000, 8), Some(0xDEADBEEF));
+        bus.write(RAM_BASE, 8, 0xDEADBEEF);
+        assert_eq!(bus.read(RAM_BASE, 8), Some(0xDEADBEEF));
     }
 }

@@ -1,64 +1,55 @@
 //! EFI Protocol structures needed by the Linux boot stub.
 
 use crate::bus::SystemBus;
+use crate::constants::*;
 use super::encode::write64;
-use super::layout::EFI_MEM_BASE;
 
-/// EFI_LOADED_IMAGE_PROTOCOL — installed on the image handle.
-/// Layout (64-bit offsets):
+// Re-export GUID constant (kept here for backward compat)
+pub const LOADED_IMAGE_GUID_LO: u64 = LIP_GUID_LO;
+
+/// Install EFI_LOADED_IMAGE_PROTOCOL (LIP) at its reserved address.
+///
+/// LIP layout (64-bit offsets):
+/// ```text
 ///   +0x00  Revision          (u32)
-///   +0x04  Reserved          (u32)
-///   +0x08  ParentHandle      (u64 ptr)
-///   +0x10  SystemTable       (u64 ptr)
-///   +0x18  DeviceHandle      (u64 ptr)
-///   +0x20  FilePath          (u64 ptr)
-///   +0x28  Reserved2         (u64 ptr)
+///   +0x08  ParentHandle      (u64)
+///   +0x10  SystemTable       (u64)
+///   +0x18  DeviceHandle      (u64)
+///   +0x20  FilePath          (u64)
+///   +0x28  Reserved2         (u64)
 ///   +0x30  LoadOptionsSize   (u32)
-///   +0x34  Reserved3         (u32)
-///   +0x38  LoadOptions       (u64 ptr)
-///   +0x40  ImageBase         (u64 ptr)
-///   +0x48  ImageSize         (u64)
+///   +0x38  LoadOptions       (u64)
+///   +0x40  ImageBase         (u64) ← filled with actual kernel image base
+///   +0x48  ImageSize         (u64) ← filled with actual kernel image size
 ///   +0x50  ImageCodeType     (u32)
-///   +0x54  ImageDataType     (u32)
-///   +0x58  Unload            (u64 ptr)  → EFI_IMAGE_UNLOAD
-const LIP_OFFSET: u64 = EFI_MEM_BASE + 0x8000;
-
-/// GUID for EFI_LOADED_IMAGE_PROTOCOL
-pub const LOADED_IMAGE_PROTOCOL_GUID: u128 =
-    0x5B1B31A1_9562_11D2_8E3F_00A0C969723B;
-
-/// First 8 bytes of EFI_LOADED_IMAGE_PROTOCOL GUID as they appear in EFI memory
-/// (Data1 LE u32, Data2 LE u16, Data3 LE u16 = 0x11D2_9562_5B1B_31A1)
-pub const LOADED_IMAGE_GUID_LO: u64 = 0x11D2_9562_5B1B_31A1;
-
-/// Install EFI_LOADED_IMAGE_PROTOCOL on the image handle.
-/// Returns the address of the installed protocol structure.
+///   +0x58  Unload            (u64)
+/// ```
 pub fn install_loaded_image_protocol(
     bus: &mut SystemBus,
     image_base: u64,
     image_size: u64,
 ) -> u64 {
-    let base = LIP_OFFSET;
+    let base = LIP_STRUCT_ADDR;
 
-    write64(bus, base + 0x00, 0x1000); // Revision = 0x1000
-    write64(bus, base + 0x08, 0);     // ParentHandle
-    write64(bus, base + 0x10, 0);     // SystemTable (set later)
-    write64(bus, base + 0x18, 0);     // DeviceHandle
-    write64(bus, base + 0x20, 0);     // FilePath
-    write64(bus, base + 0x28, 0);     // Reserved
-    write64(bus, base + 0x30, 0);     // LoadOptionsSize = 0 (no cmdline)
-    write64(bus, base + 0x38, 0);     // LoadOptions = null
-    write64(bus, base + 0x40, image_base); // ImageBase
-    write64(bus, base + 0x48, image_size); // ImageSize
-    write64(bus, base + 0x50, 0);     // ImageCodeType
-    write64(bus, base + 0x58, 0);     // Unload = null
+    write64(bus, base + 0x00, LIP_REVISION); // Revision
+    write64(bus, base + 0x08, 0);            // ParentHandle
+    write64(bus, base + 0x10, 0);            // SystemTable
+    write64(bus, base + 0x18, 0);            // DeviceHandle
+    write64(bus, base + 0x20, 0);            // FilePath
+    write64(bus, base + 0x28, 0);            // Reserved
+    write64(bus, base + 0x30, 0);            // LoadOptionsSize
+    write64(bus, base + 0x38, 0);            // LoadOptions
+    write64(bus, base + 0x40, image_base);   // ImageBase
+    write64(bus, base + 0x48, image_size);   // ImageSize
+    write64(bus, base + 0x50, 0);            // ImageCodeType
+    write64(bus, base + 0x58, 0);            // Unload
 
     base
 }
 
-/// Get the address of the installed EFI_LOADED_IMAGE_PROTOCOL.
+/// Returns the address of the installed Loaded Image Protocol.
 pub fn loaded_image_protocol_addr() -> u64 {
-    LIP_OFFSET
+    LIP_STRUCT_ADDR
 }
 
 #[cfg(test)]
@@ -69,10 +60,10 @@ mod tests {
     #[test]
     fn lip_installed() {
         let mut bus = SystemBus::new();
-        let addr = install_loaded_image_protocol(&mut bus, 0x4008_0000, 0x100_0000);
-        assert_eq!(addr, LIP_OFFSET);
+        let addr = install_loaded_image_protocol(&mut bus, KERNEL_LOAD_ADDR, 0x100_0000);
+        assert_eq!(addr, LIP_STRUCT_ADDR);
         let base = bus.read(addr + 0x40, 8).unwrap();
-        assert_eq!(base, 0x4008_0000);
+        assert_eq!(base, KERNEL_LOAD_ADDR);
         let size = bus.read(addr + 0x48, 8).unwrap();
         assert_eq!(size, 0x100_0000);
     }

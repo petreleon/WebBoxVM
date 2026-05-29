@@ -1,4 +1,14 @@
-//! Processor state: NZCV flags, exception level, interrupt masks.
+//! Processor State — NZCV condition flags, Exception Level, and interrupt masks.
+//!
+//! In a real ARM64 processor this is the PSTATE register.  It holds:
+//!   - NZCV flags (Negative, Zero, Carry, oVerflow) — set by arithmetic ops
+//!   - Exception Level (EL0–EL3) — the privilege ring the CPU is running in
+//!   - Interrupt masks (I, F, A, D) — whether IRQs/FIQs are blocked
+//!
+//! We store it as a flat u64 matching the SPSR_ELx format for easy save/restore
+//! during exception entry/return.
+
+use crate::constants::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct ProcessorState {
@@ -6,69 +16,67 @@ pub struct ProcessorState {
 }
 
 impl ProcessorState {
-    const N_SHIFT: u32 = 31;
-    const Z_SHIFT: u32 = 30;
-    const C_SHIFT: u32 = 29;
-    const V_SHIFT: u32 = 28;
-    const EL_SHIFT: u32 = 2;
-    const I_SHIFT: u32 = 7;  // IRQ mask (1 = masked)
-
     pub fn new() -> Self {
-        Self { bits: 0 }.with_el(3).with_irq_masked(true) // Boot at EL3 with IRQ masked
+        // ARM cores boot at the highest privilege level (EL3) with interrupts masked.
+        Self { bits: 0 }.with_el(MAX_EL).with_irq_masked(true)
     }
 
-    // --- Interrupt masks ---
+    // ── Interrupt mask ──
 
-    pub fn irq_masked(&self) -> bool { self.bit(Self::I_SHIFT) }
+    pub fn irq_masked(&self) -> bool { self.bit(PSTATE_I_BIT) }
+
     pub fn with_irq_masked(mut self, masked: bool) -> Self {
-        if masked { self.bits |= 1 << Self::I_SHIFT; }
-        else { self.bits &= !(1 << Self::I_SHIFT); }
+        if masked { self.bits |= 1 << PSTATE_I_BIT; }
+        else      { self.bits &= !(1 << PSTATE_I_BIT); }
         self
     }
 
-    // --- Condition flags ---
+    // ── Condition flags ──
 
-    pub fn n(&self) -> bool { self.bit(Self::N_SHIFT) }
-    pub fn z(&self) -> bool { self.bit(Self::Z_SHIFT) }
-    pub fn c(&self) -> bool { self.bit(Self::C_SHIFT) }
-    pub fn v(&self) -> bool { self.bit(Self::V_SHIFT) }
+    pub fn n(&self) -> bool { self.bit(PSTATE_N_BIT) }
+    pub fn z(&self) -> bool { self.bit(PSTATE_Z_BIT) }
+    pub fn c(&self) -> bool { self.bit(PSTATE_C_BIT) }
+    pub fn v(&self) -> bool { self.bit(PSTATE_V_BIT) }
 
+    /// Set all four NZCV flags at once. Clears the existing flags first.
     pub fn set_nzcv(&mut self, n: bool, z: bool, c: bool, v: bool) {
-        self.bits = (self.bits & !0xF000_0000)
-            | Self::flag(n, Self::N_SHIFT)
-            | Self::flag(z, Self::Z_SHIFT)
-            | Self::flag(c, Self::C_SHIFT)
-            | Self::flag(v, Self::V_SHIFT);
+        self.bits = (self.bits & !PSTATE_NZCV_MASK)
+            | Self::flag_bit(n, PSTATE_N_BIT)
+            | Self::flag_bit(z, PSTATE_Z_BIT)
+            | Self::flag_bit(c, PSTATE_C_BIT)
+            | Self::flag_bit(v, PSTATE_V_BIT);
     }
 
-    // --- Exception level ---
+    // ── Exception level ──
 
+    /// Current Exception Level: 0 (user), 1 (kernel), 2 (hypervisor), 3 (secure monitor).
     pub fn el(&self) -> u8 {
-        ((self.bits >> Self::EL_SHIFT) & 3) as u8
+        ((self.bits >> PSTATE_EL_SHIFT) & 3) as u8
     }
 
+    /// Return a copy with the Exception Level changed.
     pub fn with_el(mut self, level: u8) -> Self {
-        assert!(level <= 3, "EL must be 0-3, got {}", level);
-        self.bits = (self.bits & !(3 << Self::EL_SHIFT)) | ((level as u64) << Self::EL_SHIFT);
+        assert!(level <= MAX_EL, "EL must be 0–{}, got {}", MAX_EL, level);
+        self.bits = (self.bits & !PSTATE_EL_MASK) | ((level as u64) << PSTATE_EL_SHIFT);
         self
     }
 
-    pub fn to_u64(&self) -> u64 {
-        self.bits
-    }
+    // ── Serialization ──
 
-    pub fn from_u64(val: u64) -> Self {
-        Self { bits: val }
-    }
+    /// Pack PSTATE into a u64 (SPSR_ELx format).
+    pub fn to_u64(&self) -> u64 { self.bits }
 
-    // --- Private helpers ---
+    /// Unpack PSTATE from a u64 (SPSR_ELx format).
+    pub fn from_u64(val: u64) -> Self { Self { bits: val } }
+
+    // ── Private helpers ──
 
     fn bit(&self, shift: u32) -> bool {
         (self.bits >> shift) & 1 != 0
     }
 
-    fn flag(v: bool, shift: u32) -> u64 {
-        (v as u64) << shift
+    fn flag_bit(value: bool, shift: u32) -> u64 {
+        (value as u64) << shift
     }
 }
 
@@ -79,7 +87,7 @@ mod tests {
     #[test]
     fn boot_el3() {
         let p = ProcessorState::new();
-        assert_eq!(p.el(), 3);
+        assert_eq!(p.el(), MAX_EL);
     }
 
     #[test]

@@ -1,26 +1,30 @@
-use crate::efi;
+use crate::constants::*;
 
-const RAM_BASE: u64 = 0x4000_0000;
-const RAM_SIZE: usize = 1_073_741_824;
-const RAM_TOP: u64 = RAM_BASE + RAM_SIZE as u64;
-
-const EFI_SIZE: usize = efi::EFI_MEM_SIZE as usize;
-const LOW_REGION_SIZE: usize = 0x4000_0000;
+const RAM_SIZE_USIZE: usize = RAM_SIZE as usize;
+const LOW_REGION_SIZE_USIZE: usize = LOW_REGION_SIZE as usize;
 
 /// Three disjoint physical memory regions.
+///
+/// ```text
+///   Low region  [0x0000_0000 .. 0x3FFF_FFFF)  1 GiB
+///   RAM region  [0x4000_0000 .. 0x7FFF_FFFF)  1 GiB
+///   EFI region  [0x8000_0000 .. 0x8FFF_FFFF)  256 MiB
+/// ```
+///
+/// Writes that fall outside all three regions are silently discarded.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PhysicalMemory {
-    low: Vec<u8>, // 0x0         -> 0x3FFF_FFFF
-    ram: Vec<u8>, // 0x4000_0000 -> 0x7FFF_FFFF
-    efi: Vec<u8>, // 0x8000_0000 -> 0x8FFF_FFFF
+    low: Vec<u8>, // Low region: MMIO devices + reserved   (0x0         → 0x3FFF_FFFF)
+    ram: Vec<u8>, // RAM region: kernel, stack, heap        (0x4000_0000 → 0x7FFF_FFFF)
+    efi: Vec<u8>, // EFI region: firmware tables, services  (0x8000_0000 → 0x8FFF_FFFF)
 }
 
 impl PhysicalMemory {
     pub fn new() -> Self {
         Self {
-            low: vec![0u8; LOW_REGION_SIZE],
-            ram: vec![0u8; RAM_SIZE],
-            efi: vec![0u8; EFI_SIZE],
+            low: vec![0u8; LOW_REGION_SIZE_USIZE],
+            ram: vec![0u8; RAM_SIZE_USIZE],
+            efi: vec![0u8; EFI_REGION_SIZE as usize],
         }
     }
 
@@ -44,8 +48,6 @@ impl PhysicalMemory {
             .map(|(bytes, offset)| dst.copy_from_slice(&bytes[offset..offset + dst.len()]))
     }
 
-    // --- region dispatch (RAM checked first to avoid low_region shadowing) ---
-
     fn select_region(&self, addr: u64) -> Option<(&[u8], usize)> {
         if let Some(o) = ram_offset(addr) { Some((&self.ram, o)) }
         else if let Some(o) = efi_offset(addr) { Some((&self.efi, o)) }
@@ -65,20 +67,21 @@ impl Default for PhysicalMemory {
     fn default() -> Self { Self::new() }
 }
 
-// --- free functions (no duplication) ---
+// --- Region offset calculations ---
 
 fn ram_offset(addr: u64) -> Option<usize> {
-    if addr >= RAM_BASE && addr < RAM_TOP { Some((addr - RAM_BASE) as usize) } else { None }
+    if addr >= RAM_BASE && addr < RAM_END { Some((addr - RAM_BASE) as usize) } else { None }
 }
 
 fn efi_offset(addr: u64) -> Option<usize> {
-    let base = efi::EFI_MEM_BASE;
-    if addr >= base && addr < base + efi::EFI_MEM_SIZE { Some((addr - base) as usize) } else { None }
+    if addr >= EFI_REGION_BASE && addr < EFI_REGION_END { Some((addr - EFI_REGION_BASE) as usize) } else { None }
 }
 
 fn low_offset(addr: u64) -> Option<usize> {
-    if addr < LOW_REGION_SIZE as u64 { Some(addr as usize) } else { None }
+    if addr < LOW_REGION_END { Some(addr as usize) } else { None }
 }
+
+// --- Byte-level read/write helpers ---
 
 fn read_bytes(bytes: &[u8], offset: usize, size: u8) -> Option<u64> {
     match size {
@@ -113,8 +116,8 @@ mod tests {
     #[test]
     fn u64_roundtrip() {
         let mut m = PhysicalMemory::new();
-        assert!(m.write(0x4000_0000, 8, 0xCAFE0000_DEADBEEF).is_some());
-        assert_eq!(m.read(0x4000_0000, 8), Some(0xCAFE0000_DEADBEEF));
+        assert!(m.write(RAM_BASE, 8, 0xCAFE0000_DEADBEEF).is_some());
+        assert_eq!(m.read(RAM_BASE, 8), Some(0xCAFE0000_DEADBEEF));
     }
 
     #[test]

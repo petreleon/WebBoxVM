@@ -1,5 +1,23 @@
-//! MMU: 3-level page table walk (39-bit VA) with software TLB.
+//! MMU — Memory Management Unit: translates virtual addresses to physical.
+//!
+//! The MMU performs a 3-level page-table walk (39-bit VA, 4 KiB granule).
+//! It also includes a software TLB (2048 entries, direct-mapped) to cache
+//! recent translations and avoid walking the page tables every instruction.
+//!
+//! ## How the page table walk works
+//!
+//! A 48-bit virtual address is split into:
+//!   bits [47:39] → Level 0 index (512 entries)
+//!   bits [38:30] → Level 1 index (512 entries)
+//!   bits [29:21] → Level 2 index (512 entries)
+//!   bits [20:12] → Level 3 index (512 entries)
+//!   bits [11:0]  → in-page offset (4 KiB)
+//!
+//! At each level we read an 8-byte descriptor.  If it points to another table
+//! we continue; if it's a block/page we extract the physical address; if it's
+//! invalid we raise a Translation Fault.
 
+use crate::constants::*;
 use crate::arm64::system_regs::SystemRegisters;
 use crate::memory::PhysicalMemory;
 
@@ -10,24 +28,22 @@ pub enum Fault {
     PermissionFault,
 }
 
+/// A single TLB (Translation Lookaside Buffer) entry.
+/// Caches one VA→PA mapping at page granularity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TlbEntry {
     pub valid: bool,
-    pub va_page: u64,
-    pub pa_page: u64,
+    pub va_page: u64,   // virtual page number (VA >> 12)
+    pub pa_page: u64,   // physical page number (PA >> 12)
 }
 
 impl Default for TlbEntry {
     fn default() -> Self {
-        Self {
-            valid: false,
-            va_page: 0,
-            pa_page: 0,
-        }
+        Self { valid: false, va_page: 0, pa_page: 0 }
     }
 }
 
-/// 2048-entry direct-mapped software TLB.
+/// Direct-mapped software TLB with TLB_ENTRIES slots.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tlb {
     pub entries: Vec<TlbEntry>,
@@ -35,32 +51,34 @@ pub struct Tlb {
 
 impl Tlb {
     pub fn new() -> Self {
-        Self {
-            entries: vec![TlbEntry::default(); 2048],
-        }
+        Self { entries: vec![TlbEntry::default(); TLB_ENTRIES] }
     }
 
+    /// Look up a virtual address in the TLB.
+    /// Returns the corresponding physical address if found and valid.
     pub fn lookup(&self, va: u64) -> Option<u64> {
-        let page = va >> 12;
-        let idx = (page & 0x7FF) as usize;
+        let page = va >> PAGE_SHIFT;
+        let idx = (page & TLB_INDEX_MASK) as usize;
         let entry = &self.entries[idx];
         if entry.valid && entry.va_page == page {
-            Some((entry.pa_page << 12) | (va & 0xFFF))
+            Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
         } else {
             None
         }
     }
 
+    /// Insert a VA→PA mapping into the TLB.
     pub fn insert(&mut self, va: u64, pa: u64) {
-        let page = va >> 12;
-        let idx = (page & 0x7FF) as usize;
+        let page = va >> PAGE_SHIFT;
+        let idx = (page & TLB_INDEX_MASK) as usize;
         self.entries[idx] = TlbEntry {
             valid: true,
             va_page: page,
-            pa_page: pa >> 12,
+            pa_page: pa >> PAGE_SHIFT,
         };
     }
 
+    /// Invalidate (flush) the entire TLB — called on TLBI instructions.
     pub fn invalidate_all(&mut self) {
         for entry in &mut self.entries {
             entry.valid = false;
@@ -69,28 +87,33 @@ impl Tlb {
 }
 
 impl Default for Tlb {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
-/// Translate a virtual address to physical, using the TLB and page table walk.
-pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va: u64) -> Result<u64, Fault> {
-    // MMU off: pass through
-    if (sys.sctlr_el1 & 1) == 0 {
+/// Translate a virtual address to a physical address.
+///
+/// Steps:
+///   1. If the MMU is off (SCTLR_EL1.M == 0), pass through VA as PA.
+///   2. Check the TLB for a cached translation.
+///   3. If not cached, walk the page tables.
+///   4. Cache the result in the TLB.
+pub fn translate(
+    sys: &SystemRegisters,
+    tlb: &mut Tlb,
+    mem: &PhysicalMemory,
+    va: u64,
+) -> Result<u64, Fault> {
+    // MMU disabled → identity map (VA = PA)
+    if (sys.sctlr_el1 & SCTLR_MMU_ENABLE) == 0 {
         return Ok(va);
     }
 
     // Force identity-map for kernel VAs targeting known MMIO devices.
     // This fixes early_ioremap fixmap entries that map to wrong PAs
-    // due to page table entry OA computation differences.
-    if va >= 0xffff800000000000 {
-        let low = va & 0xFFFF_FFFF;
-        // UART (PL011) at 0x09000000, GIC at 0x08000000
-        if (low >= 0x08000000 && low < 0x08100000) // GIC distributor
-           || (low >= 0x080A0000 && low < 0x09000000) // GIC redistributor
-           || (low >= 0x09000000 && low < 0x09001000) // UART
-        {
+    // due to page-table entry OA computation differences.
+    if va >= KERNEL_VA_BASE {
+        let low = va & VA_LOW32_MASK;
+        if is_mmio_device_range(low) {
             tlb.insert(va, low);
             return Ok(low);
         }
@@ -104,22 +127,20 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
     // Page table walk
     let result = match page_table_walk(sys, mem, va) {
         Ok(pa) => Ok(pa),
+        // Gracefully handle translation faults on null pointer (0x0)
         Err(Fault::TranslationFault) if va == 0 => {
-            let pa = 0;
-            tlb.insert(va, pa);
-            Ok(pa)
+            tlb.insert(va, 0);
+            Ok(0)
         }
-        Err(Fault::TranslationFault) => {
-            if va >= 0xffff800000000000 {
-                let pa = va & 0xFFFF_FFFF;
-                if (pa >= 0x08000000 && pa < 0x08100000)
-                   || (pa >= 0x09000000 && pa < 0x09001000)
-                {
-                    tlb.insert(va, pa);
-                    return Ok(pa);
-                }
+        // Fallback for kernel VAs: try identity map on MMIO devices
+        Err(Fault::TranslationFault) if va >= KERNEL_VA_BASE => {
+            let pa = va & VA_LOW32_MASK;
+            if is_mmio_device_range(pa) {
+                tlb.insert(va, pa);
+                Ok(pa)
+            } else {
+                Err(Fault::TranslationFault)
             }
-            Err(Fault::TranslationFault)
         }
         Err(e) => Err(e),
     };
@@ -130,89 +151,113 @@ pub fn translate(sys: &SystemRegisters, tlb: &mut Tlb, mem: &PhysicalMemory, va:
     result
 }
 
-fn page_table_walk(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) -> Result<u64, Fault> {
-    let t1sz = ((sys.tcr_el1 >> 16) & 0x3F) as u8;
+/// Returns true if the 32-bit physical address is a known MMIO device.
+fn is_mmio_device_range(pa: u64) -> bool {
+    (pa >= GICD_BASE && pa < GICD_BASE + GICD_SIZE)
+        || (pa >= UART_BASE && pa < UART_END)
+}
+
+/// Walk the 3-level page table structure to translate a VA.
+fn page_table_walk(
+    sys: &SystemRegisters,
+    mem: &PhysicalMemory,
+    va: u64,
+) -> Result<u64, Fault> {
+    // Determine which TTBR to use and the VA size
+    let t1sz = ((sys.tcr_el1 >> TCR_T1SZ_SHIFT) & TCR_T1SZ_MASK) as u8;
     let va_bits = 64u8.saturating_sub(t1sz);
-    let kernel_threshold = if va_bits >= 64 { 0u64 } else { (!0u64) << va_bits };
+    let kernel_threshold = if va_bits >= 64 { 0 } else { (!0u64) << va_bits };
+
     let is_kernel = va >= kernel_threshold;
     let (ttbr, tnsz) = if is_kernel {
         (sys.ttbr1_el1, t1sz)
     } else {
-        (sys.ttbr0_el1, (sys.tcr_el1 & 0x3F) as u8)
+        (sys.ttbr0_el1, (sys.tcr_el1 & TCR_T0SZ_MASK) as u8)
     };
 
     let start_level = determine_start_level(tnsz);
-    let mut table_base = ttbr & 0x0000_FFFF_FFFF_F000;
+    let mut table_base = ttbr & DESC_ADDR_MASK;
 
-    // Level 0
+    // Level 0 (bits 47:39)
     if start_level <= 0 {
-        let idx = ((va >> 39) & 0x1FF) as u64;
+        let idx = ((va >> PT_L0_SHIFT) & 0x1FF) as u64;
         let desc = read_descriptor(mem, table_base + idx * 8)?;
-        let (is_table, next_base) = decode_descriptor(desc, 0)?;
+        let is_table = decode_descriptor_type(desc, 0)?;
         if !is_table {
             return Err(Fault::TranslationFault);
         }
-        table_base = next_base;
+        table_base = desc & DESC_ADDR_MASK;
     }
 
-    // Level 1
+    // Level 1 (bits 38:30) — can be a 1 GiB block
     if start_level <= 1 {
-        let idx = ((va >> 30) & 0x1FF) as u64;
+        let idx = ((va >> PT_L1_SHIFT) & 0x1FF) as u64;
         let desc = read_descriptor(mem, table_base + idx * 8)?;
-        let (is_table, next_base) = decode_descriptor(desc, 1)?;
+        let is_table = decode_descriptor_type(desc, 1)?;
         if !is_table {
-            // L1 block: 1 GB
-            return Ok((desc & 0x0000_FFFF_C000_0000) | (va & 0x3FFF_FFFF));
+            return Ok((desc & 0x0000_FFFF_C000_0000) | (va & (L1_BLOCK_SIZE - 1)));
         }
-        table_base = next_base;
+        table_base = desc & DESC_ADDR_MASK;
     }
 
-    // Level 2
+    // Level 2 (bits 29:21) — can be a 2 MiB block
     if start_level <= 2 {
-        let idx = ((va >> 21) & 0x1FF) as u64;
+        let idx = ((va >> PT_L2_SHIFT) & 0x1FF) as u64;
         let desc = read_descriptor(mem, table_base + idx * 8)?;
-        let (is_table, next_base) = decode_descriptor(desc, 2)?;
+        let is_table = decode_descriptor_type(desc, 2)?;
         if !is_table {
-            // L2 block: 2 MB
-            return Ok((desc & 0x0000_FFFF_FFE0_0000) | (va & 0x1F_FFFF));
+            return Ok((desc & 0x0000_FFFF_FFE0_0000) | (va & (L2_BLOCK_SIZE - 1)));
         }
-        table_base = next_base;
+        table_base = desc & DESC_ADDR_MASK;
     }
 
-    // Level 3: 4 KB page
-    let idx = ((va >> 12) & 0x1FF) as u64;
+    // Level 3 (bits 20:12) — 4 KiB page
+    let idx = ((va >> PT_L3_SHIFT) & 0x1FF) as u64;
     let desc = read_descriptor(mem, table_base + idx * 8)?;
-    let (is_table, _) = decode_descriptor(desc, 3)?;
+    let is_table = decode_descriptor_type(desc, 3)?;
     if is_table {
-        return Err(Fault::TranslationFault);
+        return Err(Fault::TranslationFault); // L3 can't point to a sub-table
     }
-    Ok((desc & 0x0000_FFFF_FFFF_F000) | (va & 0xFFF))
+    Ok((desc & DESC_ADDR_MASK) | (va & PAGE_OFFSET_MASK))
 }
 
+/// Determine which page table level to start at based on the VA size.
+///
+/// | TCR.TxSZ    | VA size  | Start level |
+/// |-------------|----------|-------------|
+/// | 34..39      | 25..30   | 2           |
+/// | 25..33      | 31..39   | 1           |
+/// | 16..24      | 40..48   | 0           |
 fn determine_start_level(tnsz: u8) -> u8 {
     match tnsz {
-        34..=39 => 2,
-        25..=33 => 1,
-        16..=24 => 0,
-        _ => 1,
+        34..=39 => 2,  // short VA → skip L0 and L1
+        25..=33 => 1,  // medium VA → skip L0
+        16..=24 => 0,  // full 48-bit VA → start at L0
+        _ => 1,        // default
     }
 }
 
+/// Read an 8-byte page table descriptor from physical memory.
 fn read_descriptor(mem: &PhysicalMemory, addr: u64) -> Result<u64, Fault> {
     mem.read(addr, 8).ok_or(Fault::TranslationFault)
 }
 
-fn decode_descriptor(desc: u64, level: u8) -> Result<(bool, u64), Fault> {
-    if (desc & 1) == 0 {
-        return Err(Fault::TranslationFault);
-    }
-    let is_table = (desc & 2) != 0;
-    let base = desc & 0x0000_FFFF_FFFF_F000;
-    // At L3, 0b11 is a page descriptor, not a table descriptor.
+/// Decode a page table descriptor at `level`.
+/// Returns `(is_table_pointer, _)` — true if descriptor points to another table.
+///
+/// Descriptor bits:
+///   [1:0] = 0b00 → invalid (translation fault)
+///   [1:0] = 0b01 → block/page descriptor (at L1/L2) or page (at L3)
+///   [1:0] = 0b11 → table descriptor (points to next level; at L3 means page)
+fn decode_descriptor_type(desc: u64, level: u8) -> Result<bool, Fault> {
+    let low = desc & 3;
+    if low == 0 { return Err(Fault::TranslationFault); }
+    let is_table = low == 3; // 0b11 = table pointer
+    // At L3, 0b11 means a 4 KiB page, not a table
     if level == 3 && is_table {
-        return Ok((false, base));
+        return Ok(false);
     }
-    Ok((is_table, base))
+    Ok(is_table)
 }
 
 #[cfg(test)]

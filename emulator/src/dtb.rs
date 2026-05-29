@@ -1,28 +1,52 @@
-//! Minimal Device Tree Blob (DTB) generator for Linux boot.
+//! Device Tree Blob (DTB) generator for Linux boot.
+//!
+//! The DTB is a binary data structure that describes the virtual hardware
+//! to the Linux kernel.  It replaces the old "board files" — instead of
+//! hardcoding platform details in the kernel, the bootloader passes a DTB.
+//!
+//! ## DTB layout
+//!
+//! ```text
+//!  Header (40 bytes)
+//!  Memory reservation block (ends with 16 zero bytes)
+//!  Structure block (nodes, properties — FDT_BEGIN_NODE, FDT_PROP, etc.)
+//!  Strings block (pool of null-terminated property name strings)
+//! ```
+//!
+//! Reference: https://www.devicetree.org/specifications/
 
 use crate::bus::SystemBus;
+use crate::constants::*;
 
-const FDT_MAGIC: u32 = 0xd00dfeed;
-const FDT_VERSION: u32 = 17;
-const FDT_LAST_COMP_VERSION: u32 = 16;
-
-const FDT_BEGIN_NODE: u32 = 0x0000_0001;
-const FDT_END_NODE: u32 = 0x0000_0002;
-const FDT_PROP: u32 = 0x0000_0003;
-const FDT_END: u32 = 0x0000_0009;
-
-/// Build a minimal DTB with memory region and optional initrd.
-pub fn build_dtb(mem_start: u64, mem_size: u64, initrd_start: Option<u64>, initrd_end: Option<u64>, bootargs: Option<&str>) -> Vec<u8> {
+/// Build a minimal DTB describing the emulated machine.
+///
+/// Nodes created:
+///   - `/` (root) with address/size cells
+///   - `memory@40000000` — RAM region
+///   - `chosen` — bootargs, initrd location, stdout path
+///   - `intc@8000000` — GICv3 interrupt controller
+///   - `timer` — ARMv8 architected timer
+///   - `uart@9000000` — PL011 serial console
+///   - `cpus/cpu@0` — single Cortex-A72 core
+pub fn build_dtb(
+    mem_start: u64,
+    mem_size: u64,
+    initrd_start: Option<u64>,
+    initrd_end: Option<u64>,
+    bootargs: Option<&str>,
+) -> Vec<u8> {
     let mut strings = Vec::new();
     let mut struct_block = Vec::new();
+
+    // ── DTB block writers ──
 
     let push_token = |block: &mut Vec<u8>, token: u32| {
         block.extend_from_slice(&token.to_be_bytes());
     };
 
-    let push_str = |block: &mut Vec<u8>, s: &str| {
-        block.extend_from_slice(s.as_bytes());
-        block.push(0);
+    let push_name = |block: &mut Vec<u8>, name: &str| {
+        block.extend_from_slice(name.as_bytes());
+        block.push(0); // null terminator
         pad_to_4(block);
     };
 
@@ -37,36 +61,32 @@ pub fn build_dtb(mem_start: u64, mem_size: u64, initrd_start: Option<u64>, initr
         pad_to_4(block);
     };
 
-    // / node
+    // ── Root node (/) ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "");
+    push_name(&mut struct_block, ""); // root = empty name
 
-    // #address-cells = <2>
     push_prop(&mut struct_block, &mut strings, "#address-cells", &2u32.to_be_bytes());
-    // #size-cells = <2>
     push_prop(&mut struct_block, &mut strings, "#size-cells", &2u32.to_be_bytes());
-    // model
     push_prop(&mut struct_block, &mut strings, "model", b"WebBoxVM\0");
-    // compatible
     push_prop(&mut struct_block, &mut strings, "compatible", b"webboxvm,virt\0");
-    // interrupt-parent
-    push_prop(&mut struct_block, &mut strings, "interrupt-parent", &1u32.to_be_bytes());
+    push_prop(&mut struct_block, &mut strings, "interrupt-parent", &1u32.to_be_bytes()); // phandle → intc
 
-    // memory node
+    // ── memory@40000000 ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "memory@40000000");
+    push_name(&mut struct_block, "memory@40000000");
     push_prop(&mut struct_block, &mut strings, "device_type", b"memory\0");
+    // reg = <0x00000000 mem_start  0x00000000 mem_size> (two-cell address/size)
     let mut reg = Vec::new();
-    reg.extend_from_slice(&(0u32).to_be_bytes());
+    reg.extend_from_slice(&0u32.to_be_bytes());
     reg.extend_from_slice(&(mem_start as u32).to_be_bytes());
-    reg.extend_from_slice(&(0u32).to_be_bytes());
+    reg.extend_from_slice(&0u32.to_be_bytes());
     reg.extend_from_slice(&(mem_size as u32).to_be_bytes());
     push_prop(&mut struct_block, &mut strings, "reg", &reg);
     push_token(&mut struct_block, FDT_END_NODE);
 
-    // chosen node
+    // ── chosen ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "chosen");
+    push_name(&mut struct_block, "chosen");
     push_prop(&mut struct_block, &mut strings, "stdout-path", b"/uart@9000000\0");
     if let Some(args) = bootargs {
         push_prop(&mut struct_block, &mut strings, "bootargs", args.as_bytes());
@@ -77,101 +97,84 @@ pub fn build_dtb(mem_start: u64, mem_size: u64, initrd_start: Option<u64>, initr
     }
     push_token(&mut struct_block, FDT_END_NODE);
 
-    // intc@8000000 (GICv3)
+    // ── intc@8000000 (GICv3) ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "intc@8000000");
+    push_name(&mut struct_block, "intc@8000000");
     push_prop(&mut struct_block, &mut strings, "compatible", b"arm,gic-v3\0");
     push_prop(&mut struct_block, &mut strings, "interrupt-controller", &[]);
     push_prop(&mut struct_block, &mut strings, "#interrupt-cells", &3u32.to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "phandle", &1u32.to_be_bytes());
-    let mut reg = Vec::new();
-    // GICD: 0x08000000, size 0x10000
-    reg.extend_from_slice(&(0u32).to_be_bytes());
-    reg.extend_from_slice(&(0x0800_0000u32).to_be_bytes());
-    reg.extend_from_slice(&(0u32).to_be_bytes());
-    reg.extend_from_slice(&(0x10000u32).to_be_bytes());
-    // GICR: 0x080a0000, size 0xf60000
-    reg.extend_from_slice(&(0u32).to_be_bytes());
-    reg.extend_from_slice(&(0x080A_0000u32).to_be_bytes());
-    reg.extend_from_slice(&(0u32).to_be_bytes());
-    reg.extend_from_slice(&(0xf60000u32).to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "reg", &reg);
+    push_prop(&mut struct_block, &mut strings, "phandle", &1u32.to_be_bytes()); // phandle=1
+    // reg: GICD at 0x08000000 size 0x10000; GICR at 0x080A0000 size 0xF60000
+    let mut gic_reg = Vec::new();
+    append_two_cell_prop(&mut gic_reg, GICD_BASE, GICD_SIZE);
+    append_two_cell_prop(&mut gic_reg, GICR_BASE, GICR_SIZE);
+    push_prop(&mut struct_block, &mut strings, "reg", &gic_reg);
     push_token(&mut struct_block, FDT_END_NODE);
 
-    // timer node
+    // ── timer ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "timer");
+    push_name(&mut struct_block, "timer");
     push_prop(&mut struct_block, &mut strings, "compatible", b"arm,armv8-timer\0");
-    let mut timer_irqs = Vec::new();
-    // Secure Phys PPI 13
-    timer_irqs.extend_from_slice(&1u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&13u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&0xf08u32.to_be_bytes());
-    // Non-Secure Phys PPI 14
-    timer_irqs.extend_from_slice(&1u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&14u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&0xf08u32.to_be_bytes());
-    // Virt PPI 11
-    timer_irqs.extend_from_slice(&1u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&11u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&0xf08u32.to_be_bytes());
-    // Hyp PPI 10
-    timer_irqs.extend_from_slice(&1u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&10u32.to_be_bytes());
-    timer_irqs.extend_from_slice(&0xf08u32.to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "interrupts", &timer_irqs);
+    // 4 PPIs: secure=13, non-secure=14, virt=11, hyp=10  (flags=0xF08 each)
+    let timer_irqs: [u32; 12] = [
+        1, 13, 0xf08,   // Secure Physical PPI
+        1, 14, 0xf08,   // Non-Secure Physical PPI
+        1, 11, 0xf08,   // Virtual PPI
+        1, 10, 0xf08,   // Hypervisor Physical PPI
+    ];
+    let mut timer_irq_bytes = Vec::new();
+    for val in &timer_irqs {
+        timer_irq_bytes.extend_from_slice(&val.to_be_bytes());
+    }
+    push_prop(&mut struct_block, &mut strings, "interrupts", &timer_irq_bytes);
     push_token(&mut struct_block, FDT_END_NODE);
 
-    // uart node
+    // ── uart@9000000 ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "uart@9000000");
+    push_name(&mut struct_block, "uart@9000000");
     push_prop(&mut struct_block, &mut strings, "compatible", b"arm,pl011\0arm,primecell\0");
-    let mut reg = Vec::new();
-    reg.extend_from_slice(&(0u32).to_be_bytes());
-    reg.extend_from_slice(&(0x0900_0000u32).to_be_bytes());
-    reg.extend_from_slice(&(0u32).to_be_bytes());
-    reg.extend_from_slice(&(0x1000u32).to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "reg", &reg);
-    push_prop(&mut struct_block, &mut strings, "clock-frequency", &24000000u32.to_be_bytes());
-    let mut uart_irqs = Vec::new();
-    uart_irqs.extend_from_slice(&0u32.to_be_bytes()); // SPI
-    uart_irqs.extend_from_slice(&1u32.to_be_bytes()); // Interrupt 1
-    uart_irqs.extend_from_slice(&4u32.to_be_bytes()); // High-level trigger
-    push_prop(&mut struct_block, &mut strings, "interrupts", &uart_irqs);
+    let mut uart_reg = Vec::new();
+    append_two_cell_prop(&mut uart_reg, UART_BASE, UART_SIZE);
+    push_prop(&mut struct_block, &mut strings, "reg", &uart_reg);
+    push_prop(&mut struct_block, &mut strings, "clock-frequency", &24_000_000u32.to_be_bytes());
+    // UART interrupt: SPI #1, edge-triggered (flags=4)
+    let uart_irqs: [u32; 3] = [0, 1, 4];
+    let mut uart_bytes = Vec::new();
+    for val in &uart_irqs {
+        uart_bytes.extend_from_slice(&val.to_be_bytes());
+    }
+    push_prop(&mut struct_block, &mut strings, "interrupts", &uart_bytes);
     push_token(&mut struct_block, FDT_END_NODE);
 
-    // cpus node
+    // ── cpus ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "cpus");
+    push_name(&mut struct_block, "cpus");
     push_prop(&mut struct_block, &mut strings, "#address-cells", &1u32.to_be_bytes());
     push_prop(&mut struct_block, &mut strings, "#size-cells", &0u32.to_be_bytes());
 
     push_token(&mut struct_block, FDT_BEGIN_NODE);
-    push_str(&mut struct_block, "cpu@0");
+    push_name(&mut struct_block, "cpu@0");
     push_prop(&mut struct_block, &mut strings, "device_type", b"cpu\0");
     push_prop(&mut struct_block, &mut strings, "compatible", b"arm,armv8\0");
-    push_prop(&mut struct_block, &mut strings, "reg", &0u32.to_be_bytes());
+    push_prop(&mut struct_block, &mut strings, "reg", &0u32.to_be_bytes()); // CPU ID = 0
     push_token(&mut struct_block, FDT_END_NODE);
 
-    push_token(&mut struct_block, FDT_END_NODE);
+    push_token(&mut struct_block, FDT_END_NODE); // end cpus
 
-    // End root
+    // ── Close root node; end structure ──
     push_token(&mut struct_block, FDT_END_NODE);
     push_token(&mut struct_block, FDT_END);
 
-    // Pad strings to 4-byte
+    // ── Assemble the DTB binary ──
     pad_to_4(&mut strings);
     pad_to_4(&mut struct_block);
 
-    let mem_rsvmap_size = 16; // just the end marker (16 zero bytes: two u64 zeros)
-    let header_size = 40u32;
+    let header_size: u32 = 40;
+    let mem_rsvmap_size: u32 = 16; // end marker = two zero u64s
     let off_mem_rsvmap = header_size;
     let off_dt_struct = off_mem_rsvmap + mem_rsvmap_size;
     let off_dt_strings = off_dt_struct + struct_block.len() as u32;
     let totalsize = off_dt_strings + strings.len() as u32;
-
-    println!("BUILD_DTB DIAG: off_dt_struct={} struct_block.len()={} off_dt_strings={} strings.len()={} totalsize={}",
-        off_dt_struct, struct_block.len(), off_dt_strings, strings.len(), totalsize);
 
     let mut dtb = Vec::new();
     dtb.extend_from_slice(&FDT_MAGIC.to_be_bytes());
@@ -181,11 +184,11 @@ pub fn build_dtb(mem_start: u64, mem_size: u64, initrd_start: Option<u64>, initr
     dtb.extend_from_slice(&off_mem_rsvmap.to_be_bytes());
     dtb.extend_from_slice(&FDT_VERSION.to_be_bytes());
     dtb.extend_from_slice(&FDT_LAST_COMP_VERSION.to_be_bytes());
-    dtb.extend_from_slice(&0u32.to_be_bytes()); // boot_cpuid_phys
+    dtb.extend_from_slice(&0u32.to_be_bytes()); // boot_cpuid_phys = 0
     dtb.extend_from_slice(&(strings.len() as u32).to_be_bytes()); // size_dt_strings
     dtb.extend_from_slice(&(struct_block.len() as u32).to_be_bytes()); // size_dt_struct
 
-    // Memory reservation block (empty + end marker: 16 bytes of zeros)
+    // Memory reservation block (empty)
     dtb.extend_from_slice(&0u64.to_be_bytes());
     dtb.extend_from_slice(&0u64.to_be_bytes());
 
@@ -198,11 +201,21 @@ pub fn build_dtb(mem_start: u64, mem_size: u64, initrd_start: Option<u64>, initr
     dtb
 }
 
-/// Write a DTB into memory at `addr`.
+/// Write a DTB into emulator memory at `addr`.
 pub fn load_dtb(bus: &mut SystemBus, addr: u64, dtb: &[u8]) {
     for (i, &byte) in dtb.iter().enumerate() {
         bus.write(addr + i as u64, 1, byte as u64);
     }
+}
+
+// ── Helpers ──
+
+/// Append a two-cell address/size pair (8 bytes each, total 16 per entry).
+fn append_two_cell_prop(bytes: &mut Vec<u8>, addr: u64, size: u64) {
+    bytes.extend_from_slice(&0u32.to_be_bytes());
+    bytes.extend_from_slice(&(addr as u32).to_be_bytes());
+    bytes.extend_from_slice(&0u32.to_be_bytes());
+    bytes.extend_from_slice(&(size as u32).to_be_bytes());
 }
 
 fn pad_to_4(v: &mut Vec<u8>) {

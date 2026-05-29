@@ -169,7 +169,7 @@ fn test_decode_121d7820() {
 
 #[test]
 fn test_fdt_header_verification_decoding() {
-    use crate::loader::kernel::{load_kernel, KERNEL_LOAD};
+    use crate::loader::kernel::{load_kernel};
     let mut bus = SystemBus::new();
     load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
 

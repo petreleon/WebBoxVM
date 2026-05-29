@@ -1,49 +1,65 @@
-//! System registers required for Linux boot.
+//! ARM64 System Registers — the control knobs for the CPU and platform.
+//!
+//! These are the registers accessed by MRS (read) and MSR (write) instructions.
+//! Each has a unique 16-bit ID composed as: op0:op1:CRn:CRm:op2.
+//!
+//! For a beginner: think of system registers as "configuration variables" that
+//! control how the CPU behaves — whether the MMU is on, where the page tables
+//! live, what the timer frequency is, etc.
+
+use crate::constants::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SystemRegisters {
-    pub sctlr_el1: u64,
-    pub tcr_el1: u64,
-    pub ttbr0_el1: u64,
-    pub ttbr1_el1: u64,
-    pub mair_el1: u64,
-    pub vbar_el1: u64,
-    pub spsr_el1: u64,
-    pub elr_el1: u64,
-    pub esr_el1: u64,
-    pub far_el1: u64,
-    pub cpacr_el1: u64,
-    pub cntfrq_el0: u64,
-    // Boot stub (EL3)
-    pub scr_el3: u64,
-    pub spsr_el3: u64,
-    pub elr_el3: u64,
-    // Boot stub (EL2)
-    pub hcr_el2: u64,
-    pub spsr_el2: u64,
-    pub elr_el2: u64,
+    // ── Memory management ──
+    pub sctlr_el1: u64,   // System Control Register — bit 0 enables MMU
+    pub tcr_el1: u64,     // Translation Control Register — VA space size
+    pub ttbr0_el1: u64,   // Translation Table Base 0 — user-space page table root
+    pub ttbr1_el1: u64,   // Translation Table Base 1 — kernel-space page table root
+    pub mair_el1: u64,    // Memory Attribute Indirection Register
+    pub far_el1: u64,     // Fault Address Register
 
-    // Thread/Stack registers
+    // ── Exception handling ──
+    pub vbar_el1: u64,    // Vector Base Address — where exception handlers live
+    pub spsr_el1: u64,    // Saved Program Status Register — NZCV + EL before exception
+    pub elr_el1: u64,     // Exception Link Register — return address after exception
+    pub esr_el1: u64,     // Exception Syndrome Register — why the exception happened
+
+    // ── Feature access ──
+    pub cpacr_el1: u64,   // Architectural Feature Access Control (FP/SIMD enable)
+
+    // ── Generic Timer ──
+    pub cntfrq_el0: u64,  // Counter frequency (62.5 MHz default)
+    pub cycle_count: u64, // Emulated cycle counter — increments per instruction
+
+    // ── EL3 / secure world (used during boot stub) ──
+    pub scr_el3: u64,     // Secure Configuration Register
+    pub spsr_el3: u64,    // Saved PSR for EL3
+    pub elr_el3: u64,     // Exception Link for EL3
+
+    // ── EL2 / hypervisor (used during boot stub) ──
+    pub hcr_el2: u64,     // Hypervisor Configuration Register
+    pub spsr_el2: u64,    // Saved PSR for EL2
+    pub elr_el2: u64,     // Exception Link for EL2
+
+    // ── Thread / process ID registers (used by Linux for per-CPU variables) ──
     pub sp_el0: u64,
     pub tpidr_el0: u64,
     pub tpidr_el1: u64,
     pub tpidrro_el0: u64,
 
-    // Cycle counter (incremented per instruction)
-    pub cycle_count: u64,
-
-    // GICv3 CPU interface registers
+    // ── GICv3 CPU interface (system register access) ──
     pub icc_pmr_el1: u64,   // Priority Mask
     pub icc_ctlr_el1: u64,  // Control Register
     pub icc_sre_el1: u64,   // System Register Enable
     pub icc_iar1_el1: u64,  // Interrupt Acknowledge
 
-    // Generic Timer registers
-    pub cntp_ctl_el0: u64,  // Timer control (ISTATUS, IMASK, ENABLE)
-    pub cntp_cval_el0: u64, // Timer compare value
-    pub cntp_tval_el0: u64, // Timer timer value (relative)
+    // ── Timer control ──
+    pub cntp_ctl_el0: u64,   // Timer control: bit 0=enable, bit 1=mask, bit 2=status
+    pub cntp_cval_el0: u64,  // Timer compare value (absolute)
+    pub cntp_tval_el0: u64,  // Timer timer value (relative, decrements)
 
-    // Interrupt state
+    // ── Interrupt state (not real ARM registers, but emulator bookkeeping) ──
     pub irq_pending: bool,
     pub last_irq_id: u32,
 }
@@ -56,13 +72,14 @@ impl Default for SystemRegisters {
             ttbr0_el1: 0,
             ttbr1_el1: 0,
             mair_el1: 0,
+            far_el1: 0,
             vbar_el1: 0,
             spsr_el1: 0,
             elr_el1: 0,
             esr_el1: 0,
-            far_el1: 0,
             cpacr_el1: 0,
-            cntfrq_el0: 62_500_000,
+            cntfrq_el0: TIMER_FREQ_HZ,
+            cycle_count: 0,
             scr_el3: 0,
             spsr_el3: 0,
             elr_el3: 0,
@@ -73,136 +90,144 @@ impl Default for SystemRegisters {
             tpidr_el0: 0,
             tpidr_el1: 0,
             tpidrro_el0: 0,
-            cycle_count: 0,
             icc_pmr_el1: 0,
             icc_ctlr_el1: 0,
             icc_sre_el1: 0,
-            icc_iar1_el1: 0x3FF, // spurious interrupt ID (1023)
+            icc_iar1_el1: GIC_SPURIOUS_INTERRUPT,
             cntp_ctl_el0: 0,
             cntp_cval_el0: 0,
             cntp_tval_el0: 0,
             irq_pending: false,
-            last_irq_id: 1023,
+            last_irq_id: GIC_SPURIOUS_INTERRUPT as u32,
         }
     }
 }
 
 impl SystemRegisters {
-    /// Read a system register by its 15-bit `{o0, op1, CRn, CRm, op2}` ID.
+    /// Read a system register by its 15-bit ID.
     pub fn read_sys_reg(&mut self, sysreg_id: u16, current_el: u8) -> u64 {
         match sysreg_id {
-            0x4208 => self.sp_el0,
-            0x5E82 => self.tpidr_el0,
-            0x4684 => self.tpidr_el1,
-            0x5E83 => self.tpidrro_el0,
-            0x4080 => self.sctlr_el1,
-            0x4102 => self.tcr_el1,
-            0x4100 => self.ttbr0_el1,
-            0x4101 => self.ttbr1_el1,
-            0x4510 => self.mair_el1,
-            0x4600 => self.vbar_el1,
-            0x4200 => self.spsr_el1,
-            0x4201 => self.elr_el1,
-            0x4290 => self.esr_el1,
-            0x4300 => self.far_el1,
-            0x4082 => self.cpacr_el1,
-            0x5F00 => self.cntfrq_el0,
-            0x7088 => self.scr_el3,
-            0x7200 => self.spsr_el3,
-            0x7201 => self.elr_el3,
-            0x6088 => self.hcr_el2,
-            0x6200 => self.spsr_el2,
-            0x6201 => self.elr_el2,
+            SYSREG_SP_EL0      => self.sp_el0,
+            SYSREG_TPIDR_EL0   => self.tpidr_el0,
+            SYSREG_TPIDR_EL1   => self.tpidr_el1,
+            SYSREG_TPIDRRO_EL0 => self.tpidrro_el0,
 
-            // Read-only / feature / status registers — ARMv8.0-A values
-            0x4000 => 0x410FD083, // MIDR_EL1 (Cortex-A72 r0p3)
-            0x4005 => 0x80000000, // MPIDR_EL1 (Single core, cluster 0, core 0)
-            0x4212 => (current_el as u64) << 2, // CurrentEL
-            // ID registers: indicate ARMv8.0-A, AArch64 at all ELs, FP+SIMD, no crypto (use software)
-            0x4020 => 0x0000000000000011, // ID_AA64PFR0_EL1: EL0/1/2/3=A64-only, FP+SIMD
-            0x4021 => 0x0000000000000000, // ID_AA64PFR1_EL1
-            0x4028 => 0x0000000000000000, // ID_AA64PFR2_EL1
-            0x4030 => 0x0000000000103106, // ID_AA64DFR0_EL1: debug v8, PMU v3
-            0x4031 => 0x0000000000000000, // ID_AA64DFR1_EL1
-            0x4032 => 0x0000000000101001, // ID_AA64ISAR0_EL1: AES+PMULL+SHA1+SHA256+CRC32
-            0x4033 => 0x0000000000000121, // ID_AA64ISAR1_EL1: DP+LRCPC+FCMA+JSCVT
-            0x4034 => 0x0000000000000000, // ID_AA64ISAR2_EL1
-            0x4038 => 0x0000000000001122, // ID_AA64MMFR0_EL1: 4K+64K granule, 48-bit PA
-            0x4039 => 0x0000000000000000, // ID_AA64MMFR1_EL1
-            0x403A => 0x0000000000000000, // ID_AA64MMFR2_EL1
-            0x5801 => 0x8444c004, // CTR_EL0 (Cache Type Register)
-            0x5807 => 0x0000000000000010, // DCZID_EL0 (DC ZVA block size = 16 bytes)
-            // Generic Timer: monotonic counter for spinlock backoff / udelay
-            0x5F01 => self.cycle_count, // CNTPCT_EL0 (physical counter)
-            0x5F02 => self.cycle_count, // CNTVCT_EL0 (virtual counter)
-            // GICv3 CPU interface
-            0x4230 => self.icc_pmr_el1,  // ICC_PMR_EL1
-            0x4234 => self.icc_ctlr_el1, // ICC_CTLR_EL1
-            0x4665 => self.icc_sre_el1,  // ICC_SRE_EL1
-            0x4660 => { // ICC_IAR1_EL1 — acknowledge interrupt
+            // ── MMU system registers ──
+            SYSREG_SCTLR_EL1   => self.sctlr_el1,
+            SYSREG_TCR_EL1     => self.tcr_el1,
+            SYSREG_TTBR0_EL1   => self.ttbr0_el1,
+            SYSREG_TTBR1_EL1   => self.ttbr1_el1,
+            SYSREG_MAIR_EL1    => self.mair_el1,
+
+            // ── Exception system registers ──
+            SYSREG_VBAR_EL1    => self.vbar_el1,
+            SYSREG_SPSR_EL1    => self.spsr_el1,
+            SYSREG_ELR_EL1     => self.elr_el1,
+            SYSREG_ESR_EL1     => self.esr_el1,
+            SYSREG_FAR_EL1     => self.far_el1,
+            SYSREG_CPACR_EL1   => self.cpacr_el1,
+
+            // ── Timer ──
+            SYSREG_CNTFRQ_EL0      => self.cntfrq_el0,
+            SYSREG_CNTPCT_EL0      => self.cycle_count,
+            SYSREG_CNTVCT_EL0      => self.cycle_count,
+            SYSREG_CNTP_TVAL_EL0   => self.cntp_tval_el0,
+            SYSREG_CNTP_CTL_EL0    => self.cntp_ctl_el0,
+            SYSREG_CNTP_CVAL_EL0   => self.cntp_cval_el0,
+
+            // ── EL3 / secure world ──
+            SYSREG_SCR_EL3    => self.scr_el3,
+            SYSREG_SPSR_EL3   => self.spsr_el3,
+            SYSREG_ELR_EL3    => self.elr_el3,
+
+            // ── EL2 / hypervisor ──
+            SYSREG_HCR_EL2    => self.hcr_el2,
+            SYSREG_SPSR_EL2   => self.spsr_el2,
+            SYSREG_ELR_EL2    => self.elr_el2,
+
+            // ── Read-only feature / identification registers ──
+            SYSREG_MIDR_EL1            => MIDR_CORTEX_A72_R0P3,
+            SYSREG_MPIDR_EL1           => MPIDR_SINGLE_CORE,
+            SYSREG_CURRENTEL           => (current_el as u64) << PSTATE_EL_SHIFT,
+            SYSREG_ID_AA64PFR0_EL1     => ID_AA64PFR0_EL1_VAL,
+            SYSREG_ID_AA64PFR1_EL1 | SYSREG_ID_AA64PFR2_EL1
+                | SYSREG_ID_AA64DFR1_EL1 | SYSREG_ID_AA64ISAR2_EL1
+                | SYSREG_ID_AA64MMFR1_EL1 | SYSREG_ID_AA64MMFR2_EL1 => 0,
+            SYSREG_ID_AA64DFR0_EL1     => ID_AA64DFR0_EL1_VAL,
+            SYSREG_ID_AA64ISAR0_EL1    => ID_AA64ISAR0_EL1_VAL,
+            SYSREG_ID_AA64ISAR1_EL1    => ID_AA64ISAR1_EL1_VAL,
+            SYSREG_ID_AA64MMFR0_EL1    => ID_AA64MMFR0_EL1_VAL,
+            SYSREG_CTR_EL0             => CTR_EL0_VAL,
+            SYSREG_DCZID_EL0           => DCZID_EL0_VAL,
+
+            // ── GICv3 CPU interface ──
+            SYSREG_ICC_PMR_EL1  => self.icc_pmr_el1,
+            SYSREG_ICC_CTLR_EL1 => self.icc_ctlr_el1,
+            SYSREG_ICC_SRE_EL1  => self.icc_sre_el1,
+
+            SYSREG_ICC_IAR1_EL1 => {
+                // Acknowledge interrupt — consume the pending IRQ
                 if self.irq_pending {
                     let id = self.last_irq_id as u64;
                     self.irq_pending = false;
                     id
                 } else {
-                    0x3FF // spurious
+                    GIC_SPURIOUS_INTERRUPT
                 }
             }
-            // Generic Timer control
-            0x5F10 => self.cntp_tval_el0,
-            0x5F11 => self.cntp_ctl_el0,
-            0x5F12 => self.cntp_cval_el0,
 
-            _ => 0,
+            _ => 0, // unknown register → reads as 0
         }
     }
 
-    /// Write a system register by its 15-bit `{o0, op1, CRn, CRm, op2}` ID.
+    /// Write a system register by its 15-bit ID.
     pub fn write_sys_reg(&mut self, sysreg_id: u16, val: u64) {
         match sysreg_id {
-            0x4208 => self.sp_el0 = val,
-            0x5E82 => self.tpidr_el0 = val,
-            0x4684 => self.tpidr_el1 = val,
-            0x5E83 => self.tpidrro_el0 = val,
-            0x4080 => self.sctlr_el1 = val,
-            0x4102 => self.tcr_el1 = val,
-            0x4100 => self.ttbr0_el1 = val,
-            0x4101 => self.ttbr1_el1 = val,
-            0x4510 => self.mair_el1 = val,
-            0x4600 => self.vbar_el1 = val,
-            0x4200 => self.spsr_el1 = val,
-            0x4201 => self.elr_el1 = val,
-            0x4290 => self.esr_el1 = val,
-            0x4300 => self.far_el1 = val,
-            0x4082 => self.cpacr_el1 = val,
-            0x5F00 => self.cntfrq_el0 = val,
+            SYSREG_SP_EL0      => self.sp_el0 = val,
+            SYSREG_TPIDR_EL0   => self.tpidr_el0 = val,
+            SYSREG_TPIDR_EL1   => self.tpidr_el1 = val,
+            SYSREG_TPIDRRO_EL0 => self.tpidrro_el0 = val,
+
+            SYSREG_SCTLR_EL1   => self.sctlr_el1 = val,
+            SYSREG_TCR_EL1     => self.tcr_el1 = val,
+            SYSREG_TTBR0_EL1   => self.ttbr0_el1 = val,
+            SYSREG_TTBR1_EL1   => self.ttbr1_el1 = val,
+            SYSREG_MAIR_EL1    => self.mair_el1 = val,
+            SYSREG_VBAR_EL1    => self.vbar_el1 = val,
+            SYSREG_SPSR_EL1    => self.spsr_el1 = val,
+            SYSREG_ELR_EL1     => self.elr_el1 = val,
+            SYSREG_ESR_EL1     => self.esr_el1 = val,
+            SYSREG_FAR_EL1     => self.far_el1 = val,
+            SYSREG_CPACR_EL1   => self.cpacr_el1 = val,
+            SYSREG_CNTFRQ_EL0  => self.cntfrq_el0 = val,
+
             // GICv3 CPU interface
-            0x4230 => { self.icc_pmr_el1 = val; }
-            0x4234 => { self.icc_ctlr_el1 = val; }
-            0x4665 => { self.icc_sre_el1 = val; }
-            0x4661 => { // ICC_EOIR1_EL1 — end of interrupt
+            SYSREG_ICC_PMR_EL1  => self.icc_pmr_el1 = val,
+            SYSREG_ICC_CTLR_EL1 => self.icc_ctlr_el1 = val,
+            SYSREG_ICC_SRE_EL1  => self.icc_sre_el1 = val,
+            SYSREG_ICC_EOIR1_EL1 => {
                 self.irq_pending = false;
-                self.last_irq_id = 1023;
+                self.last_irq_id = GIC_SPURIOUS_INTERRUPT as u32;
             }
+
             // Generic Timer
-            0x5F10 => { // CNTP_TVAL_EL0
+            SYSREG_CNTP_TVAL_EL0 => {
                 self.cntp_tval_el0 = val;
                 self.cntp_cval_el0 = self.cycle_count.wrapping_add(val as u32 as u64);
             }
-            0x5F11 => { self.cntp_ctl_el0 = val; }
-            0x5F12 => { self.cntp_cval_el0 = val; }
-            // DAIF (interrupt mask): bit 9=D, 8=A, 7=I, 6=F
-            0x5A11 => { // We don't directly map DAIF to PSTATE — handle via MSR DAIF
-            }
-            0x7088 => self.scr_el3 = val,
-            0x7200 => self.spsr_el3 = val,
-            0x7201 => self.elr_el3 = val,
-            0x6088 => self.hcr_el2 = val,
-            0x6200 => self.spsr_el2 = val,
-            0x6201 => self.elr_el2 = val,
+            SYSREG_CNTP_CTL_EL0 => self.cntp_ctl_el0 = val,
+            SYSREG_CNTP_CVAL_EL0 => self.cntp_cval_el0 = val,
 
-            // Read-only / feature / status registers are no-op
-            _ => {}
+            // DAIF / EL3 / EL2 — mostly no-ops for boot stub
+            SYSREG_DAIF => {}
+            SYSREG_SCR_EL3  => self.scr_el3 = val,
+            SYSREG_SPSR_EL3 => self.spsr_el3 = val,
+            SYSREG_ELR_EL3  => self.elr_el3 = val,
+            SYSREG_HCR_EL2  => self.hcr_el2 = val,
+            SYSREG_SPSR_EL2 => self.spsr_el2 = val,
+            SYSREG_ELR_EL2  => self.elr_el2 = val,
+
+            _ => {} // unknown register — silently ignored
         }
     }
 }

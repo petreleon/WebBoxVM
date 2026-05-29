@@ -4,7 +4,7 @@ use crate::bus::SystemBus;
 fn fake_pe32_plus(reloc_rva: u32, reloc_size: u32, preferred_base: u64) -> Vec<u8> {
     let mut data = vec![0u8; 0x200];
     // ARM64 kernel magic
-    data[56..60].copy_from_slice(&0x644d5241u32.to_le_bytes());
+    data[56..60].copy_from_slice(&ARM64_KERNEL_MAGIC.to_le_bytes());
     // e_lfanew at 0x3C
     data[0x3C..0x40].copy_from_slice(&0x40u32.to_le_bytes());
     // PE signature
@@ -13,7 +13,7 @@ fn fake_pe32_plus(reloc_rva: u32, reloc_size: u32, preferred_base: u64) -> Vec<u
     let opt_start = 0x40 + 4 + 20;
 
     // Optional header magic
-    data[opt_start..opt_start + 2].copy_from_slice(&MAGIC_PE32PLUS.to_le_bytes());
+    data[opt_start..opt_start + 2].copy_from_slice(&PE32PLUS_MAGIC.to_le_bytes());
     // AddressOfEntryPoint skip
     // ImageBase at opt_start+24
     data[opt_start + 24..opt_start + 32].copy_from_slice(&preferred_base.to_le_bytes());
