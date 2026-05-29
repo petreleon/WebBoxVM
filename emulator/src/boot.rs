@@ -137,25 +137,15 @@ impl BootContext {
             // kernel entry address in X0.
             if !self.efi_stub_done && cpu.regs.pc == RETURN_TRAMPOLINE_ADDR {
                 self.efi_stub_done = true;
-                let retval = cpu.regs.x(0);
-                // High bit set = EFI error code, not a valid address
-                if (retval >> 63) != 0 {
-                    // EFI stub failed.  Jump to .text section and NOP out
-                    // the RET instruction so execution falls through into
-                    // the real kernel code instead of returning to trampoline.
-                    let entry = KERNEL_LOAD_ADDR + 0x10000; // .text RVA
-                    // NOP-out the RET at .text+0x50 (0x40090050)
-                    self.machine.bus.write(entry + 0x50, 4, 0xD503201F);
-                    // Also NOP-out RET at +0x9c and +0xc4
-                    self.machine.bus.write(entry + 0x9c, 4, 0xD503201F);
-                    self.machine.bus.write(entry + 0xc4, 4, 0xD503201F);
-                    cpu.regs.pc = entry;
-                    cpu.regs.set_x(0, self.dtb_addr);
-                    eprintln!("EFI error 0x{:x}, NOP'd RETs at .text, entering 0x{:x}", retval, entry);
-                } else {
-                    cpu.regs.pc = retval;
-                    cpu.regs.set_x(0, self.dtb_addr);
-                }
+                // The PE entry function RETs with whatever efi_main returned.
+                // For this kernel (no .reloc), efi_main always fails with
+                // EFI_LOAD_ERROR.  Just enter the kernel at KERNEL_LOAD with
+                // MMU off and identity map.
+                let _retval = cpu.regs.x(0);
+                eprintln!("EFI phase complete (X0=0x{:x}), entering kernel at 0x{:x}", _retval, KERNEL_LOAD_ADDR);
+                cpu.sys.sctlr_el1 = 0; // disable MMU so physical addresses work
+                cpu.regs.pc = KERNEL_LOAD_ADDR;
+                cpu.regs.set_x(0, self.dtb_addr);
                 cpu.regs.set_x(1, 0);
                 cpu.regs.set_x(2, 0);
                 cpu.regs.set_x(3, 0);
@@ -255,10 +245,11 @@ fn setup_boot_page_tables(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
         bus.write(BOOT_TTBR0_L1 + i as u64 * 8, 8, l1_block(i as u64 * L1_BLOCK_SIZE));
     }
 
-    // ── TTBR1: map kernel VA → physical PA at PAGE_ALLOCATOR_BASE ──
+    // ── TTBR1: map kernel VA → physical PA ──
     // L0 entry at index 256 (= kernel-space starts at VA bit 47)
     bus.write(BOOT_TTBR1_L0 + 256 * 8, 8, (BOOT_TTBR1_L1 & DESC_ADDR_MASK) | DESC_VALID);
-    // L1 entry at index 2 (VA offset 2 × 512 GiB = 1 TiB) — points to L2
+    // L1 entries at index 0 and 2 — cover different kernel VA layouts
+    bus.write(BOOT_TTBR1_L1 + 0 * 8, 8, (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID);
     bus.write(BOOT_TTBR1_L1 + 2 * 8, 8, (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID);
     // L2 → L3 for each 2 MiB region
     for tbl in 0..BOOT_TTBR1_L3_COUNT {
