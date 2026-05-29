@@ -99,44 +99,45 @@ impl BootContext {
 
     /// Run the EFI stub phase — up to `max_steps` instructions.
     ///
-    /// The EFI stub (at the PE/COFF entry point, ~0x41E27EE0) calls EFI
-    /// services through our trampolines.  When it finishes it jumps directly
-    /// to the kernel's primary_entry (KERNEL_LOAD + text_offset = 0x40100000)
-    /// via `br x20`.  We detect this handover by watching for PC to land at
-    /// the kernel entry.
+    /// The PE entry at 0x41E27EE0 runs the EFI stub.  When it finishes,
+    /// it RETs through X30 to our trampoline (0x43EFE000) with the kernel
+    /// entry address in X0.  We detect this handoff and jump there.
     pub fn run_efi_phase(&mut self, max_steps: usize) -> usize {
         let mut steps = 0;
         let cpu = &mut self.machine.cpus[0];
 
-        // The EFI stub PE code lives at ~0x41E27EE0.
-        // We detect handoff when PC jumps into the kernel entry range:
-        // [KERNEL_LOAD + text_offset - 4KiB .. KERNEL_LOAD + text_offset + 4KiB]
-        let kernel_text = KERNEL_LOAD_ADDR;
-        let text_offset = 0x0008_0000u64;
-        let kernel_entry = kernel_text + text_offset;
-        let entry_window = 0x1000u64; // 4 KiB window around the entry
-
         for _ in 0..max_steps {
-            // Detect handoff: PC enters the kernel's primary_entry window
-            if !self.efi_stub_done
-                && cpu.regs.pc >= kernel_entry - entry_window
-                && cpu.regs.pc <= kernel_entry + entry_window
-            {
+            // Detect handoff: PE entry returned to our trampoline with
+            // kernel entry address in X0.
+            if !self.efi_stub_done && cpu.regs.pc == RETURN_TRAMPOLINE_ADDR {
                 self.efi_stub_done = true;
+                let retval = cpu.regs.x(0);
+                // High bit set = EFI error code, not a valid address
+                if (retval >> 63) != 0 {
+                    // EFI stub failed — continue with fallback kernel entry
+                    let fallback = KERNEL_LOAD_ADDR;
+                    cpu.regs.pc = fallback;
+                    cpu.regs.set_x(0, self.dtb_addr);
+                    eprintln!("EFI stub returned error 0x{:x}, entering kernel at fallback 0x{:x}", retval, fallback);
+                } else {
+                    cpu.regs.pc = retval;
+                    cpu.regs.set_x(0, self.dtb_addr);
+                }
+                cpu.regs.set_x(1, 0);
+                cpu.regs.set_x(2, 0);
+                cpu.regs.set_x(3, 0);
                 break;
             }
 
-            // Safety valve: if EFI stub code jumps to a totally unexpected
-            // address in kernel space, we may be stuck.  Detect if PC is
-            // in the kernel text range but NOT near the entry after many steps.
-            if steps > 5_000
-                && cpu.regs.pc >= kernel_text
-                && cpu.regs.pc < kernel_text + 2_000_000
-                && (cpu.regs.pc < kernel_entry - entry_window
-                    || cpu.regs.pc > kernel_entry + entry_window + 0x10_0000)
+            // Also detect if stub jumps to kernel text — but only after many steps
+            if !self.efi_stub_done && steps > 50_000
+                && cpu.regs.pc >= KERNEL_LOAD_ADDR
+                && cpu.regs.pc < KERNEL_LOAD_ADDR + 2_000_000
             {
-                // We wandered into kernel code far from the entry — assume
-                // something went wrong, but keep going.
+                // Landed in kernel code at an unexpected address.
+                // This might mean our detection missed the trampoline.
+                self.efi_stub_done = true;
+                break;
             }
 
             // ── EFI service traps (PC-based dispatch) ──
