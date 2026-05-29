@@ -1,19 +1,30 @@
-//! shim: disarm64::decoder → our Instr conversion (thin wrapper).
+//! shim: disarm64 vs legacy cross-validator.
+//!
+//! Decode with both disarm64 and our legacy decoder, cross-validate the
+//! opcode, and return the legacy Instr (which has proven operand extraction).
+//! This gives us disarm64 correctness validation without operand extraction bugs.
 
 use disarm64::decoder;
 use super::super::opcodes::{Instr, Opcode};
 
+/// Decode with legacy, validate against disarm64 (debug builds only).
 pub fn decode(raw: u32) -> Option<Instr> {
+    let legacy = super::decode_legacy(raw)?;
+
+    // Cross-validate against disarm64 in debug builds
+    #[cfg(debug_assertions)]
     if let Some(d64) = decoder::decode(raw) {
-        if let Some(our_op) = quick_map(d64.mnemonic) {
-            return extract_instr(raw, our_op);
+        if let Some(expected) = mnemonic_to_opcode(d64.mnemonic) {
+            if legacy.op != expected {
+                eprintln!("DISARM64 MISMATCH: raw=0x{raw:08x} legacy={:?} disarm64={:?}", legacy.op, expected);
+            }
         }
     }
-    // Fall back to our hand-rolled decoder
-    super::decode_legacy(raw)
+
+    Some(legacy)
 }
 
-fn quick_map(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
+fn mnemonic_to_opcode(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic::*;
     Some(match m {
         r#add => Opcode::Add,
@@ -77,59 +88,4 @@ fn quick_map(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         r#ccmp => Opcode::Ccmp,
         _ => return None,
     })
-}
-
-fn extract_instr(raw: u32, op: Opcode) -> Option<Instr> {
-    let sf = (raw >> 31) & 1 != 0;
-    let rd = (raw & 0x1F) as u8;
-    let rn = ((raw >> 5) & 0x1F) as u8;
-    let rm = ((raw >> 16) & 0x1F) as u8;
-    let imm12 = ((raw >> 10) & 0xFFF) as u64;
-
-    let imm = match op {
-        Opcode::B | Opcode::Bl => { let v = (raw & 0x03FF_FFFF) as i32; (v << 6 >> 4) as u64 }
-        Opcode::BCond | Opcode::LdrLit | Opcode::Cbz | Opcode::Cbnz => {
-            let v = ((raw >> 5) & 0x7FFFF) as i32; (v << 13 >> 11) as u64
-        }
-        Opcode::Tbz | Opcode::Tbnz => {
-            let v = ((raw >> 5) & 0x3FFF) as i16;
-            (if v & 0x2000 != 0 { v - 0x4000 } else { v as i16 }) as i64 as u64
-        }
-        Opcode::Adr | Opcode::Adrp => {
-            let immlo = ((raw >> 29) & 3) as i64;
-            let immhi = ((raw >> 5) & 0x7FFFF) as i64;
-            let mut v = (immhi << 2) | immlo;
-            if v & (1 << 20) != 0 { v -= 1 << 21; }
-            if op == Opcode::Adrp { v <<= 12; }
-            v as u64
-        }
-        Opcode::Movz | Opcode::Movn | Opcode::Movk => {
-            let hw = ((raw >> 21) & 3) as u64;
-            let i16 = ((raw >> 5) & 0xFFFF) as u64;
-            i16 << (hw * 16)
-        }
-        Opcode::Mrs | Opcode::Msr => ((raw >> 5) & 0x7FFF) as u64,
-        Opcode::Svc | Opcode::Brk => ((raw >> 5) & 0xFFFF) as u64,
-        Opcode::Stp | Opcode::Ldp => {
-            let v = ((raw >> 15) & 0x7F) as i64;
-            let s = if v & 0x40 != 0 { v - 0x80 } else { v };
-            (s * (1i64 << if sf { 3 } else { 2 })) as u64
-        }
-        _ => imm12,
-    };
-
-    let cond = match op {
-        Opcode::BCond => (raw & 0xF) as u8,
-        Opcode::Csel | Opcode::Csinc | Opcode::Csinv | Opcode::Csneg | Opcode::Ccmp => ((raw >> 12) & 0xF) as u8,
-        Opcode::Tbz | Opcode::Tbnz => {
-            let b5 = ((raw >> 31) & 1) as u8;
-            let b40 = ((raw >> 19) & 0x1F) as u8;
-            b5 * 32 + b40
-        }
-        Opcode::Movk => ((raw >> 21) & 3) as u8,
-        _ => 0,
-    };
-
-    let size = ((raw >> 30) & 3) as u8;
-    Some(Instr { op, rd, rn, rm, imm, sf, cond, size })
 }

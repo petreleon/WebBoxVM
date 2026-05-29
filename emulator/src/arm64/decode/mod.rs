@@ -13,7 +13,7 @@ use super::opcodes::{Instr, Opcode};
 
 /// Decode a raw 32-bit word into an instruction.
 pub fn decode(raw: u32) -> Option<Instr> {
-    decode_legacy(raw)
+    disarm64_shim::decode(raw)
 }
 
 /// Legacy hand-rolled decoder (fallback within the shim).
