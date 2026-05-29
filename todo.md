@@ -86,19 +86,29 @@
 
 **Result:** 80 tests pass, 0 compiler warnings.
 
-## Sprint 6 — Busybox Shell
+## Sprint 6 — Busybox Shell (IN PROGRESS)
 - [x] Initrd: load cpio ramdisk into memory
 - [x] Exclusive load/store (LDXR/LDXP/STXR/STXP/LDAR/STLR) decode & execute
 - [x] DTB: GICv3 interrupt controller node, ARMv8 timer node, UART interrupts, `interrupt-parent`
 - [x] Bootargs: `earlycon=pl011,0x09000000 console=ttyAMA0 rdinit=/init`
+- [x] PL011 UART: full register emulation (DR, FR, CR, IBRD, FBRD, LCR_H, IFLS, IMSC, RIS, MIS, ICR, DMACR) with 7 unit tests
+- [x] EFI services: AllocatePages (real ARM64 bump-allocator trampoline), CopyMem, SetMem, HandleProtocol, GetMemoryMap
+- [x] PE header parsing: dynamically read PE entry_RVA from optional header
+- [x] Custom kernel built via Docker (6.6.70, `CONFIG_RELOCATABLE=y`)
+- [x] Boot chain complete: PE entry → EFI stub (3.5M steps) → handoff → primary_entry → kernel VA space
 - [ ] Kernel boots to Busybox `ash` shell
-  - Kernel passes EFI stub (~8K steps), transitions to main kernel at `0xffff800080080000`, runs 1M instructions
-  - Hits `BRK #0x800` at `0xffff80008014bc90` — `__ll_sc__cmpxchg` with null pointer (`X0 = 0`, loaded value = `0x40044ffff`, expected = `0xffff8000820c2b58`)
-  - Data corruption upstream prevents earlycon init → UART empty → no shell
-- [ ] Debug `BRK #0x800` — `__ll_sc__cmpxchg` null pointer (caller passes `X23 = 0` as argument)
+  - Kernel enters VA space at `0xffff8000800a3240`, running in tight 3-address init loop
+  - Likely waiting for timer IRQ (ARM Generic Timer) before scheduler starts → `start_kernel()` → earlycon → UART
+- [ ] **Timer interrupts** (ARM Generic Timer delivery via GICv3)
+- [ ] **Standard boot for CONFIG_RELOCATABLE=n kernels** — real bootloaders (U-Boot/GRUB) don't relocate:
+  - [ ] Add kernel `PAGE_OFFSET` (e.g. `0xffff800000000000`) to TTBR1 identity mapping
+  - [ ] Map kernel VA range → physical load address BEFORE EFI stub runs
+  - [ ] When EFI stub checks `_text == *image_addr`, both match → `EFI_SUCCESS`
+  - [ ] Kernel boots at its linked VA with MMU already active (no relocation needed)
+  - [ ] Works for all pre-built Debian/Ubuntu kernels without Docker rebuild
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result:** 97 tests pass, 0 compiler warnings. Exclusive load/store fully decoded and executed. DTB extended with GICv3, timer, UART interrupts, interrupt-parent. Kernel boots past EFI stub, decompressor, and MMU enable to main kernel code at `0xffff800080080000`, running 1M instructions. Blocked by `BRK #0x800` crash in `__ll_sc__cmpxchg` — null pointer passed to atomic cmpxchg indicates upstream data corruption in kernel page tables or data structures.
+**Result:** 98 tests pass, 0 compiler warnings. Full PL011 emulation with 7 kernel-code-path tests. EFI stub runs to completion. Custom kernel reaches VA space — blocked by missing timer IRQ delivery.
 
 ---
 
