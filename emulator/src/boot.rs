@@ -93,8 +93,11 @@ impl BootContext {
         // Enable the MMU with identity mapping so the EFI stub runs in 1:1 PA=VA
         cpu0.sys.sctlr_el1 = SCTLR_MMU_ENABLE;
 
-        // PE/COFF entry point for the EFI stub
-        let entry = KERNEL_LOAD_ADDR + KERNEL_PE_ENTRY_OFFSET;
+        // Read PE entry_RVA from the loaded kernel header instead of using
+        // a hardcoded constant (which only matches one specific kernel).
+        // PE optional header offset: PE_sig(0x40) + COFF(20) + entry_rva(16) = 0x68
+        let pe_entry_rva = read_pe_entry_rva(&mut machine.bus);
+        let entry = KERNEL_LOAD_ADDR + pe_entry_rva;
         cpu0.regs.pc = entry;
 
         // Build a minimal initrd (busybox + init script)
@@ -149,17 +152,6 @@ impl BootContext {
                 cpu.regs.set_x(1, 0);
                 cpu.regs.set_x(2, 0);
                 cpu.regs.set_x(3, 0);
-                break;
-            }
-
-            // Also detect if stub jumps to kernel text — but only after many steps
-            if !self.efi_stub_done && steps > 50_000
-                && cpu.regs.pc >= KERNEL_LOAD_ADDR
-                && cpu.regs.pc < KERNEL_LOAD_ADDR + 2_000_000
-            {
-                // Landed in kernel code at an unexpected address.
-                // This might mean our detection missed the trampoline.
-                self.efi_stub_done = true;
                 break;
             }
 
@@ -219,6 +211,14 @@ fn read_kernel_image_size(data: &[u8]) -> u64 {
     } else {
         data.len() as u64
     }
+}
+
+/// Read the PE/COFF entry point RVA from the loaded kernel image in memory.
+fn read_pe_entry_rva(bus: &crate::bus::SystemBus) -> u64 {
+    // PE signature at offset 0x40 from kernel start
+    // COFF header: 20 bytes → optional header starts at 0x40+4+20 = 0x58
+    // Entry point RVA at optional_header + 16 = 0x58 + 16 = 0x68
+    bus.mem.read(KERNEL_LOAD_ADDR + 0x68, 4).unwrap_or(0) as u64
 }
 
 fn build_minimal_initrd() -> Vec<u8> {
