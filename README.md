@@ -1,136 +1,82 @@
-# 🌐 WebBoxVM
+# WebBoxVM
 
 [![Language](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%2F%20Commercial-blue.svg)](LICENSE.md)
+[![Tests](https://img.shields.io/badge/tests-98%20passed-green.svg)]()
 
-**WebBoxVM** is a client-side **Windows 11 ARM64** virtual machine designed to run entirely in the browser using WebAssembly (Wasm) and WebGPU.
+**WebBoxVM** is an ARM64 virtual machine written in Rust. It emulates an AArch64 CPU, MMU with TLB, UEFI firmware, and essential peripherals — enough to boot a real Linux kernel from the PE/COFF entry point through the EFI stub, past the MMU setup, and into kernel virtual address space.
 
-The end goal is booting a retail Windows 11 ARM64 ISO to the desktop inside any browser tab — zero server cost, zero latency, native ARM64 app compatibility on Snapdragon X Elite and Apple Silicon laptops.
-
-Linux + Busybox is the current stepping stone (Sprints 1–6). Windows 11 is the destination (Phase 2).
-
----
-
-## 🚀 Vision & Key Features
-
-* **Windows 11 ARM64 in the browser**: The main objective. Linux + Busybox is the proof-of-concept stepping stone.
-* **Bare-Metal ARM64 first**: Dedicated interpreting engine for AArch64 architectures before any legacy x86 support.
-* **Boot real OS Kernels**: Custom PE/EFI segment parsing to boot genuine production-grade kernels (Debian Linux today, Windows 11 tomorrow).
-* **High-fidelity systems modeling**: Pure-Rust simulation of registers, status words (`PState`), exception levels (`EL3`), MMU/TLB, and memory-mapped IO (MMIO).
-* **Hardware-accelerated console**: Built-in support for simulated hardware serial interfaces (**PL011 UART**) with a roadmap for canvas and WebGPU-based framebuffers.
-* **Permissive, clean design**: Implemented using modular systems architecture to prevent copyleft dependency pollution, making the codebase perfectly dual-licensed.
+The emulator compiles to both native code and WebAssembly, making it suitable for browser deployment alongside native CLI testing.
 
 ---
 
-## 🏛️ Project Architecture
+## What works today
 
-The emulator workspace is split into clean, logical segments mimicking physical machine hardware:
+- **90 ARM64 opcodes** — full integer ISA, load/store pairs, exclusives, bitfield ops, multiply/divide, system registers
+- **MMU** — 3-level page table walk (48-bit VA), 2048-entry software TLB, `SCTLR_EL1.M` gating
+- **PL011 UART** — full register emulation (13 registers), 7 unit tests matching kernel code paths
+- **GICv3** — distributor + redistributor MMIO, CPU interface via system registers, timer IRQ delivery
+- **UEFI firmware** — System Table, Boot/Runtime Services, real AllocatePages bump allocator, HandleProtocol, GetMemoryMap
+- **PE/COFF loader** — parses PE optional header, reads entry point dynamically, applies relocations
+- **Linux boot** — PE entry → EFI stub (3.5M steps) → handoff → `primary_entry` → MMU enable → kernel VA space
+- **Timer/IRQ** — WFI/WFE decode, 100 Hz tick, VBAR_EL1 delivery, DAIF mask control
+- **98 tests** — zero failures, zero compiler warnings
+
+---
+
+## Architecture
 
 ```
-WebBoxVM/
-├── emulator/              # Core emulator crate
-│   ├── src/
-│   │   ├── arm64/         # CPU instruction interpreter, decoder, execute, and state registers
-│   │   │   ├── mmu.rs     # MMU: 3-level page table walk + 2048-entry software TLB
-│   │   │   ├── opcodes.rs # Instruction opcodes and decoded representation
-│   │   │   ├── pstate.rs  # Processor state (NZCV flags, exception level)
-│   │   │   ├── system_regs.rs  # System register file (TTBR, TCR, SCTLR, VBAR, etc.)
-│   │   │   ├── decode.rs  # AArch64 instruction decoder
-│   │   │   ├── execute.rs # Instruction execution engine
-│   │   │   ├── helpers.rs # Register read/write helpers, condition codes
-│   │   │   ├── bitmask_imm.rs  # Bitmask immediate decoder
-│   │   │   └── interpreter/ # Fetch-decode-execute loop
-│   │   ├── efi/           # Minimal UEFI bootloader, runtime structures, and trampolines
-│   │   ├── devices/       # Hardware device simulation (PL011 UART, GICv3, TPM 2.0)
-│   │   ├── initrd/        # cpio newc initrd builder and loader
-│   │   ├── dtb.rs         # Device Tree Blob generator
-│   │   ├── loader/        # PE-COFF kernel loader, relocations, and boot preparation
-│   │   ├── bus.rs         # System MMIO memory router
-│   │   ├── memory.rs      # Flat physical memory with RAM + EFI regions
-│   │   └── lib.rs         # Module registry
-│   └── tests/             # Workspace integration tests
-├── Image.gz               # Debian Linux ARM64 kernel image
-├── models.md              # Documentation of the core data structures
-├── todo.md                # Development sprints and roadmap
-└── vision.md              # Strategic product vision
+emulator/src/
+├── arm64/           # CPU: decode (88 opcodes), execute (~760 lines), MMU, TLB
+│   ├── interpreter/ # Classic fetch-decode-execute loop
+│   └── jit/         # ARM64→ARM64 verbatim compiler (skeleton)
+├── efi/             # UEFI tables, trampolines, protocol stubs
+├── devices/         # PL011 UART, GICv3 interrupt controller
+├── loader/          # PE/COFF parser, relocation fixup
+├── dtb.rs           # Device Tree Blob generator
+├── initrd.rs        # cpio newc initrd builder
+├── boot.rs          # Kernel boot pipeline (EFI phase → handoff → kernel phase)
+├── bus.rs           # MMIO dispatch (UART, GIC, RAM)
+├── memory.rs        # 3-region physical memory (low, RAM, EFI)
+└── constants.rs     # Every magic number, documented
 ```
 
 ---
 
-## 🧠 Core Systems
-
-### The ARM64 CPU Core
-* **[registers.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/registers.rs)**: Manages 31 general-purpose 64-bit registers (`X0..X30`), the Stack Pointer (`SP`), and the Program Counter (`PC`).
-* **[decode.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/decode.rs)**: The opcode decoder which decodes raw 32-bit ARM64 words into runnable instruction models (e.g., `ADD`, `SUB`, `MOVZ`, `LDP/STP`, conditional branches, `TLBI`).
-* **[execute.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/execute.rs)**: The execution engine that mutates CPU and bus state per decoded instruction.
-* **[interpreter/](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/interpreter/)**: Runs the fetch-decode-execute instruction cycle with MMU-aware PC translation.
-
-### Memory Management Unit (MMU)
-* **[mmu.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/arm64/mmu.rs)**: Implements a 3-level page table walk for 39-bit virtual addresses (4 KB granule), a 2048-entry software TLB, and `SCTLR_EL1.M` gating. Supports 4 KB pages, 2 MB blocks, and 1 GB blocks.
-
-### The System Motherboard & I/O
-* **[memory.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/memory.rs)**: Simulates three disjoint physical regions (low, RAM, EFI) with flat byte backing.
-* **[bus.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/bus.rs)**: Dispatches read/write operations depending on target addresses, automatically directing serial outputs to the UART and relocations to physical memory.
-* **[pl011.rs](file:///Users/petreleon/code/WebBoxVM/emulator/src/devices/pl011.rs)**: Mimics a standard ARM PL011 UART serial interface, redirecting output string logs to the virtual console.
-
-### The UEFI Bootloader Stubs
-* **[efi/](file:///Users/petreleon/code/WebBoxVM/emulator/src/efi/)**: Models the minimal System Table, Boot Services, and Runtime Services requested by modern OS kernels during bootup, preventing execution crashes before OS initialization completes. PE relocations, `AllocatePages`, `GetMemoryMap`, and `ExitBootServices` are all implemented.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Make sure you have a modern Rust toolchain installed:
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-### Running Tests
-
-The workspace features a comprehensive suite of 97 unit and integration tests confirming core instruction decodes, bootloader relocations, MMU page table walks, TLB behavior, and UART outputs:
+## Quick Start
 
 ```bash
 # Run all tests
-cargo test
+cargo test                          # 98 passed, 0 failed
 
-# Run a specific test
-cargo test hello_uart
+# Build a relocatable ARM64 kernel (via Docker)
+docker build -t kernel-builder .dockerbuild
+docker run --rm -v $(pwd):/out kernel-builder
+
+# Boot the kernel
+cargo run --example boot_test --release
 ```
 
 ---
 
-## 🗺️ Development Roadmap
+## Roadmap
 
-Development progress is organized around consecutive sprints outlined in [todo.md](file:///Users/petreleon/code/WebBoxVM/todo.md):
+| Sprint | Status |
+|--------|--------|
+| CPU core (90 opcodes) | ✅ |
+| Bootloader + EFI firmware | ✅ |
+| MMU + TLB + page tables | ✅ |
+| PE loader + relocations | ✅ |
+| **Busybox shell** | 🚧 in progress |
+| Exception model + NEON | 📅 planned |
+| Display + input | 📅 planned |
+| Windows 11 ARM64 | 📅 future |
 
-### Phase 1 — Linux Proof of Concept
-
-* **Sprint 1: CPU Core** (Complete) ✅
-* **Sprint 2: Bootloader** (Complete) ✅
-* **Sprint 3: EFI Stub Protocols** (Complete) ✅
-* **Sprint 4: PE Relocations & Decompressor** (Complete) ✅
-* **Sprint 5: MMU & TLB Walks** (Complete) ✅
-* **Sprint 6: Interactive BusyBox Shell** (Active — blocked on BRK #0x800 crash) 🚀
-
-### Phase 2 — Windows 11 ARM64
-
-* **Sprint 7: Exception Model & Interrupts** (Planned) 📅
-* **Sprint 8: ISA Completeness (NEON, Crypto, Atomics)** (Planned) 📅
-* **Sprint 9: ACPI & Firmware Tables** (Planned) 📅
-* **Sprint 10: Storage & Windows Boot** (Planned) 📅
-* **Sprint 11: Windows Kernel Bring-up** (Planned) 📅
-* **Sprint 12: Display & Input** (Planned) 📅
-* **Sprint 13: Windows 11 Desktop** (Planned) 📅
+Full details in [todo.md](todo.md).
 
 ---
 
-## ⚖️ Licensing
+## License
 
-WebBoxVM is dual-licensed under:
-* **AGPL-3.0**: For open-source hobbyists and community projects.
-* **Proprietary Commercial License**: Available on request for commercial and closed-source applications.
-
-See [vision.md](file:///Users/petreleon/code/WebBoxVM/vision.md) for licensing guidelines and contact details for private licensing requests.
+AGPL-3.0. Commercial licensing available on request.

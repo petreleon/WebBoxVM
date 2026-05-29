@@ -1,48 +1,32 @@
 # WebBoxVM — Vision
 
-A client-side **Windows 11 ARM64** virtual machine running in the browser via WebAssembly and WebGPU.
+A high-fidelity ARM64 virtual machine running in the browser via WebAssembly. The project aims to boot real operating systems — starting with Linux, eventually Windows — entirely client-side.
 
 ## Why
 
-Cloud VMs are expensive and slow to boot. Existing browser emulators (v86) lack ARM64 and hardware graphics. WebBoxVM runs entirely client-side with zero hosting cost — and targets the fastest-growing laptop architecture (Snapdragon X Elite, Apple Silicon via virtualization).
+Running an OS in the browser means instant access from any device, zero server cost, and complete privacy (everything stays local). ARM64 is the obvious target: it's the architecture of every modern phone, Apple Silicon Macs, and the growing Snapdragon laptop ecosystem.
 
-Running **Windows 11 ARM64** in the browser means:
-- Native ARM64 app compatibility (no x86 emulation overhead)
-- Zero-latency client-side compute
-- A full desktop OS accessible from any browser tab
+## Current State
 
-## Core Principles
+The emulator boots an ARM64 Linux kernel (6.6.70, custom-built) through the full boot chain:
+PE/COFF entry → UEFI firmware → EFI stub → kernel handoff → MMU enable → kernel virtual address space.
 
-1. **Windows 11 ARM64 is the main objective.** Linux is the stepping stone, not the destination.
-2. **No graphics until text works.** UART console before WebGPU framebuffer.
-3. **No JIT until interpreter works.** Measure first, optimize second.
-4. **One test per instruction.** No untrusted code paths.
+The kernel reaches its virtual address space, configures exception vectors, and receives timer interrupts. The next milestone is reaching `start_kernel()` for UART console output and an interactive shell.
 
-## Target
+## Principles
 
-**Primary:** Boot a retail Windows 11 ARM64 ISO to the desktop in the browser.
+1. **Linux first, then Windows.** Prove the emulator on a smaller, well-understood kernel before tackling a complex OS.
+2. **Text before graphics.** UART console before WebGPU framebuffer.
+3. **Interpreter before JIT.** Correctness first, performance second.
+4. **Test everything.** One test per instruction, one test per device register.
+5. **Clean architecture.** Modular Rust with no global state, clear ownership, and self-documenting constants.
 
-**Milestone 0 (COMPLETE):** ARM64 CPU interpreter — 90 opcodes decoded, MMU with 3-level page table walk + 2048-entry TLB, PL011 UART with 7 kernel-path tests, GICv3 interrupt controller, EFI firmware with real AllocatePages/CopyMem/SetMem trampolines.
+## Targets
 
-**Milestone 1 (IN PROGRESS):** Boot an ARM64 Linux kernel to an interactive shell.
-- ✅ Boot chain complete: PE entry → EFI stub (3.5M steps) → handoff → primary_entry → MMU enable → kernel VA space
-- ✅ VBAR_EL1 configured by kernel, timer IRQ fires, handler runs, ERET returns
-- ⬜ Kernel stuck in pre-`start_kernel` init spin loop — investigating hardware condition
-- ⬜ UART output via `earlycon=pl011,0x09000000 console=ttyAMA0`
-- ⬜ Interactive shell: `ls`, `echo hello`, `cat /proc/cpuinfo`
-
-**Milestone 2:** Boot Windows 11 ARM64 PE loader and kernel initialization.
-
-**Milestone 3:** Reach Windows desktop with basic input (keyboard/mouse) and display.
-
-## Architecture
-
-- **CPU**: Pre-decoded threaded interpreter for AArch64. Must eventually cover all ARMv8-A + ARMv8.2-A instructions including NEON, Crypto, and ARMv8.1 Atomics.
-- **Memory**: 1 GiB contiguous `Vec<u8>` (physical only until MMU needed). Will need 4–8 GiB for Windows.
-- **Devices**: PL011 UART at `0x0900_0000`. GICv3 (required for Windows). ACPI tables (required for Windows). TPM 2.0 (required for Windows 11). VirtIO GPU later.
-- **Storage**: OPFS for disk images. Windows requires NVMe or SATA controller emulation.
-- **Display**: Xterm.js for serial, HTML5 Canvas/WebGPU for framebuffer.
+1. **Linux shell** — boot Debian ARM64 to `ash`, run commands, prove the emulator works
+2. **Windows PE loader** — parse Windows boot structures, load `ntoskrnl.exe`
+3. **Windows desktop** — boot Windows 11 ARM64 to a usable desktop in the browser
 
 ## License
 
-AGPL-3.0. Commercial licensing available on request.
+AGPL-3.0 for open source. Commercial licensing available for proprietary use.
