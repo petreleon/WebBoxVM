@@ -18,6 +18,8 @@ pub struct Machine {
     caches: Vec<DecodeCache>,   // one decode cache per core
     pub active_core: usize,
     pub total_steps: u64,
+    pub fetch_faults: u64,
+    pub exec_faults: u64,
 }
 
 impl Machine {
@@ -33,6 +35,8 @@ impl Machine {
             caches,
             active_core: 0,
             total_steps: 0,
+            fetch_faults: 0,
+            exec_faults: 0,
         }
     }
 
@@ -41,6 +45,7 @@ impl Machine {
     pub fn run(&mut self, max_total_steps: usize) -> usize {
         let start_steps = self.total_steps;
         let num_cores = self.cpus.len();
+        let mut report_interval = 1_000_000u64;
 
         while (self.total_steps - start_steps) < max_total_steps as u64 {
             let core = self.active_core;
@@ -51,11 +56,23 @@ impl Machine {
                 break;
             }
 
+            // Periodic diagnostic report
+            if (self.total_steps - start_steps) > 0 && (self.total_steps - start_steps) % report_interval == 0 {
+                let pc = cpu.regs.pc;
+                eprintln!("DIAG {:>9}M steps | fetch_faults={:>7} exec_faults={:>7} | PC=0x{:016x}",
+                    (self.total_steps - start_steps) / 1_000_000,
+                    self.fetch_faults, self.exec_faults, pc);
+                // Only report every 1M for the first 10M, then every 100M
+                if (self.total_steps - start_steps) >= 10_000_000 {
+                    report_interval = 100_000_000;
+                }
+            }
+
             let pc = cpu.regs.pc;
             let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, pc) {
                 Ok(pa) => pa,
                 Err(_) => {
-                    // Translation fault — skip this instruction and advance
+                    self.fetch_faults += 1;
                     cpu.regs.pc += INSTRUCTION_SIZE;
                     self.total_steps += 1;
                     self.active_core = (core + 1) % num_cores;
@@ -96,8 +113,7 @@ impl Machine {
                 }
 
                 if let Err(_) = execute(cpu, &mut self.bus, instr) {
-                    // Instruction fault (e.g., LDR/STR to unmapped memory).
-                    // Advance PC past the faulting instruction and continue.
+                    self.exec_faults += 1;
                     cpu.regs.pc += INSTRUCTION_SIZE;
                     self.total_steps += 1;
                     self.active_core = (core + 1) % num_cores;

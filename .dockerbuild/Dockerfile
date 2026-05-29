@@ -11,7 +11,7 @@ WORKDIR /build/linux-6.6.70
 RUN make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig \
     && scripts/config -e CONFIG_RELOCATABLE \
     && scripts/config -e CONFIG_EFI_STUB \
-    && scripts/config -d CONFIG_MODULES -d CONFIG_KALLSYMS \
+    && scripts/config -d CONFIG_MODULES \
     && scripts/config -d CONFIG_DEBUG_INFO -d CONFIG_DEBUG_INFO_BTF \
     && scripts/config -d CONFIG_SOUND -d CONFIG_DRM -d CONFIG_NET \
     && scripts/config -d CONFIG_USB_SUPPORT -d CONFIG_PCI \
