@@ -96,10 +96,17 @@
 - [x] PE header parsing: dynamically read PE entry_RVA from optional header
 - [x] Custom kernel built via Docker (6.6.70, `CONFIG_RELOCATABLE=y`)
 - [x] Boot chain complete: PE entry → EFI stub (3.5M steps) → handoff → primary_entry → kernel VA space
+- [x] WFI/WFE decode & execute (fast-forward cycle counter)
+- [x] DAIFSet/DAIFClr decode & execute (IRQ mask control)
+- [x] Timer IRQ generation (100 Hz tick, one-shot delivery)
+- [x] VBAR_EL1 confirmed set by kernel (`0xffff800080090800`), IRQ handler runs
+- [x] Kernel EL3 → EL1 transition confirmed during init
 - [ ] Kernel boots to Busybox `ash` shell
-  - Kernel enters VA space at `0xffff8000800a3240`, running in tight 3-address init loop
-  - Likely waiting for timer IRQ (ARM Generic Timer) before scheduler starts → `start_kernel()` → earlycon → UART
-- [ ] **Timer interrupts** (ARM Generic Timer delivery via GICv3)
+  - Kernel reaches VA space `0xffff800080xxxxxx`, running init functions
+  - VBAR_EL1 configured by kernel, timer IRQ fires, handler runs, ERET returns
+  - Kernel re-enters 3-address spin loop (`0xffff8000800a3240/48/44`) after IRQ handler returns
+  - Spin loop is not an IRQ wait — checking a non-timer hardware condition (SMP bringup, memory barrier, or device poll)
+- [ ] Diagnose and break the pre-`start_kernel` spin loop
 - [ ] **Standard boot for CONFIG_RELOCATABLE=n kernels** — real bootloaders (U-Boot/GRUB) don't relocate:
   - [ ] Add kernel `PAGE_OFFSET` (e.g. `0xffff800000000000`) to TTBR1 identity mapping
   - [ ] Map kernel VA range → physical load address BEFORE EFI stub runs
@@ -108,7 +115,7 @@
   - [ ] Works for all pre-built Debian/Ubuntu kernels without Docker rebuild
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result:** 98 tests pass, 0 compiler warnings. Full PL011 emulation with 7 kernel-code-path tests. EFI stub runs to completion. Custom kernel reaches VA space — blocked by missing timer IRQ delivery.
+**Result:** 98 tests pass, 0 compiler warnings. Full PL011 emulation with 7 tests. Boot chain complete: PE entry → EFI stub → handoff → primary_entry → MMU enable → VA space → VBAR configured → timer IRQ delivered → handler runs → ERET returns. Kernel running init functions but blocked in pre-start_kernel spin loop (non-IRQ condition).
 
 ---
 

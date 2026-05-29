@@ -22,8 +22,17 @@ Running **Windows 11 ARM64** in the browser means:
 
 **Primary:** Boot a retail Windows 11 ARM64 ISO to the desktop in the browser.
 
-**Milestone 1:** Boot a minimal ARM64 Linux kernel (vmlinuz + busybox) to an interactive shell. Kernel reaches main code past EFI stub and MMU enable, but crashes on `BRK #0x800` in `__ll_sc__cmpxchg` before earlycon init — data corruption under investigation.
+**Milestone 0 (COMPLETE):** ARM64 CPU interpreter — 90 opcodes decoded, MMU with 3-level page table walk + 2048-entry TLB, PL011 UART with 7 kernel-path tests, GICv3 interrupt controller, EFI firmware with real AllocatePages/CopyMem/SetMem trampolines.
+
+**Milestone 1 (IN PROGRESS):** Boot an ARM64 Linux kernel to an interactive shell.
+- ✅ Boot chain complete: PE entry → EFI stub (3.5M steps) → handoff → primary_entry → MMU enable → kernel VA space
+- ✅ VBAR_EL1 configured by kernel, timer IRQ fires, handler runs, ERET returns
+- ⬜ Kernel stuck in pre-`start_kernel` init spin loop — investigating hardware condition
+- ⬜ UART output via `earlycon=pl011,0x09000000 console=ttyAMA0`
+- ⬜ Interactive shell: `ls`, `echo hello`, `cat /proc/cpuinfo`
+
 **Milestone 2:** Boot Windows 11 ARM64 PE loader and kernel initialization.
+
 **Milestone 3:** Reach Windows desktop with basic input (keyboard/mouse) and display.
 
 ## Architecture
