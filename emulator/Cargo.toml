@@ -14,6 +14,7 @@ log = "0.4"
 wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
 js-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
 web-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
+disarm64 = "0.1.26"
 
 [features]
 default = []
