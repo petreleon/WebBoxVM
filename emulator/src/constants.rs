@@ -87,6 +87,23 @@ pub const UART_SIZE: u64 = 0x1000;
 /// End of the UART MMIO region (exclusive).
 pub const UART_END: u64 = UART_BASE + UART_SIZE;
 
+/// PL011 UART register offsets (from base address).
+/// See the PL011 Technical Reference Manual and Linux driver at
+/// drivers/tty/serial/amba-pl011.c for full register semantics.
+pub const UART_DR_OFFSET: u64 = 0x00;     // Data Register (R/W)
+pub const UART_RSR_OFFSET: u64 = 0x04;    // Receive Status / Error Clear
+pub const UART_FR_OFFSET: u64 = 0x18;     // Flag Register (R)
+pub const UART_IBRD_OFFSET: u64 = 0x24;   // Integer Baud Rate Divisor
+pub const UART_FBRD_OFFSET: u64 = 0x28;   // Fractional Baud Rate Divisor
+pub const UART_LCR_H_OFFSET: u64 = 0x2C;  // Line Control Register (high)
+pub const UART_CR_OFFSET: u64 = 0x30;     // Control Register (R/W)
+pub const UART_IFLS_OFFSET: u64 = 0x34;   // Interrupt FIFO Level Select
+pub const UART_IMSC_OFFSET: u64 = 0x38;   // Interrupt Mask Set/Clear
+pub const UART_RIS_OFFSET: u64 = 0x3C;    // Raw Interrupt Status (R)
+pub const UART_MIS_OFFSET: u64 = 0x40;    // Masked Interrupt Status (R)
+pub const UART_ICR_OFFSET: u64 = 0x44;    // Interrupt Clear (W)
+pub const UART_DMACR_OFFSET: u64 = 0x48;  // DMA Control Register
+
 // ============================================================================
 // RAM REGION  (0x4000_0000 – 0x7FFF_FFFF)
 // ============================================================================

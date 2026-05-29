@@ -37,7 +37,7 @@ impl SystemBus {
         }
     }
 
-    pub fn read(&self, addr: u64, size: u8) -> Option<u64> {
+    pub fn read(&mut self, addr: u64, size: u8) -> Option<u64> {
         // Fixup: kernel fixmap may redirect UART accesses through a
         // different mapping (0xFFFF_8000_0009_XXXX → 0x0900_0XXX).
         let low = addr & FIXMAP_LOW_MASK;
