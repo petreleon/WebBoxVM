@@ -54,7 +54,13 @@ impl Machine {
             let pc = cpu.regs.pc;
             let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, pc) {
                 Ok(pa) => pa,
-                Err(_) => { self.active_core = (core + 1) % num_cores; continue; }
+                Err(_) => {
+                    // Translation fault — skip this instruction and advance
+                    cpu.regs.pc += INSTRUCTION_SIZE;
+                    self.total_steps += 1;
+                    self.active_core = (core + 1) % num_cores;
+                    continue;
+                }
             };
 
             let instr = get_cached_or_fetch(cache, &self.bus.mem, pa);
@@ -90,9 +96,16 @@ impl Machine {
                 }
 
                 if let Err(_) = execute(cpu, &mut self.bus, instr) {
+                    // Instruction fault (e.g., LDR/STR to unmapped memory).
+                    // Advance PC past the faulting instruction and continue.
+                    cpu.regs.pc += INSTRUCTION_SIZE;
+                    self.total_steps += 1;
                     self.active_core = (core + 1) % num_cores;
                     continue;
                 }
+            } else {
+                // Decode failed — skip the bad instruction
+                cpu.regs.pc += INSTRUCTION_SIZE;
             }
 
             self.total_steps += 1;

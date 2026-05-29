@@ -112,8 +112,20 @@ impl BootContext {
             // Finish when the EFI stub returns to our trampoline
             if !self.efi_stub_done && cpu.regs.pc == RETURN_TRAMPOLINE_ADDR {
                 self.efi_stub_done = true;
-                // Hand over to the real kernel entry point
-                cpu.regs.pc = KERNEL_TEXT_VIRTUAL_ENTRY;
+                // Hand over to the kernel's PHYSICAL primary entry point.
+                // The Linux kernel's head.S (at TEXT_OFFSET=0x80000) is a
+                // function that was called by the EFI stub.  It saves X29/X30
+                // to the stack and restores them before returning.  We prime
+                // the stack frame so the LDP X29,X30 [SP,#0x70] loads a
+                // valid return address instead of jumping to 0x00.
+                let kernel_phys_entry = KERNEL_LOAD_ADDR + 0x80000;
+                let sp = cpu.regs.sp;
+                self.machine.bus.write(sp + 0x70, 8, RETURN_TRAMPOLINE_ADDR);
+                self.machine.bus.write(sp + 0x68, 8, 0); // frame pointer
+
+                // Disable the MMU so the kernel runs identity-mapped.
+                cpu.sys.sctlr_el1 = 0;
+                cpu.regs.pc = kernel_phys_entry;
                 cpu.regs.set_x(0, self.dtb_addr);
                 cpu.regs.set_x(1, 0);
                 cpu.regs.set_x(2, 0);
@@ -215,7 +227,7 @@ fn setup_boot_page_tables(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
         // Fill L3 with 4 KiB page entries
         for i in 0..PT_ENTRIES as usize {
             let va_offset = (tbl as u64) * L2_BLOCK_SIZE + (i as u64) * PAGE_SIZE;
-            bus.write(l3_table_addr + i as u64 * 8, 8, l3_page(PAGE_ALLOCATOR_BASE + va_offset));
+            bus.write(l3_table_addr + i as u64 * 8, 8, l3_page(RAM_BASE + va_offset));
         }
     }
 
