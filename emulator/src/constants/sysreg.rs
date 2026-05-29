@@ -26,8 +26,8 @@ pub const MOVK_BASE: u32 = 0xF280_0000;
 
 /// Synchronous exception at the current exception level.
 pub const VBAR_SYNC_CURRENT_EL: u64 = 0x200;
-/// IRQ exception at the current exception level.
-pub const VBAR_IRQ_CURRENT_EL: u64 = 0x80;
+/// IRQ exception at the current exception level using SPx.
+pub const VBAR_IRQ_CURRENT_EL: u64 = 0x280;
 /// SuperVisor Call (SVC) exception.
 pub const VBAR_SYNC_LOWER_EL_AARCH64: u64 = 0x400;
 

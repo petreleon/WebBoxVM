@@ -132,7 +132,7 @@ impl SystemRegisters {
             SYSREG_CNTPCT_EL0      => self.cycle_count,
             SYSREG_CNTVCT_EL0      => self.cycle_count,
             SYSREG_CNTP_TVAL_EL0   => self.cntp_tval_el0,
-            SYSREG_CNTP_CTL_EL0    => self.cntp_ctl_el0,
+            SYSREG_CNTP_CTL_EL0    => self.cntp_ctl_value(),
             SYSREG_CNTP_CVAL_EL0   => self.cntp_cval_el0,
 
             // ── EL3 / secure world ──
@@ -215,7 +215,7 @@ impl SystemRegisters {
                 self.cntp_tval_el0 = val;
                 self.cntp_cval_el0 = self.cycle_count.wrapping_add(val as u32 as u64);
             }
-            SYSREG_CNTP_CTL_EL0 => self.cntp_ctl_el0 = val,
+            SYSREG_CNTP_CTL_EL0 => self.cntp_ctl_el0 = val & (TIMER_CTL_ENABLE | TIMER_CTL_IMASK),
             SYSREG_CNTP_CVAL_EL0 => self.cntp_cval_el0 = val,
 
             // DAIF: bits [9:6] = D, A, I, F.  Bit 7 = IRQ mask.
@@ -229,5 +229,22 @@ impl SystemRegisters {
 
             _ => {} // unknown register — silently ignored
         }
+    }
+
+    pub fn cntp_enabled(&self) -> bool {
+        self.cntp_ctl_el0 & TIMER_CTL_ENABLE != 0
+    }
+
+    pub fn cntp_unmasked(&self) -> bool {
+        self.cntp_ctl_el0 & TIMER_CTL_IMASK == 0
+    }
+
+    pub fn cntp_expired(&self) -> bool {
+        self.cntp_enabled() && self.cycle_count >= self.cntp_cval_el0
+    }
+
+    fn cntp_ctl_value(&self) -> u64 {
+        let status = if self.cntp_expired() { TIMER_CTL_ISTATUS } else { 0 };
+        (self.cntp_ctl_el0 & (TIMER_CTL_ENABLE | TIMER_CTL_IMASK)) | status
     }
 }

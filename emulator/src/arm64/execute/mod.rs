@@ -161,32 +161,18 @@ fn advance_pc(cpu: &mut Armv8Cpu) {
 fn check_timer_irq(cpu: &mut Armv8Cpu) {
     if cpu.sys.vbar_el1 == 0 { return; }
 
-    // Minimal forced tick: if kernel hasn't configured timer yet,
-    // deliver a tick every 1M cycles so jiffies advance.
-    if cpu.sys.cntp_cval_el0 == 0 {
-        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + TIMER_FREQ_HZ / 100;
-    }
-    if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
+    if cpu.sys.cntp_expired() && cpu.sys.cntp_unmasked() {
         cpu.sys.irq_pending = true;
         cpu.sys.last_irq_id = TIMER_IRQ_ID;
-        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + TIMER_FREQ_HZ / 100;
     }
 
-    if cpu.sys.irq_pending && cpu.sys.cycle_count > cpu.sys.cntp_tval_el0 + 10_000
-    {
-        // Honor IRQ mask, but deliver at least one tick every 100M cycles
-        if cpu.pstate.irq_masked() && cpu.sys.cycle_count - cpu.sys.cntp_tval_el0 < 100_000_000 {
-            return;
-        }
-        cpu.sys.cntp_tval_el0 = cpu.sys.cycle_count;
-        cpu.sys.irq_pending = false;
-        cpu.sys.spsr_el1 = cpu.pstate.with_irq_masked(false).to_u64();
+    if cpu.sys.irq_pending && !cpu.pstate.irq_masked() {
+        cpu.sys.spsr_el1 = cpu.pstate.to_u64();
         cpu.sys.elr_el1 = cpu.regs.pc;
         cpu.sys.esr_el1 = 0;
 
         let pstate_el1 = cpu.pstate.with_el(1).with_irq_masked(true);
-        let spsr_bits = pstate_el1.to_u64() | SPSR_M_MASK;
-        cpu.pstate = crate::arm64::pstate::ProcessorState::from_u64(spsr_bits);
+        cpu.pstate = crate::arm64::pstate::ProcessorState::from_u64(pstate_el1.to_u64());
 
         cpu.regs.pc = cpu.sys.vbar_el1 + VBAR_IRQ_CURRENT_EL;
     }
