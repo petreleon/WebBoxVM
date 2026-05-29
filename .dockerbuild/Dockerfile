@@ -9,13 +9,14 @@ RUN wget -q https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.6.70.tar.xz \
     && tar xf linux-6.6.70.tar.xz && rm linux-6.6.70.tar.xz
 WORKDIR /build/linux-6.6.70
 RUN make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig \
-    && scripts/config -d CONFIG_RELOCATABLE \
-    && scripts/config -d CONFIG_RANDOMIZE_BASE \
-    && scripts/config -d CONFIG_EFI_STUB \
     && scripts/config -d CONFIG_MODULES \
     && scripts/config -d CONFIG_DEBUG_INFO -d CONFIG_DEBUG_INFO_BTF \
     && scripts/config -d CONFIG_SOUND -d CONFIG_DRM -d CONFIG_NET \
     && scripts/config -d CONFIG_USB_SUPPORT -d CONFIG_PCI \
-    && make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+    && make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig \
+    && scripts/config -d CONFIG_RELOCATABLE \
+    && scripts/config -d CONFIG_RANDOMIZE_BASE \
+    && scripts/config -d CONFIG_EFI_STUB \
+    && make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image 2>&1 | tail -5
 RUN make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc) Image 2>&1 | tail -5
 CMD cp arch/arm64/boot/Image /out/Image && ls -lh /out/Image
