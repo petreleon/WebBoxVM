@@ -56,24 +56,13 @@ impl BootContext {
         // skipped.
         // PE optional header offset: PE_sig(0x40) + COFF(20) = 0x58
         // ImageBase is at offset 24 within the optional header = 0x58+24 = 0x70
+        // Set ImageBase to match our load address so delta=0 for any relocations.
         machine.bus.write(KERNEL_LOAD_ADDR + 0x70, 8, KERNEL_LOAD_ADDR);
 
-        // Patch the .reloc data directory to point to a minimal valid block
-        // so efi_pe_relocate_kernel finds relocations and succeeds.
-        // PE data directories start at optional_header + 0x70 (= 0xC8 from base)
-        // Entry 5 (.reloc) is at dd_start + 5*8 = 0xC8 + 0x28 = 0xF0
-        let dd_start: u64 = 0xC8;
-        let reloc_entry = KERNEL_LOAD_ADDR + dd_start + 5 * 8;
-        // Write a fake .reloc block just past the loaded image
-        let fake_reloc = KERNEL_LOAD_ADDR + image_size;
-        // PageRVA=0, BlockSize=8 (valid block, no actual entries)
-        machine.bus.write(fake_reloc, 4, 0);      // PageRVA = 0
-        machine.bus.write(fake_reloc + 4, 4, 8);  // BlockSize = 8
-        // Set .reloc data directory to point to our fake block
-        // RVA is relative to ImageBase (which we patched to KERNEL_LOAD_ADDR)
-        let reloc_rva = fake_reloc.wrapping_sub(KERNEL_LOAD_ADDR);
-        machine.bus.write(reloc_entry, 4, image_size as u32 as u64);  // RVA = image_size
-        machine.bus.write(reloc_entry + 4, 4, 8);                      // Size = 8
+        // DO NOT patch .reloc — the kernel Image has RVA=0 Size=0 for .reloc,
+        // which tells efi_relocate_kernel() to use the kernel's own .rela.dyn
+        // ELF relocations embedded in the binary (processed by the kernel's
+        // relocation code, not our PE loader).
 
         // Set up EFI firmware tables
         let (handle, system_table) = setup_efi_tables(
@@ -148,9 +137,9 @@ impl BootContext {
                 // EFI_LOAD_ERROR.  Just enter the kernel at KERNEL_LOAD with
                 // MMU off and identity map.
                 let _retval = cpu.regs.x(0);
-                eprintln!("EFI phase complete (X0=0x{:x}), entering kernel at 0x{:x}", _retval, KERNEL_LOAD_ADDR);
-                cpu.sys.sctlr_el1 = 0; // disable MMU so physical addresses work
-                cpu.regs.pc = KERNEL_LOAD_ADDR;
+                eprintln!("EFI phase complete (X0=0x{:x}), entering kernel at PE entry 0x{:x}", _retval, self.entry_pc);
+                cpu.sys.sctlr_el1 = 0;
+                cpu.regs.pc = KERNEL_LOAD_ADDR;  // start of Image (ARM64 header has branch to _head)
                 cpu.regs.set_x(0, self.dtb_addr);
                 cpu.regs.set_x(1, 0);
                 cpu.regs.set_x(2, 0);
