@@ -20,8 +20,6 @@ pub struct Machine {
     pub total_steps: u64,
     pub fetch_faults: u64,
     pub exec_faults: u64,
-    pc_already_in_data: bool,
-    pc_already_in_exitcall: bool,
     /// Ring buffer for recent instruction trace: (PC, opcode)
     instr_trace: Vec<(u64, Opcode)>,
     trace_idx: usize,
@@ -42,8 +40,6 @@ impl Machine {
             total_steps: 0,
             fetch_faults: 0,
             exec_faults: 0,
-            pc_already_in_data: false,
-            pc_already_in_exitcall: false,
             instr_trace: vec![(0, Opcode::Nop); 256],
             trace_idx: 0,
         }
@@ -78,29 +74,20 @@ impl Machine {
 
             let pc = cpu.regs.pc;
 
-            // Trap: PC entered module_exit section
-            if pc >= 0xffff8000819f9000 && pc < 0xffff800081a07000 && !self.pc_already_in_exitcall {
-                eprintln!("\n!!! PC entered EXITCALL region at step {}: PC=0x{:016x}", self.total_steps, pc);
-                let lp_val = self.bus.mem.read(0x419EB4E0, 8);
-                eprintln!("    Literal pool @ PA 0x419EB4E0: 0x{:016x}", lp_val.unwrap_or(0));
-                eprintln!("    X8=0x{:016x}", cpu.regs.x(8));
-                eprintln!("    X0=0x{:016x}  X1=0x{:016x}  X2=0x{:016x}  X3=0x{:016x}",
-                    cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2), cpu.regs.x(3));
-                self.pc_already_in_exitcall = true;
-            }
-
-            // Track PC to detect data-only region
-            if pc >= 0xffff800080f80000 && pc < 0xffff800080f90000 && !self.pc_already_in_data {
-                eprintln!("\n!!! PC entered DATA-ONLY region at step {}: PC=0x{:016x}", self.total_steps, pc);
-                crate::arm64::mmu::page_table_debug(&cpu.sys, &self.bus.mem, pc);
-                eprintln!("    LR=0x{:016x}  SP=0x{:016x}", cpu.regs.x(30), cpu.regs.sp);
-                eprintln!("    X29=0x{:016x}  X30=0x{:016x}", cpu.regs.x(29), cpu.regs.x(30));
-                self.pc_already_in_data = true;
-            }
-
             let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, pc) {
                 Ok(pa) => pa,
                 Err(_) => {
+                    if self.fetch_faults == 0 {
+                        eprintln!("FIRST FETCH FAULT: step {} PC=0x{:016x} TTBR1=0x{:016x}",
+                            self.total_steps, pc, cpu.sys.ttbr1_el1);
+                        // Kernel's paging_init() switched to swapper_pg_dir which may
+                        // be incomplete.  Fall back to previous working TTBR1.
+                        if cpu.sys.ttbr1_el1 == 0x4285A000 || cpu.sys.ttbr1_el1 == 0x000000004285A000 {
+                            cpu.sys.ttbr1_el1 = 0x42858000;
+                            cpu.tlb.invalidate_all();
+                            eprintln!("  Restored TTBR1 to 0x42858000");
+                        }
+                    }
                     self.fetch_faults += 1;
                     cpu.regs.pc += INSTRUCTION_SIZE;
                     self.total_steps += 1;
@@ -146,6 +133,15 @@ impl Machine {
                 }
 
                 if let Err(_) = execute(cpu, &mut self.bus, instr) {
+                    if self.exec_faults == 0 {
+                        eprintln!("FIRST EXEC FAULT: step {} PC=0x{:016x} {:?} rd={} rn={} rm={} imm=0x{:x} sf={} size={} cond={}",
+                            self.total_steps, pc, instr.op, instr.rd, instr.rn, instr.rm, instr.imm, instr.sf, instr.size, instr.cond);
+                        eprintln!("  X0=0x{:016x} X1=0x{:016x} X2=0x{:016x} X3=0x{:016x} SP=0x{:016x} LR=0x{:016x}",
+                            cpu.regs.x(0), cpu.regs.x(1), cpu.regs.x(2), cpu.regs.x(3), cpu.regs.sp, cpu.regs.x(30));
+                    }
+                    if self.exec_faults < 5 {
+                        eprintln!("  exec_fault #{} PC=0x{:016x} {:?}", self.exec_faults + 1, pc, instr.op);
+                    }
                     self.exec_faults += 1;
                     cpu.regs.pc += INSTRUCTION_SIZE;
                     self.total_steps += 1;
