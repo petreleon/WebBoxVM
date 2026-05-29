@@ -160,18 +160,23 @@ fn advance_pc(cpu: &mut Armv8Cpu) {
 fn check_timer_irq(cpu: &mut Armv8Cpu) {
     if cpu.sys.vbar_el1 == 0 { return; }
 
-    let tick_period = TIMER_FREQ_HZ / 1000;
-    if cpu.sys.cntp_cval_el0 == 0 || cpu.sys.cntp_cval_el0 > cpu.sys.cycle_count + tick_period * 2 {
-        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + tick_period;
+    // Minimal forced tick: if kernel hasn't configured timer yet,
+    // deliver a tick every 1M cycles so jiffies advance.
+    if cpu.sys.cntp_cval_el0 == 0 {
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + TIMER_FREQ_HZ / 100;
     }
-
     if cpu.sys.cycle_count >= cpu.sys.cntp_cval_el0 {
         cpu.sys.irq_pending = true;
         cpu.sys.last_irq_id = TIMER_IRQ_ID;
-        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + tick_period;
+        cpu.sys.cntp_cval_el0 = cpu.sys.cycle_count + TIMER_FREQ_HZ / 100;
     }
 
-    if cpu.sys.irq_pending && cpu.sys.cycle_count > cpu.sys.cntp_tval_el0 + 100 {
+    if cpu.sys.irq_pending && cpu.sys.cycle_count > cpu.sys.cntp_tval_el0 + 10_000
+    {
+        // Honor IRQ mask, but deliver at least one tick every 100M cycles
+        if cpu.pstate.irq_masked() && cpu.sys.cycle_count - cpu.sys.cntp_tval_el0 < 100_000_000 {
+            return;
+        }
         cpu.sys.cntp_tval_el0 = cpu.sys.cycle_count;
         cpu.sys.irq_pending = false;
         cpu.sys.spsr_el1 = cpu.pstate.with_irq_masked(false).to_u64();
