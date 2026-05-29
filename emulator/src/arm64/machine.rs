@@ -21,6 +21,9 @@ pub struct Machine {
     pub fetch_faults: u64,
     pub exec_faults: u64,
     pc_already_in_data: bool,
+    /// Ring buffer for recent instruction trace: (PC, opcode)
+    instr_trace: Vec<(u64, Opcode)>,
+    trace_idx: usize,
 }
 
 impl Machine {
@@ -39,6 +42,8 @@ impl Machine {
             fetch_faults: 0,
             exec_faults: 0,
             pc_already_in_data: false,
+            instr_trace: vec![(0, Opcode::Nop); 256],
+            trace_idx: 0,
         }
     }
 
@@ -76,11 +81,33 @@ impl Machine {
             // (0xffff800080f80000-0xffff800080f90000 has zero text symbols)
             if pc >= 0xffff800080f80000 && pc < 0xffff800080f90000 && !self.pc_already_in_data {
                 eprintln!("\n!!! PC entered DATA-ONLY region at step {}: PC=0x{:016x}", self.total_steps, pc);
+                // Walk from TTBR1 for the current PC
+                crate::arm64::mmu::page_table_debug(&cpu.sys, &self.bus.mem, pc);
+                // Also walk for the PREVIOUS PC (from trace buffer)
+                let (prev_pc, _) = self.instr_trace[(self.trace_idx.wrapping_sub(1)) & 0xFF];
+                if prev_pc != 0 {
+                    eprintln!("\n    TTBR1 walk for PREV PC 0x{:016x}:", prev_pc);
+                    crate::arm64::mmu::page_table_debug(&cpu.sys, &self.bus.mem, prev_pc);
+                    // Read the actual instruction bytes at the previous PC
+                    if let Ok(pa) = translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, prev_pc) {
+                        if let Some(raw) = self.bus.mem.read(pa, 4) {
+                            eprintln!("\n    Actual instr at PREV PC PA=0x{:x}: 0x{:08x}", pa, raw);
+                        }
+                    }
+                }
                 eprintln!("    LR=0x{:016x}  SP=0x{:016x}", cpu.regs.x(30), cpu.regs.sp);
                 eprintln!("    X0=0x{:016x}  X1=0x{:016x}", cpu.regs.x(0), cpu.regs.x(1));
                 eprintln!("    X2=0x{:016x}  X3=0x{:016x}  X4=0x{:016x}  X5=0x{:016x}", cpu.regs.x(2), cpu.regs.x(3), cpu.regs.x(4), cpu.regs.x(5));
                 eprintln!("    X29=0x{:016x}  X30=0x{:016x}", cpu.regs.x(29), cpu.regs.x(30));
-                eprintln!("    VBAR=0x{:016x}  SCTLR=0x{:016x}  TTBR1=0x{:016x}", cpu.sys.vbar_el1, cpu.sys.sctlr_el1, cpu.sys.ttbr1_el1);
+                eprintln!("    VBAR=0x{:016x}  SCTLR=0x{:016x}  TTBR1=0x{:016x}  TCR=0x{:016x}", cpu.sys.vbar_el1, cpu.sys.sctlr_el1, cpu.sys.ttbr1_el1 & DESC_ADDR_MASK, cpu.sys.tcr_el1);
+                // Dump recent instruction trace (ring buffer, starting from trace_idx)
+                eprintln!("    --- Last 32 instructions ---");
+                for i in 0..32 {
+                    let idx = (self.trace_idx.wrapping_sub(1 + i)) & 0xFF;
+                    let (tpc, top) = self.instr_trace[idx];
+                    if tpc == 0 && i > 5 { break; }
+                    eprintln!("      -{:02}: PC=0x{:016x}  {:?}", i+1, tpc, top);
+                }
                 self.pc_already_in_data = true;
             }
 
@@ -98,6 +125,10 @@ impl Machine {
             let instr = get_cached_or_fetch(cache, &self.bus.mem, pa);
 
             if let Some(instr) = instr {
+                // Record in instruction trace ring buffer
+                self.instr_trace[self.trace_idx] = (pc, instr.op);
+                self.trace_idx = (self.trace_idx + 1) & 0xFF;
+
                 // Intercept GIC system register accesses for interrupt routing
                 if instr.op == Opcode::Msr {
                     let sysreg_id = instr.imm as u16;

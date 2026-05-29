@@ -242,6 +242,64 @@ fn read_descriptor(mem: &PhysicalMemory, addr: u64) -> Result<u64, Fault> {
     mem.read(addr, 8).ok_or(Fault::TranslationFault)
 }
 
+/// Debug: walk page table from TTBR1 and print each step.
+pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
+    let ttbr = sys.ttbr1_el1 & DESC_ADDR_MASK;
+    let tcr = sys.tcr_el1;
+    let t1sz = ((tcr >> TCR_T1SZ_SHIFT) & TCR_T1SZ_MASK) as u8;
+    let va_bits = 64u8.saturating_sub(t1sz);
+
+    eprintln!("    TTBR1=0x{:016x}  TCR=0x{:016x}  T1SZ={}  VA_BITS={}", ttbr, tcr, t1sz, va_bits);
+    eprintln!("    VA =0x{:016x}", va);
+
+    // L0
+    let l0_idx = ((va >> PT_L0_SHIFT) & 0x1FF) as u64;
+    let l0_addr = ttbr + l0_idx * 8;
+    if let Some(desc) = mem.read(l0_addr, 8) {
+        let valid = desc & 3;
+        eprintln!("    L0[{}] at PA=0x{:x} desc=0x{:016x} valid={}", l0_idx, l0_addr, desc, valid);
+        if valid == DESC_TABLE {
+            let l1_base = desc & DESC_ADDR_MASK;
+            // L1
+            let l1_idx = ((va >> PT_L1_SHIFT) & 0x1FF) as u64;
+            let l1_addr = l1_base + l1_idx * 8;
+            if let Some(desc) = mem.read(l1_addr, 8) {
+                let valid = desc & 3;
+                eprintln!("    L1[{}] at PA=0x{:x} desc=0x{:016x} valid={}", l1_idx, l1_addr, desc, valid);
+                if valid == DESC_TABLE {
+                    let l2_base = desc & DESC_ADDR_MASK;
+                    // L2
+                    let l2_idx = ((va >> PT_L2_SHIFT) & 0x1FF) as u64;
+                    let l2_addr = l2_base + l2_idx * 8;
+                    if let Some(desc) = mem.read(l2_addr, 8) {
+                        let valid = desc & 3;
+                        eprintln!("    L2[{}] at PA=0x{:x} desc=0x{:016x} valid={}", l2_idx, l2_addr, desc, valid);
+                        if valid == DESC_TABLE {
+                            let l3_base = desc & DESC_ADDR_MASK;
+                            // L3
+                            let l3_idx = ((va >> PT_L3_SHIFT) & 0x1FF) as u64;
+                            let l3_addr = l3_base + l3_idx * 8;
+                            if let Some(desc) = mem.read(l3_addr, 8) {
+                                let pa = (desc & DESC_ADDR_MASK) | (va & PAGE_OFFSET_MASK);
+                                eprintln!("    L3[{}] at PA=0x{:x} desc=0x{:016x} -> PA=0x{:016x}", l3_idx, l3_addr, desc, pa);
+                            } else { eprintln!("    L3[{}] at PA=0x{:x} UNREADABLE", l3_idx, l3_addr); }
+                        } else if valid == DESC_BLOCK {
+                            let pa = (desc & 0x0000_FFFF_FFE0_0000) | (va & (L2_BLOCK_SIZE - 1));
+                            eprintln!("    L2 block -> PA=0x{:016x}", pa);
+                        } else { eprintln!("    L2 INVALID (valid={})", valid); }
+                    } else { eprintln!("    L2[{}] at PA=0x{:x} UNREADABLE", l2_idx, l2_addr); }
+                } else if valid == DESC_BLOCK {
+                    let pa = (desc & 0x0000_FFFF_C000_0000) | (va & (L1_BLOCK_SIZE - 1));
+                    eprintln!("    L1 block -> PA=0x{:016x}", pa);
+                } else { eprintln!("    L1 INVALID (valid={})", valid); }
+            } else { eprintln!("    L1[{}] at PA=0x{:x} UNREADABLE", l1_idx, l1_addr); }
+        } else if valid == DESC_BLOCK {
+            let pa = (desc & 0x0000_FFFF_FFFF_F000) | (va & (L0_BLOCK_SIZE - 1));
+            eprintln!("    L0 block -> PA=0x{:016x}", pa);
+        } else { eprintln!("    L0 INVALID (valid={})", valid); }
+    } else { eprintln!("    L0[{}] at PA=0x{:x} UNREADABLE", l0_idx, l0_addr); }
+}
+
 /// Decode a page table descriptor at `level`.
 /// Returns `(is_table_pointer, _)` — true if descriptor points to another table.
 ///
