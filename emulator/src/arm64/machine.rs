@@ -20,6 +20,7 @@ pub struct Machine {
     pub total_steps: u64,
     pub fetch_faults: u64,
     pub exec_faults: u64,
+    pc_already_in_data: bool,
 }
 
 impl Machine {
@@ -37,6 +38,7 @@ impl Machine {
             total_steps: 0,
             fetch_faults: 0,
             exec_faults: 0,
+            pc_already_in_data: false,
         }
     }
 
@@ -69,6 +71,19 @@ impl Machine {
             }
 
             let pc = cpu.regs.pc;
+
+            // Track PC to detect when kernel enters known data-only region
+            // (0xffff800080f80000-0xffff800080f90000 has zero text symbols)
+            if pc >= 0xffff800080f80000 && pc < 0xffff800080f90000 && !self.pc_already_in_data {
+                eprintln!("\n!!! PC entered DATA-ONLY region at step {}: PC=0x{:016x}", self.total_steps, pc);
+                eprintln!("    LR=0x{:016x}  SP=0x{:016x}", cpu.regs.x(30), cpu.regs.sp);
+                eprintln!("    X0=0x{:016x}  X1=0x{:016x}", cpu.regs.x(0), cpu.regs.x(1));
+                eprintln!("    X2=0x{:016x}  X3=0x{:016x}  X4=0x{:016x}  X5=0x{:016x}", cpu.regs.x(2), cpu.regs.x(3), cpu.regs.x(4), cpu.regs.x(5));
+                eprintln!("    X29=0x{:016x}  X30=0x{:016x}", cpu.regs.x(29), cpu.regs.x(30));
+                eprintln!("    VBAR=0x{:016x}  SCTLR=0x{:016x}  TTBR1=0x{:016x}", cpu.sys.vbar_el1, cpu.sys.sctlr_el1, cpu.sys.ttbr1_el1);
+                self.pc_already_in_data = true;
+            }
+
             let pa = match translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, pc) {
                 Ok(pa) => pa,
                 Err(_) => {

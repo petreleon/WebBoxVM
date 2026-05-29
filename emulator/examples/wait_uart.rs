@@ -19,8 +19,8 @@ fn main() {
 
     let mut last_report = 0u64;
     loop {
-        ctx.run_kernel_phase(10_000_000);
-        step += 10_000_000;
+        ctx.run_kernel_phase(1_000_000); // smaller chunks for finer-grained checks
+        step += 1_000_000;
         let uart = ctx.uart_output();
         let elapsed = t0.elapsed().as_secs_f64();
         let msteps = step / 1_000_000;
