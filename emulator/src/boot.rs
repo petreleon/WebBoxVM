@@ -46,6 +46,32 @@ impl BootContext {
         // Parse kernel header at offset 16:8 → image_size (little-endian u64)
         let image_size = read_kernel_image_size(kernel_image);
 
+        // Patch the in-memory PE header: set ImageBase to our actual load
+        // address.  The kernel Image has image_base=0x0 and NO .reloc section,
+        // so the EFI stub's relocation fails with EFI_LOAD_ERROR.  By setting
+        // ImageBase = KERNEL_LOAD_ADDR, the delta is zero and relocation is
+        // skipped.
+        // PE optional header offset: PE_sig(0x40) + COFF(20) = 0x58
+        // ImageBase is at offset 24 within the optional header = 0x58+24 = 0x70
+        machine.bus.write(KERNEL_LOAD_ADDR + 0x70, 8, KERNEL_LOAD_ADDR);
+
+        // Patch the .reloc data directory to point to a minimal valid block
+        // so efi_pe_relocate_kernel finds relocations and succeeds.
+        // PE data directories start at optional_header + 0x70 (= 0xC8 from base)
+        // Entry 5 (.reloc) is at dd_start + 5*8 = 0xC8 + 0x28 = 0xF0
+        let dd_start: u64 = 0xC8;
+        let reloc_entry = KERNEL_LOAD_ADDR + dd_start + 5 * 8;
+        // Write a fake .reloc block just past the loaded image
+        let fake_reloc = KERNEL_LOAD_ADDR + image_size;
+        // PageRVA=0, BlockSize=8 (valid block, no actual entries)
+        machine.bus.write(fake_reloc, 4, 0);      // PageRVA = 0
+        machine.bus.write(fake_reloc + 4, 4, 8);  // BlockSize = 8
+        // Set .reloc data directory to point to our fake block
+        // RVA is relative to ImageBase (which we patched to KERNEL_LOAD_ADDR)
+        let reloc_rva = fake_reloc.wrapping_sub(KERNEL_LOAD_ADDR);
+        machine.bus.write(reloc_entry, 4, image_size as u32 as u64);  // RVA = image_size
+        machine.bus.write(reloc_entry + 4, 4, 8);                      // Size = 8
+
         // Set up EFI firmware tables
         let (handle, system_table) = setup_efi_tables(
             &mut machine.bus, KERNEL_LOAD_ADDR, image_size, DTB_BASE,
