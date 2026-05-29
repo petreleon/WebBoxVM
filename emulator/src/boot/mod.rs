@@ -26,6 +26,7 @@ impl BootContext {
         cpu0.regs.set_x(1, 0);
         cpu0.regs.set_x(2, 0);
         cpu0.regs.set_x(3, 0);
+        cpu0.pstate = cpu0.pstate.with_el(1).with_irq_masked(true);
         cpu0.sys.sctlr_el1 = 0; // MMU disabled — kernel's head.S enables it
         // Jump to ARM64 Image header (code0+cod1 branch to primary_entry)
         cpu0.regs.pc = KERNEL_LOAD_ADDR;
