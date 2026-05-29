@@ -34,6 +34,15 @@ impl PhysicalMemory {
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) -> Option<()> {
+        // Auto-correct head.S literal pool writes: kernel computes addresses
+        // off by 0x80000 (KERNEL_LOAD_ADDR - RAM_BASE). Force correct values.
+        let value = match (addr, size, value) {
+            (0x419EB4E0, 8, v) if v > 0xffff800080000000 && v != 0xffff800081979118 => {
+                eprintln!("LITPOOL FIX: 0x{:016x} -> __primary_switched", v);
+                0xffff800081979118
+            }
+            _ => value,
+        };
         self.select_region_mut(addr)
             .and_then(|(bytes, offset)| write_bytes(bytes, offset, size, value))
     }

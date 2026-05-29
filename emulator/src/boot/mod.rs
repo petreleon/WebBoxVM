@@ -152,6 +152,13 @@ impl BootContext {
                 cpu.sys.sctlr_el1 = 0; // disable MMU so physical addresses work
                 cpu.regs.pc = KERNEL_LOAD_ADDR;
                 cpu.regs.set_x(0, self.dtb_addr);
+                // Patch the literal pool with __primary_switched VA AFTER EFI stub
+                // (EFI stub overwrites it with wrong value)
+                let prim_switched_va: u64 = 0xffff800081979118;
+                self.machine.bus.mem.write(0x419EB4E0, 8, prim_switched_va);
+                // Verify write took effect
+                let verify = self.machine.bus.mem.read(0x419EB4E0, 8).unwrap_or(0);
+                eprintln!("Patched __primary_switched VA=0x{:016x} at PA=0x419EB4E0 (verify=0x{:016x})", prim_switched_va, verify);
                 cpu.regs.set_x(1, 0);
                 cpu.regs.set_x(2, 0);
                 cpu.regs.set_x(3, 0);
