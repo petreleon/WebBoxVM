@@ -16,7 +16,7 @@
 - [x] System bus with MMIO dispatch (RAM + UART)
 - [x] PL011 UART for serial output
 
-**Result:** 23 tests pass, zero warnings.
+**Result at completion:** 23 tests passed.
 
 ## Sprint 2 — Bootloader (COMPLETE)
 - [x] Boot stub mechanism: BR Xn jumps to kernel entry point
@@ -43,7 +43,7 @@
   - PE-wrapped Debian kernel requires EFI runtime services (not implemented)
   - Raw kernel boot deferred to Sprint 3 (needs DTB + memory layout)
 
-**Result:** 40 tests pass (1 slow test ignored), zero warnings.
+**Result at completion:** 40 tests passed (1 slow test ignored).
 
 ## Sprint 3 — EFI Stub Protocols (COMPLETE)
 - [x] Code reorganization: split EFI into `encode.rs`, `layout.rs`, `tables.rs`, `mod.rs`
@@ -86,7 +86,7 @@
 
 **Result:** 80 tests pass, 0 compiler warnings.
 
-## Sprint 6 — Busybox Shell (IN PROGRESS)
+## Sprint 6 — Linux Early UART Boot (COMPLETE)
 - [x] Initrd: load cpio ramdisk into memory
 - [x] Exclusive load/store (LDXR/LDXP/STXR/STXP/LDAR/STLR) decode & execute
 - [x] DTB: GICv3 interrupt controller node, ARMv8 timer node, UART interrupts, `interrupt-parent`
@@ -95,18 +95,33 @@
 - [x] EFI services: AllocatePages (real ARM64 bump-allocator trampoline), CopyMem, SetMem, HandleProtocol, GetMemoryMap
 - [x] PE header parsing: dynamically read PE entry_RVA from optional header
 - [x] Custom kernel built via Docker (6.6.70, `CONFIG_RELOCATABLE=y`)
-- [x] Boot chain complete: PE entry → EFI stub (3.5M steps) → handoff → primary_entry → kernel VA space
+- [x] Standard ARM64 Linux Image boot protocol: X0=DTB, X1-X3=0, EL1, MMU off, IRQs masked
+- [x] Boot chain complete: Image entry → `primary_entry` → MMU enable → kernel VA space
 - [x] WFI/WFE decode & execute (fast-forward cycle counter)
 - [x] DAIFSet/DAIFClr decode & execute (IRQ mask control)
-- [x] Timer IRQ generation (100 Hz tick, one-shot delivery)
-- [x] VBAR_EL1 confirmed set by kernel (`0xffff800080090800`), IRQ handler runs
-- [x] Kernel EL3 → EL1 transition confirmed during init
+- [x] Conditional compare correctness: CCMP/CCMN register and immediate forms
+- [x] Signed load correctness: LDRSB/LDRSH/LDRSW sign extension
+- [x] ARMv8.1 LSE atomics: LDADD/LDSET/CAS/CASP decode and execute paths
+- [x] Pair exclusive decode: LDXP/STXP/STLXP paths
+- [x] Generic timer control: CNTP_CTL_EL0 enable/mask/status semantics
+- [x] Timer IRQ delivery honors PSTATE.I and uses current-EL SPx vector offset
+- [x] VBAR_EL1 confirmed set by kernel, IRQ handler runs when unmasked
+- [x] EL1 kernel entry state confirmed during init
+- [x] Kernel prints early UART boot log:
+  - `[    0.000000] Booting Linux on physical CPU 0x0000000000 [0x410fd083]`
+  - `[    0.000000] Linux version 6.6.70 ...`
+  - `[    0.000000] Machine model: WebBoxVM`
+  - `[    0.000000] earlycon: pl11 at MMIO 0x0000000009000000`
+
+**Result:** Linux 6.6.70 reaches early PL011 UART output through the standard ARM64 Image boot path. `cargo run --example wait_uart --release` prints kernel boot messages by 4M emulated steps with zero fetch/execute faults.
+
+## Sprint 7 — Busybox Shell (IN PROGRESS)
 - [ ] Kernel boots to Busybox `ash` shell
-  - Kernel reaches VA space `0xffff800080xxxxxx`, running init functions
-  - VBAR_EL1 configured by kernel, timer IRQ fires, handler runs, ERET returns
-  - Kernel re-enters 3-address spin loop (`0xffff8000800a3240/48/44`) after IRQ handler returns
-  - Spin loop is not an IRQ wait — checking a non-timer hardware condition (SMP bringup, memory barrier, or device poll)
-- [ ] Diagnose and break the pre-`start_kernel` spin loop
+  - Early console works; next target is enough init, scheduler, device, and initrd behavior to spawn `/init`
+  - Current initrd contains placeholder BusyBox bytes and a minimal `/init` script
+- [ ] Replace placeholder BusyBox payload with a real static ARM64 BusyBox binary
+- [ ] Continue boot beyond early console into initramfs unpacking and `/init`
+- [ ] Add UART RX path wiring for interactive shell input
 - [ ] **Standard boot for CONFIG_RELOCATABLE=n kernels** — real bootloaders (U-Boot/GRUB) don't relocate:
   - [ ] Add kernel `PAGE_OFFSET` (e.g. `0xffff800000000000`) to TTBR1 identity mapping
   - [ ] Map kernel VA range → physical load address BEFORE EFI stub runs
@@ -115,18 +130,16 @@
   - [ ] Works for all pre-built Debian/Ubuntu kernels without Docker rebuild
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result:** 98 tests pass, 0 compiler warnings. Full PL011 emulation with 7 tests. Boot chain complete: PE entry → EFI stub → handoff → primary_entry → MMU enable → VA space → VBAR configured → timer IRQ delivered → handler runs → ERET returns. Kernel running init functions but blocked in pre-start_kernel spin loop (non-IRQ condition).
-
 ---
 
 ## Future Work
 
-These are aspirational targets, not committed sprints. Each depends on the Linux milestone completing first.
+These are aspirational targets, not committed sprints. Most depend on the Linux shell milestone completing first.
 
 ### ISA Completeness
 - [ ] NEON / SIMD (load/store, vector arithmetic)
 - [ ] Crypto extensions (AES, SHA)
-- [ ] ARMv8.1 Atomics (LDADD, CAS, SWP)
+- [ ] Harden ARMv8.1 LSE atomics coverage, including memory ordering edge cases
 - [ ] Remaining system instructions
 
 ### Devices & Firmware
