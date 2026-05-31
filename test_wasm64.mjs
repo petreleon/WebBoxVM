@@ -4,9 +4,10 @@ import { readFileSync } from 'fs';
 const cores = 4;
 const efiSteps = 100_000;
 const kernelSteps = 20_000_000;
+const kernelPath = process.env.WEBBOXVM_KERNEL ?? '.artifacts/Image';
 
-console.log(`Loading 35.9MB Linux kernel...`);
-const kernelImage = readFileSync('/Users/petreleon/code/WebBoxVM/Image.gz');
+console.log(`Loading Linux kernel from ${kernelPath}...`);
+const kernelImage = readFileSync(kernelPath);
 
 const emu = new Emulator(cores);
 const result = emu.boot_kernel(new Uint8Array(kernelImage), cores);

@@ -15,9 +15,11 @@ wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional 
 js-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
 web-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
 disarm64 = "0.1.26"
+flate2 = "1"
 
 [features]
 default = []
 wasm = ["wasm-bindgen", "js-sys", "web-sys"]
 
 [dev-dependencies]
+crossterm = "0.28"

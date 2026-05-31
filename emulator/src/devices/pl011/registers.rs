@@ -48,6 +48,13 @@ pub(super) const FR_DSR: u8 = 1 << 1;    // UART01x_FR_DSR
 /// Clear To Send — status of the CTS modem signal.
 pub(super) const FR_CTS: u8 = 1 << 0;    // UART01x_FR_CTS
 
+// ── Interrupt bits ──
+
+/// Receive interrupt.
+pub(super) const INT_RX: u16 = 1 << 4;
+/// Receive timeout interrupt.
+pub(super) const INT_RT: u16 = 1 << 6;
+
 // ── Control Register (UARTCR) bit definitions ──
 
 /// CTS hardware flow control enable.

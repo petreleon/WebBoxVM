@@ -2,9 +2,9 @@
 //! Compile: cargo +nightly build --target wasm64-unknown-unknown -Z build-std --features wasm
 //! Bind: wasm-bindgen target/wasm64-unknown-unknown/debug/emulator.wasm --target nodejs
 
-use wasm_bindgen::prelude::*;
 use crate::arm64::Machine;
 use crate::boot::BootContext;
+use wasm_bindgen::prelude::*;
 
 /// Multi-core ARM64 Emulator exposed to JavaScript.
 #[wasm_bindgen]
@@ -24,7 +24,7 @@ impl Emulator {
     }
 
     /// Load and configure a Linux kernel Image for boot.
-    /// `kernel_image`: raw bytes of Image.gz or vmlinuz
+    /// `kernel_image`: raw bytes of an ARM64 Linux Image
     /// `num_cores`: number of ARM64 cores to emulate
     pub fn boot_kernel(&mut self, kernel_image: Vec<u8>, num_cores: usize) -> String {
         match BootContext::new(&kernel_image, num_cores) {
@@ -32,6 +32,58 @@ impl Emulator {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(ctx);
                 format!("OK: kernel loaded, {} cores ready", cores)
+            }
+            Err(e) => format!("ERR: {}", e),
+        }
+    }
+
+    /// Load and configure a Linux kernel Image with a caller-provided initrd.
+    pub fn boot_kernel_with_initrd(
+        &mut self,
+        kernel_image: Vec<u8>,
+        initrd: Vec<u8>,
+        num_cores: usize,
+    ) -> String {
+        match BootContext::new_with_initrd(&kernel_image, num_cores, &initrd) {
+            Ok(ctx) => {
+                let cores = ctx.machine.cpus.len();
+                self.boot = Some(ctx);
+                format!(
+                    "OK: kernel loaded with custom initrd, {} cores ready",
+                    cores
+                )
+            }
+            Err(e) => format!("ERR: {}", e),
+        }
+    }
+
+    /// Load and configure a Linux kernel Image with a caller-provided BusyBox binary.
+    pub fn boot_kernel_with_busybox(
+        &mut self,
+        kernel_image: Vec<u8>,
+        busybox: Vec<u8>,
+        num_cores: usize,
+    ) -> String {
+        match BootContext::new_with_busybox(&kernel_image, num_cores, &busybox) {
+            Ok(ctx) => {
+                let cores = ctx.machine.cpus.len();
+                self.boot = Some(ctx);
+                format!(
+                    "OK: kernel loaded with BusyBox initrd, {} cores ready",
+                    cores
+                )
+            }
+            Err(e) => format!("ERR: {}", e),
+        }
+    }
+
+    /// Load an ARM64 Linux ISO by extracting its kernel/initrd boot pair.
+    pub fn boot_iso(&mut self, iso_image: Vec<u8>, num_cores: usize) -> String {
+        match BootContext::new_from_iso(&iso_image, num_cores) {
+            Ok(ctx) => {
+                let cores = ctx.machine.cpus.len();
+                self.boot = Some(ctx);
+                format!("OK: ISO kernel/initrd loaded, {} cores ready", cores)
             }
             Err(e) => format!("ERR: {}", e),
         }
@@ -63,6 +115,45 @@ impl Emulator {
             boot.uart_output()
         } else {
             self.machine.bus.uart.output_string()
+        }
+    }
+
+    /// Get UART output length in bytes.
+    pub fn uart_output_len(&self) -> usize {
+        if let Some(ref boot) = self.boot {
+            boot.uart_output_len()
+        } else {
+            self.machine.bus.uart.output.len()
+        }
+    }
+
+    /// Get UART output since a byte offset.
+    pub fn uart_output_since(&self, offset: usize) -> String {
+        if let Some(ref boot) = self.boot {
+            boot.uart_output_since(offset)
+        } else {
+            let output = &self.machine.bus.uart.output;
+            String::from_utf8_lossy(&output[offset.min(output.len())..]).to_string()
+        }
+    }
+
+    /// Send text to the guest UART receive path.
+    pub fn send_uart_input(&mut self, input: &str) {
+        if let Some(ref mut boot) = self.boot {
+            boot.feed_uart_input(input);
+        } else {
+            self.machine.bus.uart.feed_input(input);
+            self.machine.inject_irq(crate::constants::PL011_UART_IRQ_ID);
+        }
+    }
+
+    /// Send raw bytes to the guest UART receive path.
+    pub fn send_uart_bytes(&mut self, input: Vec<u8>) {
+        if let Some(ref mut boot) = self.boot {
+            boot.feed_uart_bytes(&input);
+        } else if !input.is_empty() {
+            self.machine.bus.uart.feed_input_bytes(&input);
+            self.machine.inject_irq(crate::constants::PL011_UART_IRQ_ID);
         }
     }
 

@@ -171,7 +171,7 @@ fn test_decode_121d7820() {
 fn test_fdt_header_verification_decoding() {
     use crate::loader::kernel::{load_kernel};
     let mut bus = SystemBus::new();
-    load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+    load_kernel(&mut bus, concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image")).unwrap();
 
     let addrs = [0x41e29d90u64, 0x41e29d94u64, 0x41e29d98u64];
     for &addr in &addrs {
@@ -188,4 +188,3 @@ fn test_fdt_header_verification_decoding() {
         println!("ADDR={:#x} RAW={:#010x} DECODED={:?}", addr, raw, instr);
     }
 }
-

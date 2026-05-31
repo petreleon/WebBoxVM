@@ -170,6 +170,8 @@ pub const GICD_IIDR_VAL: u32 = 0x0201743B;
 pub const TIMER_FREQ_HZ: u64 = 62_500_000;
 /// Timer IRQ ID (PPI 30 = Non-secure Physical Timer).
 pub const TIMER_IRQ_ID: u32 = 30;
+/// PL011 UART IRQ ID (SPI 1, delivered as GIC interrupt ID 33).
+pub const PL011_UART_IRQ_ID: u32 = 33;
 /// Spurious interrupt ID — returned when no interrupt is pending.
 pub const GIC_SPURIOUS_INTERRUPT: u64 = 1023;
 

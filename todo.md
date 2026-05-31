@@ -118,10 +118,11 @@
 ## Sprint 7 — Busybox Shell (IN PROGRESS)
 - [ ] Kernel boots to Busybox `ash` shell
   - Early console works; next target is enough init, scheduler, device, and initrd behavior to spawn `/init`
-  - Current initrd contains placeholder BusyBox bytes and a minimal `/init` script
-- [ ] Replace placeholder BusyBox payload with a real static ARM64 BusyBox binary
+  - Default initrd now contains real static ARM64 BusyBox, `/init`, `/dev/console`, and applet symlinks
+- [x] Replace placeholder BusyBox payload with a real static ARM64 BusyBox binary
 - [ ] Continue boot beyond early console into initramfs unpacking and `/init`
-- [ ] Add UART RX path wiring for interactive shell input
+- [x] Add UART RX path wiring for interactive shell input
+- [x] Add first ARM64 ISO terminal boot path by extracting kernel/initrd from ISO9660 media
 - [ ] **Standard boot for CONFIG_RELOCATABLE=n kernels** — real bootloaders (U-Boot/GRUB) don't relocate:
   - [ ] Add kernel `PAGE_OFFSET` (e.g. `0xffff800000000000`) to TTBR1 identity mapping
   - [ ] Map kernel VA range → physical load address BEFORE EFI stub runs

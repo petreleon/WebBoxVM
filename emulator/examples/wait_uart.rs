@@ -2,11 +2,13 @@
 //! Run: cargo run --example wait_uart --release
 
 use emulator::boot::BootContext;
+use std::env;
 use std::fs;
 use std::time::Instant;
 
 fn main() {
-    let kernel = fs::read("/Users/petreleon/code/WebBoxVM/Image.gz").expect("read Image.gz");
+    let kernel_path = env::var("WEBBOXVM_KERNEL").unwrap_or_else(|_| ".artifacts/Image".to_string());
+    let kernel = fs::read(&kernel_path).expect("read kernel Image");
     let mut ctx = BootContext::new(&kernel, 1).expect("boot");
     println!("Boot context ready");
 

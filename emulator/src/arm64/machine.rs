@@ -3,7 +3,7 @@
 //! Each core runs one instruction at a time in round-robin fashion,
 //! with a per-core decode cache to avoid re-decoding the same page.
 
-use crate::arm64::{Armv8Cpu, decode, execute, translate, Instr, Opcode};
+use crate::arm64::{Armv8Cpu, Instr, Opcode, decode, execute, translate};
 use crate::bus::SystemBus;
 use crate::constants::*;
 use std::collections::HashMap;
@@ -15,7 +15,7 @@ type DecodeCache = HashMap<u64, Vec<Instr>>;
 pub struct Machine {
     pub cpus: Vec<Armv8Cpu>,
     pub bus: SystemBus,
-    caches: Vec<DecodeCache>,   // one decode cache per core
+    caches: Vec<DecodeCache>, // one decode cache per core
     pub active_core: usize,
     pub total_steps: u64,
     pub fetch_faults: u64,
@@ -62,11 +62,17 @@ impl Machine {
             }
 
             // Periodic diagnostic report
-            if (self.total_steps - start_steps) > 0 && (self.total_steps - start_steps) % report_interval == 0 {
+            if (self.total_steps - start_steps) > 0
+                && (self.total_steps - start_steps) % report_interval == 0
+            {
                 let pc = cpu.regs.pc;
-                eprintln!("DIAG {:>9}M steps | fetch_faults={:>7} exec_faults={:>7} | PC=0x{:016x}",
+                eprintln!(
+                    "DIAG {:>9}M steps | fetch_faults={:>7} exec_faults={:>7} | PC=0x{:016x}",
                     (self.total_steps - start_steps) / 1_000_000,
-                    self.fetch_faults, self.exec_faults, pc);
+                    self.fetch_faults,
+                    self.exec_faults,
+                    pc
+                );
                 if (self.total_steps - start_steps) >= 10_000_000 {
                     report_interval = 100_000_000;
                 }
@@ -140,8 +146,20 @@ impl Machine {
         (self.total_steps - start_steps) as usize
     }
 
-    pub fn core(&self, n: usize) -> &Armv8Cpu { &self.cpus[n] }
-    pub fn core_mut(&mut self, n: usize) -> &mut Armv8Cpu { &mut self.cpus[n] }
+    pub fn core(&self, n: usize) -> &Armv8Cpu {
+        &self.cpus[n]
+    }
+    pub fn core_mut(&mut self, n: usize) -> &mut Armv8Cpu {
+        &mut self.cpus[n]
+    }
+
+    pub fn inject_irq(&mut self, int_id: u32) {
+        if let Some(cpu) = self.cpus.first_mut() {
+            cpu.sys.irq_pending = true;
+            cpu.sys.last_irq_id = int_id;
+        }
+        self.bus.gic.set_pending(int_id);
+    }
 }
 
 /// Fetch one instruction, using the decode cache to avoid re-decoding.
@@ -164,7 +182,14 @@ fn get_cached_or_fetch(
         let addr = page_base + i * INSTRUCTION_SIZE;
         let raw = mem.read(addr, 4)? as u32;
         page.push(decode(raw).unwrap_or(Instr {
-            op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0
+            op: Opcode::Nop,
+            rd: 0,
+            rn: 0,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 0,
         }));
     }
     let result = page.get(word_offset).copied();

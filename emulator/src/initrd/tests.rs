@@ -2,11 +2,7 @@ use super::*;
 
 #[test]
 fn roundtrip_single_file() {
-    let entries = vec![(
-        "init".to_string(),
-        b"#!/bin/sh\necho hello".to_vec(),
-        0o755,
-    )];
+    let entries = vec![("init".to_string(), b"#!/bin/sh\necho hello".to_vec(), 0o755)];
     let archive = build_cpio(&entries);
     let parsed = parse_cpio(&archive).unwrap();
     assert_eq!(parsed.len(), 1);

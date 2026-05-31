@@ -15,7 +15,7 @@ mod kernel_dump_tests {
         let mut cpu = Armv8Cpu::new();
         let mut bus = SystemBus::new();
 
-        let _entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+        let _entry = load_kernel(&mut bus, concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image")).unwrap();
 
         let dtb_addr = 0x4700_0000u64;
         let (handle, st) = setup_efi_tables(&mut bus, KERNEL_LOAD, 0x024f_0000, dtb_addr);

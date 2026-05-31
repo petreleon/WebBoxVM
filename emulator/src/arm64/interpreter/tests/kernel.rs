@@ -69,7 +69,7 @@ fn real_kernel_runs_past_prologue() {
     let mut cpu = Armv8Cpu::new();
     let mut bus = SystemBus::new();
 
-    let _entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+    let _entry = load_kernel(&mut bus, concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image")).unwrap();
 
     let dtb_addr = 0x4700_0000u64;
     let (handle, st) = setup_efi_tables(&mut bus, KERNEL_LOAD, 0x024f_0000, dtb_addr);
@@ -88,7 +88,7 @@ fn real_kernel_runs_past_prologue() {
     let mut last_pc = cpu.regs.pc;
     let mut efi_stub_done = false;
 
-    let busybox_data = std::fs::read("/tmp/busybox").unwrap_or_else(|_| vec![0u8; 100]);
+    let busybox_data = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/busybox-aarch64")).unwrap_or_else(|_| vec![0u8; 100]);
     let init_script = b"#!/bin/sh\necho '=== WEBBOXVM ==='\nmount -t proc proc /proc\nmount -t sysfs sysfs /sys\nexec /bin/sh\n".to_vec();
     let entries = vec![
         ("bin/busybox".to_string(), busybox_data.clone(), 0o100755u32),
@@ -362,7 +362,7 @@ fn real_kernel_runs_past_prologue_trace() {
     cpu.pstate = cpu.pstate.with_el(1);
     let mut bus = SystemBus::new();
 
-    let _entry = load_kernel(&mut bus, "/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+    let _entry = load_kernel(&mut bus, concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image")).unwrap();
 
     let dtb_addr = 0x4700_0000u64;
     let (handle, st) = setup_efi_tables(&mut bus, KERNEL_LOAD, 0x024f_0000, dtb_addr);
@@ -377,7 +377,7 @@ fn real_kernel_runs_past_prologue_trace() {
     setup_boot_page_tables(&mut cpu, &mut bus);
     cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
 
-    let busybox_data = std::fs::read("/tmp/busybox").unwrap_or_else(|_| vec![0u8; 100]);
+    let busybox_data = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/busybox-aarch64")).unwrap_or_else(|_| vec![0u8; 100]);
     let init_script = b"#!/bin/sh\necho '=== WEBBOXVM ==='\nmount -t proc proc /proc\nexec /bin/sh\n".to_vec();
     let entries = vec![
         ("bin/busybox".to_string(), busybox_data.clone(), 0o100755u32),
@@ -690,18 +690,29 @@ fn real_kernel_runs_past_prologue_trace() {
 #[test]
 fn synthetic_kernel_boots_to_uart() {
     use crate::loader::kernel::{load_raw_image, KERNEL_LOAD};
-    use std::fs;
 
     let mut cpu = Armv8Cpu::new();
     let mut bus = SystemBus::new();
 
-    let data = fs::read("/tmp/kernel_raw.bin")
-        .expect("kernel not found; run build_kernel.sh first");
+    let message = b"Uncompressing Linux...\n";
+    let msg_offset = (2 + message.len() * 2 + 1) * 4;
+    let mut words = vec![
+        0xD2A8_0001, // MOVZ X1, #0x4000, LSL #16
+        0xD2A1_2002, // MOVZ X2, #0x0900, LSL #16
+    ];
+    for i in 0..message.len() {
+        words.push(0x3940_0020 | (((msg_offset + i) as u32) << 10)); // LDRB W0, [X1, #imm]
+        words.push(0x3800_0040); // STRB W0, [X2]
+    }
+    words.push(0x1400_0000); // B .
+
+    let mut data: Vec<u8> = words.iter().flat_map(|&word| word.to_le_bytes()).collect();
+    data.extend_from_slice(message);
     load_raw_image(&mut bus, &data);
 
     cpu.regs.sp = 0x43F0_0000;
 
-    let result = run(&mut cpu, &mut bus, KERNEL_LOAD, 50);
+    let result = run(&mut cpu, &mut bus, KERNEL_LOAD, words.len() + 2);
     println!("Result: {:?}", result);
     println!("UART output bytes: {:?}", bus.uart.output);
     assert!(result.is_ok(), "Synthetic kernel crashed: {:?}", result);

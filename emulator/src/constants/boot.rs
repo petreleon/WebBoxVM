@@ -89,6 +89,14 @@ pub const CPIO_NEWC_MAGIC: &str = "070701";
 pub const CPIO_TRAILER_NAME: &str = "TRAILER!!!";
 /// Size of a cpio newc header in bytes (110).
 pub const CPIO_HEADER_SIZE: usize = 110;
+/// cpio mode bit for a regular file.
+pub const CPIO_MODE_FILE: u32 = 0o100000;
+/// cpio mode bit for a directory.
+pub const CPIO_MODE_DIR: u32 = 0o040000;
+/// cpio mode bit for a symbolic link.
+pub const CPIO_MODE_SYMLINK: u32 = 0o120000;
+/// cpio mode bit for a character device.
+pub const CPIO_MODE_CHAR: u32 = 0o020000;
 
 // ============================================================================
 // MISC

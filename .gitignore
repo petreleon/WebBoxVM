@@ -12,9 +12,15 @@ Cargo.lock
 .DS_Store
 
 # Kernel images (large binaries, download on demand)
+Image
 Image.gz
+rela.dyn
+.artifacts/
 vmlinuz
 *.vmlinuz
 *.img
+*.iso
+*.iso.part
+assets/busybox-aarch64
 pkg/
 *.wasm

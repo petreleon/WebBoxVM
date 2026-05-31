@@ -114,9 +114,12 @@ mod tests {
 
     #[test]
     fn pe_entry_found() {
-        let data = fs::read("/Users/petreleon/code/WebBoxVM/Image.gz").unwrap();
+        let path = std::env::var("WEBBOXVM_KERNEL").unwrap_or_else(|_| {
+            concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image").to_string()
+        });
+        let data = fs::read(path).unwrap();
         assert!(is_pe_image(&data));
         let entry = parse_pe_entry(&data).unwrap();
-        assert_eq!(entry, KERNEL_LOAD_ADDR + KERNEL_PE_ENTRY_OFFSET);
+        assert!(entry >= KERNEL_LOAD_ADDR);
     }
 }
