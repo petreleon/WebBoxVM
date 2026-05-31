@@ -6,7 +6,7 @@ use crate::loader::iso::load_iso_boot_image;
 
 mod initrd;
 pub use self::initrd::{
-    build_busybox_initrd, build_default_initrd, DEFAULT_BOOTARGS, DEFAULT_BUSYBOX_AARCH64,
+    DEFAULT_BOOTARGS, DEFAULT_BUSYBOX_AARCH64, build_busybox_initrd, build_default_initrd,
 };
 
 /// Holds everything needed to boot and run a Linux kernel.
@@ -77,7 +77,7 @@ impl BootContext {
         cpu0.regs.set_x(3, 0);
         cpu0.pstate = cpu0.pstate.with_el(1).with_irq_masked(true);
         cpu0.sys.sctlr_el1 = 0; // MMU disabled — kernel's head.S enables it
-                                // Jump to ARM64 Image header (code0+cod1 branch to primary_entry)
+        // Jump to ARM64 Image header (code0+cod1 branch to primary_entry)
         cpu0.regs.pc = KERNEL_LOAD_ADDR;
 
         // Build DTB and load the initrd into guest RAM.
@@ -99,7 +99,18 @@ impl BootContext {
 
     pub fn new_from_iso(iso_image: &[u8], num_cores: usize) -> Result<Self, String> {
         let boot = load_iso_boot_image(iso_image)?;
-        Self::new_with_initrd_and_bootargs(&boot.kernel, num_cores, &boot.initrd, &boot.bootargs)
+        let mut ctx = Self::new_with_initrd_and_bootargs(
+            &boot.kernel,
+            num_cores,
+            &boot.initrd,
+            &boot.bootargs,
+        )?;
+        ctx.attach_virtio_block(iso_image);
+        Ok(ctx)
+    }
+
+    pub fn attach_virtio_block(&mut self, image: &[u8]) {
+        self.machine.bus.virtio_blk.set_image(image);
     }
 
     /// No-op: EFI stub is skipped.  We boot via the standard ARM64 protocol.
@@ -150,8 +161,11 @@ mod tests {
 
         ctx.feed_uart_input("ls\r");
 
-        assert!(ctx.machine.cpus[0].sys.irq_pending);
-        assert_eq!(ctx.machine.cpus[0].sys.last_irq_id, PL011_UART_IRQ_ID);
+        assert_ne!(
+            ctx.machine.bus.gic.pending[(PL011_UART_IRQ_ID / 32) as usize]
+                & (1 << (PL011_UART_IRQ_ID % 32)),
+            0
+        );
         assert_eq!(
             ctx.machine
                 .bus

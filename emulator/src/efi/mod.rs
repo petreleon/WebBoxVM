@@ -5,9 +5,7 @@ pub mod layout;
 pub mod protocols;
 pub mod tables;
 
-pub use layout::{
-    is_efi_addr, EFI_HANDLE_ADDR, EFI_MEM_BASE, EFI_MEM_SIZE, EFI_SYSTEM_TABLE,
-};
+pub use layout::{EFI_HANDLE_ADDR, EFI_MEM_BASE, EFI_MEM_SIZE, EFI_SYSTEM_TABLE, is_efi_addr};
 pub use tables::setup_efi_tables;
 
 #[cfg(test)]

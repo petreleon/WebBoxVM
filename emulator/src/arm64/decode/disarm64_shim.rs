@@ -14,7 +14,7 @@ pub fn decode(raw: u32) -> Option<Instr> {
     // Cross-validate against disarm64 in debug builds
     #[cfg(debug_assertions)]
     if let Some(d64) = decoder::decode(raw) {
-        if let Some(expected) = mnemonic_to_opcode(d64.mnemonic) {
+        if let Some(expected) = mnemonic_to_opcode(raw, d64.mnemonic) {
             if legacy.op != expected {
                 eprintln!(
                     "DISARM64 MISMATCH: raw=0x{raw:08x} legacy={:?} disarm64={:?}",
@@ -27,18 +27,25 @@ pub fn decode(raw: u32) -> Option<Instr> {
     Some(legacy)
 }
 
-fn mnemonic_to_opcode(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
+fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic as M;
     Some(match m {
+        M::r#add if (raw & 0xBF20_FC00) == 0x0E20_8400 => Opcode::SimdAddVec,
         M::r#add => Opcode::Add,
         M::r#adds => Opcode::Adds,
         M::r#sub => Opcode::Sub,
         M::r#subs => Opcode::Subs,
+        M::r#adc => Opcode::Adc,
+        M::r#adcs => Opcode::Adcs,
+        M::r#sbc => Opcode::Sbc,
+        M::r#sbcs => Opcode::Sbcs,
         M::r#movz => Opcode::Movz,
         M::r#movk => Opcode::Movk,
         M::r#movn => Opcode::Movn,
+        M::r#and if (raw & 0xBFE0_FC00) == 0x0E20_1C00 => Opcode::SimdAnd,
         M::r#and => Opcode::AndReg,
         M::r#ands => Opcode::AndsReg,
+        M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
         M::r#orr => Opcode::OrrReg,
         M::r#eor => Opcode::EorReg,
         M::r#csel => Opcode::Csel,
@@ -87,6 +94,35 @@ fn mnemonic_to_opcode(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sxtw => Opcode::Sxtw,
         M::r#ccmn => Opcode::Ccmn,
         M::r#ccmp => Opcode::Ccmp,
+        M::r#fmov if (raw & 0xFFFF_FC00) == 0x1E60_4000 => Opcode::SimdFmovReg64,
+        M::r#fmov if (raw & 0xFFFF_FC00) == 0x9E67_0000 => Opcode::SimdFmovGprToD,
+        M::r#fmov if (raw & 0xFFFF_FC00) == 0x9E66_0000 => Opcode::SimdFmovDToGpr,
+        M::r#fmov if (raw & 0x7F3F_FC00) == 0x1E27_0000 => Opcode::SimdFmovGprToS,
+        M::r#fmov if (raw & 0x7F3F_FC00) == 0x1E26_0000 => Opcode::SimdFmovSToGpr,
+        M::r#fmov if (raw & 0xFFFF_FC00) == 0x9EAE_0000 => Opcode::SimdFmovLaneToGpr,
+        M::r#umov => Opcode::SimdUmov,
+        M::r#dup if (raw & 0xBFE0_FC00) == 0x0E00_0400 => Opcode::SimdDupElem,
+        M::r#dup => Opcode::SimdDupByte,
+        M::r#ins if (raw & 0xFFE0_8400) == 0x6E00_0400 => Opcode::SimdInsElem,
+        M::r#ins if (raw & 0xFFE0_FC00) == 0x4E00_1C00 => Opcode::SimdInsGprLane,
+        M::r#addp => Opcode::SimdAddp,
+        M::r#addv => Opcode::SimdAddv,
+        M::r#ext => Opcode::SimdExt,
+        M::r#cnt => Opcode::SimdCnt,
+        M::r#cmtst => Opcode::SimdCmtst,
+        M::r#shl => Opcode::SimdShlImm,
+        M::r#ushr => Opcode::SimdUshr,
+        M::r#ushl => Opcode::SimdUshl,
+        M::r#xtn => Opcode::SimdXtn,
+        M::r#rev32 if (raw & 0xBF3F_FC00) == 0x2E20_0800 => Opcode::SimdRev32,
+        M::r#uzp1 if (raw & 0xBF20_FC00) == 0x0E00_1800 => Opcode::SimdUzp1,
+        M::r#not => Opcode::SimdNot,
+        M::r#movi => Opcode::SimdMovi,
+        M::r#mvni => Opcode::SimdMvni,
+        M::r#uminp => Opcode::SimdUminp,
+        M::r#ld1r => Opcode::SimdLd1r,
+        M::r#ld4 if (raw & 0xBFFF_F000) == 0x0C40_A000 => Opcode::SimdLd1Multi,
+        M::r#st4 if (raw & 0xBFFF_F000) == 0x0C00_A000 => Opcode::SimdSt1Multi,
         _ => return None,
     })
 }

@@ -1,9 +1,9 @@
 //! Large EFI service trampolines (> 32 bytes of code).
 
+use super::{encode_mov64, encode_ret};
 use crate::constants::*;
-use crate::efi::encode::{movz_x, movk_x};
+use crate::efi::encode::{movk_x, movz_x};
 use crate::efi::protocols::LOADED_IMAGE_GUID_LO;
-use super::{encode_ret, encode_mov64};
 
 /// Fixed address for the page bump-allocator head.
 pub(super) const EFI_PAGE_ALLOC_HEAD: u64 = EFI_REGION_BASE + 0xFF10;
@@ -25,7 +25,7 @@ pub(super) fn build_get_memory_map_trampoline() -> Vec<u32> {
     v.push(0x54000002); // placeholder, patched below
 
     // ── label_too_small: buffer isn't big enough ──
-    encode_mov64(&mut v, 5, EFI_MEMORY_DESC_SIZE);   // *MemoryMapSize = 48
+    encode_mov64(&mut v, 5, EFI_MEMORY_DESC_SIZE); // *MemoryMapSize = 48
     v.push(0xf9000005); // STR X5, [X0]
     v.push(0xf9000065); // *DescriptorSize = 48
     encode_mov64(&mut v, 5, EFI_MEMORY_DESC_VERSION);
@@ -44,7 +44,7 @@ pub(super) fn build_get_memory_map_trampoline() -> Vec<u32> {
     encode_mov64(&mut v, 5, RAM_BASE);
     v.push(0xf9000425); // STR X5, [X1, #8]   // PhysicalStart
     v.push(0xf900083f); // STR XZR, [X1, #16] // VirtualStart = 0
-    encode_mov64(&mut v, 5, 0x40000u64);      // NumberOfPages = 1 GiB / 4 KiB
+    encode_mov64(&mut v, 5, 0x40000u64); // NumberOfPages = 1 GiB / 4 KiB
     v.push(0xf9000c25); // STR X5, [X1, #24]  // NumberOfPages
     encode_mov64(&mut v, 5, EFI_MEMORY_WB);
     v.push(0xf9001025); // STR X5, [X1, #32]  // Attribute

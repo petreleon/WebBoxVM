@@ -94,6 +94,19 @@ fn baud_rate_registers_have_sensible_defaults() {
 }
 
 #[test]
+fn primecell_id_registers_identify_pl011() {
+    let mut uart = Pl011Uart::new();
+    assert_eq!(uart.read(UART_BASE + UARTPERIPHID0_OFFSET, 4), Some(0x11));
+    assert_eq!(uart.read(UART_BASE + UARTPERIPHID1_OFFSET, 4), Some(0x10));
+    assert_eq!(uart.read(UART_BASE + UARTPERIPHID2_OFFSET, 4), Some(0x14));
+    assert_eq!(uart.read(UART_BASE + UARTPERIPHID3_OFFSET, 4), Some(0x00));
+    assert_eq!(uart.read(UART_BASE + UARTPCELLID0_OFFSET, 4), Some(0x0D));
+    assert_eq!(uart.read(UART_BASE + UARTPCELLID1_OFFSET, 4), Some(0xF0));
+    assert_eq!(uart.read(UART_BASE + UARTPCELLID2_OFFSET, 4), Some(0x05));
+    assert_eq!(uart.read(UART_BASE + UARTPCELLID3_OFFSET, 4), Some(0xB1));
+}
+
+#[test]
 fn interrupt_registers_read_zero_when_no_pending_irqs() {
     let mut uart = Pl011Uart::new();
     assert_eq!(uart.read(UART_BASE + UARTRIS_OFFSET, 4).unwrap(), 0);

@@ -1,30 +1,32 @@
 //! ARM64 (AArch64) CPU core.
 
+use crate::constants::PSTATE_DAIF_MASK;
+
 mod bitmask_imm;
 mod decode;
 mod decode_cache;
 mod execute;
 mod helpers;
+mod interpreter;
 pub mod jit;
+pub mod machine;
 mod mmu;
 mod opcodes;
-mod interpreter;
 mod pstate;
 mod registers;
 mod system_regs;
-pub mod machine;
 
 pub use decode::decode;
 pub use decode_cache::DecodeCache;
 pub use execute::execute;
-pub use helpers::{cond_taken, read_reg, read_base, write_reg, write_reg_sp};
+pub use helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};
+pub use interpreter::{RunError, run};
+pub use machine::Machine;
 pub use mmu::{Tlb, translate};
 pub use opcodes::{Instr, Opcode};
-pub use interpreter::{run, RunError};
 pub use pstate::ProcessorState;
 pub use registers::RegisterFile;
 pub use system_regs::SystemRegisters;
-pub use machine::Machine;
 
 /// ARM64 CPU: combines register file, processor state, system registers, and TLB.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,17 +36,68 @@ pub struct Armv8Cpu {
     pub pstate: ProcessorState,
     pub sys: SystemRegisters,
     pub tlb: Tlb,
+    pub simd: [u128; 32],
+    pub exclusive: Option<ExclusiveReservation>,
+    pub trace_syscall_stack_top: u64,
+    pub trace_syscall_access_budget: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExclusiveReservation {
+    pub addr: u64,
+    pub size: u8,
 }
 
 impl Armv8Cpu {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
     pub fn with_core(core_id: u32) -> Self {
         let mut cpu = Self::default();
         cpu.core_id = core_id;
         // Set MPIDR_EL1 to reflect core ID
         cpu
     }
-    pub fn reset(&mut self) { *self = Self::default(); }
+    pub fn reset(&mut self) {
+        *self = Self::default();
+    }
+
+    pub fn reserve_exclusive(&mut self, addr: u64, size: u8) {
+        self.exclusive = Some(ExclusiveReservation { addr, size });
+    }
+
+    pub fn clear_exclusive(&mut self) {
+        self.exclusive = None;
+    }
+
+    pub fn exclusive_matches(&self, addr: u64, size: u8) -> bool {
+        self.exclusive
+            .is_some_and(|reservation| reservation.addr == addr && reservation.size == size)
+    }
+
+    pub fn clear_exclusive_if_overlaps(&mut self, addr: u64, size: u8) {
+        if self.exclusive.is_some_and(|reservation| {
+            ranges_overlap(reservation.addr, reservation.size, addr, size)
+        }) {
+            self.clear_exclusive();
+        }
+    }
+
+    pub fn enter_el1_exception(&mut self, from_lower_el: bool) {
+        if from_lower_el {
+            self.sys.sp_el0 = self.regs.sp;
+            self.regs.sp = self.sys.sp_el1;
+        }
+        self.pstate = self.pstate.with_el(1).with_daif(PSTATE_DAIF_MASK);
+    }
+
+    pub fn eret_to(&mut self, target: ProcessorState) {
+        if target.el() == 0 {
+            self.sys.sp_el1 = self.regs.sp;
+            self.regs.sp = self.sys.sp_el0;
+        }
+        self.pstate = target;
+    }
 }
 
 impl Default for Armv8Cpu {
@@ -55,8 +108,18 @@ impl Default for Armv8Cpu {
             pstate: ProcessorState::new(),
             sys: SystemRegisters::default(),
             tlb: Tlb::default(),
+            simd: [0; 32],
+            exclusive: None,
+            trace_syscall_stack_top: 0,
+            trace_syscall_access_budget: 0,
         }
     }
+}
+
+fn ranges_overlap(a: u64, a_size: u8, b: u64, b_size: u8) -> bool {
+    let a_end = a.saturating_add(a_size as u64);
+    let b_end = b.saturating_add(b_size as u64);
+    a < b_end && b < a_end
 }
 
 #[cfg(test)]

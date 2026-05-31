@@ -5,19 +5,23 @@
 
 use super::decode;
 use super::opcodes::Instr;
-use crate::memory::PhysicalMemory;
 use crate::constants::*;
+use crate::memory::PhysicalMemory;
 use std::collections::HashMap;
 
 pub struct DecodeCache {
-    pages: HashMap<u64, Vec<Instr>>,  // page_phys_addr → pre-decoded instruction list
+    pages: HashMap<u64, Vec<Instr>>, // page_phys_addr → pre-decoded instruction list
     pub hits: u64,
     pub misses: u64,
 }
 
 impl DecodeCache {
     pub fn new() -> Self {
-        Self { pages: HashMap::new(), hits: 0, misses: 0 }
+        Self {
+            pages: HashMap::new(),
+            hits: 0,
+            misses: 0,
+        }
     }
 
     /// Fetch and decode the instruction at physical address `pa`.

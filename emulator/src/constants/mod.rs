@@ -29,14 +29,14 @@
 //!     ├─ 0x8000_8000  Loaded Image Protocol (LIP)
 //!     └─ 0x8010_0000  Page tables (MMU translation tables)
 
-mod layout;
-mod efi;
-mod sysreg;
-mod mmu;
 mod boot;
+mod efi;
+mod layout;
+mod mmu;
+mod sysreg;
 
-pub use layout::*;
-pub use efi::*;
-pub use sysreg::*;
-pub use mmu::*;
 pub use boot::*;
+pub use efi::*;
+pub use layout::*;
+pub use mmu::*;
+pub use sysreg::*;

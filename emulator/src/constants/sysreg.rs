@@ -30,6 +30,37 @@ pub const VBAR_SYNC_CURRENT_EL: u64 = 0x200;
 pub const VBAR_IRQ_CURRENT_EL: u64 = 0x280;
 /// SuperVisor Call (SVC) exception.
 pub const VBAR_SYNC_LOWER_EL_AARCH64: u64 = 0x400;
+/// IRQ exception taken from a lower exception level in AArch64 state.
+pub const VBAR_IRQ_LOWER_EL_AARCH64: u64 = 0x480;
+
+// -- ESR_EL1 exception classes and ISS bits --
+
+/// Instruction Abort taken from a lower exception level.
+pub const ESR_EC_INSN_ABORT_LOWER_EL: u64 = 0x20;
+/// Instruction Abort taken without changing exception level.
+pub const ESR_EC_INSN_ABORT_CURRENT_EL: u64 = 0x21;
+/// Data Abort taken from a lower exception level.
+pub const ESR_EC_DATA_ABORT_LOWER_EL: u64 = 0x24;
+/// Data Abort taken without changing exception level.
+pub const ESR_EC_DATA_ABORT_CURRENT_EL: u64 = 0x25;
+/// SVC instruction executed in AArch64 state.
+pub const ESR_EC_SVC64: u64 = 0x15;
+/// BRK instruction executed in AArch64 state.
+pub const ESR_EC_BRK64: u64 = 0x3C;
+/// Advanced SIMD / floating-point access trapped by CPACR_EL1.FPEN.
+pub const ESR_EC_FP_ASIMD: u64 = 0x07;
+/// ESR_ELx.IL for a trapped 32-bit AArch64 instruction.
+pub const ESR_IL: u64 = 1 << 25;
+/// FP/SIMD trap ISS for AArch64: CV=1, COND=0b1110, RES0 elsewhere.
+pub const ESR_FP_ASIMD_ISS_AARCH64: u64 = ESR_IL | (1 << 24) | (0b1110 << 20);
+/// Fault status code for a stage-1 translation fault at level 3.
+pub const ESR_FSC_TRANSLATION_LEVEL3: u64 = 0b000111;
+/// Fault status code for a stage-1 access flag fault at level 3.
+pub const ESR_FSC_ACCESS_FLAG_LEVEL3: u64 = 0b001011;
+/// Fault status code for a stage-1 permission fault at level 3.
+pub const ESR_FSC_PERMISSION_LEVEL3: u64 = 0b001111;
+/// Data Abort ISS bit indicating the faulting access was a write.
+pub const ESR_DATA_ABORT_WNR: u64 = 1 << 6;
 
 // ============================================================================
 // SYSTEM REGISTER IDS (MRS/MSR encoding)
@@ -79,6 +110,8 @@ pub const SYSREG_SPSR_EL1: u16 = 0x4200;
 pub const SYSREG_ELR_EL1: u16 = 0x4201;
 /// SP_EL0 — Stack Pointer (EL0).
 pub const SYSREG_SP_EL0: u16 = 0x4208;
+/// SP_EL1 — Stack Pointer (EL1), visible from higher exception levels.
+pub const SYSREG_SP_EL1: u16 = 0x6208;
 /// ESR_EL1 — Exception Syndrome Register (EL1).
 pub const SYSREG_ESR_EL1: u16 = 0x4290;
 /// FAR_EL1 — Fault Address Register (EL1).
@@ -99,6 +132,8 @@ pub const SYSREG_CNTFRQ_EL0: u16 = 0x5F00;
 pub const SYSREG_CNTPCT_EL0: u16 = 0x5F01;
 /// CNTVCT_EL0 — Virtual Counter value.
 pub const SYSREG_CNTVCT_EL0: u16 = 0x5F02;
+/// CNTKCTL_EL1 — Timer kernel control register.
+pub const SYSREG_CNTKCTL_EL1: u16 = 0x4708;
 /// TPIDR_EL0 — User Read/Write Thread ID Register.
 pub const SYSREG_TPIDR_EL0: u16 = 0x5E82;
 /// TPIDRRO_EL0 — User Read-Only Thread ID Register.
@@ -109,8 +144,18 @@ pub const SYSREG_CNTP_TVAL_EL0: u16 = 0x5F10;
 pub const SYSREG_CNTP_CTL_EL0: u16 = 0x5F11;
 /// CNTP_CVAL_EL0 — Physical Timer Compare Value.
 pub const SYSREG_CNTP_CVAL_EL0: u16 = 0x5F12;
+/// CNTV_TVAL_EL0 — Virtual Timer Value.
+pub const SYSREG_CNTV_TVAL_EL0: u16 = 0x5F18;
+/// CNTV_CTL_EL0 — Virtual Timer Control.
+pub const SYSREG_CNTV_CTL_EL0: u16 = 0x5F19;
+/// CNTV_CVAL_EL0 — Virtual Timer Compare Value.
+pub const SYSREG_CNTV_CVAL_EL0: u16 = 0x5F1A;
 /// DAIF — Interrupt Mask bits.
 pub const SYSREG_DAIF: u16 = 0x5A11;
+/// FPCR — Floating-point Control Register.
+pub const SYSREG_FPCR: u16 = 0x5A20;
+/// FPSR — Floating-point Status Register.
+pub const SYSREG_FPSR: u16 = 0x5A21;
 /// SCR_EL3 — Secure Configuration Register (EL3).
 pub const SYSREG_SCR_EL3: u16 = 0x7088;
 /// SPSR_EL3 — Saved Program Status Register (EL3).
@@ -145,20 +190,29 @@ pub const SYSREG_ICC_SRE_EL1: u16 = 0x4665;
 pub const MIDR_CORTEX_A72_R0P3: u64 = 0x410FD083;
 /// MPIDR_EL1: single core, Aff0=0.
 pub const MPIDR_SINGLE_CORE: u64 = 0x80000000;
-/// ID_AA64PFR0_EL1: EL0/1/2/3 all support AArch64.
+/// ID_AA64PFR0_EL1: EL0/1 support AArch64 with baseline FP/AdvSIMD.
 pub const ID_AA64PFR0_EL1_VAL: u64 = 0x0000_0000_0000_0011;
+/// CPACR_EL1.FPEN bit position and values.
+pub const CPACR_FPEN_SHIFT: u32 = 20;
+pub const CPACR_FPEN_MASK: u64 = 0b11 << CPACR_FPEN_SHIFT;
+pub const CPACR_FPEN_TRAP_EL0_EL1: u64 = 0b00;
+pub const CPACR_FPEN_TRAP_EL0: u64 = 0b01;
+pub const CPACR_FPEN_TRAP_EL1_EL0: u64 = 0b10;
+pub const CPACR_FPEN_TRAP_NONE: u64 = 0b11;
 /// ID_AA64MMFR0_EL1: 4K + 64K granules, 48-bit physical address.
 pub const ID_AA64MMFR0_EL1_VAL: u64 = 0x0000_0000_0000_1122;
-/// ID_AA64ISAR0_EL1: AES + PMULL + SHA1 + SHA256 + CRC32.
-pub const ID_AA64ISAR0_EL1_VAL: u64 = 0x0000_0000_0010_3106;
-/// ID_AA64ISAR1_EL1: DotProduct + LRCPC + FCMA + JSCVT.
-pub const ID_AA64ISAR1_EL1_VAL: u64 = 0x0000_0000_0000_0121;
+/// ID_AA64MMFR1_EL1: hardware Access Flag and Dirty Bit management.
+pub const ID_AA64MMFR1_EL1_VAL: u64 = 0x0000_0000_0000_0002;
+/// ID_AA64ISAR0_EL1: advertise only base scalar instructions.
+pub const ID_AA64ISAR0_EL1_VAL: u64 = 0x0000_0000_0000_0000;
+/// ID_AA64ISAR1_EL1: no optional instruction extensions yet.
+pub const ID_AA64ISAR1_EL1_VAL: u64 = 0x0000_0000_0000_0000;
 /// ID_AA64DFR0_EL1: Debug v8, PMU v3.
 pub const ID_AA64DFR0_EL1_VAL: u64 = 0x0000_0000_0010_3106;
 /// CTR_EL0: Cache Type Register value.
 pub const CTR_EL0_VAL: u64 = 0x8444_c004;
 /// DCZID_EL0: DC ZVA block size = 16 bytes.
-pub const DCZID_EL0_VAL: u64 = 0x0000_0000_0000_0010;
+pub const DCZID_EL0_VAL: u64 = 0x0000_0000_0000_0002;
 /// GICD_IIDR: GICv3 revision r0, ARM implementation.
 pub const GICD_IIDR_VAL: u32 = 0x0201743B;
 
@@ -169,9 +223,13 @@ pub const GICD_IIDR_VAL: u32 = 0x0201743B;
 /// Default counter-timer frequency: 62.5 MHz (matches QEMU's virt machine).
 pub const TIMER_FREQ_HZ: u64 = 62_500_000;
 /// Timer IRQ ID (PPI 30 = Non-secure Physical Timer).
-pub const TIMER_IRQ_ID: u32 = 30;
+pub const PHYSICAL_TIMER_IRQ_ID: u32 = 30;
+/// Timer IRQ ID (PPI 27 = Virtual Timer).
+pub const VIRTUAL_TIMER_IRQ_ID: u32 = 27;
 /// PL011 UART IRQ ID (SPI 1, delivered as GIC interrupt ID 33).
 pub const PL011_UART_IRQ_ID: u32 = 33;
+/// VirtIO block IRQ ID (SPI 16, delivered as GIC interrupt ID 48).
+pub const VIRTIO_BLK_IRQ_ID: u32 = 48;
 /// Spurious interrupt ID — returned when no interrupt is pending.
 pub const GIC_SPURIOUS_INTERRUPT: u64 = 1023;
 
@@ -202,6 +260,8 @@ pub const PSTATE_EL_SHIFT: u32 = 2;
 pub const PSTATE_EL_MASK: u64 = 3 << PSTATE_EL_SHIFT;
 /// IRQ mask bit (I).
 pub const PSTATE_I_BIT: u32 = 7;
+/// PSTATE mask for DAIF interrupt mask bits [9:6].
+pub const PSTATE_DAIF_MASK: u64 = 0x3C0;
 /// SPSR exception-level return mode bits [9:6].
 pub const SPSR_M_MASK: u64 = 0xF << 6;
 

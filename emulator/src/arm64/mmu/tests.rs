@@ -7,17 +7,29 @@ fn mmu_off_passes_through() {
     let sys = SystemRegisters::default();
     let mut tlb = Tlb::new();
     let mem = PhysicalMemory::new();
-    assert_eq!(translate(&sys, &mut tlb, &mem, 0x4000_0000).unwrap(), 0x4000_0000);
+    assert_eq!(
+        translate(&sys, &mut tlb, &mem, 0x4000_0000).unwrap(),
+        0x4000_0000
+    );
 }
 
 #[test]
 fn tlb_hit_caches_translation() {
     let mut tlb = Tlb::new();
     tlb.insert(0xFFFF_FF80_0000_0000, 0x4000_0000);
-    let sys = SystemRegisters { sctlr_el1: 1, ..SystemRegisters::default() };
+    let sys = SystemRegisters {
+        sctlr_el1: 1,
+        ..SystemRegisters::default()
+    };
     let mem = PhysicalMemory::new();
-    assert_eq!(translate(&sys, &mut tlb, &mem, 0xFFFF_FF80_0000_0000).unwrap(), 0x4000_0000);
-    assert_eq!(translate(&sys, &mut tlb, &mem, 0xFFFF_FF80_0000_0001).unwrap(), 0x4000_0001);
+    assert_eq!(
+        translate(&sys, &mut tlb, &mem, 0xFFFF_FF80_0000_0000).unwrap(),
+        0x4000_0000
+    );
+    assert_eq!(
+        translate(&sys, &mut tlb, &mem, 0xFFFF_FF80_0000_0001).unwrap(),
+        0x4000_0001
+    );
 }
 
 #[test]
@@ -108,6 +120,97 @@ fn invalid_descriptor_faults() {
 }
 
 #[test]
+fn dbm_write_clears_read_only_permission_when_hd_enabled() {
+    let mut bus = SystemBus::new();
+    let mut sys = SystemRegisters::default();
+    let l1_table = 0x4000_0000;
+    let l2_table = 0x4000_1000;
+    let l3_table = 0x4000_2000;
+    let page_pa = 0x4000_3000;
+    let va = 0x1234;
+    let desc_addr = l3_table + 8;
+    let clean_writable =
+        page_pa | DESC_VALID | DESC_AF_BIT | DESC_AP_EL0 | DESC_AP_RO | DESC_DBM_BIT;
+
+    bus.mem
+        .write(l1_table, 8, (l2_table & DESC_ADDR_MASK) | DESC_VALID);
+    bus.mem
+        .write(l2_table, 8, (l3_table & DESC_ADDR_MASK) | DESC_VALID);
+    bus.mem.write(desc_addr, 8, clean_writable);
+
+    sys.ttbr0_el1 = l1_table;
+    sys.tcr_el1 = TCR_HA_BIT | TCR_HD_BIT | (25 << TCR_T1SZ_SHIFT) | 25;
+    sys.sctlr_el1 = SCTLR_MMU_ENABLE;
+
+    let pa = translate_write(&sys, &mut bus.mem, va, 0).unwrap();
+    let updated = bus.mem.read(desc_addr, 8).unwrap();
+
+    assert_eq!(pa, page_pa + (va & PAGE_OFFSET_MASK));
+    assert_eq!(updated & DESC_AP_RO, 0);
+    assert_eq!(updated & DESC_DBM_BIT, DESC_DBM_BIT);
+    assert_eq!(updated & DESC_AP_EL0, DESC_AP_EL0);
+}
+
+#[test]
+fn dbm_write_faults_when_hd_is_disabled() {
+    let mut bus = SystemBus::new();
+    let mut sys = SystemRegisters::default();
+    let l1_table = 0x4000_0000;
+    let l2_table = 0x4000_1000;
+    let l3_table = 0x4000_2000;
+    let page_pa = 0x4000_3000;
+    let va = 0x1234;
+    let desc_addr = l3_table + 8;
+    let clean_writable =
+        page_pa | DESC_VALID | DESC_AF_BIT | DESC_AP_EL0 | DESC_AP_RO | DESC_DBM_BIT;
+
+    bus.mem
+        .write(l1_table, 8, (l2_table & DESC_ADDR_MASK) | DESC_VALID);
+    bus.mem
+        .write(l2_table, 8, (l3_table & DESC_ADDR_MASK) | DESC_VALID);
+    bus.mem.write(desc_addr, 8, clean_writable);
+
+    sys.ttbr0_el1 = l1_table;
+    sys.tcr_el1 = TCR_HA_BIT | (25 << TCR_T1SZ_SHIFT) | 25;
+    sys.sctlr_el1 = SCTLR_MMU_ENABLE;
+
+    assert_eq!(
+        translate_write(&sys, &mut bus.mem, va, 0),
+        Err(Fault::PermissionFault)
+    );
+}
+
+#[test]
+fn linux_dirty_user_pte_still_faults_without_dbm() {
+    let mut bus = SystemBus::new();
+    let mut sys = SystemRegisters::default();
+    let l1_table = 0x4000_0000;
+    let l2_table = 0x4000_1000;
+    let l3_table = 0x4000_2000;
+    let page_pa = 0x4000_3000;
+    let va = 0x1234;
+    let desc_addr = l3_table + 8;
+    let dirty_read_only =
+        page_pa | DESC_VALID | DESC_AF_BIT | DESC_AP_EL0 | DESC_AP_RO | DESC_SW_DIRTY_BIT;
+
+    bus.mem
+        .write(l1_table, 8, (l2_table & DESC_ADDR_MASK) | DESC_VALID);
+    bus.mem
+        .write(l2_table, 8, (l3_table & DESC_ADDR_MASK) | DESC_VALID);
+    bus.mem.write(desc_addr, 8, dirty_read_only);
+
+    sys.ttbr0_el1 = l1_table;
+    sys.tcr_el1 = (25 << TCR_T1SZ_SHIFT) | 25;
+    sys.sctlr_el1 = SCTLR_MMU_ENABLE;
+
+    assert_eq!(
+        translate_write(&sys, &mut bus.mem, va, 0),
+        Err(Fault::PermissionFault)
+    );
+    assert_eq!(bus.mem.read(desc_addr, 8), Some(dirty_read_only));
+}
+
+#[test]
 fn tlbi_invalidates_tlb() {
     let mut tlb = Tlb::new();
     tlb.insert(0xFFFF_FF80_0000_0000, 0x4000_0000);
@@ -131,25 +234,53 @@ fn ttbr1_maps_kernel_va_to_kernel_load_pa() {
 
     // Replicate setup_boot_page_tables from boot.rs — same L0/L1/L2/L3 layout
     let l1_block = |pa: u64| -> u64 { pa | DESC_AF_BIT | DESC_BLOCK };
-    let l3_page  = |pa: u64| -> u64 { pa | DESC_AF_BIT | DESC_VALID };
+    let l3_page = |pa: u64| -> u64 { pa | DESC_AF_BIT | DESC_VALID };
 
     // TTBR0: identity map first 4 GB
-    bus.write(BOOT_TTBR0_L0, 8, (BOOT_TTBR0_L1 & DESC_ADDR_MASK) | DESC_VALID);
+    bus.write(
+        BOOT_TTBR0_L0,
+        8,
+        (BOOT_TTBR0_L1 & DESC_ADDR_MASK) | DESC_VALID,
+    );
     for i in 0..IDENTITY_MAP_BLOCKS {
-        bus.write(BOOT_TTBR0_L1 + i as u64 * 8, 8, l1_block(i as u64 * L1_BLOCK_SIZE));
+        bus.write(
+            BOOT_TTBR0_L1 + i as u64 * 8,
+            8,
+            l1_block(i as u64 * L1_BLOCK_SIZE),
+        );
     }
 
     // TTBR1: map kernel VA → KERNEL_LOAD_ADDR via L3 pages
-    bus.write(BOOT_TTBR1_L0 + 256 * 8, 8, (BOOT_TTBR1_L1 & DESC_ADDR_MASK) | DESC_VALID);
-    bus.write(BOOT_TTBR1_L1 + 0 * 8, 8, (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID);
-    bus.write(BOOT_TTBR1_L1 + 2 * 8, 8, (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID);
+    bus.write(
+        BOOT_TTBR1_L0 + 256 * 8,
+        8,
+        (BOOT_TTBR1_L1 & DESC_ADDR_MASK) | DESC_VALID,
+    );
+    bus.write(
+        BOOT_TTBR1_L1 + 0 * 8,
+        8,
+        (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID,
+    );
+    bus.write(
+        BOOT_TTBR1_L1 + 2 * 8,
+        8,
+        (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID,
+    );
 
     for tbl in 0..BOOT_TTBR1_L3_COUNT {
         let l3_table_addr = BOOT_TTBR1_L3_BASE + (tbl as u64) * PAGE_SIZE;
-        bus.write(BOOT_TTBR1_L2 + (tbl as u64) * 8, 8, (l3_table_addr & DESC_ADDR_MASK) | DESC_VALID);
+        bus.write(
+            BOOT_TTBR1_L2 + (tbl as u64) * 8,
+            8,
+            (l3_table_addr & DESC_ADDR_MASK) | DESC_VALID,
+        );
         for i in 0..PT_ENTRIES as usize {
             let va_offset = (tbl as u64) * L2_BLOCK_SIZE + (i as u64) * PAGE_SIZE;
-            bus.write(l3_table_addr + i as u64 * 8, 8, l3_page(KERNEL_LOAD_ADDR + 0x10000 + va_offset));
+            bus.write(
+                l3_table_addr + i as u64 * 8,
+                8,
+                l3_page(KERNEL_LOAD_ADDR + 0x10000 + va_offset),
+            );
         }
     }
 
@@ -168,11 +299,12 @@ fn ttbr1_maps_kernel_va_to_kernel_load_pa() {
     let expected_pa: u64 = KERNEL_LOAD_ADDR + text_rva;
 
     let mut tlb = Tlb::new();
-    let pa = translate(&sys, &mut tlb, &bus.mem, test_va)
-        .expect("translation should succeed");
+    let pa = translate(&sys, &mut tlb, &bus.mem, test_va).expect("translation should succeed");
 
-    assert_eq!(pa, expected_pa,
+    assert_eq!(
+        pa, expected_pa,
         "VA 0x{:016x} (_text) should map to KERNEL_LOAD + .text_RVA = 0x{:016x}, got 0x{:016x}\n\
          (The kernel's .text section starts at file offset 0x10000, not 0x0)",
-        test_va, expected_pa, pa);
+        test_va, expected_pa, pa
+    );
 }

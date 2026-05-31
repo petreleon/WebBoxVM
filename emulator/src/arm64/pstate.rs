@@ -23,20 +23,42 @@ impl ProcessorState {
 
     // ── Interrupt mask ──
 
-    pub fn irq_masked(&self) -> bool { self.bit(PSTATE_I_BIT) }
+    pub fn irq_masked(&self) -> bool {
+        self.bit(PSTATE_I_BIT)
+    }
 
     pub fn with_irq_masked(mut self, masked: bool) -> Self {
-        if masked { self.bits |= 1 << PSTATE_I_BIT; }
-        else      { self.bits &= !(1 << PSTATE_I_BIT); }
+        if masked {
+            self.bits |= 1 << PSTATE_I_BIT;
+        } else {
+            self.bits &= !(1 << PSTATE_I_BIT);
+        }
+        self
+    }
+
+    pub fn daif(&self) -> u64 {
+        self.bits & PSTATE_DAIF_MASK
+    }
+
+    pub fn with_daif(mut self, daif: u64) -> Self {
+        self.bits = (self.bits & !PSTATE_DAIF_MASK) | (daif & PSTATE_DAIF_MASK);
         self
     }
 
     // ── Condition flags ──
 
-    pub fn n(&self) -> bool { self.bit(PSTATE_N_BIT) }
-    pub fn z(&self) -> bool { self.bit(PSTATE_Z_BIT) }
-    pub fn c(&self) -> bool { self.bit(PSTATE_C_BIT) }
-    pub fn v(&self) -> bool { self.bit(PSTATE_V_BIT) }
+    pub fn n(&self) -> bool {
+        self.bit(PSTATE_N_BIT)
+    }
+    pub fn z(&self) -> bool {
+        self.bit(PSTATE_Z_BIT)
+    }
+    pub fn c(&self) -> bool {
+        self.bit(PSTATE_C_BIT)
+    }
+    pub fn v(&self) -> bool {
+        self.bit(PSTATE_V_BIT)
+    }
 
     /// Set all four NZCV flags at once. Clears the existing flags first.
     pub fn set_nzcv(&mut self, n: bool, z: bool, c: bool, v: bool) {
@@ -64,10 +86,14 @@ impl ProcessorState {
     // ── Serialization ──
 
     /// Pack PSTATE into a u64 (SPSR_ELx format).
-    pub fn to_u64(&self) -> u64 { self.bits }
+    pub fn to_u64(&self) -> u64 {
+        self.bits
+    }
 
     /// Unpack PSTATE from a u64 (SPSR_ELx format).
-    pub fn from_u64(val: u64) -> Self { Self { bits: val } }
+    pub fn from_u64(val: u64) -> Self {
+        Self { bits: val }
+    }
 
     // ── Private helpers ──
 

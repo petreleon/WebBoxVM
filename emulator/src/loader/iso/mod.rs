@@ -12,10 +12,9 @@ use flate2::read::GzDecoder;
 use std::io::Read;
 
 use filesystem::IsoFs;
-use grub::{parse_grub_boot_spec, BootSpec};
+use grub::{BootSpec, parse_grub_boot_spec};
 
-const DEFAULT_ISO_BOOTARGS: &str =
-    "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 loglevel=7";
+const DEFAULT_ISO_BOOTARGS: &str = "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 loglevel=7 kvm-arm.mode=none kvm.enable_virt_at_load=0 initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init cryptomgr.notests=1 virtio_mmio.device=4K@0x0a000000:48 clocksource.arm_arch_timer.evtstrm=false";
 
 const GRUB_CONFIG_CANDIDATES: &[&str] = &[
     "/boot/grub/grub.cfg",
@@ -56,7 +55,7 @@ pub fn load_iso_boot_image(data: &[u8]) -> Result<IsoBootImage, String> {
 
     let mut initrd = Vec::new();
     for path in &spec.initrd_paths {
-        initrd.extend_from_slice(fs.read_file(path)?);
+        initrd.extend_from_slice(&prepare_initrd_image(fs.read_file(path)?)?);
     }
     if initrd.is_empty() {
         return Err("ISO boot initrd is empty".to_string());
@@ -115,6 +114,19 @@ fn prepare_kernel_image(data: &[u8]) -> Result<Vec<u8>, String> {
     Ok(kernel)
 }
 
+fn prepare_initrd_image(data: &[u8]) -> Result<Vec<u8>, String> {
+    if data.starts_with(&[0x1f, 0x8b]) {
+        let mut decoder = GzDecoder::new(data);
+        let mut decoded = Vec::new();
+        decoder
+            .read_to_end(&mut decoded)
+            .map_err(|err| format!("failed to decompress gzip initrd: {err}"))?;
+        Ok(decoded)
+    } else {
+        Ok(data.to_vec())
+    }
+}
+
 fn looks_like_arm64_image(data: &[u8]) -> bool {
     if data.len() < 64 {
         return false;
@@ -124,21 +136,97 @@ fn looks_like_arm64_image(data: &[u8]) -> bool {
 }
 
 fn ensure_serial_bootargs(args: &str) -> String {
-    let mut out = args.trim().to_string();
-    if out.is_empty() {
-        out.push_str(DEFAULT_ISO_BOOTARGS);
-        return out;
+    let trimmed = args.trim();
+    if trimmed.is_empty() {
+        return DEFAULT_ISO_BOOTARGS.to_string();
     }
-    if !out.contains("earlycon=") {
-        out.push_str(" earlycon=pl011,0x09000000");
+
+    let mut tokens: Vec<String> = trimmed.split_whitespace().map(str::to_string).collect();
+    ensure_kernel_arg(&mut tokens, "earlycon=", "earlycon=pl011,0x09000000");
+    ensure_kernel_arg(&mut tokens, "console=ttyAMA", "console=ttyAMA0,115200n8");
+    ensure_kernel_arg(&mut tokens, "loglevel=", "loglevel=7");
+    ensure_kernel_arg(&mut tokens, "kvm-arm.mode=", "kvm-arm.mode=none");
+    ensure_kernel_arg(
+        &mut tokens,
+        "kvm.enable_virt_at_load=",
+        "kvm.enable_virt_at_load=0",
+    );
+    ensure_kernel_arg(
+        &mut tokens,
+        "initcall_blacklist=",
+        "initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init",
+    );
+    ensure_kernel_arg(&mut tokens, "cryptomgr.notests=", "cryptomgr.notests=1");
+    ensure_kernel_arg(
+        &mut tokens,
+        "virtio_mmio.device=",
+        "virtio_mmio.device=4K@0x0a000000:48",
+    );
+    ensure_kernel_arg(
+        &mut tokens,
+        "clocksource.arm_arch_timer.evtstrm=",
+        "clocksource.arm_arch_timer.evtstrm=false",
+    );
+    remove_installer_arg(&mut tokens, "quiet");
+    ensure_installer_arg(&mut tokens, "console=ttyAMA", "console=ttyAMA0,115200n8");
+    ensure_installer_arg(&mut tokens, "DEBIAN_FRONTEND=", "DEBIAN_FRONTEND=text");
+    ensure_installer_arg(&mut tokens, "TERM=", "TERM=vt102");
+    tokens.join(" ")
+}
+
+fn ensure_kernel_arg(tokens: &mut Vec<String>, prefix: &str, arg: &str) {
+    let insert_at = kernel_arg_insert_index(tokens);
+    if tokens[..insert_at]
+        .iter()
+        .any(|token| token.starts_with(prefix))
+    {
+        return;
     }
-    if !out.contains("console=ttyAMA") {
-        out.push_str(" console=ttyAMA0,115200n8");
+    tokens.insert(insert_at, arg.to_string());
+}
+
+fn kernel_arg_insert_index(tokens: &[String]) -> usize {
+    tokens
+        .iter()
+        .position(|token| token == "---" || token == "--")
+        .unwrap_or(tokens.len())
+}
+
+fn ensure_installer_arg(tokens: &mut Vec<String>, prefix: &str, arg: &str) {
+    let insert_at = installer_arg_insert_index(tokens);
+    if tokens[insert_at..]
+        .iter()
+        .any(|token| token.starts_with(prefix))
+    {
+        return;
     }
-    if !out.contains("loglevel=") {
-        out.push_str(" loglevel=7");
+    tokens.insert(insert_at, arg.to_string());
+}
+
+fn remove_installer_arg(tokens: &mut Vec<String>, arg: &str) {
+    if let Some(separator) = tokens
+        .iter()
+        .position(|token| token == "---" || token == "--")
+    {
+        let kept: Vec<String> = tokens
+            .drain(separator + 1..)
+            .filter(|token| token != arg)
+            .collect();
+        tokens.extend(kept);
     }
-    out
+}
+
+fn installer_arg_insert_index(tokens: &mut Vec<String>) -> usize {
+    match tokens
+        .iter()
+        .position(|token| token == "---" || token == "--")
+    {
+        Some(separator) => separator + 1,
+        None => {
+            tokens.push("---".to_string());
+            tokens.len()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -164,6 +252,40 @@ mod tests {
         assert!(args.contains("earlycon=pl011,0x09000000"));
         assert!(args.contains("console=ttyAMA0,115200n8"));
         assert!(args.contains("loglevel=7"));
+        assert!(args.contains("kvm-arm.mode=none"));
+        assert!(args.contains("kvm.enable_virt_at_load=0"));
+        assert!(args.contains("initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init"));
+        assert!(args.contains("cryptomgr.notests=1"));
+        assert!(args.contains("virtio_mmio.device=4K@0x0a000000:48"));
+        assert!(args.contains("clocksource.arm_arch_timer.evtstrm=false"));
+        assert!(args.contains("---"));
+        assert!(args.contains("DEBIAN_FRONTEND=text"));
+        assert!(args.contains("TERM=vt102"));
+    }
+
+    #[test]
+    fn inserts_kernel_bootargs_before_debian_separator() {
+        let args = ensure_serial_bootargs("--- quiet");
+        let tokens: Vec<&str> = args.split_whitespace().collect();
+        let separator = tokens.iter().position(|token| *token == "---").unwrap();
+
+        assert!(tokens[..separator].contains(&"kvm-arm.mode=none"));
+        assert!(tokens[..separator].contains(&"kvm.enable_virt_at_load=0"));
+        assert!(
+            tokens[..separator].contains(&"initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init")
+        );
+        assert!(tokens[..separator].contains(&"cryptomgr.notests=1"));
+        assert!(tokens[..separator].contains(&"virtio_mmio.device=4K@0x0a000000:48"));
+        assert!(tokens[..separator].contains(&"clocksource.arm_arch_timer.evtstrm=false"));
+        assert_eq!(
+            &tokens[separator..],
+            &[
+                "---",
+                "TERM=vt102",
+                "DEBIAN_FRONTEND=text",
+                "console=ttyAMA0,115200n8",
+            ]
+        );
     }
 
     #[test]

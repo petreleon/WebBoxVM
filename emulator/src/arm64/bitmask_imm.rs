@@ -58,7 +58,11 @@ fn rotate_right_within(val: u64, rot: u32, size: u32) -> u64 {
     if rot == 0 || size == 0 {
         return val;
     }
-    let mask = if size == 64 { u64::MAX } else { (1u64 << size) - 1 };
+    let mask = if size == 64 {
+        u64::MAX
+    } else {
+        (1u64 << size) - 1
+    };
     let v = val & mask;
     ((v >> rot) | (v << (size - rot))) & mask
 }

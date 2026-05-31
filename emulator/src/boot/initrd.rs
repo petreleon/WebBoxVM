@@ -1,4 +1,4 @@
-use crate::initrd::{build_cpio_nodes, CpioNode};
+use crate::initrd::{CpioNode, build_cpio_nodes};
 
 pub const DEFAULT_BOOTARGS: &str =
     "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 rdinit=/init loglevel=7";
@@ -113,8 +113,10 @@ mod tests {
         assert!(names.contains(&"bin/busybox"));
         assert!(names.contains(&"bin/sh"));
         assert!(names.contains(&"dev/console"));
-        assert!(entries
-            .iter()
-            .any(|entry| entry.name == "bin/busybox" && entry.data.starts_with(b"\x7fELF")));
+        assert!(
+            entries
+                .iter()
+                .any(|entry| entry.name == "bin/busybox" && entry.data.starts_with(b"\x7fELF"))
+        );
     }
 }

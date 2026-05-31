@@ -1,5 +1,5 @@
 use super::*;
-use crate::arm64::{Armv8Cpu, decode, execute, Opcode};
+use crate::arm64::{Armv8Cpu, Opcode, decode, execute};
 use crate::bus::SystemBus;
 
 #[test]
@@ -148,7 +148,7 @@ fn test_madd_msub() {
     // 3. Test UMADDL X21, W21, W24, XZR (UMULL X21, W21, W24)
     // raw = 0x9bb87eb5 (rd=21, rn=21, rm=24, ra=31, sf=true, size=1)
     cpu.regs.set_x(21, 0xFFFFFFFF_00000003); // W21 is 3
-    cpu.regs.set_x(24, 0x4);                 // W24 is 4
+    cpu.regs.set_x(24, 0x4); // W24 is 4
     let instr_umull = decode(0x9bb87eb5).unwrap();
     assert_eq!(instr_umull.op, Opcode::Madd);
     assert_eq!(instr_umull.rd, 21);
@@ -156,7 +156,7 @@ fn test_madd_msub() {
     assert_eq!(instr_umull.rm, 24);
     assert_eq!(instr_umull.cond, 31); // XZR
     assert_eq!(instr_umull.sf, true);
-    assert_eq!(instr_umull.size, 1);  // UMADDL
+    assert_eq!(instr_umull.size, 1); // UMADDL
     execute(&mut cpu, &mut bus, instr_umull).unwrap();
-    assert_eq!(cpu.regs.x(21), 12);   // 0 + 3 * 4 = 12
+    assert_eq!(cpu.regs.x(21), 12); // 0 + 3 * 4 = 12
 }

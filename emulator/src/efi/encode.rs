@@ -28,7 +28,11 @@ pub fn write32(bus: &mut SystemBus, addr: u64, val: u32) {
 /// Consists of: MOVZ X0, #0 (or #handle_low) ; RET.
 /// Returns the trampoline address (same as `addr`).
 pub fn write_success_trampoline(bus: &mut SystemBus, addr: u64, handle: u64) -> u64 {
-    let imm16 = if handle == EFI_SUCCESS { 0 } else { (handle & 0xFFFF) as u16 };
+    let imm16 = if handle == EFI_SUCCESS {
+        0
+    } else {
+        (handle & 0xFFFF) as u16
+    };
     write32(bus, addr, movz_x(0, imm16));
     write32(bus, addr + INSTRUCTION_SIZE, INSTR_RET);
     addr

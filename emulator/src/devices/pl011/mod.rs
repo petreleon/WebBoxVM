@@ -71,6 +71,14 @@ impl Pl011Uart {
             UARTRIS_OFFSET => Some(self.raw_interrupt_status() as u64),
             UARTMIS_OFFSET => Some((self.raw_interrupt_status() & self.imsc) as u64),
             UARTDMACR_OFFSET => Some(0),
+            UARTPERIPHID0_OFFSET => Some(0x11),
+            UARTPERIPHID1_OFFSET => Some(0x10),
+            UARTPERIPHID2_OFFSET => Some(0x14),
+            UARTPERIPHID3_OFFSET => Some(0x00),
+            UARTPCELLID0_OFFSET => Some(0x0D),
+            UARTPCELLID1_OFFSET => Some(0xF0),
+            UARTPCELLID2_OFFSET => Some(0x05),
+            UARTPCELLID3_OFFSET => Some(0xB1),
             _ => Some(0), // Reserved/gap registers return 0
         }
     }

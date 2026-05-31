@@ -59,7 +59,9 @@ fn apply_reloc_blocks(
     while off + 8 <= end {
         let page_rva = read_u32(data, off)? as u64;
         let block_size = read_u32(data, off + 4)? as usize;
-        if block_size == 0 { break; }
+        if block_size == 0 {
+            break;
+        }
         if block_size < 8 || off + block_size > end {
             return Err("bad relocation block size");
         }
@@ -71,8 +73,8 @@ fn apply_reloc_blocks(
             let target = load_base + page_rva + offset;
             match ty {
                 IMAGE_REL_BASED_ABSOLUTE => {} // padding
-                IMAGE_REL_BASED_HIGHLOW  => apply_32bit_fixup(bus, target, delta)?,
-                IMAGE_REL_BASED_DIR64    => apply_64bit_fixup(bus, target, delta)?,
+                IMAGE_REL_BASED_HIGHLOW => apply_32bit_fixup(bus, target, delta)?,
+                IMAGE_REL_BASED_DIR64 => apply_64bit_fixup(bus, target, delta)?,
                 _ => return Err("unsupported PE relocation type"),
             }
         }
@@ -119,13 +121,21 @@ fn parse_pe32_plus(data: &[u8]) -> Result<Pe32PlusInfo, &'static str> {
     let preferred_base = read_u64(data, opt_start + 24)?;
     let num_rva = read_u32(data, opt_start + 108)? as usize;
     if num_rva <= 5 {
-        return Ok(Pe32PlusInfo { preferred_base, reloc_rva: 0, reloc_size: 0 });
+        return Ok(Pe32PlusInfo {
+            preferred_base,
+            reloc_rva: 0,
+            reloc_size: 0,
+        });
     }
     // Data directories: 8 bytes each.  Entry 5 (0-indexed) is .reloc.
     let dd_start = opt_start + PE_OPT_HEADER_MIN_SIZE;
     let reloc_rva = read_u32(data, dd_start + 5 * 8)? as usize;
     let reloc_size = read_u32(data, dd_start + 5 * 8 + 4)? as usize;
-    Ok(Pe32PlusInfo { preferred_base, reloc_rva, reloc_size })
+    Ok(Pe32PlusInfo {
+        preferred_base,
+        reloc_rva,
+        reloc_size,
+    })
 }
 
 // ── Little-endian read helpers ──

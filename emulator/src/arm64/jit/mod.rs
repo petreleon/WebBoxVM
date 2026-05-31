@@ -1,7 +1,11 @@
 //! JIT engine: pre-decode cache + ARM64→ARM64 native compilation.
 //! Verbatim ALU/move ops execute at native speed on Apple Silicon.
 
-use crate::arm64::{Armv8Cpu, decode, execute, opcodes::{Instr, Opcode}, mmu::translate};
+use crate::arm64::{
+    Armv8Cpu, decode, execute,
+    mmu::translate,
+    opcodes::{Instr, Opcode},
+};
 use crate::bus::SystemBus;
 use crate::memory::PhysicalMemory;
 use std::collections::HashMap;
@@ -24,13 +28,19 @@ impl JitEngine {
         Self {
             pages: HashMap::new(),
             compiler: A64Compiler::new(),
-            hits: 0, misses: 0, native_hits: 0, steps: 0,
+            hits: 0,
+            misses: 0,
+            native_hits: 0,
+            steps: 0,
         }
     }
 
     pub fn run(
-        &mut self, cpu: &mut Armv8Cpu, bus: &mut SystemBus,
-        entry: u64, max_steps: usize,
+        &mut self,
+        cpu: &mut Armv8Cpu,
+        bus: &mut SystemBus,
+        entry: u64,
+        max_steps: usize,
     ) -> Result<usize, &'static str> {
         cpu.regs.pc = entry;
         let max = max_steps as u64;
@@ -40,7 +50,12 @@ impl JitEngine {
             // Progress every 5M steps
             let milestone = self.steps / 5_000_000;
             if milestone > last_progress {
-                eprintln!("JIT: {:.1}M steps, {} native, {} pages", self.steps as f64 / 1_000_000.0, self.native_hits, self.pages.len());
+                eprintln!(
+                    "JIT: {:.1}M steps, {} native, {} pages",
+                    self.steps as f64 / 1_000_000.0,
+                    self.native_hits,
+                    self.pages.len()
+                );
                 last_progress = milestone;
             }
 
@@ -52,7 +67,9 @@ impl JitEngine {
             if let Some(block) = self.compiler.get(pa) {
                 self.native_hits += 1;
                 let count = block.guest_instr_count;
-                unsafe { block.execute(cpu, bus); }
+                unsafe {
+                    block.execute(cpu, bus);
+                }
                 cpu.regs.pc = block.exit_pc;
                 self.steps += count as u64;
                 continue;
@@ -60,8 +77,14 @@ impl JitEngine {
 
             // Fallback: pre-decode cache + interpreter
             let instr = match self.get_cached(pa, &bus.mem) {
-                Some(i) => { self.hits += 1; i }
-                None => { self.misses += 1; self.decode_and_get(pa, &bus.mem)? }
+                Some(i) => {
+                    self.hits += 1;
+                    i
+                }
+                None => {
+                    self.misses += 1;
+                    self.decode_and_get(pa, &bus.mem)?
+                }
             };
 
             self.steps += 1;
@@ -77,8 +100,12 @@ impl JitEngine {
             }
         }
 
-        eprintln!("JIT DONE: {:.0}M steps, {} native blocks, {} pages",
-            self.steps as f64 / 1_000_000.0, self.compiler.block_count(), self.pages.len());
+        eprintln!(
+            "JIT DONE: {:.0}M steps, {} native blocks, {} pages",
+            self.steps as f64 / 1_000_000.0,
+            self.compiler.block_count(),
+            self.pages.len()
+        );
         Ok(max_steps)
     }
 
@@ -96,12 +123,23 @@ impl JitEngine {
             let addr = page_base + i * 4;
             let instr = if let Some(raw) = mem.read(addr, 4) {
                 decode(raw as u32).unwrap_or(Instr {
-                    op: Opcode::Nop, rd: 0, rn: 0, rm: 0, imm: 0, sf: true, cond: 0, size: 0
+                    op: Opcode::Nop,
+                    rd: 0,
+                    rn: 0,
+                    rm: 0,
+                    imm: 0,
+                    sf: true,
+                    cond: 0,
+                    size: 0,
                 })
-            } else { break };
+            } else {
+                break;
+            };
             page.push(instr);
         }
-        if offset >= page.len() { return Err("offset beyond page end"); }
+        if offset >= page.len() {
+            return Err("offset beyond page end");
+        }
         let result = page[offset];
         self.pages.insert(page_base, page);
         Ok(result)

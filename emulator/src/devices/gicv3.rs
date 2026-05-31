@@ -17,6 +17,10 @@ use crate::constants::*;
 const INT_WORDS: usize = 32;
 /// Total number of individual interrupts supported (32 words × 32 bits).
 const MAX_INTERRUPTS: usize = 1024;
+/// GICD/GICR PIDR2 high nibble identifying a GICv3-compatible controller.
+const GIC_PIDR2_ARCH_GICV3: u64 = 0x30;
+/// GICR_TYPER.Last: this single redistributor frame is the last one.
+const GICR_TYPER_LAST: u64 = 1 << 4;
 
 pub struct Gicv3 {
     // ── Distributor (GICD) registers ──
@@ -38,7 +42,7 @@ impl Gicv3 {
     pub fn new() -> Self {
         Self {
             ctld: 0,
-            typer: 0, // ITLinesNumber = 0 → 32 interrupts
+            typer: 1, // ITLinesNumber = 1 → 64 interrupts
             iidr: GICD_IIDR_VAL,
             enable: [0; INT_WORDS],
             pending: [0; INT_WORDS],
@@ -46,7 +50,7 @@ impl Gicv3 {
             group: [0; INT_WORDS],
             rctlr: 0,
             rwaker: 0,
-            rtyper: 0, // ProcessorNumber = 0
+            rtyper: GICR_TYPER_LAST, // ProcessorNumber = 0, last redistributor
         }
     }
 
@@ -54,9 +58,9 @@ impl Gicv3 {
     pub fn gicd_read(&self, offset: u64, size: u8) -> Option<u64> {
         match offset {
             0x0000 => Some(self.ctld),
-            0x0004 => Some(self.ctld >> 32),
-            0x0008 => Some(self.typer),
-            0x0018 => Some(self.iidr as u64),
+            0x0004 => Some(self.typer),
+            0x0008 => Some(self.iidr as u64),
+            0xFFE8 => Some(GIC_PIDR2_ARCH_GICV3),
 
             o if gicd_in_range(o, 0x0100, 0x0180) => {
                 let idx = gicd_word_index(o, 0x0100);
@@ -97,7 +101,7 @@ impl Gicv3 {
             o if gicd_in_range(o, 0x0100, 0x0180) => {
                 let idx = gicd_word_index(o, 0x0100);
                 if idx < INT_WORDS {
-                    self.enable[idx] = value as u32;
+                    self.enable[idx] |= value as u32;
                 }
             }
             // ICENABLER (clear-enable): write 1 to disable
@@ -111,7 +115,7 @@ impl Gicv3 {
             o if gicd_in_range(o, 0x0200, 0x0280) => {
                 let idx = gicd_word_index(o, 0x0200);
                 if idx < INT_WORDS {
-                    self.pending[idx] = value as u32;
+                    self.pending[idx] |= value as u32;
                 }
             }
             // ICPENDR (clear-pending)
@@ -145,11 +149,12 @@ impl Gicv3 {
     pub fn gicr_read(&self, offset: u64, _size: u8) -> Option<u64> {
         match offset {
             0x0000 => Some(self.rctlr),
-            0x0004 => Some((self.rctlr >> 32) as u64),
-            0x0008 => Some(self.iidr as u64),
+            0x0004 => Some(self.iidr as u64),
+            0x0008 => Some(self.rtyper),
+            0x000C => Some(self.rtyper >> 32),
             0x0014 => Some(self.rwaker as u64),
             0x001C => Some((self.rwaker >> 32) as u64),
-            0x0000..=0x001F if offset >= 0x0008 && offset < 0x0010 => Some(self.rtyper),
+            0xFFE8 => Some(GIC_PIDR2_ARCH_GICV3),
             _ => Some(0),
         }
     }
@@ -177,6 +182,16 @@ impl Gicv3 {
         if idx < INT_WORDS {
             self.pending[idx] &= !bit;
         }
+    }
+
+    pub fn next_pending_enabled(&self) -> Option<u32> {
+        for idx in 0..INT_WORDS {
+            let active = self.pending[idx] & self.enable[idx];
+            if active != 0 {
+                return Some((idx as u32) * 32 + active.trailing_zeros());
+            }
+        }
+        None
     }
 }
 

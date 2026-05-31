@@ -6,8 +6,8 @@
 //!
 //! The current code handles both, detecting the PE signature at offset 0x40.
 
-use crate::constants::*;
 use crate::bus::SystemBus;
+use crate::constants::*;
 use std::fs;
 
 // Re-export kernel load address for backward compatibility
@@ -17,12 +17,12 @@ pub const KERNEL_LOAD: u64 = KERNEL_LOAD_ADDR;
 struct KernelHeader {
     _code0: u32,
     _code1: u32,
-    text_offset: u64,    // offset from load address to kernel entry
-    image_size: u64,     // total size the kernel Image occupies
+    text_offset: u64, // offset from load address to kernel entry
+    image_size: u64,  // total size the kernel Image occupies
     _flags: u64,
     _res1: u64,
     _res2: u64,
-    _magic: u32,         // must be "ARM\x64"
+    _magic: u32, // must be "ARM\x64"
     _res3: u32,
 }
 
@@ -91,7 +91,8 @@ fn parse_header(data: &[u8]) -> Result<KernelHeader, &'static str> {
 
 /// Check if the data contains a PE/COFF signature at offset 0x40.
 fn is_pe_image(data: &[u8]) -> bool {
-    data.len() > KERNEL_PE_OFFSET + 4 && &data[KERNEL_PE_OFFSET..KERNEL_PE_OFFSET + 4] == PE_SIGNATURE.as_slice()
+    data.len() > KERNEL_PE_OFFSET + 4
+        && &data[KERNEL_PE_OFFSET..KERNEL_PE_OFFSET + 4] == PE_SIGNATURE.as_slice()
 }
 
 /// Parse the PE optional header to find the entry-point RVA.
@@ -102,8 +103,10 @@ fn parse_pe_entry(data: &[u8]) -> Result<u64, &'static str> {
     }
     // Entry RVA is at offset 16 in the PE optional header
     let entry_rva = u32::from_le_bytes([
-        data[opt_start + 16], data[opt_start + 17],
-        data[opt_start + 18], data[opt_start + 19],
+        data[opt_start + 16],
+        data[opt_start + 17],
+        data[opt_start + 18],
+        data[opt_start + 19],
     ]);
     Ok(KERNEL_LOAD_ADDR + entry_rva as u64)
 }

@@ -53,6 +53,19 @@ pub const SCTLR_MMU_ENABLE: u64 = 1;
 
 /// Page table access flag (bit 10).
 pub const DESC_AF_BIT: u64 = 1 << 10;
+/// Page table descriptor DBM (Dirty Bit Modifier, bit 51).
+pub const DESC_DBM_BIT: u64 = 1 << 51;
+/// Linux arm64 software dirty PTE bit (bit 55, ignored by hardware).
+pub const DESC_SW_DIRTY_BIT: u64 = 1 << 55;
+/// Access Permission bit that permits EL0 access when set.
+pub const DESC_AP_EL0: u64 = 1 << 6;
+/// Access Permission bit that makes the mapping read-only when set.
+pub const DESC_AP_RO: u64 = 1 << 7;
+
+/// TCR_EL1.HA — hardware Access Flag update enable.
+pub const TCR_HA_BIT: u64 = 1 << 39;
+/// TCR_EL1.HD — hardware dirty-state management enable.
+pub const TCR_HD_BIT: u64 = 1 << 40;
 
 // ============================================================================
 // TLB (TRANSLATION LOOKASIDE BUFFER)

@@ -58,6 +58,13 @@ pub const UART_SIZE: u64 = 0x1000;
 /// End of the UART MMIO region (exclusive).
 pub const UART_END: u64 = UART_BASE + UART_SIZE;
 
+/// Base address of the VirtIO-MMIO block device used for ISO media.
+pub const VIRTIO_BLK_BASE: u64 = 0x0A00_0000;
+/// Range size of the VirtIO-MMIO register window.
+pub const VIRTIO_BLK_SIZE: u64 = 0x1000;
+/// End of the VirtIO-MMIO block device region.
+pub const VIRTIO_BLK_END: u64 = VIRTIO_BLK_BASE + VIRTIO_BLK_SIZE;
+
 /// PL011 UART register offsets (from base address).
 pub const UART_DR_OFFSET: u64 = 0x00;
 pub const UART_RSR_OFFSET: u64 = 0x04;
@@ -110,13 +117,13 @@ pub const BOOT_STACK_POINTER: u64 = 0x43F0_0000;
 
 // -- Initrd (initial RAM disk) --
 
-/// Start address where the cpio initrd archive is loaded.
-pub const INITRD_BASE: u64 = 0x4400_0000;
+/// Start address where the initrd archive is loaded.
+pub const INITRD_BASE: u64 = 0x5000_0000;
 
 // -- Device Tree Blob (DTB) --
 
 /// Address where the DTB is placed before handing off to the kernel.
-pub const DTB_BASE: u64 = 0x4700_0000;
+pub const DTB_BASE: u64 = 0x5F00_0000;
 
 // -- Bump allocator for EFI AllocatePages --
 

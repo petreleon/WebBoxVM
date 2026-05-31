@@ -1,10 +1,10 @@
 //! ARM64→ARM64 JIT: verbatim ALU/move/logical ops at native speed.
 //! Memory/branch/system ops return to dispatcher for interpreter fallback.
 
-use crate::arm64::Armv8Cpu;
-use crate::bus::SystemBus;
-use crate::arm64::opcodes::Opcode;
 use super::block::Block;
+use crate::arm64::Armv8Cpu;
+use crate::arm64::opcodes::Opcode;
+use crate::bus::SystemBus;
 use std::collections::HashMap;
 
 pub struct NativeBlock {
@@ -27,11 +27,24 @@ pub struct A64Compiler {
 }
 
 impl A64Compiler {
-    pub fn new() -> Self { Self { blocks: HashMap::new() } }
-    pub fn get(&self, pa: u64) -> Option<&NativeBlock> { self.blocks.get(&pa) }
-    pub fn block_count(&self) -> usize { self.blocks.len() }
+    pub fn new() -> Self {
+        Self {
+            blocks: HashMap::new(),
+        }
+    }
+    pub fn get(&self, pa: u64) -> Option<&NativeBlock> {
+        self.blocks.get(&pa)
+    }
+    pub fn block_count(&self) -> usize {
+        self.blocks.len()
+    }
 
-    pub fn compile(&mut self, block: &Block, _cpu: &Armv8Cpu, _bus: &SystemBus) -> Result<(), &'static str> {
+    pub fn compile(
+        &mut self,
+        block: &Block,
+        _cpu: &Armv8Cpu,
+        _bus: &SystemBus,
+    ) -> Result<(), &'static str> {
         let mut code: Vec<u8> = Vec::new();
         let mut compiled_count = 0usize;
 
@@ -42,7 +55,11 @@ impl A64Compiler {
 
         for i in (0..28).step_by(2) {
             let off = i * 8;
-            let ldp = 0xA9400000 | ((i as u32) << 0) | ((i as u32 + 1) << 10) | (19u32 << 5) | encode_ldp_offset(off);
+            let ldp = 0xA9400000
+                | ((i as u32) << 0)
+                | ((i as u32 + 1) << 10)
+                | (19u32 << 5)
+                | encode_ldp_offset(off);
             emit_a64(&mut code, ldp);
         }
 
@@ -57,7 +74,11 @@ impl A64Compiler {
 
         for i in (0..28).step_by(2) {
             let off = i * 8;
-            let stp = 0xA9000000 | ((i as u32) << 0) | ((i as u32 + 1) << 10) | (19u32 << 5) | encode_ldp_offset(off);
+            let stp = 0xA9000000
+                | ((i as u32) << 0)
+                | ((i as u32 + 1) << 10)
+                | (19u32 << 5)
+                | encode_ldp_offset(off);
             emit_a64(&mut code, stp);
         }
         emit_epilogue(&mut code);
@@ -75,28 +96,70 @@ impl A64Compiler {
 fn can_emit_verbatim(op: Opcode) -> bool {
     matches!(
         op,
-        Opcode::Add | Opcode::Sub | Opcode::Adds | Opcode::Subs
-        | Opcode::AddImm | Opcode::SubImm | Opcode::AddsImm | Opcode::SubsImm
-        | Opcode::AndReg | Opcode::OrrReg | Opcode::EorReg | Opcode::AndsReg
-        | Opcode::AndImm | Opcode::OrrImm | Opcode::EorImm | Opcode::AndsImm
-        | Opcode::MovReg | Opcode::Movz | Opcode::Movk | Opcode::Movn
-        | Opcode::Cmp | Opcode::CmpImm
-        | Opcode::Sxtw | Opcode::Sbfm | Opcode::Bfm | Opcode::Ubfm
-        | Opcode::Csel | Opcode::Csinc | Opcode::Csinv | Opcode::Csneg | Opcode::Ccmp
-        | Opcode::Udiv | Opcode::Sdiv
-        | Opcode::Madd | Opcode::Msub | Opcode::Umulh | Opcode::Smulh
-        | Opcode::Lslv | Opcode::Lsrv | Opcode::Asrv | Opcode::Rorv
-        | Opcode::Rev | Opcode::Rev32 | Opcode::Rev16 | Opcode::Rbit | Opcode::Clz
-        | Opcode::Nop | Opcode::NopBarrier
-        | Opcode::AddExt | Opcode::SubExt | Opcode::AddsExt | Opcode::SubsExt
+        Opcode::Add
+            | Opcode::Sub
+            | Opcode::Adds
+            | Opcode::Subs
+            | Opcode::AddImm
+            | Opcode::SubImm
+            | Opcode::AddsImm
+            | Opcode::SubsImm
+            | Opcode::AndReg
+            | Opcode::OrrReg
+            | Opcode::EorReg
+            | Opcode::AndsReg
+            | Opcode::AndImm
+            | Opcode::OrrImm
+            | Opcode::EorImm
+            | Opcode::AndsImm
+            | Opcode::MovReg
+            | Opcode::Movz
+            | Opcode::Movk
+            | Opcode::Movn
+            | Opcode::Cmp
+            | Opcode::CmpImm
+            | Opcode::Sxtw
+            | Opcode::Sbfm
+            | Opcode::Bfm
+            | Opcode::Ubfm
+            | Opcode::Csel
+            | Opcode::Csinc
+            | Opcode::Csinv
+            | Opcode::Csneg
+            | Opcode::Ccmp
+            | Opcode::Udiv
+            | Opcode::Sdiv
+            | Opcode::Madd
+            | Opcode::Msub
+            | Opcode::Umulh
+            | Opcode::Smulh
+            | Opcode::Lslv
+            | Opcode::Lsrv
+            | Opcode::Asrv
+            | Opcode::Rorv
+            | Opcode::Rev
+            | Opcode::Rev32
+            | Opcode::Rev16
+            | Opcode::Rbit
+            | Opcode::Clz
+            | Opcode::Nop
+            | Opcode::NopBarrier
+            | Opcode::AddExt
+            | Opcode::SubExt
+            | Opcode::AddsExt
+            | Opcode::SubsExt
     )
 }
 
-fn emit_a64(code: &mut Vec<u8>, instr: u32) { code.extend_from_slice(&instr.to_le_bytes()); }
+fn emit_a64(code: &mut Vec<u8>, instr: u32) {
+    code.extend_from_slice(&instr.to_le_bytes());
+}
 fn emit_mov(code: &mut Vec<u8>, rd: u8, rm: u8) {
     emit_a64(code, 0xAA0003E0 | ((rm as u32) << 16) | (rd as u32));
 }
-fn encode_ldp_offset(off: usize) -> u32 { ((off as u32 / 8) & 0x7F) << 15 }
+fn encode_ldp_offset(off: usize) -> u32 {
+    ((off as u32 / 8) & 0x7F) << 15
+}
 
 fn emit_prologue(code: &mut Vec<u8>) {
     emit_a64(code, 0xA9BF7BFD); // STP X29, X30, [SP, #-16]!

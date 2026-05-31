@@ -1,6 +1,6 @@
-use crate::arm64::{Armv8Cpu, decode, execute};
 use crate::arm64::helpers;
 use crate::arm64::opcodes::Opcode;
+use crate::arm64::{Armv8Cpu, decode, execute};
 use crate::bus::SystemBus;
 
 // ============================================================================
@@ -27,12 +27,18 @@ fn test_sub_flags_cmp_w2_21() {
     execute(&mut cpu, &mut bus, instr).unwrap();
 
     let c = cpu.pstate.c();
-    assert!(!c, "CMP W2, #21 with W2=5: C should be 0 (borrow), got C={}", c);
+    assert!(
+        !c,
+        "CMP W2, #21 with W2=5: C should be 0 (borrow), got C={}",
+        c
+    );
 
     // Now BCond HS should NOT be taken
     let cond = 0b0010; // HS/CS
-    assert!(!helpers::cond_taken(&cpu, cond),
-        "BCond HS should NOT be taken when C=0");
+    assert!(
+        !helpers::cond_taken(&cpu, cond),
+        "BCond HS should NOT be taken when C=0"
+    );
 }
 
 #[test]
@@ -47,11 +53,17 @@ fn test_sub_flags_cmp_w2_157() {
     execute(&mut cpu, &mut bus, instr).unwrap();
 
     let c = cpu.pstate.c();
-    assert!(c, "CMP W2, #21 with W2=157: C should be 1 (no borrow), got C={}", c);
+    assert!(
+        c,
+        "CMP W2, #21 with W2=157: C should be 1 (no borrow), got C={}",
+        c
+    );
 
     let cond = 0b0010; // HS/CS
-    assert!(helpers::cond_taken(&cpu, cond),
-        "BCond HS SHOULD be taken when C=1");
+    assert!(
+        helpers::cond_taken(&cpu, cond),
+        "BCond HS SHOULD be taken when C=1"
+    );
 }
 
 #[test]
@@ -71,7 +83,11 @@ fn test_and_imm_w2_mask_ff() {
     execute(&mut cpu, &mut bus, instr).unwrap();
     assert_eq!(cpu.regs.w(2), 0x9D, "AND W2, W0, #0xFF with W0=0xFFFFFF9D");
     // X0 should be unchanged
-    assert_eq!(cpu.regs.w(0), 0xFFFFFF9D_u32, "X0 should be unchanged by AND");
+    assert_eq!(
+        cpu.regs.w(0),
+        0xFFFFFF9D_u32,
+        "X0 should be unchanged by AND"
+    );
 }
 
 #[test]
@@ -138,7 +154,10 @@ fn test_ldrb_x26_zero() {
 fn test_decode_eb21c01f() {
     let raw: u32 = 0xeb21c01f;
     let instr = decode(raw).unwrap();
-    println!("raw=0x{:08x} op={:?} rd={} rn={} rm={}", raw, instr.op, instr.rd, instr.rn, instr.rm);
+    println!(
+        "raw=0x{:08x} op={:?} rd={} rn={} rm={}",
+        raw, instr.op, instr.rd, instr.rn, instr.rm
+    );
     assert_eq!(instr.op, Opcode::Cmp, "Expected Cmp, got {:?}", instr.op);
 }
 
@@ -162,16 +181,23 @@ fn test_decode_eb21c01f_debug() {
 fn test_decode_121d7820() {
     let raw: u32 = 0x121d7820;
     match decode(raw) {
-        Some(instr) => println!("raw=0x{:08x} op={:?} rd={} rn={} imm={:#x}", raw, instr.op, instr.rd, instr.rn, instr.imm),
+        Some(instr) => println!(
+            "raw=0x{:08x} op={:?} rd={} rn={} imm={:#x}",
+            raw, instr.op, instr.rd, instr.rn, instr.imm
+        ),
         None => println!("raw=0x{:08x} = None", raw),
     }
 }
 
 #[test]
 fn test_fdt_header_verification_decoding() {
-    use crate::loader::kernel::{load_kernel};
+    use crate::loader::kernel::load_kernel;
     let mut bus = SystemBus::new();
-    load_kernel(&mut bus, concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image")).unwrap();
+    load_kernel(
+        &mut bus,
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image"),
+    )
+    .unwrap();
 
     let addrs = [0x41e29d90u64, 0x41e29d94u64, 0x41e29d98u64];
     for &addr in &addrs {

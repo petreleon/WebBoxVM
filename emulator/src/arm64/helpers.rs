@@ -4,8 +4,8 @@
 //!   - Is a condition true given the current NZCV flags?
 //!   - Read/write a register (handling XZR/WZR zero-register semantics)
 
-use crate::constants::*;
 use super::Armv8Cpu;
+use crate::constants::*;
 
 /// Evaluate an AArch64 condition code against the current NZCV flags.
 ///
@@ -36,22 +36,22 @@ pub fn cond_taken(cpu: &Armv8Cpu, cond: u8) -> bool {
     let c = cpu.pstate.c();
     let v = cpu.pstate.v();
     match cond & 0xF {
-        0b0000 => z,                    // EQ
-        0b0001 => !z,                   // NE
-        0b0010 => c,                    // CS / HS
-        0b0011 => !c,                   // CC / LO
-        0b0100 => n,                    // MI
-        0b0101 => !n,                   // PL
-        0b0110 => v,                    // VS
-        0b0111 => !v,                   // VC
-        0b1000 => c && !z,              // HI
-        0b1001 => !c || z,              // LS
-        0b1010 => n == v,               // GE
-        0b1011 => n != v,               // LT
-        0b1100 => !z && (n == v),       // GT
-        0b1101 => z || (n != v),        // LE
-        0b1110 => true,                 // AL
-        0b1111 => true,                 // NV
+        0b0000 => z,              // EQ
+        0b0001 => !z,             // NE
+        0b0010 => c,              // CS / HS
+        0b0011 => !c,             // CC / LO
+        0b0100 => n,              // MI
+        0b0101 => !n,             // PL
+        0b0110 => v,              // VS
+        0b0111 => !v,             // VC
+        0b1000 => c && !z,        // HI
+        0b1001 => !c || z,        // LS
+        0b1010 => n == v,         // GE
+        0b1011 => n != v,         // LT
+        0b1100 => !z && (n == v), // GT
+        0b1101 => z || (n != v),  // LE
+        0b1110 => true,           // AL
+        0b1111 => true,           // NV
         _ => true,
     }
 }
@@ -60,7 +60,11 @@ pub fn cond_taken(cpu: &Armv8Cpu, cond: u8) -> bool {
 ///
 /// If `sf` (sixty-four bit flag) is false, the value is zero-extended from 32 bits.
 pub fn read_reg(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
-    let val = if n >= ZERO_REGISTER_INDEX { 0 } else { cpu.regs.x(n) };
+    let val = if n >= ZERO_REGISTER_INDEX {
+        0
+    } else {
+        cpu.regs.x(n)
+    };
     if sf { val } else { (val as u32) as u64 }
 }
 
@@ -69,7 +73,11 @@ pub fn read_reg(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
 ///
 /// This is the behavior used by LDR/STR/LDP/STP and ADD/SUB (extended register).
 pub fn read_base(cpu: &Armv8Cpu, n: u8, sf: bool) -> u64 {
-    let val = if n >= SP_REGISTER_INDEX { cpu.regs.sp } else { cpu.regs.x(n) };
+    let val = if n >= SP_REGISTER_INDEX {
+        cpu.regs.sp
+    } else {
+        cpu.regs.x(n)
+    };
     if sf { val } else { (val as u32) as u64 }
 }
 

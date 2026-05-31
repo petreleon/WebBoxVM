@@ -16,7 +16,10 @@ struct Ciovec {
 
 /// Write bytes to a WASI file descriptor (1=stdout, 2=stderr).
 pub fn wasi_write(fd: u32, buf: &[u8]) -> usize {
-    let iov = Ciovec { ptr: buf.as_ptr(), len: buf.len() };
+    let iov = Ciovec {
+        ptr: buf.as_ptr(),
+        len: buf.len(),
+    };
     let mut nwritten: usize = 0;
     unsafe {
         fd_write(

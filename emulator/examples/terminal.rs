@@ -24,8 +24,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         eprintln!("iso kernel: {}", boot.kernel_path);
         eprintln!("iso initrd: {}", boot.initrd_paths.join(", "));
         eprintln!("iso bootargs: {}", boot.bootargs);
-        BootContext::new_with_initrd_and_bootargs(&boot.kernel, 1, &boot.initrd, &boot.bootargs)
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?
+        let mut ctx = BootContext::new_with_initrd_and_bootargs(
+            &boot.kernel,
+            1,
+            &boot.initrd,
+            &boot.bootargs,
+        )
+        .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+        ctx.attach_virtio_block(&image);
+        ctx
     } else {
         BootContext::new(&image, 1).map_err(|err| io::Error::new(io::ErrorKind::Other, err))?
     };

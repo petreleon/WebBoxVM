@@ -6,8 +6,9 @@
 //!   3. Physical memory (fallback for RAM, EFI, and low region)
 
 use crate::constants::*;
-use crate::devices::pl011::Pl011Uart;
 use crate::devices::gicv3::Gicv3;
+use crate::devices::pl011::Pl011Uart;
+use crate::devices::virtio_blk::VirtioBlk;
 use crate::memory::PhysicalMemory;
 
 /// Mask for the bottom 21 bits of an address, used for UART fixmap remapping.
@@ -26,6 +27,7 @@ pub struct SystemBus {
     pub mem: PhysicalMemory,
     pub uart: Pl011Uart,
     pub gic: Gicv3,
+    pub virtio_blk: VirtioBlk,
 }
 
 impl SystemBus {
@@ -34,6 +36,7 @@ impl SystemBus {
             mem: PhysicalMemory::new(),
             uart: Pl011Uart::new(),
             gic: Gicv3::new(),
+            virtio_blk: VirtioBlk::new(),
         }
     }
 
@@ -57,6 +60,9 @@ impl SystemBus {
         }
         if in_gicr_range(addr) {
             return self.gic.gicr_read(addr - GICR_BASE, size);
+        }
+        if in_virtio_blk_range(addr) {
+            return self.virtio_blk.read(addr - VIRTIO_BLK_BASE, size);
         }
         self.mem.read(addr, size)
     }
@@ -82,6 +88,13 @@ impl SystemBus {
             self.gic.gicd_write(addr - GICD_BASE, value, size);
         } else if in_gicr_range(addr) {
             self.gic.gicr_write(addr - GICR_BASE, value, size);
+        } else if in_virtio_blk_range(addr) {
+            if self
+                .virtio_blk
+                .write(&mut self.mem, addr - VIRTIO_BLK_BASE, value, size)
+            {
+                self.gic.set_pending(VIRTIO_BLK_IRQ_ID);
+            }
         }
         self.mem.write(addr, size, value);
     }
@@ -103,6 +116,10 @@ fn in_gicd_range(addr: u64) -> bool {
 
 fn in_gicr_range(addr: u64) -> bool {
     addr >= GICR_BASE && addr < GICR_BASE + GICR_SIZE
+}
+
+fn in_virtio_blk_range(addr: u64) -> bool {
+    addr >= VIRTIO_BLK_BASE && addr < VIRTIO_BLK_END
 }
 
 /// Returns true for printable ASCII (0x20–0x7E), newline (0x0A), or CR (0x0D).

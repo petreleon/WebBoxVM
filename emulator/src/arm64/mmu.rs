@@ -17,9 +17,10 @@
 //! we continue; if it's a block/page we extract the physical address; if it's
 //! invalid we raise a Translation Fault.
 
-use crate::constants::*;
 use crate::arm64::system_regs::SystemRegisters;
+use crate::constants::*;
 use crate::memory::PhysicalMemory;
+use std::env;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Fault {
@@ -33,13 +34,17 @@ pub enum Fault {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TlbEntry {
     pub valid: bool,
-    pub va_page: u64,   // virtual page number (VA >> 12)
-    pub pa_page: u64,   // physical page number (PA >> 12)
+    pub va_page: u64, // virtual page number (VA >> 12)
+    pub pa_page: u64, // physical page number (PA >> 12)
 }
 
 impl Default for TlbEntry {
     fn default() -> Self {
-        Self { valid: false, va_page: 0, pa_page: 0 }
+        Self {
+            valid: false,
+            va_page: 0,
+            pa_page: 0,
+        }
     }
 }
 
@@ -51,7 +56,9 @@ pub struct Tlb {
 
 impl Tlb {
     pub fn new() -> Self {
-        Self { entries: vec![TlbEntry::default(); TLB_ENTRIES] }
+        Self {
+            entries: vec![TlbEntry::default(); TLB_ENTRIES],
+        }
     }
 
     /// Look up a virtual address in the TLB.
@@ -87,7 +94,9 @@ impl Tlb {
 }
 
 impl Default for Tlb {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Translate a virtual address to a physical address.
@@ -151,18 +160,118 @@ pub fn translate(
     result
 }
 
+pub fn translate_write(
+    sys: &SystemRegisters,
+    mem: &mut PhysicalMemory,
+    va: u64,
+    current_el: u8,
+) -> Result<u64, Fault> {
+    if (sys.sctlr_el1 & SCTLR_MMU_ENABLE) == 0 {
+        return Ok(va);
+    }
+
+    if va >= KERNEL_VA_BASE {
+        let low = va & VA_LOW32_MASK;
+        if is_mmio_device_range(low) {
+            return Ok(low);
+        }
+    }
+
+    let walk = page_table_walk_with_desc(sys, mem, va)?;
+    if env::var_os("WEBBOXVM_TRACE_WRITE_PERM").is_some() {
+        let read_only = (walk.desc & DESC_AP_RO) != 0;
+        let el0_accessible = (walk.desc & DESC_AP_EL0) != 0;
+        if read_only || (current_el == 0 && !el0_accessible) {
+            eprintln!(
+                "WRITE PERM va=0x{va:016x} pa=0x{:016x} desc_addr=0x{:016x} desc=0x{:016x} tcr=0x{:016x} el={current_el} ro={} el0={} dbm={} ha={} hd={}",
+                walk.pa,
+                walk.desc_addr,
+                walk.desc,
+                sys.tcr_el1,
+                read_only,
+                el0_accessible,
+                (walk.desc & DESC_DBM_BIT) != 0,
+                (sys.tcr_el1 & TCR_HA_BIT) != 0,
+                (sys.tcr_el1 & TCR_HD_BIT) != 0,
+            );
+        }
+    }
+    check_write_permission(sys, mem, walk.desc_addr, walk.desc, current_el)?;
+    Ok(walk.pa)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct WalkResult {
+    pa: u64,
+    desc: u64,
+    desc_addr: u64,
+}
+
+impl WalkResult {
+    fn new(pa: u64, desc: u64, desc_addr: u64) -> Self {
+        Self {
+            pa,
+            desc,
+            desc_addr,
+        }
+    }
+}
+
+fn hardware_dirty_update_enabled(sys: &SystemRegisters) -> bool {
+    // Arm defines TCR_EL1.HD as effective only when HA is enabled.
+    (sys.tcr_el1 & (TCR_HA_BIT | TCR_HD_BIT)) == (TCR_HA_BIT | TCR_HD_BIT)
+}
+
+fn can_hardware_update_dirty(sys: &SystemRegisters, desc: u64) -> bool {
+    hardware_dirty_update_enabled(sys) && (desc & DESC_DBM_BIT) != 0
+}
+
+fn mark_descriptor_dirty(mem: &mut PhysicalMemory, desc_addr: u64, desc: u64) -> Result<(), Fault> {
+    let dirty_desc = desc & !DESC_AP_RO;
+    mem.write(desc_addr, 8, dirty_desc)
+        .ok_or(Fault::TranslationFault)
+}
+
+fn check_write_permission(
+    sys: &SystemRegisters,
+    mem: &mut PhysicalMemory,
+    desc_addr: u64,
+    desc: u64,
+    current_el: u8,
+) -> Result<(), Fault> {
+    let read_only = (desc & DESC_AP_RO) != 0;
+    let el0_accessible = (desc & DESC_AP_EL0) != 0;
+
+    if current_el == 0 && !el0_accessible {
+        return Err(Fault::PermissionFault);
+    }
+
+    if read_only {
+        if can_hardware_update_dirty(sys, desc) {
+            mark_descriptor_dirty(mem, desc_addr, desc)?;
+            return Ok(());
+        }
+        return Err(Fault::PermissionFault);
+    }
+
+    Ok(())
+}
+
 /// Returns true if the 32-bit physical address is a known MMIO device.
 fn is_mmio_device_range(pa: u64) -> bool {
-    (pa >= GICD_BASE && pa < GICD_BASE + GICD_SIZE)
-        || (pa >= UART_BASE && pa < UART_END)
+    (pa >= GICD_BASE && pa < GICD_BASE + GICD_SIZE) || (pa >= UART_BASE && pa < UART_END)
 }
 
 /// Walk the 3-level page table structure to translate a VA.
-fn page_table_walk(
+fn page_table_walk(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) -> Result<u64, Fault> {
+    page_table_walk_with_desc(sys, mem, va).map(|walk| walk.pa)
+}
+
+fn page_table_walk_with_desc(
     sys: &SystemRegisters,
     mem: &PhysicalMemory,
     va: u64,
-) -> Result<u64, Fault> {
+) -> Result<WalkResult, Fault> {
     // Determine which TTBR to use and the VA size
     let t1sz = ((sys.tcr_el1 >> TCR_T1SZ_SHIFT) & TCR_T1SZ_MASK) as u8;
     let va_bits = 64u8.saturating_sub(t1sz);
@@ -192,10 +301,15 @@ fn page_table_walk(
     // Level 1 (bits 38:30) — can be a 1 GiB block
     if start_level <= 1 {
         let idx = ((va >> PT_L1_SHIFT) & 0x1FF) as u64;
-        let desc = read_descriptor(mem, table_base + idx * 8)?;
+        let desc_addr = table_base + idx * 8;
+        let desc = read_descriptor(mem, desc_addr)?;
         let is_table = decode_descriptor_type(desc, 1)?;
         if !is_table {
-            return Ok((desc & 0x0000_FFFF_C000_0000) | (va & (L1_BLOCK_SIZE - 1)));
+            return Ok(WalkResult::new(
+                (desc & 0x0000_FFFF_C000_0000) | (va & (L1_BLOCK_SIZE - 1)),
+                desc,
+                desc_addr,
+            ));
         }
         table_base = desc & DESC_ADDR_MASK;
     }
@@ -203,22 +317,32 @@ fn page_table_walk(
     // Level 2 (bits 29:21) — can be a 2 MiB block
     if start_level <= 2 {
         let idx = ((va >> PT_L2_SHIFT) & 0x1FF) as u64;
-        let desc = read_descriptor(mem, table_base + idx * 8)?;
+        let desc_addr = table_base + idx * 8;
+        let desc = read_descriptor(mem, desc_addr)?;
         let is_table = decode_descriptor_type(desc, 2)?;
         if !is_table {
-            return Ok((desc & 0x0000_FFFF_FFE0_0000) | (va & (L2_BLOCK_SIZE - 1)));
+            return Ok(WalkResult::new(
+                (desc & 0x0000_FFFF_FFE0_0000) | (va & (L2_BLOCK_SIZE - 1)),
+                desc,
+                desc_addr,
+            ));
         }
         table_base = desc & DESC_ADDR_MASK;
     }
 
     // Level 3 (bits 20:12) — 4 KiB page
     let idx = ((va >> PT_L3_SHIFT) & 0x1FF) as u64;
-    let desc = read_descriptor(mem, table_base + idx * 8)?;
+    let desc_addr = table_base + idx * 8;
+    let desc = read_descriptor(mem, desc_addr)?;
     let is_table = decode_descriptor_type(desc, 3)?;
     if is_table {
         return Err(Fault::TranslationFault); // L3 can't point to a sub-table
     }
-    Ok((desc & DESC_ADDR_MASK) | (va & PAGE_OFFSET_MASK))
+    Ok(WalkResult::new(
+        (desc & DESC_ADDR_MASK) | (va & PAGE_OFFSET_MASK),
+        desc,
+        desc_addr,
+    ))
 }
 
 /// Determine which page table level to start at based on the VA size.
@@ -230,10 +354,10 @@ fn page_table_walk(
 /// | 16..24      | 40..48   | 0           |
 fn determine_start_level(tnsz: u8) -> u8 {
     match tnsz {
-        34..=39 => 2,  // short VA → skip L0 and L1
-        25..=33 => 1,  // medium VA → skip L0
-        16..=24 => 0,  // full 48-bit VA → start at L0
-        _ => 1,        // default
+        34..=39 => 2, // short VA → skip L0 and L1
+        25..=33 => 1, // medium VA → skip L0
+        16..=24 => 0, // full 48-bit VA → start at L0
+        _ => 1,       // default
     }
 }
 
@@ -249,7 +373,10 @@ pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
     let t1sz = ((tcr >> TCR_T1SZ_SHIFT) & TCR_T1SZ_MASK) as u8;
     let va_bits = 64u8.saturating_sub(t1sz);
 
-    eprintln!("    TTBR1=0x{:016x}  TCR=0x{:016x}  T1SZ={}  VA_BITS={}", ttbr, tcr, t1sz, va_bits);
+    eprintln!(
+        "    TTBR1=0x{:016x}  TCR=0x{:016x}  T1SZ={}  VA_BITS={}",
+        ttbr, tcr, t1sz, va_bits
+    );
     eprintln!("    VA =0x{:016x}", va);
 
     // L0
@@ -257,7 +384,10 @@ pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
     let l0_addr = ttbr + l0_idx * 8;
     if let Some(desc) = mem.read(l0_addr, 8) {
         let valid = desc & 3;
-        eprintln!("    L0[{}] at PA=0x{:x} desc=0x{:016x} valid={}", l0_idx, l0_addr, desc, valid);
+        eprintln!(
+            "    L0[{}] at PA=0x{:x} desc=0x{:016x} valid={}",
+            l0_idx, l0_addr, desc, valid
+        );
         if valid == DESC_TABLE {
             let l1_base = desc & DESC_ADDR_MASK;
             // L1
@@ -265,7 +395,10 @@ pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
             let l1_addr = l1_base + l1_idx * 8;
             if let Some(desc) = mem.read(l1_addr, 8) {
                 let valid = desc & 3;
-                eprintln!("    L1[{}] at PA=0x{:x} desc=0x{:016x} valid={}", l1_idx, l1_addr, desc, valid);
+                eprintln!(
+                    "    L1[{}] at PA=0x{:x} desc=0x{:016x} valid={}",
+                    l1_idx, l1_addr, desc, valid
+                );
                 if valid == DESC_TABLE {
                     let l2_base = desc & DESC_ADDR_MASK;
                     // L2
@@ -273,7 +406,10 @@ pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
                     let l2_addr = l2_base + l2_idx * 8;
                     if let Some(desc) = mem.read(l2_addr, 8) {
                         let valid = desc & 3;
-                        eprintln!("    L2[{}] at PA=0x{:x} desc=0x{:016x} valid={}", l2_idx, l2_addr, desc, valid);
+                        eprintln!(
+                            "    L2[{}] at PA=0x{:x} desc=0x{:016x} valid={}",
+                            l2_idx, l2_addr, desc, valid
+                        );
                         if valid == DESC_TABLE {
                             let l3_base = desc & DESC_ADDR_MASK;
                             // L3
@@ -281,23 +417,40 @@ pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
                             let l3_addr = l3_base + l3_idx * 8;
                             if let Some(desc) = mem.read(l3_addr, 8) {
                                 let pa = (desc & DESC_ADDR_MASK) | (va & PAGE_OFFSET_MASK);
-                                eprintln!("    L3[{}] at PA=0x{:x} desc=0x{:016x} -> PA=0x{:016x}", l3_idx, l3_addr, desc, pa);
-                            } else { eprintln!("    L3[{}] at PA=0x{:x} UNREADABLE", l3_idx, l3_addr); }
+                                eprintln!(
+                                    "    L3[{}] at PA=0x{:x} desc=0x{:016x} -> PA=0x{:016x}",
+                                    l3_idx, l3_addr, desc, pa
+                                );
+                            } else {
+                                eprintln!("    L3[{}] at PA=0x{:x} UNREADABLE", l3_idx, l3_addr);
+                            }
                         } else if valid == DESC_BLOCK {
                             let pa = (desc & 0x0000_FFFF_FFE0_0000) | (va & (L2_BLOCK_SIZE - 1));
                             eprintln!("    L2 block -> PA=0x{:016x}", pa);
-                        } else { eprintln!("    L2 INVALID (valid={})", valid); }
-                    } else { eprintln!("    L2[{}] at PA=0x{:x} UNREADABLE", l2_idx, l2_addr); }
+                        } else {
+                            eprintln!("    L2 INVALID (valid={})", valid);
+                        }
+                    } else {
+                        eprintln!("    L2[{}] at PA=0x{:x} UNREADABLE", l2_idx, l2_addr);
+                    }
                 } else if valid == DESC_BLOCK {
                     let pa = (desc & 0x0000_FFFF_C000_0000) | (va & (L1_BLOCK_SIZE - 1));
                     eprintln!("    L1 block -> PA=0x{:016x}", pa);
-                } else { eprintln!("    L1 INVALID (valid={})", valid); }
-            } else { eprintln!("    L1[{}] at PA=0x{:x} UNREADABLE", l1_idx, l1_addr); }
+                } else {
+                    eprintln!("    L1 INVALID (valid={})", valid);
+                }
+            } else {
+                eprintln!("    L1[{}] at PA=0x{:x} UNREADABLE", l1_idx, l1_addr);
+            }
         } else if valid == DESC_BLOCK {
             let pa = (desc & 0x0000_FFFF_FFFF_F000) | (va & (L0_BLOCK_SIZE - 1));
             eprintln!("    L0 block -> PA=0x{:016x}", pa);
-        } else { eprintln!("    L0 INVALID (valid={})", valid); }
-    } else { eprintln!("    L0[{}] at PA=0x{:x} UNREADABLE", l0_idx, l0_addr); }
+        } else {
+            eprintln!("    L0 INVALID (valid={})", valid);
+        }
+    } else {
+        eprintln!("    L0[{}] at PA=0x{:x} UNREADABLE", l0_idx, l0_addr);
+    }
 }
 
 /// Decode a page table descriptor at `level`.
@@ -309,7 +462,9 @@ pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
 ///   [1:0] = 0b11 → table descriptor (points to next level; at L3 means page)
 fn decode_descriptor_type(desc: u64, level: u8) -> Result<bool, Fault> {
     let low = desc & 3;
-    if low == 0 { return Err(Fault::TranslationFault); }
+    if low == 0 {
+        return Err(Fault::TranslationFault);
+    }
     let is_table = low == 3; // 0b11 = table pointer
     // At L3, 0b11 means a 4 KiB page, not a table
     if level == 3 && is_table {

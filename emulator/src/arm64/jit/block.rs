@@ -2,9 +2,12 @@
 //! Does NOT execute — purely static analysis.
 //! Handles translation faults gracefully (partial blocks on fault).
 
-use super::super::{Armv8Cpu, decode, opcodes::{Instr, Opcode}};
-use crate::bus::SystemBus;
+use super::super::{
+    Armv8Cpu, decode,
+    opcodes::{Instr, Opcode},
+};
 use crate::arm64::mmu::translate;
+use crate::bus::SystemBus;
 
 pub struct Block {
     pub start_pc: u64,
@@ -38,7 +41,9 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
             }
             Err(_) => {
                 consecutive_faults += 1;
-                if consecutive_faults > 3 { break; }
+                if consecutive_faults > 3 {
+                    break;
+                }
                 pc += 4;
                 continue;
             }
@@ -65,9 +70,18 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
 
         let is_terminator = matches!(
             instr.op,
-            Opcode::B | Opcode::Br | Opcode::Blr | Opcode::Ret
-                | Opcode::Bl | Opcode::BCond | Opcode::Cbz | Opcode::Cbnz
-                | Opcode::Tbz | Opcode::Tbnz | Opcode::Svc | Opcode::Brk
+            Opcode::B
+                | Opcode::Br
+                | Opcode::Blr
+                | Opcode::Ret
+                | Opcode::Bl
+                | Opcode::BCond
+                | Opcode::Cbz
+                | Opcode::Cbnz
+                | Opcode::Tbz
+                | Opcode::Tbnz
+                | Opcode::Svc
+                | Opcode::Brk
                 | Opcode::Eret
         );
 
@@ -83,5 +97,9 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
         return Err("empty block");
     }
 
-    Ok(Block { start_pc, start_pa, instructions })
+    Ok(Block {
+        start_pc,
+        start_pa,
+        instructions,
+    })
 }

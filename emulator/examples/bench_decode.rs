@@ -1,8 +1,8 @@
 //! Benchmark: hand-rolled decoder vs disarm64.
 
-use std::time::Instant;
 use disarm64::decoder;
 use emulator::arm64::decode as our_decode;
+use std::time::Instant;
 
 fn main() {
     // Test vectors: one per opcode we support
@@ -82,8 +82,11 @@ fn main() {
     let our_time = start.elapsed();
     let total_ops = test_vecs.len() * ITERATIONS;
     let our_ns = our_time.as_nanos() as f64 / total_ops as f64;
-    println!("Hand-rolled: {:.1} ns/op ({:.1}M ops/s)", 
-        our_ns, 1_000.0 / our_ns);
+    println!(
+        "Hand-rolled: {:.1} ns/op ({:.1}M ops/s)",
+        our_ns,
+        1_000.0 / our_ns
+    );
 
     // --- Benchmark disarm64 ---
     let start = Instant::now();
@@ -94,11 +97,16 @@ fn main() {
     }
     let disarm_time = start.elapsed();
     let disarm_ns = disarm_time.as_nanos() as f64 / total_ops as f64;
-    println!("disarm64:     {:.1} ns/op ({:.1}M ops/s)",
-        disarm_ns, 1_000.0 / disarm_ns);
+    println!(
+        "disarm64:     {:.1} ns/op ({:.1}M ops/s)",
+        disarm_ns,
+        1_000.0 / disarm_ns
+    );
 
-    println!("\nSpeed ratio: disarm64 is {:.1}x vs hand-rolled",
-        disarm_ns / our_ns);
+    println!(
+        "\nSpeed ratio: disarm64 is {:.1}x vs hand-rolled",
+        disarm_ns / our_ns
+    );
 
     // --- Verify correctness ---
     println!("\nCorrectness check:");
@@ -113,11 +121,17 @@ fn main() {
                 let _ = dinsn;
             }
             (Some(our_insn), None) => {
-                println!("  MISS: disarm64 failed on 0x{:08x} (we decoded {:?})", raw, our_insn.op);
+                println!(
+                    "  MISS: disarm64 failed on 0x{:08x} (we decoded {:?})",
+                    raw, our_insn.op
+                );
                 mismatches += 1;
             }
             (None, Some(_dinsn)) => {
-                println!("  MISS: our decoder failed on 0x{:08x} (disarm64 decoded)", raw);
+                println!(
+                    "  MISS: our decoder failed on 0x{:08x} (disarm64 decoded)",
+                    raw
+                );
                 mismatches += 1;
             }
             (None, None) => {

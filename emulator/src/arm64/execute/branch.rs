@@ -1,7 +1,7 @@
 //! Branch instruction helpers.
 
-use crate::arm64::helpers::{read_reg, write_reg};
 use crate::arm64::Armv8Cpu;
+use crate::arm64::helpers::{read_reg, write_reg};
 use crate::constants::LINK_REGISTER_INDEX;
 
 pub(super) fn branch_target(pc: u64, offset: u64) -> u64 {

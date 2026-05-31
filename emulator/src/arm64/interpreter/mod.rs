@@ -1,14 +1,19 @@
 //! Interpreted execution: fetch-decode-execute loop.
 
 use super::{Armv8Cpu, decode, execute};
-use crate::bus::SystemBus;
 use crate::arm64::mmu::translate;
+use crate::bus::SystemBus;
 
 #[cfg(test)]
 mod tests;
 
 /// Run the CPU starting at `entry` for exactly `steps` instructions.
-pub fn run(cpu: &mut Armv8Cpu, bus: &mut SystemBus, entry: u64, max_steps: usize) -> Result<usize, RunError> {
+pub fn run(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    entry: u64,
+    max_steps: usize,
+) -> Result<usize, RunError> {
     cpu.regs.pc = entry;
     for _ in 0..max_steps {
         let raw = fetch32(cpu, bus)?;

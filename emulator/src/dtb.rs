@@ -27,6 +27,7 @@ use crate::constants::*;
 ///   - `intc@8000000` — GICv3 interrupt controller
 ///   - `timer` — ARMv8 architected timer
 ///   - `uart@9000000` — PL011 serial console
+///   - `virtio_blk@a000000` — read-only ISO media
 ///   - `cpus/cpu@0` — single Cortex-A72 core
 pub fn build_dtb(
     mem_start: u64,
@@ -65,11 +66,31 @@ pub fn build_dtb(
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, ""); // root = empty name
 
-    push_prop(&mut struct_block, &mut strings, "#address-cells", &2u32.to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "#size-cells", &2u32.to_be_bytes());
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#address-cells",
+        &2u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#size-cells",
+        &2u32.to_be_bytes(),
+    );
     push_prop(&mut struct_block, &mut strings, "model", b"WebBoxVM\0");
-    push_prop(&mut struct_block, &mut strings, "compatible", b"webboxvm,virt\0");
-    push_prop(&mut struct_block, &mut strings, "interrupt-parent", &1u32.to_be_bytes()); // phandle → intc
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"linux,dummy-virt\0webboxvm,virt\0",
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "interrupt-parent",
+        &1u32.to_be_bytes(),
+    ); // phandle → intc
 
     // ── memory@40000000 ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
@@ -87,23 +108,56 @@ pub fn build_dtb(
     // ── chosen ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, "chosen");
-    push_prop(&mut struct_block, &mut strings, "stdout-path", b"/uart@9000000\0");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "stdout-path",
+        b"/uart@9000000:115200n8\0",
+    );
     if let Some(args) = bootargs {
-        push_prop(&mut struct_block, &mut strings, "bootargs", args.as_bytes());
+        let mut bootargs_value = Vec::with_capacity(args.len() + 1);
+        bootargs_value.extend_from_slice(args.as_bytes());
+        bootargs_value.push(0);
+        push_prop(&mut struct_block, &mut strings, "bootargs", &bootargs_value);
     }
     if let (Some(start), Some(end)) = (initrd_start, initrd_end) {
-        push_prop(&mut struct_block, &mut strings, "linux,initrd-start", &start.to_be_bytes());
-        push_prop(&mut struct_block, &mut strings, "linux,initrd-end", &end.to_be_bytes());
+        push_prop(
+            &mut struct_block,
+            &mut strings,
+            "linux,initrd-start",
+            &start.to_be_bytes(),
+        );
+        push_prop(
+            &mut struct_block,
+            &mut strings,
+            "linux,initrd-end",
+            &end.to_be_bytes(),
+        );
     }
     push_token(&mut struct_block, FDT_END_NODE);
 
     // ── intc@8000000 (GICv3) ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, "intc@8000000");
-    push_prop(&mut struct_block, &mut strings, "compatible", b"arm,gic-v3\0");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"arm,gic-v3\0",
+    );
     push_prop(&mut struct_block, &mut strings, "interrupt-controller", &[]);
-    push_prop(&mut struct_block, &mut strings, "#interrupt-cells", &3u32.to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "phandle", &1u32.to_be_bytes()); // phandle=1
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#interrupt-cells",
+        &3u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "phandle",
+        &1u32.to_be_bytes(),
+    ); // phandle=1
     // reg: GICD at 0x08000000 size 0x10000; GICR at 0x080A0000 size 0xF60000
     let mut gic_reg = Vec::new();
     append_two_cell_prop(&mut gic_reg, GICD_BASE, GICD_SIZE);
@@ -114,29 +168,124 @@ pub fn build_dtb(
     // ── timer ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, "timer");
-    push_prop(&mut struct_block, &mut strings, "compatible", b"arm,armv8-timer\0");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"arm,armv8-timer\0",
+    );
     // 4 PPIs: secure=13, non-secure=14, virt=11, hyp=10  (flags=0xF08 each)
     let timer_irqs: [u32; 12] = [
-        1, 13, 0xf08,   // Secure Physical PPI
-        1, 14, 0xf08,   // Non-Secure Physical PPI
-        1, 11, 0xf08,   // Virtual PPI
-        1, 10, 0xf08,   // Hypervisor Physical PPI
+        1, 13, 0xf08, // Secure Physical PPI
+        1, 14, 0xf08, // Non-Secure Physical PPI
+        1, 11, 0xf08, // Virtual PPI
+        1, 10, 0xf08, // Hypervisor Physical PPI
     ];
     let mut timer_irq_bytes = Vec::new();
     for val in &timer_irqs {
         timer_irq_bytes.extend_from_slice(&val.to_be_bytes());
     }
-    push_prop(&mut struct_block, &mut strings, "interrupts", &timer_irq_bytes);
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "interrupts",
+        &timer_irq_bytes,
+    );
+    push_token(&mut struct_block, FDT_END_NODE);
+
+    // ── fixed clocks for PrimeCell devices ──
+    push_token(&mut struct_block, FDT_BEGIN_NODE);
+    push_name(&mut struct_block, "uartclk");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"fixed-clock\0",
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#clock-cells",
+        &0u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "clock-frequency",
+        &24_000_000u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "phandle",
+        &2u32.to_be_bytes(),
+    );
+    push_token(&mut struct_block, FDT_END_NODE);
+
+    push_token(&mut struct_block, FDT_BEGIN_NODE);
+    push_name(&mut struct_block, "apb-pclk");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"fixed-clock\0",
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#clock-cells",
+        &0u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "clock-frequency",
+        &24_000_000u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "phandle",
+        &3u32.to_be_bytes(),
+    );
     push_token(&mut struct_block, FDT_END_NODE);
 
     // ── uart@9000000 ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, "uart@9000000");
-    push_prop(&mut struct_block, &mut strings, "compatible", b"arm,pl011\0arm,primecell\0");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"arm,pl011\0arm,primecell\0",
+    );
     let mut uart_reg = Vec::new();
     append_two_cell_prop(&mut uart_reg, UART_BASE, UART_SIZE);
     push_prop(&mut struct_block, &mut strings, "reg", &uart_reg);
-    push_prop(&mut struct_block, &mut strings, "clock-frequency", &24_000_000u32.to_be_bytes());
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "clock-frequency",
+        &24_000_000u32.to_be_bytes(),
+    );
+    let uart_clocks: [u32; 2] = [2, 3];
+    let mut uart_clock_bytes = Vec::new();
+    for val in &uart_clocks {
+        uart_clock_bytes.extend_from_slice(&val.to_be_bytes());
+    }
+    push_prop(&mut struct_block, &mut strings, "clocks", &uart_clock_bytes);
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "clock-names",
+        b"uartclk\0apb_pclk\0",
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "current-speed",
+        &115_200u32.to_be_bytes(),
+    );
     // UART interrupt: SPI #1, edge-triggered (flags=4)
     let uart_irqs: [u32; 3] = [0, 1, 4];
     let mut uart_bytes = Vec::new();
@@ -146,16 +295,53 @@ pub fn build_dtb(
     push_prop(&mut struct_block, &mut strings, "interrupts", &uart_bytes);
     push_token(&mut struct_block, FDT_END_NODE);
 
+    // ── virtio_blk@a000000 ──
+    push_token(&mut struct_block, FDT_BEGIN_NODE);
+    push_name(&mut struct_block, "virtio_blk@a000000");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"virtio,mmio\0",
+    );
+    let mut virtio_reg = Vec::new();
+    append_two_cell_prop(&mut virtio_reg, VIRTIO_BLK_BASE, VIRTIO_BLK_SIZE);
+    push_prop(&mut struct_block, &mut strings, "reg", &virtio_reg);
+    // SPI #16 is GIC interrupt ID 48.
+    let virtio_irqs: [u32; 3] = [0, 16, 4];
+    let mut virtio_bytes = Vec::new();
+    for val in &virtio_irqs {
+        virtio_bytes.extend_from_slice(&val.to_be_bytes());
+    }
+    push_prop(&mut struct_block, &mut strings, "interrupts", &virtio_bytes);
+    push_prop(&mut struct_block, &mut strings, "dma-coherent", &[]);
+    push_token(&mut struct_block, FDT_END_NODE);
+
     // ── cpus ──
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, "cpus");
-    push_prop(&mut struct_block, &mut strings, "#address-cells", &1u32.to_be_bytes());
-    push_prop(&mut struct_block, &mut strings, "#size-cells", &0u32.to_be_bytes());
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#address-cells",
+        &1u32.to_be_bytes(),
+    );
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "#size-cells",
+        &0u32.to_be_bytes(),
+    );
 
     push_token(&mut struct_block, FDT_BEGIN_NODE);
     push_name(&mut struct_block, "cpu@0");
     push_prop(&mut struct_block, &mut strings, "device_type", b"cpu\0");
-    push_prop(&mut struct_block, &mut strings, "compatible", b"arm,armv8\0");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"arm,armv8\0",
+    );
     push_prop(&mut struct_block, &mut strings, "reg", &0u32.to_be_bytes()); // CPU ID = 0
     push_token(&mut struct_block, FDT_END_NODE);
 

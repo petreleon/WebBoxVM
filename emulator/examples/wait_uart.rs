@@ -7,7 +7,8 @@ use std::fs;
 use std::time::Instant;
 
 fn main() {
-    let kernel_path = env::var("WEBBOXVM_KERNEL").unwrap_or_else(|_| ".artifacts/Image".to_string());
+    let kernel_path =
+        env::var("WEBBOXVM_KERNEL").unwrap_or_else(|_| ".artifacts/Image".to_string());
     let kernel = fs::read(&kernel_path).expect("read kernel Image");
     let mut ctx = BootContext::new(&kernel, 1).expect("boot");
     println!("Boot context ready");
@@ -32,14 +33,22 @@ fn main() {
             println!("\n=== UART at {}M steps ({:.0}s) ===", msteps, elapsed);
             println!("{}", new);
             last_uart = uart.len();
-            if uart.len() > 200 { break; }
+            if uart.len() > 200 {
+                break;
+            }
         }
 
         // Print progress every 10M steps
         if step - last_report >= 10_000_000 || msteps <= 100 {
-            println!("{}M steps, {:.0}s, PC=0x{:016x}, UART={}B, faults=({},{})",
-                msteps, elapsed, ctx.pc(), uart.len(),
-                ctx.machine.fetch_faults, ctx.machine.exec_faults);
+            println!(
+                "{}M steps, {:.0}s, PC=0x{:016x}, UART={}B, faults=({},{})",
+                msteps,
+                elapsed,
+                ctx.pc(),
+                uart.len(),
+                ctx.machine.fetch_faults,
+                ctx.machine.exec_faults
+            );
             last_report = step;
         }
     }
