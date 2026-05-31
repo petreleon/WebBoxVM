@@ -125,6 +125,7 @@
 - [x] Add first ARM64 ISO terminal boot path by extracting kernel/initrd from ISO9660 media
 - [x] Attach booted ISO media as a read-only VirtIO block device
 - [x] Add second writable sparse VirtIO disk for installer target storage
+- [x] Add sparse install-disk snapshot/restore format
 - [x] Debian ARM64 netinst reaches the serial text installer language prompt
 - [x] Add sparse physical memory so browser builds do not allocate the full guest address layout up front
 - [x] Validate standard Debian ARM64 netinst native boot through `/lib/debian-installer/menu` and `/usr/bin/main-menu`
@@ -148,6 +149,7 @@
 - [x] Add `make web`, `make web-pkg`, and `make web-debian-arm64`
 - [x] Verify the browser page loads and terminal DOM renders
 - [x] Expose browser install-disk size control and sparse disk allocation metric
+- [x] Persist browser install disk through OPFS snapshots with autosave and manual save/clear controls
 - [ ] Run Debian ARM64 netinst to the installer language prompt inside the browser app
 - [ ] Verify interactive browser input at the Debian prompt
 - [ ] Improve browser runtime speed enough for practical terminal interaction
@@ -183,9 +185,9 @@ These are aspirational targets, not committed sprints. Most depend on the Linux 
 - [x] Browser deployment with xterm.js console
 - [x] Sparse guest memory for browser builds
 - [x] Session-local sparse install disk for browser ISO boots
+- [x] OPFS persistent disk for browser storage
 - [ ] Move to wasm64 when browser/toolchain support is practical
 - [ ] Web Worker execution so long boot runs do not block the UI thread
-- [ ] OPFS persistent disk for browser storage
 
 ## Backlog — General
 - Multi-core (SMP)

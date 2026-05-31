@@ -30,6 +30,9 @@ const VIRTIO_BLK_S_UNSUPP: u8 = 2;
 const SECTOR_SIZE: usize = 512;
 const QUEUE_NUM_MAX: u16 = 64;
 const SPARSE_DISK_CHUNK_SIZE: usize = 64 * 1024;
+const SPARSE_DISK_SNAPSHOT_MAGIC: &[u8; 8] = b"WBDISK01";
+const SPARSE_DISK_SNAPSHOT_HEADER_LEN: usize = 28;
+const SPARSE_DISK_SNAPSHOT_ENTRY_LEN: usize = 8 + SPARSE_DISK_CHUNK_SIZE;
 pub const DEFAULT_SPARSE_DISK_SIZE: u64 = 4 * 1024 * 1024 * 1024;
 
 #[derive(Clone, Copy, Debug)]
@@ -107,6 +110,24 @@ impl VirtioBlk {
 
     pub fn allocated_storage_bytes(&self) -> u64 {
         self.storage.allocated_bytes()
+    }
+
+    pub fn storage_generation(&self) -> u64 {
+        self.storage.generation()
+    }
+
+    pub fn sparse_disk_size_bytes(&self) -> u64 {
+        self.storage.capacity_bytes()
+    }
+
+    pub fn snapshot_sparse_disk(&self) -> Result<Vec<u8>, String> {
+        self.storage.snapshot()
+    }
+
+    pub fn restore_sparse_disk(&mut self, snapshot: &[u8]) -> Result<(), String> {
+        self.storage.restore(snapshot)?;
+        self.reset_queue();
+        Ok(())
     }
 
     pub fn read(&self, offset: u64, size: u8) -> Option<u64> {
@@ -423,6 +444,13 @@ impl BlockStorage {
         }
     }
 
+    fn generation(&self) -> u64 {
+        match self {
+            Self::ReadOnlyImage { .. } => 0,
+            Self::SparseDisk(disk) => disk.generation,
+        }
+    }
+
     fn read(&self, offset: u64, dst: &mut [u8]) -> u8 {
         let Some(end) = offset.checked_add(dst.len() as u64) else {
             return VIRTIO_BLK_S_IOERR;
@@ -454,6 +482,23 @@ impl BlockStorage {
             Self::SparseDisk(disk) => disk.write(offset, src),
         }
     }
+
+    fn snapshot(&self) -> Result<Vec<u8>, String> {
+        match self {
+            Self::ReadOnlyImage { .. } => Err("read-only block media cannot be snapshotted".into()),
+            Self::SparseDisk(disk) => Ok(disk.snapshot()),
+        }
+    }
+
+    fn restore(&mut self, snapshot: &[u8]) -> Result<(), String> {
+        match self {
+            Self::ReadOnlyImage { .. } => Err("read-only block media cannot be restored".into()),
+            Self::SparseDisk(disk) => {
+                *disk = SparseDiskStorage::from_snapshot(snapshot, disk.id)?;
+                Ok(())
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -461,6 +506,7 @@ struct SparseDiskStorage {
     size_bytes: u64,
     id: &'static [u8],
     chunks: HashMap<u64, Box<[u8; SPARSE_DISK_CHUNK_SIZE]>>,
+    generation: u64,
 }
 
 impl SparseDiskStorage {
@@ -469,6 +515,7 @@ impl SparseDiskStorage {
             size_bytes,
             id,
             chunks: HashMap::new(),
+            generation: 0,
         }
     }
 
@@ -515,6 +562,9 @@ impl SparseDiskStorage {
             done += count;
         }
 
+        if !src.is_empty() {
+            self.generation = self.generation.wrapping_add(1);
+        }
         VIRTIO_BLK_S_OK
     }
 
@@ -527,6 +577,108 @@ impl SparseDiskStorage {
             .checked_add(len as u64)
             .is_some_and(|end| end <= self.size_bytes)
     }
+
+    fn snapshot(&self) -> Vec<u8> {
+        let mut chunk_indexes: Vec<u64> = self
+            .chunks
+            .iter()
+            .filter_map(|(index, chunk)| chunk_has_data(chunk).then_some(*index))
+            .collect();
+        chunk_indexes.sort_unstable();
+
+        let mut snapshot = Vec::with_capacity(
+            SPARSE_DISK_SNAPSHOT_HEADER_LEN + chunk_indexes.len() * SPARSE_DISK_SNAPSHOT_ENTRY_LEN,
+        );
+        snapshot.extend_from_slice(SPARSE_DISK_SNAPSHOT_MAGIC);
+        snapshot.extend_from_slice(&self.size_bytes.to_le_bytes());
+        snapshot.extend_from_slice(&(SPARSE_DISK_CHUNK_SIZE as u32).to_le_bytes());
+        snapshot.extend_from_slice(&(chunk_indexes.len() as u64).to_le_bytes());
+
+        for index in chunk_indexes {
+            snapshot.extend_from_slice(&index.to_le_bytes());
+            snapshot.extend_from_slice(&self.chunks[&index][..]);
+        }
+
+        snapshot
+    }
+
+    fn from_snapshot(snapshot: &[u8], id: &'static [u8]) -> Result<Self, String> {
+        if snapshot.len() < SPARSE_DISK_SNAPSHOT_HEADER_LEN {
+            return Err("persistent disk snapshot is too small".to_string());
+        }
+        if &snapshot[..8] != SPARSE_DISK_SNAPSHOT_MAGIC {
+            return Err("persistent disk snapshot has an invalid magic".to_string());
+        }
+
+        let size_bytes = read_le_u64(snapshot, 8)?;
+        let chunk_size = read_le_u32(snapshot, 16)? as usize;
+        if chunk_size != SPARSE_DISK_CHUNK_SIZE {
+            return Err(format!(
+                "persistent disk chunk size mismatch: got {chunk_size}, expected {SPARSE_DISK_CHUNK_SIZE}"
+            ));
+        }
+
+        let chunk_count = usize::try_from(read_le_u64(snapshot, 20)?)
+            .map_err(|_| "persistent disk chunk count is too large".to_string())?;
+        let expected_len = SPARSE_DISK_SNAPSHOT_HEADER_LEN
+            .checked_add(
+                chunk_count
+                    .checked_mul(SPARSE_DISK_SNAPSHOT_ENTRY_LEN)
+                    .ok_or_else(|| "persistent disk snapshot is too large".to_string())?,
+            )
+            .ok_or_else(|| "persistent disk snapshot is too large".to_string())?;
+        if snapshot.len() != expected_len {
+            return Err("persistent disk snapshot length does not match header".to_string());
+        }
+
+        let mut disk = Self::new(size_bytes, id);
+        let mut offset = SPARSE_DISK_SNAPSHOT_HEADER_LEN;
+        for _ in 0..chunk_count {
+            let chunk_index = read_le_u64(snapshot, offset)?;
+            offset += 8;
+
+            let chunk_start = chunk_index
+                .checked_mul(SPARSE_DISK_CHUNK_SIZE as u64)
+                .ok_or_else(|| "persistent disk chunk index overflows".to_string())?;
+            if chunk_start >= size_bytes {
+                return Err("persistent disk chunk lies beyond disk capacity".to_string());
+            }
+
+            let mut chunk = Box::new([0; SPARSE_DISK_CHUNK_SIZE]);
+            chunk.copy_from_slice(&snapshot[offset..offset + SPARSE_DISK_CHUNK_SIZE]);
+            offset += SPARSE_DISK_CHUNK_SIZE;
+
+            if chunk_has_data(&chunk) {
+                disk.chunks.insert(chunk_index, chunk);
+            }
+        }
+        disk.generation = 1;
+        Ok(disk)
+    }
+}
+
+fn chunk_has_data(chunk: &[u8; SPARSE_DISK_CHUNK_SIZE]) -> bool {
+    chunk.iter().any(|byte| *byte != 0)
+}
+
+fn read_le_u32(bytes: &[u8], offset: usize) -> Result<u32, String> {
+    let end = offset
+        .checked_add(4)
+        .ok_or_else(|| "persistent disk snapshot offset overflows".to_string())?;
+    let data = bytes
+        .get(offset..end)
+        .ok_or_else(|| "persistent disk snapshot is truncated".to_string())?;
+    Ok(u32::from_le_bytes(data.try_into().unwrap()))
+}
+
+fn read_le_u64(bytes: &[u8], offset: usize) -> Result<u64, String> {
+    let end = offset
+        .checked_add(8)
+        .ok_or_else(|| "persistent disk snapshot offset overflows".to_string())?;
+    let data = bytes
+        .get(offset..end)
+        .ok_or_else(|| "persistent disk snapshot is truncated".to_string())?;
+    Ok(u64::from_le_bytes(data.try_into().unwrap()))
 }
 
 #[cfg(test)]
@@ -641,6 +793,34 @@ mod tests {
         let mut bytes = [0u8; SECTOR_SIZE + 1];
 
         assert_eq!(storage.read(0, &mut bytes), VIRTIO_BLK_S_IOERR);
+    }
+
+    #[test]
+    fn sparse_disk_snapshot_roundtrips_nonzero_chunks() {
+        let mut original = SparseDiskStorage::new(3 * SPARSE_DISK_CHUNK_SIZE as u64, b"disk\0");
+        let offset = SPARSE_DISK_CHUNK_SIZE as u64 + 9;
+        let mut out = [0u8; 4];
+
+        assert_eq!(original.write(offset, &[7, 8, 9, 10]), VIRTIO_BLK_S_OK);
+        let snapshot = original.snapshot();
+        let restored = SparseDiskStorage::from_snapshot(&snapshot, b"disk\0").unwrap();
+
+        assert_eq!(restored.size_bytes, original.size_bytes);
+        assert_eq!(restored.allocated_bytes(), SPARSE_DISK_CHUNK_SIZE as u64);
+        assert_eq!(restored.read(offset, &mut out), VIRTIO_BLK_S_OK);
+        assert_eq!(out, [7, 8, 9, 10]);
+    }
+
+    #[test]
+    fn sparse_disk_snapshot_rejects_out_of_range_chunks() {
+        let mut snapshot =
+            SparseDiskStorage::new(SPARSE_DISK_CHUNK_SIZE as u64, b"disk\0").snapshot();
+        snapshot[20..28].copy_from_slice(&1u64.to_le_bytes());
+        snapshot.extend_from_slice(&2u64.to_le_bytes());
+        snapshot.extend_from_slice(&[1; SPARSE_DISK_CHUNK_SIZE]);
+
+        let err = SparseDiskStorage::from_snapshot(&snapshot, b"disk\0").unwrap_err();
+        assert!(err.contains("beyond disk capacity"));
     }
 
     #[test]

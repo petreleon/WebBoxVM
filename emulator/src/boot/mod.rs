@@ -176,6 +176,22 @@ impl BootContext {
     pub fn install_disk_allocated_bytes(&self) -> u64 {
         self.machine.bus.virtio_disk.allocated_storage_bytes()
     }
+
+    pub fn install_disk_size_bytes(&self) -> u64 {
+        self.machine.bus.virtio_disk.sparse_disk_size_bytes()
+    }
+
+    pub fn install_disk_generation(&self) -> u64 {
+        self.machine.bus.virtio_disk.storage_generation()
+    }
+
+    pub fn install_disk_snapshot(&self) -> Result<Vec<u8>, String> {
+        self.machine.bus.virtio_disk.snapshot_sparse_disk()
+    }
+
+    pub fn restore_install_disk(&mut self, snapshot: &[u8]) -> Result<(), String> {
+        self.machine.bus.virtio_disk.restore_sparse_disk(snapshot)
+    }
 }
 
 #[cfg(test)]

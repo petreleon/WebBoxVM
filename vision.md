@@ -18,9 +18,9 @@ Choose the language to be used for the installation process.
 Language:
 ```
 
-The browser path now has a concrete application shell: a WASM build, xterm.js serial console, ISO picker, Debian boot target, UART keyboard input, pause/resume/reset controls, disk-size control, and live VM metrics. Sparse guest memory keeps browser builds from reserving the full guest memory layout up front. Storage is split into two VirtIO block devices: read-only ISO media and a writable sparse install disk whose unwritten sectors read as zero.
+The browser path now has a concrete application shell: a WASM build, xterm.js serial console, ISO picker, Debian boot target, UART keyboard input, pause/resume/reset controls, persistent disk controls, and live VM metrics. Sparse guest memory keeps browser builds from reserving the full guest memory layout up front. Storage is split into two VirtIO block devices: read-only ISO media and a writable sparse install disk whose unwritten sectors read as zero. Browser builds persist that install disk as compact OPFS snapshots.
 
-The next milestone is proving the same Debian installer prompt inside the browser app with responsive input, then adding persistent browser storage and tightening performance enough that the experience feels like an interactive terminal rather than a long-running trace.
+The next milestone is proving the same Debian installer prompt inside the browser app with responsive input, then tightening performance enough that the experience feels like an interactive terminal rather than a long-running trace.
 
 ## Principles
 

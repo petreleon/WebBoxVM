@@ -72,7 +72,7 @@ input {
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(5, minmax(86px, auto));
+  grid-template-columns: repeat(6, minmax(82px, auto));
   gap: 1px;
   margin: 0;
   overflow: hidden;

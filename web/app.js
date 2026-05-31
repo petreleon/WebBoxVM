@@ -1,9 +1,14 @@
 import init, { Emulator } from "./pkg/emulator.js";
 
+const DISK_FILE_NAME = "webboxvm-install-disk.wbdisk";
+const AUTOSAVE_INTERVAL_MS = 5000;
+const GIB = 1024n ** 3n;
+
 const els = {
   autoScroll: document.querySelector("#autoScroll"),
   bootDebian: document.querySelector("#bootDebian"),
   bootIso: document.querySelector("#bootIso"),
+  clearDisk: document.querySelector("#clearDisk"),
   diskSize: document.querySelector("#diskSize"),
   diskValue: document.querySelector("#diskValue"),
   eventLog: document.querySelector("#eventLog"),
@@ -13,6 +18,8 @@ const els = {
   pcValue: document.querySelector("#pcValue"),
   resetVm: document.querySelector("#resetVm"),
   resumeVm: document.querySelector("#resumeVm"),
+  saveDisk: document.querySelector("#saveDisk"),
+  savedValue: document.querySelector("#savedValue"),
   statusLine: document.querySelector("#statusLine"),
   stepSlice: document.querySelector("#stepSlice"),
   stepsValue: document.querySelector("#stepsValue"),
@@ -28,11 +35,27 @@ let running = false;
 let pumpScheduled = false;
 let lastUart = 0;
 let bootedName = "";
+let controlState = "idle";
+let opfsAvailable = false;
+let storageRoot;
+let lastSavedDiskGeneration = 0n;
+let lastPersistedBytes = 0;
+let saveInProgress = false;
+let saveQueued = false;
+let lastAutosaveAt = 0;
+let persistenceReady;
 
 await waitForTerminal();
 mountTerminal();
 wireEvents();
 setControls("idle");
+updateStorageMetric();
+persistenceReady = initPersistence().catch((error) => {
+  opfsAvailable = false;
+  updateStorageMetric();
+  log(error.stack ?? String(error));
+  setControls(controlState);
+});
 log("Ready");
 
 async function waitForTerminal() {
@@ -91,6 +114,7 @@ function wireEvents() {
     running = false;
     setControls("paused");
     setStatus(`Paused ${bootedName}`);
+    savePersistentDisk({ force: true }).catch(handleError);
   });
   els.resumeVm.addEventListener("click", () => {
     if (!emulator) {
@@ -101,7 +125,18 @@ function wireEvents() {
     setStatus(`Running ${bootedName}`);
     schedulePump();
   });
-  els.resetVm.addEventListener("click", resetVm);
+  els.resetVm.addEventListener("click", () => resetVm().catch(handleError));
+  els.saveDisk.addEventListener("click", () => {
+    savePersistentDisk({ force: true }).catch(handleError);
+  });
+  els.clearDisk.addEventListener("click", () => {
+    clearPersistentDisk().catch(handleError);
+  });
+  window.addEventListener("pagehide", () => {
+    if (emulator) {
+      savePersistentDisk({ force: true, quiet: true }).catch(() => {});
+    }
+  });
 }
 
 function handleError(error) {
@@ -158,7 +193,7 @@ async function bootBytes(bytes, name) {
     await nextFrame();
 
     emulator = new Emulator(1);
-    const diskSizeBytes = BigInt(clamp(Number(els.diskSize.value) || 4, 1, 64)) * 1024n ** 3n;
+    const diskSizeBytes = BigInt(clamp(Number(els.diskSize.value) || 4, 1, 64)) * GIB;
     const result = emulator.boot_iso_with_disk(bytes, 1, diskSizeBytes);
     log(result);
     if (result.startsWith("ERR:")) {
@@ -167,6 +202,13 @@ async function bootBytes(bytes, name) {
       return;
     }
 
+    await persistenceReady;
+    const restoreMessage = await restorePersistentDiskIfPresent();
+    if (restoreMessage) {
+      log(restoreMessage);
+      syncDiskSizeInputFromEmulator();
+    }
+    lastSavedDiskGeneration = emulator.install_disk_generation();
     bootedName = name;
     lastUart = 0;
     running = true;
@@ -190,6 +232,192 @@ async function ensureWasm() {
   await init(new URL("./pkg/emulator_bg.wasm", import.meta.url));
   wasmReady = true;
   log("WASM loaded");
+}
+
+async function initPersistence() {
+  opfsAvailable = Boolean(navigator.storage?.getDirectory);
+  if (!opfsAvailable) {
+    updateStorageMetric();
+    log("Persistent disk storage unavailable");
+    setControls(controlState);
+    return;
+  }
+
+  try {
+    if (navigator.storage.persist) {
+      await navigator.storage.persist();
+    }
+    await refreshPersistentDiskInfo();
+    log(
+      lastPersistedBytes > 0
+        ? `Persistent disk ready (${formatBytes(lastPersistedBytes)})`
+        : "Persistent disk ready",
+    );
+  } catch (error) {
+    opfsAvailable = false;
+    throw error;
+  } finally {
+    updateStorageMetric();
+    setControls(controlState);
+  }
+}
+
+async function getStorageRoot() {
+  if (!opfsAvailable) {
+    return undefined;
+  }
+  if (!storageRoot) {
+    storageRoot = await navigator.storage.getDirectory();
+  }
+  return storageRoot;
+}
+
+async function refreshPersistentDiskInfo() {
+  const root = await getStorageRoot();
+  if (!root) {
+    return;
+  }
+
+  try {
+    const handle = await root.getFileHandle(DISK_FILE_NAME);
+    const file = await handle.getFile();
+    lastPersistedBytes = file.size;
+  } catch (error) {
+    if (error.name !== "NotFoundError") {
+      throw error;
+    }
+    lastPersistedBytes = 0;
+  }
+  updateStorageMetric();
+}
+
+async function loadPersistentDisk() {
+  const root = await getStorageRoot();
+  if (!root) {
+    return undefined;
+  }
+
+  try {
+    const handle = await root.getFileHandle(DISK_FILE_NAME);
+    const file = await handle.getFile();
+    if (file.size === 0) {
+      lastPersistedBytes = 0;
+      updateStorageMetric();
+      return undefined;
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    lastPersistedBytes = bytes.byteLength;
+    updateStorageMetric();
+    return bytes;
+  } catch (error) {
+    if (error.name !== "NotFoundError") {
+      throw error;
+    }
+    lastPersistedBytes = 0;
+    updateStorageMetric();
+    return undefined;
+  }
+}
+
+async function restorePersistentDiskIfPresent() {
+  const snapshot = await loadPersistentDisk();
+  if (!snapshot) {
+    return "";
+  }
+
+  const result = emulator.restore_install_disk(snapshot);
+  if (result.startsWith("ERR:")) {
+    throw new Error(result);
+  }
+  return `${result} from ${formatBytes(snapshot.byteLength)} OPFS snapshot`;
+}
+
+async function writePersistentDisk(snapshot) {
+  const root = await getStorageRoot();
+  if (!root) {
+    return;
+  }
+
+  const handle = await root.getFileHandle(DISK_FILE_NAME, { create: true });
+  const writable = await handle.createWritable();
+  await writable.write(snapshot);
+  await writable.close();
+  lastPersistedBytes = snapshot.byteLength;
+  updateStorageMetric();
+}
+
+async function savePersistentDisk({ force = false, quiet = false } = {}) {
+  if (!emulator || !opfsAvailable) {
+    return;
+  }
+
+  const generation = emulator.install_disk_generation();
+  if (!force && generation === lastSavedDiskGeneration) {
+    return;
+  }
+  if (saveInProgress) {
+    saveQueued = true;
+    return;
+  }
+
+  saveInProgress = true;
+  updateStorageMetric();
+  setControls(controlState);
+  const savedGeneration = generation;
+
+  try {
+    const snapshot = emulator.install_disk_snapshot();
+    await writePersistentDisk(snapshot);
+    lastSavedDiskGeneration = savedGeneration;
+    if (!quiet) {
+      log(`Saved disk (${formatBytes(snapshot.byteLength)})`);
+    }
+  } finally {
+    saveInProgress = false;
+    updateStorageMetric();
+    setControls(controlState);
+    if (saveQueued) {
+      saveQueued = false;
+      savePersistentDisk({ quiet: true }).catch(handleError);
+    }
+  }
+}
+
+async function clearPersistentDisk() {
+  const root = await getStorageRoot();
+  if (!root) {
+    return;
+  }
+
+  try {
+    await root.removeEntry(DISK_FILE_NAME);
+  } catch (error) {
+    if (error.name !== "NotFoundError") {
+      throw error;
+    }
+  }
+  lastPersistedBytes = 0;
+  lastSavedDiskGeneration = emulator ? emulator.install_disk_generation() : 0n;
+  updateStorageMetric();
+  setControls(controlState);
+  log("Cleared saved disk");
+}
+
+function scheduleDiskAutosave() {
+  if (!emulator || !opfsAvailable) {
+    return;
+  }
+
+  const generation = emulator.install_disk_generation();
+  if (generation === lastSavedDiskGeneration) {
+    return;
+  }
+  const now = performance.now();
+  if (now - lastAutosaveAt < AUTOSAVE_INTERVAL_MS) {
+    return;
+  }
+  lastAutosaveAt = now;
+  savePersistentDisk({ quiet: true }).catch(handleError);
 }
 
 function schedulePump() {
@@ -218,6 +446,7 @@ function runFrame() {
     } while (running && performance.now() - frameStart < 24 && batches < 8);
 
     updateMetrics();
+    scheduleDiskAutosave();
     schedulePump();
   } catch (error) {
     running = false;
@@ -239,8 +468,11 @@ function drainUart() {
   }
 }
 
-function resetVm() {
+async function resetVm() {
   running = false;
+  setControls("booting");
+  setStatus("Saving disk");
+  await savePersistentDisk({ force: true });
   resetEmulatorOnly();
   lastUart = 0;
   bootedName = "";
@@ -259,9 +491,11 @@ function resetEmulatorOnly() {
 }
 
 function setControls(state) {
+  controlState = state;
   const busy = state === "booting";
   const active = state === "running";
   const paused = state === "paused";
+  const hasVm = Boolean(emulator);
 
   els.bootIso.disabled = busy || active;
   els.bootDebian.disabled = busy || active;
@@ -270,6 +504,8 @@ function setControls(state) {
   els.pauseVm.disabled = !active;
   els.resumeVm.disabled = !paused;
   els.resetVm.disabled = !(active || paused || busy);
+  els.saveDisk.disabled = busy || !opfsAvailable || !hasVm || saveInProgress;
+  els.clearDisk.disabled = busy || active || !opfsAvailable || lastPersistedBytes === 0;
 }
 
 function updateMetrics() {
@@ -279,6 +515,7 @@ function updateMetrics() {
     els.uartValue.textContent = "0 B";
     els.pagesValue.textContent = "0";
     els.diskValue.textContent = "0 B";
+    updateStorageMetric();
     return;
   }
 
@@ -287,6 +524,19 @@ function updateMetrics() {
   els.uartValue.textContent = formatBytes(emulator.uart_output_len());
   els.pagesValue.textContent = emulator.allocated_pages().toString();
   els.diskValue.textContent = formatBytes(Number(emulator.install_disk_allocated_bytes()));
+  updateStorageMetric();
+}
+
+function updateStorageMetric() {
+  if (!opfsAvailable) {
+    els.savedValue.textContent = "Off";
+  } else if (saveInProgress) {
+    els.savedValue.textContent = "Saving";
+  } else if (lastPersistedBytes > 0) {
+    els.savedValue.textContent = formatBytes(lastPersistedBytes);
+  } else {
+    els.savedValue.textContent = "Ready";
+  }
 }
 
 function setStatus(message, tone = "normal") {
@@ -312,6 +562,15 @@ function fitTerminal() {
       // The terminal can be measured only after layout has settled.
     }
   });
+}
+
+function syncDiskSizeInputFromEmulator() {
+  if (!emulator) {
+    return;
+  }
+  const sizeBytes = emulator.install_disk_size_bytes();
+  const gib = Number((sizeBytes + GIB - 1n) / GIB);
+  els.diskSize.value = String(clamp(gib, 1, 64));
 }
 
 function formatBytes(bytes) {

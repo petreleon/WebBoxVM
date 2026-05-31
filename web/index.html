@@ -38,6 +38,10 @@
             <dt>Disk</dt>
             <dd id="diskValue">0 B</dd>
           </div>
+          <div>
+            <dt>Saved</dt>
+            <dd id="savedValue">Off</dd>
+          </div>
         </dl>
       </header>
 
@@ -68,6 +72,11 @@
             <span>Writable disk GiB</span>
             <input id="diskSize" type="number" min="1" max="64" step="1" value="4">
           </label>
+
+          <div class="button-row">
+            <button id="saveDisk" type="button" disabled>Save disk</button>
+            <button id="clearDisk" type="button" disabled>Clear saved</button>
+          </div>
 
           <label class="toggle">
             <input id="autoScroll" type="checkbox" checked>
