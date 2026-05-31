@@ -8,12 +8,19 @@ Running an OS in the browser means instant access from any device, zero server c
 
 ## Current State
 
-The emulator boots an ARM64 Linux kernel (6.6.70, custom-built) through the standard ARM64 Image protocol:
+The emulator boots ARM64 Linux through the standard ARM64 Image protocol:
 X0 points at the device tree, X1-X3 are zero, the CPU enters at EL1 with the MMU off, and Linux enables its own virtual address space.
 
-The kernel now reaches early PL011 UART output and prints the first Linux boot log lines, including `Linux version 6.6.70`, `Machine model: WebBoxVM`, and `earlycon: pl11`.
+The native CLI path now boots a standard Debian ARM64 netinst ISO far enough to start the real serial text installer. The validated run reaches `/lib/debian-installer/menu`, executes `/usr/bin/main-menu`, and prints the installer language prompt:
 
-The next milestone is continuing from early console to initramfs unpacking, `/init`, and an interactive BusyBox shell.
+```text
+Choose the language to be used for the installation process.
+Language:
+```
+
+The browser path now has a concrete application shell: a WASM build, xterm.js serial console, ISO picker, Debian boot target, UART keyboard input, pause/resume/reset controls, and live VM metrics. Sparse guest memory keeps browser builds from reserving the full guest memory layout up front.
+
+The next milestone is proving the same Debian installer prompt inside the browser app with responsive input, then tightening performance enough that the experience feels like an interactive terminal rather than a long-running trace.
 
 ## Principles
 
@@ -26,9 +33,11 @@ The next milestone is continuing from early console to initramfs unpacking, `/in
 ## Targets
 
 1. **Linux early UART** — boot Linux to serial output and prove the kernel can talk back
-2. **Linux shell** — boot ARM64 Linux to BusyBox `ash`, run commands, prove the emulator is useful
-3. **Windows PE loader** — parse Windows boot structures, load `ntoskrnl.exe`
-4. **Windows desktop** — boot Windows 11 ARM64 to a usable desktop in the browser
+2. **Standard ISO terminal** — boot a normal ARM64 Linux ISO to a real terminal installer environment
+3. **Browser terminal** — run the ISO path through WebAssembly with xterm.js input/output
+4. **Linux shell/install workflow** — interact with BusyBox or Debian installer screens reliably
+5. **Windows PE loader** — parse Windows boot structures, load `ntoskrnl.exe`
+6. **Windows desktop** — boot Windows 11 ARM64 to a usable desktop in the browser
 
 ## License
 

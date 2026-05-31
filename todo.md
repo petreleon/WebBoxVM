@@ -115,7 +115,7 @@
 
 **Result:** Linux 6.6.70 reaches early PL011 UART output through the standard ARM64 Image boot path. `cargo run --example wait_uart --release` prints kernel boot messages by 4M emulated steps with zero fetch/execute faults.
 
-## Sprint 7 — Busybox Shell (IN PROGRESS)
+## Sprint 7 — Serial Linux Userspace and ISO Installer (IN PROGRESS)
 - [ ] Kernel boots to Busybox `ash` shell
   - Early console works; next target is enough init, scheduler, device, and initrd behavior to spawn `/init`
   - Default initrd now contains real static ARM64 BusyBox, `/init`, `/dev/console`, and applet symlinks
@@ -126,6 +126,7 @@
 - [x] Attach booted ISO media as a read-only VirtIO block device
 - [x] Debian ARM64 netinst reaches the serial text installer language prompt
 - [x] Add sparse physical memory so browser builds do not allocate the full guest address layout up front
+- [x] Validate standard Debian ARM64 netinst native boot through `/lib/debian-installer/menu` and `/usr/bin/main-menu`
 - [ ] **Standard boot for CONFIG_RELOCATABLE=n kernels** — real bootloaders (U-Boot/GRUB) don't relocate:
   - [ ] Add kernel `PAGE_OFFSET` (e.g. `0xffff800000000000`) to TTBR1 identity mapping
   - [ ] Map kernel VA range → physical load address BEFORE EFI stub runs
@@ -133,6 +134,22 @@
   - [ ] Kernel boots at its linked VA with MMU already active (no relocation needed)
   - [ ] Works for all pre-built Debian/Ubuntu kernels without Docker rebuild
 - [ ] Interactive: `ls`, `echo hello`, `cat /proc/cpuinfo`
+
+**Result so far:** Native CLI Debian ARM64 netinst reaches the real text installer language prompt. The remaining work is validating browser delivery, input responsiveness, and shell/install interaction quality.
+
+## Sprint 8 — Browser Terminal Delivery (IN PROGRESS)
+- [x] Build `wasm32-unknown-unknown` package with `wasm-bindgen`
+- [x] Add browser app shell in `web/`
+- [x] Render xterm.js serial terminal
+- [x] Add ISO picker and Debian boot button
+- [x] Wire browser keyboard input to the guest PL011 UART receive path
+- [x] Add pause, resume, reset, step-slice, and live VM metrics
+- [x] Add `make web`, `make web-pkg`, and `make web-debian-arm64`
+- [x] Verify the browser page loads and terminal DOM renders
+- [ ] Run Debian ARM64 netinst to the installer language prompt inside the browser app
+- [ ] Verify interactive browser input at the Debian prompt
+- [ ] Improve browser runtime speed enough for practical terminal interaction
+- [ ] Keep generated `web/pkg/` reproducible and uncommitted
 
 ---
 
@@ -162,7 +179,9 @@ These are aspirational targets, not committed sprints. Most depend on the Linux 
 ### WebAssembly Target
 - [x] Compile to wasm32 + wasm-bindgen
 - [x] Browser deployment with xterm.js console
+- [x] Sparse guest memory for browser builds
 - [ ] Move to wasm64 when browser/toolchain support is practical
+- [ ] Web Worker execution so long boot runs do not block the UI thread
 - [ ] OPFS persistent disk for browser storage
 
 ## Backlog — General

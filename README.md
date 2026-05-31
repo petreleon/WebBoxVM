@@ -2,7 +2,7 @@
 
 [![Language](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%2F%20Commercial-blue.svg)](LICENSE.md)
-[![Boot](https://img.shields.io/badge/boot-early%20UART-green.svg)]()
+[![Boot](https://img.shields.io/badge/boot-Debian%20installer-green.svg)]()
 
 **WebBoxVM** is an ARM64 virtual machine written in Rust. It emulates an AArch64 CPU, MMU with TLB, interrupt/timer state, a PL011 UART, a GICv3 interrupt controller, and enough platform devices to boot real ARM64 Linux media to a serial terminal.
 
@@ -19,7 +19,9 @@ The emulator compiles to both native code and WebAssembly, making it suitable fo
 - **Device tree + initrd** — RAM, CPU, timer, GIC, UART, chosen bootargs, and minimal cpio initrd generation
 - **BusyBox initrd + serial input** — embedded static ARM64 BusyBox, `/init`, `/dev/console`, applet symlinks, and UART RX wiring for shell input
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
+- **Debian installer milestone** — Debian ARM64 netinst reaches the real text installer language prompt in native CLI validation
 - **Browser terminal app** — WASM build with xterm.js console, ISO picker, Debian boot target, UART keyboard input, and live VM metrics
+- **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
 - **Regression coverage** — focused tests for Linux boot-sensitive instruction semantics, timer IRQ behavior, UART, MMU, loader, and device paths
@@ -85,9 +87,17 @@ make web
 make web-debian-arm64
 ```
 
+`make web` and `make web-debian-arm64` build `web/pkg/` on demand with
+`wasm-bindgen`; generated WASM output is not committed to the repository.
+
 ISO mode supports ARM64 Linux ISOs whose kernel/initrd can be discovered from
 GRUB config or common live/installer paths. It does not run x86 PC ISOs. Debian
 ARM64 netinst has been validated to reach the text installer language prompt.
+
+The native terminal path is currently the most validated path. The browser app
+loads, renders the xterm.js terminal, exposes ISO boot controls, and wires UART
+keyboard input, but a full Debian-to-installer browser run is still the next
+validation target.
 
 Successful early boot prints lines like:
 
@@ -95,6 +105,13 @@ Successful early boot prints lines like:
 [    0.000000] Linux version 6.6.70 ...
 [    0.000000] Machine model: WebBoxVM
 [    0.000000] earlycon: pl11 at MMIO 0x0000000009000000
+```
+
+The longer Debian ISO validation reaches:
+
+```text
+Choose the language to be used for the installation process.
+Language:
 ```
 
 ---
@@ -110,6 +127,7 @@ Successful early boot prints lines like:
 | **Linux early UART boot** | ✅ |
 | **Busybox shell** | 🚧 in progress |
 | **ARM64 Debian installer over serial** | 🚧 in progress |
+| Browser xterm.js terminal | 🚧 in progress |
 | Exception model + NEON | 📅 planned |
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |
