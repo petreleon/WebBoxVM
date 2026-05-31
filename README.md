@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%2F%20Commercial-blue.svg)](LICENSE.md)
 [![Boot](https://img.shields.io/badge/boot-early%20UART-green.svg)]()
 
-**WebBoxVM** is an ARM64 virtual machine written in Rust. It emulates an AArch64 CPU, MMU with TLB, interrupt/timer state, a PL011 UART, a GICv3 interrupt controller, and enough platform firmware data to boot a real Linux kernel to early serial output.
+**WebBoxVM** is an ARM64 virtual machine written in Rust. It emulates an AArch64 CPU, MMU with TLB, interrupt/timer state, a PL011 UART, a GICv3 interrupt controller, and enough platform devices to boot real ARM64 Linux media to a serial terminal.
 
 The emulator compiles to both native code and WebAssembly, making it suitable for browser deployment alongside native CLI testing.
 
@@ -18,7 +18,8 @@ The emulator compiles to both native code and WebAssembly, making it suitable fo
 - **GICv3 + timer IRQs** — distributor + redistributor MMIO, CPU interface sysregs, CNTP control/status, DAIF masking, current-EL vector delivery
 - **Device tree + initrd** — RAM, CPU, timer, GIC, UART, chosen bootargs, and minimal cpio initrd generation
 - **BusyBox initrd + serial input** — embedded static ARM64 BusyBox, `/init`, `/dev/console`, applet symlinks, and UART RX wiring for shell input
-- **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media and boots through the serial terminal path
+- **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
+- **Browser terminal app** — WASM build with xterm.js console, ISO picker, Debian boot target, UART keyboard input, and live VM metrics
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
 - **Regression coverage** — focused tests for Linux boot-sensitive instruction semantics, timer IRQ behavior, UART, MMU, loader, and device paths
@@ -33,13 +34,13 @@ emulator/src/
 │   ├── interpreter/ # Classic fetch-decode-execute loop
 │   └── jit/         # ARM64→ARM64 verbatim compiler (skeleton)
 ├── efi/             # UEFI tables, trampolines, protocol stubs
-├── devices/         # PL011 UART, GICv3 interrupt controller
+├── devices/         # PL011 UART, GICv3 interrupt controller, VirtIO block
 ├── loader/          # PE/COFF parser, relocation fixup
 ├── dtb.rs           # Device Tree Blob generator
 ├── initrd/          # cpio newc initrd parser and builder
 ├── boot/            # Standard ARM64 Linux Image boot pipeline
 ├── bus.rs           # MMIO dispatch (UART, GIC, RAM)
-├── memory.rs        # 3-region physical memory (low, RAM, EFI)
+├── memory.rs        # Sparse 3-region physical memory (low, RAM, EFI)
 └── constants.rs     # Every magic number, documented
 ```
 
@@ -76,11 +77,17 @@ make terminal-debian-arm64
 
 # Boot any other ARM64 Linux ISO through the serial terminal
 make terminal-iso ISO=path/to/arm64.iso
+
+# Build the WASM package and open the browser terminal app
+make web
+
+# Download Debian, expose it to the browser app, and serve WebBoxVM
+make web-debian-arm64
 ```
 
 ISO mode supports ARM64 Linux ISOs whose kernel/initrd can be discovered from
-GRUB config or common live/installer paths. It does not run x86 PC ISOs, and it
-does not yet expose the ISO as an in-guest CD-ROM/block device.
+GRUB config or common live/installer paths. It does not run x86 PC ISOs. Debian
+ARM64 netinst has been validated to reach the text installer language prompt.
 
 Successful early boot prints lines like:
 
@@ -102,6 +109,7 @@ Successful early boot prints lines like:
 | PE loader + relocations | ✅ |
 | **Linux early UART boot** | ✅ |
 | **Busybox shell** | 🚧 in progress |
+| **ARM64 Debian installer over serial** | 🚧 in progress |
 | Exception model + NEON | 📅 planned |
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |

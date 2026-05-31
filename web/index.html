@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebBoxVM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm/css/xterm.css">
+    <link rel="stylesheet" href="./styles.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/@xterm/xterm/lib/xterm.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit/lib/addon-fit.js"></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <h1>WebBoxVM</h1>
+          <p id="statusLine">Idle</p>
+        </div>
+        <dl class="metrics">
+          <div>
+            <dt>Steps</dt>
+            <dd id="stepsValue">0</dd>
+          </div>
+          <div>
+            <dt>PC</dt>
+            <dd id="pcValue">0x0</dd>
+          </div>
+          <div>
+            <dt>UART</dt>
+            <dd id="uartValue">0 B</dd>
+          </div>
+          <div>
+            <dt>Pages</dt>
+            <dd id="pagesValue">0</dd>
+          </div>
+        </dl>
+      </header>
+
+      <section class="workspace">
+        <aside class="controls" aria-label="VM controls">
+          <label class="field">
+            <span>ISO image</span>
+            <input id="isoFile" type="file" accept=".iso,application/x-iso9660-image">
+          </label>
+
+          <div class="button-row">
+            <button id="bootIso" type="button">Boot ISO</button>
+            <button id="bootDebian" type="button">Boot Debian</button>
+          </div>
+
+          <div class="button-row">
+            <button id="pauseVm" type="button" disabled>Pause</button>
+            <button id="resumeVm" type="button" disabled>Resume</button>
+            <button id="resetVm" type="button" disabled>Reset</button>
+          </div>
+
+          <label class="field">
+            <span>Step slice</span>
+            <input id="stepSlice" type="number" min="1000" max="1000000" step="1000" value="50000">
+          </label>
+
+          <label class="toggle">
+            <input id="autoScroll" type="checkbox" checked>
+            <span>Autoscroll</span>
+          </label>
+
+          <pre id="eventLog" class="event-log" aria-label="Event log"></pre>
+        </aside>
+
+        <section class="terminal-pane" aria-label="Guest serial console">
+          <div id="terminal"></div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

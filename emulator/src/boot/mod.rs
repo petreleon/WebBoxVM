@@ -61,12 +61,11 @@ impl BootContext {
 
         let mut machine = Machine::new(num_cores);
 
-        // Copy kernel image into RAM at KERNEL_LOAD_ADDR
-        for (i, &byte) in kernel_image.iter().enumerate() {
-            machine
-                .bus
-                .write(KERNEL_LOAD_ADDR + i as u64, 1, byte as u64);
-        }
+        machine
+            .bus
+            .mem
+            .write_bytes(KERNEL_LOAD_ADDR, kernel_image)
+            .ok_or_else(|| "kernel image does not fit in guest RAM".to_string())?;
 
         // Standard ARM64 Linux boot protocol:
         // X0 = physical address of DTB, X1-X3 = 0, MMU off
@@ -109,8 +108,24 @@ impl BootContext {
         Ok(ctx)
     }
 
+    pub fn new_from_iso_owned(iso_image: Vec<u8>, num_cores: usize) -> Result<Self, String> {
+        let boot = load_iso_boot_image(&iso_image)?;
+        let mut ctx = Self::new_with_initrd_and_bootargs(
+            &boot.kernel,
+            num_cores,
+            &boot.initrd,
+            &boot.bootargs,
+        )?;
+        ctx.attach_virtio_block_owned(iso_image);
+        Ok(ctx)
+    }
+
     pub fn attach_virtio_block(&mut self, image: &[u8]) {
         self.machine.bus.virtio_blk.set_image(image);
+    }
+
+    pub fn attach_virtio_block_owned(&mut self, image: Vec<u8>) {
+        self.machine.bus.virtio_blk.set_image_owned(image);
     }
 
     /// No-op: EFI stub is skipped.  We boot via the standard ARM64 protocol.
@@ -148,6 +163,10 @@ impl BootContext {
     }
     pub fn pc(&self) -> u64 {
         self.machine.cpus[0].regs.pc
+    }
+
+    pub fn allocated_pages(&self) -> usize {
+        self.machine.bus.mem.allocated_pages()
     }
 }
 

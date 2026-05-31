@@ -16,9 +16,7 @@ pub use parser::parse_cpio;
 
 /// Load a cpio archive into emulator memory at `addr`.
 pub fn load_initrd(bus: &mut SystemBus, addr: u64, data: &[u8]) {
-    for (i, &byte) in data.iter().enumerate() {
-        bus.write(addr + i as u64, 1, byte as u64);
-    }
+    let _ = bus.mem.write_bytes(addr, data);
 }
 
 pub(crate) fn pad_to_4(v: &mut Vec<u8>) {

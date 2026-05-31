@@ -79,7 +79,7 @@ impl Emulator {
 
     /// Load an ARM64 Linux ISO by extracting its kernel/initrd boot pair.
     pub fn boot_iso(&mut self, iso_image: Vec<u8>, num_cores: usize) -> String {
-        match BootContext::new_from_iso(&iso_image, num_cores) {
+        match BootContext::new_from_iso_owned(iso_image, num_cores) {
             Ok(ctx) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(ctx);
@@ -178,6 +178,15 @@ impl Emulator {
             boot.total_steps()
         } else {
             self.machine.total_steps
+        }
+    }
+
+    /// Number of allocated guest memory pages.
+    pub fn allocated_pages(&self) -> usize {
+        if let Some(ref boot) = self.boot {
+            boot.allocated_pages()
+        } else {
+            self.machine.bus.mem.allocated_pages()
         }
     }
 

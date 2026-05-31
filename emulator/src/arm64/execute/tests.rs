@@ -894,6 +894,7 @@ fn ldxp_stlxp_pair_roundtrip() {
     cpu.regs.set_x(2, 0x4000_0000);
     cpu.regs.set_x(0, 0xAAAA);
     cpu.regs.set_x(1, 0xBBBB);
+    cpu.reserve_exclusive(0x4000_0000, 16);
 
     execute(&mut cpu, &mut bus, decode(0xC823_8440).unwrap()).unwrap();
 

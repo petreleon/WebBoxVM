@@ -37,11 +37,10 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
         data.len()
     };
 
-    // Copy payload to RAM
     let payload = &data[..load_size.min(data.len())];
-    for (i, &byte) in payload.iter().enumerate() {
-        bus.write(KERNEL_LOAD_ADDR + i as u64, 1, byte as u64);
-    }
+    bus.mem
+        .write_bytes(KERNEL_LOAD_ADDR, payload)
+        .ok_or("kernel image does not fit in guest RAM")?;
 
     let entry = if is_pe_image(&data) {
         let entry = parse_pe_entry(&data)?;
@@ -57,9 +56,7 @@ pub fn load_kernel(bus: &mut SystemBus, path: &str) -> Result<u64, &'static str>
 
 /// Copy a raw kernel image into RAM (used for in-memory images, e.g. from wasm-bindgen).
 pub fn load_raw_image(bus: &mut SystemBus, data: &[u8]) {
-    for (i, &byte) in data.iter().enumerate() {
-        bus.write(KERNEL_LOAD_ADDR + i as u64, 1, byte as u64);
-    }
+    let _ = bus.mem.write_bytes(KERNEL_LOAD_ADDR, data);
 }
 
 fn parse_header(data: &[u8]) -> Result<KernelHeader, &'static str> {

@@ -389,9 +389,7 @@ pub fn build_dtb(
 
 /// Write a DTB into emulator memory at `addr`.
 pub fn load_dtb(bus: &mut SystemBus, addr: u64, dtb: &[u8]) {
-    for (i, &byte) in dtb.iter().enumerate() {
-        bus.write(addr + i as u64, 1, byte as u64);
-    }
+    let _ = bus.mem.write_bytes(addr, dtb);
 }
 
 // ── Helpers ──

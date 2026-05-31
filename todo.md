@@ -123,6 +123,9 @@
 - [ ] Continue boot beyond early console into initramfs unpacking and `/init`
 - [x] Add UART RX path wiring for interactive shell input
 - [x] Add first ARM64 ISO terminal boot path by extracting kernel/initrd from ISO9660 media
+- [x] Attach booted ISO media as a read-only VirtIO block device
+- [x] Debian ARM64 netinst reaches the serial text installer language prompt
+- [x] Add sparse physical memory so browser builds do not allocate the full guest address layout up front
 - [ ] **Standard boot for CONFIG_RELOCATABLE=n kernels** — real bootloaders (U-Boot/GRUB) don't relocate:
   - [ ] Add kernel `PAGE_OFFSET` (e.g. `0xffff800000000000`) to TTBR1 identity mapping
   - [ ] Map kernel VA range → physical load address BEFORE EFI stub runs
@@ -157,8 +160,9 @@ These are aspirational targets, not committed sprints. Most depend on the Linux 
 - [ ] Network adapter (VirtIO Net)
 
 ### WebAssembly Target
-- [ ] Compile to wasm64 + wasm-bindgen
-- [ ] Browser deployment with xterm.js console
+- [x] Compile to wasm32 + wasm-bindgen
+- [x] Browser deployment with xterm.js console
+- [ ] Move to wasm64 when browser/toolchain support is practical
 - [ ] OPFS persistent disk for browser storage
 
 ## Backlog — General

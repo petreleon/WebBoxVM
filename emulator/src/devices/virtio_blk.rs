@@ -74,6 +74,10 @@ impl VirtioBlk {
         self.image.extend_from_slice(image);
     }
 
+    pub fn set_image_owned(&mut self, image: Vec<u8>) {
+        self.image = image;
+    }
+
     pub fn read(&self, offset: u64, size: u8) -> Option<u64> {
         let val = match offset {
             0x000 => VIRTIO_MMIO_MAGIC,
@@ -237,12 +241,25 @@ impl VirtioBlk {
             return (VIRTIO_BLK_S_IOERR, 0);
         }
 
-        let start = sector as usize * SECTOR_SIZE;
+        let Some(start) = (sector as usize).checked_mul(SECTOR_SIZE) else {
+            return (VIRTIO_BLK_S_IOERR, 0);
+        };
         let len = desc.len as usize;
-        for i in 0..len {
-            let byte = self.image.get(start + i).copied().unwrap_or(0);
-            let _ = mem.write(desc.addr + i as u64, 1, byte as u64);
+
+        if start < self.image.len() {
+            let available = (self.image.len() - start).min(len);
+            let _ = mem.write_bytes(desc.addr, &self.image[start..start + available]);
+            if available == len {
+                return (VIRTIO_BLK_S_OK, desc.len);
+            }
+
+            let zeros = vec![0; len - available];
+            let _ = mem.write_bytes(desc.addr + available as u64, &zeros);
+        } else if len > 0 {
+            let zeros = vec![0; len];
+            let _ = mem.write_bytes(desc.addr, &zeros);
         }
+
         (VIRTIO_BLK_S_OK, desc.len)
     }
 
@@ -311,8 +328,6 @@ fn mask_read(value: u64, size: u8) -> Option<u64> {
 
 fn write_bytes(mem: &mut PhysicalMemory, addr: u64, len: u32, src: &[u8]) -> (u8, u32) {
     let count = (len as usize).min(src.len());
-    for (i, byte) in src.iter().take(count).enumerate() {
-        let _ = mem.write(addr + i as u64, 1, *byte as u64);
-    }
+    let _ = mem.write_bytes(addr, &src[..count]);
     (VIRTIO_BLK_S_OK, count as u32)
 }
