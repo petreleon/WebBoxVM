@@ -1,0 +1,84 @@
+import init, { Emulator } from "../pkg/emulator.js";
+import { GIB, clamp, nextFrame } from "./utils.js";
+
+export class VmBooter {
+  #els;
+  #ui;
+  #disk;
+  #term;
+  #runner;
+  #setEmulator;
+  #resetEmulator;
+  #onBooted;
+  #wasmReady = false;
+
+  constructor({ els, ui, disk, term, runner, setEmulator, resetEmulator, onBooted }) {
+    this.#els = els;
+    this.#ui = ui;
+    this.#disk = disk;
+    this.#term = term;
+    this.#runner = runner;
+    this.#setEmulator = setEmulator;
+    this.#resetEmulator = resetEmulator;
+    this.#onBooted = onBooted;
+  }
+
+  async bootBytes(bytes, name, persistenceReady) {
+    await this.#ensureWasm();
+    this.#resetEmulator();
+    this.#term.clear();
+    this.#term.write(`Booting ${name}\r\n`);
+    this.#ui.setControls("booting", this.#disk, undefined);
+    this.#ui.setStatus(`Booting ${name}`);
+    await nextFrame();
+
+    const emulator = new Emulator(1);
+    this.#setEmulator(emulator);
+    const result = emulator.boot_iso_with_disk(bytes, 1, this.#diskSizeBytes());
+    this.#ui.log(result);
+    if (result.startsWith("ERR:")) {
+      this.#ui.setStatus(result, "error");
+      this.#ui.setControls("idle", this.#disk, emulator);
+      return;
+    }
+
+    await this.#restoreDisk(emulator, persistenceReady);
+    this.#onBooted(name);
+    this.#runner.start();
+    this.#ui.setControls("running", this.#disk, emulator);
+    this.#ui.setStatus(`Running ${name}`);
+    this.#term.focus();
+    this.#ui.updateMetrics(emulator, this.#disk);
+  }
+
+  async #ensureWasm() {
+    if (this.#wasmReady) {
+      return;
+    }
+    this.#ui.setStatus("Loading WASM");
+    await init(new URL("../pkg/emulator_bg.wasm", import.meta.url));
+    this.#wasmReady = true;
+    this.#ui.log("WASM loaded");
+  }
+
+  async #restoreDisk(emulator, persistenceReady) {
+    await persistenceReady;
+    const restoreMessage = await this.#disk.restoreIfPresent(emulator);
+    if (restoreMessage) {
+      this.#ui.log(restoreMessage);
+      this.#syncDiskSizeInput(emulator);
+    }
+    this.#disk.markClean(emulator);
+  }
+
+  #diskSizeBytes() {
+    const gib = clamp(Number(this.#els.diskSize.value) || 4, 1, 64);
+    return BigInt(gib) * GIB;
+  }
+
+  #syncDiskSizeInput(emulator) {
+    const sizeBytes = emulator.install_disk_size_bytes();
+    const gib = Number((sizeBytes + GIB - 1n) / GIB);
+    this.#els.diskSize.value = String(clamp(gib, 1, 64));
+  }
+}

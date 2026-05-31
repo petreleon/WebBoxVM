@@ -2,9 +2,13 @@ use crate::arm64::Machine;
 use crate::constants::*;
 use crate::dtb::{build_dtb, load_dtb};
 use crate::initrd::load_initrd;
-use crate::loader::iso::load_iso_boot_image;
 
 mod initrd;
+mod iso;
+mod runtime;
+#[cfg(test)]
+mod tests;
+
 pub use self::initrd::{
     DEFAULT_BOOTARGS, DEFAULT_BUSYBOX_AARCH64, build_busybox_initrd, build_default_initrd,
 };
@@ -96,130 +100,7 @@ impl BootContext {
         })
     }
 
-    pub fn new_from_iso(iso_image: &[u8], num_cores: usize) -> Result<Self, String> {
-        let boot = load_iso_boot_image(iso_image)?;
-        let mut ctx = Self::new_with_initrd_and_bootargs(
-            &boot.kernel,
-            num_cores,
-            &boot.initrd,
-            &boot.bootargs,
-        )?;
-        ctx.attach_virtio_block(iso_image);
-        Ok(ctx)
-    }
-
-    pub fn new_from_iso_owned(iso_image: Vec<u8>, num_cores: usize) -> Result<Self, String> {
-        let boot = load_iso_boot_image(&iso_image)?;
-        let mut ctx = Self::new_with_initrd_and_bootargs(
-            &boot.kernel,
-            num_cores,
-            &boot.initrd,
-            &boot.bootargs,
-        )?;
-        ctx.attach_virtio_block_owned(iso_image);
-        Ok(ctx)
-    }
-
-    pub fn attach_virtio_block(&mut self, image: &[u8]) {
-        self.machine.bus.virtio_blk.set_image(image);
-    }
-
-    pub fn attach_virtio_block_owned(&mut self, image: Vec<u8>) {
-        self.machine.bus.virtio_blk.set_image_owned(image);
-    }
-
     pub fn set_install_disk_size(&mut self, size_bytes: u64) {
         self.machine.bus.virtio_disk.set_sparse_disk(size_bytes);
-    }
-
-    /// No-op: EFI stub is skipped.  We boot via the standard ARM64 protocol.
-    pub fn run_efi_phase(&mut self, _max_steps: usize) -> usize {
-        0
-    }
-
-    /// Run the multi-core kernel phase (round-robin scheduling).
-    pub fn run_kernel_phase(&mut self, max_steps: usize) -> usize {
-        self.machine.run(max_steps)
-    }
-
-    pub fn uart_output(&self) -> String {
-        self.machine.bus.uart.output_string()
-    }
-    pub fn uart_output_len(&self) -> usize {
-        self.machine.bus.uart.output.len()
-    }
-    pub fn uart_output_since(&self, offset: usize) -> String {
-        let output = &self.machine.bus.uart.output;
-        String::from_utf8_lossy(&output[offset.min(output.len())..]).to_string()
-    }
-    pub fn feed_uart_input(&mut self, input: &str) {
-        self.feed_uart_bytes(input.as_bytes());
-    }
-    pub fn feed_uart_bytes(&mut self, bytes: &[u8]) {
-        if bytes.is_empty() {
-            return;
-        }
-        self.machine.bus.uart.feed_input_bytes(bytes);
-        self.machine.inject_irq(PL011_UART_IRQ_ID);
-    }
-    pub fn total_steps(&self) -> u64 {
-        self.machine.total_steps
-    }
-    pub fn pc(&self) -> u64 {
-        self.machine.cpus[0].regs.pc
-    }
-
-    pub fn allocated_pages(&self) -> usize {
-        self.machine.bus.mem.allocated_pages()
-    }
-
-    pub fn install_disk_allocated_bytes(&self) -> u64 {
-        self.machine.bus.virtio_disk.allocated_storage_bytes()
-    }
-
-    pub fn install_disk_size_bytes(&self) -> u64 {
-        self.machine.bus.virtio_disk.sparse_disk_size_bytes()
-    }
-
-    pub fn install_disk_generation(&self) -> u64 {
-        self.machine.bus.virtio_disk.storage_generation()
-    }
-
-    pub fn install_disk_snapshot(&self) -> Result<Vec<u8>, String> {
-        self.machine.bus.virtio_disk.snapshot_sparse_disk()
-    }
-
-    pub fn restore_install_disk(&mut self, snapshot: &[u8]) -> Result<(), String> {
-        self.machine.bus.virtio_disk.restore_sparse_disk(snapshot)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn feeding_uart_input_queues_rx_and_injects_irq() {
-        let mut ctx = BootContext::new(&[0u8; 64], 1).unwrap();
-
-        ctx.feed_uart_input("ls\r");
-
-        assert_ne!(
-            ctx.machine.bus.gic.pending[(PL011_UART_IRQ_ID / 32) as usize]
-                & (1 << (PL011_UART_IRQ_ID % 32)),
-            0
-        );
-        assert_eq!(
-            ctx.machine
-                .bus
-                .read(UART_BASE + UART_RIS_OFFSET, 4)
-                .unwrap() as u16
-                & (1 << 4),
-            1 << 4
-        );
-        assert_eq!(
-            ctx.machine.bus.read(UART_BASE + UART_DR_OFFSET, 4).unwrap() as u8,
-            b'l'
-        );
     }
 }

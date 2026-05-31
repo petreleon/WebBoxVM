@@ -8,8 +8,6 @@
 
 The emulator compiles to both native code and WebAssembly, making it suitable for browser deployment alongside native CLI testing.
 
----
-
 ## What works today
 
 - **ARM64 CPU core** — integer ISA coverage, load/store pairs, exclusives, LSE atomics, conditional compares, bitfield ops, multiply/divide, system registers
@@ -26,8 +24,6 @@ The emulator compiles to both native code and WebAssembly, making it suitable fo
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
 - **Regression coverage** — focused tests for Linux boot-sensitive instruction semantics, timer IRQ behavior, UART, MMU, loader, and device paths
-
----
 
 ## Architecture
 
@@ -46,8 +42,6 @@ emulator/src/
 ├── memory.rs        # Sparse 3-region physical memory (low, RAM, EFI)
 └── constants.rs     # Every magic number, documented
 ```
-
----
 
 ## Quick Start
 
@@ -119,8 +113,6 @@ Choose the language to be used for the installation process.
 Language:
 ```
 
----
-
 ## Roadmap
 
 | Sprint | Status |
@@ -137,10 +129,7 @@ Language:
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |
 
-Full details in [todo.md](todo.md).
-
----
+Full details in [todo.md](todo.md), [sprint-history.md](sprint-history.md), and [future.md](future.md).
 
 ## License
-
 AGPL-3.0. Commercial licensing available on request.
