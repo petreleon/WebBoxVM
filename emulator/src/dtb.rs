@@ -28,6 +28,7 @@ use crate::constants::*;
 ///   - `timer` — ARMv8 architected timer
 ///   - `uart@9000000` — PL011 serial console
 ///   - `virtio_blk@a000000` — read-only ISO media
+///   - `virtio_blk@a001000` — writable sparse install target disk
 ///   - `cpus/cpu@0` — single Cortex-A72 core
 pub fn build_dtb(
     mem_start: u64,
@@ -314,6 +315,33 @@ pub fn build_dtb(
         virtio_bytes.extend_from_slice(&val.to_be_bytes());
     }
     push_prop(&mut struct_block, &mut strings, "interrupts", &virtio_bytes);
+    push_prop(&mut struct_block, &mut strings, "dma-coherent", &[]);
+    push_token(&mut struct_block, FDT_END_NODE);
+
+    // ── virtio_blk@a001000 ──
+    push_token(&mut struct_block, FDT_BEGIN_NODE);
+    push_name(&mut struct_block, "virtio_blk@a001000");
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "compatible",
+        b"virtio,mmio\0",
+    );
+    let mut virtio_disk_reg = Vec::new();
+    append_two_cell_prop(&mut virtio_disk_reg, VIRTIO_DISK_BASE, VIRTIO_BLK_SIZE);
+    push_prop(&mut struct_block, &mut strings, "reg", &virtio_disk_reg);
+    // SPI #17 is GIC interrupt ID 49.
+    let virtio_disk_irqs: [u32; 3] = [0, 17, 4];
+    let mut virtio_disk_bytes = Vec::new();
+    for val in &virtio_disk_irqs {
+        virtio_disk_bytes.extend_from_slice(&val.to_be_bytes());
+    }
+    push_prop(
+        &mut struct_block,
+        &mut strings,
+        "interrupts",
+        &virtio_disk_bytes,
+    );
     push_prop(&mut struct_block, &mut strings, "dma-coherent", &[]);
     push_token(&mut struct_block, FDT_END_NODE);
 

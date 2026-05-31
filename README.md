@@ -19,8 +19,9 @@ The emulator compiles to both native code and WebAssembly, making it suitable fo
 - **Device tree + initrd** — RAM, CPU, timer, GIC, UART, chosen bootargs, and minimal cpio initrd generation
 - **BusyBox initrd + serial input** — embedded static ARM64 BusyBox, `/init`, `/dev/console`, applet symlinks, and UART RX wiring for shell input
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
+- **Writable install storage** — exposes a second VirtIO block device backed by a sparse writable disk for Linux installer targets
 - **Debian installer milestone** — Debian ARM64 netinst reaches the real text installer language prompt in native CLI validation
-- **Browser terminal app** — WASM build with xterm.js console, ISO picker, Debian boot target, UART keyboard input, and live VM metrics
+- **Browser terminal app** — WASM build with xterm.js console, ISO picker, Debian boot target, disk-size control, UART keyboard input, and live VM metrics
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
@@ -36,7 +37,7 @@ emulator/src/
 │   ├── interpreter/ # Classic fetch-decode-execute loop
 │   └── jit/         # ARM64→ARM64 verbatim compiler (skeleton)
 ├── efi/             # UEFI tables, trampolines, protocol stubs
-├── devices/         # PL011 UART, GICv3 interrupt controller, VirtIO block
+├── devices/         # PL011 UART, GICv3 interrupt controller, VirtIO block storage
 ├── loader/          # PE/COFF parser, relocation fixup
 ├── dtb.rs           # Device Tree Blob generator
 ├── initrd/          # cpio newc initrd parser and builder
@@ -93,11 +94,15 @@ make web-debian-arm64
 ISO mode supports ARM64 Linux ISOs whose kernel/initrd can be discovered from
 GRUB config or common live/installer paths. It does not run x86 PC ISOs. Debian
 ARM64 netinst has been validated to reach the text installer language prompt.
+The ISO is exposed to the guest as read-only media, and WebBoxVM also provides a
+second writable sparse VirtIO disk for installer storage. Browser disk contents
+are currently in-memory for the VM session; OPFS persistence is tracked as a
+separate milestone.
 
 The native terminal path is currently the most validated path. The browser app
-loads, renders the xterm.js terminal, exposes ISO boot controls, and wires UART
-keyboard input, but a full Debian-to-installer browser run is still the next
-validation target.
+loads, renders the xterm.js terminal, exposes ISO boot and install-disk controls,
+and wires UART keyboard input, but a full Debian-to-installer browser run is
+still the next validation target.
 
 Successful early boot prints lines like:
 

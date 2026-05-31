@@ -4,6 +4,8 @@ const els = {
   autoScroll: document.querySelector("#autoScroll"),
   bootDebian: document.querySelector("#bootDebian"),
   bootIso: document.querySelector("#bootIso"),
+  diskSize: document.querySelector("#diskSize"),
+  diskValue: document.querySelector("#diskValue"),
   eventLog: document.querySelector("#eventLog"),
   isoFile: document.querySelector("#isoFile"),
   pagesValue: document.querySelector("#pagesValue"),
@@ -156,7 +158,8 @@ async function bootBytes(bytes, name) {
     await nextFrame();
 
     emulator = new Emulator(1);
-    const result = emulator.boot_iso(bytes, 1);
+    const diskSizeBytes = BigInt(clamp(Number(els.diskSize.value) || 4, 1, 64)) * 1024n ** 3n;
+    const result = emulator.boot_iso_with_disk(bytes, 1, diskSizeBytes);
     log(result);
     if (result.startsWith("ERR:")) {
       setStatus(result, "error");
@@ -262,6 +265,8 @@ function setControls(state) {
 
   els.bootIso.disabled = busy || active;
   els.bootDebian.disabled = busy || active;
+  els.diskSize.disabled = busy || active;
+  els.isoFile.disabled = busy || active;
   els.pauseVm.disabled = !active;
   els.resumeVm.disabled = !paused;
   els.resetVm.disabled = !(active || paused || busy);
@@ -273,6 +278,7 @@ function updateMetrics() {
     els.pcValue.textContent = "0x0";
     els.uartValue.textContent = "0 B";
     els.pagesValue.textContent = "0";
+    els.diskValue.textContent = "0 B";
     return;
   }
 
@@ -280,6 +286,7 @@ function updateMetrics() {
   els.pcValue.textContent = `0x${emulator.pc().toString(16)}`;
   els.uartValue.textContent = formatBytes(emulator.uart_output_len());
   els.pagesValue.textContent = emulator.allocated_pages().toString();
+  els.diskValue.textContent = formatBytes(Number(emulator.install_disk_allocated_bytes()));
 }
 
 function setStatus(message, tone = "normal") {

@@ -64,6 +64,10 @@ pub const VIRTIO_BLK_BASE: u64 = 0x0A00_0000;
 pub const VIRTIO_BLK_SIZE: u64 = 0x1000;
 /// End of the VirtIO-MMIO block device region.
 pub const VIRTIO_BLK_END: u64 = VIRTIO_BLK_BASE + VIRTIO_BLK_SIZE;
+/// Base address of the writable VirtIO-MMIO install target disk.
+pub const VIRTIO_DISK_BASE: u64 = 0x0A00_1000;
+/// End of the writable VirtIO-MMIO install target disk region.
+pub const VIRTIO_DISK_END: u64 = VIRTIO_DISK_BASE + VIRTIO_BLK_SIZE;
 
 /// PL011 UART register offsets (from base address).
 pub const UART_DR_OFFSET: u64 = 0x00;

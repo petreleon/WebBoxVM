@@ -72,7 +72,7 @@ input {
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(86px, auto));
+  grid-template-columns: repeat(5, minmax(86px, auto));
   gap: 1px;
   margin: 0;
   overflow: hidden;
@@ -134,6 +134,11 @@ input {
   border-radius: 8px;
   background: var(--panel-2);
   color: var(--text);
+}
+
+.field input:disabled {
+  color: #69736d;
+  cursor: not-allowed;
 }
 
 .button-row {

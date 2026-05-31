@@ -230,6 +230,8 @@ pub const VIRTUAL_TIMER_IRQ_ID: u32 = 27;
 pub const PL011_UART_IRQ_ID: u32 = 33;
 /// VirtIO block IRQ ID (SPI 16, delivered as GIC interrupt ID 48).
 pub const VIRTIO_BLK_IRQ_ID: u32 = 48;
+/// Writable VirtIO install disk IRQ ID (SPI 17, delivered as GIC interrupt ID 49).
+pub const VIRTIO_DISK_IRQ_ID: u32 = 49;
 /// Spurious interrupt ID — returned when no interrupt is pending.
 pub const GIC_SPURIOUS_INTERRUPT: u64 = 1023;
 

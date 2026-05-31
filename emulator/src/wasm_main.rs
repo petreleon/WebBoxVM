@@ -89,6 +89,27 @@ impl Emulator {
         }
     }
 
+    /// Load an ARM64 Linux ISO and configure a writable sparse install disk.
+    pub fn boot_iso_with_disk(
+        &mut self,
+        iso_image: Vec<u8>,
+        num_cores: usize,
+        disk_size_bytes: u64,
+    ) -> String {
+        match BootContext::new_from_iso_owned(iso_image, num_cores) {
+            Ok(mut ctx) => {
+                ctx.set_install_disk_size(disk_size_bytes);
+                let cores = ctx.machine.cpus.len();
+                self.boot = Some(ctx);
+                format!(
+                    "OK: ISO kernel/initrd loaded with writable disk, {} cores ready",
+                    cores
+                )
+            }
+            Err(e) => format!("ERR: {}", e),
+        }
+    }
+
     /// Run the EFI stub phase (bootloader).
     pub fn run_efi(&mut self, max_steps: usize) -> String {
         if let Some(ref mut boot) = self.boot {
@@ -187,6 +208,15 @@ impl Emulator {
             boot.allocated_pages()
         } else {
             self.machine.bus.mem.allocated_pages()
+        }
+    }
+
+    /// Bytes allocated by the sparse writable install disk.
+    pub fn install_disk_allocated_bytes(&self) -> u64 {
+        if let Some(ref boot) = self.boot {
+            boot.install_disk_allocated_bytes()
+        } else {
+            self.machine.bus.virtio_disk.allocated_storage_bytes()
         }
     }
 

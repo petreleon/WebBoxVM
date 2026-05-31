@@ -100,7 +100,14 @@ pub(super) fn exec_ldr_str(
     } else if instr.op == Opcode::SimdLd4 {
         exec_ld4(cpu, bus, va, instr)?;
     } else if instr.op == Opcode::SimdStr {
-        write_simd_guest(cpu, bus, va, size, cpu.simd[instr.rd as usize], "SIMD store fault")?;
+        write_simd_guest(
+            cpu,
+            bus,
+            va,
+            size,
+            cpu.simd[instr.rd as usize],
+            "SIMD store fault",
+        )?;
     } else if instr.op == Opcode::SimdSt1Multi {
         exec_st1_multi(cpu, bus, va, instr)?;
     } else if instr.op == Opcode::SimdSt4 {
@@ -151,7 +158,14 @@ fn exec_st1_multi(
     for register_index in 0..register_count {
         let reg = ((instr.rd as usize) + register_index) & 31;
         let reg_va = va.wrapping_add(register_index as u64 * vector_size);
-        write_simd_guest(cpu, bus, reg_va, instr.size, cpu.simd[reg], "ST1 multi bus fault")?;
+        write_simd_guest(
+            cpu,
+            bus,
+            reg_va,
+            instr.size,
+            cpu.simd[reg],
+            "ST1 multi bus fault",
+        )?;
     }
     Ok(())
 }
@@ -386,7 +400,8 @@ pub(super) fn exec_ldp_stp(
         }
         Opcode::Ldpsw => {
             let lo = read_guest(cpu, bus, va, 4, "LDPSW bus fault")? as u32 as i32 as i64 as u64;
-            let hi = read_guest(cpu, bus, va + 4, 4, "LDPSW bus fault")? as u32 as i32 as i64 as u64;
+            let hi =
+                read_guest(cpu, bus, va + 4, 4, "LDPSW bus fault")? as u32 as i32 as i64 as u64;
             trace_syscall_frame_access(cpu, &instr, "LDPSW.0", va, pa1, 4, Some(lo));
             trace_syscall_frame_access(cpu, &instr, "LDPSW.1", va + 4, pa2, 4, Some(hi));
             write_reg(cpu, instr.rd, lo, true);

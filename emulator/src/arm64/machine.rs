@@ -224,9 +224,7 @@ impl Machine {
                     && self.exec_trace_count < 1024
                     && self.pending_trace_syscalls[core].is_none()
                 {
-                    if let Some(syscall) =
-                        trace_exec_entry(cpu, &self.bus, pc, self.total_steps)
-                    {
+                    if let Some(syscall) = trace_exec_entry(cpu, &self.bus, pc, self.total_steps) {
                         self.pending_trace_syscalls[core] = Some(syscall);
                         self.exec_trace_count += 1;
                     }

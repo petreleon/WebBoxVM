@@ -28,6 +28,7 @@ pub struct SystemBus {
     pub uart: Pl011Uart,
     pub gic: Gicv3,
     pub virtio_blk: VirtioBlk,
+    pub virtio_disk: VirtioBlk,
 }
 
 impl SystemBus {
@@ -37,6 +38,10 @@ impl SystemBus {
             uart: Pl011Uart::new(),
             gic: Gicv3::new(),
             virtio_blk: VirtioBlk::new(),
+            virtio_disk: VirtioBlk::writable_sparse(
+                crate::devices::virtio_blk::DEFAULT_SPARSE_DISK_SIZE,
+                b"webboxvm-disk\0",
+            ),
         }
     }
 
@@ -63,6 +68,9 @@ impl SystemBus {
         }
         if in_virtio_blk_range(addr) {
             return self.virtio_blk.read(addr - VIRTIO_BLK_BASE, size);
+        }
+        if in_virtio_disk_range(addr) {
+            return self.virtio_disk.read(addr - VIRTIO_DISK_BASE, size);
         }
         self.mem.read(addr, size)
     }
@@ -95,6 +103,13 @@ impl SystemBus {
             {
                 self.gic.set_pending(VIRTIO_BLK_IRQ_ID);
             }
+        } else if in_virtio_disk_range(addr) {
+            if self
+                .virtio_disk
+                .write(&mut self.mem, addr - VIRTIO_DISK_BASE, value, size)
+            {
+                self.gic.set_pending(VIRTIO_DISK_IRQ_ID);
+            }
         }
         self.mem.write(addr, size, value);
     }
@@ -122,6 +137,10 @@ fn in_virtio_blk_range(addr: u64) -> bool {
     addr >= VIRTIO_BLK_BASE && addr < VIRTIO_BLK_END
 }
 
+fn in_virtio_disk_range(addr: u64) -> bool {
+    addr >= VIRTIO_DISK_BASE && addr < VIRTIO_DISK_END
+}
+
 /// Returns true for printable ASCII (0x20–0x7E), newline (0x0A), or CR (0x0D).
 fn is_printable_or_control(b: u8) -> bool {
     matches!(b, b' '..=b'~' | b'\n' | b'\r')
@@ -143,5 +162,13 @@ mod tests {
         let mut bus = SystemBus::new();
         bus.write(RAM_BASE, 8, 0xDEADBEEF);
         assert_eq!(bus.read(RAM_BASE, 8), Some(0xDEADBEEF));
+    }
+
+    #[test]
+    fn second_virtio_disk_has_own_mmio_window() {
+        let mut bus = SystemBus::new();
+
+        assert_eq!(bus.read(VIRTIO_BLK_BASE, 4), Some(0x7472_6976));
+        assert_eq!(bus.read(VIRTIO_DISK_BASE, 4), Some(0x7472_6976));
     }
 }

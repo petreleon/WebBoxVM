@@ -14,7 +14,9 @@ use std::io::Read;
 use filesystem::IsoFs;
 use grub::{BootSpec, parse_grub_boot_spec};
 
-const DEFAULT_ISO_BOOTARGS: &str = "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 loglevel=7 kvm-arm.mode=none kvm.enable_virt_at_load=0 initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init cryptomgr.notests=1 virtio_mmio.device=4K@0x0a000000:48 clocksource.arm_arch_timer.evtstrm=false";
+const ISO_VIRTIO_MMIO_ARG: &str = "virtio_mmio.device=4K@0x0a000000:48";
+const DISK_VIRTIO_MMIO_ARG: &str = "virtio_mmio.device=4K@0x0a001000:49";
+const DEFAULT_ISO_BOOTARGS: &str = "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 loglevel=7 kvm-arm.mode=none kvm.enable_virt_at_load=0 initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init cryptomgr.notests=1 virtio_mmio.device=4K@0x0a000000:48 virtio_mmio.device=4K@0x0a001000:49 clocksource.arm_arch_timer.evtstrm=false";
 
 const GRUB_CONFIG_CANDIDATES: &[&str] = &[
     "/boot/grub/grub.cfg",
@@ -157,11 +159,8 @@ fn ensure_serial_bootargs(args: &str) -> String {
         "initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init",
     );
     ensure_kernel_arg(&mut tokens, "cryptomgr.notests=", "cryptomgr.notests=1");
-    ensure_kernel_arg(
-        &mut tokens,
-        "virtio_mmio.device=",
-        "virtio_mmio.device=4K@0x0a000000:48",
-    );
+    ensure_kernel_token(&mut tokens, ISO_VIRTIO_MMIO_ARG);
+    ensure_kernel_token(&mut tokens, DISK_VIRTIO_MMIO_ARG);
     ensure_kernel_arg(
         &mut tokens,
         "clocksource.arm_arch_timer.evtstrm=",
@@ -180,6 +179,14 @@ fn ensure_kernel_arg(tokens: &mut Vec<String>, prefix: &str, arg: &str) {
         .iter()
         .any(|token| token.starts_with(prefix))
     {
+        return;
+    }
+    tokens.insert(insert_at, arg.to_string());
+}
+
+fn ensure_kernel_token(tokens: &mut Vec<String>, arg: &str) {
+    let insert_at = kernel_arg_insert_index(tokens);
+    if tokens[..insert_at].iter().any(|token| token == arg) {
         return;
     }
     tokens.insert(insert_at, arg.to_string());
@@ -256,7 +263,8 @@ mod tests {
         assert!(args.contains("kvm.enable_virt_at_load=0"));
         assert!(args.contains("initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init"));
         assert!(args.contains("cryptomgr.notests=1"));
-        assert!(args.contains("virtio_mmio.device=4K@0x0a000000:48"));
+        assert!(args.contains(ISO_VIRTIO_MMIO_ARG));
+        assert!(args.contains(DISK_VIRTIO_MMIO_ARG));
         assert!(args.contains("clocksource.arm_arch_timer.evtstrm=false"));
         assert!(args.contains("---"));
         assert!(args.contains("DEBIAN_FRONTEND=text"));
@@ -275,7 +283,8 @@ mod tests {
             tokens[..separator].contains(&"initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init")
         );
         assert!(tokens[..separator].contains(&"cryptomgr.notests=1"));
-        assert!(tokens[..separator].contains(&"virtio_mmio.device=4K@0x0a000000:48"));
+        assert!(tokens[..separator].contains(&ISO_VIRTIO_MMIO_ARG));
+        assert!(tokens[..separator].contains(&DISK_VIRTIO_MMIO_ARG));
         assert!(tokens[..separator].contains(&"clocksource.arm_arch_timer.evtstrm=false"));
         assert_eq!(
             &tokens[separator..],

@@ -128,6 +128,10 @@ impl BootContext {
         self.machine.bus.virtio_blk.set_image_owned(image);
     }
 
+    pub fn set_install_disk_size(&mut self, size_bytes: u64) {
+        self.machine.bus.virtio_disk.set_sparse_disk(size_bytes);
+    }
+
     /// No-op: EFI stub is skipped.  We boot via the standard ARM64 protocol.
     pub fn run_efi_phase(&mut self, _max_steps: usize) -> usize {
         0
@@ -167,6 +171,10 @@ impl BootContext {
 
     pub fn allocated_pages(&self) -> usize {
         self.machine.bus.mem.allocated_pages()
+    }
+
+    pub fn install_disk_allocated_bytes(&self) -> u64 {
+        self.machine.bus.virtio_disk.allocated_storage_bytes()
     }
 }
 

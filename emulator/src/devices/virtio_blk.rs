@@ -1,15 +1,18 @@
-//! Minimal read-only VirtIO-MMIO block device.
+//! Minimal VirtIO-MMIO block device.
 //!
-//! This implements the small subset Linux needs to read ISO sectors through
-//! `virtio_blk`: feature negotiation, one split virtqueue, and read requests.
+//! This implements the subset Linux needs for installer media and a target disk:
+//! feature negotiation, one split virtqueue, reads, read-only media, and sparse
+//! writes.
 
 use crate::memory::PhysicalMemory;
+use std::collections::HashMap;
 
 const VIRTIO_MMIO_MAGIC: u64 = 0x7472_6976;
 const VIRTIO_MMIO_VERSION_2: u64 = 2;
 const VIRTIO_DEVICE_ID_BLOCK: u64 = 2;
 const VIRTIO_VENDOR_WEBBOXVM: u64 = 0x5742_564d;
 
+const VIRTIO_BLK_F_RO: u64 = 1 << 5;
 const VIRTIO_F_VERSION_1: u64 = 1 << 32;
 
 const VIRTQ_DESC_F_NEXT: u16 = 1;
@@ -26,6 +29,8 @@ const VIRTIO_BLK_S_UNSUPP: u8 = 2;
 
 const SECTOR_SIZE: usize = 512;
 const QUEUE_NUM_MAX: u16 = 64;
+const SPARSE_DISK_CHUNK_SIZE: usize = 64 * 1024;
+pub const DEFAULT_SPARSE_DISK_SIZE: u64 = 4 * 1024 * 1024 * 1024;
 
 #[derive(Clone, Copy, Debug)]
 struct Descriptor {
@@ -37,7 +42,7 @@ struct Descriptor {
 
 #[derive(Debug, Clone)]
 pub struct VirtioBlk {
-    image: Vec<u8>,
+    storage: BlockStorage,
     device_features_sel: u32,
     driver_features_sel: u32,
     queue_sel: u32,
@@ -53,8 +58,12 @@ pub struct VirtioBlk {
 
 impl VirtioBlk {
     pub fn new() -> Self {
+        Self::read_only_image(Vec::new(), b"webboxvm-iso\0")
+    }
+
+    pub fn read_only_image(image: Vec<u8>, id: &'static [u8]) -> Self {
         Self {
-            image: Vec::new(),
+            storage: BlockStorage::ReadOnlyImage { image, id },
             device_features_sel: 0,
             driver_features_sel: 0,
             queue_sel: 0,
@@ -69,13 +78,35 @@ impl VirtioBlk {
         }
     }
 
+    pub fn writable_sparse(size_bytes: u64, id: &'static [u8]) -> Self {
+        Self {
+            storage: BlockStorage::SparseDisk(SparseDiskStorage::new(size_bytes, id)),
+            ..Self::new()
+        }
+    }
+
     pub fn set_image(&mut self, image: &[u8]) {
-        self.image.clear();
-        self.image.extend_from_slice(image);
+        self.storage = BlockStorage::ReadOnlyImage {
+            image: image.to_vec(),
+            id: b"webboxvm-iso\0",
+        };
     }
 
     pub fn set_image_owned(&mut self, image: Vec<u8>) {
-        self.image = image;
+        self.storage = BlockStorage::ReadOnlyImage {
+            image,
+            id: b"webboxvm-iso\0",
+        };
+    }
+
+    pub fn set_sparse_disk(&mut self, size_bytes: u64) {
+        self.storage =
+            BlockStorage::SparseDisk(SparseDiskStorage::new(size_bytes, b"webboxvm-disk\0"));
+        self.reset_queue();
+    }
+
+    pub fn allocated_storage_bytes(&self) -> u64 {
+        self.storage.allocated_bytes()
     }
 
     pub fn read(&self, offset: u64, size: u8) -> Option<u64> {
@@ -146,7 +177,7 @@ impl VirtioBlk {
     }
 
     fn selected_device_features(&self) -> u64 {
-        let features = VIRTIO_F_VERSION_1;
+        let features = VIRTIO_F_VERSION_1 | self.storage.feature_bits();
         match self.device_features_sel {
             0 => features & 0xffff_ffff,
             1 => features >> 32,
@@ -155,7 +186,7 @@ impl VirtioBlk {
     }
 
     fn capacity_sectors(&self) -> u64 {
-        self.image.len().div_ceil(SECTOR_SIZE) as u64
+        self.storage.capacity_sectors()
     }
 
     fn reset_queue(&mut self) {
@@ -198,7 +229,7 @@ impl VirtioBlk {
         completed
     }
 
-    fn handle_request(&self, mem: &mut PhysicalMemory, head: u16) -> u32 {
+    fn handle_request(&mut self, mem: &mut PhysicalMemory, head: u16) -> u32 {
         let Some(req_desc) = self.read_desc(mem, head) else {
             return 0;
         };
@@ -218,10 +249,10 @@ impl VirtioBlk {
         let (status, written) = match req_type {
             VIRTIO_BLK_T_IN => self.read_sector_data(mem, data_desc, sector),
             VIRTIO_BLK_T_GET_ID => {
-                write_bytes(mem, data_desc.addr, data_desc.len, b"webboxvm-iso\0")
+                write_bytes(mem, data_desc.addr, data_desc.len, self.storage.id())
             }
             VIRTIO_BLK_T_FLUSH => (VIRTIO_BLK_S_OK, 0),
-            VIRTIO_BLK_T_OUT => (VIRTIO_BLK_S_IOERR, 0),
+            VIRTIO_BLK_T_OUT => self.write_sector_data(mem, data_desc, sector),
             _ => (VIRTIO_BLK_S_UNSUPP, 0),
         };
 
@@ -241,26 +272,42 @@ impl VirtioBlk {
             return (VIRTIO_BLK_S_IOERR, 0);
         }
 
-        let Some(start) = (sector as usize).checked_mul(SECTOR_SIZE) else {
+        let Some(start) = sector.checked_mul(SECTOR_SIZE as u64) else {
             return (VIRTIO_BLK_S_IOERR, 0);
         };
-        let len = desc.len as usize;
+        let mut bytes = vec![0; desc.len as usize];
+        let status = self.storage.read(start, &mut bytes);
+        if status == VIRTIO_BLK_S_OK {
+            let _ = mem.write_bytes(desc.addr, &bytes);
+        }
+        (
+            status,
+            if status == VIRTIO_BLK_S_OK {
+                desc.len
+            } else {
+                0
+            },
+        )
+    }
 
-        if start < self.image.len() {
-            let available = (self.image.len() - start).min(len);
-            let _ = mem.write_bytes(desc.addr, &self.image[start..start + available]);
-            if available == len {
-                return (VIRTIO_BLK_S_OK, desc.len);
-            }
-
-            let zeros = vec![0; len - available];
-            let _ = mem.write_bytes(desc.addr + available as u64, &zeros);
-        } else if len > 0 {
-            let zeros = vec![0; len];
-            let _ = mem.write_bytes(desc.addr, &zeros);
+    fn write_sector_data(
+        &mut self,
+        mem: &mut PhysicalMemory,
+        desc: Descriptor,
+        sector: u64,
+    ) -> (u8, u32) {
+        if desc.flags & VIRTQ_DESC_F_WRITE != 0 {
+            return (VIRTIO_BLK_S_IOERR, 0);
         }
 
-        (VIRTIO_BLK_S_OK, desc.len)
+        let Some(start) = sector.checked_mul(SECTOR_SIZE as u64) else {
+            return (VIRTIO_BLK_S_IOERR, 0);
+        };
+        let mut bytes = vec![0; desc.len as usize];
+        if mem.read_bytes(desc.addr, &mut bytes).is_none() {
+            return (VIRTIO_BLK_S_IOERR, 0);
+        }
+        (self.storage.write(start, &bytes), 0)
     }
 
     fn read_desc(&self, mem: &PhysicalMemory, index: u16) -> Option<Descriptor> {
@@ -302,18 +349,18 @@ impl Default for VirtioBlk {
 fn read_config_u64(value: u64, offset: u64, size: u8) -> Option<u64> {
     let bytes = value.to_le_bytes();
     let offset = offset as usize;
-    match size {
-        1 => Some(bytes[offset] as u64),
-        2 => Some(u16::from_le_bytes([bytes[offset], bytes[offset + 1]]) as u64),
-        4 => Some(u32::from_le_bytes([
-            bytes[offset],
-            bytes[offset + 1],
-            bytes[offset + 2],
-            bytes[offset + 3],
-        ]) as u64),
-        8 if offset == 0 => Some(value),
+    let len = match size {
+        1 | 2 | 4 | 8 => Some(size as usize),
         _ => None,
+    }?;
+    let end = offset.checked_add(len)?;
+    if end > bytes.len() {
+        return None;
     }
+
+    let mut out = [0u8; 8];
+    out[..len].copy_from_slice(&bytes[offset..end]);
+    Some(u64::from_le_bytes(out))
 }
 
 fn mask_read(value: u64, size: u8) -> Option<u64> {
@@ -328,6 +375,315 @@ fn mask_read(value: u64, size: u8) -> Option<u64> {
 
 fn write_bytes(mem: &mut PhysicalMemory, addr: u64, len: u32, src: &[u8]) -> (u8, u32) {
     let count = (len as usize).min(src.len());
-    let _ = mem.write_bytes(addr, &src[..count]);
+    if count == 0 {
+        return (VIRTIO_BLK_S_OK, 0);
+    }
+    if mem.write_bytes(addr, &src[..count]).is_none() {
+        return (VIRTIO_BLK_S_IOERR, 0);
+    }
     (VIRTIO_BLK_S_OK, count as u32)
+}
+
+#[derive(Debug, Clone)]
+enum BlockStorage {
+    ReadOnlyImage { image: Vec<u8>, id: &'static [u8] },
+    SparseDisk(SparseDiskStorage),
+}
+
+impl BlockStorage {
+    fn capacity_sectors(&self) -> u64 {
+        self.capacity_bytes().div_ceil(SECTOR_SIZE as u64)
+    }
+
+    fn capacity_bytes(&self) -> u64 {
+        match self {
+            Self::ReadOnlyImage { image, .. } => image.len() as u64,
+            Self::SparseDisk(disk) => disk.size_bytes,
+        }
+    }
+
+    fn id(&self) -> &'static [u8] {
+        match self {
+            Self::ReadOnlyImage { id, .. } => id,
+            Self::SparseDisk(disk) => disk.id,
+        }
+    }
+
+    fn feature_bits(&self) -> u64 {
+        match self {
+            Self::ReadOnlyImage { .. } => VIRTIO_BLK_F_RO,
+            Self::SparseDisk(_) => 0,
+        }
+    }
+
+    fn allocated_bytes(&self) -> u64 {
+        match self {
+            Self::ReadOnlyImage { image, .. } => image.len() as u64,
+            Self::SparseDisk(disk) => disk.allocated_bytes(),
+        }
+    }
+
+    fn read(&self, offset: u64, dst: &mut [u8]) -> u8 {
+        let Some(end) = offset.checked_add(dst.len() as u64) else {
+            return VIRTIO_BLK_S_IOERR;
+        };
+        let capacity_bytes = self.capacity_sectors() * SECTOR_SIZE as u64;
+        if end > capacity_bytes {
+            return VIRTIO_BLK_S_IOERR;
+        }
+
+        match self {
+            Self::ReadOnlyImage { image, .. } => {
+                if offset < image.len() as u64 {
+                    let available = ((image.len() as u64 - offset) as usize).min(dst.len());
+                    let start = offset as usize;
+                    dst[..available].copy_from_slice(&image[start..start + available]);
+                    dst[available..].fill(0);
+                } else {
+                    dst.fill(0);
+                }
+                VIRTIO_BLK_S_OK
+            }
+            Self::SparseDisk(disk) => disk.read(offset, dst),
+        }
+    }
+
+    fn write(&mut self, offset: u64, src: &[u8]) -> u8 {
+        match self {
+            Self::ReadOnlyImage { .. } => VIRTIO_BLK_S_IOERR,
+            Self::SparseDisk(disk) => disk.write(offset, src),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct SparseDiskStorage {
+    size_bytes: u64,
+    id: &'static [u8],
+    chunks: HashMap<u64, Box<[u8; SPARSE_DISK_CHUNK_SIZE]>>,
+}
+
+impl SparseDiskStorage {
+    fn new(size_bytes: u64, id: &'static [u8]) -> Self {
+        Self {
+            size_bytes,
+            id,
+            chunks: HashMap::new(),
+        }
+    }
+
+    fn read(&self, offset: u64, dst: &mut [u8]) -> u8 {
+        if !self.range_in_disk(offset, dst.len()) {
+            return VIRTIO_BLK_S_IOERR;
+        }
+
+        let mut done = 0usize;
+        while done < dst.len() {
+            let current = offset + done as u64;
+            let chunk_index = current / SPARSE_DISK_CHUNK_SIZE as u64;
+            let chunk_offset = (current % SPARSE_DISK_CHUNK_SIZE as u64) as usize;
+            let count = (dst.len() - done).min(SPARSE_DISK_CHUNK_SIZE - chunk_offset);
+
+            if let Some(chunk) = self.chunks.get(&chunk_index) {
+                dst[done..done + count].copy_from_slice(&chunk[chunk_offset..chunk_offset + count]);
+            } else {
+                dst[done..done + count].fill(0);
+            }
+            done += count;
+        }
+
+        VIRTIO_BLK_S_OK
+    }
+
+    fn write(&mut self, offset: u64, src: &[u8]) -> u8 {
+        if !self.range_in_disk(offset, src.len()) {
+            return VIRTIO_BLK_S_IOERR;
+        }
+
+        let mut done = 0usize;
+        while done < src.len() {
+            let current = offset + done as u64;
+            let chunk_index = current / SPARSE_DISK_CHUNK_SIZE as u64;
+            let chunk_offset = (current % SPARSE_DISK_CHUNK_SIZE as u64) as usize;
+            let count = (src.len() - done).min(SPARSE_DISK_CHUNK_SIZE - chunk_offset);
+            let chunk = self
+                .chunks
+                .entry(chunk_index)
+                .or_insert_with(|| Box::new([0; SPARSE_DISK_CHUNK_SIZE]));
+
+            chunk[chunk_offset..chunk_offset + count].copy_from_slice(&src[done..done + count]);
+            done += count;
+        }
+
+        VIRTIO_BLK_S_OK
+    }
+
+    fn allocated_bytes(&self) -> u64 {
+        self.chunks.len() as u64 * SPARSE_DISK_CHUNK_SIZE as u64
+    }
+
+    fn range_in_disk(&self, offset: u64, len: usize) -> bool {
+        offset
+            .checked_add(len as u64)
+            .is_some_and(|end| end <= self.size_bytes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::constants::RAM_BASE;
+
+    const QUEUE_DESC: u64 = RAM_BASE + 0x1000;
+    const QUEUE_DRIVER: u64 = RAM_BASE + 0x2000;
+    const QUEUE_DEVICE: u64 = RAM_BASE + 0x3000;
+    const REQ_ADDR: u64 = RAM_BASE + 0x4000;
+    const DATA_ADDR: u64 = RAM_BASE + 0x5000;
+    const STATUS_ADDR: u64 = RAM_BASE + 0x6000;
+
+    fn configure_queue(device: &mut VirtioBlk, mem: &mut PhysicalMemory) {
+        device.write(mem, 0x038, 8, 4);
+        device.write(mem, 0x080, QUEUE_DESC as u32 as u64, 4);
+        device.write(mem, 0x084, QUEUE_DESC >> 32, 4);
+        device.write(mem, 0x090, QUEUE_DRIVER as u32 as u64, 4);
+        device.write(mem, 0x094, QUEUE_DRIVER >> 32, 4);
+        device.write(mem, 0x0a0, QUEUE_DEVICE as u32 as u64, 4);
+        device.write(mem, 0x0a4, QUEUE_DEVICE >> 32, 4);
+        device.write(mem, 0x044, 1, 4);
+    }
+
+    fn write_desc(
+        mem: &mut PhysicalMemory,
+        index: u16,
+        addr: u64,
+        len: u32,
+        flags: u16,
+        next: u16,
+    ) {
+        let base = QUEUE_DESC + index as u64 * 16;
+        mem.write(base, 8, addr).unwrap();
+        mem.write(base + 8, 4, len as u64).unwrap();
+        mem.write(base + 12, 2, flags as u64).unwrap();
+        mem.write(base + 14, 2, next as u64).unwrap();
+    }
+
+    fn submit_request(
+        device: &mut VirtioBlk,
+        mem: &mut PhysicalMemory,
+        req_type: u32,
+        sector: u64,
+        data_len: u32,
+        data_flags: u16,
+        avail_idx: u16,
+    ) -> u8 {
+        mem.write(REQ_ADDR, 4, req_type as u64).unwrap();
+        mem.write(REQ_ADDR + 4, 4, 0).unwrap();
+        mem.write(REQ_ADDR + 8, 8, sector).unwrap();
+        mem.write(STATUS_ADDR, 1, 0xff).unwrap();
+
+        write_desc(mem, 0, REQ_ADDR, 16, VIRTQ_DESC_F_NEXT, 1);
+        write_desc(
+            mem,
+            1,
+            DATA_ADDR,
+            data_len,
+            data_flags | VIRTQ_DESC_F_NEXT,
+            2,
+        );
+        write_desc(mem, 2, STATUS_ADDR, 1, VIRTQ_DESC_F_WRITE, 0);
+
+        let ring_slot = avail_idx % 8;
+        mem.write(QUEUE_DRIVER + 4 + ring_slot as u64 * 2, 2, 0)
+            .unwrap();
+        mem.write(QUEUE_DRIVER + 2, 2, avail_idx.wrapping_add(1) as u64)
+            .unwrap();
+        assert!(device.write(mem, 0x050, 0, 4));
+
+        mem.read(STATUS_ADDR, 1).unwrap() as u8
+    }
+
+    #[test]
+    fn sparse_disk_reads_zero_then_persists_writes() {
+        let mut storage = BlockStorage::SparseDisk(SparseDiskStorage::new(
+            2 * SPARSE_DISK_CHUNK_SIZE as u64,
+            b"disk\0",
+        ));
+        let offset = SPARSE_DISK_CHUNK_SIZE as u64 - 2;
+        let mut out = [0xff; 5];
+
+        assert_eq!(storage.read(offset, &mut out), VIRTIO_BLK_S_OK);
+        assert_eq!(out, [0; 5]);
+        assert_eq!(storage.allocated_bytes(), 0);
+
+        assert_eq!(storage.write(offset, &[1, 2, 3, 4, 5]), VIRTIO_BLK_S_OK);
+        assert_eq!(storage.allocated_bytes(), 2 * SPARSE_DISK_CHUNK_SIZE as u64);
+        assert_eq!(storage.read(offset, &mut out), VIRTIO_BLK_S_OK);
+        assert_eq!(out, [1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn read_only_image_rejects_writes_and_pads_last_sector() {
+        let mut storage = BlockStorage::ReadOnlyImage {
+            image: vec![1, 2, 3],
+            id: b"iso\0",
+        };
+        let mut sector = [0xff; SECTOR_SIZE];
+
+        assert_eq!(storage.read(0, &mut sector), VIRTIO_BLK_S_OK);
+        assert_eq!(&sector[..5], &[1, 2, 3, 0, 0]);
+        assert_eq!(storage.write(0, &[9]), VIRTIO_BLK_S_IOERR);
+    }
+
+    #[test]
+    fn read_beyond_virtual_capacity_fails() {
+        let storage =
+            BlockStorage::SparseDisk(SparseDiskStorage::new(SECTOR_SIZE as u64, b"disk\0"));
+        let mut bytes = [0u8; SECTOR_SIZE + 1];
+
+        assert_eq!(storage.read(0, &mut bytes), VIRTIO_BLK_S_IOERR);
+    }
+
+    #[test]
+    fn config_read_rejects_out_of_range_sizes() {
+        let device = VirtioBlk::writable_sparse(SECTOR_SIZE as u64, b"disk\0");
+
+        assert_eq!(device.read(0x106, 4), None);
+        assert_eq!(device.read(0x107, 2), None);
+        assert_eq!(device.read(0x100, 8), Some(1));
+    }
+
+    #[test]
+    fn virtqueue_writes_to_sparse_disk_and_reads_back() {
+        let mut mem = PhysicalMemory::new();
+        let mut device = VirtioBlk::writable_sparse(SECTOR_SIZE as u64 * 8, b"disk\0");
+        configure_queue(&mut device, &mut mem);
+
+        mem.write_bytes(DATA_ADDR, b"hello").unwrap();
+        assert_eq!(
+            submit_request(&mut device, &mut mem, VIRTIO_BLK_T_OUT, 2, 5, 0, 0,),
+            VIRTIO_BLK_S_OK
+        );
+        assert_eq!(
+            device.allocated_storage_bytes(),
+            SPARSE_DISK_CHUNK_SIZE as u64
+        );
+
+        mem.write_bytes(DATA_ADDR, &[0; 5]).unwrap();
+        assert_eq!(
+            submit_request(
+                &mut device,
+                &mut mem,
+                VIRTIO_BLK_T_IN,
+                2,
+                5,
+                VIRTQ_DESC_F_WRITE,
+                1,
+            ),
+            VIRTIO_BLK_S_OK
+        );
+
+        let mut out = [0u8; 5];
+        mem.read_bytes(DATA_ADDR, &mut out).unwrap();
+        assert_eq!(&out, b"hello");
+    }
 }

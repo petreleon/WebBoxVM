@@ -1,11 +1,11 @@
 use super::*;
 use crate::arm64::decode::decode;
 use crate::constants::{
-    DESC_AF_BIT, DESC_AP_EL0, DESC_ADDR_MASK, DESC_TABLE, DESC_VALID, ESR_EC_SVC64, PAGE_SIZE,
+    DESC_ADDR_MASK, DESC_AF_BIT, DESC_AP_EL0, DESC_TABLE, DESC_VALID, ESR_EC_SVC64, PAGE_SIZE,
     PHYSICAL_TIMER_IRQ_ID, PSTATE_DAIF_MASK, PSTATE_EL_MASK, PSTATE_I_BIT, PT_L1_SHIFT,
     PT_L2_SHIFT, PT_L3_SHIFT, RAM_BASE, SCTLR_MMU_ENABLE, SYSREG_CNTKCTL_EL1, SYSREG_CNTP_TVAL_EL0,
-    SYSREG_CNTV_CTL_EL0, SYSREG_CNTV_TVAL_EL0, TCR_T1SZ_SHIFT, TIMER_CTL_ENABLE,
-    TIMER_CTL_IMASK, VBAR_IRQ_CURRENT_EL, VBAR_IRQ_LOWER_EL_AARCH64, VBAR_SYNC_LOWER_EL_AARCH64,
+    SYSREG_CNTV_CTL_EL0, SYSREG_CNTV_TVAL_EL0, TCR_T1SZ_SHIFT, TIMER_CTL_ENABLE, TIMER_CTL_IMASK,
+    VBAR_IRQ_CURRENT_EL, VBAR_IRQ_LOWER_EL_AARCH64, VBAR_SYNC_LOWER_EL_AARCH64,
     VIRTUAL_TIMER_IRQ_ID,
 };
 
@@ -31,9 +31,9 @@ fn map_two_user_pages(
 
     bus.mem.write(l1 + l1_idx * 8, 8, table_desc(l2));
     bus.mem.write(l2 + l2_idx * 8, 8, table_desc(l3));
+    bus.mem.write(l3 + l3_idx * 8, 8, page_desc(first_pa));
     bus.mem
-        .write(l3 + l3_idx * 8, 8, page_desc(first_pa));
-    bus.mem.write(l3 + (l3_idx + 1) * 8, 8, page_desc(second_pa));
+        .write(l3 + (l3_idx + 1) * 8, 8, page_desc(second_pa));
 
     cpu.sys.ttbr0_el1 = l1;
     cpu.sys.tcr_el1 = (25 << TCR_T1SZ_SHIFT) | 25;
