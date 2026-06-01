@@ -1101,6 +1101,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdCnt
             | Opcode::SimdCmtst
             | Opcode::SimdShlImm
+            | Opcode::SimdSli
             | Opcode::SimdUshr
             | Opcode::SimdUshl
             | Opcode::SimdXtn

@@ -297,6 +297,13 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x6E07_079F).unwrap().op, Opcode::SimdInsElem);
     assert_eq!(decode(0x6E20_0BFF).unwrap().op, Opcode::SimdRev32);
     assert_eq!(decode(0x0F2D_57C2).unwrap().op, Opcode::SimdShlImm);
+    let sli = decode(0x6F39_5486).unwrap();
+    assert_eq!(sli.op, Opcode::SimdSli);
+    assert_eq!(sli.rd, 6);
+    assert_eq!(sli.rn, 4);
+    assert_eq!(sli.imm, 25);
+    assert_eq!(sli.cond, 4);
+    assert_eq!(sli.size, 16);
     assert_eq!(decode(0x4E08_077D).unwrap().op, Opcode::SimdDupElem);
     assert_eq!(decode(0x6EF9_47BD).unwrap().op, Opcode::SimdUshl);
     assert_eq!(decode(0x4E9C_1BDE).unwrap().op, Opcode::SimdUzp1);

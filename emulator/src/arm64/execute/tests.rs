@@ -255,6 +255,11 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x0F2D_57C2).unwrap()).unwrap(); // shl v2.2s, v30.2s, #13
     assert_eq!(cpu.simd[2], 0x0000_2000_2000_2000);
 
+    cpu.simd[4] = 0x0000_0040_0000_007f_0000_0002_0000_0001;
+    cpu.simd[6] = 0x0000_0000_5555_5555_aaaa_aaaa_ffff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x6F39_5486).unwrap()).unwrap(); // sli v6.4s, v4.4s, #25
+    assert_eq!(cpu.simd[6], 0x8000_0000_ff55_5555_04aa_aaaa_03ff_ffff);
+
     cpu.simd[27] = 0x8877_6655_4433_2211_0123_4567_89ab_cdef;
     execute(&mut cpu, &mut bus, decode(0x4E08_077D).unwrap()).unwrap(); // dup v29.2d, v27.d[0]
     assert_eq!(cpu.simd[29], 0x0123_4567_89ab_cdef_0123_4567_89ab_cdef);
