@@ -8,8 +8,13 @@ use crate::bus::SystemBus;
 use crate::constants::*;
 use std::env;
 
+const SIMD_MULTI_POST_INDEX: u8 = 0xFE;
+
 fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
-    if instr.rm != 0xFF {
+    if instr.rm == SIMD_MULTI_POST_INDEX {
+        let base = base_addr(cpu, instr.rn);
+        (base, Some(base.wrapping_add(instr.imm)))
+    } else if instr.rm != 0xFF {
         let base = base_addr(cpu, instr.rn);
         let offset_val = read_reg(cpu, instr.rm, true);
         let extended = apply_extension(offset_val, instr.cond);

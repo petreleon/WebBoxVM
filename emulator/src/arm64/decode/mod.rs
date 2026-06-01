@@ -598,6 +598,18 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
+    if (raw & 0xBFFF_F000) == 0x0C9F_A000 {
+        return Some(Instr {
+            op: Opcode::SimdSt1Multi,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0xFE,
+            imm: 32,
+            sf: true,
+            cond: 2,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
+        });
+    }
 
     let bits28_24 = (raw >> 24) & 0x1F;
     let bits28_23 = (raw >> 23) & 0x3F;
