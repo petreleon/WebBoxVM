@@ -590,7 +590,13 @@ fn real_kernel_runs_past_prologue_trace() {
         println!("  GUID: {:#018x} {:#018x} -> table: {:#x}", g0, g1, ptr);
     }
 
-    'main: for _ in 0..60_000usize {
+    let trace_steps = std::env::var("WEBBOXVM_KERNEL_TRACE_STEPS")
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(60_000);
+    println!("Trace step limit: {}", trace_steps);
+
+    'main: for _ in 0..trace_steps {
         // Hand-off to main kernel
         if !efi_stub_done && cpu.regs.pc == 0 {
             println!("=== EFI Stub done ({} steps) => main kernel ===", steps);
