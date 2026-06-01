@@ -70,7 +70,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut last_uart = u1.len();
     let chunks = env_usize("BOOT_TEST_CHUNKS", 10);
     let per_chunk = env_usize("BOOT_TEST_STEPS", 2_000_000);
-    let stop_uart = env_usize("BOOT_TEST_STOP_UART", 500);
+    let command_script = env::var("BOOT_TEST_COMMANDS")
+        .ok()
+        .filter(|script| !script.is_empty())
+        .map(|script| normalize_boot_test_commands(&script));
+    let stop_uart_default = if command_script.is_some() { 0 } else { 500 };
+    let stop_uart = env_usize("BOOT_TEST_STOP_UART", stop_uart_default);
+    let stop_text = env::var("BOOT_TEST_STOP_TEXT")
+        .ok()
+        .filter(|text| !text.is_empty());
+    let mut commands_sent = false;
 
     for i in 0..chunks {
         ctx.run_kernel_phase(per_chunk);
@@ -137,6 +146,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         last_uart = uart.len();
 
+        if !commands_sent
+            && let Some(script) = command_script.as_deref()
+            && uart.contains("webboxvm# ")
+        {
+            ctx.feed_uart_input(script);
+            commands_sent = true;
+            println!(
+                "Fed {} bytes of UART input from BOOT_TEST_COMMANDS",
+                script.len()
+            );
+        }
+
+        if let Some(text) = stop_text.as_deref()
+            && uart.contains(text)
+        {
+            println!("Stop text matched: {text:?}");
+            break;
+        }
+
         // Early exit if we got meaningful output
         if stop_uart > 0 && uart.len() > stop_uart {
             break;
@@ -191,6 +219,15 @@ fn env_usize(name: &str, default: usize) -> usize {
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(default)
+}
+
+fn normalize_boot_test_commands(script: &str) -> String {
+    let mut normalized = script.replace("\\r", "\r").replace("\\n", "\n");
+    normalized = normalized.replace('\n', "\r");
+    if !normalized.ends_with('\r') {
+        normalized.push('\r');
+    }
+    normalized
 }
 
 fn first_initrd_mismatch(ctx: &BootContext, expected: &[u8]) -> Option<usize> {

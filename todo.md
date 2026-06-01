@@ -3,11 +3,11 @@
 Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspirational backlog moved to [future.md](future.md).
 
 ## Sprint 7 — Serial Linux Userspace and ISO Installer
-- [ ] Kernel boots to BusyBox `ash` shell
+- [x] Kernel boots to BusyBox `ash` shell
   - Early console works; next target is enough init, scheduler, device, and initrd behavior to spawn `/init`
   - Default initrd contains real static ARM64 BusyBox, `/init`, `/dev/console`, and applet symlinks
 - [x] Replace placeholder BusyBox payload with a real static ARM64 BusyBox binary
-- [ ] Continue boot beyond early console into initramfs unpacking and `/init`
+- [x] Continue boot beyond early console into initramfs unpacking and `/init`
 - [x] Add UART RX path wiring for interactive shell input
 - [x] Add first ARM64 ISO terminal boot path by extracting kernel/initrd from ISO9660 media
 - [x] Attach booted ISO media as a read-only VirtIO block device
@@ -22,9 +22,9 @@ Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspira
   - [ ] Make EFI stub `_text == *image_addr` checks succeed without relocation
   - [ ] Boot kernels at linked VA with MMU already active
   - [ ] Support pre-built Debian/Ubuntu kernels without Docker rebuild
-- [ ] Interactive commands: `ls`, `echo hello`, `cat /proc/cpuinfo`
+- [x] Interactive commands: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result so far:** Native CLI Debian ARM64 netinst reaches the real text installer language prompt. Remaining work is browser delivery, input responsiveness, and shell/install interaction quality.
+**Result so far:** Native CLI boots Linux to the default BusyBox `ash` prompt, and `echo hello`, `ls /`, and `cat /proc/cpuinfo` work over the serial console. Debian ARM64 netinst reaches the real text installer language prompt. Remaining work is browser delivery, input responsiveness, and browser shell/install interaction quality.
 
 ## Sprint 8 — Browser Terminal Delivery
 - [x] Build `wasm32-unknown-unknown` package with `wasm-bindgen`
