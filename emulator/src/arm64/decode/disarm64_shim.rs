@@ -6,6 +6,8 @@
 
 use super::super::opcodes::{Instr, Opcode};
 use disarm64::decoder;
+#[cfg(debug_assertions)]
+use std::sync::OnceLock;
 
 /// Decode with legacy, validate against disarm64 (debug builds only).
 pub fn decode(raw: u32) -> Option<Instr> {
@@ -13,18 +15,26 @@ pub fn decode(raw: u32) -> Option<Instr> {
 
     // Cross-validate against disarm64 in debug builds
     #[cfg(debug_assertions)]
-    if let Some(d64) = decoder::decode(raw) {
-        if let Some(expected) = mnemonic_to_opcode(raw, d64.mnemonic) {
-            if legacy.op != expected {
-                eprintln!(
-                    "DISARM64 MISMATCH: raw=0x{raw:08x} legacy={:?} disarm64={:?}",
-                    legacy.op, expected
-                );
+    if log_disarm64_mismatches() {
+        if let Some(d64) = decoder::decode(raw) {
+            if let Some(expected) = mnemonic_to_opcode(raw, d64.mnemonic) {
+                if legacy.op != expected {
+                    eprintln!(
+                        "DISARM64 MISMATCH: raw=0x{raw:08x} legacy={:?} disarm64={:?}",
+                        legacy.op, expected
+                    );
+                }
             }
         }
     }
 
     Some(legacy)
+}
+
+#[cfg(debug_assertions)]
+fn log_disarm64_mismatches() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| std::env::var_os("WEBBOXVM_DISARM64_MISMATCHES").is_some())
 }
 
 fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
