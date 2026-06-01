@@ -15,7 +15,7 @@ mod kernel_dump_tests {
         let mut cpu = Armv8Cpu::new();
         let mut bus = SystemBus::new();
 
-        let _entry = load_kernel(
+        let entry = load_kernel(
             &mut bus,
             concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image"),
         )
@@ -40,7 +40,7 @@ mod kernel_dump_tests {
         );
         load_dtb(&mut bus, dtb_addr, &dtb);
 
-        cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
+        cpu.regs.pc = entry;
 
         let mut steps = 0u64;
         let mut pages_bump = 0x4800_0000u64;

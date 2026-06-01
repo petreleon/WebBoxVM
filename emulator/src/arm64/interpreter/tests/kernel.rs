@@ -85,7 +85,7 @@ fn real_kernel_runs_past_prologue() {
     let mut cpu = Armv8Cpu::new();
     let mut bus = SystemBus::new();
 
-    let _entry = load_kernel(
+    let entry = load_kernel(
         &mut bus,
         concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image"),
     )
@@ -102,7 +102,7 @@ fn real_kernel_runs_past_prologue() {
 
     setup_boot_page_tables(&mut cpu, &mut bus);
 
-    cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
+    cpu.regs.pc = entry;
 
     let mut steps = 0u64;
     let mut last_pc = cpu.regs.pc;
@@ -430,7 +430,7 @@ fn real_kernel_runs_past_prologue_trace() {
     cpu.pstate = cpu.pstate.with_el(1);
     let mut bus = SystemBus::new();
 
-    let _entry = load_kernel(
+    let entry = load_kernel(
         &mut bus,
         concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image"),
     )
@@ -447,7 +447,7 @@ fn real_kernel_runs_past_prologue_trace() {
     cpu.regs.set_x(30, 0x43EFE000);
 
     setup_boot_page_tables(&mut cpu, &mut bus);
-    cpu.regs.pc = KERNEL_LOAD + 0x01da7ee0;
+    cpu.regs.pc = entry;
 
     let busybox_data = std::fs::read(concat!(
         env!("CARGO_MANIFEST_DIR"),
