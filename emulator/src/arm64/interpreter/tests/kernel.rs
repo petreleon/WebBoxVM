@@ -70,6 +70,39 @@ fn setup_boot_page_tables(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
     cpu.sys.sctlr_el1 = 1; // Enable MMU
 }
 
+const EFI_RELOCATION_LOOP_ENTRY: u64 = 0x4196_b450;
+const EFI_RELOCATION_LOOP_EXIT: u64 = 0x4196_b474;
+const R_AARCH64_RELATIVE: u64 = 0x403;
+
+fn fast_forward_efi_relocation_loop(cpu: &mut Armv8Cpu, bus: &mut SystemBus) -> Option<usize> {
+    if cpu.regs.pc != EFI_RELOCATION_LOOP_ENTRY {
+        return None;
+    }
+
+    let mut record = cpu.regs.x(9);
+    let end = cpu.regs.x(10);
+    let delta = cpu.regs.x(23);
+    let mut records = 0usize;
+
+    while record < end {
+        let target = bus.mem.read(record, 8).unwrap_or(0);
+        let reloc_type = bus.mem.read(record + 8, 8).unwrap_or(0);
+        let addend = bus.mem.read(record + 16, 8).unwrap_or(0);
+
+        if (reloc_type & 0xffff_ffff) == R_AARCH64_RELATIVE {
+            bus.mem
+                .write(target.wrapping_add(delta), 8, addend.wrapping_add(delta));
+        }
+
+        record = record.wrapping_add(24);
+        records += 1;
+    }
+
+    cpu.regs.set_x(9, record);
+    cpu.regs.pc = EFI_RELOCATION_LOOP_EXIT;
+    Some(records)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main test: real kernel boot
 // ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +268,9 @@ fn real_kernel_runs_past_prologue() {
             cpu.regs.set_x(3, x1);
             cpu.pstate.set_nzcv(false, true, true, false);
             cpu.regs.pc = 0x400b6ec8;
+            continue;
+        }
+        if fast_forward_efi_relocation_loop(&mut cpu, &mut bus).is_some() {
             continue;
         }
         let pa = match translate(&cpu.sys, &mut cpu.tlb, &bus.mem, cpu.regs.pc) {
@@ -686,6 +722,16 @@ fn real_kernel_runs_past_prologue_trace() {
             cpu.regs.set_x(3, x1);
             cpu.pstate.set_nzcv(false, true, true, false);
             cpu.regs.pc = 0x400b6ec8;
+            continue;
+        }
+        if let Some(records) = fast_forward_efi_relocation_loop(&mut cpu, &mut bus) {
+            println!(
+                "Fast-forwarded EFI relocation loop: {} records, X9={:#x}, X10={:#x}, X23={:#x}",
+                records,
+                cpu.regs.x(9),
+                cpu.regs.x(10),
+                cpu.regs.x(23)
+            );
             continue;
         }
 

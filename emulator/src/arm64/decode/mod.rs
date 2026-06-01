@@ -33,7 +33,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
-    if (raw & 0xFFFF_FC00) == 0x4CDF_7000 {
+    if (raw & 0xFFFF_F000) == 0x4CDF_7000 {
         return Some(Instr {
             op: Opcode::SimdLd1,
             rd: (raw & 0x1F) as u8,
