@@ -104,7 +104,7 @@ pub(super) fn exec_ldr_str(
             super::alu::simd_replicate_element(value, element_size as usize, instr.size as usize);
     } else if instr.op == Opcode::SimdLd4 {
         exec_ld4(cpu, bus, va, instr)?;
-    } else if instr.op == Opcode::SimdStr {
+    } else if matches!(instr.op, Opcode::SimdStr | Opcode::SimdSt4Single) {
         write_simd_guest(
             cpu,
             bus,

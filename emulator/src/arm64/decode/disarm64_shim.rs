@@ -134,6 +134,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#ld1r => Opcode::SimdLd1r,
         M::r#ld4 if (raw & 0xBFFF_F000) == 0x0C40_A000 => Opcode::SimdLd1Multi,
         M::r#st4 if (raw & 0xBFFF_F000) == 0x0C00_A000 => Opcode::SimdSt1Multi,
+        M::r#st4 if (raw & 0xFFFF_FC00) == 0x4C9F_7800 => Opcode::SimdSt4Single,
         _ => return None,
     })
 }

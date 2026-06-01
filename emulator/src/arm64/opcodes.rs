@@ -86,6 +86,7 @@ pub enum Opcode {
     SimdSt1Multi,
     SimdLd4,
     SimdSt4,
+    SimdSt4Single,
     SimdDupByte,
     SimdDupElem,
     SimdFmovReg64,
