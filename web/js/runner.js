@@ -1,5 +1,7 @@
 import { clamp } from "./utils.js";
 
+const DEFAULT_STEP_SLICE = 1_000_000;
+
 export class VmRunner {
   #els;
   #term;
@@ -58,7 +60,11 @@ export class VmRunner {
     }
 
     const frameStart = performance.now();
-    const stepSlice = clamp(Number(this.#els.stepSlice.value) || 50000, 1000, 1000000);
+    const stepSlice = clamp(
+      Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE,
+      1000,
+      1000000,
+    );
     let batches = 0;
 
     try {

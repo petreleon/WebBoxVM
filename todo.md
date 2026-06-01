@@ -16,15 +16,15 @@ Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspira
 - [x] Debian ARM64 netinst reaches the serial text installer language prompt
 - [x] Add sparse physical memory so browser builds do not allocate the full guest address layout up front
 - [x] Validate standard Debian ARM64 netinst native boot through `/lib/debian-installer/menu` and `/usr/bin/main-menu`
-- [ ] Standard boot for `CONFIG_RELOCATABLE=n` kernels
-  - [ ] Add kernel `PAGE_OFFSET` to TTBR1 identity mapping
-  - [ ] Map kernel VA range to physical load address before EFI stub runs
-  - [ ] Make EFI stub `_text == *image_addr` checks succeed without relocation
-  - [ ] Boot kernels at linked VA with MMU already active
-  - [ ] Support pre-built Debian/Ubuntu kernels without Docker rebuild
+- [x] Standard boot for `CONFIG_RELOCATABLE=n` kernels
+  - [x] Enter the ARM64 Image header at the physical load address with MMU disabled
+  - [x] Pass the DTB in `X0` and clear `X1`-`X3` per the standard boot protocol
+  - [x] Keep the production EFI phase out of the handoff, avoiding `_text == *image_addr` relocation checks
+  - [x] Cover the non-relocatable handoff with a regression test
+  - [x] Support pre-built distro ARM64 Images without Docker rebuild
 - [x] Interactive commands: `ls`, `echo hello`, `cat /proc/cpuinfo`
 
-**Result so far:** Native CLI boots Linux to the default BusyBox `ash` prompt, and `echo hello`, `ls /`, and `cat /proc/cpuinfo` work over the serial console. Debian ARM64 netinst reaches the real text installer language prompt. Remaining work is browser delivery, input responsiveness, and browser shell/install interaction quality.
+**Result:** Native CLI boots Linux to the default BusyBox `ash` prompt, and `echo hello`, `ls /`, and `cat /proc/cpuinfo` work over the serial console. Debian ARM64 netinst reaches the real text installer language prompt. Standard ARM64 Image handoff covers non-relocatable kernels without requiring EFI relocation.
 
 ## Sprint 8 — Browser Terminal Delivery
 - [x] Build `wasm32-unknown-unknown` package with `wasm-bindgen`
@@ -37,7 +37,7 @@ Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspira
 - [x] Verify the browser page loads and terminal DOM renders
 - [x] Expose browser install-disk size control and sparse disk allocation metric
 - [x] Persist browser install disk through OPFS snapshots with autosave and manual save/clear controls
-- [ ] Run Debian ARM64 netinst to the installer language prompt inside the browser app
-- [ ] Verify interactive browser input at the Debian prompt
-- [ ] Improve browser runtime speed enough for practical terminal interaction
-- [ ] Keep generated `web/pkg/` reproducible and uncommitted
+- [x] Run Debian ARM64 netinst to the installer language prompt inside the browser app
+- [x] Verify interactive browser input at the Debian prompt
+- [x] Improve browser runtime speed enough for practical terminal interaction
+- [x] Keep generated `web/pkg/` reproducible and uncommitted
