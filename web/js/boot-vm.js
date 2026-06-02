@@ -1,5 +1,6 @@
 import init, { Emulator } from "../pkg/emulator.js";
 import { GIB, clamp, nextFrame } from "./utils.js";
+import { assertWasm64Supported } from "./wasm64.js";
 
 export class VmBooter {
   #els;
@@ -55,10 +56,13 @@ export class VmBooter {
     if (this.#wasmReady) {
       return;
     }
-    this.#ui.setStatus("Loading WASM");
-    await init(new URL("../pkg/emulator_bg.wasm", import.meta.url));
+    this.#ui.setStatus("Loading Wasm64");
+    assertWasm64Supported();
+    await init({
+      module_or_path: new URL("../pkg/emulator_bg.wasm", import.meta.url),
+    });
     this.#wasmReady = true;
-    this.#ui.log("WASM loaded");
+    this.#ui.log("Wasm64 loaded");
   }
 
   async #restoreDisk(emulator, persistenceReady) {

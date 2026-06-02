@@ -41,3 +41,13 @@ Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspira
 - [x] Verify interactive browser input at the Debian prompt
 - [x] Improve browser runtime speed enough for practical terminal interaction
 - [x] Keep generated `web/pkg/` reproducible and uncommitted
+
+## Sprint 9 — Wasm64 Browser Target
+- [x] Make `wasm64-unknown-unknown` the default browser build target
+- [x] Build the browser package through nightly `build-std`
+- [x] Generate `wasm-bindgen` web glue from the wasm64 module
+- [x] Add browser-side Memory64 capability detection before VM boot
+- [x] Verify the wasm64 package instantiates and accepts byte-array boot input
+- [x] Keep generated `web/pkg/` reproducible and uncommitted
+
+**Result:** WebBoxVM is now wasm64-first for browser builds. `make web-pkg` builds `wasm64-unknown-unknown` with nightly `build-std`, emits browser `wasm-bindgen` glue, and the app gates boot on WebAssembly Memory64 support instead of falling back to wasm32.

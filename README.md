@@ -6,7 +6,7 @@
 
 **WebBoxVM** is an ARM64 virtual machine written in Rust. It emulates an AArch64 CPU, MMU with TLB, interrupt/timer state, a PL011 UART, a GICv3 interrupt controller, and enough platform devices to boot real ARM64 Linux media to a serial terminal.
 
-The emulator compiles to both native code and WebAssembly, making it suitable for browser deployment alongside native CLI testing.
+The emulator compiles to both native code and wasm64 WebAssembly, making it suitable for Memory64-capable browser deployment alongside native CLI testing.
 
 ## What works today
 
@@ -19,7 +19,7 @@ The emulator compiles to both native code and WebAssembly, making it suitable fo
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
 - **Persistent install storage** — exposes a second VirtIO block device backed by a sparse writable disk, with browser OPFS save/restore
 - **Debian installer milestone** — Debian ARM64 netinst reaches the real text installer language prompt in native CLI validation
-- **Browser terminal app** — WASM build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
+- **Browser terminal app** — wasm64 build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
@@ -75,15 +75,17 @@ make terminal-debian-arm64
 # Boot any other ARM64 Linux ISO through the serial terminal
 make terminal-iso ISO=path/to/arm64.iso
 
-# Build the WASM package and open the browser terminal app
+# Build the wasm64 package and open the browser terminal app
 make web
 
 # Download Debian, expose it to the browser app, and serve WebBoxVM
 make web-debian-arm64
 ```
 
-`make web` and `make web-debian-arm64` build `web/pkg/` on demand with
-`wasm-bindgen`; generated WASM output is not committed to the repository.
+`make web` and `make web-debian-arm64` build `web/pkg/` on demand as
+`wasm64-unknown-unknown` with nightly `build-std` and `wasm-bindgen`; generated
+WASM output is not committed to the repository. The browser runtime must support
+WebAssembly Memory64.
 
 ISO mode supports ARM64 Linux ISOs whose kernel/initrd can be discovered from
 GRUB config or common live/installer paths. It does not run x86 PC ISOs. Debian
@@ -93,10 +95,9 @@ second writable sparse VirtIO disk for installer storage. Browser disk contents
 are saved to Origin Private File System storage as compact sparse-disk snapshots
 and restored on the next boot from the same origin.
 
-The native terminal path is currently the most validated path. The browser app
-loads, renders the xterm.js terminal, exposes ISO boot and install-disk controls,
-wires UART keyboard input, and persists the install disk through OPFS, but a full
-Debian-to-installer browser run is still the next validation target.
+The browser app loads as wasm64, renders the xterm.js terminal, exposes ISO boot
+and install-disk controls, wires UART keyboard input, persists the install disk
+through OPFS, and has been validated to reach the Debian text installer prompt.
 
 Successful early boot prints lines like:
 
@@ -122,9 +123,10 @@ Language:
 | MMU + TLB + page tables | ✅ |
 | PE loader + relocations | ✅ |
 | **Linux early UART boot** | ✅ |
-| **Busybox shell** | 🚧 in progress |
-| **ARM64 Debian installer over serial** | 🚧 in progress |
-| Browser xterm.js terminal | 🚧 in progress |
+| **BusyBox shell** | ✅ |
+| **ARM64 Debian installer over serial** | ✅ |
+| Browser xterm.js terminal | ✅ |
+| Wasm64 browser target | ✅ |
 | Exception model + NEON | 📅 planned |
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |

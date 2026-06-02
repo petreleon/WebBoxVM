@@ -4,7 +4,9 @@ DEBIAN_ARM64_ISO_BASE ?= https://cdimage.debian.org/debian-cd/current/arm64/iso-
 DEBIAN_ARM64_ISO_FILE ?=
 DRY_RUN ?= 0
 WEB_PORT ?= 8080
-WEB_TARGET ?= wasm32-unknown-unknown
+WEB_TARGET ?= wasm64-unknown-unknown
+WEB_TOOLCHAIN ?= +nightly
+WEB_CARGO_FLAGS ?= -Z build-std=std,panic_abort
 
 .PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso web-pkg web web-debian-arm64 test
 
@@ -32,7 +34,7 @@ terminal-iso:
 	cargo run -p emulator --example terminal --release -- "$(ISO)"
 
 web-pkg:
-	cargo build -p emulator --release --target $(WEB_TARGET) --features wasm
+	cargo $(WEB_TOOLCHAIN) build -p emulator --release --target $(WEB_TARGET) $(WEB_CARGO_FLAGS) --features wasm
 	wasm-bindgen target/$(WEB_TARGET)/release/emulator.wasm --out-dir web/pkg --target web
 
 web: web-pkg

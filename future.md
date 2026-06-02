@@ -27,7 +27,7 @@ These are aspirational targets, not committed sprints. Most depend on the Linux 
 - [x] Sparse guest memory for browser builds
 - [x] Session-local sparse install disk for browser ISO boots
 - [x] OPFS persistent disk for browser storage
-- [ ] Move to wasm64 when browser and toolchain support is practical
+- [x] Move to wasm64 when browser and toolchain support is practical
 - [ ] Web Worker execution so long boot runs do not block the UI thread
 
 ## Backlog
