@@ -11,8 +11,7 @@ export class VmRunner {
   #saveDisk;
   #handleError;
   #running = false;
-  #pumpScheduled = false;
-  #lastUart = 0;
+  #boundEmulator;
 
   constructor({ els, term, ui, disk, getEmulator, saveDisk, handleError }) {
     this.#els = els;
@@ -22,82 +21,61 @@ export class VmRunner {
     this.#getEmulator = getEmulator;
     this.#saveDisk = saveDisk;
     this.#handleError = handleError;
+    this.#els.stepSlice.addEventListener("input", () => {
+      this.#getEmulator()?.set_step_slice(this.#stepSlice());
+    });
   }
 
   start() {
     this.#running = true;
-    this.#lastUart = 0;
-    this.#schedulePump();
+    const emulator = this.#bindCurrentEmulator();
+    emulator?.start(this.#stepSlice());
   }
 
   resume() {
     this.#running = true;
-    this.#schedulePump();
+    const emulator = this.#bindCurrentEmulator();
+    emulator?.resume(this.#stepSlice());
   }
 
   pause() {
     this.#running = false;
+    this.#getEmulator()?.pause();
   }
 
   stop() {
     this.#running = false;
-    this.#lastUart = 0;
+    this.#getEmulator()?.stop();
   }
 
-  #schedulePump() {
-    if (!this.#running || this.#pumpScheduled) {
-      return;
-    }
-    this.#pumpScheduled = true;
-    requestAnimationFrame(() => this.#runFrame());
-  }
-
-  #runFrame() {
-    this.#pumpScheduled = false;
+  #bindCurrentEmulator() {
     const emulator = this.#getEmulator();
-    if (!this.#running || !emulator) {
-      return;
+    if (!emulator || emulator === this.#boundEmulator) {
+      return emulator;
     }
 
-    const frameStart = performance.now();
-    const stepSlice = clamp(
-      Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE,
-      1000,
-      1000000,
-    );
-    let batches = 0;
-
-    try {
-      do {
-        emulator.run_kernel(stepSlice);
-        this.#drainUart(emulator);
-        batches += 1;
-      } while (this.#running && performance.now() - frameStart < 24 && batches < 8);
-
-      this.#ui.updateMetrics(emulator, this.#disk);
-      this.#scheduleDiskAutosave(emulator);
-      this.#schedulePump();
-    } catch (error) {
+    emulator.onAutosave = () => this.#saveDisk({ quiet: true }).catch(this.#handleError);
+    emulator.onError = (error) => {
       this.#running = false;
       this.#handleError(error);
-    }
+    };
+    emulator.onMetrics = () => this.#ui.updateMetrics(emulator, this.#disk);
+    emulator.onUart = (output) => this.#writeUart(output);
+    this.#boundEmulator = emulator;
+    return emulator;
   }
 
-  #drainUart(emulator) {
-    const output = emulator.uart_output_since(this.#lastUart);
+  #writeUart(output) {
     if (!output) {
       return;
     }
-    this.#lastUart = emulator.uart_output_len();
     this.#term.write(output);
     if (this.#els.autoScroll.checked) {
       this.#term.scrollToBottom();
     }
   }
 
-  #scheduleDiskAutosave(emulator) {
-    if (this.#disk.shouldAutosave(emulator)) {
-      this.#saveDisk({ quiet: true }).catch(this.#handleError);
-    }
+  #stepSlice() {
+    return clamp(Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE, 1000, 1000000);
   }
 }

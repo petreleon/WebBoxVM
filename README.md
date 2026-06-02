@@ -19,7 +19,7 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
 - **Persistent install storage** — exposes a second VirtIO block device backed by a sparse writable disk, with browser OPFS save/restore
 - **Debian installer milestone** — Debian ARM64 netinst reaches the real text installer language prompt in native CLI validation
-- **Browser terminal app** — wasm64 build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
+- **Browser terminal app** — wasm64 worker build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
@@ -95,9 +95,10 @@ second writable sparse VirtIO disk for installer storage. Browser disk contents
 are saved to Origin Private File System storage as compact sparse-disk snapshots
 and restored on the next boot from the same origin.
 
-The browser app loads as wasm64, renders the xterm.js terminal, exposes ISO boot
-and install-disk controls, wires UART keyboard input, persists the install disk
-through OPFS, and has been validated to reach the Debian text installer prompt.
+The browser app loads as wasm64, runs the VM in a module Web Worker, renders the
+xterm.js terminal on the main page, exposes ISO boot and install-disk controls,
+wires UART keyboard input, persists the install disk through OPFS, and has been
+validated to reach the Debian text installer prompt.
 
 Successful early boot prints lines like:
 
@@ -127,6 +128,7 @@ Language:
 | **ARM64 Debian installer over serial** | ✅ |
 | Browser xterm.js terminal | ✅ |
 | Wasm64 browser target | ✅ |
+| Browser worker execution | ✅ |
 | Exception model + NEON | 📅 planned |
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |

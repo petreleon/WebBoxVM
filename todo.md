@@ -51,3 +51,13 @@ Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspira
 - [x] Keep generated `web/pkg/` reproducible and uncommitted
 
 **Result:** WebBoxVM is now wasm64-first for browser builds. `make web-pkg` builds `wasm64-unknown-unknown` with nightly `build-std`, emits browser `wasm-bindgen` glue, and the app gates boot on WebAssembly Memory64 support instead of falling back to wasm32.
+
+## Sprint 10 — Browser Worker Execution
+- [x] Move the wasm64 `Emulator` instance into a module Web Worker
+- [x] Add a main-thread VM proxy with cached metrics for the existing UI
+- [x] Run the kernel pump inside the worker instead of `requestAnimationFrame`
+- [x] Route UART input, UART output, live metrics, and errors across the worker boundary
+- [x] Preserve OPFS install-disk restore, snapshot, manual save, and autosave controls
+- [x] Keep generated `web/pkg/` reproducible and uncommitted
+
+**Result:** Browser execution no longer runs kernel steps on the UI thread. The main page owns terminal rendering and controls, while a wasm64 module worker owns the VM, boot, UART RX/TX, metrics, and disk snapshots.

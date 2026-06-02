@@ -1,6 +1,6 @@
-import init, { Emulator } from "../pkg/emulator.js";
 import { GIB, clamp, nextFrame } from "./utils.js";
 import { assertWasm64Supported } from "./wasm64.js";
+import { WorkerVm } from "./worker-vm.js";
 
 export class VmBooter {
   #els;
@@ -33,9 +33,9 @@ export class VmBooter {
     this.#ui.setStatus(`Booting ${name}`);
     await nextFrame();
 
-    const emulator = new Emulator(1);
+    const emulator = new WorkerVm();
     this.#setEmulator(emulator);
-    const result = emulator.boot_iso_with_disk(bytes, 1, this.#diskSizeBytes());
+    const result = await emulator.boot_iso_with_disk(bytes, 1, this.#diskSizeBytes());
     this.#ui.log(result);
     if (result.startsWith("ERR:")) {
       this.#ui.setStatus(result, "error");
@@ -58,11 +58,8 @@ export class VmBooter {
     }
     this.#ui.setStatus("Loading Wasm64");
     assertWasm64Supported();
-    await init({
-      module_or_path: new URL("../pkg/emulator_bg.wasm", import.meta.url),
-    });
     this.#wasmReady = true;
-    this.#ui.log("Wasm64 loaded");
+    this.#ui.log("Wasm64 runtime supported");
   }
 
   async #restoreDisk(emulator, persistenceReady) {

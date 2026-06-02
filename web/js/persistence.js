@@ -34,7 +34,7 @@ export class DiskPersistence {
       return "";
     }
 
-    const result = emulator.restore_install_disk(snapshot);
+    const result = await emulator.restore_install_disk(snapshot);
     if (result.startsWith("ERR:")) {
       throw new Error(result);
     }
@@ -107,7 +107,7 @@ export class DiskPersistence {
   }
 
   async #writeSnapshot(emulator, generation, quiet, log) {
-    const snapshot = emulator.install_disk_snapshot();
+    const snapshot = await emulator.install_disk_snapshot();
     await this.#store.write(snapshot);
     this.persistedBytes = snapshot.byteLength;
     this.#lastSavedGeneration = generation;
