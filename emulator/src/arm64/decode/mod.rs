@@ -685,28 +685,17 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
-    if (raw & 0xFFFF_FC00) == 0x6F00_E400 {
+    if (raw & 0xBFF8_FC00) == 0x2F00_E400 {
+        let imm8 = ((raw >> 5) & 0x1F) | (((raw >> 16) & 0x7) << 5);
         return Some(Instr {
             op: Opcode::SimdMovi,
             rd: (raw & 0x1F) as u8,
             rn: 0,
             rm: 0,
-            imm: 0,
+            imm: decode_movi_doubleword_imm(imm8),
             sf: true,
             cond: 8,
-            size: 16,
-        });
-    }
-    if (raw & 0xFFFF_FC00) == 0x2F00_E400 {
-        return Some(Instr {
-            op: Opcode::SimdMovi,
-            rd: (raw & 0x1F) as u8,
-            rn: 0,
-            rm: 0,
-            imm: 0,
-            sf: true,
-            cond: 8,
-            size: 8,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
     if (raw & 0xBFF8_9C00) == 0x2F00_0400 {
@@ -1006,6 +995,16 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     }
 
     None
+}
+
+fn decode_movi_doubleword_imm(imm8: u32) -> u64 {
+    let mut value = 0u64;
+    for byte in 0..8 {
+        if ((imm8 >> byte) & 1) != 0 {
+            value |= 0xffu64 << (byte * 8);
+        }
+    }
+    value
 }
 
 fn decode_fp_scalar(raw: u32) -> Option<Instr> {

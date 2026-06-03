@@ -382,6 +382,12 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(simd_fcvtzu.rn, 0);
     assert_eq!(simd_fcvtzu.size, 8);
     assert_eq!(decode(0x0F00_043F).unwrap().op, Opcode::SimdMovi);
+    let movi_doubleword = decode(0x2F07_E61F).unwrap();
+    assert_eq!(movi_doubleword.op, Opcode::SimdMovi);
+    assert_eq!(movi_doubleword.rd, 31);
+    assert_eq!(movi_doubleword.imm, 0xffff_ffff_0000_0000);
+    assert_eq!(movi_doubleword.cond, 8);
+    assert_eq!(movi_doubleword.size, 8);
     let movi_half = decode(0x0F00_848F).unwrap();
     assert_eq!(movi_half.op, Opcode::SimdMovi);
     assert_eq!(movi_half.rd, 15);
@@ -446,6 +452,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x0F00_848F, Opcode::SimdMovi, "movi"),
         (0x0F04_A41F, Opcode::SimdMovi, "movi"),
         (0x2F00_E41F, Opcode::SimdMovi, "movi"),
+        (0x2F07_E61F, Opcode::SimdMovi, "movi"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),

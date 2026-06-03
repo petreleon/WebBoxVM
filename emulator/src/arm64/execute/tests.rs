@@ -387,6 +387,9 @@ fn simd_word_immediates_and_cmeq_zero() {
     execute(&mut cpu, &mut bus, decode(0x2F00_051E).unwrap()).unwrap(); // mvni v30.2s, #8
     assert_eq!(cpu.simd[30], 0xffff_fff7_ffff_fff7);
 
+    execute(&mut cpu, &mut bus, decode(0x2F07_E61F).unwrap()).unwrap(); // movi d31, #0xffffffff00000000
+    assert_eq!(cpu.simd[31], 0xffff_ffff_0000_0000);
+
     cpu.simd[0] = 0x0001_0000_00ff_0000;
     execute(&mut cpu, &mut bus, decode(0x0E20_9800).unwrap()).unwrap(); // cmeq v0.8b, v0.8b, #0
     assert_eq!(cpu.simd[0], 0xff00_ffff_ff00_ffff);
