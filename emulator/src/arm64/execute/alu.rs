@@ -189,6 +189,14 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = value;
         }
+        Opcode::SimdFcvtzu => {
+            let value = if instr.size == 4 {
+                f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32).trunc() as u32 as u64
+            } else {
+                f64::from_bits(read_fp_bits(cpu, instr.rn, 8)).trunc() as u64
+            };
+            write_fp_bits(cpu, instr.rd, value, instr.size);
+        }
         Opcode::SimdShrn => {
             let src = cpu.simd[rn];
             let shift = instr.imm as u32;

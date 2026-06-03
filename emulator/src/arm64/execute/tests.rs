@@ -480,6 +480,14 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x9E79_0000).unwrap()).unwrap(); // fcvtzu x0, d0
     assert_eq!(cpu.regs.x(0), 5);
 
+    cpu.simd[0] = 5.9f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x7EE1_B800).unwrap()).unwrap(); // fcvtzu d0, d0
+    assert_eq!(cpu.simd[0], 5);
+
+    cpu.simd[0] = 3.9f32.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x7EA1_B800).unwrap()).unwrap(); // fcvtzu s0, s0
+    assert_eq!(cpu.simd[0], 3);
+
     cpu.simd[28] = 2.0f64.to_bits() as u128;
     cpu.simd[27] = 3.0f64.to_bits() as u128;
     cpu.simd[30] = 4.0f64.to_bits() as u128;

@@ -88,6 +88,19 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             }
         }
     }
+    if (raw & 0xFFBF_FC00) == 0x7EA1_B800 {
+        let size = if ((raw >> 22) & 1) != 0 { 8 } else { 4 };
+        return Some(Instr {
+            op: Opcode::SimdFcvtzu,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size,
+        });
+    }
     if (raw & 0xBFE0_FC00) == 0x0E00_0400 {
         let q = ((raw >> 30) & 1) != 0;
         let imm5 = ((raw >> 16) & 0x1F) as u8;
