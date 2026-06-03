@@ -347,6 +347,12 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(ld1_lane_double.op, Opcode::SimdLd1Lane);
     assert_eq!(ld1_lane_double.imm, 1);
     assert_eq!(ld1_lane_double.cond, 8);
+    let ld4 = decode(0x4C40_003C).unwrap();
+    assert_eq!(ld4.op, Opcode::SimdLd4);
+    assert_eq!(ld4.rd, 28);
+    assert_eq!(ld4.rn, 1);
+    assert_eq!(ld4.cond, 0);
+    assert_eq!(ld4.size, 16);
     assert_eq!(decode(0x4E22_BC45).unwrap().op, Opcode::SimdAddp);
     assert_eq!(decode(0x6E1F_43FF).unwrap().op, Opcode::SimdExt);
     assert_eq!(decode(0x6E20_5BDE).unwrap().op, Opcode::SimdNot);

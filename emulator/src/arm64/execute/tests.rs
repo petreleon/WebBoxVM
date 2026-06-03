@@ -196,6 +196,17 @@ fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     assert_eq!(cpu.simd[30], vector_bytes(0));
     assert_eq!(cpu.simd[31], vector_bytes(16));
 
+    let ld4_base = RAM_BASE + 0x1400;
+    cpu.regs.set_x(1, ld4_base);
+    for byte in 0..64u64 {
+        bus.write(ld4_base + byte, 1, byte);
+    }
+    execute(&mut cpu, &mut bus, decode(0x4C40_003C).unwrap()).unwrap(); // ld4 {v28.16b-v31.16b}, [x1]
+    assert_eq!(cpu.simd[28], 0x3c38_3430_2c28_2420_1c18_1410_0c08_0400);
+    assert_eq!(cpu.simd[29], 0x3d39_3531_2d29_2521_1d19_1511_0d09_0501);
+    assert_eq!(cpu.simd[30], 0x3e3a_3632_2e2a_2622_1e1a_1612_0e0a_0602);
+    assert_eq!(cpu.simd[31], 0x3f3b_3733_2f2b_2723_1f1b_1713_0f0b_0703);
+
     let post_index_base = RAM_BASE + 0x1800;
     cpu.regs.set_x(16, post_index_base);
     for byte in 0..16u64 {
