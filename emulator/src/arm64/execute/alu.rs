@@ -399,21 +399,15 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out;
         }
+        Opcode::SimdRev64 => {
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_reverse_elements_in_groups(cpu.simd[rn], element_size, instr.size as usize, 8);
+        }
         Opcode::SimdRev32 => {
             let element_size = instr.imm.max(1) as usize;
-            let vector_size = instr.size as usize;
-            let elements_per_word = 4 / element_size;
-            let groups = vector_size / 4;
-            let mut out = 0u128;
-            for group in 0..groups {
-                for index in 0..elements_per_word {
-                    let dst_lane = group * elements_per_word + index;
-                    let src_lane = group * elements_per_word + (elements_per_word - 1 - index);
-                    let value = simd_element(cpu.simd[rn], src_lane, element_size);
-                    out |= value << (dst_lane * element_size * 8);
-                }
-            }
-            cpu.simd[rd] = out & simd_vector_mask(vector_size);
+            cpu.simd[rd] =
+                simd_reverse_elements_in_groups(cpu.simd[rn], element_size, instr.size as usize, 4);
         }
         Opcode::SimdNot => {
             let lanes_mask = if instr.size == 8 {
@@ -845,6 +839,26 @@ fn simd_byte(value: u128, lane: usize) -> u8 {
 fn simd_element(value: u128, lane: usize, element_size: usize) -> u128 {
     let shift = lane * element_size * 8;
     (value >> shift) & simd_element_mask(element_size)
+}
+
+fn simd_reverse_elements_in_groups(
+    value: u128,
+    element_size: usize,
+    vector_size: usize,
+    group_size: usize,
+) -> u128 {
+    let elements_per_group = group_size / element_size;
+    let groups = vector_size / group_size;
+    let mut out = 0u128;
+    for group in 0..groups {
+        for index in 0..elements_per_group {
+            let dst_lane = group * elements_per_group + index;
+            let src_lane = group * elements_per_group + (elements_per_group - 1 - index);
+            let element = simd_element(value, src_lane, element_size);
+            out |= element << (dst_lane * element_size * 8);
+        }
+    }
+    out & simd_vector_mask(vector_size)
 }
 
 fn simd_signed_element(value: u128, lane: usize, element_size: usize) -> i64 {

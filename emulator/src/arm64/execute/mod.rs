@@ -401,6 +401,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdUshr
         | Opcode::SimdUshl
         | Opcode::SimdXtn
+        | Opcode::SimdRev64
         | Opcode::SimdRev32
         | Opcode::SimdNot
         | Opcode::SimdBit

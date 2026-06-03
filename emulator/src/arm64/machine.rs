@@ -1047,6 +1047,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdUshr
             | Opcode::SimdUshl
             | Opcode::SimdXtn
+            | Opcode::SimdRev64
             | Opcode::SimdRev32
             | Opcode::SimdNot
             | Opcode::SimdBit

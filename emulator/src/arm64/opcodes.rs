@@ -116,6 +116,7 @@ pub enum Opcode {
     SimdUshr,
     SimdUshl,
     SimdXtn,
+    SimdRev64,
     SimdRev32,
     SimdNot,
     SimdBit,
