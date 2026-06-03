@@ -45,17 +45,8 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
-    if (raw & 0xFFFF_FC00) == 0x4D40_8400 {
-        return Some(Instr {
-            op: Opcode::SimdLd1Lane,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: 0xFF,
-            imm: 1,
-            sf: true,
-            cond: 0,
-            size: 8,
-        });
+    if let Some(instr) = decode_simd_ldst1_lane(raw) {
+        return Some(instr);
     }
     if (raw & 0xBFFF_F000) == 0x0D40_C000 {
         let element_size = 1u8 << (((raw >> 10) & 0x3) as u8);
@@ -1037,6 +1028,59 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     }
 
     None
+}
+
+fn decode_simd_ldst1_lane(raw: u32) -> Option<Instr> {
+    if (raw & 0xBFE0_0000) != 0x0D00_0000 && (raw & 0xBFE0_0000) != 0x0D40_0000 {
+        return None;
+    }
+    if ((raw >> 21) & 1) != 0 || ((raw >> 16) & 0x1F) != 0 {
+        return None;
+    }
+
+    let q = (raw >> 30) & 1;
+    let load = ((raw >> 22) & 1) != 0;
+    let opcode = (raw >> 13) & 0x7;
+    let s = (raw >> 12) & 1;
+    let size = (raw >> 10) & 0x3;
+    let (element_size, lane) = match opcode {
+        0b000 => (1, (q << 3) | (s << 2) | size),
+        0b010 => {
+            if (size & 1) != 0 {
+                return None;
+            }
+            (2, (q << 2) | (s << 1) | (size >> 1))
+        }
+        0b100 => {
+            if (size & 0b10) != 0 {
+                return None;
+            }
+            if (size & 1) == 0 {
+                (4, (q << 1) | s)
+            } else {
+                if s != 0 {
+                    return None;
+                }
+                (8, q)
+            }
+        }
+        _ => return None,
+    };
+
+    Some(Instr {
+        op: if load {
+            Opcode::SimdLd1Lane
+        } else {
+            Opcode::SimdSt1Lane
+        },
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0xFF,
+        imm: lane as u64,
+        sf: true,
+        cond: element_size as u8,
+        size: element_size as u8,
+    })
 }
 
 fn decode_movi_doubleword_imm(imm8: u32) -> u64 {

@@ -146,6 +146,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdLd1Lane
         | Opcode::SimdLd1r
         | Opcode::SimdSt1Multi
+        | Opcode::SimdSt1Lane
         | Opcode::SimdLd4
         | Opcode::SimdSt4Single
         | Opcode::SimdSt4 => exec_ldr_str(cpu, bus, instr)?,

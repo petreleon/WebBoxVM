@@ -84,6 +84,7 @@ pub enum Opcode {
     SimdLd1Lane,
     SimdLd1r,
     SimdSt1Multi,
+    SimdSt1Lane,
     SimdLd4,
     SimdSt4,
     SimdSt4Single,

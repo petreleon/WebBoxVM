@@ -427,6 +427,22 @@ fn simd_scalar_byte_halfword_load_store_forms() {
     assert_eq!(bus.read(base + 0xa0, 2), Some(0xabcd));
     assert_eq!(cpu.regs.x(0), base + 0xa2);
 
+    bus.write(base + 0xc0, 1, 0x5a);
+    cpu.regs.set_x(3, base + 0xc0);
+    cpu.simd[30] = 0x1122_3344_5566_7788;
+    execute(&mut cpu, &mut bus, decode(0x0D40_0C7E).unwrap()).unwrap(); // ld1 {v30.b}[3], [x3]
+    assert_eq!(cpu.simd[30], 0x1122_3344_5a66_7788);
+
+    cpu.regs.set_x(19, base + 0xc8);
+    cpu.simd[28] = (0xbeefu128 << 32) | 0x5555_4444;
+    execute(&mut cpu, &mut bus, decode(0x0D00_527C).unwrap()).unwrap(); // st1 {v28.h}[2], [x19]
+    assert_eq!(bus.read(base + 0xc8, 2), Some(0xbeef));
+
+    cpu.regs.set_x(8, base + 0xd0);
+    cpu.simd[30] = 0x8070_6050_4030_2010;
+    execute(&mut cpu, &mut bus, decode(0x0D00_1D1E).unwrap()).unwrap(); // st1 {v30.b}[7], [x8]
+    assert_eq!(bus.read(base + 0xd0, 1), Some(0x80));
+
     cpu.regs.set_x(1, base + 0xb0);
     cpu.regs.set_x(0, 3);
     bus.write(base + 0xb6, 2, 0xcafe);

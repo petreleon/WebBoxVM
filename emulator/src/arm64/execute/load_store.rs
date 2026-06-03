@@ -11,6 +11,10 @@ use std::env;
 const SIMD_MULTI_POST_INDEX: u8 = 0xFE;
 
 fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
+    if matches!(instr.op, Opcode::SimdLd1Lane | Opcode::SimdSt1Lane) {
+        return (base_addr(cpu, instr.rn), None);
+    }
+
     if instr.rm == SIMD_MULTI_POST_INDEX {
         let base = base_addr(cpu, instr.rn);
         (base, Some(base.wrapping_add(instr.imm)))
@@ -93,10 +97,13 @@ pub(super) fn exec_ldr_str(
     } else if instr.op == Opcode::SimdLd1Multi {
         exec_ld1_multi(cpu, bus, va, instr)?;
     } else if instr.op == Opcode::SimdLd1Lane {
-        let lane = instr.imm as u32;
-        let mask = !((u64::MAX as u128) << (lane * 64));
-        let value = read_guest(cpu, bus, va, 8, "SIMD lane load fault")? as u128;
-        cpu.simd[instr.rd as usize] = (cpu.simd[instr.rd as usize] & mask) | (value << (lane * 64));
+        let lane = instr.imm as usize;
+        let element_size = instr.cond.max(1) as usize;
+        let shift = lane * element_size * 8;
+        let mask = simd_lane_mask(element_size, shift);
+        let value = read_guest(cpu, bus, va, element_size as u8, "SIMD lane load fault")? as u128;
+        cpu.simd[instr.rd as usize] =
+            (cpu.simd[instr.rd as usize] & !mask) | ((value << shift) & mask);
     } else if instr.op == Opcode::SimdLd1r {
         let element_size = instr.cond.max(1);
         let value = read_guest(cpu, bus, va, element_size, "LD1R bus fault")? as u128;
@@ -115,6 +122,20 @@ pub(super) fn exec_ldr_str(
         )?;
     } else if instr.op == Opcode::SimdSt1Multi {
         exec_st1_multi(cpu, bus, va, instr)?;
+    } else if instr.op == Opcode::SimdSt1Lane {
+        let lane = instr.imm as usize;
+        let element_size = instr.cond.max(1) as usize;
+        let shift = lane * element_size * 8;
+        let value =
+            ((cpu.simd[instr.rd as usize] & simd_lane_mask(element_size, shift)) >> shift) as u64;
+        write_guest(
+            cpu,
+            bus,
+            va,
+            element_size as u8,
+            value,
+            "ST1 lane bus fault",
+        )?;
     } else if instr.op == Opcode::SimdSt4 {
         exec_st4(cpu, bus, va, instr)?;
     } else if is_load {
@@ -134,6 +155,16 @@ pub(super) fn exec_ldr_str(
         write_reg_sp(cpu, instr.rn, new_base, true);
     }
     Ok(())
+}
+
+fn simd_lane_mask(element_size: usize, shift: usize) -> u128 {
+    let bits = element_size * 8;
+    let element_mask = if bits == 128 {
+        u128::MAX
+    } else {
+        (1u128 << bits) - 1
+    };
+    element_mask << shift
 }
 
 fn exec_ld1_multi(

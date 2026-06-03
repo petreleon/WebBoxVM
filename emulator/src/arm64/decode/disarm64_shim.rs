@@ -171,6 +171,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#uqsub if (raw & 0xFF20_FC00) == 0x7E20_2C00 => Opcode::SimdUqsub,
         M::r#uminp => Opcode::SimdUminp,
         M::r#ld1r => Opcode::SimdLd1r,
+        M::r#ld1 if (raw & 0xBFE0_0000) == 0x0D40_0000 => Opcode::SimdLd1Lane,
+        M::r#st1 if (raw & 0xBFE0_0000) == 0x0D00_0000 => Opcode::SimdSt1Lane,
         M::r#ld4 if (raw & 0xBFFF_F000) == 0x0C40_A000 => Opcode::SimdLd1Multi,
         M::r#st4 if (raw & 0xBFFF_F000) == 0x0C00_A000 => Opcode::SimdSt1Multi,
         M::r#st4 if (raw & 0xFFFF_FC00) == 0x4C9F_7800 => Opcode::SimdSt4Single,

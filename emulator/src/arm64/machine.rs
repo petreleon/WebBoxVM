@@ -971,6 +971,7 @@ fn memory_fault_is_write(instr: Instr) -> bool {
             | Opcode::SimdStr
             | Opcode::SimdStp
             | Opcode::SimdSt1Multi
+            | Opcode::SimdSt1Lane
             | Opcode::SimdSt4Single
             | Opcode::SimdSt4
             | Opcode::Stxr
@@ -1015,6 +1016,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdLd1Lane
             | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
+            | Opcode::SimdSt1Lane
             | Opcode::SimdLd4
             | Opcode::SimdSt4Single
             | Opcode::SimdSt4
