@@ -116,6 +116,12 @@ fn decode_dc_zva() {
 }
 
 #[test]
+fn decode_dmb_ish_as_barrier() {
+    let instr = decode(0xD503_3BBF).unwrap(); // dmb ish
+    assert_eq!(instr.op, Opcode::NopBarrier);
+}
+
+#[test]
 fn decode_register_offset_str_not_lse_atomic() {
     let instr = decode(0xF82A_780C).unwrap(); // str x12, [x0, x10, lsl #3]
     assert_eq!(instr.op, Opcode::Str);
