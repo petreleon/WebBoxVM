@@ -879,6 +879,22 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rm = ((raw >> 16) & 0x1F) as u8;
 
+    if (raw & 0xFF20_0000) == 0x1F00_0000 {
+        let mut instr = fp_instr(
+            if ((raw >> 15) & 1) != 0 {
+                Opcode::Fmsub
+            } else {
+                Opcode::Fmadd
+            },
+            rd,
+            rn,
+            rm,
+            0,
+            size,
+        );
+        instr.cond = ((raw >> 10) & 0x1F) as u8;
+        return Some(instr);
+    }
     if (raw & 0xFF20_FC00) == 0x1E20_0800 {
         return Some(fp_instr(Opcode::FpMul, rd, rn, rm, 0, size));
     }
@@ -894,7 +910,13 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     if (raw & 0xFFBF_FC00) == 0x1E21_4000 {
         return Some(fp_instr(Opcode::FpNeg, rd, rn, 0, 0, size));
     }
-    if (raw & 0xFF20_FC00) == 0x1E20_1000 {
+    if (raw & 0xFFBF_FC00) == 0x1E20_C000 {
+        return Some(fp_instr(Opcode::FpAbs, rd, rn, 0, 0, size));
+    }
+    if (raw & 0xFFBF_FC00) == 0x1E21_C000 {
+        return Some(fp_instr(Opcode::FpSqrt, rd, rn, 0, 0, size));
+    }
+    if (raw & 0xFF20_1C00) == 0x1E20_1000 {
         return Some(fp_instr(
             Opcode::FpMovImm,
             rd,
@@ -917,8 +939,26 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
         instr.cond = 1;
         return Some(instr);
     }
+    if (raw & 0x7FBF_FC00) == 0x1E23_0000 {
+        let mut instr = fp_instr(Opcode::Ucvtf, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_0000) == 0x1E03_0000 {
+        let scale = ((raw >> 10) & 0x3F) as u8;
+        let fbits = 64u8.checked_sub(scale)?;
+        let mut instr = fp_instr(Opcode::Ucvtf, rd, rn, 0, fbits as u64, size);
+        instr.sf = (raw >> 31) != 0;
+        instr.cond = 1;
+        return Some(instr);
+    }
     if (raw & 0x7FBF_FC00) == 0x1E38_0000 {
         let mut instr = fp_instr(Opcode::Fcvtzs, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_FC00) == 0x1E39_0000 {
+        let mut instr = fp_instr(Opcode::Fcvtzu, rd, rn, 0, 0, size);
         instr.sf = (raw >> 31) != 0;
         return Some(instr);
     }

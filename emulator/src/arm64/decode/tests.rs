@@ -328,11 +328,21 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E7B_3B9A, Opcode::FpSub, "fsub"),
         (0x1E60_1BE0, Opcode::FpDiv, "fdiv"),
         (0x1E61_401F, Opcode::FpNeg, "fneg"),
+        (0x1E60_C000, Opcode::FpAbs, "fabs"),
+        (0x1E61_C000, Opcode::FpSqrt, "fsqrt"),
         (0x1E6E_1000, Opcode::FpMovImm, "fmov"),
+        (0x1E62_900F, Opcode::FpMovImm, "fmov"),
+        (0x1F5B_7B9E, Opcode::Fmadd, "fmadd"),
+        (0x1F5F_FBBE, Opcode::Fmsub, "fmsub"),
         (0x1E62_0000, Opcode::Scvtf, "scvtf"),
         (0x1E22_0280, Opcode::Scvtf, "scvtf"),
         (0x1E42_F800, Opcode::Scvtf, "scvtf"),
+        (0x1E63_003F, Opcode::Ucvtf, "ucvtf"),
+        (0x9E63_001F, Opcode::Ucvtf, "ucvtf"),
+        (0x1E03_FC00, Opcode::Ucvtf, "ucvtf"),
         (0x1E78_03E0, Opcode::Fcvtzs, "fcvtzs"),
+        (0x1E79_03E0, Opcode::Fcvtzu, "fcvtzu"),
+        (0x9E79_0000, Opcode::Fcvtzu, "fcvtzu"),
         (0x1E60_23E8, Opcode::Fcmp, "fcmp"),
         (0x1E79_23B0, Opcode::Fcmpe, "fcmpe"),
         (0x1E7E_0FFF, Opcode::Fcsel, "fcsel"),
@@ -349,6 +359,26 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     let fixed = decode(0x1E42_F800).unwrap();
     assert_eq!(fixed.imm, 2);
     assert_eq!(fixed.cond, 1);
+
+    let fixed_unsigned = decode(0x1E03_FC00).unwrap();
+    assert_eq!(fixed_unsigned.imm, 1);
+    assert_eq!(fixed_unsigned.cond, 1);
+
+    let fmov_five = decode(0x1E62_900F).unwrap();
+    assert_eq!(fmov_five.rd, 15);
+    assert_eq!(fmov_five.imm, 20);
+
+    let fmadd = decode(0x1F5B_7B9E).unwrap();
+    assert_eq!(fmadd.rd, 30);
+    assert_eq!(fmadd.rn, 28);
+    assert_eq!(fmadd.rm, 27);
+    assert_eq!(fmadd.cond, 30);
+
+    let fmsub = decode(0x1F5F_FBBE).unwrap();
+    assert_eq!(fmsub.rd, 30);
+    assert_eq!(fmsub.rn, 29);
+    assert_eq!(fmsub.rm, 31);
+    assert_eq!(fmsub.cond, 30);
 
     let fcmp_zero = decode(0x1E60_23E8).unwrap();
     assert_eq!(fcmp_zero.rn, 31);

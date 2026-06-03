@@ -324,6 +324,9 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E6E_1000).unwrap()).unwrap(); // fmov d0, #1
     assert_eq!(f64_lane(&cpu, 0), 1.0);
 
+    execute(&mut cpu, &mut bus, decode(0x1E62_900F).unwrap()).unwrap(); // fmov d15, #5
+    assert_eq!(f64_lane(&cpu, 15), 5.0);
+
     cpu.regs.set_w(0, 8);
     execute(&mut cpu, &mut bus, decode(0x1E42_F800).unwrap()).unwrap(); // scvtf d0, w0, #2
     assert_eq!(f64_lane(&cpu, 0), 2.0);
@@ -354,9 +357,48 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E61_401F).unwrap()).unwrap(); // fneg d31, d0
     assert_eq!(f64_lane(&cpu, 31), -3.0);
 
+    execute(&mut cpu, &mut bus, decode(0x1E60_C000).unwrap()).unwrap(); // fabs d0, d0
+    assert_eq!(f64_lane(&cpu, 0), 3.0);
+
+    cpu.simd[0] = 9.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E61_C000).unwrap()).unwrap(); // fsqrt d0, d0
+    assert_eq!(f64_lane(&cpu, 0), 3.0);
+
+    cpu.regs.set_w(1, 7);
+    execute(&mut cpu, &mut bus, decode(0x1E63_003F).unwrap()).unwrap(); // ucvtf d31, w1
+    assert_eq!(f64_lane(&cpu, 31), 7.0);
+
+    cpu.regs.set_x(0, 1u64 << 40);
+    execute(&mut cpu, &mut bus, decode(0x9E63_001F).unwrap()).unwrap(); // ucvtf d31, x0
+    assert_eq!(f64_lane(&cpu, 31), (1u64 << 40) as f64);
+
+    cpu.regs.set_w(0, 6);
+    execute(&mut cpu, &mut bus, decode(0x1E03_FC00).unwrap()).unwrap(); // ucvtf s0, w0, #1
+    assert_eq!(f32_lane(&cpu, 0), 3.0);
+
     cpu.simd[31] = (-3.9f64).to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x1E78_03E0).unwrap()).unwrap(); // fcvtzs w0, d31
     assert_eq!(cpu.regs.w(0), (-3i32) as u32);
+
+    cpu.simd[31] = 3.9f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E79_03E0).unwrap()).unwrap(); // fcvtzu w0, d31
+    assert_eq!(cpu.regs.w(0), 3);
+
+    cpu.simd[0] = 5.9f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x9E79_0000).unwrap()).unwrap(); // fcvtzu x0, d0
+    assert_eq!(cpu.regs.x(0), 5);
+
+    cpu.simd[28] = 2.0f64.to_bits() as u128;
+    cpu.simd[27] = 3.0f64.to_bits() as u128;
+    cpu.simd[30] = 4.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1F5B_7B9E).unwrap()).unwrap(); // fmadd d30, d28, d27, d30
+    assert_eq!(f64_lane(&cpu, 30), 10.0);
+
+    cpu.simd[29] = 2.0f64.to_bits() as u128;
+    cpu.simd[31] = 3.0f64.to_bits() as u128;
+    cpu.simd[30] = 10.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1F5F_FBBE).unwrap()).unwrap(); // fmsub d30, d29, d31, d30
+    assert_eq!(f64_lane(&cpu, 30), 4.0);
 }
 
 #[test]

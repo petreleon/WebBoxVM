@@ -476,6 +476,8 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::FpSub => exec_fp_binary(cpu, instr, |a, b| a - b, |a, b| a - b),
         Opcode::FpMul => exec_fp_binary(cpu, instr, |a, b| a * b, |a, b| a * b),
         Opcode::FpDiv => exec_fp_binary(cpu, instr, |a, b| a / b, |a, b| a / b),
+        Opcode::Fmadd => exec_fp_fused(cpu, instr, false),
+        Opcode::Fmsub => exec_fp_fused(cpu, instr, true),
         Opcode::FpNeg => {
             let sign_mask = if instr.size == 4 {
                 1u64 << 31
@@ -488,6 +490,28 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
                 read_fp_bits(cpu, instr.rn, instr.size) ^ sign_mask,
                 instr.size,
             );
+        }
+        Opcode::FpAbs => {
+            let sign_mask = if instr.size == 4 {
+                1u64 << 31
+            } else {
+                1u64 << 63
+            };
+            write_fp_bits(
+                cpu,
+                instr.rd,
+                read_fp_bits(cpu, instr.rn, instr.size) & !sign_mask,
+                instr.size,
+            );
+        }
+        Opcode::FpSqrt => {
+            if instr.size == 4 {
+                let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32).sqrt();
+                write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
+            } else {
+                let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8)).sqrt();
+                write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
+            }
         }
         Opcode::FpMovImm => {
             write_fp_bits(
@@ -514,12 +538,37 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
                 write_fp_bits(cpu, instr.rd, scaled.to_bits(), 8);
             }
         }
+        Opcode::Ucvtf => {
+            let value = if instr.sf {
+                read_reg(cpu, instr.rn, true) as f64
+            } else {
+                read_reg(cpu, instr.rn, false) as u32 as f64
+            };
+            let scaled = if instr.cond == 1 {
+                value / 2f64.powi(instr.imm as i32)
+            } else {
+                value
+            };
+            if instr.size == 4 {
+                write_fp_bits(cpu, instr.rd, (scaled as f32).to_bits() as u64, 4);
+            } else {
+                write_fp_bits(cpu, instr.rd, scaled.to_bits(), 8);
+            }
+        }
         Opcode::Fcvtzs => {
             let value = read_fp_as_f64(cpu, instr.rn, instr.size).trunc();
             if instr.sf {
                 write_reg(cpu, instr.rd, value as i64 as u64, true);
             } else {
                 write_reg(cpu, instr.rd, value as i32 as u32 as u64, false);
+            }
+        }
+        Opcode::Fcvtzu => {
+            let value = read_fp_as_f64(cpu, instr.rn, instr.size).trunc();
+            if instr.sf {
+                write_reg(cpu, instr.rd, value as u64, true);
+            } else {
+                write_reg(cpu, instr.rd, value as u32 as u64, false);
             }
         }
         Opcode::Fcmp | Opcode::Fcmpe => {
@@ -545,6 +594,30 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
             );
         }
         _ => unreachable!(),
+    }
+}
+
+fn exec_fp_fused(cpu: &mut Armv8Cpu, instr: Instr, subtract_product: bool) {
+    if instr.size == 4 {
+        let n = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
+        let m = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
+        let a = f32::from_bits(read_fp_bits(cpu, instr.cond, 4) as u32);
+        let value = if subtract_product {
+            (-n).mul_add(m, a)
+        } else {
+            n.mul_add(m, a)
+        };
+        write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
+    } else {
+        let n = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
+        let m = f64::from_bits(read_fp_bits(cpu, instr.rm, 8));
+        let a = f64::from_bits(read_fp_bits(cpu, instr.cond, 8));
+        let value = if subtract_product {
+            (-n).mul_add(m, a)
+        } else {
+            n.mul_add(m, a)
+        };
+        write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
     }
 }
 
