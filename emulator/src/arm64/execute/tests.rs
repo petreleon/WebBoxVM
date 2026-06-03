@@ -216,6 +216,25 @@ fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     assert_eq!(cpu.simd[0], vector_bytes(0xc0));
     assert_eq!(cpu.regs.x(0), ld1_post_reg_base + 40);
 
+    let ld2_base = RAM_BASE + 0x3400;
+    cpu.regs.set_x(1, ld2_base);
+    for byte in 0..32u64 {
+        bus.write(ld2_base + byte, 1, byte);
+    }
+    execute(&mut cpu, &mut bus, decode(0x4C40_803C).unwrap()).unwrap(); // ld2 {v28.16b, v29.16b}, [x1]
+    assert_eq!(cpu.simd[28], ld_structure_vector_bytes(0, 2, 0, 1, 16));
+    assert_eq!(cpu.simd[29], ld_structure_vector_bytes(0, 2, 1, 1, 16));
+
+    let ld3_post_imm_base = RAM_BASE + 0x3800;
+    cpu.regs.set_x(2, ld3_post_imm_base);
+    for byte in 0..48u64 {
+        bus.write(ld3_post_imm_base + byte, 1, 0x50 + byte);
+    }
+    execute(&mut cpu, &mut bus, decode(0x4CDF_4C5A).unwrap()).unwrap(); // ld3 {v26.2d-v28.2d}, [x2], #48
+    assert_eq!(cpu.simd[26], ld_structure_vector_bytes(0x50, 3, 0, 8, 2));
+    assert_eq!(cpu.simd[28], ld_structure_vector_bytes(0x50, 3, 2, 8, 2));
+    assert_eq!(cpu.regs.x(2), ld3_post_imm_base + 48);
+
     let ld4_base = RAM_BASE + 0x1400;
     cpu.regs.set_x(1, ld4_base);
     for byte in 0..64u64 {
@@ -233,8 +252,8 @@ fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
         bus.write(ld4_post_imm_base + byte, 1, 0x40 + byte);
     }
     execute(&mut cpu, &mut bus, decode(0x4CDF_003C).unwrap()).unwrap(); // ld4 {v28.16b-v31.16b}, [x1], #64
-    assert_eq!(cpu.simd[28], ld4_vector_bytes(0x40, 0));
-    assert_eq!(cpu.simd[31], ld4_vector_bytes(0x40, 3));
+    assert_eq!(cpu.simd[28], ld_structure_vector_bytes(0x40, 4, 0, 1, 16));
+    assert_eq!(cpu.simd[31], ld_structure_vector_bytes(0x40, 4, 3, 1, 16));
     assert_eq!(cpu.regs.x(1), ld4_post_imm_base + 64);
 
     let ld4_post_reg_base = RAM_BASE + 0x1c00;
@@ -244,8 +263,8 @@ fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
         bus.write(ld4_post_reg_base + byte, 1, 0x80 + byte);
     }
     execute(&mut cpu, &mut bus, decode(0x4CC2_003C).unwrap()).unwrap(); // ld4 {v28.16b-v31.16b}, [x1], x2
-    assert_eq!(cpu.simd[28], ld4_vector_bytes(0x80, 0));
-    assert_eq!(cpu.simd[31], ld4_vector_bytes(0x80, 3));
+    assert_eq!(cpu.simd[28], ld_structure_vector_bytes(0x80, 4, 0, 1, 16));
+    assert_eq!(cpu.simd[31], ld_structure_vector_bytes(0x80, 4, 3, 1, 16));
     assert_eq!(cpu.regs.x(1), ld4_post_reg_base + 96);
 
     let post_index_base = RAM_BASE + 0x1800;
@@ -420,10 +439,20 @@ fn vector_bytes(offset: u64) -> u128 {
     value
 }
 
-fn ld4_vector_bytes(first_byte: u64, structure_index: u64) -> u128 {
+fn ld_structure_vector_bytes(
+    first_byte: u64,
+    structure_count: u64,
+    structure_index: u64,
+    element_size: u64,
+    lanes: u64,
+) -> u128 {
     let mut value = 0u128;
-    for lane in 0..16u64 {
-        value |= ((first_byte + lane * 4 + structure_index) as u128) << (lane * 8);
+    for lane in 0..lanes {
+        for byte_index in 0..element_size {
+            let byte =
+                first_byte + (lane * structure_count + structure_index) * element_size + byte_index;
+            value |= (byte as u128) << ((lane * element_size + byte_index) * 8);
+        }
     }
     value
 }

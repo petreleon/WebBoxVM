@@ -17,7 +17,12 @@ fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
 
     if matches!(
         instr.op,
-        Opcode::SimdLd1 | Opcode::SimdLd1Multi | Opcode::SimdLd4 | Opcode::SimdSt4
+        Opcode::SimdLd1
+            | Opcode::SimdLd1Multi
+            | Opcode::SimdLd2
+            | Opcode::SimdLd3
+            | Opcode::SimdLd4
+            | Opcode::SimdSt4
     ) && instr.rm != 0xFF
         && instr.rm != SIMD_MULTI_POST_INDEX
     {
@@ -96,6 +101,8 @@ pub(super) fn exec_ldr_str(
             | Opcode::SimdLd1Multi
             | Opcode::SimdLd1Lane
             | Opcode::SimdLd1r
+            | Opcode::SimdLd2
+            | Opcode::SimdLd3
             | Opcode::SimdLd4
     );
 
@@ -119,8 +126,17 @@ pub(super) fn exec_ldr_str(
         let value = read_guest(cpu, bus, va, element_size, "LD1R bus fault")? as u128;
         cpu.simd[instr.rd as usize] =
             super::alu::simd_replicate_element(value, element_size as usize, instr.size as usize);
-    } else if instr.op == Opcode::SimdLd4 {
-        exec_ld4(cpu, bus, va, instr)?;
+    } else if matches!(
+        instr.op,
+        Opcode::SimdLd2 | Opcode::SimdLd3 | Opcode::SimdLd4
+    ) {
+        let structure_count = match instr.op {
+            Opcode::SimdLd2 => 2,
+            Opcode::SimdLd3 => 3,
+            Opcode::SimdLd4 => 4,
+            _ => unreachable!(),
+        };
+        exec_ld_structure(cpu, bus, va, instr, structure_count)?;
     } else if matches!(instr.op, Opcode::SimdStr | Opcode::SimdSt4Single) {
         write_simd_guest(
             cpu,
@@ -216,20 +232,22 @@ fn exec_st1_multi(
     Ok(())
 }
 
-fn exec_ld4(
+fn exec_ld_structure(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,
     va: u64,
     instr: Instr,
+    structure_count: usize,
 ) -> Result<(), &'static str> {
     let lanes = simd_structure_lanes(instr)?;
     let element_size = 1usize << instr.cond;
     let mut regs = [0u128; 4];
     for lane in 0..lanes {
-        for reg_index in 0..4 {
+        for reg_index in 0..structure_count {
             let mut element = 0u128;
             for byte_index in 0..element_size {
-                let byte_offset = ((lane * 4 + reg_index) * element_size + byte_index) as u64;
+                let byte_offset =
+                    ((lane * structure_count + reg_index) * element_size + byte_index) as u64;
                 let pa = translate_or_data_fault(
                     cpu,
                     &mut bus.mem,
@@ -243,7 +261,7 @@ fn exec_ld4(
             regs[reg_index] |= element << (lane * element_size * 8);
         }
     }
-    for (offset, value) in regs.into_iter().enumerate() {
+    for (offset, value) in regs.into_iter().take(structure_count).enumerate() {
         cpu.simd[((instr.rd as usize) + offset) & 31] = value;
     }
     Ok(())

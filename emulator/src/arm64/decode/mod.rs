@@ -749,7 +749,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
-    if let Some(instr) = decode_simd_ld4_multi(raw) {
+    if let Some(instr) = decode_simd_ld_structure_multi(raw) {
         return Some(instr);
     }
     if (raw & 0xBFFF_F000) == 0x0C00_A000 {
@@ -1097,9 +1097,9 @@ fn decode_simd_ld1_multi(raw: u32) -> Option<Instr> {
     })
 }
 
-fn decode_simd_ld4_multi(raw: u32) -> Option<Instr> {
-    let no_offset = (raw & 0xBFFF_F000) == 0x0C40_0000;
-    let post_index = (raw & 0xBFE0_F000) == 0x0CC0_0000;
+fn decode_simd_ld_structure_multi(raw: u32) -> Option<Instr> {
+    let no_offset = (raw & 0xBFFF_0000) == 0x0C40_0000;
+    let post_index = (raw & 0xBFE0_0000) == 0x0CC0_0000;
     if !no_offset && !post_index {
         return None;
     }
@@ -1109,11 +1109,18 @@ fn decode_simd_ld4_multi(raw: u32) -> Option<Instr> {
     if size == 3 && q == 0 {
         return None;
     }
+    let (op, structure_count) = match (raw >> 12) & 0xF {
+        0b0000 => (Opcode::SimdLd4, 4),
+        0b0100 => (Opcode::SimdLd3, 3),
+        0b1000 => (Opcode::SimdLd2, 2),
+        _ => return None,
+    };
 
+    let vector_size = if q != 0 { 16 } else { 8 };
     let rm_field = ((raw >> 16) & 0x1F) as u8;
     let (rm, imm) = if post_index {
         if rm_field == 31 {
-            (0xFE, if q != 0 { 64 } else { 32 })
+            (0xFE, structure_count as u64 * vector_size as u64)
         } else {
             (rm_field, 0)
         }
@@ -1122,14 +1129,14 @@ fn decode_simd_ld4_multi(raw: u32) -> Option<Instr> {
     };
 
     Some(Instr {
-        op: Opcode::SimdLd4,
+        op,
         rd: (raw & 0x1F) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
         rm,
         imm,
         sf: true,
         cond: size,
-        size: if q != 0 { 16 } else { 8 },
+        size: vector_size,
     })
 }
 

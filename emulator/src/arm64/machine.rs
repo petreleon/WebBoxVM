@@ -1015,6 +1015,8 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdLd1Multi
             | Opcode::SimdLd1Lane
             | Opcode::SimdLd1r
+            | Opcode::SimdLd2
+            | Opcode::SimdLd3
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt1Lane
             | Opcode::SimdLd4
