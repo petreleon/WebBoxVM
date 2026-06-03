@@ -196,6 +196,26 @@ fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     assert_eq!(cpu.simd[30], vector_bytes(0));
     assert_eq!(cpu.simd[31], vector_bytes(16));
 
+    let ld1_post_multi_base = RAM_BASE + 0x2c00;
+    cpu.regs.set_x(1, ld1_post_multi_base);
+    for byte in 0..32u64 {
+        bus.write(ld1_post_multi_base + byte, 1, 0x20 + byte);
+    }
+    execute(&mut cpu, &mut bus, decode(0x4CDF_A03C).unwrap()).unwrap(); // ld1 {v28.16b, v29.16b}, [x1], #32
+    assert_eq!(cpu.simd[28], vector_bytes(0x20));
+    assert_eq!(cpu.simd[29], vector_bytes(0x30));
+    assert_eq!(cpu.regs.x(1), ld1_post_multi_base + 32);
+
+    let ld1_post_reg_base = RAM_BASE + 0x3000;
+    cpu.regs.set_x(0, ld1_post_reg_base);
+    cpu.regs.set_x(8, 40);
+    for byte in 0..16u64 {
+        bus.write(ld1_post_reg_base + byte, 1, 0xc0 + byte);
+    }
+    execute(&mut cpu, &mut bus, decode(0x4CC8_7000).unwrap()).unwrap(); // ld1 {v0.16b}, [x0], x8
+    assert_eq!(cpu.simd[0], vector_bytes(0xc0));
+    assert_eq!(cpu.regs.x(0), ld1_post_reg_base + 40);
+
     let ld4_base = RAM_BASE + 0x1400;
     cpu.regs.set_x(1, ld4_base);
     for byte in 0..64u64 {
