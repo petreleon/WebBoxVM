@@ -413,6 +413,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdZip1
         | Opcode::SimdZip2
         | Opcode::SimdTbl
+        | Opcode::SimdBic
         | Opcode::SimdBicImm
         | Opcode::SimdMvni
         | Opcode::SimdUshll

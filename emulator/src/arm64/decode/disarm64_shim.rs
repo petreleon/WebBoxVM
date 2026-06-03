@@ -56,6 +56,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#and if (raw & 0xBFE0_FC00) == 0x0E20_1C00 => Opcode::SimdAnd,
         M::r#and => Opcode::AndReg,
         M::r#ands => Opcode::AndsReg,
+        M::r#bic if (raw & 0xBFE0_FC00) == 0x0E60_1C00 => Opcode::SimdBic,
         M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
         M::r#orr => Opcode::OrrReg,
         M::r#eor => Opcode::EorReg,

@@ -171,6 +171,11 @@ fn simd_userland_vector_permute_and_reduction_ops() {
     execute(&mut cpu, &mut bus, decode(0x4E20_1C21).unwrap()).unwrap(); // and v1.16b, v1.16b, v0.16b
     assert_eq!(cpu.simd[1], 0x0f0f_0000_f0f0_0000_1234_0000_9abc_0000);
 
+    cpu.simd[30] = 0xffff_0000_aaaa_5555_1234_5678_9abc_def0;
+    cpu.simd[4] = 0x0000_ffff_0f0f_0f0f_ffff_0000_00ff_00ff;
+    execute(&mut cpu, &mut bus, decode(0x0E64_1FDE).unwrap()).unwrap(); // bic v30.8b, v30.8b, v4.8b
+    assert_eq!(cpu.simd[30], 0x0000_5678_9a00_de00);
+
     cpu.simd[31] = 0x0102_0304_0506_0708_7f80_55aa_0001_0fff;
     execute(&mut cpu, &mut bus, decode(0x0E20_5BFF).unwrap()).unwrap(); // cnt v31.8b, v31.8b
     execute(&mut cpu, &mut bus, decode(0x0E31_BBFF).unwrap()).unwrap(); // addv b31, v31.8b

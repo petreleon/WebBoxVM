@@ -299,6 +299,12 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x4E04_0C40).unwrap().op, Opcode::SimdDupByte);
     assert_eq!(decode(0x4EB9_1F18).unwrap().op, Opcode::SimdOrr);
     assert_eq!(decode(0x4E20_1C21).unwrap().op, Opcode::SimdAnd);
+    let bic_bytes = decode(0x0E64_1FDE).unwrap();
+    assert_eq!(bic_bytes.op, Opcode::SimdBic);
+    assert_eq!(bic_bytes.rd, 30);
+    assert_eq!(bic_bytes.rn, 30);
+    assert_eq!(bic_bytes.rm, 4);
+    assert_eq!(bic_bytes.size, 8);
     assert_eq!(decode(0x0E20_5BFF).unwrap().op, Opcode::SimdCnt);
     assert_eq!(decode(0x0E31_BBFF).unwrap().op, Opcode::SimdAddv);
     assert_eq!(decode(0x4C40_A03E).unwrap().op, Opcode::SimdLd1Multi);

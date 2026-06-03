@@ -426,6 +426,9 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::SimdAnd => {
             cpu.simd[rd] = (cpu.simd[rn] & cpu.simd[rm]) & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdBic => {
+            cpu.simd[rd] = (cpu.simd[rn] & !cpu.simd[rm]) & simd_vector_mask(instr.size as usize);
+        }
         Opcode::SimdOrr => {
             cpu.simd[rd] = (cpu.simd[rn] | cpu.simd[rm]) & simd_vector_mask(instr.size as usize);
         }
