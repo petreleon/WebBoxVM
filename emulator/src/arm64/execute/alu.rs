@@ -158,7 +158,14 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::SimdCmeqReg => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
-            cpu.simd[rd] = simd_compare_vec_bytes(lhs, rhs, |a, b| a == b);
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] = simd_elementwise_binary(
+                lhs,
+                rhs,
+                element_size,
+                instr.size as usize,
+                |a, b, mask| if a == b { mask } else { 0 },
+            );
         }
         Opcode::SimdCmhsReg => {
             let lhs = cpu.simd[rn];

@@ -519,6 +519,18 @@ fn scalar_fp_compare_select_and_widening_simd_ops() {
 }
 
 #[test]
+fn simd_cmeq_register_compares_word_lanes() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[31] = 0x1111_1111_3333_3333_2222_2222_1111_1111;
+    cpu.simd[25] = 0x4444_4444_3333_3333_0000_0000_1111_1111;
+
+    execute(&mut cpu, &mut bus, decode(0x6EB9_8FFF).unwrap()).unwrap(); // cmeq v31.4s, v31.4s, v25.4s
+
+    assert_eq!(cpu.simd[31], 0x0000_0000_ffff_ffff_0000_0000_ffff_ffff);
+}
+
+#[test]
 fn simd_strlen_prefix_matches_debian_libc_fast_path() {
     let (mut cpu, mut bus) = setup();
     let base = RAM_BASE + 0x4000;
