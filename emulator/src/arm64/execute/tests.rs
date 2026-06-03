@@ -443,6 +443,23 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x6F39_5486).unwrap()).unwrap(); // sli v6.4s, v4.4s, #25
     assert_eq!(cpu.simd[6], 0x8000_0000_ff55_5555_04aa_aaaa_03ff_ffff);
 
+    cpu.simd[30] = vector_bytes(0x02);
+    cpu.simd[31] = 0x8080_8080_8080_8080_8080_8080_8080_8080;
+    execute(&mut cpu, &mut bus, decode(0x6F0F_47DF).unwrap()).unwrap(); // sri v31.16b, v30.16b, #1
+    let mut expected_sri = 0u128;
+    for lane in 0..16u128 {
+        expected_sri |= (0x80 | ((lane + 2) >> 1)) << (lane * 8);
+    }
+    assert_eq!(cpu.simd[31], expected_sri);
+
+    let mut shrn_source = 0u128;
+    for lane in 0..8u128 {
+        shrn_source |= ((lane + 1) * 0x40) << (lane * 16);
+    }
+    cpu.simd[31] = shrn_source;
+    execute(&mut cpu, &mut bus, decode(0x0F0A_87FF).unwrap()).unwrap(); // shrn v31.8b, v31.8h, #6
+    assert_eq!(cpu.simd[31], 0x0807_0605_0403_0201);
+
     cpu.simd[27] = 0x8877_6655_4433_2211_0123_4567_89ab_cdef;
     execute(&mut cpu, &mut bus, decode(0x4E08_077D).unwrap()).unwrap(); // dup v29.2d, v27.d[0]
     assert_eq!(cpu.simd[29], 0x0123_4567_89ab_cdef_0123_4567_89ab_cdef);

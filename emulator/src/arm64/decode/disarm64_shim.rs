@@ -155,6 +155,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#cmtst => Opcode::SimdCmtst,
         M::r#shl => Opcode::SimdShlImm,
         M::r#sli => Opcode::SimdSli,
+        M::r#sri => Opcode::SimdSri,
+        M::r#shrn => Opcode::SimdShrn,
         M::r#ushr => Opcode::SimdUshr,
         M::r#ushl => Opcode::SimdUshl,
         M::r#xtn => Opcode::SimdXtn,

@@ -116,6 +116,7 @@ pub enum Opcode {
     SimdCmtst,
     SimdShlImm,
     SimdSli,
+    SimdSri,
     SimdUshr,
     SimdUshl,
     SimdXtn,

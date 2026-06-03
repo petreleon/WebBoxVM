@@ -199,13 +199,20 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
         }
         Opcode::SimdShrn => {
             let src = cpu.simd[rn];
-            let shift = instr.imm as u32;
+            let shift = instr.imm as usize;
+            let dest_element_size = instr.cond.max(1) as usize;
+            let src_element_size = dest_element_size * 2;
+            let dest_bits = dest_element_size * 8;
+            let src_bits = src_element_size * 8;
+            let dest_mask = simd_element_mask(dest_element_size);
+            let lanes = (instr.size as usize / dest_element_size).max(1);
             let mut out = 0u128;
-            for lane in 0..8 {
-                let half = ((src >> (lane * 16)) & 0xffff) as u16;
-                out |= (((half >> shift) & 0xff) as u128) << (lane * 8);
+            for lane in 0..lanes {
+                let value = simd_element(src, lane, src_element_size);
+                let shifted = if shift >= src_bits { 0 } else { value >> shift };
+                out |= (shifted & dest_mask) << (lane * dest_bits);
             }
-            cpu.simd[rd] = out;
+            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
         Opcode::SimdAddhn => {
             let lhs = cpu.simd[rn];
@@ -348,6 +355,28 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
                     (source << shift) & element_mask
                 };
                 let value = inserted | (dest & preserve_mask);
+                out &= !(element_mask << (lane * bits));
+                out |= value << (lane * bits);
+            }
+            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+        }
+        Opcode::SimdSri => {
+            let element_size = instr.cond.max(1) as usize;
+            let bits = element_size * 8;
+            let shift = instr.imm as usize;
+            let lanes = (instr.size as usize / element_size).max(1);
+            let element_mask = simd_element_mask(element_size);
+            let insert_mask = if shift >= bits {
+                0
+            } else {
+                element_mask >> shift
+            };
+            let mut out = cpu.simd[rd];
+            for lane in 0..lanes {
+                let source = simd_element(cpu.simd[rn], lane, element_size);
+                let dest = simd_element(cpu.simd[rd], lane, element_size);
+                let inserted = if shift >= bits { 0 } else { source >> shift };
+                let value = (inserted & insert_mask) | (dest & !insert_mask & element_mask);
                 out &= !(element_mask << (lane * bits));
                 out |= value << (lane * bits);
             }
