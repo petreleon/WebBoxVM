@@ -307,6 +307,21 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: element_size as u8,
         });
     }
+    if (raw & 0xBF20_FC00) == 0x2E20_3800 {
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        if element_size < 8 {
+            return Some(Instr {
+                op: Opcode::SimdShll,
+                rd: (raw & 0x1F) as u8,
+                rn: ((raw >> 5) & 0x1F) as u8,
+                rm: 0,
+                imm: element_size * 8,
+                sf: (raw >> 30) != 0,
+                cond: element_size as u8,
+                size: 16,
+            });
+        }
+    }
     if (raw & 0xBF20_FC00) == 0x0E20_8400 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         return Some(Instr {

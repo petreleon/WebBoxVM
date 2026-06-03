@@ -414,6 +414,20 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(uqsub.rm, 15);
     assert_eq!(uqsub.imm, 2);
     assert_eq!(uqsub.size, 2);
+    let shll = decode(0x2E21_3BDE).unwrap();
+    assert_eq!(shll.op, Opcode::SimdShll);
+    assert_eq!(shll.rd, 30);
+    assert_eq!(shll.rn, 30);
+    assert_eq!(shll.imm, 8);
+    assert_eq!(shll.cond, 1);
+    assert!(!shll.sf);
+    let shll2 = decode(0x6E61_3A21).unwrap();
+    assert_eq!(shll2.op, Opcode::SimdShll);
+    assert_eq!(shll2.rd, 1);
+    assert_eq!(shll2.rn, 17);
+    assert_eq!(shll2.imm, 16);
+    assert_eq!(shll2.cond, 2);
+    assert!(shll2.sf);
     assert_eq!(decode(0x6EE0_FBFF).unwrap().op, Opcode::SimdFpNeg);
     assert_eq!(decode(0x6EFD_87FF).unwrap().op, Opcode::SimdSubVec);
 }
@@ -455,6 +469,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2F07_E61F, Opcode::SimdMovi, "movi"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
+        (0x2E21_3BDE, Opcode::SimdShll, "shll"),
+        (0x6E21_3BD0, Opcode::SimdShll, "shll2"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),

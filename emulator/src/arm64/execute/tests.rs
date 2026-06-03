@@ -584,6 +584,15 @@ fn scalar_fp_compare_select_and_widening_simd_ops() {
     cpu.simd[31] = 0x8000_0001_0000_0002;
     execute(&mut cpu, &mut bus, decode(0x0F20_A7FF).unwrap()).unwrap(); // sshll v31.2d, v31.2s, #0
     assert_eq!(cpu.simd[31], 0xffff_ffff_8000_0001_0000_0000_0000_0002);
+
+    cpu.simd[30] = vector_bytes(0);
+    execute(&mut cpu, &mut bus, decode(0x2E21_3BDE).unwrap()).unwrap(); // shll v30.8h, v30.8b, #8
+    assert_eq!(cpu.simd[30], 0x0700_0600_0500_0400_0300_0200_0100_0000);
+
+    cpu.simd[16] = 0;
+    cpu.simd[30] = vector_bytes(0);
+    execute(&mut cpu, &mut bus, decode(0x6E21_3BD0).unwrap()).unwrap(); // shll2 v16.8h, v30.16b, #8
+    assert_eq!(cpu.simd[16], 0x0f00_0e00_0d00_0c00_0b00_0a00_0900_0800);
 }
 
 #[test]
