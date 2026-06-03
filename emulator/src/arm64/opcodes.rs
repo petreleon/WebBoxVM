@@ -124,6 +124,8 @@ pub enum Opcode {
     SimdEor,
     SimdInsElem,
     SimdUzp1,
+    SimdZip1,
+    SimdZip2,
     SimdBicImm,
     SimdMvni,
     SimdUshll,

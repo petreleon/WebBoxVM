@@ -154,6 +154,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#xtn => Opcode::SimdXtn,
         M::r#rev32 if (raw & 0xBF3F_FC00) == 0x2E20_0800 => Opcode::SimdRev32,
         M::r#uzp1 if (raw & 0xBF20_FC00) == 0x0E00_1800 => Opcode::SimdUzp1,
+        M::r#zip1 if (raw & 0xBF20_FC00) == 0x0E00_3800 => Opcode::SimdZip1,
+        M::r#zip2 if (raw & 0xBF20_FC00) == 0x0E00_7800 => Opcode::SimdZip2,
         M::r#not => Opcode::SimdNot,
         M::r#movi => Opcode::SimdMovi,
         M::r#mvni => Opcode::SimdMvni,

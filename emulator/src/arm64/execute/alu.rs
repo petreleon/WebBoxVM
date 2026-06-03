@@ -450,6 +450,17 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdZip1 | Opcode::SimdZip2 => {
+            let element_size = instr.imm.max(1) as usize;
+            let high_half = instr.op == Opcode::SimdZip2;
+            cpu.simd[rd] = simd_zip(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                element_size,
+                instr.size as usize,
+                high_half,
+            );
+        }
         Opcode::SimdEor => {
             let value = cpu.simd[rn] ^ cpu.simd[rm];
             cpu.simd[rd] = if instr.size == 8 {
@@ -897,6 +908,25 @@ where
         out |= (f(a, b, element_mask) & element_mask) << (lane * bits);
     }
     out
+}
+
+fn simd_zip(
+    lhs: u128,
+    rhs: u128,
+    element_size: usize,
+    vector_size: usize,
+    high_half: bool,
+) -> u128 {
+    let bits = element_size * 8;
+    let lanes = vector_size / element_size;
+    let half = lanes / 2;
+    let start = if high_half { half } else { 0 };
+    let mut out = 0u128;
+    for lane in 0..half {
+        out |= simd_element(lhs, start + lane, element_size) << ((lane * 2) * bits);
+        out |= simd_element(rhs, start + lane, element_size) << ((lane * 2 + 1) * bits);
+    }
+    out & simd_vector_mask(vector_size)
 }
 
 fn simd_compare_elements_with_zero(value: u128, element_size: usize, vector_size: usize) -> u128 {

@@ -319,6 +319,18 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x4E08_077D).unwrap().op, Opcode::SimdDupElem);
     assert_eq!(decode(0x6EF9_47BD).unwrap().op, Opcode::SimdUshl);
     assert_eq!(decode(0x4E9C_1BDE).unwrap().op, Opcode::SimdUzp1);
+    let zip1_bytes = decode(0x4E1B_3BFD).unwrap();
+    assert_eq!(zip1_bytes.op, Opcode::SimdZip1);
+    assert_eq!(zip1_bytes.rd, 29);
+    assert_eq!(zip1_bytes.rn, 31);
+    assert_eq!(zip1_bytes.rm, 27);
+    assert_eq!(zip1_bytes.imm, 1);
+    let zip2_halfwords = decode(0x4E5B_7BFF).unwrap();
+    assert_eq!(zip2_halfwords.op, Opcode::SimdZip2);
+    assert_eq!(zip2_halfwords.rd, 31);
+    assert_eq!(zip2_halfwords.rn, 31);
+    assert_eq!(zip2_halfwords.rm, 27);
+    assert_eq!(zip2_halfwords.imm, 2);
     assert_eq!(decode(0x0F00_043F).unwrap().op, Opcode::SimdMovi);
     let movi_half = decode(0x0F00_848F).unwrap();
     assert_eq!(movi_half.op, Opcode::SimdMovi);
@@ -388,6 +400,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
+        (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
+        (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),
     ];
 
     for (raw, expected, mnemonic) in cases {
