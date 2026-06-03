@@ -331,6 +331,13 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(zip2_halfwords.rn, 31);
     assert_eq!(zip2_halfwords.rm, 27);
     assert_eq!(zip2_halfwords.imm, 2);
+    let tbl = decode(0x4E17_03FF).unwrap();
+    assert_eq!(tbl.op, Opcode::SimdTbl);
+    assert_eq!(tbl.rd, 31);
+    assert_eq!(tbl.rn, 31);
+    assert_eq!(tbl.rm, 23);
+    assert_eq!(tbl.cond, 1);
+    assert_eq!(tbl.size, 16);
     assert_eq!(decode(0x0F00_043F).unwrap().op, Opcode::SimdMovi);
     let movi_half = decode(0x0F00_848F).unwrap();
     assert_eq!(movi_half.op, Opcode::SimdMovi);
@@ -402,6 +409,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
         (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),
+        (0x4E17_03FF, Opcode::SimdTbl, "tbl"),
     ];
 
     for (raw, expected, mnemonic) in cases {

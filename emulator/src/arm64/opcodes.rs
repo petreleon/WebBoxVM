@@ -126,6 +126,7 @@ pub enum Opcode {
     SimdUzp1,
     SimdZip1,
     SimdZip2,
+    SimdTbl,
     SimdBicImm,
     SimdMvni,
     SimdUshll,

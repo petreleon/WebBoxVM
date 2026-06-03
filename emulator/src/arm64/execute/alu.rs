@@ -461,6 +461,21 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
                 high_half,
             );
         }
+        Opcode::SimdTbl => {
+            let table_count = instr.cond.max(1) as usize;
+            let mut out = 0u128;
+            for lane in 0..instr.size as usize {
+                let index = simd_byte(cpu.simd[rm], lane) as usize;
+                let byte = if index < table_count * 16 {
+                    let table_reg = (rn + index / 16) % 32;
+                    simd_byte(cpu.simd[table_reg], index % 16)
+                } else {
+                    0
+                };
+                out |= (byte as u128) << (lane * 8);
+            }
+            cpu.simd[rd] = out;
+        }
         Opcode::SimdEor => {
             let value = cpu.simd[rn] ^ cpu.simd[rm];
             cpu.simd[rd] = if instr.size == 8 {

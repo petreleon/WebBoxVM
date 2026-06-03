@@ -315,6 +315,11 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     assert_eq!(cpu.simd[30], 0x1004_0004_1003_0003_1002_0002_1001_0001);
     execute(&mut cpu, &mut bus, decode(0x4E5B_7BBD).unwrap()).unwrap(); // zip2 v29.8h, v29.8h, v27.8h
     assert_eq!(cpu.simd[29], 0x1008_0008_1007_0007_1006_0006_1005_0005);
+
+    cpu.simd[31] = vector_bytes(0x40);
+    cpu.simd[23] = 0x100f_0e0d_0c0b_0a09_0807_0605_0403_0201;
+    execute(&mut cpu, &mut bus, decode(0x4E17_03FF).unwrap()).unwrap(); // tbl v31.16b, {v31.16b}, v23.16b
+    assert_eq!(cpu.simd[31], 0x004f_4e4d_4c4b_4a49_4847_4645_4443_4241);
 }
 
 fn vector_bytes(offset: u64) -> u128 {
