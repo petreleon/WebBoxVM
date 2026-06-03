@@ -441,6 +441,25 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x6EFD_87FF).unwrap()).unwrap(); // sub v31.2d, v31.2d, v29.2d
     assert_eq!(cpu.simd[31], ((7u128) << 64) | 3);
 
+    cpu.simd[0] = vector_bytes(1);
+    cpu.simd[2] = vector_bytes(2);
+    execute(&mut cpu, &mut bus, decode(0x4E22_9C03).unwrap()).unwrap(); // mul v3.16b, v0.16b, v2.16b
+    let mut expected_bytes = 0u128;
+    for lane in 0..16u128 {
+        expected_bytes |= (((lane + 1) * (lane + 2)) & 0xff) << (lane * 8);
+    }
+    assert_eq!(cpu.simd[3], expected_bytes);
+
+    cpu.simd[5] = 0x1234_ffff_8000_0002;
+    cpu.simd[6] = 0x0004_0002_0002_0003;
+    execute(&mut cpu, &mut bus, decode(0x0E66_9CA4).unwrap()).unwrap(); // mul v4.4h, v5.4h, v6.4h
+    assert_eq!(cpu.simd[4], 0x48d0_fffe_0000_0006);
+
+    cpu.simd[29] = 0xffff_fffe_0000_0003;
+    cpu.simd[30] = 0x0000_0003_0000_0005;
+    execute(&mut cpu, &mut bus, decode(0x0EBE_9FBD).unwrap()).unwrap(); // mul v29.2s, v29.2s, v30.2s
+    assert_eq!(cpu.simd[29], 0xffff_fffa_0000_000f);
+
     cpu.simd[31] = ((-3.0f64).to_bits() as u128) << 64 | 2.0f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x6EE0_FBFF).unwrap()).unwrap(); // fneg v31.2d, v31.2d
     assert_eq!(

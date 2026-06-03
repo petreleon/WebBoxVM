@@ -677,6 +677,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x0E7E_33BD, Opcode::SimdSsubw, "ssubw"),
         (0x4E7E_33FF, Opcode::SimdSsubw, "ssubw2"),
         (0x2F80_2386, Opcode::SimdUmlal, "umlal"),
+        (0x0EBE_9FBD, Opcode::SimdMulVec, "mul"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
@@ -814,6 +815,19 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(sshll.rn, 31);
     assert_eq!(sshll.imm, 0);
     assert_eq!(sshll.cond, 4);
+
+    let mul = decode(0x0EBE_9FBD).unwrap();
+    assert_eq!(mul.op, Opcode::SimdMulVec);
+    assert_eq!(mul.rd, 29);
+    assert_eq!(mul.rn, 29);
+    assert_eq!(mul.rm, 30);
+    assert_eq!(mul.imm, 4);
+    assert_eq!(mul.size, 8);
+
+    let mul_16b = decode(0x4E20_9C00).unwrap();
+    assert_eq!(mul_16b.op, Opcode::SimdMulVec);
+    assert_eq!(mul_16b.imm, 1);
+    assert_eq!(mul_16b.size, 16);
 }
 
 #[test]

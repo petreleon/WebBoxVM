@@ -282,6 +282,15 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
                 |a, b, mask| a.wrapping_sub(b) & mask,
             );
         }
+        Opcode::SimdMulVec => {
+            cpu.simd[rd] = simd_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b, mask| a.wrapping_mul(b) & mask,
+            );
+        }
         Opcode::SimdAddp => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
