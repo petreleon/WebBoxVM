@@ -682,6 +682,10 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x4E28_5802, Opcode::SimdAesd, "aesd"),
         (0x4E28_6842, Opcode::SimdAesmc, "aesmc"),
         (0x4E28_7800, Opcode::SimdAesimc, "aesimc"),
+        (0xCE02_0C24, Opcode::SimdEor3, "eor3"),
+        (0xCE22_0C24, Opcode::SimdBcax, "bcax"),
+        (0xCE62_8C24, Opcode::SimdRax1, "rax1"),
+        (0xCE82_3424, Opcode::SimdXar, "xar"),
         (0x7EE1_B800, Opcode::SimdFcvtzu, "fcvtzu"),
         (0x0EA0_0BDE, Opcode::SimdRev64, "rev64"),
     ];
@@ -758,6 +762,20 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(fccmp_single.op, Opcode::Fccmp);
     assert_eq!(fccmp_single.cond, 8);
     assert_eq!(fccmp_single.size, 4);
+
+    let eor3 = decode(0xCE02_0C24).unwrap();
+    assert_eq!(eor3.rd, 4);
+    assert_eq!(eor3.rn, 1);
+    assert_eq!(eor3.rm, 2);
+    assert_eq!(eor3.cond, 3);
+    assert_eq!(eor3.size, 16);
+
+    let xar = decode(0xCE82_3424).unwrap();
+    assert_eq!(xar.rd, 4);
+    assert_eq!(xar.rn, 1);
+    assert_eq!(xar.rm, 2);
+    assert_eq!(xar.imm, 13);
+    assert_eq!(xar.size, 16);
 
     let ushll = decode(0x2F20_A7FF).unwrap();
     assert_eq!(ushll.rd, 31);

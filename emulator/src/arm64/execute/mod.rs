@@ -379,6 +379,10 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdAesd
         | Opcode::SimdAesmc
         | Opcode::SimdAesimc
+        | Opcode::SimdEor3
+        | Opcode::SimdBcax
+        | Opcode::SimdRax1
+        | Opcode::SimdXar
         | Opcode::SimdDupByte
         | Opcode::SimdDupElem
         | Opcode::SimdFmovReg64

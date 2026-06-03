@@ -225,6 +225,26 @@ fn simd_aes_crypto_round_ops() {
 }
 
 #[test]
+fn simd_sha3_bitwise_ops() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[1] = 0x0123_4567_89ab_cdef_fedc_ba98_7654_3210;
+    cpu.simd[2] = 0xf0f1_f2f3_f4f5_f6f7_0809_0a0b_0c0d_0e0f;
+    cpu.simd[3] = 0x1111_2222_3333_4444_5555_6666_7777_8888;
+    execute(&mut cpu, &mut bus, decode(0xCE02_0C24).unwrap()).unwrap(); // eor3 v4.16b, v1.16b, v2.16b, v3.16b
+    assert_eq!(cpu.simd[4], 0xe0c3_95b6_4e6d_7f5c_a380_d6f5_0d2e_b497);
+
+    execute(&mut cpu, &mut bus, decode(0xCE22_0C24).unwrap()).unwrap(); // bcax v4.16b, v1.16b, v2.16b, v3.16b
+    assert_eq!(cpu.simd[4], 0xe1c3_95b6_4d6f_7f5c_f6d4_b291_7e5c_3417);
+
+    execute(&mut cpu, &mut bus, decode(0xCE62_8C24).unwrap()).unwrap(); // rax1 v4.2d, v1.2d, v2.2d
+    assert_eq!(cpu.simd[4], 0xe0c0_a080_6040_2000_eece_ae8e_6e4e_2e0e);
+
+    execute(&mut cpu, &mut bus, decode(0xCE82_3424).unwrap()).unwrap(); // xar v4.2d, v1.2d, v2.2d, #13
+    assert_eq!(cpu.simd[4], 0xd8c7_8e95_bca3_eaf1_e0ff_b6ad_849b_d2c9);
+}
+
+#[test]
 fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     let (mut cpu, mut bus) = setup();
     let base = RAM_BASE + 0x1000;

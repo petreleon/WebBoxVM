@@ -91,6 +91,18 @@ pub(super) fn simd_replicate_byte(byte: u8) -> u128 {
     value
 }
 
+fn simd_rotate_left_64_lanes(value: u128, shift: u32) -> u128 {
+    let low = (value as u64).rotate_left(shift);
+    let high = ((value >> 64) as u64).rotate_left(shift);
+    ((high as u128) << 64) | low as u128
+}
+
+fn simd_rotate_right_64_lanes(value: u128, shift: u32) -> u128 {
+    let low = (value as u64).rotate_right(shift);
+    let high = ((value >> 64) as u64).rotate_right(shift);
+    ((high as u128) << 64) | low as u128
+}
+
 pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
     let rd = instr.rd as usize;
     let rn = instr.rn as usize;
@@ -108,6 +120,21 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
         }
         Opcode::SimdAesimc => {
             cpu.simd[rd] = aes_mix_columns(cpu.simd[rn], true);
+        }
+        Opcode::SimdEor3 => {
+            let ra = instr.cond as usize;
+            cpu.simd[rd] = cpu.simd[rn] ^ cpu.simd[rm] ^ cpu.simd[ra];
+        }
+        Opcode::SimdBcax => {
+            let ra = instr.cond as usize;
+            cpu.simd[rd] = cpu.simd[rn] ^ (cpu.simd[rm] & !cpu.simd[ra]);
+        }
+        Opcode::SimdRax1 => {
+            cpu.simd[rd] = cpu.simd[rn] ^ simd_rotate_left_64_lanes(cpu.simd[rm], 1);
+        }
+        Opcode::SimdXar => {
+            cpu.simd[rd] =
+                simd_rotate_right_64_lanes(cpu.simd[rn] ^ cpu.simd[rm], instr.imm as u32);
         }
         Opcode::SimdDupByte => {
             let element_size = if instr.cond == 0 {

@@ -1026,6 +1026,10 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdAesd
             | Opcode::SimdAesmc
             | Opcode::SimdAesimc
+            | Opcode::SimdEor3
+            | Opcode::SimdBcax
+            | Opcode::SimdRax1
+            | Opcode::SimdXar
             | Opcode::SimdDupByte
             | Opcode::SimdDupElem
             | Opcode::SimdFmovReg64
