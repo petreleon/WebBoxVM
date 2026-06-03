@@ -1058,6 +1058,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdBicImm
             | Opcode::SimdMvni
             | Opcode::SimdUshll
+            | Opcode::SimdSshll
             | Opcode::SimdFpNeg
             | Opcode::FpAdd
             | Opcode::FpSub

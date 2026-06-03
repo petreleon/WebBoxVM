@@ -371,6 +371,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x0F04_A41F, Opcode::SimdMovi, "movi"),
         (0x2F00_E41F, Opcode::SimdMovi, "movi"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
+        (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
     ];
 
     for (raw, expected, mnemonic) in cases {
@@ -419,6 +420,12 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(ushll.rn, 31);
     assert_eq!(ushll.imm, 0);
     assert_eq!(ushll.cond, 4);
+
+    let sshll = decode(0x0F20_A7FF).unwrap();
+    assert_eq!(sshll.rd, 31);
+    assert_eq!(sshll.rn, 31);
+    assert_eq!(sshll.imm, 0);
+    assert_eq!(sshll.cond, 4);
 }
 
 #[test]

@@ -365,6 +365,9 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ushr(raw) {
         return Some(instr);
     }
+    if let Some(instr) = decode_simd_sshll(raw) {
+        return Some(instr);
+    }
     if let Some(instr) = decode_simd_ushll(raw) {
         return Some(instr);
     }
@@ -1242,6 +1245,37 @@ fn decode_simd_ushll(raw: u32) -> Option<Instr> {
 
     Some(Instr {
         op: Opcode::SimdUshll,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: shift,
+        sf: true,
+        cond: element_size,
+        size: 16,
+    })
+}
+
+fn decode_simd_sshll(raw: u32) -> Option<Instr> {
+    if (raw & 0xBF80_FC00) != 0x0F00_A400 {
+        return None;
+    }
+
+    let immh = ((raw >> 19) & 0xF) as u8;
+    if immh == 0 {
+        return None;
+    }
+    let immb = ((raw >> 16) & 0x7) as u8;
+    let highest = 7 - immh.leading_zeros() as u8;
+    let element_size = 1u8 << highest;
+    if element_size > 4 {
+        return None;
+    }
+    let imm = ((immh as u16) << 3) | immb as u16;
+    let element_bits = element_size as u16 * 8;
+    let shift = imm.checked_sub(element_bits)? as u64;
+
+    Some(Instr {
+        op: Opcode::SimdSshll,
         rd: (raw & 0x1F) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
         rm: 0,

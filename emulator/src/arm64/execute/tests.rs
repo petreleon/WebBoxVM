@@ -512,6 +512,10 @@ fn scalar_fp_compare_select_and_widening_simd_ops() {
     cpu.simd[31] = 0xffff_ffff_0000_0002;
     execute(&mut cpu, &mut bus, decode(0x2F20_A7FF).unwrap()).unwrap(); // ushll v31.2d, v31.2s, #0
     assert_eq!(cpu.simd[31], 0x0000_0000_ffff_ffff_0000_0000_0000_0002);
+
+    cpu.simd[31] = 0x8000_0001_0000_0002;
+    execute(&mut cpu, &mut bus, decode(0x0F20_A7FF).unwrap()).unwrap(); // sshll v31.2d, v31.2s, #0
+    assert_eq!(cpu.simd[31], 0xffff_ffff_8000_0001_0000_0000_0000_0002);
 }
 
 #[test]

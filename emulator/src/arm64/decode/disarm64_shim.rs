@@ -156,6 +156,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#movi => Opcode::SimdMovi,
         M::r#mvni => Opcode::SimdMvni,
         M::r#ushll => Opcode::SimdUshll,
+        M::r#sshll => Opcode::SimdSshll,
         M::r#uminp => Opcode::SimdUminp,
         M::r#ld1r => Opcode::SimdLd1r,
         M::r#ld4 if (raw & 0xBFFF_F000) == 0x0C40_A000 => Opcode::SimdLd1Multi,
