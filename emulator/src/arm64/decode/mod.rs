@@ -178,6 +178,18 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 8,
         });
     }
+    if (raw & 0xFFFF_FC00) == 0x9EAF_0000 {
+        return Some(Instr {
+            op: Opcode::SimdInsGprLane,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 1,
+            sf: true,
+            cond: 0,
+            size: 8,
+        });
+    }
     if let Some(instr) = decode_fp_scalar(raw) {
         return Some(instr);
     }
@@ -915,6 +927,19 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     }
     if (raw & 0xFFBF_FC00) == 0x1E21_C000 {
         return Some(fp_instr(Opcode::FpSqrt, rd, rn, 0, 0, size));
+    }
+    if (raw & 0xFF3E_7C00) == 0x1E22_4000 {
+        let dst_ftype = ((raw >> 15) & 0x3) as u8;
+        if ftype == dst_ftype || dst_ftype > 1 {
+            return None;
+        }
+        let dst_size = if dst_ftype == 0 { 4 } else { 8 };
+        let mut instr = fp_instr(Opcode::FpFcvt, rd, rn, 0, 0, dst_size);
+        instr.cond = size;
+        return Some(instr);
+    }
+    if (raw & 0xFF3F_FC00) == 0x1E25_4000 {
+        return Some(fp_instr(Opcode::FpFrintm, rd, rn, 0, 0, size));
     }
     if (raw & 0xFF20_1C00) == 0x1E20_1000 {
         return Some(fp_instr(

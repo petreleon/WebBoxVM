@@ -513,6 +513,25 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
                 write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
             }
         }
+        Opcode::FpFcvt => {
+            let src_size = instr.cond;
+            if src_size == 4 && instr.size == 8 {
+                let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32) as f64;
+                write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
+            } else if src_size == 8 && instr.size == 4 {
+                let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8)) as f32;
+                write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
+            }
+        }
+        Opcode::FpFrintm => {
+            if instr.size == 4 {
+                let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32).floor();
+                write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
+            } else {
+                let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8)).floor();
+                write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
+            }
+        }
         Opcode::FpMovImm => {
             write_fp_bits(
                 cpu,

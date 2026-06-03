@@ -133,6 +133,8 @@ pub enum Opcode {
     FpNeg,
     FpAbs,
     FpSqrt,
+    FpFcvt,
+    FpFrintm,
     FpMovImm,
     Fmadd,
     Fmsub,
