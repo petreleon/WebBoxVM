@@ -575,6 +575,20 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
+    if (raw & 0xBFF8_DC00) == 0x0F00_8400 {
+        let imm8 = ((raw >> 5) & 0x1F) | (((raw >> 16) & 0x7) << 5);
+        let shift = (((raw >> 12) & 0x2) >> 1) * 8;
+        return Some(Instr {
+            op: Opcode::SimdMovi,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: (imm8 << shift) as u64,
+            sf: true,
+            cond: 2,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
+        });
+    }
     if (raw & 0xFFFF_FC00) == 0x6F00_0400 {
         return Some(Instr {
             op: Opcode::SimdMovi,

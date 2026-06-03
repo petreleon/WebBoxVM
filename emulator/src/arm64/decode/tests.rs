@@ -320,6 +320,15 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x6EF9_47BD).unwrap().op, Opcode::SimdUshl);
     assert_eq!(decode(0x4E9C_1BDE).unwrap().op, Opcode::SimdUzp1);
     assert_eq!(decode(0x0F00_043F).unwrap().op, Opcode::SimdMovi);
+    let movi_half = decode(0x0F00_848F).unwrap();
+    assert_eq!(movi_half.op, Opcode::SimdMovi);
+    assert_eq!(movi_half.rd, 15);
+    assert_eq!(movi_half.imm, 4);
+    assert_eq!(movi_half.cond, 2);
+    let movi_half_shift = decode(0x0F04_A41F).unwrap();
+    assert_eq!(movi_half_shift.op, Opcode::SimdMovi);
+    assert_eq!(movi_half_shift.imm, 0x8000);
+    assert_eq!(movi_half_shift.cond, 2);
     assert_eq!(decode(0x2F00_051E).unwrap().op, Opcode::SimdMvni);
     assert_eq!(decode(0x6E22_AC20).unwrap().op, Opcode::SimdUminp);
     assert_eq!(decode(0x0E20_9800).unwrap().op, Opcode::SimdCmeqZero);
@@ -358,6 +367,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E79_23B0, Opcode::Fcmpe, "fcmpe"),
         (0x1E7E_0FFF, Opcode::Fcsel, "fcsel"),
         (0x6F00_E400, Opcode::SimdMovi, "movi"),
+        (0x0F00_848F, Opcode::SimdMovi, "movi"),
+        (0x0F04_A41F, Opcode::SimdMovi, "movi"),
         (0x2F00_E41F, Opcode::SimdMovi, "movi"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
     ];

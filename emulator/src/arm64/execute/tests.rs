@@ -326,12 +326,56 @@ fn simd_word_immediates_and_cmeq_zero() {
     execute(&mut cpu, &mut bus, decode(0x0F00_043F).unwrap()).unwrap(); // movi v31.2s, #1
     assert_eq!(cpu.simd[31], 0x0000_0001_0000_0001);
 
+    execute(&mut cpu, &mut bus, decode(0x0F00_848F).unwrap()).unwrap(); // movi v15.4h, #4
+    assert_eq!(cpu.simd[15], 0x0004_0004_0004_0004);
+
+    execute(&mut cpu, &mut bus, decode(0x0F04_A41F).unwrap()).unwrap(); // movi v31.4h, #0x80, LSL #8
+    assert_eq!(cpu.simd[31], 0x8000_8000_8000_8000);
+
     execute(&mut cpu, &mut bus, decode(0x2F00_051E).unwrap()).unwrap(); // mvni v30.2s, #8
     assert_eq!(cpu.simd[30], 0xffff_fff7_ffff_fff7);
 
     cpu.simd[0] = 0x0001_0000_00ff_0000;
     execute(&mut cpu, &mut bus, decode(0x0E20_9800).unwrap()).unwrap(); // cmeq v0.8b, v0.8b, #0
     assert_eq!(cpu.simd[0], 0xff00_ffff_ff00_ffff);
+}
+
+#[test]
+fn simd_scalar_byte_halfword_load_store_forms() {
+    let (mut cpu, mut bus) = setup();
+    let base = RAM_BASE + 0x3800;
+
+    cpu.regs.set_x(19, base);
+    cpu.simd[31] = 0x1234_5678_9abc_def0;
+    execute(&mut cpu, &mut bus, decode(0x3D01_B67F).unwrap()).unwrap(); // str b31, [x19, #0x6d]
+    assert_eq!(bus.read(base + 0x6d, 1), Some(0xf0));
+
+    bus.write(base + 0x80, 1, 0x5a);
+    cpu.regs.set_x(2, base + 0x80);
+    cpu.simd[31] = u128::MAX;
+    execute(&mut cpu, &mut bus, decode(0x3D40_005F).unwrap()).unwrap(); // ldr b31, [x2]
+    assert_eq!(cpu.simd[31], 0x5a);
+
+    bus.write(base + 0x90, 2, 0xbeef);
+    cpu.regs.set_x(0, base + 0x90);
+    execute(&mut cpu, &mut bus, decode(0x7D40_001E).unwrap()).unwrap(); // ldr h30, [x0]
+    assert_eq!(cpu.simd[30], 0xbeef);
+
+    cpu.regs.set_x(0, base + 0xa0);
+    cpu.simd[30] = 0xabcd;
+    execute(&mut cpu, &mut bus, decode(0x7C00_241E).unwrap()).unwrap(); // str h30, [x0], #2
+    assert_eq!(bus.read(base + 0xa0, 2), Some(0xabcd));
+    assert_eq!(cpu.regs.x(0), base + 0xa2);
+
+    cpu.regs.set_x(1, base + 0xb0);
+    cpu.regs.set_x(0, 3);
+    bus.write(base + 0xb6, 2, 0xcafe);
+    execute(&mut cpu, &mut bus, decode(0x7C60_783C).unwrap()).unwrap(); // ldr h28, [x1, x0, lsl #1]
+    assert_eq!(cpu.simd[28], 0xcafe);
+
+    cpu.simd[28] = 0xface;
+    execute(&mut cpu, &mut bus, decode(0x7C20_783C).unwrap()).unwrap(); // str h28, [x1, x0, lsl #1]
+    assert_eq!(bus.read(base + 0xb6, 2), Some(0xface));
 }
 
 #[test]

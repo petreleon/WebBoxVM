@@ -276,8 +276,12 @@ fn decode_simd_ldst(raw: u32) -> Option<Instr> {
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rt = (raw & 0x1F) as u8;
     let (bytes, is_load) = match (size_field, opc) {
+        (0, 0) => (1u8, false),
+        (0, 1) => (1u8, true),
         (0, 2) => (16u8, false),
         (0, 3) => (16u8, true),
+        (1, 0) => (2u8, false),
+        (1, 1) => (2u8, true),
         (2, 0) => (4u8, false),
         (2, 1) => (4u8, true),
         (3, 0) => (8u8, false),
