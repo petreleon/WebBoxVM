@@ -413,6 +413,54 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
+    if (raw & 0xFFFF_FC00) == 0x4E28_4800 {
+        return Some(Instr {
+            op: Opcode::SimdAese,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x4E28_5800 {
+        return Some(Instr {
+            op: Opcode::SimdAesd,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x4E28_6800 {
+        return Some(Instr {
+            op: Opcode::SimdAesmc,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x4E28_7800 {
+        return Some(Instr {
+            op: Opcode::SimdAesimc,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
     if let Some(instr) = decode_simd_shrn(raw) {
         return Some(instr);
     }

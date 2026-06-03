@@ -522,6 +522,23 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(tbl.rm, 23);
     assert_eq!(tbl.cond, 1);
     assert_eq!(tbl.size, 16);
+    let aese = decode(0x4E28_4806).unwrap();
+    assert_eq!(aese.op, Opcode::SimdAese);
+    assert_eq!(aese.rd, 6);
+    assert_eq!(aese.rn, 0);
+    assert_eq!(aese.size, 16);
+    let aesd = decode(0x4E28_5802).unwrap();
+    assert_eq!(aesd.op, Opcode::SimdAesd);
+    assert_eq!(aesd.rd, 2);
+    assert_eq!(aesd.rn, 0);
+    let aesmc = decode(0x4E28_6842).unwrap();
+    assert_eq!(aesmc.op, Opcode::SimdAesmc);
+    assert_eq!(aesmc.rd, 2);
+    assert_eq!(aesmc.rn, 2);
+    let aesimc = decode(0x4E28_7800).unwrap();
+    assert_eq!(aesimc.op, Opcode::SimdAesimc);
+    assert_eq!(aesimc.rd, 0);
+    assert_eq!(aesimc.rn, 0);
     let simd_fcvtzu = decode(0x7EE1_B800).unwrap();
     assert_eq!(simd_fcvtzu.op, Opcode::SimdFcvtzu);
     assert_eq!(simd_fcvtzu.rd, 0);
@@ -659,6 +676,10 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
         (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),
         (0x4E17_03FF, Opcode::SimdTbl, "tbl"),
+        (0x4E28_4806, Opcode::SimdAese, "aese"),
+        (0x4E28_5802, Opcode::SimdAesd, "aesd"),
+        (0x4E28_6842, Opcode::SimdAesmc, "aesmc"),
+        (0x4E28_7800, Opcode::SimdAesimc, "aesimc"),
         (0x7EE1_B800, Opcode::SimdFcvtzu, "fcvtzu"),
         (0x0EA0_0BDE, Opcode::SimdRev64, "rev64"),
     ];

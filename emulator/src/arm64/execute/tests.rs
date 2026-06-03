@@ -201,6 +201,30 @@ fn simd_userland_vector_permute_and_reduction_ops() {
 }
 
 #[test]
+fn simd_aes_crypto_round_ops() {
+    let (mut cpu, mut bus) = setup();
+    let key = 0x9c95_8e87_8079_726b_645d_564f_4841_3a33;
+
+    cpu.simd[6] = vector_bytes(0);
+    cpu.simd[0] = key;
+    execute(&mut cpu, &mut bus, decode(0x4E28_4806).unwrap()).unwrap(); // aese v6.16b, v0.16b
+    assert_eq!(cpu.simd[6], 0x3d39_e23d_fb1a_ecfb_b314_21b3_dc8f_edc3);
+
+    cpu.simd[2] = vector_bytes(0);
+    cpu.simd[0] = key;
+    execute(&mut cpu, &mut bus, decode(0x4E28_5802).unwrap()).unwrap(); // aesd v2.16b, v0.16b
+    assert_eq!(cpu.simd[2], 0xcc57_03ce_2264_5000_cee8_49cc_008f_4166);
+
+    cpu.simd[2] = vector_bytes(0);
+    execute(&mut cpu, &mut bus, decode(0x4E28_6842).unwrap()).unwrap(); // aesmc v2.16b, v2.16b
+    assert_eq!(cpu.simd[2], 0x090c_0b0e_0d08_0f0a_0104_0306_0500_0702);
+
+    cpu.simd[0] = cpu.simd[2];
+    execute(&mut cpu, &mut bus, decode(0x4E28_7800).unwrap()).unwrap(); // aesimc v0.16b, v0.16b
+    assert_eq!(cpu.simd[0], vector_bytes(0));
+}
+
+#[test]
 fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     let (mut cpu, mut bus) = setup();
     let base = RAM_BASE + 0x1000;

@@ -375,7 +375,11 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
                 simd_replicate_element(instr.imm as u128, instr.cond as usize, instr.size as usize)
             };
         }
-        Opcode::SimdDupByte
+        Opcode::SimdAese
+        | Opcode::SimdAesd
+        | Opcode::SimdAesmc
+        | Opcode::SimdAesimc
+        | Opcode::SimdDupByte
         | Opcode::SimdDupElem
         | Opcode::SimdFmovReg64
         | Opcode::SimdFmovGprToD
