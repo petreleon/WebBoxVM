@@ -305,6 +305,14 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(bic_bytes.rn, 30);
     assert_eq!(bic_bytes.rm, 4);
     assert_eq!(bic_bytes.size, 8);
+    let bsl_bytes = decode(0x2E7F_1DE1).unwrap();
+    assert_eq!(bsl_bytes.op, Opcode::SimdBsl);
+    assert_eq!(bsl_bytes.rd, 1);
+    assert_eq!(bsl_bytes.rn, 15);
+    assert_eq!(bsl_bytes.rm, 31);
+    assert_eq!(bsl_bytes.size, 8);
+    assert_eq!(decode(0x2EBF_1DE0).unwrap().op, Opcode::SimdBit);
+    assert_eq!(decode(0x2EFE_1FE0).unwrap().op, Opcode::SimdBif);
     assert_eq!(decode(0x0E20_5BFF).unwrap().op, Opcode::SimdCnt);
     assert_eq!(decode(0x0E31_BBFF).unwrap().op, Opcode::SimdAddv);
     assert_eq!(decode(0x4C40_A03E).unwrap().op, Opcode::SimdLd1Multi);

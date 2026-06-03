@@ -176,6 +176,24 @@ fn simd_userland_vector_permute_and_reduction_ops() {
     execute(&mut cpu, &mut bus, decode(0x0E64_1FDE).unwrap()).unwrap(); // bic v30.8b, v30.8b, v4.8b
     assert_eq!(cpu.simd[30], 0x0000_5678_9a00_de00);
 
+    cpu.simd[1] = 0xffff_ffff_ffff_ffff_00ff_00ff_00ff_00ff;
+    cpu.simd[15] = 0x1111_2222_3333_4444;
+    cpu.simd[31] = 0xaaaa_bbbb_cccc_dddd;
+    execute(&mut cpu, &mut bus, decode(0x2E7F_1DE1).unwrap()).unwrap(); // bsl v1.8b, v15.8b, v31.8b
+    assert_eq!(cpu.simd[1], 0xaa11_bb22_cc33_dd44);
+
+    cpu.simd[0] = 0xffff_ffff_ffff_ffff_0123_4567_89ab_cdef;
+    cpu.simd[15] = 0xfedc_ba98_7654_3210;
+    cpu.simd[31] = 0xffff_0000_ffff_0000;
+    execute(&mut cpu, &mut bus, decode(0x2EBF_1DE0).unwrap()).unwrap(); // bit v0.8b, v15.8b, v31.8b
+    assert_eq!(cpu.simd[0], 0xfedc_4567_7654_cdef);
+
+    cpu.simd[0] = 0xffff_ffff_ffff_ffff_0123_4567_89ab_cdef;
+    cpu.simd[31] = 0xfedc_ba98_7654_3210;
+    cpu.simd[30] = 0xffff_0000_ffff_0000;
+    execute(&mut cpu, &mut bus, decode(0x2EFE_1FE0).unwrap()).unwrap(); // bif v0.8b, v31.8b, v30.8b
+    assert_eq!(cpu.simd[0], 0x0123_ba98_89ab_3210);
+
     cpu.simd[31] = 0x0102_0304_0506_0708_7f80_55aa_0001_0fff;
     execute(&mut cpu, &mut bus, decode(0x0E20_5BFF).unwrap()).unwrap(); // cnt v31.8b, v31.8b
     execute(&mut cpu, &mut bus, decode(0x0E31_BBFF).unwrap()).unwrap(); // addv b31, v31.8b

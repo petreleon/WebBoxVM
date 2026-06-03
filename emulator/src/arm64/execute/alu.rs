@@ -417,11 +417,26 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             };
             cpu.simd[rd] = !cpu.simd[rn] & lanes_mask;
         }
+        Opcode::SimdBsl => {
+            let vector_mask = simd_vector_mask(instr.size as usize);
+            let mask = cpu.simd[rd] & vector_mask;
+            let src_true = cpu.simd[rn] & vector_mask;
+            let src_false = cpu.simd[rm] & vector_mask;
+            cpu.simd[rd] = ((src_true & mask) | (src_false & !mask)) & vector_mask;
+        }
         Opcode::SimdBit => {
+            let vector_mask = simd_vector_mask(instr.size as usize);
             let dest = cpu.simd[rd];
             let src = cpu.simd[rn];
             let mask = cpu.simd[rm];
-            cpu.simd[rd] = (dest & !mask) | (src & mask);
+            cpu.simd[rd] = ((dest & !mask) | (src & mask)) & vector_mask;
+        }
+        Opcode::SimdBif => {
+            let vector_mask = simd_vector_mask(instr.size as usize);
+            let dest = cpu.simd[rd];
+            let src = cpu.simd[rn];
+            let mask = cpu.simd[rm];
+            cpu.simd[rd] = ((dest & mask) | (src & !mask)) & vector_mask;
         }
         Opcode::SimdAnd => {
             cpu.simd[rd] = (cpu.simd[rn] & cpu.simd[rm]) & simd_vector_mask(instr.size as usize);
