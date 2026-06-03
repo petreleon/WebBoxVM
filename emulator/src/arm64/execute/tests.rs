@@ -317,16 +317,44 @@ fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     }
     assert_eq!(cpu.regs.x(17), post_index_out + 32);
 
-    let st4_single_out = RAM_BASE + 0x2800;
-    cpu.regs.set_x(17, st4_single_out);
+    let st1_one_out = RAM_BASE + 0x2800;
+    cpu.regs.set_x(17, st1_one_out);
     cpu.simd[4] = vector_bytes(0x40);
 
-    execute(&mut cpu, &mut bus, decode(0x4C9F_7A24).unwrap()).unwrap(); // st4 {v4.4s}, [x17], #16
+    execute(&mut cpu, &mut bus, decode(0x4C9F_7A24).unwrap()).unwrap(); // st1 {v4.4s}, [x17], #16
 
     for byte in 0..16u64 {
-        assert_eq!(bus.read(st4_single_out + byte, 1), Some(0x40 + byte));
+        assert_eq!(bus.read(st1_one_out + byte, 1), Some(0x40 + byte));
     }
-    assert_eq!(cpu.regs.x(17), st4_single_out + 16);
+    assert_eq!(cpu.regs.x(17), st1_one_out + 16);
+
+    let st1_one_no_offset_out = RAM_BASE + 0x3c00;
+    cpu.regs.set_x(1, st1_one_no_offset_out);
+    cpu.simd[0] = vector_bytes(0x60);
+    execute(&mut cpu, &mut bus, decode(0x4C00_7020).unwrap()).unwrap(); // st1 {v0.16b}, [x1]
+    for byte in 0..16u64 {
+        assert_eq!(bus.read(st1_one_no_offset_out + byte, 1), Some(0x60 + byte));
+    }
+    assert_eq!(cpu.regs.x(1), st1_one_no_offset_out);
+
+    let st1_one_q0_out = RAM_BASE + 0x4000;
+    cpu.regs.set_x(10, st1_one_q0_out);
+    cpu.simd[29] = 0xffff_ffff_ffff_ffff_b7b6_b5b4_b3b2_b1b0;
+    execute(&mut cpu, &mut bus, decode(0x0C9F_795D).unwrap()).unwrap(); // st1 {v29.2s}, [x10], #8
+    for byte in 0..8u64 {
+        assert_eq!(bus.read(st1_one_q0_out + byte, 1), Some(0xb0 + byte));
+    }
+    assert_eq!(cpu.regs.x(10), st1_one_q0_out + 8);
+
+    let st1_one_post_reg_out = RAM_BASE + 0x4400;
+    cpu.regs.set_x(0, st1_one_post_reg_out);
+    cpu.regs.set_x(4, 24);
+    cpu.simd[0] = vector_bytes(0xd0);
+    execute(&mut cpu, &mut bus, decode(0x4C84_7800).unwrap()).unwrap(); // st1 {v0.4s}, [x0], x4
+    for byte in 0..16u64 {
+        assert_eq!(bus.read(st1_one_post_reg_out + byte, 1), Some(0xd0 + byte));
+    }
+    assert_eq!(cpu.regs.x(0), st1_one_post_reg_out + 24);
 }
 
 #[test]

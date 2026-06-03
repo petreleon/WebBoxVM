@@ -22,6 +22,21 @@ fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
             | Opcode::SimdLd2
             | Opcode::SimdLd3
             | Opcode::SimdLd4
+            | Opcode::SimdSt1Multi
+            | Opcode::SimdSt4
+    ) && instr.rm == 0xFF
+    {
+        return (base_addr(cpu, instr.rn), None);
+    }
+
+    if matches!(
+        instr.op,
+        Opcode::SimdLd1
+            | Opcode::SimdLd1Multi
+            | Opcode::SimdLd2
+            | Opcode::SimdLd3
+            | Opcode::SimdLd4
+            | Opcode::SimdSt1Multi
             | Opcode::SimdSt4
     ) && instr.rm != 0xFF
         && instr.rm != SIMD_MULTI_POST_INDEX

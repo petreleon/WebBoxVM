@@ -185,7 +185,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#ld4 if simd_ld_structure_elements(raw) == Some(2) => Opcode::SimdLd2,
         M::r#ld4 if simd_ld_structure_elements(raw) == Some(3) => Opcode::SimdLd3,
         M::r#ld4 if simd_ld_structure_elements(raw) == Some(4) => Opcode::SimdLd4,
-        M::r#st4 if (raw & 0xBFFF_F000) == 0x0C00_A000 => Opcode::SimdSt1Multi,
+        M::r#st1 if simd_st1_multi_register_count(raw).is_some() => Opcode::SimdSt1Multi,
+        M::r#st4 if simd_st1_multi_register_count(raw).is_some() => Opcode::SimdSt1Multi,
         M::r#st4 if (raw & 0xFFFF_FC00) == 0x4C9F_7800 => Opcode::SimdSt4Single,
         _ => return None,
     })
@@ -224,6 +225,22 @@ fn simd_ld_structure_elements(raw: u32) -> Option<u8> {
         0b0000 => Some(4),
         0b0100 => Some(3),
         0b1000 => Some(2),
+        _ => None,
+    }
+}
+
+fn simd_st1_multi_register_count(raw: u32) -> Option<u8> {
+    let no_offset = (raw & 0xBFFF_0000) == 0x0C00_0000;
+    let post_index = (raw & 0xBFE0_0000) == 0x0C80_0000;
+    if !no_offset && !post_index {
+        return None;
+    }
+
+    match (raw >> 12) & 0xF {
+        0b0010 => Some(4),
+        0b0110 => Some(3),
+        0b0111 => Some(1),
+        0b1010 => Some(2),
         _ => None,
     }
 }

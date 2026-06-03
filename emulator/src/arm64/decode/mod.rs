@@ -776,41 +776,8 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ld_structure_multi(raw) {
         return Some(instr);
     }
-    if (raw & 0xBFFF_F000) == 0x0C00_A000 {
-        return Some(Instr {
-            op: Opcode::SimdSt1Multi,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: 0xFF,
-            imm: 0,
-            sf: true,
-            cond: 2,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
-    }
-    if (raw & 0xBFFF_F000) == 0x0C9F_A000 {
-        return Some(Instr {
-            op: Opcode::SimdSt1Multi,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: 0xFE,
-            imm: 32,
-            sf: true,
-            cond: 2,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
-    }
-    if (raw & 0xFFFF_FC00) == 0x4C9F_7800 {
-        return Some(Instr {
-            op: Opcode::SimdSt4Single,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: 0xFE,
-            imm: 16,
-            sf: true,
-            cond: 2,
-            size: 16,
-        });
+    if let Some(instr) = decode_simd_st1_multi(raw) {
+        return Some(instr);
     }
 
     let bits28_24 = (raw >> 24) & 0x1F;
@@ -1111,6 +1078,46 @@ fn decode_simd_ld1_multi(raw: u32) -> Option<Instr> {
         } else {
             Opcode::SimdLd1Multi
         },
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm,
+        imm,
+        sf: true,
+        cond: register_count,
+        size: vector_size,
+    })
+}
+
+fn decode_simd_st1_multi(raw: u32) -> Option<Instr> {
+    let no_offset = (raw & 0xBFFF_0000) == 0x0C00_0000;
+    let post_index = (raw & 0xBFE0_0000) == 0x0C80_0000;
+    if !no_offset && !post_index {
+        return None;
+    }
+
+    let register_count = match (raw >> 12) & 0xF {
+        0b0010 => 4,
+        0b0110 => 3,
+        0b0111 => 1,
+        0b1010 => 2,
+        _ => return None,
+    };
+
+    let q = ((raw >> 30) & 1) as u8;
+    let vector_size = if q != 0 { 16 } else { 8 };
+    let rm_field = ((raw >> 16) & 0x1F) as u8;
+    let (rm, imm) = if post_index {
+        if rm_field == 31 {
+            (0xFE, register_count as u64 * vector_size as u64)
+        } else {
+            (rm_field, 0)
+        }
+    } else {
+        (0xFF, 0)
+    };
+
+    Some(Instr {
+        op: Opcode::SimdSt1Multi,
         rd: (raw & 0x1F) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
         rm,
