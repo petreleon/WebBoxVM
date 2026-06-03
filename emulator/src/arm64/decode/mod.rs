@@ -119,7 +119,8 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             }
         }
     }
-    if (raw & 0xFFFF_FC00) == 0x1E60_4000 {
+    if (raw & 0xFFBF_FC00) == 0x1E20_4000 {
+        let size = if ((raw >> 22) & 1) != 0 { 8 } else { 4 };
         return Some(Instr {
             op: Opcode::SimdFmovReg64,
             rd: (raw & 0x1F) as u8,
@@ -128,7 +129,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             imm: 0,
             sf: true,
             cond: 0,
-            size: 8,
+            size,
         });
     }
     if (raw & 0xFFFF_FC00) == 0x9E67_0000 {

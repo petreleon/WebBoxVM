@@ -441,6 +441,12 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(fmov_five.rd, 15);
     assert_eq!(fmov_five.imm, 20);
 
+    let fmov_single_reg = decode(0x1E20_43DD).unwrap();
+    assert_eq!(fmov_single_reg.op, Opcode::SimdFmovReg64);
+    assert_eq!(fmov_single_reg.rd, 29);
+    assert_eq!(fmov_single_reg.rn, 30);
+    assert_eq!(fmov_single_reg.size, 4);
+
     let fcvt_double_to_single = decode(0x1E62_401F).unwrap();
     assert_eq!(fcvt_double_to_single.size, 4);
     assert_eq!(fcvt_double_to_single.cond, 8);

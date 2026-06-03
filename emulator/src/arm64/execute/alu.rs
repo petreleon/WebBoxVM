@@ -112,7 +112,7 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             cpu.simd[rd] = simd_replicate_element(value, element_size, instr.size as usize);
         }
         Opcode::SimdFmovReg64 => {
-            cpu.simd[rd] = (cpu.simd[rn] as u64) as u128;
+            cpu.simd[rd] = read_fp_bits(cpu, instr.rn, instr.size) as u128;
         }
         Opcode::SimdFmovGprToD => {
             cpu.simd[rd] = read_reg(cpu, instr.rn, true) as u128;
