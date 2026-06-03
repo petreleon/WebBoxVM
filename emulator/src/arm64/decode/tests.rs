@@ -119,6 +119,9 @@ fn decode_dc_zva() {
 fn decode_dmb_ish_as_barrier() {
     let instr = decode(0xD503_3BBF).unwrap(); // dmb ish
     assert_eq!(instr.op, Opcode::NopBarrier);
+
+    let load_barrier = decode(0xD503_39BF).unwrap(); // dmb ishld
+    assert_eq!(load_barrier.op, Opcode::NopBarrier);
 }
 
 #[test]

@@ -851,9 +851,8 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             0xD503_205F => return system::decode_wfe(),
             0xD503_207F => return system::decode_wfi(),
             0xD503_305F => return system::decode_clrex(),
-            0xD503_309F | 0xD503_30BF | 0xD503_30DF | 0xD503_3BBF | 0xD503_3F9F | 0xD503_3FDF => {
-                return system::decode_barrier();
-            }
+            0xD503_309F | 0xD503_30BF | 0xD503_30DF | 0xD503_39BF | 0xD503_3BBF | 0xD503_3F9F
+            | 0xD503_3FDF => return system::decode_barrier(),
             _ => {}
         }
         let op0 = (raw >> 19) & 0x3;
