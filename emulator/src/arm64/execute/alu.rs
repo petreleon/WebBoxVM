@@ -750,13 +750,34 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         }
         Opcode::FpFcvt => {
             let src_size = instr.cond;
-            if src_size == 4 && instr.size == 8 {
-                let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32) as f64;
-                write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
-            } else if src_size == 8 && instr.size == 4 {
-                let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8)) as f32;
-                write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
-            }
+            let bits = match (src_size, instr.size) {
+                (2, 4) => {
+                    let value = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16);
+                    value.to_bits() as u64
+                }
+                (2, 8) => {
+                    let value = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16) as f64;
+                    value.to_bits()
+                }
+                (4, 2) => {
+                    let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
+                    f32_to_f16_bits(value) as u64
+                }
+                (4, 8) => {
+                    let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32) as f64;
+                    value.to_bits()
+                }
+                (8, 2) => {
+                    let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
+                    f64_to_f16_bits(value) as u64
+                }
+                (8, 4) => {
+                    let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8)) as f32;
+                    value.to_bits() as u64
+                }
+                _ => unreachable!(),
+            };
+            write_fp_bits(cpu, instr.rd, bits, instr.size);
         }
         Opcode::FpFrintm => {
             if instr.size == 4 {
@@ -1105,26 +1126,167 @@ const AES_INV_SBOX: [u8; 256] = [
 ];
 
 fn read_fp_bits(cpu: &Armv8Cpu, reg: u8, size: u8) -> u64 {
-    if size == 4 {
-        (cpu.simd[reg as usize] & u32::MAX as u128) as u64
-    } else {
-        cpu.simd[reg as usize] as u64
+    match size {
+        2 => (cpu.simd[reg as usize] & u16::MAX as u128) as u64,
+        4 => (cpu.simd[reg as usize] & u32::MAX as u128) as u64,
+        _ => cpu.simd[reg as usize] as u64,
     }
 }
 
 fn write_fp_bits(cpu: &mut Armv8Cpu, reg: u8, bits: u64, size: u8) {
-    cpu.simd[reg as usize] = if size == 4 {
-        (bits as u32) as u128
-    } else {
-        bits as u128
+    cpu.simd[reg as usize] = match size {
+        2 => (bits as u16) as u128,
+        4 => (bits as u32) as u128,
+        _ => bits as u128,
     };
 }
 
 fn read_fp_as_f64(cpu: &Armv8Cpu, reg: u8, size: u8) -> f64 {
-    if size == 4 {
-        f32::from_bits(read_fp_bits(cpu, reg, 4) as u32) as f64
+    match size {
+        2 => f16_to_f32(read_fp_bits(cpu, reg, 2) as u16) as f64,
+        4 => f32::from_bits(read_fp_bits(cpu, reg, 4) as u32) as f64,
+        _ => f64::from_bits(read_fp_bits(cpu, reg, 8)),
+    }
+}
+
+fn f16_to_f32(bits: u16) -> f32 {
+    let sign = ((bits as u32) & 0x8000) << 16;
+    let exp = ((bits >> 10) & 0x1F) as i32;
+    let frac = (bits & 0x03FF) as u32;
+
+    let out = if exp == 0 {
+        if frac == 0 {
+            sign
+        } else {
+            let mut mant = frac;
+            let mut unbiased = -14;
+            while (mant & 0x0400) == 0 {
+                mant <<= 1;
+                unbiased -= 1;
+            }
+            mant &= 0x03FF;
+            sign | (((unbiased + 127) as u32) << 23) | (mant << 13)
+        }
+    } else if exp == 0x1F {
+        sign | 0x7F80_0000 | (frac << 13)
     } else {
-        f64::from_bits(read_fp_bits(cpu, reg, 8))
+        sign | (((exp - 15 + 127) as u32) << 23) | (frac << 13)
+    };
+
+    f32::from_bits(out)
+}
+
+fn f32_to_f16_bits(value: f32) -> u16 {
+    let bits = value.to_bits();
+    let sign = ((bits >> 16) & 0x8000) as u16;
+    let exp = ((bits >> 23) & 0xFF) as i32;
+    let frac = bits & 0x7F_FFFF;
+
+    if exp == 0xFF {
+        return f16_inf_nan(sign, frac >> 13);
+    }
+    if exp == 0 {
+        return sign;
+    }
+
+    let half_exp = exp - 127 + 15;
+    if half_exp >= 0x1F {
+        return sign | 0x7C00;
+    }
+    if half_exp <= 0 {
+        if half_exp < -10 {
+            return sign;
+        }
+        let mant = frac | 0x80_0000;
+        let rounded = round_shift_right_even_u32(mant, (14 - half_exp) as u32);
+        return sign | rounded as u16;
+    }
+
+    let mut half_frac = round_shift_right_even_u32(frac, 13);
+    let mut stored_exp = half_exp as u16;
+    if half_frac == 0x0400 {
+        stored_exp += 1;
+        half_frac = 0;
+        if stored_exp >= 0x1F {
+            return sign | 0x7C00;
+        }
+    }
+
+    sign | (stored_exp << 10) | half_frac as u16
+}
+
+fn f64_to_f16_bits(value: f64) -> u16 {
+    let bits = value.to_bits();
+    let sign = ((bits >> 48) & 0x8000) as u16;
+    let exp = ((bits >> 52) & 0x7FF) as i32;
+    let frac = bits & 0xF_FFFF_FFFF_FFFF;
+
+    if exp == 0x7FF {
+        return f16_inf_nan(sign, (frac >> 42) as u32);
+    }
+    if exp == 0 {
+        return sign;
+    }
+
+    let half_exp = exp - 1023 + 15;
+    if half_exp >= 0x1F {
+        return sign | 0x7C00;
+    }
+    if half_exp <= 0 {
+        if half_exp < -10 {
+            return sign;
+        }
+        let mant = frac | (1u64 << 52);
+        let rounded = round_shift_right_even_u64(mant, (43 - half_exp) as u32);
+        return sign | rounded as u16;
+    }
+
+    let mut half_frac = round_shift_right_even_u64(frac, 42);
+    let mut stored_exp = half_exp as u16;
+    if half_frac == 0x0400 {
+        stored_exp += 1;
+        half_frac = 0;
+        if stored_exp >= 0x1F {
+            return sign | 0x7C00;
+        }
+    }
+
+    sign | (stored_exp << 10) | half_frac as u16
+}
+
+fn f16_inf_nan(sign: u16, payload: u32) -> u16 {
+    if payload == 0 {
+        sign | 0x7C00
+    } else {
+        sign | 0x7C00 | ((payload as u16) | 0x0200)
+    }
+}
+
+fn round_shift_right_even_u32(value: u32, shift: u32) -> u32 {
+    if shift == 0 {
+        return value;
+    }
+    let truncated = value >> shift;
+    let halfway = 1u32 << (shift - 1);
+    let remainder = value & ((1u32 << shift) - 1);
+    if remainder > halfway || (remainder == halfway && (truncated & 1) != 0) {
+        truncated + 1
+    } else {
+        truncated
+    }
+}
+
+fn round_shift_right_even_u64(value: u64, shift: u32) -> u64 {
+    if shift == 0 {
+        return value;
+    }
+    let truncated = value >> shift;
+    let halfway = 1u64 << (shift - 1);
+    let remainder = value & ((1u64 << shift) - 1);
+    if remainder > halfway || (remainder == halfway && (truncated & 1) != 0) {
+        truncated + 1
+    } else {
+        truncated
     }
 }
 

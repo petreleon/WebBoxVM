@@ -705,6 +705,26 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E22_C000).unwrap()).unwrap(); // fcvt d0, s0
     assert_eq!(f64_lane(&cpu, 0), 1.5);
 
+    cpu.simd[0] = 0x3e00;
+    execute(&mut cpu, &mut bus, decode(0x1EE2_4015).unwrap()).unwrap(); // fcvt s21, h0
+    assert_eq!(f32_lane(&cpu, 21), 1.5);
+
+    cpu.simd[0] = 0xc000;
+    execute(&mut cpu, &mut bus, decode(0x1EE2_C015).unwrap()).unwrap(); // fcvt d21, h0
+    assert_eq!(f64_lane(&cpu, 21), -2.0);
+
+    cpu.simd[30] = 1.000_488_281_25f32.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E23_C3DE).unwrap()).unwrap(); // fcvt h30, s30
+    assert_eq!(cpu.simd[30], 0x3c00);
+
+    cpu.simd[28] = 65_504.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E63_C39C).unwrap()).unwrap(); // fcvt h28, d28
+    assert_eq!(cpu.simd[28], 0x7bff);
+
+    cpu.simd[28] = f64::INFINITY.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E63_C39C).unwrap()).unwrap(); // fcvt h28, d28
+    assert_eq!(cpu.simd[28], 0x7c00);
+
     cpu.simd[30] = 0xffff_ffff_4000_0000;
     execute(&mut cpu, &mut bus, decode(0x1E20_43DD).unwrap()).unwrap(); // fmov s29, s30
     assert_eq!(cpu.simd[29], 0x4000_0000);

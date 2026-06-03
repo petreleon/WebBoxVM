@@ -634,7 +634,11 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E61_401F, Opcode::FpNeg, "fneg"),
         (0x1E60_C000, Opcode::FpAbs, "fabs"),
         (0x1E61_C000, Opcode::FpSqrt, "fsqrt"),
+        (0x1EE2_4015, Opcode::FpFcvt, "fcvt"),
+        (0x1EE2_C015, Opcode::FpFcvt, "fcvt"),
+        (0x1E23_C3DE, Opcode::FpFcvt, "fcvt"),
         (0x1E62_401F, Opcode::FpFcvt, "fcvt"),
+        (0x1E63_C39C, Opcode::FpFcvt, "fcvt"),
         (0x1E22_C000, Opcode::FpFcvt, "fcvt"),
         (0x1E65_4000, Opcode::FpFrintm, "frintm"),
         (0x1E64_4000, Opcode::FpFrintn, "frintn"),
@@ -733,6 +737,28 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     let fcvt_single_to_double = decode(0x1E22_C000).unwrap();
     assert_eq!(fcvt_single_to_double.size, 8);
     assert_eq!(fcvt_single_to_double.cond, 4);
+
+    let fcvt_half_to_single = decode(0x1EE2_4015).unwrap();
+    assert_eq!(fcvt_half_to_single.rd, 21);
+    assert_eq!(fcvt_half_to_single.rn, 0);
+    assert_eq!(fcvt_half_to_single.size, 4);
+    assert_eq!(fcvt_half_to_single.cond, 2);
+
+    let fcvt_half_to_double = decode(0x1EE2_C015).unwrap();
+    assert_eq!(fcvt_half_to_double.size, 8);
+    assert_eq!(fcvt_half_to_double.cond, 2);
+
+    let fcvt_single_to_half = decode(0x1E23_C3DE).unwrap();
+    assert_eq!(fcvt_single_to_half.rd, 30);
+    assert_eq!(fcvt_single_to_half.rn, 30);
+    assert_eq!(fcvt_single_to_half.size, 2);
+    assert_eq!(fcvt_single_to_half.cond, 4);
+
+    let fcvt_double_to_half = decode(0x1E63_C39C).unwrap();
+    assert_eq!(fcvt_double_to_half.rd, 28);
+    assert_eq!(fcvt_double_to_half.rn, 28);
+    assert_eq!(fcvt_double_to_half.size, 2);
+    assert_eq!(fcvt_double_to_half.cond, 8);
 
     let fmadd = decode(0x1F5B_7B9E).unwrap();
     assert_eq!(fmadd.rd, 30);

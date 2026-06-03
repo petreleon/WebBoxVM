@@ -1276,14 +1276,27 @@ fn decode_movi_doubleword_imm(imm8: u32) -> u64 {
 
 fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     let ftype = ((raw >> 22) & 0x3) as u8;
+    let rd = (raw & 0x1F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rm = ((raw >> 16) & 0x1F) as u8;
+
+    if (raw & 0xFF3E_7C00) == 0x1E22_4000 {
+        let dst_ftype = ((raw >> 15) & 0x3) as u8;
+        if ftype == dst_ftype {
+            return None;
+        }
+        let src_size = fp_scalar_type_size(ftype)?;
+        let dst_size = fp_scalar_type_size(dst_ftype)?;
+        let mut instr = fp_instr(Opcode::FpFcvt, rd, rn, 0, 0, dst_size);
+        instr.cond = src_size;
+        return Some(instr);
+    }
+
     let size = match ftype {
         0 => 4,
         1 => 8,
         _ => return None,
     };
-    let rd = (raw & 0x1F) as u8;
-    let rn = ((raw >> 5) & 0x1F) as u8;
-    let rm = ((raw >> 16) & 0x1F) as u8;
 
     if (raw & 0xFF20_0000) == 0x1F00_0000 {
         let mut instr = fp_instr(
@@ -1326,16 +1339,6 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     }
     if (raw & 0xFFBF_FC00) == 0x1E21_C000 {
         return Some(fp_instr(Opcode::FpSqrt, rd, rn, 0, 0, size));
-    }
-    if (raw & 0xFF3E_7C00) == 0x1E22_4000 {
-        let dst_ftype = ((raw >> 15) & 0x3) as u8;
-        if ftype == dst_ftype || dst_ftype > 1 {
-            return None;
-        }
-        let dst_size = if dst_ftype == 0 { 4 } else { 8 };
-        let mut instr = fp_instr(Opcode::FpFcvt, rd, rn, 0, 0, dst_size);
-        instr.cond = size;
-        return Some(instr);
     }
     if (raw & 0xFF3F_FC00) == 0x1E25_4000 {
         return Some(fp_instr(Opcode::FpFrintm, rd, rn, 0, 0, size));
@@ -1455,6 +1458,15 @@ fn fp_instr(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, size: u8) -> Instr {
         sf: size == 8,
         cond: 0,
         size,
+    }
+}
+
+fn fp_scalar_type_size(ftype: u8) -> Option<u8> {
+    match ftype {
+        0 => Some(4),
+        1 => Some(8),
+        3 => Some(2),
+        _ => None,
     }
 }
 
