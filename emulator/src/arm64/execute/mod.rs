@@ -439,8 +439,10 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::FpSqrt
         | Opcode::FpFcvt
         | Opcode::FpFrintm
+        | Opcode::FpFrintn
         | Opcode::FpFrinta
         | Opcode::FpFrintx
+        | Opcode::FpFrintz
         | Opcode::FpMovImm
         | Opcode::Fmadd
         | Opcode::Fmsub

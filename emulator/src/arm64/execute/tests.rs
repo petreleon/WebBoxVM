@@ -670,6 +670,10 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E65_4000).unwrap()).unwrap(); // frintm d0, d0
     assert_eq!(f64_lane(&cpu, 0), -3.0);
 
+    cpu.simd[0] = 2.5f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E64_4000).unwrap()).unwrap(); // frintn d0, d0
+    assert_eq!(f64_lane(&cpu, 0), 2.0);
+
     cpu.simd[31] = 2.5f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x1E66_43FF).unwrap()).unwrap(); // frinta d31, d31
     assert_eq!(f64_lane(&cpu, 31), 3.0);
@@ -682,6 +686,10 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     cpu.simd[0] = 2.5f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x1E67_4000).unwrap()).unwrap(); // frintx d0, d0
     assert_eq!(f64_lane(&cpu, 0), 2.0);
+
+    cpu.simd[31] = (-2.9f64).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E65_C3FF).unwrap()).unwrap(); // frintz d31, d31
+    assert_eq!(f64_lane(&cpu, 31), -2.0);
 
     cpu.regs.set_w(1, 7);
     execute(&mut cpu, &mut bus, decode(0x1E63_003F).unwrap()).unwrap(); // ucvtf d31, w1

@@ -1086,8 +1086,10 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::FpSqrt
             | Opcode::FpFcvt
             | Opcode::FpFrintm
+            | Opcode::FpFrintn
             | Opcode::FpFrinta
             | Opcode::FpFrintx
+            | Opcode::FpFrintz
             | Opcode::FpMovImm
             | Opcode::Fmadd
             | Opcode::Fmsub
