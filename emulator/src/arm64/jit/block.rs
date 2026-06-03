@@ -12,6 +12,7 @@ use crate::bus::SystemBus;
 pub struct Block {
     pub start_pc: u64,
     pub start_pa: u64,
+    pub instruction_pas: Vec<u64>,
     pub instructions: Vec<(Instr, u32)>, // (decoded, raw)
 }
 
@@ -24,35 +25,29 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
     };
 
     let mut instructions = Vec::new();
+    let mut instruction_pas = Vec::new();
     let mut pc = start_pc;
     let mut tlb = cpu.tlb.clone();
-    let mut consecutive_faults = 0u32;
-    let max_iterations = 256; // safety limit
-
     loop {
-        if instructions.len() >= 64 || instructions.len() >= max_iterations {
+        if instructions.len() >= 64 {
             break;
         }
         // Translate PC → PA. On fault, end the block gracefully.
         let pa = match translate(&cpu.sys, &mut tlb, &bus.mem, pc) {
-            Ok(pa) => {
-                consecutive_faults = 0;
-                pa
-            }
+            Ok(pa) => pa,
             Err(_) => {
-                consecutive_faults += 1;
-                if consecutive_faults > 3 {
+                if instructions.is_empty() {
+                    return Err("block instruction translation fault");
+                } else {
                     break;
                 }
-                pc += 4;
-                continue;
             }
         };
-        consecutive_faults = 0;
 
         let raw = match bus.mem.read(pa, 4) {
-            Some(v) => v as u32,
-            None => break, // unmapped memory — end block
+            Some(value) => value as u32,
+            None if instructions.is_empty() => return Err("block instruction read fault"),
+            None => break,
         };
 
         let instr = match decode(raw) {
@@ -60,9 +55,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
             None => {
                 // Undecodable — probably data/BSS, end block
                 if instructions.is_empty() {
-                    // At least one instruction needed
-                    pc += 4;
-                    continue;
+                    return Err("block starts with undecodable instruction");
                 }
                 break;
             }
@@ -86,6 +79,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
         );
 
         instructions.push((instr, raw));
+        instruction_pas.push(pa);
         pc += 4;
 
         if is_terminator || instructions.len() >= 64 {
@@ -100,6 +94,39 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
     Ok(Block {
         start_pc,
         start_pa,
+        instruction_pas,
         instructions,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::constants::RAM_BASE;
+
+    #[test]
+    fn rejects_undecodable_instruction_at_start_pc() {
+        let mut cpu = Armv8Cpu::default();
+        let mut bus = SystemBus::new();
+        cpu.regs.pc = RAM_BASE;
+        bus.mem.write(RAM_BASE, 4, 0);
+        bus.mem.write(RAM_BASE + 4, 4, 0xd503_201f);
+
+        assert_eq!(
+            block_from_pc(&cpu, &bus).err(),
+            Some("block starts with undecodable instruction")
+        );
+    }
+
+    #[test]
+    fn rejects_unreadable_instruction_at_start_pc() {
+        let mut cpu = Armv8Cpu::default();
+        let bus = SystemBus::new();
+        cpu.regs.pc = 0x9000_0000;
+
+        assert_eq!(
+            block_from_pc(&cpu, &bus).err(),
+            Some("block instruction read fault")
+        );
+    }
 }

@@ -6,10 +6,12 @@ mod bitmask_imm;
 mod decode;
 mod decode_cache;
 mod execute;
+mod gic_sysregs;
 mod helpers;
 mod interpreter;
 pub mod jit;
 pub mod machine;
+mod machine_trace;
 mod mmu;
 mod opcodes;
 mod pstate;
@@ -53,10 +55,10 @@ impl Armv8Cpu {
         Self::default()
     }
     pub fn with_core(core_id: u32) -> Self {
-        let mut cpu = Self::default();
-        cpu.core_id = core_id;
-        // Set MPIDR_EL1 to reflect core ID
-        cpu
+        Self {
+            core_id,
+            ..Self::default()
+        }
     }
     pub fn reset(&mut self) {
         *self = Self::default();

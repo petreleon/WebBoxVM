@@ -26,11 +26,7 @@ fn setup_boot_page_tables(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
     let l3_page = |pa: u64| -> u64 { pa | (1 << 10) | 0b11 };
 
     // ── TTBR0: identity map first 4 GB with 1 GB L1 blocks ──
-    bus.write(
-        ttbr0_l0 + 0 * 8,
-        8,
-        (ttbr0_l1 & 0x0000_FFFF_FFFF_F000) | 0b11,
-    );
+    bus.write(ttbr0_l0, 8, (ttbr0_l1 & 0x0000_FFFF_FFFF_F000) | 0b11);
     for i in 0..4 {
         bus.write(ttbr0_l1 + i * 8, 8, l1_block(i * 0x4000_0000));
     }
@@ -363,7 +359,7 @@ fn real_kernel_runs_past_prologue() {
                 // Walk the page table manually to get the raw descriptor
                 println!("  FIXMAP VA={:#018x} -> PA={:#018x}", fixmap_va, pa);
                 // Try to read L3 entry from memory
-                let t1sz = ((cpu.sys.tcr_el1 >> 16) & 0x3F) as u8;
+                let _t1sz = ((cpu.sys.tcr_el1 >> 16) & 0x3F) as u8;
                 let l0_idx = (fixmap_va >> 39) & 0x1FF;
                 let l1_idx = (fixmap_va >> 30) & 0x1FF;
                 let l2_idx = (fixmap_va >> 21) & 0x1FF;

@@ -125,6 +125,18 @@ pub enum Opcode {
     SimdUzp1,
     SimdBicImm,
     SimdMvni,
+    SimdUshll,
+    FpAdd,
+    FpSub,
+    FpMul,
+    FpDiv,
+    FpNeg,
+    FpMovImm,
+    Scvtf,
+    Fcvtzs,
+    Fcmp,
+    Fcmpe,
+    Fcsel,
     Rev,
     Rev32,
     Rev16,
@@ -160,4 +172,19 @@ pub struct Instr {
     pub sf: bool,
     pub cond: u8,
     pub size: u8, // access size in bytes for LDR/STR (0=unused)
+}
+
+impl Instr {
+    pub const fn nop() -> Self {
+        Self {
+            op: Opcode::Nop,
+            rd: 0,
+            rn: 0,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 0,
+        }
+    }
 }

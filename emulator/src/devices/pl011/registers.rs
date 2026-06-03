@@ -46,16 +46,21 @@ pub(super) const FR_TXFE: u8 = 1 << 7; // UART011_FR_TXFE
 /// RX FIFO Full — set when the receive FIFO has reached its threshold.
 pub(super) const FR_RXFF: u8 = 1 << 6; // UART011_FR_RXFF
 /// TX FIFO Full — set when the transmit FIFO is full (must wait before writing).
+#[allow(dead_code)]
 pub(super) const FR_TXFF: u8 = 1 << 5; // UART01x_FR_TXFF
 /// RX FIFO Empty — set when no received data is available.
 pub(super) const FR_RXFE: u8 = 1 << 4; // UART01x_FR_RXFE
 /// UART Busy — set while actively transmitting a byte.
+#[allow(dead_code)]
 pub(super) const FR_BUSY: u8 = 1 << 3; // UART01x_FR_BUSY
 /// Data Carrier Detect — status of the DCD modem signal.
+#[allow(dead_code)]
 pub(super) const FR_DCD: u8 = 1 << 2; // UART01x_FR_DCD
 /// Data Set Ready — status of the DSR modem signal.
+#[allow(dead_code)]
 pub(super) const FR_DSR: u8 = 1 << 1; // UART01x_FR_DSR
 /// Clear To Send — status of the CTS modem signal.
+#[allow(dead_code)]
 pub(super) const FR_CTS: u8 = 1 << 0; // UART01x_FR_CTS
 
 // ── Interrupt bits ──
@@ -85,6 +90,7 @@ pub(super) const CR_LBE: u16 = 1 << 7; // UART011_CR_LBE
 pub(super) const CR_UARTEN: u16 = 1 << 0; // UART01x_CR_UARTEN
 
 /// Bits in CR that should be preserved across writes (RTS, DTR).
+#[allow(dead_code)]
 pub(super) const CR_PRESERVE_MASK: u16 = CR_RTS | CR_DTR;
 
 /// Initial CR value: UART enabled, TX and RX enabled.

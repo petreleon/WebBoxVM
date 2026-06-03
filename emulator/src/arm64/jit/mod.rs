@@ -1,18 +1,26 @@
 //! JIT engine: pre-decode cache + ARM64→ARM64 native compilation.
 //! Verbatim ALU/move ops execute at native speed on Apple Silicon.
 
-use crate::arm64::{
-    Armv8Cpu, decode, execute,
-    mmu::translate,
-    opcodes::{Instr, Opcode},
-};
+use crate::arm64::{Armv8Cpu, decode, execute, mmu::translate, opcodes::Instr};
 use crate::bus::SystemBus;
 use crate::memory::PhysicalMemory;
 use std::collections::HashMap;
 
 mod block;
 mod emitter_a64;
+mod wasm64;
 use emitter_a64::A64Compiler;
+pub use wasm64::{
+    JIT_STATE_SIZE, Wasm64Compiler, WasmBlockModule, WasmJitCpuState, WasmJitError, hash_raw_words,
+};
+
+pub fn compile_wasm64_block_at_pc(
+    cpu: &Armv8Cpu,
+    bus: &SystemBus,
+) -> Result<WasmBlockModule, WasmJitError> {
+    let block = block::block_from_pc(cpu, bus).map_err(WasmJitError::BlockDiscovery)?;
+    Wasm64Compiler::compile(&block)
+}
 
 pub struct JitEngine {
     pages: HashMap<u64, Vec<Instr>>,
@@ -44,6 +52,7 @@ impl JitEngine {
     ) -> Result<usize, &'static str> {
         cpu.regs.pc = entry;
         let max = max_steps as u64;
+        let compile_native_blocks = std::env::var_os("WEBBOXVM_ENABLE_JIT_COMPILE").is_some();
 
         let mut last_progress = 0u64;
         while self.steps < max {
@@ -88,14 +97,16 @@ impl JitEngine {
             };
 
             self.steps += 1;
-            execute(cpu, bus, instr).map_err(|e| {
+            execute(cpu, bus, instr).inspect_err(|e| {
                 eprintln!("JIT EXEC ERROR: {} at PC={:#018x}", e, cpu.regs.pc);
-                e
             })?;
 
             // JIT compilation: disabled pending page table walk fix
             // (block_from_pc hangs on swapper_pg_dir walks)
-            if false && self.steps > 1_000_000 && self.steps % 5_000_000 == 0 {
+            if compile_native_blocks
+                && self.steps > 1_000_000
+                && self.steps.is_multiple_of(5_000_000)
+            {
                 let _ = self.try_compile_block(cpu, bus);
             }
         }
@@ -122,16 +133,7 @@ impl JitEngine {
         for i in 0..1024u64 {
             let addr = page_base + i * 4;
             let instr = if let Some(raw) = mem.read(addr, 4) {
-                decode(raw as u32).unwrap_or(Instr {
-                    op: Opcode::Nop,
-                    rd: 0,
-                    rn: 0,
-                    rm: 0,
-                    imm: 0,
-                    sf: true,
-                    cond: 0,
-                    size: 0,
-                })
+                decode(raw as u32).unwrap_or_else(Instr::nop)
             } else {
                 break;
             };
@@ -152,11 +154,17 @@ impl JitEngine {
                     eprintln!("JIT COMPILE FAIL: {} at PC={:#x}", e, blk.start_pc);
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 // Translation faults during block discovery are expected for unmapped pages
                 // Just skip silently
             }
         }
         Ok(())
+    }
+}
+
+impl Default for JitEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }

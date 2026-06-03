@@ -2,7 +2,7 @@
 
 use super::{Instr, Opcode};
 use crate::arm64::Armv8Cpu;
-use crate::arm64::helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};
+use crate::arm64::helpers::{cond_taken, read_reg, write_reg};
 use crate::constants::*;
 
 #[derive(Copy, Clone)]
@@ -446,7 +446,173 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             let element = !(instr.imm as u128) & element_mask;
             cpu.simd[rd] = simd_replicate_element(element, element_size, instr.size as usize);
         }
+        Opcode::SimdUshll => {
+            let src_element_size = instr.cond.max(1) as usize;
+            let dst_element_size = src_element_size * 2;
+            let src_bits = src_element_size * 8;
+            let dst_bits = dst_element_size * 8;
+            let dst_mask = simd_element_mask(dst_element_size);
+            let shift = instr.imm as usize;
+            let lanes = 8 / src_element_size;
+            let mut out = 0u128;
+            for lane in 0..lanes {
+                let src = simd_element(cpu.simd[rn], lane, src_element_size);
+                let widened = if shift >= dst_bits {
+                    0
+                } else {
+                    (src << shift) & dst_mask
+                };
+                out |= widened << (lane * src_bits * 2);
+            }
+            cpu.simd[rd] = out;
+        }
         _ => unreachable!(),
+    }
+}
+
+pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
+    match instr.op {
+        Opcode::FpAdd => exec_fp_binary(cpu, instr, |a, b| a + b, |a, b| a + b),
+        Opcode::FpSub => exec_fp_binary(cpu, instr, |a, b| a - b, |a, b| a - b),
+        Opcode::FpMul => exec_fp_binary(cpu, instr, |a, b| a * b, |a, b| a * b),
+        Opcode::FpDiv => exec_fp_binary(cpu, instr, |a, b| a / b, |a, b| a / b),
+        Opcode::FpNeg => {
+            let sign_mask = if instr.size == 4 {
+                1u64 << 31
+            } else {
+                1u64 << 63
+            };
+            write_fp_bits(
+                cpu,
+                instr.rd,
+                read_fp_bits(cpu, instr.rn, instr.size) ^ sign_mask,
+                instr.size,
+            );
+        }
+        Opcode::FpMovImm => {
+            write_fp_bits(
+                cpu,
+                instr.rd,
+                fp_expand_imm(instr.imm as u8, instr.size),
+                instr.size,
+            );
+        }
+        Opcode::Scvtf => {
+            let value = if instr.sf {
+                read_reg(cpu, instr.rn, true) as i64 as f64
+            } else {
+                read_reg(cpu, instr.rn, false) as u32 as i32 as f64
+            };
+            let scaled = if instr.cond == 1 {
+                value / 2f64.powi(instr.imm as i32)
+            } else {
+                value
+            };
+            if instr.size == 4 {
+                write_fp_bits(cpu, instr.rd, (scaled as f32).to_bits() as u64, 4);
+            } else {
+                write_fp_bits(cpu, instr.rd, scaled.to_bits(), 8);
+            }
+        }
+        Opcode::Fcvtzs => {
+            let value = read_fp_as_f64(cpu, instr.rn, instr.size).trunc();
+            if instr.sf {
+                write_reg(cpu, instr.rd, value as i64 as u64, true);
+            } else {
+                write_reg(cpu, instr.rd, value as i32 as u32 as u64, false);
+            }
+        }
+        Opcode::Fcmp | Opcode::Fcmpe => {
+            let lhs = read_fp_as_f64(cpu, instr.rn, instr.size);
+            let rhs = if instr.cond == 1 {
+                0.0
+            } else {
+                read_fp_as_f64(cpu, instr.rm, instr.size)
+            };
+            set_fp_compare_flags(cpu, lhs, rhs);
+        }
+        Opcode::Fcsel => {
+            let src = if cond_taken(cpu, instr.cond) {
+                instr.rn
+            } else {
+                instr.rm
+            };
+            write_fp_bits(
+                cpu,
+                instr.rd,
+                read_fp_bits(cpu, src, instr.size),
+                instr.size,
+            );
+        }
+        _ => unreachable!(),
+    }
+}
+
+fn exec_fp_binary<F32, F64>(cpu: &mut Armv8Cpu, instr: Instr, op32: F32, op64: F64)
+where
+    F32: FnOnce(f32, f32) -> f32,
+    F64: FnOnce(f64, f64) -> f64,
+{
+    if instr.size == 4 {
+        let lhs = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
+        let rhs = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
+        write_fp_bits(cpu, instr.rd, op32(lhs, rhs).to_bits() as u64, 4);
+    } else {
+        let lhs = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
+        let rhs = f64::from_bits(read_fp_bits(cpu, instr.rm, 8));
+        write_fp_bits(cpu, instr.rd, op64(lhs, rhs).to_bits(), 8);
+    }
+}
+
+fn read_fp_bits(cpu: &Armv8Cpu, reg: u8, size: u8) -> u64 {
+    if size == 4 {
+        (cpu.simd[reg as usize] & u32::MAX as u128) as u64
+    } else {
+        cpu.simd[reg as usize] as u64
+    }
+}
+
+fn write_fp_bits(cpu: &mut Armv8Cpu, reg: u8, bits: u64, size: u8) {
+    cpu.simd[reg as usize] = if size == 4 {
+        (bits as u32) as u128
+    } else {
+        bits as u128
+    };
+}
+
+fn read_fp_as_f64(cpu: &Armv8Cpu, reg: u8, size: u8) -> f64 {
+    if size == 4 {
+        f32::from_bits(read_fp_bits(cpu, reg, 4) as u32) as f64
+    } else {
+        f64::from_bits(read_fp_bits(cpu, reg, 8))
+    }
+}
+
+fn set_fp_compare_flags(cpu: &mut Armv8Cpu, lhs: f64, rhs: f64) {
+    if lhs.is_nan() || rhs.is_nan() {
+        cpu.pstate.set_nzcv(false, false, true, true);
+    } else if lhs == rhs {
+        cpu.pstate.set_nzcv(false, true, true, false);
+    } else if lhs < rhs {
+        cpu.pstate.set_nzcv(true, false, false, false);
+    } else {
+        cpu.pstate.set_nzcv(false, false, true, false);
+    }
+}
+
+fn fp_expand_imm(imm8: u8, size: u8) -> u64 {
+    let sign = (imm8 >> 7) as u64;
+    let b = ((imm8 >> 6) & 1) as u64;
+    let c = ((imm8 >> 5) & 1) as u64;
+    let d = ((imm8 >> 4) & 1) as u64;
+    let fraction = (imm8 & 0xF) as u64;
+
+    if size == 4 {
+        let exponent = ((!b & 1) << 7) | ((if b == 1 { 0x1F } else { 0 }) << 2) | (c << 1) | d;
+        (sign << 31) | (exponent << 23) | (fraction << 19)
+    } else {
+        let exponent = ((!b & 1) << 10) | ((if b == 1 { 0xFF } else { 0 }) << 2) | (c << 1) | d;
+        (sign << 63) | (exponent << 52) | (fraction << 48)
     }
 }
 
@@ -661,14 +827,6 @@ pub(super) fn shifted_reg_val(cpu: &Armv8Cpu, rm: u8, shift_type: u8, amount: u8
             }
         }
         _ => val,
-    }
-}
-
-pub(super) fn ext_or_shifted_val(cpu: &Armv8Cpu, rm: u8, cond: u8, amount: u8, sf: bool) -> u64 {
-    if cond >= 4 {
-        extend_reg_val(cpu, rm, cond, amount, sf)
-    } else {
-        shifted_reg_val(cpu, rm, cond, amount, sf)
     }
 }
 
@@ -902,12 +1060,10 @@ pub(super) fn exec_div(cpu: &mut Armv8Cpu, instr: Instr, signed: bool) {
         } else {
             n / m
         }
+    } else if signed {
+        (n as i32).checked_div(m as i32).unwrap_or(n as i32) as u32 as u64
     } else {
-        if signed {
-            (n as i32).checked_div(m as i32).unwrap_or(n as i32) as u32 as u64
-        } else {
-            ((n as u32) / (m as u32)) as u64
-        }
+        ((n as u32) / (m as u32)) as u64
     };
     write_reg(cpu, instr.rd, val, instr.sf);
 }

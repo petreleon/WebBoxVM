@@ -21,7 +21,6 @@ use system::{exec_brk, exec_dc_zva, exec_eret, exec_msr, exec_svc};
 
 use super::Armv8Cpu;
 use super::helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};
-use crate::arm64::mmu::translate;
 use crate::bus::SystemBus;
 use crate::constants::*;
 use std::env;
@@ -409,7 +408,19 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdInsElem
         | Opcode::SimdUzp1
         | Opcode::SimdBicImm
-        | Opcode::SimdMvni => exec_simd_data(cpu, instr),
+        | Opcode::SimdMvni
+        | Opcode::SimdUshll => exec_simd_data(cpu, instr),
+        Opcode::FpAdd
+        | Opcode::FpSub
+        | Opcode::FpMul
+        | Opcode::FpDiv
+        | Opcode::FpNeg
+        | Opcode::FpMovImm
+        | Opcode::Scvtf
+        | Opcode::Fcvtzs
+        | Opcode::Fcmp
+        | Opcode::Fcmpe
+        | Opcode::Fcsel => exec_fp_scalar(cpu, instr),
         Opcode::Tlbi => {
             cpu.tlb.invalidate_all();
         }

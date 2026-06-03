@@ -294,6 +294,14 @@ fn vector_bytes(offset: u64) -> u128 {
     value
 }
 
+fn f64_lane(cpu: &Armv8Cpu, reg: usize) -> f64 {
+    f64::from_bits(cpu.simd[reg] as u64)
+}
+
+fn f32_lane(cpu: &Armv8Cpu, reg: usize) -> f32 {
+    f32::from_bits(cpu.simd[reg] as u32)
+}
+
 #[test]
 fn simd_word_immediates_and_cmeq_zero() {
     let (mut cpu, mut bus) = setup();
@@ -307,6 +315,82 @@ fn simd_word_immediates_and_cmeq_zero() {
     cpu.simd[0] = 0x0001_0000_00ff_0000;
     execute(&mut cpu, &mut bus, decode(0x0E20_9800).unwrap()).unwrap(); // cmeq v0.8b, v0.8b, #0
     assert_eq!(cpu.simd[0], 0xff00_ffff_ff00_ffff);
+}
+
+#[test]
+fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
+    let (mut cpu, mut bus) = setup();
+
+    execute(&mut cpu, &mut bus, decode(0x1E6E_1000).unwrap()).unwrap(); // fmov d0, #1
+    assert_eq!(f64_lane(&cpu, 0), 1.0);
+
+    cpu.regs.set_w(0, 8);
+    execute(&mut cpu, &mut bus, decode(0x1E42_F800).unwrap()).unwrap(); // scvtf d0, w0, #2
+    assert_eq!(f64_lane(&cpu, 0), 2.0);
+
+    cpu.regs.set_w(20, (-2i32) as u32);
+    execute(&mut cpu, &mut bus, decode(0x1E22_0280).unwrap()).unwrap(); // scvtf s0, w20
+    assert_eq!(f32_lane(&cpu, 0), -2.0);
+
+    cpu.simd[0] = 1.5f64.to_bits() as u128;
+    cpu.simd[31] = 2.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E7F_0800).unwrap()).unwrap(); // fmul d0, d0, d31
+    assert_eq!(f64_lane(&cpu, 0), 3.0);
+
+    cpu.simd[25] = 0.25f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E79_2BFF).unwrap()).unwrap(); // fadd d31, d31, d25
+    assert_eq!(f64_lane(&cpu, 31), 2.25);
+
+    cpu.simd[28] = 4.0f64.to_bits() as u128;
+    cpu.simd[27] = 1.5f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E7B_3B9A).unwrap()).unwrap(); // fsub d26, d28, d27
+    assert_eq!(f64_lane(&cpu, 26), 2.5);
+
+    cpu.simd[31] = 6.0f64.to_bits() as u128;
+    cpu.simd[0] = 2.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E60_1BE0).unwrap()).unwrap(); // fdiv d0, d31, d0
+    assert_eq!(f64_lane(&cpu, 0), 3.0);
+
+    execute(&mut cpu, &mut bus, decode(0x1E61_401F).unwrap()).unwrap(); // fneg d31, d0
+    assert_eq!(f64_lane(&cpu, 31), -3.0);
+
+    cpu.simd[31] = (-3.9f64).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E78_03E0).unwrap()).unwrap(); // fcvtzs w0, d31
+    assert_eq!(cpu.regs.w(0), (-3i32) as u32);
+}
+
+#[test]
+fn scalar_fp_compare_select_and_widening_simd_ops() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[31] = 0.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E60_23E8).unwrap()).unwrap(); // fcmp d31, #0.0
+    assert!(cpu.pstate.z());
+    assert!(cpu.pstate.c());
+
+    cpu.simd[29] = 3.0f64.to_bits() as u128;
+    cpu.simd[25] = 4.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E79_23B0).unwrap()).unwrap(); // fcmpe d29, d25
+    assert!(cpu.pstate.n());
+    assert!(!cpu.pstate.c());
+
+    cpu.simd[31] = 11.0f64.to_bits() as u128;
+    cpu.simd[30] = 22.0f64.to_bits() as u128;
+    cpu.pstate.set_nzcv(false, true, true, false);
+    execute(&mut cpu, &mut bus, decode(0x1E7E_0FFF).unwrap()).unwrap(); // fcsel d31, d31, d30, eq
+    assert_eq!(f64_lane(&cpu, 31), 11.0);
+
+    cpu.pstate.set_nzcv(false, false, true, false);
+    execute(&mut cpu, &mut bus, decode(0x1E7E_0FFF).unwrap()).unwrap();
+    assert_eq!(f64_lane(&cpu, 31), 22.0);
+
+    cpu.simd[0] = u128::MAX;
+    execute(&mut cpu, &mut bus, decode(0x6F00_E400).unwrap()).unwrap(); // movi v0.2d, #0
+    assert_eq!(cpu.simd[0], 0);
+
+    cpu.simd[31] = 0xffff_ffff_0000_0002;
+    execute(&mut cpu, &mut bus, decode(0x2F20_A7FF).unwrap()).unwrap(); // ushll v31.2d, v31.2s, #0
+    assert_eq!(cpu.simd[31], 0x0000_0000_ffff_ffff_0000_0000_0000_0002);
 }
 
 #[test]

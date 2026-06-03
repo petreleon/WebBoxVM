@@ -2,7 +2,7 @@
 
 use super::{encode_mov64, encode_ret};
 use crate::constants::*;
-use crate::efi::encode::{movk_x, movz_x};
+use crate::efi::encode::movz_x;
 use crate::efi::protocols::LOADED_IMAGE_GUID_LO;
 
 /// Fixed address for the page bump-allocator head.

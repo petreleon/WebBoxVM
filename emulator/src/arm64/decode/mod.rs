@@ -178,6 +178,9 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 8,
         });
     }
+    if let Some(instr) = decode_fp_scalar(raw) {
+        return Some(instr);
+    }
     if (raw & 0xBFE0_FC00) == 0x0E00_3C00 {
         let q = ((raw >> 30) & 1) != 0;
         let imm5 = ((raw >> 16) & 0x1F) as u8;
@@ -317,6 +320,9 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
         return Some(instr);
     }
     if let Some(instr) = decode_simd_ushr(raw) {
+        return Some(instr);
+    }
+    if let Some(instr) = decode_simd_ushll(raw) {
         return Some(instr);
     }
     if (raw & 0xFF3F_FC00) == 0x0E21_2800 {
@@ -536,6 +542,30 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             sf: true,
             cond: 0,
             size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x6F00_E400 {
+        return Some(Instr {
+            op: Opcode::SimdMovi,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 8,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x2F00_E400 {
+        return Some(Instr {
+            op: Opcode::SimdMovi,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 8,
+            size: 8,
         });
     }
     if (raw & 0xBFF8_9C00) == 0x2F00_0400 {
@@ -838,6 +868,99 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     None
 }
 
+fn decode_fp_scalar(raw: u32) -> Option<Instr> {
+    let ftype = ((raw >> 22) & 0x3) as u8;
+    let size = match ftype {
+        0 => 4,
+        1 => 8,
+        _ => return None,
+    };
+    let rd = (raw & 0x1F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rm = ((raw >> 16) & 0x1F) as u8;
+
+    if (raw & 0xFF20_FC00) == 0x1E20_0800 {
+        return Some(fp_instr(Opcode::FpMul, rd, rn, rm, 0, size));
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_2800 {
+        return Some(fp_instr(Opcode::FpAdd, rd, rn, rm, 0, size));
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_3800 {
+        return Some(fp_instr(Opcode::FpSub, rd, rn, rm, 0, size));
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_1800 {
+        return Some(fp_instr(Opcode::FpDiv, rd, rn, rm, 0, size));
+    }
+    if (raw & 0xFFBF_FC00) == 0x1E21_4000 {
+        return Some(fp_instr(Opcode::FpNeg, rd, rn, 0, 0, size));
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_1000 {
+        return Some(fp_instr(
+            Opcode::FpMovImm,
+            rd,
+            0,
+            0,
+            ((raw >> 13) & 0xFF) as u64,
+            size,
+        ));
+    }
+    if (raw & 0x7FBF_FC00) == 0x1E22_0000 {
+        let mut instr = fp_instr(Opcode::Scvtf, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_0000) == 0x1E02_0000 {
+        let scale = ((raw >> 10) & 0x3F) as u8;
+        let fbits = 64u8.checked_sub(scale)?;
+        let mut instr = fp_instr(Opcode::Scvtf, rd, rn, 0, fbits as u64, size);
+        instr.sf = (raw >> 31) != 0;
+        instr.cond = 1;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_FC00) == 0x1E38_0000 {
+        let mut instr = fp_instr(Opcode::Fcvtzs, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_2000 && (raw & 0x7) == 0 {
+        let cmp_kind = ((raw >> 3) & 0x3) as u8;
+        let mut instr = fp_instr(
+            if (cmp_kind & 0b10) != 0 {
+                Opcode::Fcmpe
+            } else {
+                Opcode::Fcmp
+            },
+            0,
+            rn,
+            if (cmp_kind & 1) != 0 { 0 } else { rm },
+            0,
+            size,
+        );
+        instr.cond = cmp_kind & 1;
+        return Some(instr);
+    }
+    if (raw & 0xFF20_0C00) == 0x1E20_0C00 {
+        let mut instr = fp_instr(Opcode::Fcsel, rd, rn, rm, 0, size);
+        instr.cond = ((raw >> 12) & 0xF) as u8;
+        return Some(instr);
+    }
+
+    None
+}
+
+fn fp_instr(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, size: u8) -> Instr {
+    Instr {
+        op,
+        rd,
+        rn,
+        rm,
+        imm,
+        sf: size == 8,
+        cond: 0,
+        size,
+    }
+}
+
 fn decode_simd_bic_imm(raw: u32) -> Option<Instr> {
     let rd = (raw & 0x1F) as u8;
     let imm8 = (((raw >> 16) & 0x7) << 5) | ((raw >> 5) & 0x1F);
@@ -980,6 +1103,37 @@ fn decode_simd_ushr(raw: u32) -> Option<Instr> {
         } else {
             8
         },
+    })
+}
+
+fn decode_simd_ushll(raw: u32) -> Option<Instr> {
+    if (raw & 0xBF80_FC00) != 0x2F00_A400 {
+        return None;
+    }
+
+    let immh = ((raw >> 19) & 0xF) as u8;
+    if immh == 0 {
+        return None;
+    }
+    let immb = ((raw >> 16) & 0x7) as u8;
+    let highest = 7 - immh.leading_zeros() as u8;
+    let element_size = 1u8 << highest;
+    if element_size > 4 {
+        return None;
+    }
+    let imm = ((immh as u16) << 3) | immb as u16;
+    let element_bits = element_size as u16 * 8;
+    let shift = imm.checked_sub(element_bits)? as u64;
+
+    Some(Instr {
+        op: Opcode::SimdUshll,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: shift,
+        sf: true,
+        cond: element_size,
+        size: 16,
     })
 }
 

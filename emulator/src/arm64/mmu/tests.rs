@@ -1,6 +1,5 @@
 use super::*;
 use crate::bus::SystemBus;
-use crate::constants::*;
 
 #[test]
 fn mmu_off_passes_through() {
@@ -257,7 +256,7 @@ fn ttbr1_maps_kernel_va_to_kernel_load_pa() {
         (BOOT_TTBR1_L1 & DESC_ADDR_MASK) | DESC_VALID,
     );
     bus.write(
-        BOOT_TTBR1_L1 + 0 * 8,
+        BOOT_TTBR1_L1,
         8,
         (BOOT_TTBR1_L2 & DESC_ADDR_MASK) | DESC_VALID,
     );

@@ -3,79 +3,44 @@
 //! Each core runs one instruction at a time in round-robin fashion,
 //! with a per-core decode cache to avoid re-decoding the same page.
 
-use crate::arm64::{Armv8Cpu, Instr, Opcode, cond_taken, decode, execute, translate};
+use crate::arm64::gic_sysregs::handle_gic_sysreg_access;
+use crate::arm64::machine_trace::{TraceOptions, TraceState, TraceSyscall};
+use crate::arm64::{Armv8Cpu, DecodeCache, Instr, Opcode, cond_taken, decode, execute, translate};
 use crate::bus::SystemBus;
 use crate::constants::*;
-use std::collections::HashMap;
-use std::env;
-
-/// Pre-decoded instruction cache (per physical page address).
-type DecodeCache = HashMap<u64, DecodedPage>;
-
-#[derive(Debug, Clone)]
-struct DecodedPage {
-    raw_words: Vec<u32>,
-    instrs: Vec<Instr>,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct TraceSyscall {
-    nr: u64,
-    args: [u64; 6],
-    pc: u64,
-    step: u64,
-}
 
 /// Multi-core virtual machine with shared memory bus.
 pub struct Machine {
     pub cpus: Vec<Armv8Cpu>,
     pub bus: SystemBus,
     caches: Vec<DecodeCache>, // one decode cache per core
-    pending_trace_syscalls: Vec<Option<TraceSyscall>>,
+    trace: TraceState,
     pub active_core: usize,
     pub total_steps: u64,
     pub fetch_faults: u64,
     pub exec_faults: u64,
-    /// Ring buffer for recent instruction trace: (PC, opcode)
-    instr_trace: Vec<(u64, Opcode)>,
-    trace_idx: usize,
-    rwsem_trace_count: u64,
-    undecoded_trace_count: u64,
-    el0_fault_raw_trace_count: u64,
-    fp_simd_trap_trace_count: u64,
-    syscall_path_trace_count: u64,
-    exec_trace_count: u64,
-    chase_assert_trace_count: u64,
-    path_extend_trace_count: u64,
 }
 
 impl Machine {
     /// Create a machine with `num_cores` CPUs sharing a single system bus.
     pub fn new(num_cores: usize) -> Self {
+        Self::with_trace_options(num_cores, TraceOptions::from_env())
+    }
+
+    pub(crate) fn with_trace_options(num_cores: usize, trace_options: TraceOptions) -> Self {
         let cpus: Vec<_> = (0..num_cores)
             .map(|i| Armv8Cpu::with_core(i as u32))
             .collect();
-        let caches = (0..num_cores).map(|_| HashMap::new()).collect();
-        let pending_trace_syscalls = vec![None; num_cores];
+        let caches = (0..num_cores).map(|_| DecodeCache::new()).collect();
         Self {
             cpus,
             bus: SystemBus::new(),
             caches,
-            pending_trace_syscalls,
+            trace: TraceState::new(num_cores, trace_options),
             active_core: 0,
             total_steps: 0,
             fetch_faults: 0,
             exec_faults: 0,
-            instr_trace: vec![(0, Opcode::Nop); 256],
-            trace_idx: 0,
-            rwsem_trace_count: 0,
-            undecoded_trace_count: 0,
-            el0_fault_raw_trace_count: 0,
-            fp_simd_trap_trace_count: 0,
-            syscall_path_trace_count: 0,
-            exec_trace_count: 0,
-            chase_assert_trace_count: 0,
-            path_extend_trace_count: 0,
         }
     }
 
@@ -85,21 +50,10 @@ impl Machine {
         let start_steps = self.total_steps;
         let num_cores = self.cpus.len();
         let mut report_interval = 1_000_000u64;
-        let trace_faults = env::var_os("WEBBOXVM_TRACE_FAULTS").is_some();
-        let trace_syscall_dispatch = env::var_os("WEBBOXVM_TRACE_SYSCALL_DISPATCH").is_some();
-        let trace_writev_enabled = env::var_os("WEBBOXVM_TRACE_WRITEV").is_some();
-        let trace_rwsem_enabled = env::var_os("WEBBOXVM_TRACE_RWSEM").is_some();
-        let trace_undecoded = env::var_os("WEBBOXVM_TRACE_UNDECODED").is_some();
-        let trace_el0_undecoded = env::var_os("WEBBOXVM_TRACE_EL0_UNDECODED").is_some();
-        let trace_el0_fault_raw = env::var_os("WEBBOXVM_TRACE_EL0_FAULT_RAW").is_some();
-        let trace_bpf = env::var_os("WEBBOXVM_TRACE_BPF").is_some();
-        let trace_stack_chk = env::var_os("WEBBOXVM_TRACE_STACK_CHK").is_some();
-        let trace_mprotect_loop = env::var_os("WEBBOXVM_TRACE_MPROTECT_LOOP").is_some();
-        let trace_fp_traps = env::var_os("WEBBOXVM_TRACE_FP_TRAPS").is_some();
-        let trace_syscall_paths = env::var_os("WEBBOXVM_TRACE_SYSCALL_PATHS").is_some();
-        let trace_exec = env::var_os("WEBBOXVM_TRACE_EXEC").is_some();
-        let trace_chase_assert = env::var_os("WEBBOXVM_TRACE_CHASE_ASSERT").is_some();
-        let trace_path_extend = env::var_os("WEBBOXVM_TRACE_PATH_EXTEND").is_some();
+        let trace_options = self.trace.options;
+        let trace_fetch_hooks = trace_options.has_fetch_hooks();
+        let trace_instruction_hooks = trace_options.has_instruction_hooks();
+        let trace_syscall_returns = trace_options.has_syscall_return_hooks();
 
         while (self.total_steps - start_steps) < max_total_steps as u64 {
             let core = self.active_core;
@@ -112,7 +66,7 @@ impl Machine {
 
             // Periodic diagnostic report
             if (self.total_steps - start_steps) > 0
-                && (self.total_steps - start_steps) % report_interval == 0
+                && (self.total_steps - start_steps).is_multiple_of(report_interval)
             {
                 let pc = cpu.regs.pc;
                 eprintln!(
@@ -145,175 +99,154 @@ impl Machine {
                 }
             };
 
-            if trace_chase_assert && cpu.pstate.el() == 0 && self.chase_assert_trace_count < 64 {
-                if trace_chase_assert_check(cpu, &self.bus, pc, pa, self.total_steps) {
-                    self.chase_assert_trace_count += 1;
+            if trace_fetch_hooks {
+                if trace_options.chase_assert
+                    && cpu.pstate.el() == 0
+                    && self.trace.counters.chase_assert < 64
+                    && trace_chase_assert_check(cpu, &self.bus, pc, pa, self.total_steps)
+                {
+                    self.trace.counters.chase_assert += 1;
                 }
-            }
-            if trace_path_extend && cpu.pstate.el() == 0 && self.path_extend_trace_count < 256 {
-                if trace_path_extend_strlen(cpu, &self.bus, pc, pa, self.total_steps) {
-                    self.path_extend_trace_count += 1;
+                if trace_options.path_extend
+                    && cpu.pstate.el() == 0
+                    && self.trace.counters.path_extend < 256
+                    && trace_path_extend_strlen(cpu, &self.bus, pc, pa, self.total_steps)
+                {
+                    self.trace.counters.path_extend += 1;
+                }
+
+                if (trace_options.undecoded
+                    || (trace_options.el0_undecoded && cpu.pstate.el() == 0))
+                    && self.trace.counters.undecoded < 512
+                {
+                    let raw = self.bus.mem.read(pa, 4).unwrap_or(0) as u32;
+                    if decode(raw).is_none() {
+                        eprintln!(
+                            "UNDECODED step={} core={} el={} pc=0x{pc:016x} pa=0x{pa:016x} raw=0x{raw:08x}",
+                            self.total_steps,
+                            core,
+                            cpu.pstate.el(),
+                        );
+                        self.trace.counters.undecoded += 1;
+                    }
                 }
             }
 
-            if (trace_undecoded || (trace_el0_undecoded && cpu.pstate.el() == 0))
-                && self.undecoded_trace_count < 512
-            {
-                let raw = self.bus.mem.read(pa, 4).unwrap_or(0) as u32;
-                if decode(raw).is_none() {
-                    eprintln!(
-                        "UNDECODED step={} core={} el={} pc=0x{pc:016x} pa=0x{pa:016x} raw=0x{raw:08x}",
-                        self.total_steps,
-                        core,
-                        cpu.pstate.el(),
-                    );
-                    self.undecoded_trace_count += 1;
-                }
-            }
-
-            let instr = get_cached_or_fetch(cache, &self.bus.mem, pa);
+            let instr = cache.fetch(&self.bus.mem, pa);
 
             if let Some(instr) = instr {
-                // Record in instruction trace ring buffer
-                self.instr_trace[self.trace_idx] = (pc, instr.op);
-                self.trace_idx = (self.trace_idx + 1) & 0xFF;
-                if trace_syscall_dispatch
-                    && (0xffff_8000_8002_8800..=0xffff_8000_8002_8a00).contains(&pc)
-                {
-                    eprintln!(
-                        "DISPATCH step={} pc=0x{pc:016x} instr={instr:?} \
-                         x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} \
-                         x8=0x{:016x} x16=0x{:016x} x17=0x{:016x} \
-                         x19=0x{:016x} x20=0x{:016x} x21=0x{:016x} pstate=0x{:x}",
-                        self.total_steps,
-                        cpu.regs.x(0),
-                        cpu.regs.x(1),
-                        cpu.regs.x(2),
-                        cpu.regs.x(3),
-                        cpu.regs.x(8),
-                        cpu.regs.x(16),
-                        cpu.regs.x(17),
-                        cpu.regs.x(19),
-                        cpu.regs.x(20),
-                        cpu.regs.x(21),
-                        cpu.pstate.to_u64(),
-                    );
-                }
-                if trace_writev_enabled
-                    && cpu.pstate.el() == 0
-                    && instr.op == Opcode::Svc
-                    && cpu.regs.x(8) == 66
-                {
-                    trace_writev(cpu, &self.bus);
-                }
-                if trace_syscall_paths
-                    && cpu.pstate.el() == 0
-                    && instr.op == Opcode::Svc
-                    && self.syscall_path_trace_count < 8192
-                {
-                    if let Some(syscall) =
-                        trace_syscall_path_entry(cpu, &self.bus, pc, self.total_steps)
+                if trace_instruction_hooks {
+                    if trace_options.syscall_dispatch
+                        && (0xffff_8000_8002_8800..=0xffff_8000_8002_8a00).contains(&pc)
                     {
-                        self.pending_trace_syscalls[core] = Some(syscall);
-                        self.syscall_path_trace_count += 1;
+                        eprintln!(
+                            "DISPATCH step={} pc=0x{pc:016x} instr={instr:?} \
+                             x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} \
+                             x8=0x{:016x} x16=0x{:016x} x17=0x{:016x} \
+                             x19=0x{:016x} x20=0x{:016x} x21=0x{:016x} pstate=0x{:x}",
+                            self.total_steps,
+                            cpu.regs.x(0),
+                            cpu.regs.x(1),
+                            cpu.regs.x(2),
+                            cpu.regs.x(3),
+                            cpu.regs.x(8),
+                            cpu.regs.x(16),
+                            cpu.regs.x(17),
+                            cpu.regs.x(19),
+                            cpu.regs.x(20),
+                            cpu.regs.x(21),
+                            cpu.pstate.to_u64(),
+                        );
                     }
-                }
-                if trace_exec
-                    && cpu.pstate.el() == 0
-                    && instr.op == Opcode::Svc
-                    && self.exec_trace_count < 1024
-                    && self.pending_trace_syscalls[core].is_none()
-                {
-                    if let Some(syscall) = trace_exec_entry(cpu, &self.bus, pc, self.total_steps) {
-                        self.pending_trace_syscalls[core] = Some(syscall);
-                        self.exec_trace_count += 1;
+                    if trace_options.writev
+                        && cpu.pstate.el() == 0
+                        && instr.op == Opcode::Svc
+                        && cpu.regs.x(8) == 66
+                    {
+                        trace_writev(cpu, &self.bus);
                     }
-                }
-                if trace_stack_chk && cpu.pstate.el() == 0 {
-                    trace_stack_chk_enter(cpu, &self.bus, pc, pa, self.total_steps);
-                }
-                if trace_stack_chk && cpu.pstate.el() == 0 && instr.op == Opcode::Bl {
-                    trace_stack_chk_call(cpu, &self.bus, pc, instr, self.total_steps);
-                }
-                if trace_rwsem_enabled
-                    && self.total_steps > 700_000_000
-                    && (0xffff_8000_80f3_8a80..=0xffff_8000_80f3_8d80).contains(&pc)
-                    && self.rwsem_trace_count < 160
-                {
-                    trace_rwsem_loop(cpu, &self.bus, pc, pa, instr, self.total_steps);
-                    self.rwsem_trace_count += 1;
-                }
-                let trace_bpf_range = (0xffff_8000_8004_66b0..=0xffff_8000_8004_6b40).contains(&pc);
-                let trace_bpf_cache_flush = (0xffff_8000_8003_6e40..=0xffff_8000_8003_6ec0)
-                    .contains(&pc)
-                    && (0xffff_8000_8004_66b0..=0xffff_8000_8004_6b40).contains(&cpu.regs.x(30));
-                if trace_bpf && (trace_bpf_range || trace_bpf_cache_flush) {
-                    eprintln!(
-                        "BPF step={} pc=0x{pc:016x} instr={instr:?} \
-                         x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} \
-                         x4=0x{:016x} x5=0x{:016x} x19=0x{:016x} x20=0x{:016x} \
-                         x21=0x{:016x} x22=0x{:016x} x23=0x{:016x} lr=0x{:016x} \
-                         sp=0x{:016x} pstate=0x{:x}",
-                        self.total_steps,
-                        cpu.regs.x(0),
-                        cpu.regs.x(1),
-                        cpu.regs.x(2),
-                        cpu.regs.x(3),
-                        cpu.regs.x(4),
-                        cpu.regs.x(5),
-                        cpu.regs.x(19),
-                        cpu.regs.x(20),
-                        cpu.regs.x(21),
-                        cpu.regs.x(22),
-                        cpu.regs.x(23),
-                        cpu.regs.x(30),
-                        cpu.regs.sp,
-                        cpu.pstate.to_u64(),
-                    );
-                }
-                if trace_mprotect_loop
-                    && (0xffff_8000_8037_e840..=0xffff_8000_8037_e864).contains(&pc)
-                {
-                    trace_mprotect_loop_state(cpu, pc, pa, instr, self.total_steps);
+                    if trace_options.syscall_paths
+                        && cpu.pstate.el() == 0
+                        && instr.op == Opcode::Svc
+                        && self.trace.counters.syscall_path < 8192
+                        && let Some(syscall) =
+                            trace_syscall_path_entry(cpu, &self.bus, pc, self.total_steps)
+                    {
+                        self.trace.pending_syscalls[core] = Some(syscall);
+                        self.trace.counters.syscall_path += 1;
+                    }
+                    if trace_options.exec
+                        && cpu.pstate.el() == 0
+                        && instr.op == Opcode::Svc
+                        && self.trace.counters.exec < 1024
+                        && self.trace.pending_syscalls[core].is_none()
+                        && let Some(syscall) =
+                            trace_exec_entry(cpu, &self.bus, pc, self.total_steps)
+                    {
+                        self.trace.pending_syscalls[core] = Some(syscall);
+                        self.trace.counters.exec += 1;
+                    }
+                    if trace_options.stack_chk && cpu.pstate.el() == 0 {
+                        trace_stack_chk_enter(cpu, &self.bus, pc, pa, self.total_steps);
+                    }
+                    if trace_options.stack_chk && cpu.pstate.el() == 0 && instr.op == Opcode::Bl {
+                        trace_stack_chk_call(cpu, &self.bus, pc, instr, self.total_steps);
+                    }
+                    if trace_options.rwsem
+                        && self.total_steps > 700_000_000
+                        && (0xffff_8000_80f3_8a80..=0xffff_8000_80f3_8d80).contains(&pc)
+                        && self.trace.counters.rwsem < 160
+                    {
+                        trace_rwsem_loop(cpu, &self.bus, pc, pa, instr, self.total_steps);
+                        self.trace.counters.rwsem += 1;
+                    }
+                    if trace_options.bpf {
+                        let trace_bpf_range =
+                            (0xffff_8000_8004_66b0..=0xffff_8000_8004_6b40).contains(&pc);
+                        let trace_bpf_cache_flush = (0xffff_8000_8003_6e40..=0xffff_8000_8003_6ec0)
+                            .contains(&pc)
+                            && (0xffff_8000_8004_66b0..=0xffff_8000_8004_6b40)
+                                .contains(&cpu.regs.x(30));
+                        if trace_bpf_range || trace_bpf_cache_flush {
+                            eprintln!(
+                                "BPF step={} pc=0x{pc:016x} instr={instr:?} \
+                                 x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} \
+                                 x4=0x{:016x} x5=0x{:016x} x19=0x{:016x} x20=0x{:016x} \
+                                 x21=0x{:016x} x22=0x{:016x} x23=0x{:016x} lr=0x{:016x} \
+                                 sp=0x{:016x} pstate=0x{:x}",
+                                self.total_steps,
+                                cpu.regs.x(0),
+                                cpu.regs.x(1),
+                                cpu.regs.x(2),
+                                cpu.regs.x(3),
+                                cpu.regs.x(4),
+                                cpu.regs.x(5),
+                                cpu.regs.x(19),
+                                cpu.regs.x(20),
+                                cpu.regs.x(21),
+                                cpu.regs.x(22),
+                                cpu.regs.x(23),
+                                cpu.regs.x(30),
+                                cpu.regs.sp,
+                                cpu.pstate.to_u64(),
+                            );
+                        }
+                    }
+                    if trace_options.mprotect_loop
+                        && (0xffff_8000_8037_e840..=0xffff_8000_8037_e864).contains(&pc)
+                    {
+                        trace_mprotect_loop_state(cpu, pc, pa, instr, self.total_steps);
+                    }
                 }
 
-                // Intercept GIC system register accesses for interrupt routing.
-                if instr.op == Opcode::Mrs && instr.imm as u16 == SYSREG_ICC_IAR1_EL1 {
-                    let val = if cpu.sys.irq_pending {
-                        cpu.sys.irq_pending = false;
-                        cpu.sys.last_irq_id as u64
-                    } else {
-                        GIC_SPURIOUS_INTERRUPT
-                    };
-                    if val != GIC_SPURIOUS_INTERRUPT {
-                        self.bus.gic.clear_pending(val as u32);
-                    }
-                    crate::arm64::write_reg(cpu, instr.rd, val, true);
-                    cpu.regs.pc += INSTRUCTION_SIZE;
+                if handle_gic_sysreg_access(cpu, &mut self.bus, instr) {
                     self.total_steps += 1;
                     self.active_core = (core + 1) % num_cores;
                     continue;
                 }
 
-                if instr.op == Opcode::Msr {
-                    let sysreg_id = instr.imm as u16;
-                    match sysreg_id {
-                        SYSREG_ICC_EOIR1_EL1 => {
-                            let int_id = crate::arm64::read_reg(cpu, instr.rd, true) as u32;
-                            cpu.sys.irq_pending = false;
-                            cpu.sys.last_irq_id = GIC_SPURIOUS_INTERRUPT as u32;
-                            self.bus.gic.clear_pending(int_id);
-                            cpu.regs.pc += INSTRUCTION_SIZE;
-                            self.total_steps += 1;
-                            self.active_core = (core + 1) % num_cores;
-                            continue;
-                        }
-                        _ => {}
-                    }
-                }
-
                 if is_fp_simd_access(instr) && fp_simd_access_traps(cpu) {
-                    if trace_fp_traps && self.fp_simd_trap_trace_count < 128 {
+                    if trace_options.fp_traps && self.trace.counters.fp_simd_trap < 128 {
                         eprintln!(
                             "FP_SIMD_TRAP step={} core={} el={} pc=0x{pc:016x} pa=0x{pa:016x} instr={instr:?} \
                              cpacr=0x{:016x} fpen={}",
@@ -323,7 +256,7 @@ impl Machine {
                             cpu.sys.cpacr_el1,
                             (cpu.sys.cpacr_el1 & CPACR_FPEN_MASK) >> CPACR_FPEN_SHIFT,
                         );
-                        self.fp_simd_trap_trace_count += 1;
+                        self.trace.counters.fp_simd_trap += 1;
                     }
                     take_fp_simd_trap(cpu, pc);
                     self.total_steps += 1;
@@ -332,42 +265,43 @@ impl Machine {
                 }
 
                 if let Err(err) = execute(cpu, &mut self.bus, instr) {
-                    let is_main_exec_fault =
-                        (0x0000_aaaa_0000_0000..=0x0000_aaab_ffff_ffff).contains(&pc);
-                    if trace_el0_fault_raw
+                    if trace_options.el0_fault_raw
                         && cpu.pstate.el() == 0
                         && is_data_abort_fault(err)
-                        && (self.el0_fault_raw_trace_count < 512 || is_main_exec_fault)
                     {
-                        eprintln!(
-                            "EL0 FAULT RAW step={} core={} pc=0x{pc:016x} pa=0x{pa:016x} instr={instr:?} err={err} \
-                             x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} x8=0x{:016x} sp=0x{:016x} lr=0x{:016x}",
-                            self.total_steps,
-                            core,
-                            cpu.regs.x(0),
-                            cpu.regs.x(1),
-                            cpu.regs.x(2),
-                            cpu.regs.x(3),
-                            cpu.regs.x(8),
-                            cpu.regs.sp,
-                            cpu.regs.x(30),
-                        );
-                        for offset in -4i64..=4 {
-                            let Some(window_pa) =
-                                pa.checked_add_signed(offset * INSTRUCTION_SIZE as i64)
-                            else {
-                                continue;
-                            };
-                            let raw = self.bus.mem.read(window_pa, 4).unwrap_or(0xffff_ffff);
-                            let marker = if offset == 0 { "*" } else { " " };
+                        let is_main_exec_fault =
+                            (0x0000_aaaa_0000_0000..=0x0000_aaab_ffff_ffff).contains(&pc);
+                        if self.trace.counters.el0_fault_raw < 512 || is_main_exec_fault {
                             eprintln!(
-                                "  {marker} off={offset:+} pa=0x{window_pa:016x} raw=0x{raw:08x} decoded={:?}",
-                                decode(raw as u32)
+                                "EL0 FAULT RAW step={} core={} pc=0x{pc:016x} pa=0x{pa:016x} instr={instr:?} err={err} \
+                                 x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} x8=0x{:016x} sp=0x{:016x} lr=0x{:016x}",
+                                self.total_steps,
+                                core,
+                                cpu.regs.x(0),
+                                cpu.regs.x(1),
+                                cpu.regs.x(2),
+                                cpu.regs.x(3),
+                                cpu.regs.x(8),
+                                cpu.regs.sp,
+                                cpu.regs.x(30),
                             );
+                            for offset in -4i64..=4 {
+                                let Some(window_pa) =
+                                    pa.checked_add_signed(offset * INSTRUCTION_SIZE as i64)
+                                else {
+                                    continue;
+                                };
+                                let raw = self.bus.mem.read(window_pa, 4).unwrap_or(0xffff_ffff);
+                                let marker = if offset == 0 { "*" } else { " " };
+                                eprintln!(
+                                    "  {marker} off={offset:+} pa=0x{window_pa:016x} raw=0x{raw:08x} decoded={:?}",
+                                    decode(raw as u32)
+                                );
+                            }
+                            self.trace.counters.el0_fault_raw += 1;
                         }
-                        self.el0_fault_raw_trace_count += 1;
                     }
-                    if trace_faults && self.exec_faults < 64 {
+                    if trace_options.faults && self.exec_faults < 64 {
                         eprintln!(
                             "EXEC FAULT step={} core={} pc=0x{pc:016x} pa=0x{pa:016x} instr={instr:?}: {err} \
                              x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} \
@@ -390,7 +324,7 @@ impl Machine {
                     }
                     self.exec_faults += 1;
                     if is_data_abort_fault(err) {
-                        take_data_abort(cpu, pc, instr, err);
+                        take_data_abort(cpu, pc, instr, err, trace_options.el0_faults);
                     } else {
                         cpu.regs.pc += INSTRUCTION_SIZE;
                     }
@@ -398,13 +332,12 @@ impl Machine {
                     self.active_core = (core + 1) % num_cores;
                     continue;
                 }
-                if (trace_syscall_paths || trace_exec)
+                if trace_syscall_returns
                     && instr.op == Opcode::Eret
                     && cpu.pstate.el() == 0
+                    && let Some(syscall) = self.trace.pending_syscalls[core].take()
                 {
-                    if let Some(syscall) = self.pending_trace_syscalls[core].take() {
-                        trace_syscall_path_return(cpu, &self.bus, syscall);
-                    }
+                    trace_syscall_path_return(cpu, &self.bus, syscall);
                 }
                 deliver_external_irq(cpu, &mut self.bus);
             } else {
@@ -951,7 +884,13 @@ fn take_instruction_abort(cpu: &mut Armv8Cpu, fault_pc: u64) {
     take_sync_exception(cpu, fault_pc, ec, ESR_FSC_TRANSLATION_LEVEL3, from_lower_el);
 }
 
-fn take_data_abort(cpu: &mut Armv8Cpu, fault_pc: u64, instr: Instr, err: &str) {
+fn take_data_abort(
+    cpu: &mut Armv8Cpu,
+    fault_pc: u64,
+    instr: Instr,
+    err: &str,
+    trace_el0_faults: bool,
+) {
     let from_lower_el = cpu.pstate.el() == 0;
     let ec = if from_lower_el {
         ESR_EC_DATA_ABORT_LOWER_EL
@@ -971,7 +910,7 @@ fn take_data_abort(cpu: &mut Armv8Cpu, fault_pc: u64, instr: Instr, err: &str) {
         } else {
             0
         };
-    if from_lower_el && env::var_os("WEBBOXVM_TRACE_EL0_FAULTS").is_some() {
+    if from_lower_el && trace_el0_faults {
         eprintln!(
             "EL0 DATA ABORT pc=0x{fault_pc:016x} instr={instr:?} far=0x{:016x} iss=0x{iss:x} \
              x0=0x{:016x} x1=0x{:016x} x2=0x{:016x} x3=0x{:016x} \
@@ -1117,6 +1056,18 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdUzp1
             | Opcode::SimdBicImm
             | Opcode::SimdMvni
+            | Opcode::SimdUshll
+            | Opcode::FpAdd
+            | Opcode::FpSub
+            | Opcode::FpMul
+            | Opcode::FpDiv
+            | Opcode::FpNeg
+            | Opcode::FpMovImm
+            | Opcode::Scvtf
+            | Opcode::Fcvtzs
+            | Opcode::Fcmp
+            | Opcode::Fcmpe
+            | Opcode::Fcsel
     )
 }
 
@@ -1168,44 +1119,4 @@ mod tests {
         assert_eq!(cpu.sys.esr_el1 >> 26, ESR_EC_DATA_ABORT_CURRENT_EL);
         assert_ne!(cpu.sys.esr_el1 & ESR_DATA_ABORT_WNR, 0);
     }
-}
-
-/// Fetch one instruction, using the decode cache to avoid re-decoding.
-/// If the page isn't cached yet, decode the entire 4 KiB page.
-fn get_cached_or_fetch(
-    cache: &mut DecodeCache,
-    mem: &crate::memory::PhysicalMemory,
-    pa: u64,
-) -> Option<Instr> {
-    let page_base = pa & !PAGE_OFFSET_MASK;
-    let word_offset = ((pa & PAGE_OFFSET_MASK) / INSTRUCTION_SIZE) as usize;
-    let raw = mem.read(pa, 4)? as u32;
-
-    if let Some(page) = cache.get(&page_base) {
-        if page.raw_words.get(word_offset).copied() == Some(raw) {
-            return page.instrs.get(word_offset).copied();
-        }
-    }
-
-    // Decode the entire page (1024 instructions max)
-    let mut raw_words: Vec<u32> = Vec::with_capacity(INSTRUCTIONS_PER_PAGE);
-    let mut instrs: Vec<Instr> = Vec::with_capacity(INSTRUCTIONS_PER_PAGE);
-    for i in 0..INSTRUCTIONS_PER_PAGE as u64 {
-        let addr = page_base + i * INSTRUCTION_SIZE;
-        let raw = mem.read(addr, 4)? as u32;
-        raw_words.push(raw);
-        instrs.push(decode(raw).unwrap_or(Instr {
-            op: Opcode::Nop,
-            rd: 0,
-            rn: 0,
-            rm: 0,
-            imm: 0,
-            sf: true,
-            cond: 0,
-            size: 0,
-        }));
-    }
-    let result = instrs.get(word_offset).copied();
-    cache.insert(page_base, DecodedPage { raw_words, instrs });
-    result
 }

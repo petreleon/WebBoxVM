@@ -1,28 +1,25 @@
 //! Debug dump helpers — used by the BRK handler.
 
-use super::Instr;
 use super::branch::branch_target;
-use crate::arm64::helpers::read_reg;
 use crate::arm64::mmu::translate;
 use crate::arm64::{Armv8Cpu, Tlb, decode};
 use crate::bus::SystemBus;
-use crate::constants::*;
 
 pub(super) fn dump_instructions(label: &str, addr: u64, cpu: &Armv8Cpu, bus: &SystemBus) {
     let mut scratch_tlb = Tlb::new();
     eprintln!("Instructions around {} ({:#018x}):", label, addr);
     for offset in (-32..=32).step_by(4) {
         let target = branch_target(addr, offset as u64);
-        if let Ok(pa) = translate(&cpu.sys, &mut scratch_tlb, &bus.mem, target) {
-            if let Some(val) = bus.mem.read(pa, 4) {
-                let decoded = decode(val as u32);
-                eprintln!(
-                    "  {:#018x}: {:08x} {:?}",
-                    target,
-                    val,
-                    decoded.map(|d| d.op)
-                );
-            }
+        if let Ok(pa) = translate(&cpu.sys, &mut scratch_tlb, &bus.mem, target)
+            && let Some(val) = bus.mem.read(pa, 4)
+        {
+            let decoded = decode(val as u32);
+            eprintln!(
+                "  {:#018x}: {:08x} {:?}",
+                target,
+                val,
+                decoded.map(|d| d.op)
+            );
         }
     }
 }
@@ -42,10 +39,11 @@ pub(super) fn dump_string_pointers(cpu: &Armv8Cpu, bus: &SystemBus) {
             continue;
         }
         let mut scratch_tlb = Tlb::new();
-        if let Some(s) = try_read_string_at(bus, &mut scratch_tlb, &cpu.sys, reg_val) {
-            if !s.is_empty() && s.len() > 2 {
-                eprintln!("  maybe @X{}: \"{}\"", i, s);
-            }
+        if let Some(s) = try_read_string_at(bus, &mut scratch_tlb, &cpu.sys, reg_val)
+            && !s.is_empty()
+            && s.len() > 2
+        {
+            eprintln!("  maybe @X{}: \"{}\"", i, s);
         }
     }
 }
@@ -86,10 +84,10 @@ pub(super) fn dump_stack(cpu: &Armv8Cpu, bus: &SystemBus) {
     let mut scratch_tlb = Tlb::new();
     for offset in (-64..=64).step_by(8) {
         let addr = branch_target(sp, offset as u64);
-        if let Ok(pa) = translate(&cpu.sys, &mut scratch_tlb, &bus.mem, addr) {
-            if let Some(val) = bus.mem.read(pa, 8) {
-                eprintln!("  {:#018x}: {:016x}", addr, val);
-            }
+        if let Ok(pa) = translate(&cpu.sys, &mut scratch_tlb, &bus.mem, addr)
+            && let Some(val) = bus.mem.read(pa, 8)
+        {
+            eprintln!("  {:#018x}: {:016x}", addr, val);
         }
     }
 }

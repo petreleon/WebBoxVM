@@ -288,7 +288,7 @@ fn page_table_walk_with_desc(
     let mut table_base = ttbr & DESC_ADDR_MASK;
 
     // Level 0 (bits 47:39)
-    if start_level <= 0 {
+    if start_level == 0 {
         let idx = ((va >> PT_L0_SHIFT) & 0x1FF) as u64;
         let desc = read_descriptor(mem, table_base + idx * 8)?;
         let is_table = decode_descriptor_type(desc, 0)?;
@@ -367,6 +367,7 @@ fn read_descriptor(mem: &PhysicalMemory, addr: u64) -> Result<u64, Fault> {
 }
 
 /// Debug: walk page table from TTBR1 and print each step.
+#[allow(dead_code)]
 pub fn page_table_debug(sys: &SystemRegisters, mem: &PhysicalMemory, va: u64) {
     let ttbr = sys.ttbr1_el1 & DESC_ADDR_MASK;
     let tcr = sys.tcr_el1;

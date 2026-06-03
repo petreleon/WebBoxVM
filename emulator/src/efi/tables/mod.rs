@@ -132,7 +132,7 @@ pub fn setup_efi_tables(
     // Each occupies one LARGE_CODE_BLOCK_SIZE block (512 bytes).
 
     // Block 0: AllocatePool — bump allocator
-    let allocpool_tp = EFI_LARGE_CODE_ADDR + 0 * LARGE_CODE_BLOCK_SIZE;
+    let allocpool_tp = EFI_LARGE_CODE_ADDR;
     let bump = bump_allocator_trampoline(EFI_POOL_HEAD_PTR);
     write_trampoline(bus, allocpool_tp, &bump);
     write64(
@@ -143,7 +143,7 @@ pub fn setup_efi_tables(
     write64(bus, EFI_POOL_HEAD_PTR, EFI_POOL_BASE); // prime the pool head
 
     // Block 1: GetMemoryMap
-    let memmap_tp = EFI_LARGE_CODE_ADDR + 1 * LARGE_CODE_BLOCK_SIZE;
+    let memmap_tp = EFI_LARGE_CODE_ADDR + LARGE_CODE_BLOCK_SIZE;
     let memmap = trampolines::build_get_memory_map_trampoline();
     assert!(
         memmap.len() * 4 <= LARGE_CODE_BLOCK_SIZE as usize,

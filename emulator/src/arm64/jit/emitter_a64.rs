@@ -17,7 +17,7 @@ impl NativeBlock {
     pub unsafe fn execute(&self, cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
         let ram_ptr = bus.mem.ram_data();
         type JitFn = extern "C" fn(u64, u64, u64);
-        let jit: JitFn = std::mem::transmute(self.code.as_ptr());
+        let jit: JitFn = unsafe { std::mem::transmute(self.code.as_ptr()) };
         jit(cpu as *mut _ as u64, bus as *mut _ as u64, ram_ptr as u64);
     }
 }
@@ -56,7 +56,7 @@ impl A64Compiler {
         for i in (0..28).step_by(2) {
             let off = i * 8;
             let ldp = 0xA9400000
-                | ((i as u32) << 0)
+                | i as u32
                 | ((i as u32 + 1) << 10)
                 | (19u32 << 5)
                 | encode_ldp_offset(off);
@@ -75,7 +75,7 @@ impl A64Compiler {
         for i in (0..28).step_by(2) {
             let off = i * 8;
             let stp = 0xA9000000
-                | ((i as u32) << 0)
+                | i as u32
                 | ((i as u32 + 1) << 10)
                 | (19u32 << 5)
                 | encode_ldp_offset(off);

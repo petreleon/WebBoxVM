@@ -321,10 +321,56 @@ fn decode_simd_userland_string_ops() {
 }
 
 #[test]
+fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
+    let cases = [
+        (0x1E7F_0800, Opcode::FpMul, "fmul"),
+        (0x1E79_2BFF, Opcode::FpAdd, "fadd"),
+        (0x1E7B_3B9A, Opcode::FpSub, "fsub"),
+        (0x1E60_1BE0, Opcode::FpDiv, "fdiv"),
+        (0x1E61_401F, Opcode::FpNeg, "fneg"),
+        (0x1E6E_1000, Opcode::FpMovImm, "fmov"),
+        (0x1E62_0000, Opcode::Scvtf, "scvtf"),
+        (0x1E22_0280, Opcode::Scvtf, "scvtf"),
+        (0x1E42_F800, Opcode::Scvtf, "scvtf"),
+        (0x1E78_03E0, Opcode::Fcvtzs, "fcvtzs"),
+        (0x1E60_23E8, Opcode::Fcmp, "fcmp"),
+        (0x1E79_23B0, Opcode::Fcmpe, "fcmpe"),
+        (0x1E7E_0FFF, Opcode::Fcsel, "fcsel"),
+        (0x6F00_E400, Opcode::SimdMovi, "movi"),
+        (0x2F00_E41F, Opcode::SimdMovi, "movi"),
+        (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+
+    let fixed = decode(0x1E42_F800).unwrap();
+    assert_eq!(fixed.imm, 2);
+    assert_eq!(fixed.cond, 1);
+
+    let fcmp_zero = decode(0x1E60_23E8).unwrap();
+    assert_eq!(fcmp_zero.rn, 31);
+    assert_eq!(fcmp_zero.cond, 1);
+
+    let ushll = decode(0x2F20_A7FF).unwrap();
+    assert_eq!(ushll.rd, 31);
+    assert_eq!(ushll.rn, 31);
+    assert_eq!(ushll.imm, 0);
+    assert_eq!(ushll.cond, 4);
+}
+
+#[test]
 fn decode_adrp_non_zero_immlo() {
     let raw: u32 = 0xf0000d61;
     let instr = decode(raw).unwrap();
     assert_eq!(instr.op, Opcode::Adrp);
     assert_eq!(instr.rd, 1);
     assert_eq!(instr.imm, 0x1af000);
+}
+
+fn assert_disarm64_mnemonic(raw: u32, mnemonic: &str) {
+    let decoded = disarm64::decoder::decode(raw).expect("disarm64 should decode test word");
+    assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
 }

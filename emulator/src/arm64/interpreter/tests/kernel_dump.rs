@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod kernel_dump_tests {
-    use crate::arm64::mmu::translate;
     use crate::arm64::{Armv8Cpu, decode, execute};
     use crate::bus::SystemBus;
 
@@ -9,7 +8,6 @@ mod kernel_dump_tests {
     fn dump_decompressed_kernel() {
         use crate::dtb::{build_dtb, load_dtb};
         use crate::efi::setup_efi_tables;
-        use crate::initrd::{build_cpio, load_initrd};
         use crate::loader::kernel::{KERNEL_LOAD, load_kernel};
 
         let mut cpu = Armv8Cpu::new();

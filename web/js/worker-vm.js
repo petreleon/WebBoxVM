@@ -48,6 +48,14 @@ export class WorkerVm {
     return this.#request("installDiskSnapshot").then(({ snapshot }) => snapshot);
   }
 
+  compile_jit_block(coreId = 0) {
+    return this.#request("compileJitBlock", { coreId });
+  }
+
+  run_jit_block(coreId = 0) {
+    return this.#request("runJitBlock", { coreId });
+  }
+
   send_uart_input(input) {
     this.#post("sendUartInput", { input });
   }
