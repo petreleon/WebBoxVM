@@ -1105,6 +1105,8 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::Fcvtas
             | Opcode::Fcmp
             | Opcode::Fcmpe
+            | Opcode::Fccmp
+            | Opcode::Fccmpe
             | Opcode::Fcsel
     )
 }

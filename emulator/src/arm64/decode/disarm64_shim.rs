@@ -138,6 +138,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#fcvtas => Opcode::Fcvtas,
         M::r#fcmp => Opcode::Fcmp,
         M::r#fcmpe => Opcode::Fcmpe,
+        M::r#fccmp => Opcode::Fccmp,
+        M::r#fccmpe => Opcode::Fccmpe,
         M::r#fmov if (raw & 0xFFBF_FC00) == 0x1E20_4000 => Opcode::SimdFmovReg64,
         M::r#fmov if (raw & 0xFFFF_FC00) == 0x9E67_0000 => Opcode::SimdFmovGprToD,
         M::r#fmov if (raw & 0xFFFF_FC00) == 0x9E66_0000 => Opcode::SimdFmovDToGpr,

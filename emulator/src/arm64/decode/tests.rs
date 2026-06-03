@@ -658,6 +658,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x9E64_03A3, Opcode::Fcvtas, "fcvtas"),
         (0x1E60_23E8, Opcode::Fcmp, "fcmp"),
         (0x1E79_23B0, Opcode::Fcmpe, "fcmpe"),
+        (0x1E6D_0400, Opcode::Fccmp, "fccmp"),
+        (0x1E6D_0410, Opcode::Fccmpe, "fccmpe"),
         (0x1E7E_0FFF, Opcode::Fcsel, "fcsel"),
         (0x6F00_E400, Opcode::SimdMovi, "movi"),
         (0x0F00_848F, Opcode::SimdMovi, "movi"),
@@ -743,6 +745,19 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     let fcmp_zero = decode(0x1E60_23E8).unwrap();
     assert_eq!(fcmp_zero.rn, 31);
     assert_eq!(fcmp_zero.cond, 1);
+
+    let fccmp = decode(0x1E6D_05E4).unwrap();
+    assert_eq!(fccmp.op, Opcode::Fccmp);
+    assert_eq!(fccmp.rn, 15);
+    assert_eq!(fccmp.rm, 13);
+    assert_eq!(fccmp.imm, 4);
+    assert_eq!(fccmp.cond, 0);
+    assert_eq!(fccmp.size, 8);
+
+    let fccmp_single = decode(0x1E3F_8400).unwrap();
+    assert_eq!(fccmp_single.op, Opcode::Fccmp);
+    assert_eq!(fccmp_single.cond, 8);
+    assert_eq!(fccmp_single.size, 4);
 
     let ushll = decode(0x2F20_A7FF).unwrap();
     assert_eq!(ushll.rd, 31);

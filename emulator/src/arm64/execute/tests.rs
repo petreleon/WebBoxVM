@@ -799,6 +799,33 @@ fn scalar_fp_compare_select_and_widening_simd_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E7E_0FFF).unwrap()).unwrap();
     assert_eq!(f64_lane(&cpu, 31), 22.0);
 
+    cpu.simd[0] = 2.0f64.to_bits() as u128;
+    cpu.simd[13] = 3.0f64.to_bits() as u128;
+    cpu.pstate.set_nzcv(false, true, true, false);
+    execute(&mut cpu, &mut bus, decode(0x1E6D_0400).unwrap()).unwrap(); // fccmp d0, d13, #0, eq
+    assert!(cpu.pstate.n());
+    assert!(!cpu.pstate.z());
+    assert!(!cpu.pstate.c());
+    assert!(!cpu.pstate.v());
+
+    cpu.simd[15] = 1.0f64.to_bits() as u128;
+    cpu.simd[13] = 0.0f64.to_bits() as u128;
+    cpu.pstate.set_nzcv(false, false, true, false);
+    execute(&mut cpu, &mut bus, decode(0x1E6D_05E4).unwrap()).unwrap(); // fccmp d15, d13, #4, eq
+    assert!(!cpu.pstate.n());
+    assert!(cpu.pstate.z());
+    assert!(!cpu.pstate.c());
+    assert!(!cpu.pstate.v());
+
+    cpu.simd[0] = 4.0f32.to_bits() as u128;
+    cpu.simd[31] = 4.0f32.to_bits() as u128;
+    cpu.pstate.set_nzcv(false, false, true, false);
+    execute(&mut cpu, &mut bus, decode(0x1E3F_8400).unwrap()).unwrap(); // fccmp s0, s31, #0, hi
+    assert!(!cpu.pstate.n());
+    assert!(cpu.pstate.z());
+    assert!(cpu.pstate.c());
+    assert!(!cpu.pstate.v());
+
     cpu.simd[0] = u128::MAX;
     execute(&mut cpu, &mut bus, decode(0x6F00_E400).unwrap()).unwrap(); // movi v0.2d, #0
     assert_eq!(cpu.simd[0], 0);

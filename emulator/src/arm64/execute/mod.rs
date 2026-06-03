@@ -458,6 +458,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::Fcvtas
         | Opcode::Fcmp
         | Opcode::Fcmpe
+        | Opcode::Fccmp
+        | Opcode::Fccmpe
         | Opcode::Fcsel => exec_fp_scalar(cpu, instr),
         Opcode::Tlbi => {
             cpu.tlb.invalidate_all();

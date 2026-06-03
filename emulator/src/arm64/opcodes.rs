@@ -173,6 +173,8 @@ pub enum Opcode {
     Fcvtas,
     Fcmp,
     Fcmpe,
+    Fccmp,
+    Fccmpe,
     Fcsel,
     Rev,
     Rev32,

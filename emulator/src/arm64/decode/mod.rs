@@ -1355,6 +1355,22 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
         instr.sf = (raw >> 31) != 0;
         return Some(instr);
     }
+    if (raw & 0xFF20_0C00) == 0x1E20_0400 {
+        let mut instr = fp_instr(
+            if (raw & 0x10) != 0 {
+                Opcode::Fccmpe
+            } else {
+                Opcode::Fccmp
+            },
+            0,
+            rn,
+            rm,
+            (raw & 0xF) as u64,
+            size,
+        );
+        instr.cond = ((raw >> 12) & 0xF) as u8;
+        return Some(instr);
+    }
     if (raw & 0xFF20_FC00) == 0x1E20_2000 && (raw & 0x7) == 0 {
         let cmp_kind = ((raw >> 3) & 0x3) as u8;
         let mut instr = fp_instr(

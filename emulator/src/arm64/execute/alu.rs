@@ -861,6 +861,15 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
             };
             set_fp_compare_flags(cpu, lhs, rhs);
         }
+        Opcode::Fccmp | Opcode::Fccmpe => {
+            if cond_taken(cpu, instr.cond) {
+                let lhs = read_fp_as_f64(cpu, instr.rn, instr.size);
+                let rhs = read_fp_as_f64(cpu, instr.rm, instr.size);
+                set_fp_compare_flags(cpu, lhs, rhs);
+            } else {
+                set_nzcv_from_bits(cpu, instr.imm);
+            }
+        }
         Opcode::Fcsel => {
             let src = if cond_taken(cpu, instr.cond) {
                 instr.rn
@@ -1102,6 +1111,15 @@ fn set_fp_compare_flags(cpu: &mut Armv8Cpu, lhs: f64, rhs: f64) {
     } else {
         cpu.pstate.set_nzcv(false, false, true, false);
     }
+}
+
+fn set_nzcv_from_bits(cpu: &mut Armv8Cpu, bits: u64) {
+    cpu.pstate.set_nzcv(
+        (bits & 8) != 0,
+        (bits & 4) != 0,
+        (bits & 2) != 0,
+        (bits & 1) != 0,
+    );
 }
 
 fn fp_expand_imm(imm8: u8, size: u8) -> u64 {
