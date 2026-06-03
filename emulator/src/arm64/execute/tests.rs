@@ -658,6 +658,27 @@ fn simd_scalar_byte_halfword_load_store_forms() {
     execute(&mut cpu, &mut bus, decode(0x0D00_1D1E).unwrap()).unwrap(); // st1 {v30.b}[7], [x8]
     assert_eq!(bus.read(base + 0xd0, 1), Some(0x80));
 
+    cpu.regs.set_x(7, base + 0xe0);
+    cpu.simd[6] = 0x1122_3344_5566_7788;
+    execute(&mut cpu, &mut bus, decode(0x0D9F_80E6).unwrap()).unwrap(); // st1 {v6.s}[0], [x7], #4
+    assert_eq!(bus.read(base + 0xe0, 4), Some(0x5566_7788));
+    assert_eq!(cpu.regs.x(7), base + 0xe4);
+
+    cpu.regs.set_x(7, base + 0xe8);
+    cpu.regs.set_x(4, 12);
+    cpu.simd[6] = 0xaabb_ccdd_0102_0304;
+    execute(&mut cpu, &mut bus, decode(0x0D84_80E6).unwrap()).unwrap(); // st1 {v6.s}[0], [x7], x4
+    assert_eq!(bus.read(base + 0xe8, 4), Some(0x0102_0304));
+    assert_eq!(cpu.regs.x(7), base + 0xf4);
+
+    bus.write(base + 0x100, 4, 0xc001_d00d);
+    cpu.regs.set_x(7, base + 0x100);
+    cpu.regs.set_x(4, 20);
+    cpu.simd[6] = 0xfeed_face_1122_3344;
+    execute(&mut cpu, &mut bus, decode(0x0DC4_80E6).unwrap()).unwrap(); // ld1 {v6.s}[0], [x7], x4
+    assert_eq!(cpu.simd[6], 0xfeed_face_c001_d00d);
+    assert_eq!(cpu.regs.x(7), base + 0x114);
+
     cpu.regs.set_x(1, base + 0xb0);
     cpu.regs.set_x(0, 3);
     bus.write(base + 0xb6, 2, 0xcafe);

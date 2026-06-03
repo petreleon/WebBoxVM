@@ -1100,15 +1100,15 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
 }
 
 fn decode_simd_ldst1_lane(raw: u32) -> Option<Instr> {
-    if (raw & 0xBFE0_0000) != 0x0D00_0000 && (raw & 0xBFE0_0000) != 0x0D40_0000 {
-        return None;
-    }
-    if ((raw >> 21) & 1) != 0 || ((raw >> 16) & 0x1F) != 0 {
+    let no_offset = (raw & 0xBFFF_0000) == 0x0D00_0000 || (raw & 0xBFFF_0000) == 0x0D40_0000;
+    let post_index = (raw & 0xBFE0_0000) == 0x0D80_0000 || (raw & 0xBFE0_0000) == 0x0DC0_0000;
+    if !no_offset && !post_index {
         return None;
     }
 
     let q = (raw >> 30) & 1;
     let load = ((raw >> 22) & 1) != 0;
+    let rm_field = ((raw >> 16) & 0x1F) as u8;
     let opcode = (raw >> 13) & 0x7;
     let s = (raw >> 12) & 1;
     let size = (raw >> 10) & 0x3;
@@ -1135,6 +1135,11 @@ fn decode_simd_ldst1_lane(raw: u32) -> Option<Instr> {
         }
         _ => return None,
     };
+    let rm = if post_index {
+        if rm_field == 31 { 0xFE } else { rm_field }
+    } else {
+        0xFF
+    };
 
     Some(Instr {
         op: if load {
@@ -1144,7 +1149,7 @@ fn decode_simd_ldst1_lane(raw: u32) -> Option<Instr> {
         },
         rd: (raw & 0x1F) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
-        rm: 0xFF,
+        rm,
         imm: lane as u64,
         sf: true,
         cond: element_size as u8,

@@ -12,7 +12,15 @@ const SIMD_MULTI_POST_INDEX: u8 = 0xFE;
 
 fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
     if matches!(instr.op, Opcode::SimdLd1Lane | Opcode::SimdSt1Lane) {
-        return (base_addr(cpu, instr.rn), None);
+        let base = base_addr(cpu, instr.rn);
+        let writeback = if instr.rm == 0xFF {
+            None
+        } else if instr.rm == SIMD_MULTI_POST_INDEX {
+            Some(base.wrapping_add(instr.cond.max(1) as u64))
+        } else {
+            Some(base.wrapping_add(read_reg(cpu, instr.rm, true)))
+        };
+        return (base, writeback);
     }
 
     if matches!(

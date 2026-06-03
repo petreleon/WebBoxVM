@@ -193,10 +193,10 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#uqsub if (raw & 0xFF20_FC00) == 0x7E20_2C00 => Opcode::SimdUqsub,
         M::r#uminp => Opcode::SimdUminp,
         M::r#ld1r => Opcode::SimdLd1r,
-        M::r#ld1 if (raw & 0xBFE0_0000) == 0x0D40_0000 => Opcode::SimdLd1Lane,
+        M::r#ld1 if simd_ldst1_single_lane(raw) => Opcode::SimdLd1Lane,
         M::r#ld1 if simd_ld1_multi_register_count(raw) == Some(1) => Opcode::SimdLd1,
         M::r#ld1 if simd_ld1_multi_register_count(raw).is_some() => Opcode::SimdLd1Multi,
-        M::r#st1 if (raw & 0xBFE0_0000) == 0x0D00_0000 => Opcode::SimdSt1Lane,
+        M::r#st1 if simd_ldst1_single_lane(raw) => Opcode::SimdSt1Lane,
         M::r#ld4 if simd_ld1_multi_register_count(raw) == Some(1) => Opcode::SimdLd1,
         M::r#ld4 if simd_ld1_multi_register_count(raw).is_some() => Opcode::SimdLd1Multi,
         M::r#ld2 if simd_ld_structure_elements(raw) == Some(2) => Opcode::SimdLd2,
@@ -225,6 +225,16 @@ fn simd_ld1_multi_register_count(raw: u32) -> Option<u8> {
         0b1010 => Some(2),
         _ => None,
     }
+}
+
+fn simd_ldst1_single_lane(raw: u32) -> bool {
+    let no_offset = (raw & 0xBFFF_0000) == 0x0D00_0000 || (raw & 0xBFFF_0000) == 0x0D40_0000;
+    let post_index = (raw & 0xBFE0_0000) == 0x0D80_0000 || (raw & 0xBFE0_0000) == 0x0DC0_0000;
+    if !no_offset && !post_index {
+        return false;
+    }
+
+    matches!((raw >> 13) & 0x7, 0b000 | 0b010 | 0b100)
 }
 
 fn simd_ld_structure_elements(raw: u32) -> Option<u8> {
