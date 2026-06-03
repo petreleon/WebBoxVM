@@ -1034,6 +1034,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdShrn
             | Opcode::SimdAddhn
             | Opcode::SimdAddVec
+            | Opcode::SimdSubVec
             | Opcode::SimdAddp
             | Opcode::SimdAddv
             | Opcode::SimdExt
@@ -1057,6 +1058,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdBicImm
             | Opcode::SimdMvni
             | Opcode::SimdUshll
+            | Opcode::SimdFpNeg
             | Opcode::FpAdd
             | Opcode::FpSub
             | Opcode::FpMul
@@ -1069,6 +1071,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::FpMovImm
             | Opcode::Fmadd
             | Opcode::Fmsub
+            | Opcode::Fnmsub
             | Opcode::Scvtf
             | Opcode::Ucvtf
             | Opcode::Fcvtzs

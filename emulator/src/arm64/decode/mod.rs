@@ -224,6 +224,24 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 8,
         });
     }
+    if (raw & 0xBFBF_FC00) == 0x2EA0_F800 {
+        let q = ((raw >> 30) & 1) != 0;
+        let element_size = match (raw >> 22) & 0x3 {
+            2 => 4,
+            3 if q => 8,
+            _ => return None,
+        };
+        return Some(Instr {
+            op: Opcode::SimdFpNeg,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: element_size,
+            sf: true,
+            cond: 0,
+            size: if q { 16 } else { 8 },
+        });
+    }
     if (raw & 0xBF3F_FC00) == 0x0E20_9800 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         return Some(Instr {
@@ -265,6 +283,19 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         return Some(Instr {
             op: Opcode::SimdAddVec,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: element_size,
+            sf: true,
+            cond: 0,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
+        });
+    }
+    if (raw & 0xBF20_FC00) == 0x2E20_8400 {
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        return Some(Instr {
+            op: Opcode::SimdSubVec,
             rd: (raw & 0x1F) as u8,
             rn: ((raw >> 5) & 0x1F) as u8,
             rm: ((raw >> 16) & 0x1F) as u8,
@@ -904,6 +935,11 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
             0,
             size,
         );
+        instr.cond = ((raw >> 10) & 0x1F) as u8;
+        return Some(instr);
+    }
+    if (raw & 0xFF20_8000) == 0x1F20_8000 {
+        let mut instr = fp_instr(Opcode::Fnmsub, rd, rn, rm, 0, size);
         instr.cond = ((raw >> 10) & 0x1F) as u8;
         return Some(instr);
     }

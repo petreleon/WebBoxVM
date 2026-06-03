@@ -387,6 +387,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdShrn
         | Opcode::SimdAddhn
         | Opcode::SimdAddVec
+        | Opcode::SimdSubVec
         | Opcode::SimdAddp
         | Opcode::SimdAddv
         | Opcode::SimdExt
@@ -409,7 +410,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdUzp1
         | Opcode::SimdBicImm
         | Opcode::SimdMvni
-        | Opcode::SimdUshll => exec_simd_data(cpu, instr),
+        | Opcode::SimdUshll
+        | Opcode::SimdFpNeg => exec_simd_data(cpu, instr),
         Opcode::FpAdd
         | Opcode::FpSub
         | Opcode::FpMul
@@ -422,6 +424,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::FpMovImm
         | Opcode::Fmadd
         | Opcode::Fmsub
+        | Opcode::Fnmsub
         | Opcode::Scvtf
         | Opcode::Ucvtf
         | Opcode::Fcvtzs

@@ -245,6 +245,18 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x4EFE_87FF).unwrap()).unwrap(); // add v31.2d, v31.2d, v30.2d
     assert_eq!(cpu.simd[31], ((9u128) << 64) | 5);
 
+    cpu.simd[31] = ((10u128) << 64) | 5;
+    cpu.simd[29] = ((3u128) << 64) | 2;
+    execute(&mut cpu, &mut bus, decode(0x6EFD_87FF).unwrap()).unwrap(); // sub v31.2d, v31.2d, v29.2d
+    assert_eq!(cpu.simd[31], ((7u128) << 64) | 3);
+
+    cpu.simd[31] = ((-3.0f64).to_bits() as u128) << 64 | 2.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x6EE0_FBFF).unwrap()).unwrap(); // fneg v31.2d, v31.2d
+    assert_eq!(
+        cpu.simd[31],
+        (3.0f64.to_bits() as u128) << 64 | (-2.0f64).to_bits() as u128
+    );
+
     cpu.simd[30] = 0x0000_0005_8000_0000_0000_0000_0000_00ff;
     cpu.simd[22] = 0x0000_0008_8000_0000_0000_007b_0000_0f0f;
     execute(&mut cpu, &mut bus, decode(0x4EB6_8FDF).unwrap()).unwrap(); // cmtst v31.4s, v30.4s, v22.4s
@@ -416,6 +428,12 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     cpu.simd[30] = 10.0f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x1F5F_FBBE).unwrap()).unwrap(); // fmsub d30, d29, d31, d30
     assert_eq!(f64_lane(&cpu, 30), 4.0);
+
+    cpu.simd[31] = 2.0f64.to_bits() as u128;
+    cpu.simd[22] = 3.0f64.to_bits() as u128;
+    cpu.simd[25] = 4.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1F76_E7F9).unwrap()).unwrap(); // fnmsub d25, d31, d22, d25
+    assert_eq!(f64_lane(&cpu, 25), 2.0);
 }
 
 #[test]

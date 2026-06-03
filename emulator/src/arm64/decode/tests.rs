@@ -323,6 +323,8 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x2F00_051E).unwrap().op, Opcode::SimdMvni);
     assert_eq!(decode(0x6E22_AC20).unwrap().op, Opcode::SimdUminp);
     assert_eq!(decode(0x0E20_9800).unwrap().op, Opcode::SimdCmeqZero);
+    assert_eq!(decode(0x6EE0_FBFF).unwrap().op, Opcode::SimdFpNeg);
+    assert_eq!(decode(0x6EFD_87FF).unwrap().op, Opcode::SimdSubVec);
 }
 
 #[test]
@@ -342,6 +344,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E62_900F, Opcode::FpMovImm, "fmov"),
         (0x1F5B_7B9E, Opcode::Fmadd, "fmadd"),
         (0x1F5F_FBBE, Opcode::Fmsub, "fmsub"),
+        (0x1F76_E7F9, Opcode::Fnmsub, "fnmsub"),
         (0x1E62_0000, Opcode::Scvtf, "scvtf"),
         (0x1E22_0280, Opcode::Scvtf, "scvtf"),
         (0x1E42_F800, Opcode::Scvtf, "scvtf"),

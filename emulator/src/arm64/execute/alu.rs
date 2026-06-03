@@ -195,6 +195,15 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
                 |a, b, mask| a.wrapping_add(b) & mask,
             );
         }
+        Opcode::SimdSubVec => {
+            cpu.simd[rd] = simd_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b, mask| a.wrapping_sub(b) & mask,
+            );
+        }
         Opcode::SimdAddp => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
@@ -466,6 +475,18 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out;
         }
+        Opcode::SimdFpNeg => {
+            let element_size = instr.imm.max(1) as usize;
+            let bits = element_size * 8;
+            let sign_bit = 1u128 << (bits - 1);
+            let lanes = instr.size as usize / element_size;
+            let mut out = 0u128;
+            for lane in 0..lanes {
+                let value = simd_element(cpu.simd[rn], lane, element_size) ^ sign_bit;
+                out |= value << (lane * bits);
+            }
+            cpu.simd[rd] = out;
+        }
         _ => unreachable!(),
     }
 }
@@ -478,6 +499,7 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::FpDiv => exec_fp_binary(cpu, instr, |a, b| a / b, |a, b| a / b),
         Opcode::Fmadd => exec_fp_fused(cpu, instr, false),
         Opcode::Fmsub => exec_fp_fused(cpu, instr, true),
+        Opcode::Fnmsub => exec_fp_fnmsub(cpu, instr),
         Opcode::FpNeg => {
             let sign_mask = if instr.size == 4 {
                 1u64 << 31
@@ -613,6 +635,20 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
             );
         }
         _ => unreachable!(),
+    }
+}
+
+fn exec_fp_fnmsub(cpu: &mut Armv8Cpu, instr: Instr) {
+    if instr.size == 4 {
+        let n = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
+        let m = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
+        let a = f32::from_bits(read_fp_bits(cpu, instr.cond, 4) as u32);
+        write_fp_bits(cpu, instr.rd, n.mul_add(m, -a).to_bits() as u64, 4);
+    } else {
+        let n = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
+        let m = f64::from_bits(read_fp_bits(cpu, instr.rm, 8));
+        let a = f64::from_bits(read_fp_bits(cpu, instr.cond, 8));
+        write_fp_bits(cpu, instr.rd, n.mul_add(m, -a).to_bits(), 8);
     }
 }
 
