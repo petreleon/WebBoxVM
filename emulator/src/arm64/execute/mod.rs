@@ -439,6 +439,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::FpSqrt
         | Opcode::FpFcvt
         | Opcode::FpFrintm
+        | Opcode::FpFrinta
+        | Opcode::FpFrintx
         | Opcode::FpMovImm
         | Opcode::Fmadd
         | Opcode::Fmsub
@@ -447,6 +449,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::Ucvtf
         | Opcode::Fcvtzs
         | Opcode::Fcvtzu
+        | Opcode::Fcvtas
         | Opcode::Fcmp
         | Opcode::Fcmpe
         | Opcode::Fcsel => exec_fp_scalar(cpu, instr),

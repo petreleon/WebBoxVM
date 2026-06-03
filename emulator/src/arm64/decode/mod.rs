@@ -1244,6 +1244,12 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     if (raw & 0xFF3F_FC00) == 0x1E25_4000 {
         return Some(fp_instr(Opcode::FpFrintm, rd, rn, 0, 0, size));
     }
+    if (raw & 0xFF3F_FC00) == 0x1E26_4000 {
+        return Some(fp_instr(Opcode::FpFrinta, rd, rn, 0, 0, size));
+    }
+    if (raw & 0xFF3F_FC00) == 0x1E27_4000 {
+        return Some(fp_instr(Opcode::FpFrintx, rd, rn, 0, 0, size));
+    }
     if (raw & 0xFF20_1C00) == 0x1E20_1000 {
         return Some(fp_instr(
             Opcode::FpMovImm,
@@ -1287,6 +1293,11 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     }
     if (raw & 0x7FBF_FC00) == 0x1E39_0000 {
         let mut instr = fp_instr(Opcode::Fcvtzu, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_FC00) == 0x1E24_0000 {
+        let mut instr = fp_instr(Opcode::Fcvtas, rd, rn, 0, 0, size);
         instr.sf = (raw >> 31) != 0;
         return Some(instr);
     }

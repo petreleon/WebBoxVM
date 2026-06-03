@@ -670,6 +670,19 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E65_4000).unwrap()).unwrap(); // frintm d0, d0
     assert_eq!(f64_lane(&cpu, 0), -3.0);
 
+    cpu.simd[31] = 2.5f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E66_43FF).unwrap()).unwrap(); // frinta d31, d31
+    assert_eq!(f64_lane(&cpu, 31), 3.0);
+
+    cpu.simd[31] = (-2.5f64).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E66_43FF).unwrap()).unwrap(); // frinta d31, d31
+    assert_eq!(f64_lane(&cpu, 31), -3.0);
+
+    cpu.sys.fpcr = 0;
+    cpu.simd[0] = 2.5f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E67_4000).unwrap()).unwrap(); // frintx d0, d0
+    assert_eq!(f64_lane(&cpu, 0), 2.0);
+
     cpu.regs.set_w(1, 7);
     execute(&mut cpu, &mut bus, decode(0x1E63_003F).unwrap()).unwrap(); // ucvtf d31, w1
     assert_eq!(f64_lane(&cpu, 31), 7.0);
@@ -693,6 +706,14 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     cpu.simd[0] = 5.9f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x9E79_0000).unwrap()).unwrap(); // fcvtzu x0, d0
     assert_eq!(cpu.regs.x(0), 5);
+
+    cpu.simd[29] = (-2.5f64).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x9E64_03A3).unwrap()).unwrap(); // fcvtas x3, d29
+    assert_eq!(cpu.regs.x(3) as i64, -3);
+
+    cpu.simd[0] = 2.5f32.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x9E24_0000).unwrap()).unwrap(); // fcvtas x0, s0
+    assert_eq!(cpu.regs.x(0), 3);
 
     cpu.simd[0] = 5.9f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x7EE1_B800).unwrap()).unwrap(); // fcvtzu d0, d0

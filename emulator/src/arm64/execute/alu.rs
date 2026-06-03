@@ -728,6 +728,29 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
                 write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
             }
         }
+        Opcode::FpFrinta => {
+            if instr.size == 4 {
+                let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32).round();
+                write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
+            } else {
+                let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8)).round();
+                write_fp_bits(cpu, instr.rd, value.to_bits(), 8);
+            }
+        }
+        Opcode::FpFrintx => {
+            if instr.size == 4 {
+                let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32) as f64;
+                write_fp_bits(
+                    cpu,
+                    instr.rd,
+                    (round_fpcr(value, cpu.sys.fpcr) as f32).to_bits() as u64,
+                    4,
+                );
+            } else {
+                let value = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
+                write_fp_bits(cpu, instr.rd, round_fpcr(value, cpu.sys.fpcr).to_bits(), 8);
+            }
+        }
         Opcode::FpMovImm => {
             write_fp_bits(
                 cpu,
@@ -784,6 +807,14 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
                 write_reg(cpu, instr.rd, value as u64, true);
             } else {
                 write_reg(cpu, instr.rd, value as u32 as u64, false);
+            }
+        }
+        Opcode::Fcvtas => {
+            let value = read_fp_as_f64(cpu, instr.rn, instr.size).round();
+            if instr.sf {
+                write_reg(cpu, instr.rd, value as i64 as u64, true);
+            } else {
+                write_reg(cpu, instr.rd, value as i32 as u32 as u64, false);
             }
         }
         Opcode::Fcmp | Opcode::Fcmpe => {
@@ -863,6 +894,33 @@ where
         let lhs = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
         let rhs = f64::from_bits(read_fp_bits(cpu, instr.rm, 8));
         write_fp_bits(cpu, instr.rd, op64(lhs, rhs).to_bits(), 8);
+    }
+}
+
+fn round_fpcr(value: f64, fpcr: u64) -> f64 {
+    match (fpcr >> 22) & 0b11 {
+        0b00 => round_ties_even(value),
+        0b01 => value.ceil(),
+        0b10 => value.floor(),
+        _ => value.trunc(),
+    }
+}
+
+fn round_ties_even(value: f64) -> f64 {
+    if !value.is_finite() || value == 0.0 {
+        return value;
+    }
+
+    let trunc = value.trunc();
+    let frac = (value - trunc).abs();
+    if frac < 0.5 {
+        trunc
+    } else if frac > 0.5 {
+        trunc + value.signum()
+    } else if (trunc.abs() % 2.0) == 0.0 {
+        trunc
+    } else {
+        trunc + value.signum()
     }
 }
 

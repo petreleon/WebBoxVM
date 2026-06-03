@@ -620,6 +620,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E62_401F, Opcode::FpFcvt, "fcvt"),
         (0x1E22_C000, Opcode::FpFcvt, "fcvt"),
         (0x1E65_4000, Opcode::FpFrintm, "frintm"),
+        (0x1E66_43FF, Opcode::FpFrinta, "frinta"),
+        (0x1E67_403F, Opcode::FpFrintx, "frintx"),
         (0x1E6E_1000, Opcode::FpMovImm, "fmov"),
         (0x1E62_900F, Opcode::FpMovImm, "fmov"),
         (0x1F5B_7B9E, Opcode::Fmadd, "fmadd"),
@@ -634,6 +636,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E78_03E0, Opcode::Fcvtzs, "fcvtzs"),
         (0x1E79_03E0, Opcode::Fcvtzu, "fcvtzu"),
         (0x9E79_0000, Opcode::Fcvtzu, "fcvtzu"),
+        (0x9E64_03A3, Opcode::Fcvtas, "fcvtas"),
         (0x1E60_23E8, Opcode::Fcmp, "fcmp"),
         (0x1E79_23B0, Opcode::Fcmpe, "fcmpe"),
         (0x1E7E_0FFF, Opcode::Fcsel, "fcsel"),
@@ -680,6 +683,19 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(fmov_single_reg.rd, 29);
     assert_eq!(fmov_single_reg.rn, 30);
     assert_eq!(fmov_single_reg.size, 4);
+
+    let frinta = decode(0x1E66_43FF).unwrap();
+    assert_eq!(frinta.op, Opcode::FpFrinta);
+    assert_eq!(frinta.rd, 31);
+    assert_eq!(frinta.rn, 31);
+    assert_eq!(frinta.size, 8);
+
+    let fcvtas = decode(0x9E64_03A3).unwrap();
+    assert_eq!(fcvtas.op, Opcode::Fcvtas);
+    assert_eq!(fcvtas.rd, 3);
+    assert_eq!(fcvtas.rn, 29);
+    assert_eq!(fcvtas.size, 8);
+    assert!(fcvtas.sf);
 
     let fcvt_double_to_single = decode(0x1E62_401F).unwrap();
     assert_eq!(fcvt_double_to_single.size, 4);
