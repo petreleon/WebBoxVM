@@ -352,6 +352,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Rev16 => exec_rev16(cpu, instr),
         Opcode::Rbit => exec_rbit(cpu, instr),
         Opcode::Clz => exec_clz(cpu, instr),
+        Opcode::Crc32 => exec_crc32(cpu, instr),
 
         // ── System ──
         Opcode::Mrs => {

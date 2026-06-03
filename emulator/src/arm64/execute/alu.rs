@@ -1369,3 +1369,21 @@ pub(super) fn exec_clz(cpu: &mut Armv8Cpu, instr: Instr) {
         );
     }
 }
+
+pub(super) fn exec_crc32(cpu: &mut Armv8Cpu, instr: Instr) {
+    let mut crc = read_reg(cpu, instr.rn, false) as u32;
+    let value = read_reg(cpu, instr.rm, instr.size == 8);
+
+    for byte_index in 0..instr.size {
+        crc ^= ((value >> (byte_index * 8)) & 0xff) as u32;
+        for _ in 0..8 {
+            crc = if (crc & 1) != 0 {
+                (crc >> 1) ^ 0xedb8_8320
+            } else {
+                crc >> 1
+            };
+        }
+    }
+
+    write_reg(cpu, instr.rd, crc as u64, false);
+}

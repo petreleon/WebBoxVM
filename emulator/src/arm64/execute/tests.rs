@@ -72,6 +72,31 @@ fn sbc_xzr_xzr_builds_unsigned_borrow_mask() {
 }
 
 #[test]
+fn crc32_scalar_forms_update_w_destination() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(5, 0xffff_ffff_ffff_00ab);
+    execute(&mut cpu, &mut bus, decode(0x1AC5_4042).unwrap()).unwrap(); // crc32b w2, w2, w5
+    assert_eq!(cpu.regs.x(2), 0x1fc8_b738);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(5, 0xffff_ffff_0000_cdef);
+    execute(&mut cpu, &mut bus, decode(0x1AC5_4442).unwrap()).unwrap(); // crc32h w2, w2, w5
+    assert_eq!(cpu.regs.x(2), 0x59dd_4425);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(3, 0xffff_ffff_89ab_cdef);
+    execute(&mut cpu, &mut bus, decode(0x1AC3_4842).unwrap()).unwrap(); // crc32w w2, w2, w3
+    assert_eq!(cpu.regs.x(2), 0x40d5_5215);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(4, 0x0123_4567_89ab_cdef);
+    execute(&mut cpu, &mut bus, decode(0x9AC4_4C42).unwrap()).unwrap(); // crc32x w2, w2, x4
+    assert_eq!(cpu.regs.x(2), 0x9b62_eadf);
+}
+
+#[test]
 fn nop_advances_pc() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.pc = 0x4000_0000;

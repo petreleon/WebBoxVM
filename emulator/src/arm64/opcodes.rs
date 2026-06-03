@@ -159,6 +159,7 @@ pub enum Opcode {
     Rev16,
     Rbit,
     Clz,
+    Crc32,
     Udiv,
     Sdiv,
     Lslv,

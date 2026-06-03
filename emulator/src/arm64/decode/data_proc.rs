@@ -395,6 +395,23 @@ pub(super) fn decode_dp_2src(raw: u32) -> Option<Instr> {
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
 
+    if (0b010000..=0b010011).contains(&opcode) {
+        let size = 1u8 << (opcode - 0b010000);
+        if sf != (size == 8) {
+            return None;
+        }
+        return Some(Instr {
+            size,
+            op: Opcode::Crc32,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf: false,
+            cond: 0,
+        });
+    }
+
     match opcode {
         0b000010 => Some(Instr {
             size: 0,

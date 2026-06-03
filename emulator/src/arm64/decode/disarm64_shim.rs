@@ -104,6 +104,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#rev => Opcode::Rev,
         M::r#rbit => Opcode::Rbit,
         M::r#clz => Opcode::Clz,
+        M::r#crc32b | M::r#crc32h | M::r#crc32w | M::r#crc32x => Opcode::Crc32,
         M::r#sxtw => Opcode::Sxtw,
         M::r#ccmn => Opcode::Ccmn,
         M::r#ccmp => Opcode::Ccmp,
