@@ -280,6 +280,19 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
+    if (raw & 0xFF20_FC00) == 0x7E20_2C00 {
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        return Some(Instr {
+            op: Opcode::SimdUqsub,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: element_size,
+            sf: true,
+            cond: 0,
+            size: element_size as u8,
+        });
+    }
     if (raw & 0xBF20_FC00) == 0x0E20_8400 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         return Some(Instr {

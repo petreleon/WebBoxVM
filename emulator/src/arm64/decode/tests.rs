@@ -339,6 +339,13 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(cmeq_words.rm, 25);
     assert_eq!(cmeq_words.imm, 4);
     assert_eq!(cmeq_words.size, 16);
+    let uqsub = decode(0x7E6F_2FFF).unwrap();
+    assert_eq!(uqsub.op, Opcode::SimdUqsub);
+    assert_eq!(uqsub.rd, 31);
+    assert_eq!(uqsub.rn, 31);
+    assert_eq!(uqsub.rm, 15);
+    assert_eq!(uqsub.imm, 2);
+    assert_eq!(uqsub.size, 2);
     assert_eq!(decode(0x6EE0_FBFF).unwrap().op, Opcode::SimdFpNeg);
     assert_eq!(decode(0x6EFD_87FF).unwrap().op, Opcode::SimdSubVec);
 }
@@ -380,6 +387,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
+        (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
     ];
 
     for (raw, expected, mnemonic) in cases {

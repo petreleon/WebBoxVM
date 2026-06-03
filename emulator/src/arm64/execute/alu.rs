@@ -172,6 +172,23 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             let rhs = cpu.simd[rm];
             cpu.simd[rd] = simd_compare_vec_bytes(lhs, rhs, |a, b| a >= b);
         }
+        Opcode::SimdUqsub => {
+            const FPSR_QC: u64 = 1 << 27;
+
+            let element_size = instr.imm.max(1) as usize;
+            let mask = simd_element_mask(element_size);
+            let lhs = cpu.simd[rn] & mask;
+            let rhs = cpu.simd[rm] & mask;
+            let (value, saturated) = if lhs < rhs {
+                (0, true)
+            } else {
+                (lhs - rhs, false)
+            };
+            if saturated {
+                cpu.sys.fpsr |= FPSR_QC;
+            }
+            cpu.simd[rd] = value;
+        }
         Opcode::SimdShrn => {
             let src = cpu.simd[rn];
             let shift = instr.imm as u32;

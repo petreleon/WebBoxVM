@@ -531,6 +531,24 @@ fn simd_cmeq_register_compares_word_lanes() {
 }
 
 #[test]
+fn simd_scalar_uqsub_saturates_halfword() {
+    let (mut cpu, mut bus) = setup();
+    let qc = 1 << 27;
+
+    cpu.simd[31] = 0xffff_ffff_0000_1234;
+    cpu.simd[15] = 0x0100;
+    execute(&mut cpu, &mut bus, decode(0x7E6F_2FFF).unwrap()).unwrap(); // uqsub h31, h31, h15
+    assert_eq!(cpu.simd[31], 0x1134);
+    assert_eq!(cpu.sys.fpsr & qc, 0);
+
+    cpu.simd[31] = 0x0002;
+    cpu.simd[15] = 0x0003;
+    execute(&mut cpu, &mut bus, decode(0x7E6F_2FFF).unwrap()).unwrap();
+    assert_eq!(cpu.simd[31], 0);
+    assert_ne!(cpu.sys.fpsr & qc, 0);
+}
+
+#[test]
 fn simd_strlen_prefix_matches_debian_libc_fast_path() {
     let (mut cpu, mut bus) = setup();
     let base = RAM_BASE + 0x4000;
