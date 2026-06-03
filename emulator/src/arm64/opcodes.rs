@@ -141,6 +141,7 @@ pub enum Opcode {
     SimdSshll,
     SimdShll,
     SimdSsubw,
+    SimdUmlal,
     SimdUqsub,
     SimdFcvtzu,
     SimdFpNeg,

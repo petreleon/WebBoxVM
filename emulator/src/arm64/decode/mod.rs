@@ -307,6 +307,9 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             });
         }
     }
+    if let Some(instr) = decode_simd_umlal_by_element(raw) {
+        return Some(instr);
+    }
     if (raw & 0xBF20_FC00) == 0x0E20_8400 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         return Some(Instr {
@@ -1602,6 +1605,35 @@ fn decode_simd_sshll(raw: u32) -> Option<Instr> {
         rm: 0,
         imm: shift,
         sf: true,
+        cond: element_size,
+        size: 16,
+    })
+}
+
+fn decode_simd_umlal_by_element(raw: u32) -> Option<Instr> {
+    if (raw & 0xBF00_F400) != 0x2F00_2000 {
+        return None;
+    }
+
+    let size = ((raw >> 22) & 0x3) as u8;
+    let q = ((raw >> 30) & 1) != 0;
+    let l = ((raw >> 21) & 1) as u8;
+    let m_bit = ((raw >> 20) & 1) as u8;
+    let rm_low = ((raw >> 16) & 0xF) as u8;
+    let h = ((raw >> 11) & 1) as u8;
+    let (element_size, rm, index) = match size {
+        0b01 => (2, rm_low, (h << 2) | (l << 1) | m_bit),
+        0b10 => (4, (m_bit << 4) | rm_low, (h << 1) | l),
+        _ => return None,
+    };
+
+    Some(Instr {
+        op: Opcode::SimdUmlal,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm,
+        imm: index as u64,
+        sf: q,
         cond: element_size,
         size: 16,
     })

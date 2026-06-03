@@ -767,6 +767,18 @@ fn scalar_fp_compare_select_and_widening_simd_ops() {
     execute(&mut cpu, &mut bus, decode(0x6E21_3BD0).unwrap()).unwrap(); // shll2 v16.8h, v30.16b, #8
     assert_eq!(cpu.simd[16], 0x0f00_0e00_0d00_0c00_0b00_0a00_0900_0800);
 
+    cpu.simd[6] = (100u128 << 64) | 10;
+    cpu.simd[28] = (4u128 << 32) | 3;
+    cpu.simd[0] = 5;
+    execute(&mut cpu, &mut bus, decode(0x2F80_2386).unwrap()).unwrap(); // umlal v6.2d, v28.2s, v0.s[0]
+    assert_eq!(cpu.simd[6], (120u128 << 64) | 25);
+
+    cpu.simd[6] = (100u128 << 64) | 10;
+    cpu.simd[28] = (4u128 << 96) | (3u128 << 64) | (2u128 << 32) | 1;
+    cpu.simd[0] = 5;
+    execute(&mut cpu, &mut bus, decode(0x6F80_2386).unwrap()).unwrap(); // umlal2 v6.2d, v28.4s, v0.s[0]
+    assert_eq!(cpu.simd[6], (120u128 << 64) | 25);
+
     cpu.simd[29] = 0x0000_0190_ffff_fed4_0000_00c8_0000_0064;
     cpu.simd[30] = 0x0000_0000_0000_0000_fffc_0003_fffe_0001;
     execute(&mut cpu, &mut bus, decode(0x0E7E_33BD).unwrap()).unwrap(); // ssubw v29.4s, v29.4s, v30.4h
