@@ -15,6 +15,14 @@ fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
         return (base_addr(cpu, instr.rn), None);
     }
 
+    if matches!(instr.op, Opcode::SimdLd4 | Opcode::SimdSt4)
+        && instr.rm != 0xFF
+        && instr.rm != SIMD_MULTI_POST_INDEX
+    {
+        let base = base_addr(cpu, instr.rn);
+        return (base, Some(base.wrapping_add(read_reg(cpu, instr.rm, true))));
+    }
+
     if instr.rm == SIMD_MULTI_POST_INDEX {
         let base = base_addr(cpu, instr.rn);
         (base, Some(base.wrapping_add(instr.imm)))

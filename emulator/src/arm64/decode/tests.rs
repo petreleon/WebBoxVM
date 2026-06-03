@@ -353,6 +353,18 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(ld4.rn, 1);
     assert_eq!(ld4.cond, 0);
     assert_eq!(ld4.size, 16);
+    let ld4_post_imm = decode(0x4CDF_003C).unwrap();
+    assert_eq!(ld4_post_imm.op, Opcode::SimdLd4);
+    assert_eq!(ld4_post_imm.rd, 28);
+    assert_eq!(ld4_post_imm.rn, 1);
+    assert_eq!(ld4_post_imm.rm, 0xFE);
+    assert_eq!(ld4_post_imm.imm, 64);
+    assert_eq!(ld4_post_imm.size, 16);
+    let ld4_post_reg = decode(0x4CC2_003C).unwrap();
+    assert_eq!(ld4_post_reg.op, Opcode::SimdLd4);
+    assert_eq!(ld4_post_reg.rm, 2);
+    assert_eq!(ld4_post_reg.imm, 0);
+    assert!(decode(0x0C40_0C3C).is_none());
     assert_eq!(decode(0x4E22_BC45).unwrap().op, Opcode::SimdAddp);
     assert_eq!(decode(0x6E1F_43FF).unwrap().op, Opcode::SimdExt);
     assert_eq!(decode(0x6E20_5BDE).unwrap().op, Opcode::SimdNot);
