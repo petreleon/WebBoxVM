@@ -24,6 +24,7 @@ pub(in crate::arm64::execute) fn is_simd_crypto_opcode(op: Opcode) -> bool {
             | Opcode::SimdSha256H2
             | Opcode::SimdSha256Su1
             | Opcode::SimdSm4e
+            | Opcode::SimdSm4EKey
             | Opcode::SimdEor3
             | Opcode::SimdBcax
             | Opcode::SimdRax1
@@ -92,6 +93,22 @@ pub(in crate::arm64::execute) fn exec_simd_crypto(cpu: &mut Armv8Cpu, instr: Ins
                 let round_key = simd_element(keys, index, 4) as u32;
                 let mixed = words[3] ^ words[2] ^ words[1] ^ round_key;
                 let round = sm4_linear_transform(sm4_sub_word(mixed)) ^ words[0];
+                words = [words[1], words[2], words[3], round];
+            }
+            cpu.simd[rd] = pack_u32_lanes(words);
+        }
+        Opcode::SimdSm4EKey => {
+            let consts = cpu.simd[rm];
+            let mut words = [
+                simd_element(cpu.simd[rn], 0, 4) as u32,
+                simd_element(cpu.simd[rn], 1, 4) as u32,
+                simd_element(cpu.simd[rn], 2, 4) as u32,
+                simd_element(cpu.simd[rn], 3, 4) as u32,
+            ];
+            for index in 0..4 {
+                let constant = simd_element(consts, index, 4) as u32;
+                let mixed = words[3] ^ words[2] ^ words[1] ^ constant;
+                let round = sm4_key_transform(sm4_sub_word(mixed)) ^ words[0];
                 words = [words[1], words[2], words[3], round];
             }
             cpu.simd[rd] = pack_u32_lanes(words);

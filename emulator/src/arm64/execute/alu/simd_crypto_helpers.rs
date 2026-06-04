@@ -48,6 +48,10 @@ pub(in crate::arm64::execute) fn sm4_linear_transform(value: u32) -> u32 {
         ^ value.rotate_left(24)
 }
 
+pub(in crate::arm64::execute) fn sm4_key_transform(value: u32) -> u32 {
+    value ^ value.rotate_left(13) ^ value.rotate_left(23)
+}
+
 pub(in crate::arm64::execute) fn aes_sub_shift_round(value: u128, decrypt: bool) -> u128 {
     let bytes = aes_state_bytes(value);
     let mut out = [0u8; 16];

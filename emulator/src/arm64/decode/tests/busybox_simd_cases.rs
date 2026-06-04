@@ -72,6 +72,7 @@ fn decode_busybox_simd_cases_cross_checked_with_disarm64() {
         (0x5E28_2800, Opcode::SimdSha256Su0, "sha256su0"),
         (0xCEC0_8000, Opcode::SimdSha512Su0, "sha512su0"),
         (0xCEC0_8400, Opcode::SimdSm4e, "sm4e"),
+        (0xCE70_C800, Opcode::SimdSm4EKey, "sm4ekey"),
         (0xCE63_C004, Opcode::SimdSm3Partw1, "sm3partw1"),
         (0xCE02_0C24, Opcode::SimdEor3, "eor3"),
         (0xCE22_0C24, Opcode::SimdBcax, "bcax"),

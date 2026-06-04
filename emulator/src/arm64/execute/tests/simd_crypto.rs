@@ -78,6 +78,14 @@ fn simd_crypto_schedule_and_polynomial_ops() {
         u32x4([0x27fa_d345, 0xa18b_4cb2, 0x11c1_e22a, 0xcc13_e2ee])
     );
 
+    cpu.simd[0] = u32x4([0x0123_4567, 0x89ab_cdef, 0xfedc_ba98, 0x7654_3210]);
+    cpu.simd[16] = u32x4([0xf121_86f9, 0x4166_2b61, 0x5a6a_b19a, 0x7ba9_2077]);
+    execute(&mut cpu, &mut bus, decode(0xCE70_C800).unwrap()).unwrap(); // sm4ekey v0.4s, v0.4s, v16.4s
+    assert_eq!(
+        cpu.simd[0],
+        u32x4([0x7310_8002, 0xd9a6_085b, 0xfa32_2ee5, 0xf232_c5b4])
+    );
+
     let sm3_dst = u32x4([0x0011_2233, 0x4455_6677, 0x8899_aabb, 0xccdd_eeff]);
     let sm3_n = u32x4([0x1020_3040, 0x5060_7080, 0x90a0_b0c0, 0xd0e0_f000]);
     let sm3_m = u32x4([0x89ab_cdef, 0x0123_4567, 0x7654_3210, 0xfedc_ba98]);

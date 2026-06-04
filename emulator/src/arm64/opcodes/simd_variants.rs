@@ -40,6 +40,7 @@ impl super::Opcode {
     pub const SimdSha256H2: Self = Self(441);
     pub const SimdSha256Su1: Self = Self(442);
     pub const SimdSm4e: Self = Self(109);
+    pub const SimdSm4EKey: Self = Self(455);
     pub const SimdSm3Partw1: Self = Self(110);
     pub const SimdSm3Partw2: Self = Self(445);
     pub const SimdSm3Ss1: Self = Self(446);

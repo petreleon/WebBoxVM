@@ -23,6 +23,7 @@ pub(super) fn map(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sha256h2 => Opcode::SimdSha256H2,
         M::r#sha256su1 => Opcode::SimdSha256Su1,
         M::r#sm4e => Opcode::SimdSm4e,
+        M::r#sm4ekey => Opcode::SimdSm4EKey,
         M::r#sm3partw1 => Opcode::SimdSm3Partw1,
         M::r#sm3partw2 => Opcode::SimdSm3Partw2,
         M::r#sm3ss1 => Opcode::SimdSm3Ss1,

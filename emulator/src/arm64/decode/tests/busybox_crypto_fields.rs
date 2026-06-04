@@ -67,6 +67,13 @@ fn decode_busybox_crypto_and_vector_field_details() {
     assert_eq!(sm4e.rn, 0);
     assert_eq!(sm4e.size, 16);
 
+    let sm4ekey = decode(0xCE71_C801).unwrap();
+    assert_eq!(sm4ekey.op, Opcode::SimdSm4EKey);
+    assert_eq!(sm4ekey.rd, 1);
+    assert_eq!(sm4ekey.rn, 0);
+    assert_eq!(sm4ekey.rm, 17);
+    assert_eq!(sm4ekey.size, 16);
+
     let sm3partw1 = decode(0xCE63_C004).unwrap();
     assert_eq!(sm3partw1.op, Opcode::SimdSm3Partw1);
     assert_eq!(sm3partw1.rd, 4);
