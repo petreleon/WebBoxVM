@@ -117,6 +117,25 @@ fn simd_fp_vector_arithmetic_ops() {
     execute(&mut cpu, &mut bus, decode(0x4E61_CBBB).unwrap()).unwrap(); // fcvtas v27.2d, v29.2d
     assert_eq!(cpu.simd[27], i64x2([3, -3]));
 
+    cpu.simd[29] = f32x4([1.5, -2.25, 3.0, -4.5]);
+    execute(&mut cpu, &mut bus, decode(0x0E61_7BA4).unwrap()).unwrap(); // fcvtl v4.2d, v29.2s
+    assert_eq!(cpu.simd[4], f64x2([1.5, -2.25]));
+    execute(&mut cpu, &mut bus, decode(0x4E61_7BA7).unwrap()).unwrap(); // fcvtl2 v7.2d, v29.4s
+    assert_eq!(cpu.simd[7], f64x2([3.0, -4.5]));
+
+    cpu.simd[0] = u16x8([0x3c00, 0xc000, 0x4000, 0, 0x4400, 0x4500, 0, 0]);
+    execute(&mut cpu, &mut bus, decode(0x0E21_7800).unwrap()).unwrap(); // fcvtl v0.4s, v0.4h
+    assert_eq!(cpu.simd[0], f32x4([1.0, -2.0, 2.0, 0.0]));
+
+    cpu.simd[2] = f64x2([1.5, -2.75]);
+    execute(&mut cpu, &mut bus, decode(0x0E61_6842).unwrap()).unwrap(); // fcvtn v2.2s, v2.2d
+    assert_eq!(cpu.simd[2], f32x4([1.5, -2.75, 0.0, 0.0]));
+
+    cpu.simd[2] = f32x4([9.0, 8.0, 99.0, 99.0]);
+    cpu.simd[30] = f64x2([3.5, -4.25]);
+    execute(&mut cpu, &mut bus, decode(0x4E61_6BC2).unwrap()).unwrap(); // fcvtn2 v2.4s, v30.2d
+    assert_eq!(cpu.simd[2], f32x4([9.0, 8.0, 3.5, -4.25]));
+
     cpu.simd[31] = (-2.75f64).to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x5EE1_BBFF).unwrap()).unwrap(); // fcvtzs d31, d31
     assert_eq!(cpu.simd[31], (-2i64 as u64) as u128);

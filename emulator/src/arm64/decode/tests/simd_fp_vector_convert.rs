@@ -21,3 +21,27 @@ fn decode_simd_fcvtas_vector_forms() {
 
     assert!(decode(0x0E61_C800).is_none());
 }
+
+#[test]
+fn decode_simd_fp_long_narrow_forms() {
+    let cases = [
+        (0x0E21_7800, Opcode::SimdFcvtl, 2, 4, 16, "fcvtl"),
+        (0x4E21_7800, Opcode::SimdFcvtl2, 2, 4, 16, "fcvtl2"),
+        (0x0E61_7BA4, Opcode::SimdFcvtl, 4, 8, 16, "fcvtl"),
+        (0x4E61_7BA7, Opcode::SimdFcvtl2, 4, 8, 16, "fcvtl2"),
+        (0x0E21_6800, Opcode::SimdFcvtn, 4, 2, 8, "fcvtn"),
+        (0x4E21_6800, Opcode::SimdFcvtn2, 4, 2, 8, "fcvtn2"),
+        (0x0E61_6842, Opcode::SimdFcvtn, 8, 4, 8, "fcvtn"),
+        (0x4E61_6BC2, Opcode::SimdFcvtn2, 8, 4, 8, "fcvtn2"),
+    ];
+
+    for (raw, op, src_size, dst_size, vector_size, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, op);
+        assert_eq!(
+            (instr.imm, instr.cond, instr.size),
+            (src_size, dst_size, vector_size)
+        );
+    }
+}

@@ -34,6 +34,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fminp if simd_fp_pairwise_scalar(raw, 0x7EB0_F800) => Opcode::SimdFpFminp,
         M::r#fmaxnmp if simd_fp_pairwise_scalar(raw, 0x7E30_C800) => Opcode::SimdFpFmaxnmp,
         M::r#fminnmp if simd_fp_pairwise_scalar(raw, 0x7EB0_C800) => Opcode::SimdFpFminnmp,
+        M::r#fcvtl if (raw & 0xBFBF_FC00) == 0x0E21_7800 => Opcode::SimdFcvtl,
+        M::r#fcvtl2 if (raw & 0xBFBF_FC00) == 0x0E21_7800 => Opcode::SimdFcvtl2,
+        M::r#fcvtn if (raw & 0xBFBF_FC00) == 0x0E21_6800 => Opcode::SimdFcvtn,
+        M::r#fcvtn2 if (raw & 0xBFBF_FC00) == 0x0E21_6800 => Opcode::SimdFcvtn2,
         M::r#faddp
             if simd_fp_binary(raw, 0x2E20_D400) || simd_fp_pairwise_scalar(raw, 0x7E30_D800) =>
         {

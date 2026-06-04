@@ -8,6 +8,10 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdFcvtzs
             | Opcode::SimdFcvtzu
             | Opcode::SimdFcvtas
+            | Opcode::SimdFcvtl
+            | Opcode::SimdFcvtl2
+            | Opcode::SimdFcvtn
+            | Opcode::SimdFcvtn2
             | Opcode::SimdFpAddVec
             | Opcode::SimdFpSubVec
             | Opcode::SimdFpMulVec

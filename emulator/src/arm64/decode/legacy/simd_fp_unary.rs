@@ -7,6 +7,24 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_simd_fp_binary(raw, 0x2EA0_D400, Opcode::SimdFpAbd) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = decode_simd_fp_long_narrow(
+        raw,
+        0x0E21_7800,
+        Opcode::SimdFcvtl,
+        Opcode::SimdFcvtl2,
+        true,
+    ) {
+        return DecodeStep::Hit(instr);
+    }
+    if let Some(instr) = decode_simd_fp_long_narrow(
+        raw,
+        0x0E21_6800,
+        Opcode::SimdFcvtn,
+        Opcode::SimdFcvtn2,
+        false,
+    ) {
+        return DecodeStep::Hit(instr);
+    }
     if let Some(step) = decode_simd_fp_abs_compare(raw, 0x2E20_EC00, Opcode::SimdFpFacgeVec) {
         return step;
     }
@@ -75,6 +93,35 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     DecodeStep::Miss
+}
+
+fn decode_simd_fp_long_narrow(
+    raw: u32,
+    base: u32,
+    low_op: Opcode,
+    high_op: Opcode,
+    long: bool,
+) -> Option<Instr> {
+    if (raw & 0xBFBF_FC00) != base {
+        return None;
+    }
+    let high = ((raw >> 30) & 1) != 0;
+    let narrow_size = if ((raw >> 22) & 1) != 0 { 4 } else { 2 };
+    let (src_size, dst_size, vector_size) = if long {
+        (narrow_size, narrow_size * 2, 16)
+    } else {
+        (narrow_size * 2, narrow_size, 8)
+    };
+    Some(Instr {
+        op: if high { high_op } else { low_op },
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: src_size,
+        sf: high,
+        cond: dst_size as u8,
+        size: vector_size,
+    })
 }
 
 fn decode_simd_fp_abs_compare(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {
