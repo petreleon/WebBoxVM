@@ -85,6 +85,7 @@ mod scalar_fp_fused;
 mod scalar_variable_shift;
 mod simd_arithmetic;
 mod simd_basic;
+mod simd_cmhs;
 mod simd_cmp_sat_strlen;
 mod simd_crypto;
 mod simd_fp_unary_more;

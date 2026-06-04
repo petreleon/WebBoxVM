@@ -88,20 +88,4 @@ pub(in crate::arm64::execute) fn simd_compare_elements_with_zero(
     out
 }
 
-pub(in crate::arm64::execute) fn simd_compare_vec_bytes<F>(lhs: u128, rhs: u128, pred: F) -> u128
-where
-    F: Fn(u8, u8) -> bool,
-{
-    let mut out = 0u128;
-    for lane in 0..16 {
-        let byte = if pred(simd_byte(lhs, lane), simd_byte(rhs, lane)) {
-            0xffu8
-        } else {
-            0
-        };
-        out |= (byte as u128) << (lane * 8);
-    }
-    out
-}
-
 // ── Register extension & shifting ──
