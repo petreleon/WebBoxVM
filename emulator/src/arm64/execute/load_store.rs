@@ -16,12 +16,14 @@ mod exclusive;
 mod guest;
 mod guest_trace;
 mod guest_translate;
+mod mte;
 mod pair;
 mod scalar;
 mod simd_structure;
 
 pub(super) use atomic::exec_atomic;
 pub(super) use exclusive::exec_exclusive;
+pub(super) use mte::{exec_mte_gpr, exec_mte_mem};
 pub(super) use pair::exec_ldp_stp;
 pub(super) use scalar::{exec_ldr_lit, exec_ldr_str};
 

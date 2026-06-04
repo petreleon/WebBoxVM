@@ -76,6 +76,7 @@ mod branch;
 mod data_proc;
 mod exceptions;
 mod load_store;
+mod mte;
 mod scalar_addsub_ext;
 mod scalar_bitfield;
 mod scalar_fp_arithmetic;

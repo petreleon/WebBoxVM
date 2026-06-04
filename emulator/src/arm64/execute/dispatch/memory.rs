@@ -32,6 +32,10 @@ pub(super) fn execute(
         Opcode::Atomic | Opcode::AtomicPair | Opcode::Cas | Opcode::Casp => {
             exec_atomic(cpu, bus, instr)?
         }
+        Opcode::MteIrg | Opcode::MteGmi => exec_mte_gpr(cpu, instr),
+        Opcode::MteLdg | Opcode::MteStg | Opcode::MteStzg | Opcode::MteSt2g | Opcode::MteStz2g => {
+            exec_mte_mem(cpu, bus, instr)?
+        }
         _ => return Ok(None),
     }
     Ok(Some(Flow::Advance))

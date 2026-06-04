@@ -1,6 +1,7 @@
 mod early_sve_vector;
 mod fp_scalar;
 mod load_store_helpers;
+mod mte;
 mod scalar_ldst_branch;
 mod simd_compare;
 mod simd_compare_zero;
@@ -94,6 +95,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_logical_imm::decode(raw));
     try_stage!(sve_logical_pred::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));
+    try_stage!(mte::decode(raw));
     try_stage!(simd_dup_convert::decode(raw));
     try_stage!(simd_fp_by_element::decode(raw));
     try_stage!(simd_fp_compare::decode(raw));

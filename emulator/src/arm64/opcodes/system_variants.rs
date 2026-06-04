@@ -33,4 +33,11 @@ impl super::Opcode {
     pub const Wfi: Self = Self(257);
     pub const Wfe: Self = Self(258);
     pub const Udf: Self = Self(393);
+    pub const MteLdg: Self = Self(397);
+    pub const MteIrg: Self = Self(398);
+    pub const MteGmi: Self = Self(399);
+    pub const MteStg: Self = Self(400);
+    pub const MteStzg: Self = Self(401);
+    pub const MteSt2g: Self = Self(402);
+    pub const MteStz2g: Self = Self(403);
 }
