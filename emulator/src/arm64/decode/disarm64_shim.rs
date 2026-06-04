@@ -33,6 +33,7 @@ mod simd_map;
 mod simd_mnemonic_tests;
 #[cfg(test)]
 mod simd_ucvtf_tests;
+mod sve_dup_map;
 mod sve_shift_map;
 mod system_map;
 #[cfg(test)]
@@ -76,6 +77,7 @@ fn log_disarm64_mismatches() -> bool {
 
 fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     scalar_alias_map::map(raw, m)
+        .or_else(|| sve_dup_map::map(raw, m))
         .or_else(|| sve_shift_map::map(raw, m))
         .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))

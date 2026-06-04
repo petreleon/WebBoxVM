@@ -5,6 +5,7 @@ use crate::arm64::mmu::{Fault, translate, translate_write};
 use crate::bus::SystemBus;
 
 mod count;
+mod dup;
 mod fp;
 mod fp_arith_immediate;
 mod fp_compare;
@@ -26,6 +27,7 @@ mod shift_imm;
 mod vector;
 
 pub(super) use count::sve_pred_count;
+pub(super) use dup::{exec_sve_dup_elem, exec_sve_dup_imm};
 pub(super) use fp::exec_sve_fp_binary;
 pub(super) use fp_arith_immediate::{exec_sve_fp_imm, sve_fp_arith_is_immediate};
 pub(super) use fp_compare::exec_sve_fp_compare;

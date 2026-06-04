@@ -1,0 +1,38 @@
+use super::*;
+
+pub(in crate::arm64::execute) fn exec_sve_dup_imm(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let bytes = instr.imm.to_le_bytes();
+    let mut result = [0; 256];
+
+    for element in 0..elements {
+        copy_bytes(&mut result, element, element_size, &bytes);
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
+pub(in crate::arm64::execute) fn exec_sve_dup_elem(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let index = instr.imm as usize;
+    let source = sve_read_z(cpu, instr.rn as usize);
+    let mut result = [0; 256];
+    let mut element_bytes = [0; 16];
+
+    if index < elements {
+        let offset = index * element_size;
+        element_bytes[..element_size].copy_from_slice(&source[offset..offset + element_size]);
+    }
+    for element in 0..elements {
+        copy_bytes(&mut result, element, element_size, &element_bytes);
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn copy_bytes(result: &mut [u8; 256], element: usize, element_size: usize, source: &[u8]) {
+    let offset = element * element_size;
+    result[offset..offset + element_size].copy_from_slice(&source[..element_size]);
+}

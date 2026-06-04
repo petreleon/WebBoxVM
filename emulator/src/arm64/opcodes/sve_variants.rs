@@ -61,4 +61,6 @@ impl super::Opcode {
     pub const SveAsrImm: Self = Self(316);
     pub const SveLsrImm: Self = Self(317);
     pub const SveLslImm: Self = Self(318);
+    pub const SveDupImm: Self = Self(319);
+    pub const SveDupElem: Self = Self(320);
 }

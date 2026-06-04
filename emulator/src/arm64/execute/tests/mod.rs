@@ -101,6 +101,7 @@ mod simd_userland_permute_reduction;
 mod simd_word_immediate;
 mod sve_compare;
 mod sve_counts;
+mod sve_dup;
 mod sve_fp_compare;
 mod sve_fp_div;
 mod sve_fp_immediate;

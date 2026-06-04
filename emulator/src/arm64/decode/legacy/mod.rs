@@ -28,6 +28,7 @@ mod simd_widen_integer;
 mod sve_byte_store;
 mod sve_compare;
 mod sve_contiguous_load;
+mod sve_dup;
 mod sve_fp;
 mod sve_fp_arith_imm;
 mod sve_fp_compare;
@@ -68,6 +69,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp_unary::decode(raw));
     try_stage!(sve_fp_compare::decode(raw));
     try_stage!(sve_fp::decode(raw));
+    try_stage!(sve_dup::decode(raw));
     try_stage!(sve_shift_imm::decode(raw));
     try_stage!(sve_logical_imm::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));

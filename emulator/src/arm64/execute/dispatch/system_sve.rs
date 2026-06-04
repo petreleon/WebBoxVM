@@ -37,6 +37,8 @@ pub(super) fn execute(
         Opcode::SveCmpHs | Opcode::SveCmpHsImm => exec_sve_int_compare(cpu, instr),
         Opcode::SveMovprfx => exec_sve_movprfx(cpu, instr),
         Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
+        Opcode::SveDupImm => exec_sve_dup_imm(cpu, instr),
+        Opcode::SveDupElem => exec_sve_dup_elem(cpu, instr),
         Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
         Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
         Opcode::SveAsrImm | Opcode::SveLsrImm | Opcode::SveLslImm => exec_sve_shift_imm(cpu, instr),
