@@ -1,0 +1,35 @@
+#[allow(non_upper_case_globals)]
+impl super::Opcode {
+    pub const SimdScvtf: Self = Self(184);
+    pub const SimdFcvtzs: Self = Self(185);
+    pub const SimdFcvtzu: Self = Self(186);
+    pub const SimdUcvtf: Self = Self(259);
+    pub const SimdFpAddVec: Self = Self(187);
+    pub const SimdFpSubVec: Self = Self(188);
+    pub const SimdFpMulVec: Self = Self(189);
+    pub const SimdFpDivVec: Self = Self(190);
+    pub const SimdFpAbd: Self = Self(191);
+    pub const SimdFpNeg: Self = Self(192);
+    pub const SimdFpFmlaVec: Self = Self(275);
+    pub const SimdFpFmlsVec: Self = Self(276);
+    pub const SimdFpFmlaElem: Self = Self(277);
+    pub const SimdFpFmlsElem: Self = Self(278);
+    pub const SimdFpMulElem: Self = Self(279);
+    pub const SimdFmovImm: Self = Self(280);
+    pub const SimdFpFacgeVec: Self = Self(282);
+    pub const SimdFpFacgtVec: Self = Self(283);
+    pub const SimdFpAbsVec: Self = Self(284);
+    pub const SimdFpFrintaVec: Self = Self(285);
+    pub const SimdFpSqrtVec: Self = Self(286);
+    pub const SimdFcvtas: Self = Self(288);
+    pub const SimdFpFcmltZero: Self = Self(289);
+    pub const SimdFpFcmgeVec: Self = Self(310);
+    pub const SimdFpFcmgtVec: Self = Self(311);
+    pub const SimdFpFcmeqZero: Self = Self(312);
+    pub const SimdFpFcmleZero: Self = Self(313);
+    pub const SimdFpFrintnVec: Self = Self(338);
+    pub const SimdFpFmaxv: Self = Self(373);
+    pub const SimdFpFminv: Self = Self(374);
+    pub const SimdFpFmaxnmv: Self = Self(375);
+    pub const SimdFpFminnmv: Self = Self(376);
+}

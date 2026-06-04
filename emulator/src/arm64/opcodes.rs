@@ -2,6 +2,7 @@
 
 mod core_variants;
 mod fp_variants;
+mod simd_fp_variants;
 mod simd_variants;
 mod sve_variants;
 mod system_variants;
