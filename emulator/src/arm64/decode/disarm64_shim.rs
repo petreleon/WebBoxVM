@@ -31,6 +31,8 @@ mod simd_ldst_map;
 mod simd_map;
 #[cfg(test)]
 mod simd_mnemonic_tests;
+#[cfg(test)]
+mod simd_ucvtf_tests;
 mod system_map;
 #[cfg(test)]
 mod system_tests;

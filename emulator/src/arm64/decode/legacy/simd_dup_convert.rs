@@ -38,6 +38,11 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return DecodeStep::Hit(instr);
     }
     if let Some(instr) =
+        decode_simd_int_fp_convert(raw, 0x7E21_D800, 0x2E21_D800, Opcode::SimdUcvtf)
+    {
+        return DecodeStep::Hit(instr);
+    }
+    if let Some(instr) =
         decode_simd_int_fp_convert(raw, 0x5EA1_B800, 0x0EA1_B800, Opcode::SimdFcvtzs)
     {
         return DecodeStep::Hit(instr);

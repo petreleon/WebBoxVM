@@ -18,6 +18,7 @@ mod scalar_aliases;
 mod scalar_ldst;
 mod simd_alias_mappings;
 mod simd_pairwise_narrow;
+mod simd_ucvtf;
 mod simd_userland_arith_move;
 mod simd_userland_dup;
 mod simd_userland_fp_imm_cmp;

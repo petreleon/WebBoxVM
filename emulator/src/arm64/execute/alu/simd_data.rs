@@ -38,6 +38,7 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdCnt
         | Opcode::SimdCmtst => exec_simd_unary_compare(cpu, instr),
         Opcode::SimdScvtf
+        | Opcode::SimdUcvtf
         | Opcode::SimdFcvtzs
         | Opcode::SimdFcvtzu
         | Opcode::SimdFpAddVec

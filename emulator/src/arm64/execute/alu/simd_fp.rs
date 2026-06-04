@@ -27,6 +27,27 @@ pub(in crate::arm64::execute) fn exec_simd_fp(cpu: &mut Armv8Cpu, instr: Instr) 
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdUcvtf => {
+            let element_size = instr.imm.max(1) as usize;
+            let lanes = (instr.size as usize / element_size).max(1);
+            let mut out = 0u128;
+            match element_size {
+                4 => {
+                    for lane in 0..lanes {
+                        let value = simd_element(cpu.simd[rn], lane, element_size) as u32;
+                        out |= ((value as f32).to_bits() as u128) << (lane * 32);
+                    }
+                }
+                8 => {
+                    for lane in 0..lanes {
+                        let value = simd_element(cpu.simd[rn], lane, element_size) as u64;
+                        out |= ((value as f64).to_bits() as u128) << (lane * 64);
+                    }
+                }
+                _ => {}
+            }
+            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+        }
         Opcode::SimdFcvtzs => {
             let element_size = instr.imm.max(1) as usize;
             let lanes = (instr.size as usize / element_size).max(1);

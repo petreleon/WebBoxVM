@@ -42,6 +42,18 @@ fn simd_fp_vector_arithmetic_ops() {
     execute(&mut cpu, &mut bus, decode(0x4E21_D821).unwrap()).unwrap(); // scvtf v1.4s, v1.4s
     assert_eq!(cpu.simd[1], f32x4([2.0, -3.0, 4.0, -5.0]));
 
+    cpu.simd[2] = u32x4([2, u32::MAX, 4, 5]);
+    execute(&mut cpu, &mut bus, decode(0x6E21_D842).unwrap()).unwrap(); // ucvtf v2.4s, v2.4s
+    assert_eq!(cpu.simd[2], f32x4([2.0, 4_294_967_296.0, 4.0, 5.0]));
+
+    cpu.simd[3] = u64x2([3, u64::MAX]);
+    execute(&mut cpu, &mut bus, decode(0x6E61_D863).unwrap()).unwrap(); // ucvtf v3.2d, v3.2d
+    assert_eq!(cpu.simd[3], f64x2([3.0, 18_446_744_073_709_551_616.0]));
+
+    cpu.simd[30] = u64::MAX as u128;
+    execute(&mut cpu, &mut bus, decode(0x7E61_DBDE).unwrap()).unwrap(); // ucvtf d30, d30
+    assert_eq!(f64_lane(&cpu, 30), 18_446_744_073_709_551_616.0);
+
     cpu.simd[31] = (-7i64 as u64) as u128;
     execute(&mut cpu, &mut bus, decode(0x5E61_DBFF).unwrap()).unwrap(); // scvtf d31, d31
     assert_eq!(f64_lane(&cpu, 31), -7.0);

@@ -37,6 +37,9 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
             Opcode::SimdScvtf
         }
         M::r#scvtf => Opcode::Scvtf,
+        M::r#ucvtf if (raw & 0xFFBF_FC00) == 0x7E21_D800 || (raw & 0xBFBF_FC00) == 0x2E21_D800 => {
+            Opcode::SimdUcvtf
+        }
         M::r#ucvtf => Opcode::Ucvtf,
         M::r#fcvtns => Opcode::Fcvtns,
         M::r#fcvtms => Opcode::Fcvtms,

@@ -102,6 +102,7 @@ impl super::Opcode {
     pub const SimdScvtf: Self = Self(184);
     pub const SimdFcvtzs: Self = Self(185);
     pub const SimdFcvtzu: Self = Self(186);
+    pub const SimdUcvtf: Self = Self(259);
     pub const SimdFpAddVec: Self = Self(187);
     pub const SimdFpSubVec: Self = Self(188);
     pub const SimdFpMulVec: Self = Self(189);
