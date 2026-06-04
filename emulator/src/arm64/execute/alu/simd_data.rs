@@ -53,6 +53,7 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdFpDivVec
         | Opcode::SimdFpAbd
         | Opcode::SimdFpNeg => exec_simd_fp(cpu, instr),
+        Opcode::SimdFpMulx => exec_simd_fp_mulx(cpu, instr),
         Opcode::SimdFcvtas => exec_simd_fp_convert(cpu, instr),
         Opcode::SimdFpAbsVec
         | Opcode::SimdFpFrintnVec
