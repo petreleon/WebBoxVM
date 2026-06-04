@@ -23,3 +23,15 @@ fn leaves_addhn2_unmapped_until_upper_half_execution_exists() {
     assert_eq!(format!("{:?}", decoded.mnemonic), "addhn2");
     assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), None);
 }
+
+#[test]
+fn maps_scalar_variable_rotate_mnemonic() {
+    let raw = 0x9AC2_2C20;
+    let decoded = decoder::decode(raw).expect("disarm64 should decode rorv");
+
+    assert_eq!(format!("{:?}", decoded.mnemonic), "rorv");
+    assert_eq!(
+        mnemonic_to_opcode(raw, decoded.mnemonic),
+        Some(Opcode::Rorv)
+    );
+}

@@ -108,6 +108,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#lsl | M::r#lslv => Opcode::Lslv,
         M::r#lsr | M::r#lsrv => Opcode::Lsrv,
         M::r#asr | M::r#asrv => Opcode::Asrv,
+        M::r#rorv => Opcode::Rorv,
         M::r#rev => Opcode::Rev,
         M::r#rbit => Opcode::Rbit,
         M::r#clz => Opcode::Clz,

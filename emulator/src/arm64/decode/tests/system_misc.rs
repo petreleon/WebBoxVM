@@ -60,3 +60,15 @@ fn decode_extract_separately_from_bitfield() {
     assert_eq!(extr.rm, 4);
     assert_eq!(extr.imm, 7);
 }
+
+#[test]
+fn decode_register_rotate_right() {
+    assert_disarm64_mnemonic(0x9AC2_2C20, "rorv");
+
+    let rorv = decode(0x9AC2_2C20).unwrap();
+    assert_eq!(rorv.op, Opcode::Rorv);
+    assert_eq!(rorv.rd, 0);
+    assert_eq!(rorv.rn, 1);
+    assert_eq!(rorv.rm, 2);
+    assert!(rorv.sf);
+}
