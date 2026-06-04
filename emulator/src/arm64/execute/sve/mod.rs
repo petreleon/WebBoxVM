@@ -5,6 +5,7 @@ use crate::arm64::mmu::{Fault, translate, translate_write};
 use crate::bus::SystemBus;
 
 mod count;
+mod fp;
 mod helpers;
 mod memory_b;
 mod memory_contiguous;
@@ -15,6 +16,7 @@ mod predicate_bytes;
 mod vector;
 
 pub(super) use count::sve_pred_count;
+pub(super) use fp::exec_sve_fp_binary;
 use helpers::*;
 pub(super) use memory_b::exec_sve_st1b;
 pub(super) use memory_contiguous::exec_sve_contiguous_load;

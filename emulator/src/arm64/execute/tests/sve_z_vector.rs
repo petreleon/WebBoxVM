@@ -54,4 +54,31 @@ fn sve_z_vector_forms_update_scalable_z_and_simd_alias() {
     execute(&mut cpu, &mut bus, decode(0x05FF_C040).unwrap()).unwrap(); // sel z0.d, p0, z2.d, z31.d
     assert_eq!(z_elem(&cpu, 0, 0), 0xAAAA);
     assert!((1..4).all(|lane| z_elem(&cpu, 0, lane) == 0xBBBB));
+
+    execute(&mut cpu, &mut bus, decode(0x2518_E081).unwrap()).unwrap(); // ptrue p1.b, vl4
+    set_z_f32(&mut cpu, 4, [1.0, 2.0, 3.0, 4.0]);
+    set_z_f32(&mut cpu, 5, [0.5, 1.5, 2.5, 3.5]);
+    execute(&mut cpu, &mut bus, decode(0x6580_84A4).unwrap()).unwrap(); // fadd z4.s, p1/m, z4.s, z5.s
+    assert_eq!(z_f32(&cpu, 4, 0), 1.5);
+    assert_eq!(z_f32(&cpu, 4, 3), 4.0);
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E022).unwrap()).unwrap(); // ptrue p2.d, vl1
+    set_z_elem(&mut cpu, 7, 0, 10.0f64.to_bits());
+    set_z_elem(&mut cpu, 7, 1, 20.0f64.to_bits());
+    set_z_elem(&mut cpu, 8, 0, 3.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65C3_8907).unwrap()).unwrap(); // fsubr z7.d, p2/m, z7.d, z8.d
+    assert_eq!(f64::from_bits(z_elem(&cpu, 7, 0)), -7.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 7, 1)), 20.0);
+}
+
+fn set_z_f32(cpu: &mut Armv8Cpu, reg: usize, values: [f32; 4]) {
+    for (lane, value) in values.into_iter().enumerate() {
+        let offset = lane * 4;
+        cpu.sve_z[reg][offset..offset + 4].copy_from_slice(&value.to_bits().to_le_bytes());
+    }
+    sync_simd_alias(cpu, reg);
+}
+
+fn z_f32(cpu: &Armv8Cpu, reg: usize, lane: usize) -> f32 {
+    f32::from_bits(z_word(cpu, reg, lane))
 }

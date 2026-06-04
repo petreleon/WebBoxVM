@@ -11,6 +11,10 @@ fn decode_sve_z_vector_forms() {
         (0x0460_301B, Opcode::SveOrrVec, "orr"),
         (0x04A0_3000, Opcode::SveEorVec, "eor"),
         (0x05FF_C040, Opcode::SveSel, "sel"),
+        (0x6580_8020, Opcode::SveFpAdd, "fadd"),
+        (0x6581_8020, Opcode::SveFpSub, "fsub"),
+        (0x65C2_8020, Opcode::SveFpMul, "fmul"),
+        (0x65C3_8020, Opcode::SveFpSubr, "fsubr"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -45,4 +49,21 @@ fn decode_sve_z_vector_forms() {
     assert_eq!(sel.rn, 2);
     assert_eq!(sel.rm, 31);
     assert_eq!(sel.cond, 0);
+
+    let fmul = decode(0x65C2_84C5).unwrap(); // fmul z5.d, p1/m, z5.d, z6.d
+    assert_eq!(fmul.op, Opcode::SveFpMul);
+    assert_eq!(fmul.rd, 5);
+    assert_eq!(fmul.rn, 5);
+    assert_eq!(fmul.rm, 6);
+    assert_eq!(fmul.cond, 1);
+    assert_eq!(fmul.size, 8);
+
+    assert_ne!(
+        decode(0x6583_BFFE).map(|instr| instr.op),
+        Some(Opcode::SveFpSubr)
+    );
+    assert_ne!(
+        decode(0x6580_A3DE).map(|instr| instr.op),
+        Some(Opcode::SveFpAdd)
+    );
 }

@@ -4,10 +4,14 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic as M;
     Some(match m {
         M::r#fadd if (raw & 0xBFA0_FC00) == 0x0E20_D400 => Opcode::SimdFpAddVec,
+        M::r#fadd if (raw & 0xFF3F_E000) == 0x6500_8000 => Opcode::SveFpAdd,
         M::r#fadd => Opcode::FpAdd,
         M::r#fsub if (raw & 0xBFA0_FC00) == 0x0EA0_D400 => Opcode::SimdFpSubVec,
+        M::r#fsub if (raw & 0xFF3F_E000) == 0x6501_8000 => Opcode::SveFpSub,
+        M::r#fsubr if (raw & 0xFF3F_E000) == 0x6503_8000 => Opcode::SveFpSubr,
         M::r#fsub => Opcode::FpSub,
         M::r#fmul if (raw & 0xBFA0_FC00) == 0x2E20_DC00 => Opcode::SimdFpMulVec,
+        M::r#fmul if (raw & 0xFF3F_E000) == 0x6502_8000 => Opcode::SveFpMul,
         M::r#fmul => Opcode::FpMul,
         M::r#fnmul => Opcode::FpFnmul,
         M::r#fdiv if (raw & 0xBFA0_FC00) == 0x2E20_FC00 => Opcode::SimdFpDivVec,
