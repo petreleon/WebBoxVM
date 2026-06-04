@@ -72,16 +72,18 @@ fn try_decode_unpredicated(raw: u32) -> Option<DecodeStep> {
 }
 
 fn try_decode_immediate(raw: u32) -> Option<DecodeStep> {
-    if (raw & 0xFF3F_E3C0) != 0x651A_8000 {
-        return None;
-    }
+    let op = match raw & 0xFF3F_E3C0 {
+        0x6518_8000 => Opcode::SveFpAddImm,
+        0x651A_8000 => Opcode::SveFpMulImm,
+        _ => return None,
+    };
     let size = 1u8 << (((raw >> 22) & 0x3) as u8);
     if size == 1 {
         return Some(DecodeStep::Reject);
     }
     let rd = (raw & 0x1F) as u8;
     Some(DecodeStep::Hit(Instr {
-        op: Opcode::SveFpMulImm,
+        op,
         rd,
         rn: rd,
         rm: 0,

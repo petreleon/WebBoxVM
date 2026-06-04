@@ -43,6 +43,7 @@ pub(super) fn execute(
         }
         Opcode::SveFpDupImm => exec_sve_fp_dup_imm(cpu, instr),
         Opcode::SveFpAdd
+        | Opcode::SveFpAddImm
         | Opcode::SveFpSub
         | Opcode::SveFpMul
         | Opcode::SveFpSubr

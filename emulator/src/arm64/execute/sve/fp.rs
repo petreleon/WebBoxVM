@@ -2,8 +2,8 @@ use super::super::alu::{f16_to_f32, f32_to_f16_bits};
 use super::*;
 
 pub(in crate::arm64::execute) fn exec_sve_fp_binary(cpu: &mut Armv8Cpu, instr: Instr) {
-    if instr.op == Opcode::SveFpMulImm {
-        exec_sve_fp_mul_imm(cpu, instr);
+    if matches!(instr.op, Opcode::SveFpAddImm | Opcode::SveFpMulImm) {
+        exec_sve_fp_imm(cpu, instr);
         return;
     }
     if instr.cond == 0xFF {
@@ -46,22 +46,46 @@ fn exec_sve_fp_unpredicated(cpu: &mut Armv8Cpu, instr: Instr) {
     sve_write_z(cpu, instr.rd as usize, result);
 }
 
-fn exec_sve_fp_mul_imm(cpu: &mut Armv8Cpu, instr: Instr) {
+fn exec_sve_fp_imm(cpu: &mut Armv8Cpu, instr: Instr) {
     let element_size = instr.size as usize;
     let elements = sve_vl_bytes(cpu) / element_size;
     let mask = cpu.sve_pred[instr.cond as usize];
-    let imm = fmul_imm_bits(instr.imm != 0, element_size);
+    let op = if instr.op == Opcode::SveFpAddImm {
+        Opcode::SveFpAdd
+    } else {
+        Opcode::SveFpMul
+    };
+    let imm = fp_imm_bits(instr.op, instr.imm != 0, element_size);
     let mut result = sve_read_z(cpu, instr.rd as usize);
 
     for element in 0..elements {
         if predicate_element(&mask, element, element_size) {
             let left = sve_element(&result, element, element_size);
-            let value = fp_binary(Opcode::SveFpMul, left, imm, element_size);
+            let value = fp_binary(op, left, imm, element_size);
             sve_set_element(&mut result, element, element_size, value);
         }
     }
 
     sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn fp_imm_bits(op: Opcode, high: bool, element_size: usize) -> u64 {
+    if op == Opcode::SveFpAddImm {
+        return fadd_imm_bits(high, element_size);
+    }
+    fmul_imm_bits(high, element_size)
+}
+
+fn fadd_imm_bits(one: bool, element_size: usize) -> u64 {
+    match (one, element_size) {
+        (false, 2) => 0x3800,
+        (true, 2) => 0x3C00,
+        (false, 4) => 0.5f32.to_bits() as u64,
+        (true, 4) => 1.0f32.to_bits() as u64,
+        (false, 8) => 0.5f64.to_bits(),
+        (true, 8) => 1.0f64.to_bits(),
+        _ => 0,
+    }
 }
 
 fn fmul_imm_bits(two: bool, element_size: usize) -> u64 {
