@@ -19,4 +19,10 @@ fn sme_za_array_memory_traps_until_za_state_is_modeled() {
     assert_eq!(cpu.sys.esr_el1, (ESR_EC_UNKNOWN << 26) | ESR_IL);
     assert_eq!(cpu.regs.pc, RAM_BASE + 0x1000 + VBAR_SYNC_LOWER_EL_AARCH64);
     assert_eq!(bus.mem.read(RAM_BASE + 0x2000, 8), Some(0));
+
+    cpu.pstate = cpu.pstate.with_el(0);
+    cpu.regs.pc = RAM_BASE + 8;
+    execute(&mut cpu, &mut bus, decode(0xC1D2_1300).unwrap()).unwrap();
+    assert_eq!(cpu.sys.elr_el1, RAM_BASE + 8);
+    assert_eq!(cpu.sys.esr_el1, (ESR_EC_UNKNOWN << 26) | ESR_IL);
 }
