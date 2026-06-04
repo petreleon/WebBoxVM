@@ -40,7 +40,12 @@ fn log_disarm64_mismatches() -> bool {
 fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic as M;
     Some(match m {
-        M::r#add if (raw & 0xBF20_FC00) == 0x0E20_8400 => Opcode::SimdAddVec,
+        M::r#add
+            if ((raw & 0xFF20_FC00) == 0x5E20_8400 && ((raw >> 22) & 0x3) == 0x3)
+                || (raw & 0xBF20_FC00) == 0x0E20_8400 =>
+        {
+            Opcode::SimdAddVec
+        }
         M::r#add => Opcode::Add,
         M::r#adds => Opcode::Adds,
         M::r#sub if (raw & 0xBF20_FC00) == 0x2E20_8400 => Opcode::SimdSubVec,
@@ -179,7 +184,9 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#fmov if (raw & 0xFF20_1C00) == 0x1E20_1000 => Opcode::FpMovImm,
         M::r#umov => Opcode::SimdUmov,
         M::r#smov if simd_smov_is_valid(raw) => Opcode::SimdSmov,
-        M::r#dup if (raw & 0xBFE0_FC00) == 0x0E00_0400 => Opcode::SimdDupElem,
+        M::r#dup if (raw & 0xBFE0_FC00) == 0x0E00_0400 || (raw & 0xFFE0_FC00) == 0x5E00_0400 => {
+            Opcode::SimdDupElem
+        }
         M::r#dup => Opcode::SimdDupByte,
         M::r#ins if (raw & 0xFFE0_8400) == 0x6E00_0400 => Opcode::SimdInsElem,
         M::r#ins if (raw & 0xFFE0_FC00) == 0x4E00_1C00 => Opcode::SimdInsGprLane,

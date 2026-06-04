@@ -176,6 +176,11 @@ fn simd_pairwise_min_and_add_bytes() {
     cpu.simd[28] = 0x0000_0000_0000_0003_ffff_ffff_ffff_ffff;
     execute(&mut cpu, &mut bus, decode(0x5EF1_BB9F).unwrap()).unwrap(); // addp d31, v28.2d
     assert_eq!(cpu.simd[31], 2);
+
+    cpu.simd[15] = u64::MAX as u128;
+    cpu.simd[31] = 2;
+    execute(&mut cpu, &mut bus, decode(0x5EFF_85EF).unwrap()).unwrap(); // add d15, d15, d31
+    assert_eq!(cpu.simd[15], 1);
 }
 
 #[test]
@@ -189,6 +194,25 @@ fn simd_userland_vector_permute_and_reduction_ops() {
 
     execute(&mut cpu, &mut bus, decode(0x4E04_0C40).unwrap()).unwrap(); // dup v0.4s, w2
     assert_eq!(cpu.simd[0], 0x1122_3344_1122_3344_1122_3344_1122_3344);
+
+    cpu.simd[30] = 0x3333_3333_2222_2222_1111_1111_0000_0000;
+    execute(&mut cpu, &mut bus, decode(0x5E0C_07DF).unwrap()).unwrap(); // dup s31, v30.s[1]
+    assert_eq!(cpu.simd[31], 0x1111_1111);
+
+    execute(&mut cpu, &mut bus, decode(0x5E14_07DF).unwrap()).unwrap(); // dup s31, v30.s[2]
+    assert_eq!(cpu.simd[31], 0x2222_2222);
+
+    cpu.simd[20] = 0x8877_6655_4433_2211_0123_4567_89ab_cdef;
+    execute(&mut cpu, &mut bus, decode(0x5E18_0694).unwrap()).unwrap(); // dup d20, v20.d[1]
+    assert_eq!(cpu.simd[20], 0x8877_6655_4433_2211);
+
+    cpu.simd[24] = 0x4444_4444_3333_3333_2222_2222_1111_1111;
+    execute(&mut cpu, &mut bus, decode(0x5E1C_071E).unwrap()).unwrap(); // dup s30, v24.s[3]
+    assert_eq!(cpu.simd[30], 0x4444_4444);
+
+    cpu.simd[25] = 0x8888_8888_7777_7777_6666_6666_5555_5555;
+    execute(&mut cpu, &mut bus, decode(0x5E1C_073A).unwrap()).unwrap(); // dup s26, v25.s[3]
+    assert_eq!(cpu.simd[26], 0x8888_8888);
 
     cpu.simd[24] = 0x00ff_00ff_00ff_00ff_1111_2222_3333_4444;
     cpu.simd[25] = 0xff00_ff00_ff00_ff00_8888_4444_2222_1111;

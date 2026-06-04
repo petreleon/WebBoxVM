@@ -111,6 +111,21 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             }
         }
     }
+    if (raw & 0xFFE0_FC00) == 0x5E00_0400 {
+        let imm5 = ((raw >> 16) & 0x1F) as u8;
+        if let Some((element_size, lane)) = decode_umov_element(imm5) {
+            return Some(Instr {
+                op: Opcode::SimdDupElem,
+                rd: (raw & 0x1F) as u8,
+                rn: ((raw >> 5) & 0x1F) as u8,
+                rm: 0,
+                imm: lane as u64,
+                sf: true,
+                cond: element_size,
+                size: element_size,
+            });
+        }
+    }
     if (raw & 0xFFBF_FC00) == 0x1E20_4000 {
         let size = if ((raw >> 22) & 1) != 0 { 8 } else { 4 };
         return Some(Instr {
@@ -822,6 +837,22 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             sf: true,
             cond: 0,
             size: 16,
+        });
+    }
+    if (raw & 0xFF20_FC00) == 0x5E20_8400 {
+        if ((raw >> 22) & 0x3) != 0x3 {
+            return None;
+        }
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        return Some(Instr {
+            op: Opcode::SimdAddVec,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: element_size,
+            sf: true,
+            cond: 0,
+            size: element_size as u8,
         });
     }
     if let Some(instr) = decode_simd_shrn(raw) {

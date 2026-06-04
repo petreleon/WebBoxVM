@@ -471,6 +471,41 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(ld1_two.cond, 2);
     assert_eq!(ld1_two.imm, 32);
     assert_eq!(ld1_two.size, 16);
+    let dup_scalar_s_lane1 = decode(0x5E0C_07DF).unwrap();
+    assert_eq!(dup_scalar_s_lane1.op, Opcode::SimdDupElem);
+    assert_eq!(dup_scalar_s_lane1.rd, 31);
+    assert_eq!(dup_scalar_s_lane1.rn, 30);
+    assert_eq!(dup_scalar_s_lane1.imm, 1);
+    assert_eq!(dup_scalar_s_lane1.cond, 4);
+    assert_eq!(dup_scalar_s_lane1.size, 4);
+    let dup_scalar_s_lane2 = decode(0x5E14_07DF).unwrap();
+    assert_eq!(dup_scalar_s_lane2.op, Opcode::SimdDupElem);
+    assert_eq!(dup_scalar_s_lane2.rd, 31);
+    assert_eq!(dup_scalar_s_lane2.rn, 30);
+    assert_eq!(dup_scalar_s_lane2.imm, 2);
+    assert_eq!(dup_scalar_s_lane2.cond, 4);
+    assert_eq!(dup_scalar_s_lane2.size, 4);
+    let dup_scalar_double = decode(0x5E18_0694).unwrap();
+    assert_eq!(dup_scalar_double.op, Opcode::SimdDupElem);
+    assert_eq!(dup_scalar_double.rd, 20);
+    assert_eq!(dup_scalar_double.rn, 20);
+    assert_eq!(dup_scalar_double.imm, 1);
+    assert_eq!(dup_scalar_double.cond, 8);
+    assert_eq!(dup_scalar_double.size, 8);
+    let dup_scalar_s_lane3 = decode(0x5E1C_071E).unwrap();
+    assert_eq!(dup_scalar_s_lane3.op, Opcode::SimdDupElem);
+    assert_eq!(dup_scalar_s_lane3.rd, 30);
+    assert_eq!(dup_scalar_s_lane3.rn, 24);
+    assert_eq!(dup_scalar_s_lane3.imm, 3);
+    assert_eq!(dup_scalar_s_lane3.cond, 4);
+    assert_eq!(dup_scalar_s_lane3.size, 4);
+    let dup_scalar_s_lane3_alt = decode(0x5E1C_073A).unwrap();
+    assert_eq!(dup_scalar_s_lane3_alt.op, Opcode::SimdDupElem);
+    assert_eq!(dup_scalar_s_lane3_alt.rd, 26);
+    assert_eq!(dup_scalar_s_lane3_alt.rn, 25);
+    assert_eq!(dup_scalar_s_lane3_alt.imm, 3);
+    assert_eq!(dup_scalar_s_lane3_alt.cond, 4);
+    assert_eq!(dup_scalar_s_lane3_alt.size, 4);
     let ld1_post_two = decode(0x4CDF_A03C).unwrap();
     assert_eq!(ld1_post_two.op, Opcode::SimdLd1Multi);
     assert_eq!(ld1_post_two.cond, 2);
@@ -606,6 +641,21 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x6E1F_43FF).unwrap().op, Opcode::SimdExt);
     assert_eq!(decode(0x6E20_5BDE).unwrap().op, Opcode::SimdNot);
     assert_eq!(decode(0x4EFE_87FF).unwrap().op, Opcode::SimdAddVec);
+    let add_scalar_d = decode(0x5EFF_85EF).unwrap();
+    assert_eq!(add_scalar_d.op, Opcode::SimdAddVec);
+    assert_eq!(add_scalar_d.rd, 15);
+    assert_eq!(add_scalar_d.rn, 15);
+    assert_eq!(add_scalar_d.rm, 31);
+    assert_eq!(add_scalar_d.imm, 8);
+    assert_eq!(add_scalar_d.size, 8);
+    let add_scalar_d_alt = decode(0x5EFF_87BD).unwrap();
+    assert_eq!(add_scalar_d_alt.op, Opcode::SimdAddVec);
+    assert_eq!(add_scalar_d_alt.rd, 29);
+    assert_eq!(add_scalar_d_alt.rn, 29);
+    assert_eq!(add_scalar_d_alt.rm, 31);
+    assert_eq!(add_scalar_d_alt.imm, 8);
+    assert_eq!(add_scalar_d_alt.size, 8);
+    assert!(decode(0x5E20_8400).is_none());
     assert_eq!(decode(0x1E26_03E1).unwrap().op, Opcode::SimdFmovSToGpr);
     assert_eq!(decode(0x1E27_009F).unwrap().op, Opcode::SimdFmovGprToS);
     let fmov_lane_insert = decode(0x9EAF_0060).unwrap();
@@ -1069,6 +1119,13 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2F03_D7FE, Opcode::SimdMvni, "mvni"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
+        (0x5EFF_85EF, Opcode::SimdAddVec, "add"),
+        (0x5EFF_87BD, Opcode::SimdAddVec, "add"),
+        (0x5E0C_07DF, Opcode::SimdDupElem, "dup"),
+        (0x5E14_07DF, Opcode::SimdDupElem, "dup"),
+        (0x5E18_0694, Opcode::SimdDupElem, "dup"),
+        (0x5E1C_071E, Opcode::SimdDupElem, "dup"),
+        (0x5E1C_073A, Opcode::SimdDupElem, "dup"),
         (0x6EF9_47BD, Opcode::SimdUshl, "ushl"),
         (0x7EFF_47DF, Opcode::SimdUshl, "ushl"),
         (0x6EBD_37FD, Opcode::SimdCmhiReg, "cmhi"),
