@@ -103,7 +103,10 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         | Opcode::SimdFpAbd
         | Opcode::SimdFpNeg
         | Opcode::SimdFpFmlaVec
-        | Opcode::SimdFpFmlsVec => exec_simd_data(cpu, instr),
+        | Opcode::SimdFpFmlsVec
+        | Opcode::SimdFpFmlaElem
+        | Opcode::SimdFpFmlsElem
+        | Opcode::SimdFpMulElem => exec_simd_data(cpu, instr),
         Opcode::FpAdd
         | Opcode::FpSub
         | Opcode::FpMul

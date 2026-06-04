@@ -4,15 +4,35 @@ pub(in crate::arm64::execute) fn exec_simd_fp_fused(cpu: &mut Armv8Cpu, instr: I
     let rd = instr.rd as usize;
     let rn = instr.rn as usize;
     let rm = instr.rm as usize;
-    let subtract = instr.op == Opcode::SimdFpFmlsVec;
-    cpu.simd[rd] = simd_fp_fused(
-        cpu.simd[rd],
-        cpu.simd[rn],
-        cpu.simd[rm],
-        instr.imm.max(1) as usize,
-        instr.size as usize,
-        subtract,
-    );
+    let element_size = instr.imm.max(1) as usize;
+    let vector_size = instr.size as usize;
+    cpu.simd[rd] = match instr.op {
+        Opcode::SimdFpFmlaVec | Opcode::SimdFpFmlsVec => simd_fp_fused(
+            cpu.simd[rd],
+            cpu.simd[rn],
+            cpu.simd[rm],
+            element_size,
+            vector_size,
+            instr.op == Opcode::SimdFpFmlsVec,
+        ),
+        Opcode::SimdFpFmlaElem | Opcode::SimdFpFmlsElem => simd_fp_fused_by_element(
+            cpu.simd[rd],
+            cpu.simd[rn],
+            cpu.simd[rm],
+            instr.cond as usize,
+            element_size,
+            vector_size,
+            instr.op == Opcode::SimdFpFmlsElem,
+        ),
+        Opcode::SimdFpMulElem => simd_fp_mul_by_element(
+            cpu.simd[rn],
+            cpu.simd[rm],
+            instr.cond as usize,
+            element_size,
+            vector_size,
+        ),
+        _ => unreachable!(),
+    };
 }
 
 fn simd_fp_fused(
@@ -64,4 +84,43 @@ fn simd_fp_fused_f64(
         out |= (lhs.mul_add(rhs, acc).to_bits() as u128) << (lane * 64);
     }
     out & simd_vector_mask(vector_size)
+}
+
+fn simd_fp_fused_by_element(
+    addend: u128,
+    left: u128,
+    right: u128,
+    index: usize,
+    element_size: usize,
+    vector_size: usize,
+    subtract: bool,
+) -> u128 {
+    let lane_value = simd_element(right, index, element_size);
+    let mut expanded = 0u128;
+    for lane in 0..vector_size / element_size {
+        expanded |= lane_value << (lane * element_size * 8);
+    }
+    simd_fp_fused(addend, left, expanded, element_size, vector_size, subtract)
+}
+
+fn simd_fp_mul_by_element(
+    left: u128,
+    right: u128,
+    index: usize,
+    element_size: usize,
+    vector_size: usize,
+) -> u128 {
+    let lane_value = simd_element(right, index, element_size);
+    let mut expanded = 0u128;
+    for lane in 0..vector_size / element_size {
+        expanded |= lane_value << (lane * element_size * 8);
+    }
+    simd_fp_elementwise_binary(
+        left,
+        expanded,
+        element_size,
+        vector_size,
+        |a, b| a * b,
+        |a, b| a * b,
+    )
 }

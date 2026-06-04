@@ -6,6 +6,7 @@ mod simd_compare;
 mod simd_convert;
 mod simd_crypto_a;
 mod simd_dup_convert;
+mod simd_fp_by_element;
 mod simd_fp_unary;
 mod simd_immediates_a;
 mod simd_load_multi;
@@ -54,6 +55,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));
     try_stage!(simd_dup_convert::decode(raw));
+    try_stage!(simd_fp_by_element::decode(raw));
     try_stage!(simd_move_scalar_fp::decode(raw));
     try_stage!(simd_fp_unary::decode(raw));
     try_stage!(simd_compare::decode(raw));

@@ -84,5 +84,8 @@ pub(in crate::arm64::machine) fn is_simd_integer_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpNeg
             | Opcode::SimdFpFmlaVec
             | Opcode::SimdFpFmlsVec
+            | Opcode::SimdFpFmlaElem
+            | Opcode::SimdFpFmlsElem
+            | Opcode::SimdFpMulElem
     )
 }

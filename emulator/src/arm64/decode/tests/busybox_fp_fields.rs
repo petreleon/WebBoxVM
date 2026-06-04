@@ -92,4 +92,21 @@ fn decode_busybox_fp_field_details() {
     assert_eq!(fmsub.rn, 29);
     assert_eq!(fmsub.rm, 31);
     assert_eq!(fmsub.cond, 30);
+
+    let fmla_elem = decode(0x4FB9_1BEF).unwrap(); // fmla v15.4s, v31.4s, v25.s[3]
+    assert_eq!(fmla_elem.rd, 15);
+    assert_eq!(fmla_elem.rn, 31);
+    assert_eq!(fmla_elem.rm, 25);
+    assert_eq!(fmla_elem.cond, 3);
+    assert_eq!(fmla_elem.imm, 4);
+    assert_eq!(fmla_elem.size, 16);
+
+    let fmul_elem = decode(0x4FC9_9907).unwrap(); // fmul v7.2d, v8.2d, v9.d[1]
+    assert_eq!(fmul_elem.op, Opcode::SimdFpMulElem);
+    assert_eq!(fmul_elem.rd, 7);
+    assert_eq!(fmul_elem.rn, 8);
+    assert_eq!(fmul_elem.rm, 9);
+    assert_eq!(fmul_elem.cond, 1);
+    assert_eq!(fmul_elem.imm, 8);
+    assert_eq!(fmul_elem.size, 16);
 }
