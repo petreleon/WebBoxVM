@@ -90,3 +90,20 @@ fn decode_scalar_reverse_forms() {
         assert_eq!(instr.sf, sf, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_scalar_bitfield_forms() {
+    let cases = [
+        (0x9343_3020, Opcode::Sbfm, "sbfm", 3, 12),
+        (0xB348_3CA4, Opcode::Bfm, "bfm", 8, 15),
+        (0xD344_5062, Opcode::Ubfm, "ubfm", 4, 20),
+    ];
+
+    for (raw, expected, mnemonic, immr, imms) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!(instr.rm, immr, "raw=0x{raw:08x}");
+        assert_eq!(instr.imm, imms, "raw=0x{raw:08x}");
+    }
+}

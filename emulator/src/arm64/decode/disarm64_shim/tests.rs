@@ -50,3 +50,18 @@ fn maps_scalar_reverse_mnemonics() {
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
     }
 }
+
+#[test]
+fn maps_scalar_bitfield_mnemonics() {
+    let cases = [
+        (0x9343_3020, Opcode::Sbfm, "sbfm"),
+        (0xB348_3CA4, Opcode::Bfm, "bfm"),
+        (0xD344_5062, Opcode::Ubfm, "ubfm"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode bitfield word");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}

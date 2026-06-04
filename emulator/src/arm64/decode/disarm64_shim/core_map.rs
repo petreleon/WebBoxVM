@@ -118,6 +118,9 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sxtw => Opcode::Sxtw,
         M::r#ccmn => Opcode::Ccmn,
         M::r#ccmp => Opcode::Ccmp,
+        M::r#sbfm if (raw & 0x7F80_0000) == 0x1300_0000 => Opcode::Sbfm,
+        M::r#bfm if (raw & 0x7F80_0000) == 0x3300_0000 => Opcode::Bfm,
+        M::r#ubfm if (raw & 0x7F80_0000) == 0x5300_0000 => Opcode::Ubfm,
         _ => return None,
     })
 }
