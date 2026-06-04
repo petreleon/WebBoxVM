@@ -135,6 +135,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#frinta => Opcode::FpFrinta,
         M::r#frintx => Opcode::FpFrintx,
         M::r#frintz => Opcode::FpFrintz,
+        M::r#frintp => Opcode::FpFrintp,
+        M::r#frinti => Opcode::FpFrinti,
         M::r#fmadd => Opcode::Fmadd,
         M::r#fmsub => Opcode::Fmsub,
         M::r#fnmsub => Opcode::Fnmsub,

@@ -188,6 +188,8 @@ pub enum Opcode {
     FpFrinta,
     FpFrintx,
     FpFrintz,
+    FpFrintp,
+    FpFrinti,
     FpMovImm,
     Fmadd,
     Fmsub,

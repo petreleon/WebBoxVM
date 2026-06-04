@@ -473,6 +473,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::FpFrinta
         | Opcode::FpFrintx
         | Opcode::FpFrintz
+        | Opcode::FpFrintp
+        | Opcode::FpFrinti
         | Opcode::FpMovImm
         | Opcode::Fmadd
         | Opcode::Fmsub

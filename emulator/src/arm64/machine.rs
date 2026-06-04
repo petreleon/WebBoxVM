@@ -1120,6 +1120,8 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::FpFrinta
             | Opcode::FpFrintx
             | Opcode::FpFrintz
+            | Opcode::FpFrintp
+            | Opcode::FpFrinti
             | Opcode::FpMovImm
             | Opcode::Fmadd
             | Opcode::Fmsub

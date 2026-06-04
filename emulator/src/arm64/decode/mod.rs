@@ -1744,8 +1744,14 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     if (raw & 0xFF3F_FC00) == 0x1E27_4000 {
         return Some(fp_instr(Opcode::FpFrintx, rd, rn, 0, 0, size));
     }
+    if (raw & 0xFF3F_FC00) == 0x1E24_C000 {
+        return Some(fp_instr(Opcode::FpFrintp, rd, rn, 0, 0, size));
+    }
     if (raw & 0xFF3F_FC00) == 0x1E25_C000 {
         return Some(fp_instr(Opcode::FpFrintz, rd, rn, 0, 0, size));
+    }
+    if (raw & 0xFF3F_FC00) == 0x1E27_C000 {
+        return Some(fp_instr(Opcode::FpFrinti, rd, rn, 0, 0, size));
     }
     if (raw & 0xFF20_1C00) == 0x1E20_1000 {
         return Some(fp_instr(

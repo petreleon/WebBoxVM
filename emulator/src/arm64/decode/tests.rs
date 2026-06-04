@@ -881,6 +881,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E66_43FF, Opcode::FpFrinta, "frinta"),
         (0x1E67_403F, Opcode::FpFrintx, "frintx"),
         (0x1E65_C3FF, Opcode::FpFrintz, "frintz"),
+        (0x1E64_C3FF, Opcode::FpFrintp, "frintp"),
+        (0x1E67_C000, Opcode::FpFrinti, "frinti"),
         (0x1E6E_1000, Opcode::FpMovImm, "fmov"),
         (0x1E62_900F, Opcode::FpMovImm, "fmov"),
         (0x1F5B_7B9E, Opcode::Fmadd, "fmadd"),
