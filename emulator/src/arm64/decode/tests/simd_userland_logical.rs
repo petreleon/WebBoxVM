@@ -1,0 +1,50 @@
+use super::*;
+
+#[test]
+fn decode_simd_userland_logical_and_reduce_ops() {
+    assert_eq!(decode(0x0E04_0E8F).unwrap().op, Opcode::SimdDupByte);
+    assert_eq!(decode(0x4E04_0C40).unwrap().op, Opcode::SimdDupByte);
+    assert_eq!(decode(0x4EB9_1F18).unwrap().op, Opcode::SimdOrr);
+    let orn_bytes = decode(0x4EE1_1C00).unwrap();
+    assert_eq!(orn_bytes.op, Opcode::SimdOrn);
+    assert_eq!(orn_bytes.rd, 0);
+    assert_eq!(orn_bytes.rn, 0);
+    assert_eq!(orn_bytes.rm, 1);
+    assert_eq!(orn_bytes.size, 16);
+    assert_eq!(decode(0x4E20_1C21).unwrap().op, Opcode::SimdAnd);
+    let bic_bytes = decode(0x0E64_1FDE).unwrap();
+    assert_eq!(bic_bytes.op, Opcode::SimdBic);
+    assert_eq!(bic_bytes.rd, 30);
+    assert_eq!(bic_bytes.rn, 30);
+    assert_eq!(bic_bytes.rm, 4);
+    assert_eq!(bic_bytes.size, 8);
+    let bsl_bytes = decode(0x2E7F_1DE1).unwrap();
+    assert_eq!(bsl_bytes.op, Opcode::SimdBsl);
+    assert_eq!(bsl_bytes.rd, 1);
+    assert_eq!(bsl_bytes.rn, 15);
+    assert_eq!(bsl_bytes.rm, 31);
+    assert_eq!(bsl_bytes.size, 8);
+    assert_eq!(decode(0x2EBF_1DE0).unwrap().op, Opcode::SimdBit);
+    assert_eq!(decode(0x2EFE_1FE0).unwrap().op, Opcode::SimdBif);
+    assert_eq!(decode(0x0E20_5BFF).unwrap().op, Opcode::SimdCnt);
+    assert_eq!(decode(0x0E31_BBFF).unwrap().op, Opcode::SimdAddv);
+    let umaxv = decode(0x6EB0_ABBF).unwrap();
+    assert_eq!(umaxv.op, Opcode::SimdUmaxv);
+    assert_eq!(umaxv.rd, 31);
+    assert_eq!(umaxv.rn, 29);
+    assert_eq!(umaxv.imm, 4);
+    assert_eq!(umaxv.size, 16);
+    assert!(decode(0x2EB0_ABBF).is_none());
+    assert!(decode(0x6EF0_ABBF).is_none());
+    let cmge_scalar_zero = decode(0x7EE0_8BFF).unwrap();
+    assert_eq!(cmge_scalar_zero.op, Opcode::SimdCmgeZero);
+    assert_eq!(cmge_scalar_zero.rd, 31);
+    assert_eq!(cmge_scalar_zero.rn, 31);
+    assert_eq!(cmge_scalar_zero.imm, 8);
+    assert_eq!(cmge_scalar_zero.size, 8);
+    let cmge_doublewords_zero = decode(0x6EE0_8BFF).unwrap();
+    assert_eq!(cmge_doublewords_zero.op, Opcode::SimdCmgeZero);
+    assert_eq!(cmge_doublewords_zero.imm, 8);
+    assert_eq!(cmge_doublewords_zero.size, 16);
+    assert!(decode(0x2EE0_8BFF).is_none());
+}

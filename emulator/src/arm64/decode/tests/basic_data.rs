@@ -1,0 +1,60 @@
+use super::*;
+
+#[test]
+fn movz_lsl_0() {
+    let instr = decode(0xD282_4680).unwrap();
+    assert_eq!(instr.op, Opcode::Movz);
+    assert_eq!(instr.imm, 0x1234);
+}
+
+#[test]
+fn movz_lsl_16() {
+    let instr = decode(0xD2A2_4680).unwrap();
+    assert_eq!(instr.imm, 0x1234_0000);
+}
+
+#[test]
+fn decode_cmp_x3_x2() {
+    let instr = decode(0xEB02007F).unwrap();
+    assert_eq!(instr.op, Opcode::Cmp);
+    assert_eq!(instr.rn, 3);
+    assert_eq!(instr.rm, 2);
+}
+
+#[test]
+fn decode_addsub_with_carry() {
+    let adc = decode(0x9A02_0020).unwrap(); // adc x0, x1, x2
+    assert_eq!(adc.op, Opcode::Adc);
+    assert_eq!(adc.rd, 0);
+    assert_eq!(adc.rn, 1);
+    assert_eq!(adc.rm, 2);
+
+    let sbc = decode(0xDA1F_03E0).unwrap(); // sbc x0, xzr, xzr
+    assert_eq!(sbc.op, Opcode::Sbc);
+    assert_eq!(sbc.rd, 0);
+    assert_eq!(sbc.rn, 31);
+    assert_eq!(sbc.rm, 31);
+}
+
+#[test]
+fn decode_crc32_scalar_forms() {
+    let cases = [
+        (0x1AC5_4042, 1, "crc32b"),
+        (0x1AC5_4442, 2, "crc32h"),
+        (0x1AC3_4842, 4, "crc32w"),
+        (0x9AC4_4C42, 8, "crc32x"),
+    ];
+
+    for (raw, size, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::Crc32, "raw=0x{raw:08x}");
+        assert_eq!(instr.rd, 2);
+        assert_eq!(instr.rn, 2);
+        assert_eq!(instr.size, size);
+    }
+
+    assert_eq!(decode(0x1AC5_4042).unwrap().rm, 5);
+    assert_eq!(decode(0x1AC3_4842).unwrap().rm, 3);
+    assert_eq!(decode(0x9AC4_4C42).unwrap().rm, 4);
+}
