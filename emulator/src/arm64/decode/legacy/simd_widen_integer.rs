@@ -121,34 +121,5 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
-    if (raw & 0xFFE0_FC00) == 0x7EE0_4400 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdUshl,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: 8,
-            sf: true,
-            cond: 0,
-            size: 8,
-        });
-    }
-    if (raw & 0xBF20_FC00) == 0x2E20_4400 {
-        let q = (raw >> 30) != 0;
-        let element_size = 1u64 << ((raw >> 22) & 0x3);
-        if element_size == 8 && !q {
-            return DecodeStep::Reject;
-        }
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdUshl,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: element_size,
-            sf: true,
-            cond: 0,
-            size: if q { 16 } else { 8 },
-        });
-    }
     DecodeStep::Miss
 }

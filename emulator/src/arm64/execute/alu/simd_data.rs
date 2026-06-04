@@ -112,6 +112,7 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdSri
         | Opcode::SimdSshr
         | Opcode::SimdUshr
+        | Opcode::SimdSshl
         | Opcode::SimdUshl => exec_simd_shift(cpu, instr),
         Opcode::SimdExt
         | Opcode::SimdRev64

@@ -91,3 +91,18 @@ fn simd_userland_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x7EFF_47DF).unwrap()).unwrap(); // ushl d31, d30, d31
     assert_eq!(cpu.simd[31], 0x40);
 }
+
+#[test]
+fn simd_signed_variable_shift_uses_signed_right_shifts() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[2] = 0xf0_03_aa_55_80_7f_80_01;
+    cpu.simd[26] = 0xf7_09_f8_08_fe_02_ff_01;
+    execute(&mut cpu, &mut bus, decode(0x0E3A_4442).unwrap()).unwrap(); // sshl v2.8b, v2.8b, v26.8b
+    assert_eq!(cpu.simd[2], 0xff_00_ff_00_e0_fc_c0_02);
+
+    cpu.simd[23] = u32x4([1, 0xffff_fffe, 0x4000_0000, 0xc000_0000]);
+    cpu.simd[29] = u32x4([3, 0xff, 2, 0xd8]);
+    execute(&mut cpu, &mut bus, decode(0x4EBD_46F7).unwrap()).unwrap(); // sshl v23.4s, v23.4s, v29.4s
+    assert_eq!(cpu.simd[23], u32x4([8, 0xffff_ffff, 0, 0xffff_ffff]));
+}

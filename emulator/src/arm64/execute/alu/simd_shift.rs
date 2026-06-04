@@ -120,6 +120,34 @@ pub(in crate::arm64::execute) fn exec_simd_shift(cpu: &mut Armv8Cpu, instr: Inst
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdSshl => {
+            let element_size = instr.imm.max(1) as usize;
+            let bits = element_size * 8;
+            let lanes = instr.size as usize / element_size;
+            let element_mask = simd_element_mask(element_size);
+            let mut out = 0u128;
+            for lane in 0..lanes {
+                let value = simd_signed_element(cpu.simd[rn], lane, element_size) as i128;
+                let shift = simd_element(cpu.simd[rm], lane, element_size) as u8 as i8;
+                let shifted = if shift >= 0 {
+                    let amount = shift as usize;
+                    if amount >= bits {
+                        0
+                    } else {
+                        (value as u128) << amount
+                    }
+                } else {
+                    let amount = shift.unsigned_abs() as usize;
+                    if amount >= bits {
+                        if value < 0 { element_mask } else { 0 }
+                    } else {
+                        (value >> amount) as u128
+                    }
+                };
+                out |= (shifted & element_mask) << (lane * bits);
+            }
+            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+        }
         _ => unreachable!(),
     }
 }
