@@ -24,6 +24,7 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdFmovDToGpr
         | Opcode::SimdFmovSToGpr
         | Opcode::SimdFmovLaneToGpr
+        | Opcode::SimdFmovImm
         | Opcode::SimdUmov
         | Opcode::SimdSmov
         | Opcode::SimdInsGprLane => exec_simd_moves(cpu, instr),

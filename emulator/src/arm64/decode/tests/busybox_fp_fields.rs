@@ -32,6 +32,21 @@ fn decode_busybox_fp_field_details() {
     assert_eq!(fmov_five.rd, 15);
     assert_eq!(fmov_five.imm, 20);
 
+    let fmov_vec = decode(0x4F03_F61E).unwrap(); // fmov v30.4s, #1
+    assert_eq!(fmov_vec.op, Opcode::SimdFmovImm);
+    assert_eq!(fmov_vec.rd, 30);
+    assert_eq!(fmov_vec.imm, 0x70);
+    assert_eq!(fmov_vec.cond, 4);
+    assert_eq!(fmov_vec.size, 16);
+
+    let fmov_vec_double = decode(0x6F07_F61F).unwrap(); // fmov v31.2d, #-1
+    assert_eq!(fmov_vec_double.op, Opcode::SimdFmovImm);
+    assert_eq!(fmov_vec_double.rd, 31);
+    assert_eq!(fmov_vec_double.imm, 0xF0);
+    assert_eq!(fmov_vec_double.cond, 8);
+    assert_eq!(fmov_vec_double.size, 16);
+    assert!(decode(0x2F07_F61F).is_none());
+
     let fmov_single_reg = decode(0x1E20_43DD).unwrap();
     assert_eq!(fmov_single_reg.op, Opcode::SimdFmovReg64);
     assert_eq!(fmov_single_reg.rd, 29);

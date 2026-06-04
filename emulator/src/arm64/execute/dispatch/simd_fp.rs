@@ -31,6 +31,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         | Opcode::SimdFmovDToGpr
         | Opcode::SimdFmovSToGpr
         | Opcode::SimdFmovLaneToGpr
+        | Opcode::SimdFmovImm
         | Opcode::SimdUmov
         | Opcode::SimdSmov
         | Opcode::SimdInsGprLane

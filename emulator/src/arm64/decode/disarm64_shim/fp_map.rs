@@ -77,6 +77,9 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fmov if (raw & 0x7F3F_FC00) == 0x1E26_0000 => Opcode::SimdFmovSToGpr,
         M::r#fmov if (raw & 0xFFFF_FC00) == 0x9EAE_0000 => Opcode::SimdFmovLaneToGpr,
         M::r#fmov if (raw & 0xFFFF_FC00) == 0x9EAF_0000 => Opcode::SimdInsGprLane,
+        M::r#fmov if (raw & 0xBFF8_FC00) == 0x0F00_F400 || (raw & 0xFFF8_FC00) == 0x6F00_F400 => {
+            Opcode::SimdFmovImm
+        }
         M::r#fmov if (raw & 0xFF20_1C00) == 0x1E20_1000 => Opcode::FpMovImm,
         M::r#umov => Opcode::SimdUmov,
         M::r#smov if simd_smov_is_valid(raw) => Opcode::SimdSmov,

@@ -39,6 +39,7 @@ fn decode_busybox_fp_cases_cross_checked_with_disarm64() {
         (0x1E67_C000, Opcode::FpFrinti, "frinti"),
         (0x1E6E_1000, Opcode::FpMovImm, "fmov"),
         (0x1E62_900F, Opcode::FpMovImm, "fmov"),
+        (0x4F03_F61E, Opcode::SimdFmovImm, "fmov"),
         (0x1F5B_7B9E, Opcode::Fmadd, "fmadd"),
         (0x1F5F_FBBE, Opcode::Fmsub, "fmsub"),
         (0x1F76_E7F9, Opcode::Fnmsub, "fnmsub"),

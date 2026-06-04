@@ -40,6 +40,12 @@ pub(in crate::arm64::execute) fn exec_simd_moves(cpu: &mut Armv8Cpu, instr: Inst
             let shift = (instr.imm as u32) * 64;
             write_reg(cpu, instr.rd, (cpu.simd[rn] >> shift) as u64, true);
         }
+        Opcode::SimdFmovImm => {
+            let element_size = instr.cond.max(1);
+            let value = fp_expand_imm(instr.imm as u8, element_size) as u128;
+            cpu.simd[rd] =
+                simd_replicate_element(value, element_size as usize, instr.size as usize);
+        }
         Opcode::SimdUmov => {
             let element_size = instr.cond.max(1) as u32;
             let shift = (instr.imm as u32) * element_size * 8;

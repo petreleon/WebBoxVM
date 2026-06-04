@@ -28,6 +28,15 @@ fn simd_word_immediates_and_cmeq_zero() {
     execute(&mut cpu, &mut bus, decode(0x2F07_E61F).unwrap()).unwrap(); // movi d31, #0xffffffff00000000
     assert_eq!(cpu.simd[31], 0xffff_ffff_0000_0000);
 
+    execute(&mut cpu, &mut bus, decode(0x0F03_F61E).unwrap()).unwrap(); // fmov v30.2s, #1
+    assert_eq!(cpu.simd[30], 0x3f80_0000_3f80_0000);
+
+    execute(&mut cpu, &mut bus, decode(0x4F07_F418).unwrap()).unwrap(); // fmov v24.4s, #-0.5
+    assert_eq!(cpu.simd[24], 0xbf00_0000_bf00_0000_bf00_0000_bf00_0000);
+
+    execute(&mut cpu, &mut bus, decode(0x6F07_F61F).unwrap()).unwrap(); // fmov v31.2d, #-1
+    assert_eq!(cpu.simd[31], 0xbff0_0000_0000_0000_bff0_0000_0000_0000_u128);
+
     cpu.simd[0] = 0x0001_0000_00ff_0000;
     execute(&mut cpu, &mut bus, decode(0x0E20_9800).unwrap()).unwrap(); // cmeq v0.8b, v0.8b, #0
     assert_eq!(cpu.simd[0], 0xff00_ffff_ff00_ffff);

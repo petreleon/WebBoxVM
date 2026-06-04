@@ -1,6 +1,32 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    if (raw & 0xBFF8_FC00) == 0x0F00_F400 {
+        let imm8 = ((raw >> 5) & 0x1F) | (((raw >> 16) & 0x7) << 5);
+        return DecodeStep::Hit(Instr {
+            op: Opcode::SimdFmovImm,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: imm8 as u64,
+            sf: true,
+            cond: 4,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
+        });
+    }
+    if (raw & 0xFFF8_FC00) == 0x6F00_F400 {
+        let imm8 = ((raw >> 5) & 0x1F) | (((raw >> 16) & 0x7) << 5);
+        return DecodeStep::Hit(Instr {
+            op: Opcode::SimdFmovImm,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: imm8 as u64,
+            sf: true,
+            cond: 8,
+            size: 16,
+        });
+    }
     if (raw & 0xBFF8_9C00) == 0x0F00_0400 {
         let imm8 = ((raw >> 5) & 0x1F) | (((raw >> 16) & 0x7) << 5);
         let shift = (((raw >> 12) & 0xF) >> 1) & 0x3;
