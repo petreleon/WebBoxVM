@@ -75,3 +75,22 @@ fn decode_logical_immediate_forms() {
         assert_eq!(instr.imm, imm, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_addsub_immediate_forms() {
+    let cases = [
+        (0x9104_8C20, Opcode::AddImm, "add", 0x123),
+        (0x9140_1062, Opcode::AddImm, "add", 0x4000),
+        (0xD101_54A4, Opcode::SubImm, "sub", 0x55),
+        (0x3100_40E6, Opcode::AddsImm, "adds", 0x10),
+        (0xF100_896A, Opcode::SubsImm, "subs", 0x22),
+        (0xF100_811F, Opcode::CmpImm, "subs", 0x20),
+    ];
+
+    for (raw, expected, mnemonic, imm) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!(instr.imm, imm, "raw=0x{raw:08x}");
+    }
+}

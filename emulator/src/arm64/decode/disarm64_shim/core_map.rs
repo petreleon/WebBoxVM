@@ -10,11 +10,16 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
             Opcode::SimdAddVec
         }
         M::r#add if (raw & 0xFF20_FC00) == 0x0420_0000 => Opcode::SveAddVec,
+        M::r#add if (raw & 0x1F80_0000) == 0x1100_0000 => Opcode::AddImm,
         M::r#add => Opcode::Add,
+        M::r#adds if (raw & 0x1F80_0000) == 0x1100_0000 => Opcode::AddsImm,
         M::r#adds => Opcode::Adds,
         M::r#sub if (raw & 0xBF20_FC00) == 0x2E20_8400 => Opcode::SimdSubVec,
         M::r#sub if (raw & 0xFF20_FC00) == 0x0420_0400 => Opcode::SveSubVec,
+        M::r#sub if (raw & 0x1F80_0000) == 0x1100_0000 => Opcode::SubImm,
         M::r#sub => Opcode::Sub,
+        M::r#subs if (raw & 0x1F80_0000) == 0x1100_0000 && (raw & 0x1F) == 31 => Opcode::CmpImm,
+        M::r#subs if (raw & 0x1F80_0000) == 0x1100_0000 => Opcode::SubsImm,
         M::r#subs => Opcode::Subs,
         M::r#adc => Opcode::Adc,
         M::r#adcs => Opcode::Adcs,

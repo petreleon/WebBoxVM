@@ -81,3 +81,20 @@ fn maps_scalar_logical_immediate_mnemonics() {
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
     }
 }
+
+#[test]
+fn maps_scalar_addsub_immediate_mnemonics() {
+    let cases = [
+        (0x9104_8C20, Opcode::AddImm, "add"),
+        (0xD101_54A4, Opcode::SubImm, "sub"),
+        (0x3100_40E6, Opcode::AddsImm, "adds"),
+        (0xF100_896A, Opcode::SubsImm, "subs"),
+        (0xF100_811F, Opcode::CmpImm, "subs"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode add/sub immediate");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}

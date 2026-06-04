@@ -114,3 +114,25 @@ fn logical_immediates_apply_decoded_masks() {
     assert!(cpu.pstate.z());
     assert!(!cpu.pstate.n());
 }
+
+#[test]
+fn addsub_immediates_update_values_and_flags() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.regs.set_x(1, 0x1000);
+    execute(&mut cpu, &mut bus, decode(0x9104_8C20).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 0x1123);
+
+    cpu.regs.set_x(5, 0x100);
+    execute(&mut cpu, &mut bus, decode(0xD101_54A4).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(4), 0xab);
+
+    cpu.regs.set_w(7, u32::MAX);
+    execute(&mut cpu, &mut bus, decode(0x3100_40E6).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(6), 0x0f);
+    assert!(cpu.pstate.c());
+
+    cpu.regs.set_x(8, 0x20);
+    execute(&mut cpu, &mut bus, decode(0xF100_811F).unwrap()).unwrap();
+    assert!(cpu.pstate.z());
+}
