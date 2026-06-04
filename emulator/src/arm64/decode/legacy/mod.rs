@@ -32,6 +32,7 @@ mod simd_structure;
 mod simd_tail_system;
 mod simd_widen_helpers;
 mod simd_widen_integer;
+mod sme_memory;
 mod sve_addsub;
 mod sve_byte_store;
 mod sve_compare;
@@ -78,6 +79,7 @@ macro_rules! try_stage {
 
 pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(early_sve_vector::decode(raw));
+    try_stage!(sme_memory::decode(raw));
     try_stage!(sve_word_load_store::decode(raw));
     try_stage!(sve_contiguous_load::decode(raw));
     try_stage!(sve_byte_store::decode(raw));

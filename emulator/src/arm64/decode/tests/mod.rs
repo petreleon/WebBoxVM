@@ -44,6 +44,7 @@ mod simd_userland_struct_ldst;
 mod simd_userland_widen_fp;
 mod simd_widen_addwide;
 mod simd_xtn2;
+mod sme_memory;
 mod sve_addsub;
 mod sve_byte_load_store;
 mod sve_compare;

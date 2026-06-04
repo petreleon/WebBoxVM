@@ -42,6 +42,7 @@ mod simd_map;
 mod simd_mnemonic_tests;
 #[cfg(test)]
 mod simd_ucvtf_tests;
+mod sme_map;
 mod sve_addsub_map;
 mod sve_byte_mem_map;
 mod sve_dup_map;
@@ -125,6 +126,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| sve_fp_trig_map::map(raw, m))
         .or_else(|| sve_fp_immediate_map::map(raw, m))
         .or_else(|| sve_fp_unary_map::map(raw, m))
+        .or_else(|| sme_map::map(raw, m))
         .or_else(|| sve_byte_mem_map::map(raw, m))
         .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))

@@ -27,6 +27,10 @@ pub(super) fn execute(
             exec_udf(cpu)?;
             return Ok(Some(Flow::Return));
         }
+        Opcode::SmeStrZa => {
+            exec_udf(cpu)?;
+            return Ok(Some(Flow::Return));
+        }
         Opcode::Nop
         | Opcode::NopBarrier
         | Opcode::Chkfeat
