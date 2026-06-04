@@ -64,6 +64,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#tbl if (raw & 0xBFE0_9C00) == 0x0E00_0000 => Opcode::SimdTbl,
         M::r#not => Opcode::SimdNot,
         M::r#movi => Opcode::SimdMovi,
+        M::r#mvni if (raw & 0xFFFF_FC00) == 0x6F00_0400 => Opcode::SimdMovi,
         M::r#mvni => Opcode::SimdMvni,
         M::r#ushll => Opcode::SimdUshll,
         M::r#sshll => Opcode::SimdSshll,

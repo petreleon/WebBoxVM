@@ -29,6 +29,8 @@ mod scalar_alias_tests;
 mod scalar_ldst_tests;
 mod simd_ldst_map;
 mod simd_map;
+#[cfg(test)]
+mod simd_mnemonic_tests;
 mod system_map;
 #[cfg(test)]
 mod system_tests;
