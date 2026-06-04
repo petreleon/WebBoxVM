@@ -753,6 +753,20 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(neg_vec.rn, 31);
     assert_eq!(neg_vec.imm, 4);
     assert_eq!(neg_vec.size, 16);
+    let abs_vec = decode(0x4EE0_BBDE).unwrap();
+    assert_eq!(abs_vec.op, Opcode::SimdAbs);
+    assert_eq!(abs_vec.rd, 30);
+    assert_eq!(abs_vec.rn, 30);
+    assert_eq!(abs_vec.imm, 8);
+    assert_eq!(abs_vec.size, 16);
+    let abs_scalar = decode(0x5EE0_BB00).unwrap();
+    assert_eq!(abs_scalar.op, Opcode::SimdAbs);
+    assert_eq!(abs_scalar.rd, 0);
+    assert_eq!(abs_scalar.rn, 24);
+    assert_eq!(abs_scalar.imm, 8);
+    assert_eq!(abs_scalar.size, 8);
+    assert!(decode(0x0EE0_BB00).is_none());
+    assert!(decode(0x5E20_BB00).is_none());
     let neg_scalar = decode(0x7EE0_BBFF).unwrap();
     assert_eq!(neg_scalar.op, Opcode::SimdNeg);
     assert_eq!(neg_scalar.imm, 8);
@@ -828,6 +842,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x0EBE_9FBD, Opcode::SimdMulVec, "mul"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
+        (0x4EE0_BBDE, Opcode::SimdAbs, "abs"),
+        (0x5EE0_BB00, Opcode::SimdAbs, "abs"),
         (0x6EA0_BBFF, Opcode::SimdNeg, "neg"),
         (0x7EE0_BBFF, Opcode::SimdNeg, "neg"),
         (0x0E0A_2FE2, Opcode::SimdSmov, "smov"),

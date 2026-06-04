@@ -249,6 +249,24 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = value;
         }
+        Opcode::SimdAbs => {
+            let element_size = instr.imm.max(1) as usize;
+            let bits = element_size * 8;
+            let lanes = (instr.size as usize / element_size).max(1);
+            let element_mask = simd_element_mask(element_size);
+            let sign_bit = 1u128 << (bits - 1);
+            let mut out = 0u128;
+            for lane in 0..lanes {
+                let value = simd_element(cpu.simd[rn], lane, element_size);
+                let abs = if (value & sign_bit) != 0 {
+                    0u128.wrapping_sub(value) & element_mask
+                } else {
+                    value
+                };
+                out |= abs << (lane * bits);
+            }
+            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+        }
         Opcode::SimdNeg => {
             let element_size = instr.imm.max(1) as usize;
             let bits = element_size * 8;
