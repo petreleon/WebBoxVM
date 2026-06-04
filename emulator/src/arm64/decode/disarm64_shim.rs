@@ -114,8 +114,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))
         .or_else(|| exclusive_map::map(m))
-        .or_else(|| fp_map::map(raw, m))
         .or_else(|| simd_map::map(raw, m))
+        .or_else(|| fp_map::map(raw, m))
         .or_else(|| simd_ldst_map::map(raw, m))
         .or_else(|| system_map::map(raw, m))
 }

@@ -31,6 +31,10 @@ fn maps_shared_simd_mnemonics_by_encoding() {
         (0x6EB0_F862, Opcode::SimdFpFminv, "fminv"),
         (0x6E30_C8A4, Opcode::SimdFpFmaxnmv, "fmaxnmv"),
         (0x6EB0_C8E6, Opcode::SimdFpFminnmv, "fminnmv"),
+        (0x4E22_F420, Opcode::SimdFpFmaxVec, "fmax"),
+        (0x4EE5_F483, Opcode::SimdFpFminVec, "fmin"),
+        (0x4E28_C4E6, Opcode::SimdFpFmaxnmVec, "fmaxnm"),
+        (0x4EEB_C549, Opcode::SimdFpFminnmVec, "fminnm"),
         (0x4E9C_5BDE, Opcode::SimdUzp2, "uzp2"),
         (0x4E0C_690B, Opcode::SimdTrn2, "trn2"),
         (0x4EA1_2BEF, Opcode::SimdXtn2, "xtn2"),
@@ -42,7 +46,14 @@ fn maps_shared_simd_mnemonics_by_encoding() {
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
     }
 
-    for raw in [0x2EE0_A420, 0x2EE0_AC20, 0x0EB0_A820, 0x6EF1_A820] {
+    for raw in [
+        0x2EE0_A420,
+        0x2EE0_AC20,
+        0x0EB0_A820,
+        0x6EF1_A820,
+        0x0E62_F420,
+        0x0E62_C420,
+    ] {
         let decoded = decoder::decode(raw).expect("disarm64 should flag undefined SIMD form");
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), None);
     }

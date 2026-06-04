@@ -36,6 +36,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fminv if simd_fp_reduce_s(raw, 0x6EB0_F800) => Opcode::SimdFpFminv,
         M::r#fmaxnmv if simd_fp_reduce_s(raw, 0x6E30_C800) => Opcode::SimdFpFmaxnmv,
         M::r#fminnmv if simd_fp_reduce_s(raw, 0x6EB0_C800) => Opcode::SimdFpFminnmv,
+        M::r#fmax if simd_fp_binary(raw, 0x0E20_F400) => Opcode::SimdFpFmaxVec,
+        M::r#fmin if simd_fp_binary(raw, 0x0EA0_F400) => Opcode::SimdFpFminVec,
+        M::r#fmaxnm if simd_fp_binary(raw, 0x0E20_C400) => Opcode::SimdFpFmaxnmVec,
+        M::r#fminnm if simd_fp_binary(raw, 0x0EA0_C400) => Opcode::SimdFpFminnmVec,
         M::r#cmeq
             if ((raw & 0xFF20_FC00) == 0x5E20_9800 && ((raw >> 22) & 0x3) == 0x3)
                 || (raw & 0xBF3F_FC00) == 0x0E20_9800 =>
@@ -136,4 +140,8 @@ fn simd_across_minmax(raw: u32, base: u32) -> bool {
 
 fn simd_fp_reduce_s(raw: u32, base: u32) -> bool {
     (raw & 0xFFFF_FC00) == base
+}
+
+fn simd_fp_binary(raw: u32, base: u32) -> bool {
+    (raw & 0xBFA0_FC00) == base && (((raw >> 22) & 1) == 0 || ((raw >> 30) & 1) != 0)
 }
