@@ -45,6 +45,7 @@ mod sve_contiguous_load;
 mod sve_dup;
 mod sve_fp;
 mod sve_fp_arith_imm;
+mod sve_fp_complex;
 mod sve_fp_compare;
 mod sve_fp_convert;
 mod sve_fp_dup_imm;
@@ -101,6 +102,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp_ftmad::decode(raw));
     try_stage!(sve_fp_trig::decode(raw));
     try_stage!(sve_fp_compare::decode(raw));
+    try_stage!(sve_fp_complex::decode(raw));
     try_stage!(sve_fp::decode(raw));
     try_stage!(sve_dup::decode(raw));
     try_stage!(sve_index::decode(raw));

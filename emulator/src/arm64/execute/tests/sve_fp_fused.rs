@@ -44,6 +44,28 @@ fn sve_fp_fused_forms_apply_signs_and_predicates() {
     assert_eq!(f64::from_bits(z_elem(&cpu, 7, 1)), 20.0);
 }
 
+#[test]
+fn sve_fcmla_rotates_complex_pairs_and_preserves_inactive_components() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+
+    cpu.sve_pred[1][0] = (1 << 0) | (1 << 4);
+    set_z_f32(&mut cpu, 6, [10.0, 20.0, 30.0, 40.0]);
+    set_z_f32(&mut cpu, 17, [2.0, 5.0, 0.0, 0.0]);
+    set_z_f32(&mut cpu, 4, [3.0, 4.0, 0.0, 0.0]);
+    execute(&mut cpu, &mut bus, decode(0x6444_4626).unwrap()).unwrap(); // #180
+    assert_eq!(z_f32(&cpu, 6, 0), 4.0);
+    assert_eq!(z_f32(&cpu, 6, 1), 12.0);
+    assert_eq!(z_f32(&cpu, 6, 2), 30.0);
+    assert_eq!(z_f32(&cpu, 6, 3), 40.0);
+
+    set_z_f32(&mut cpu, 6, [10.0, 20.0, 30.0, 40.0]);
+    execute(&mut cpu, &mut bus, decode(0x6444_2626).unwrap()).unwrap(); // #90
+    assert_eq!(z_f32(&cpu, 6, 0), -10.0);
+    assert_eq!(z_f32(&cpu, 6, 1), 35.0);
+    assert_eq!(z_f32(&cpu, 6, 2), 30.0);
+}
+
 fn set_z_f32(cpu: &mut Armv8Cpu, reg: usize, values: [f32; 4]) {
     for (lane, value) in values.into_iter().enumerate() {
         let offset = lane * 4;

@@ -121,6 +121,7 @@ pub(super) fn execute(
         | Opcode::SveFpFnmls
         | Opcode::SveFpFnmad
         | Opcode::SveFpFnmsb => exec_sve_fp_fused(cpu, instr),
+        Opcode::SveFpFcmla => exec_sve_fp_complex(cpu, instr),
         Opcode::SveFpFmlaIndex | Opcode::SveFpFmlsIndex | Opcode::SveFpMulIndex => {
             exec_sve_fp_indexed(cpu, instr)
         }

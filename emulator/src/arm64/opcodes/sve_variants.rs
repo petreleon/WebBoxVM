@@ -66,6 +66,7 @@ impl super::Opcode {
     pub const SveFpFnmls: Self = Self(491);
     pub const SveFpFnmad: Self = Self(492);
     pub const SveFpFnmsb: Self = Self(493);
+    pub const SveFpFcmla: Self = Self(500);
     pub const SveFpFmlaIndex: Self = Self(272);
     pub const SveFpFmlsIndex: Self = Self(273);
     pub const SveFpMulIndex: Self = Self(274);
