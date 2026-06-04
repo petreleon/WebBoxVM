@@ -56,6 +56,7 @@ pub(in crate::arm64::machine) fn is_sve_opcode(op: Opcode) -> bool {
             | Opcode::SveFpMulImm
             | Opcode::SveFpDupImm
             | Opcode::SveFpCpyImm
+            | Opcode::SveFpFexpa
             | Opcode::SveFpAbs
             | Opcode::SveFpNeg
             | Opcode::SveFpSqrt
