@@ -124,6 +124,26 @@ pub(super) fn decode_lse_atomic(raw: u32) -> Option<Instr> {
         });
     }
 
+    if (raw & 0xFF20_0C00) == 0x1920_0000 {
+        let atomic_op = ((raw >> 12) & 0xF) as u64;
+        if !matches!(atomic_op, 0x1 | 0x3 | 0x8) {
+            return None;
+        }
+        if rt == 31 || rs == 31 || rt == rs {
+            return None;
+        }
+        return Some(Instr {
+            size: 8,
+            op: Opcode::AtomicPair,
+            rd: rt,
+            rn,
+            rm: rs,
+            imm: atomic_op,
+            sf: true,
+            cond: 0,
+        });
+    }
+
     if (raw & 0x3F20_0C00) == 0x3820_0000 {
         let atomic_op = ((raw >> 12) & 0xF) as u64;
         return Some(Instr {

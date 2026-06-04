@@ -230,6 +230,7 @@ pub enum Opcode {
     Ldar,
     Stlr,
     Atomic,
+    AtomicPair,
     Cas,
     Casp,
     Wfi, // Wait For Interrupt

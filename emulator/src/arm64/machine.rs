@@ -978,6 +978,7 @@ fn memory_fault_is_write(instr: Instr) -> bool {
             | Opcode::Stlr
             | Opcode::Stxp
             | Opcode::Atomic
+            | Opcode::AtomicPair
             | Opcode::Cas
             | Opcode::Casp
             | Opcode::DcZva

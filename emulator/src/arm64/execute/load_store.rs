@@ -726,6 +726,34 @@ pub(super) fn exec_atomic(
             cpu.clear_exclusive_if_overlaps(pa, size);
             write_reg(cpu, instr.rd, old, instr.sf);
         }
+        Opcode::AtomicPair => {
+            let size = instr.size;
+            let old_lo = bus.read(pa, size).ok_or("atomic pair bus fault")?;
+            let old_hi = bus
+                .read(pa + size as u64, size)
+                .ok_or("atomic pair bus fault")?;
+            let source_lo = read_reg(cpu, instr.rd, true);
+            let source_hi = read_reg(cpu, instr.rm, true);
+            let new_lo = atomic_result(instr.imm as u8, old_lo, source_lo, size)?;
+            let new_hi = atomic_result(instr.imm as u8, old_hi, source_hi, size)?;
+            trace_text_store(cpu, bus, &instr, "ATOMICP.0", base, pa, size, new_lo);
+            bus.write(pa, size, new_lo);
+            cpu.clear_exclusive_if_overlaps(pa, size);
+            trace_text_store(
+                cpu,
+                bus,
+                &instr,
+                "ATOMICP.1",
+                base + size as u64,
+                pa + size as u64,
+                size,
+                new_hi,
+            );
+            bus.write(pa + size as u64, size, new_hi);
+            cpu.clear_exclusive_if_overlaps(pa + size as u64, size);
+            write_reg(cpu, instr.rd, old_lo, true);
+            write_reg(cpu, instr.rm, old_hi, true);
+        }
         Opcode::Cas => {
             let size = instr.size;
             let mask = access_mask(size);

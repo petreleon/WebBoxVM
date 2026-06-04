@@ -159,7 +159,9 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Ldxr | Opcode::Ldar | Opcode::Stxr | Opcode::Stlr | Opcode::Ldxp | Opcode::Stxp => {
             exec_exclusive(cpu, bus, instr)?
         }
-        Opcode::Atomic | Opcode::Cas | Opcode::Casp => exec_atomic(cpu, bus, instr)?,
+        Opcode::Atomic | Opcode::AtomicPair | Opcode::Cas | Opcode::Casp => {
+            exec_atomic(cpu, bus, instr)?
+        }
 
         // ── Branches ──
         Opcode::B => return branch(cpu, instr.imm),
