@@ -869,6 +869,22 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E60_1BE0).unwrap()).unwrap(); // fdiv d0, d31, d0
     assert_eq!(f64_lane(&cpu, 0), 3.0);
 
+    cpu.simd[0] = (-3.0f64).to_bits() as u128;
+    cpu.simd[1] = 5.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E61_6800).unwrap()).unwrap(); // fmaxnm d0, d0, d1
+    assert_eq!(f64_lane(&cpu, 0), 5.0);
+
+    cpu.simd[0] = (-0.0f64).to_bits() as u128;
+    cpu.simd[1] = 0.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E61_7800).unwrap()).unwrap(); // fminnm d0, d0, d1
+    assert_eq!(cpu.simd[0] as u64, (-0.0f64).to_bits());
+
+    cpu.simd[0] = f32::NAN.to_bits() as u128;
+    cpu.simd[1] = 4.0f32.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E21_6800).unwrap()).unwrap(); // fmaxnm s0, s0, s1
+    assert_eq!(f32_lane(&cpu, 0), 4.0);
+
+    cpu.simd[0] = 3.0f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x1E61_401F).unwrap()).unwrap(); // fneg d31, d0
     assert_eq!(f64_lane(&cpu, 31), -3.0);
 

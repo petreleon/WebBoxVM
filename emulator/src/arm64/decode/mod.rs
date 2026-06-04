@@ -1717,6 +1717,12 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     if (raw & 0xFF20_FC00) == 0x1E20_1800 {
         return Some(fp_instr(Opcode::FpDiv, rd, rn, rm, 0, size));
     }
+    if (raw & 0xFF20_FC00) == 0x1E20_6800 {
+        return Some(fp_instr(Opcode::FpMaxnm, rd, rn, rm, 0, size));
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_7800 {
+        return Some(fp_instr(Opcode::FpMinnm, rd, rn, rm, 0, size));
+    }
     if (raw & 0xFFBF_FC00) == 0x1E21_4000 {
         return Some(fp_instr(Opcode::FpNeg, rd, rn, 0, 0, size));
     }

@@ -177,6 +177,8 @@ pub enum Opcode {
     FpSub,
     FpMul,
     FpDiv,
+    FpMaxnm,
+    FpMinnm,
     FpNeg,
     FpAbs,
     FpSqrt,

@@ -947,6 +947,8 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::FpSub => exec_fp_binary(cpu, instr, |a, b| a - b, |a, b| a - b),
         Opcode::FpMul => exec_fp_binary(cpu, instr, |a, b| a * b, |a, b| a * b),
         Opcode::FpDiv => exec_fp_binary(cpu, instr, |a, b| a / b, |a, b| a / b),
+        Opcode::FpMaxnm => exec_fp_binary(cpu, instr, f32::max, f64::max),
+        Opcode::FpMinnm => exec_fp_binary(cpu, instr, f32::min, f64::min),
         Opcode::Fmadd => exec_fp_fused(cpu, instr, false),
         Opcode::Fmsub => exec_fp_fused(cpu, instr, true),
         Opcode::Fnmsub => exec_fp_fnmsub(cpu, instr),

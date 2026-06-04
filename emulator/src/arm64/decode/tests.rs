@@ -861,6 +861,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E79_2BFF, Opcode::FpAdd, "fadd"),
         (0x1E7B_3B9A, Opcode::FpSub, "fsub"),
         (0x1E60_1BE0, Opcode::FpDiv, "fdiv"),
+        (0x1E61_6800, Opcode::FpMaxnm, "fmaxnm"),
+        (0x1E61_7800, Opcode::FpMinnm, "fminnm"),
         (0x4E20_D400, Opcode::SimdFpAddVec, "fadd"),
         (0x4EA3_D441, Opcode::SimdFpSubVec, "fsub"),
         (0x6E26_DCA4, Opcode::SimdFpMulVec, "fmul"),
