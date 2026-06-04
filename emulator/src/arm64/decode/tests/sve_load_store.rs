@@ -49,6 +49,9 @@ fn decode_sve_predicated_dword_load_store_forms() {
         (0xC5E6_C07D, Opcode::SveLd1d, "ld1d"),
         (0xA5E0_AC00, Opcode::SveLd1d, "ld1d"),
         (0xA40E_A082, Opcode::SveLd1b, "ld1b"),
+        (0xC4CB_D2D9, Opcode::SveLd1h, "ld1h"),
+        (0xA4AB_B2B9, Opcode::SveLd1h, "ld1h"),
+        (0x848B_9299, Opcode::SveLdnt1sh, "ldnt1sh"),
         (0xE5E0_EC00, Opcode::SveSt1d, "st1d"),
         (0xE400_E000, Opcode::SveSt1b, "st1b"),
         (0xE420_E000, Opcode::SveSt1b, "st1b"),
@@ -91,6 +94,32 @@ fn decode_sve_predicated_dword_load_store_forms() {
     assert_eq!(ld1b.cond, 3);
     assert_eq!(ld1b.imm as i64, 1);
     assert_eq!(ld1b.size, 8);
+
+    let ld1h_gather = decode(0xC4CB_D2D9).unwrap();
+    assert_eq!(ld1h_gather.op, Opcode::SveLd1h);
+    assert_eq!(ld1h_gather.rd, 25);
+    assert_eq!(ld1h_gather.rn, 22);
+    assert_eq!(ld1h_gather.rm, 11);
+    assert_eq!(ld1h_gather.cond, 4);
+    assert!(!ld1h_gather.sf);
+    assert_eq!(ld1h_gather.size, 8);
+
+    let ld1h_imm = decode(0xA4AB_B2B9).unwrap();
+    assert_eq!(ld1h_imm.op, Opcode::SveLd1h);
+    assert_eq!(ld1h_imm.rd, 25);
+    assert_eq!(ld1h_imm.rn, 21);
+    assert_eq!(ld1h_imm.rm, 0xFF);
+    assert_eq!(ld1h_imm.cond, 4);
+    assert_eq!(ld1h_imm.imm as i64, -5);
+    assert_eq!(ld1h_imm.size, 2);
+
+    let ldnt1sh = decode(0x848B_9299).unwrap();
+    assert_eq!(ldnt1sh.op, Opcode::SveLdnt1sh);
+    assert_eq!(ldnt1sh.rd, 25);
+    assert_eq!(ldnt1sh.rn, 20);
+    assert_eq!(ldnt1sh.rm, 11);
+    assert_eq!(ldnt1sh.cond, 4);
+    assert_eq!(ldnt1sh.size, 4);
 
     let gather = decode(0xC5E6_C07D).unwrap(); // ld1d { z29.d }, p0/z, [x3, z6.d, lsl #3]
     assert_eq!(gather.rd, 29);

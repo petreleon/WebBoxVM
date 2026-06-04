@@ -75,6 +75,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveSt1d
             | Opcode::SveSt1b
             | Opcode::SveLd1b
+            | Opcode::SveLd1h
+            | Opcode::SveLdnt1sh
             | Opcode::SveLd1rw
             | Opcode::SveLd1rqw
             | Opcode::SveLd1w

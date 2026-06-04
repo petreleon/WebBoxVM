@@ -76,6 +76,50 @@ fn sve_word_load_store_dword_elements_zero_extend_and_truncate() {
     assert_eq!(bus.mem.read(base + 4, 4), Some(0x5001));
 }
 
+#[test]
+fn sve_halfword_load_forms_extend_and_zero_inactive_lanes() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+    let base = RAM_BASE + 0xA000;
+
+    cpu.regs.set_x(21, base + 0x100);
+    cpu.sve_pred[4][0] = (1 << 0) | (1 << 2);
+    bus.write(base + 0xB0, 2, 0x1234);
+    bus.write(base + 0xB2, 2, 0xFEDC);
+    bus.write(base + 0xB4, 2, 0xAAAA);
+    execute(&mut cpu, &mut bus, decode(0xA4AB_B2B9).unwrap()).unwrap();
+    assert_eq!(z_half(&cpu, 25, 0), 0x1234);
+    assert_eq!(z_half(&cpu, 25, 1), 0xFEDC);
+    assert_eq!(z_half(&cpu, 25, 2), 0);
+
+    cpu.regs.set_x(22, base);
+    cpu.sve_pred[4][0] = 1;
+    set_z_elem(&mut cpu, 11, 0, 0x80);
+    set_z_elem(&mut cpu, 11, 1, 0x82);
+    bus.write(base + 0x80, 2, 0x00FE);
+    bus.write(base + 0x82, 2, 0x00AA);
+    execute(&mut cpu, &mut bus, decode(0xC4CB_D2D9).unwrap()).unwrap();
+    assert_eq!(z_elem(&cpu, 25, 0), 0x00FE);
+    assert_eq!(z_elem(&cpu, 25, 1), 0);
+
+    cpu.sve_pred[4][0] = 1;
+    set_z_word(&mut cpu, 20, 0, (base + 0x100) as u32);
+    set_z_word(&mut cpu, 20, 1, (base + 0x104) as u32);
+    cpu.regs.set_x(11, 2);
+    bus.write(base + 0x102, 2, 0xFF80);
+    bus.write(base + 0x106, 2, 0x007F);
+    execute(&mut cpu, &mut bus, decode(0x848B_9299).unwrap()).unwrap();
+    assert_eq!(z_word(&cpu, 25, 0), 0xFFFF_FF80);
+    assert_eq!(z_word(&cpu, 25, 1), 0);
+}
+
+fn z_half(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u16 {
+    let offset = lane * 2;
+    let mut bytes = [0; 2];
+    bytes.copy_from_slice(&cpu.sve_z[reg][offset..offset + 2]);
+    u16::from_le_bytes(bytes)
+}
+
 fn set_z_word(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u32) {
     let offset = lane * 4;
     cpu.sve_z[reg][offset..offset + 4].copy_from_slice(&value.to_le_bytes());
