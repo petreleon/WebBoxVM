@@ -80,4 +80,5 @@ impl super::Opcode {
     pub const SveFcvtzs: Self = Self(335);
     pub const SveFpCpyImm: Self = Self(336);
     pub const SveFpFexpa: Self = Self(337);
+    pub const SveFpFcvt: Self = Self(339);
 }

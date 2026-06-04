@@ -27,6 +27,12 @@ fn convert_shape(raw: u32) -> Option<(Opcode, u8, u8, u8)> {
         0x65DC_A000 => (Opcode::SveFcvtzs, 4, 8, 8),
         0x65D8_A000 => (Opcode::SveFcvtzs, 8, 4, 8),
         0x65DE_A000 => (Opcode::SveFcvtzs, 8, 8, 8),
+        0x6589_A000 => (Opcode::SveFpFcvt, 2, 4, 4),
+        0x65C9_A000 => (Opcode::SveFpFcvt, 2, 8, 8),
+        0x6588_A000 => (Opcode::SveFpFcvt, 4, 2, 4),
+        0x65CB_A000 => (Opcode::SveFpFcvt, 4, 8, 8),
+        0x65C8_A000 => (Opcode::SveFpFcvt, 8, 2, 8),
+        0x65CA_A000 => (Opcode::SveFpFcvt, 8, 4, 8),
         _ => return None,
     })
 }

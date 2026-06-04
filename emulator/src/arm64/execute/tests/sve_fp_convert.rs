@@ -55,8 +55,39 @@ fn sve_fp_convert_handles_unpacked_cross_size_forms() {
     assert_eq!(z_elem(&cpu, 0, 0), (-3i64) as u64);
 }
 
+#[test]
+fn sve_fp_precision_convert_merges_and_zero_extends_narrow_results() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 32;
+    execute(&mut cpu, &mut bus, decode(0x25D8_E020).unwrap()).unwrap(); // ptrue p0.d, vl1
+
+    set_z_half_in_elem(&mut cpu, 1, 0, 0x3E00); // 1.5h
+    execute(&mut cpu, &mut bus, decode(0x65C9_A020).unwrap()).unwrap(); // fcvt z0.d, p0/m, z1.h
+    assert_eq!(f64::from_bits(z_elem(&cpu, 0, 0)), 1.5);
+
+    set_z_elem(&mut cpu, 1, 0, 1.5f32.to_bits() as u64);
+    execute(&mut cpu, &mut bus, decode(0x65CB_A020).unwrap()).unwrap(); // fcvt z0.d, p0/m, z1.s
+    assert_eq!(f64::from_bits(z_elem(&cpu, 0, 0)), 1.5);
+
+    set_z_elem(&mut cpu, 1, 0, (-2.5f64).to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65CA_A020).unwrap()).unwrap(); // fcvt z0.s, p0/m, z1.d
+    assert_eq!(z_elem(&cpu, 0, 0), (-2.5f32).to_bits() as u64);
+
+    set_z_elem(&mut cpu, 1, 0, 1.5f32.to_bits() as u64);
+    set_z_elem(&mut cpu, 0, 1, 0x1234);
+    execute(&mut cpu, &mut bus, decode(0x6588_A020).unwrap()).unwrap(); // fcvt z0.h, p0/m, z1.s
+    assert_eq!(z_elem(&cpu, 0, 0), 0x3E00);
+    assert_eq!(z_elem(&cpu, 0, 1), 0x1234);
+}
+
 fn set_z_word(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u32) {
     let offset = lane * 4;
     cpu.sve_z[reg][offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+    sync_simd_alias(cpu, reg);
+}
+
+fn set_z_half_in_elem(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u16) {
+    let offset = lane * 8;
+    cpu.sve_z[reg][offset..offset + 2].copy_from_slice(&value.to_le_bytes());
     sync_simd_alias(cpu, reg);
 }

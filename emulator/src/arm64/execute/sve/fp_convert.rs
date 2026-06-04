@@ -1,3 +1,4 @@
+use super::super::alu::{f16_to_f32, f32_to_f16_bits, f64_to_f16_bits};
 use super::*;
 
 pub(in crate::arm64::execute) fn exec_sve_fp_convert(cpu: &mut Armv8Cpu, instr: Instr) {
@@ -22,6 +23,19 @@ fn convert_value(op: Opcode, value: u64, src_size: usize, dst_size: usize) -> u6
     match op {
         Opcode::SveScvtf => scvtf_value(value, src_size, dst_size),
         Opcode::SveFcvtzs => fcvtzs_value(value, src_size, dst_size),
+        Opcode::SveFpFcvt => fp_convert_value(value, src_size, dst_size),
+        _ => unreachable!(),
+    }
+}
+
+fn fp_convert_value(value: u64, src_size: usize, dst_size: usize) -> u64 {
+    match (src_size, dst_size) {
+        (2, 4) => f16_to_f32(value as u16).to_bits() as u64,
+        (2, 8) => (f16_to_f32(value as u16) as f64).to_bits(),
+        (4, 2) => f32_to_f16_bits(f32::from_bits(value as u32)) as u64,
+        (4, 8) => (f32::from_bits(value as u32) as f64).to_bits(),
+        (8, 2) => f64_to_f16_bits(f64::from_bits(value)) as u64,
+        (8, 4) => (f64::from_bits(value) as f32).to_bits() as u64,
         _ => unreachable!(),
     }
 }

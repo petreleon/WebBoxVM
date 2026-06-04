@@ -11,6 +11,12 @@ fn decode_sve_signed_int_fp_convert_forms_cross_checked_with_disarm64() {
         (0x65DC_A020, Opcode::SveFcvtzs, "fcvtzs"),
         (0x65D8_A020, Opcode::SveFcvtzs, "fcvtzs"),
         (0x65DE_A39A, Opcode::SveFcvtzs, "fcvtzs"),
+        (0x6589_A020, Opcode::SveFpFcvt, "fcvt"),
+        (0x65C9_A020, Opcode::SveFpFcvt, "fcvt"),
+        (0x6588_A020, Opcode::SveFpFcvt, "fcvt"),
+        (0x65CB_A020, Opcode::SveFpFcvt, "fcvt"),
+        (0x65C8_A020, Opcode::SveFpFcvt, "fcvt"),
+        (0x65CA_A020, Opcode::SveFpFcvt, "fcvt"),
     ];
 
     for (raw, expected, mnemonic) in cases {
@@ -25,4 +31,8 @@ fn decode_sve_signed_int_fp_convert_forms_cross_checked_with_disarm64() {
     let fcvtzs = decode(0x65D8_A020).unwrap(); // fcvtzs z0.s, p0/m, z1.d
     assert_eq!((fcvtzs.rd, fcvtzs.rn, fcvtzs.cond), (0, 1, 0));
     assert_eq!((fcvtzs.size, fcvtzs.imm, fcvtzs.rm), (8, 8, 4));
+
+    let fcvt = decode(0x65CB_A020).unwrap(); // fcvt z0.d, p0/m, z1.s
+    assert_eq!((fcvt.rd, fcvt.rn, fcvt.cond), (0, 1, 0));
+    assert_eq!((fcvt.size, fcvt.imm, fcvt.rm), (8, 4, 8));
 }

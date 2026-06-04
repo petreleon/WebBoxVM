@@ -5,6 +5,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     Some(match m {
         M::r#scvtf if sve_fp_convert(raw) => Opcode::SveScvtf,
         M::r#fcvtzs if sve_fp_convert(raw) => Opcode::SveFcvtzs,
+        M::r#fcvt if sve_fp_convert(raw) => Opcode::SveFpFcvt,
         _ => return None,
     })
 }
@@ -20,5 +21,11 @@ fn sve_fp_convert(raw: u32) -> bool {
             | 0x65DC_A000
             | 0x65D8_A000
             | 0x65DE_A000
+            | 0x6589_A000
+            | 0x65C9_A000
+            | 0x6588_A000
+            | 0x65CB_A000
+            | 0x65C8_A000
+            | 0x65CA_A000
     )
 }
