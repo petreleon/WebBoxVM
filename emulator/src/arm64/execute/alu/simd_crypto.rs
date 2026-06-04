@@ -1,5 +1,36 @@
 use super::*;
 
+pub(in crate::arm64::execute) fn is_simd_crypto_opcode(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SimdAese
+            | Opcode::SimdAesd
+            | Opcode::SimdAesmc
+            | Opcode::SimdAesimc
+            | Opcode::SimdPmull
+            | Opcode::SimdSha1h
+            | Opcode::SimdSha256Su0
+            | Opcode::SimdSha512Su0
+            | Opcode::SimdSha512H
+            | Opcode::SimdSha512H2
+            | Opcode::SimdSha512Su1
+            | Opcode::SimdSha1C
+            | Opcode::SimdSha1M
+            | Opcode::SimdSha1P
+            | Opcode::SimdSha1Su0
+            | Opcode::SimdSha1Su1
+            | Opcode::SimdSha256H
+            | Opcode::SimdSha256H2
+            | Opcode::SimdSha256Su1
+            | Opcode::SimdSm4e
+            | Opcode::SimdSm3Partw1
+            | Opcode::SimdEor3
+            | Opcode::SimdBcax
+            | Opcode::SimdRax1
+            | Opcode::SimdXar
+    )
+}
+
 pub(in crate::arm64::execute) fn exec_simd_crypto(cpu: &mut Armv8Cpu, instr: Instr) {
     let rd = instr.rd as usize;
     let rn = instr.rn as usize;
@@ -34,27 +65,7 @@ pub(in crate::arm64::execute) fn exec_simd_crypto(cpu: &mut Armv8Cpu, instr: Ins
             }
             cpu.simd[rd] = out;
         }
-        Opcode::SimdSha1h => {
-            let value = simd_element(cpu.simd[rn], 0, 4) as u32;
-            cpu.simd[rd] = value.rotate_left(30) as u128;
-        }
-        Opcode::SimdSha256Su0 => {
-            let operand1 = cpu.simd[rd];
-            let operand2 = cpu.simd[rn];
-            let schedule = [
-                simd_element(operand1, 1, 4) as u32,
-                simd_element(operand1, 2, 4) as u32,
-                simd_element(operand1, 3, 4) as u32,
-                simd_element(operand2, 0, 4) as u32,
-            ];
-            let mut out = 0u128;
-            for (lane, value) in schedule.into_iter().enumerate() {
-                let sigma0 = value.rotate_right(7) ^ value.rotate_right(18) ^ (value >> 3);
-                let word = (simd_element(operand1, lane, 4) as u32).wrapping_add(sigma0);
-                out |= (word as u128) << (lane * 32);
-            }
-            cpu.simd[rd] = out;
-        }
+        op if is_simd_sha1_sha256_opcode(op) => exec_simd_sha1_sha256(cpu, instr),
         Opcode::SimdSha512Su0 => {
             let w = cpu.simd[rd];
             let x = cpu.simd[rn];

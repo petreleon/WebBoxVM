@@ -2,23 +2,7 @@ use super::*;
 
 pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
     match instr.op {
-        Opcode::SimdAese
-        | Opcode::SimdAesd
-        | Opcode::SimdAesmc
-        | Opcode::SimdAesimc
-        | Opcode::SimdPmull
-        | Opcode::SimdSha1h
-        | Opcode::SimdSha256Su0
-        | Opcode::SimdSha512Su0
-        | Opcode::SimdSha512H
-        | Opcode::SimdSha512H2
-        | Opcode::SimdSha512Su1
-        | Opcode::SimdSm4e
-        | Opcode::SimdSm3Partw1
-        | Opcode::SimdEor3
-        | Opcode::SimdBcax
-        | Opcode::SimdRax1
-        | Opcode::SimdXar => exec_simd_crypto(cpu, instr),
+        op if is_simd_crypto_opcode(op) => exec_simd_crypto(cpu, instr),
         Opcode::SimdDupByte
         | Opcode::SimdDupElem
         | Opcode::SimdFmovReg64

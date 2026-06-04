@@ -28,6 +28,7 @@ mod simd_shift_insert;
 mod simd_shift_left;
 mod simd_shift_pairwise;
 mod simd_shift_right;
+mod simd_sha1_sha256;
 mod simd_structure;
 mod simd_tail_system;
 mod simd_widen_helpers;
@@ -119,6 +120,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(simd_compare::decode(raw));
     try_stage!(simd_widen_integer::decode(raw));
     try_stage!(simd_permute_start::decode(raw));
+    try_stage!(simd_sha1_sha256::decode(raw));
     try_stage!(simd_crypto_a::decode(raw));
     try_stage!(simd_shift_pairwise::decode(raw));
     try_stage!(simd_reduce_across::decode(raw));
