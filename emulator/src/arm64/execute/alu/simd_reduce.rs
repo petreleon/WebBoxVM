@@ -41,14 +41,21 @@ pub(in crate::arm64::execute) fn exec_simd_reduce(cpu: &mut Armv8Cpu, instr: Ins
             }
             cpu.simd[rd] = sum;
         }
+        Opcode::SimdSmaxv => {
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] = signed_reduce(cpu.simd[rn], element_size, instr.size as usize, true);
+        }
+        Opcode::SimdSminv => {
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] = signed_reduce(cpu.simd[rn], element_size, instr.size as usize, false);
+        }
         Opcode::SimdUmaxv => {
             let element_size = instr.imm.max(1) as usize;
-            let lanes = instr.size as usize / element_size;
-            let mut max = simd_element(cpu.simd[rn], 0, element_size);
-            for lane in 1..lanes {
-                max = max.max(simd_element(cpu.simd[rn], lane, element_size));
-            }
-            cpu.simd[rd] = max;
+            cpu.simd[rd] = unsigned_reduce(cpu.simd[rn], element_size, instr.size as usize, true);
+        }
+        Opcode::SimdUminv => {
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] = unsigned_reduce(cpu.simd[rn], element_size, instr.size as usize, false);
         }
         Opcode::SimdSmaxVec => {
             let lhs = cpu.simd[rn];
@@ -123,21 +130,5 @@ pub(in crate::arm64::execute) fn exec_simd_reduce(cpu: &mut Armv8Cpu, instr: Ins
                 });
         }
         _ => unreachable!(),
-    }
-}
-
-fn signed_max(a: u128, b: u128, element_size: usize) -> u128 {
-    if simd_signed_element_value(a, element_size) >= simd_signed_element_value(b, element_size) {
-        a
-    } else {
-        b
-    }
-}
-
-fn signed_min(a: u128, b: u128, element_size: usize) -> u128 {
-    if simd_signed_element_value(a, element_size) <= simd_signed_element_value(b, element_size) {
-        a
-    } else {
-        b
     }
 }

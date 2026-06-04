@@ -28,7 +28,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#rsubhn if (raw & 0xFF20_FC00) == 0x2E20_6000 => Opcode::SimdRsubhn,
         M::r#rsubhn2 if (raw & 0xFF20_FC00) == 0x6E20_6000 => Opcode::SimdRsubhn2,
         M::r#addv => Opcode::SimdAddv,
-        M::r#umaxv => Opcode::SimdUmaxv,
+        M::r#smaxv if simd_across_minmax(raw, 0x0E30_A800) => Opcode::SimdSmaxv,
+        M::r#sminv if simd_across_minmax(raw, 0x0E31_A800) => Opcode::SimdSminv,
+        M::r#umaxv if simd_across_minmax(raw, 0x2E30_A800) => Opcode::SimdUmaxv,
+        M::r#uminv if simd_across_minmax(raw, 0x2E31_A800) => Opcode::SimdUminv,
         M::r#cmeq
             if ((raw & 0xFF20_FC00) == 0x5E20_9800 && ((raw >> 22) & 0x3) == 0x3)
                 || (raw & 0xBF3F_FC00) == 0x0E20_9800 =>
@@ -119,4 +122,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
 
 fn simd_minmax(raw: u32, base: u32) -> bool {
     (raw & 0xBF20_FC00) == base && ((raw >> 22) & 0x3) != 0x3
+}
+
+fn simd_across_minmax(raw: u32, base: u32) -> bool {
+    let q = ((raw >> 30) & 1) != 0;
+    let element_size = 1u64 << ((raw >> 22) & 0x3);
+    (raw & 0xBF3F_FC00) == base && element_size < 8 && (element_size != 4 || q)
 }

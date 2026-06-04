@@ -90,7 +90,10 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdXtn2 => exec_simd_integer(cpu, instr),
         Opcode::SimdAddp
         | Opcode::SimdAddv
+        | Opcode::SimdSmaxv
+        | Opcode::SimdSminv
         | Opcode::SimdUmaxv
+        | Opcode::SimdUminv
         | Opcode::SimdSmaxVec
         | Opcode::SimdSminVec
         | Opcode::SimdUmaxVec

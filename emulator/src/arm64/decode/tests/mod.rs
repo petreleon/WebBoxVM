@@ -25,6 +25,7 @@ mod simd_fp_zero_compare;
 mod simd_minmax;
 mod simd_pairwise_narrow;
 mod simd_permute_secondary;
+mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
 mod simd_signed_compare;
 mod simd_ucvtf;

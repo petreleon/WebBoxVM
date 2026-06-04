@@ -17,6 +17,7 @@ mod simd_load_multi;
 mod simd_move_scalar_fp;
 mod simd_permute_logic;
 mod simd_permute_start;
+mod simd_reduce_across;
 mod simd_reduce_ext;
 mod simd_shift_insert;
 mod simd_shift_left;
@@ -103,6 +104,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(simd_permute_start::decode(raw));
     try_stage!(simd_crypto_a::decode(raw));
     try_stage!(simd_shift_pairwise::decode(raw));
+    try_stage!(simd_reduce_across::decode(raw));
     try_stage!(simd_reduce_ext::decode(raw));
     try_stage!(simd_permute_logic::decode(raw));
     try_stage!(simd_immediates_a::decode(raw));
