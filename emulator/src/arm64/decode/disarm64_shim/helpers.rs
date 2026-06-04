@@ -88,3 +88,11 @@ pub(super) fn simd_st1_multi_register_count(raw: u32) -> Option<u8> {
         _ => None,
     }
 }
+
+pub(super) fn simd_fmulx_elem(raw: u32) -> bool {
+    (raw & 0xBF80_F400) == 0x2F80_9000 || (raw & 0xBF80_F400) == 0x3F80_9000
+}
+
+pub(super) fn simd_fmulx_direct(raw: u32) -> bool {
+    (raw & 0xBFA0_FC00) == 0x0E20_DC00 || (raw & 0xFF20_FC00) == 0x5E20_DC00
+}

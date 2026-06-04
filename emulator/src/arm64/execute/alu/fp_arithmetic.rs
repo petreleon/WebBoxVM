@@ -7,6 +7,8 @@ pub(in crate::arm64::execute) fn exec_fp_arithmetic(cpu: &mut Armv8Cpu, instr: I
         Opcode::FpMul => exec_fp_binary(cpu, instr, |a, b| a * b, |a, b| a * b),
         Opcode::FpFnmul => exec_fp_binary(cpu, instr, |a, b| -(a * b), |a, b| -(a * b)),
         Opcode::FpDiv => exec_fp_binary(cpu, instr, |a, b| a / b, |a, b| a / b),
+        Opcode::FpMax => exec_fp_binary(cpu, instr, fp_max, fp_max),
+        Opcode::FpMin => exec_fp_binary(cpu, instr, fp_min, fp_min),
         Opcode::FpMaxnm => exec_fp_binary(cpu, instr, f32::max, f64::max),
         Opcode::FpMinnm => exec_fp_binary(cpu, instr, f32::min, f64::min),
         Opcode::Fmadd => exec_fp_fused(cpu, instr, false),

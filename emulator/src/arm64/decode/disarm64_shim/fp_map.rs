@@ -22,12 +22,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fmul if (raw & 0xFF3F_E3C0) == 0x651A_8000 => Opcode::SveFpMulImm,
         M::r#fmul if (raw & 0xFF3F_E000) == 0x6502_8000 => Opcode::SveFpMul,
         M::r#fmul => Opcode::FpMul,
-        M::r#fmulx if (raw & 0xBF80_F400) == 0x2F80_9000 || (raw & 0xBF80_F400) == 0x3F80_9000 => {
-            Opcode::SimdFpMulxElem
-        }
-        M::r#fmulx if (raw & 0xBFA0_FC00) == 0x0E20_DC00 || (raw & 0xFF20_FC00) == 0x5E20_DC00 => {
-            Opcode::SimdFpMulx
-        }
+        M::r#fmulx if simd_fmulx_elem(raw) => Opcode::SimdFpMulxElem,
+        M::r#fmulx if simd_fmulx_direct(raw) => Opcode::SimdFpMulx,
         M::r#fnmul => Opcode::FpFnmul,
         M::r#fdiv if (raw & 0xBFA0_FC00) == 0x2E20_FC00 => Opcode::SimdFpDivVec,
         M::r#fdiv if (raw & 0xFF3F_E000) == 0x650D_8000 => Opcode::SveFpDiv,
@@ -69,6 +65,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fcmlt if (raw & 0xBFBF_FC00) == 0x0EA0_E800 => Opcode::SimdFpFcmltZero,
         M::r#fabs if (raw & 0xBFBF_FC00) == 0x0EA0_F800 => Opcode::SimdFpAbsVec,
         M::r#fabs if (raw & 0xFF3F_E000) == 0x041C_A000 => Opcode::SveFpAbs,
+        M::r#fmax if (raw & 0xFF20_FC00) == 0x1E20_4800 => Opcode::FpMax,
+        M::r#fmin if (raw & 0xFF20_FC00) == 0x1E20_5800 => Opcode::FpMin,
         M::r#fmaxnm if (raw & 0xFF20_FC00) == 0x1E20_6800 => Opcode::FpMaxnm,
         M::r#fminnm if (raw & 0xFF20_FC00) == 0x1E20_7800 => Opcode::FpMinnm,
         M::r#fneg if (raw & 0xBFBF_FC00) == 0x2EA0_F800 => Opcode::SimdFpNeg,

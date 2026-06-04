@@ -44,6 +44,12 @@ pub(super) fn decode(raw: u32, fields: FpFields) -> DecodeStep {
     if (raw & 0xFF20_FC00) == 0x1E20_1800 {
         return DecodeStep::Hit(fp_instr(Opcode::FpDiv, rd, rn, rm, 0, size));
     }
+    if (raw & 0xFF20_FC00) == 0x1E20_4800 {
+        return DecodeStep::Hit(fp_instr(Opcode::FpMax, rd, rn, rm, 0, size));
+    }
+    if (raw & 0xFF20_FC00) == 0x1E20_5800 {
+        return DecodeStep::Hit(fp_instr(Opcode::FpMin, rd, rn, rm, 0, size));
+    }
     if (raw & 0xFF20_FC00) == 0x1E20_6800 {
         return DecodeStep::Hit(fp_instr(Opcode::FpMaxnm, rd, rn, rm, 0, size));
     }

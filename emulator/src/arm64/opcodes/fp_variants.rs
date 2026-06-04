@@ -34,4 +34,6 @@ impl super::Opcode {
     pub const Fccmp: Self = Self(224);
     pub const Fccmpe: Self = Self(225);
     pub const Fcsel: Self = Self(226);
+    pub const FpMax: Self = Self(388);
+    pub const FpMin: Self = Self(389);
 }

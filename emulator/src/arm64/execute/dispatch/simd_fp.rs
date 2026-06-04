@@ -15,6 +15,8 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         | Opcode::FpMul
         | Opcode::FpFnmul
         | Opcode::FpDiv
+        | Opcode::FpMax
+        | Opcode::FpMin
         | Opcode::FpMaxnm
         | Opcode::FpMinnm
         | Opcode::FpNeg

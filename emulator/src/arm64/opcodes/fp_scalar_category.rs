@@ -8,6 +8,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::FpMul
             | Opcode::FpFnmul
             | Opcode::FpDiv
+            | Opcode::FpMax
+            | Opcode::FpMin
             | Opcode::FpMaxnm
             | Opcode::FpMinnm
             | Opcode::FpNeg

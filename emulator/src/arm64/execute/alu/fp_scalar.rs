@@ -7,6 +7,8 @@ pub(in crate::arm64::execute) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::FpMul
         | Opcode::FpFnmul
         | Opcode::FpDiv
+        | Opcode::FpMax
+        | Opcode::FpMin
         | Opcode::FpMaxnm
         | Opcode::FpMinnm
         | Opcode::Fmadd
