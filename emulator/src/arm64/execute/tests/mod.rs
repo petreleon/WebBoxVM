@@ -113,6 +113,7 @@ mod simd_scalar_load_store;
 mod simd_sha1;
 mod simd_sha256;
 mod simd_sha512;
+mod simd_shift_accumulate;
 mod simd_shift_insert;
 mod simd_signed_compare;
 mod simd_sm3;

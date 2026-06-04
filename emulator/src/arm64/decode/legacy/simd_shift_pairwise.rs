@@ -35,6 +35,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_simd_ushr(raw) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = decode_simd_usra(raw) {
+        return DecodeStep::Hit(instr);
+    }
     if let Some(instr) = decode_simd_sshll(raw) {
         return DecodeStep::Hit(instr);
     }
