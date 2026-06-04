@@ -52,7 +52,9 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         Opcode::SimdFpAbsVec | Opcode::SimdFpFrintaVec | Opcode::SimdFpSqrtVec => {
             exec_simd_fp_unary_more(cpu, instr)
         }
-        Opcode::SimdFpFacgeVec | Opcode::SimdFpFacgtVec => exec_simd_fp_compare(cpu, instr),
+        Opcode::SimdFpFacgeVec | Opcode::SimdFpFacgtVec | Opcode::SimdFpFcmltZero => {
+            exec_simd_fp_compare(cpu, instr)
+        }
         Opcode::SimdFpFmlaVec
         | Opcode::SimdFpFmlsVec
         | Opcode::SimdFpFmlaElem
