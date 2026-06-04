@@ -36,10 +36,16 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdCmhiReg
             | Opcode::SimdShrn
             | Opcode::SimdShrn2
+            | Opcode::SimdRshrn
+            | Opcode::SimdRshrn2
             | Opcode::SimdAddhn
             | Opcode::SimdAddhn2
+            | Opcode::SimdRaddhn
+            | Opcode::SimdRaddhn2
             | Opcode::SimdSubhn
             | Opcode::SimdSubhn2
+            | Opcode::SimdRsubhn
+            | Opcode::SimdRsubhn2
             | Opcode::SimdAddVec
             | Opcode::SimdSubVec
             | Opcode::SimdMulVec

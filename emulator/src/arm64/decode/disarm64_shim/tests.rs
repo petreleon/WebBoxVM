@@ -6,8 +6,14 @@ fn maps_simd_pairwise_narrow_mnemonics() {
         (0x6E22_3C20, Opcode::SimdCmhsReg, "cmhs"),
         (0x0E28_40E6, Opcode::SimdAddhn, "addhn"),
         (0x4E2B_4149, Opcode::SimdAddhn2, "addhn2"),
+        (0x2E28_40E6, Opcode::SimdRaddhn, "raddhn"),
+        (0x6E2B_4149, Opcode::SimdRaddhn2, "raddhn2"),
         (0x4E60_6000, Opcode::SimdSubhn2, "subhn2"),
+        (0x2E7E_6002, Opcode::SimdRsubhn, "rsubhn"),
+        (0x6E60_6000, Opcode::SimdRsubhn2, "rsubhn2"),
         (0x4F0A_87E2, Opcode::SimdShrn2, "shrn2"),
+        (0x0F0A_8FFF, Opcode::SimdRshrn, "rshrn"),
+        (0x4F0A_8FE2, Opcode::SimdRshrn2, "rshrn2"),
         (0x6E25_A483, Opcode::SimdUmaxp, "umaxp"),
     ];
 

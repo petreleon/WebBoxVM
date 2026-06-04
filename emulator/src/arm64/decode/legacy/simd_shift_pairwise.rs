@@ -66,17 +66,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 8,
         });
     }
-    if let Some(step) = decode_simd_narrow_high(raw, 0x0E20_4000, Opcode::SimdAddhn) {
-        return step;
-    }
-    if let Some(step) = decode_simd_narrow_high(raw, 0x4E20_4000, Opcode::SimdAddhn2) {
-        return step;
-    }
-    if let Some(step) = decode_simd_narrow_high(raw, 0x0E20_6000, Opcode::SimdSubhn) {
-        return step;
-    }
-    if let Some(step) = decode_simd_narrow_high(raw, 0x4E20_6000, Opcode::SimdSubhn2) {
-        return step;
+    for (base, op) in [
+        (0x0E20_4000, Opcode::SimdAddhn),
+        (0x4E20_4000, Opcode::SimdAddhn2),
+        (0x2E20_4000, Opcode::SimdRaddhn),
+        (0x6E20_4000, Opcode::SimdRaddhn2),
+        (0x0E20_6000, Opcode::SimdSubhn),
+        (0x4E20_6000, Opcode::SimdSubhn2),
+        (0x2E20_6000, Opcode::SimdRsubhn),
+        (0x6E20_6000, Opcode::SimdRsubhn2),
+    ] {
+        if let Some(step) = decode_simd_narrow_high(raw, base, op) {
+            return step;
+        }
     }
     if (raw & 0xBF20_FC00) == 0x0E20_BC00 {
         let q = ((raw >> 30) & 1) != 0;
