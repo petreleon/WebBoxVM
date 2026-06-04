@@ -1108,6 +1108,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::FpAdd
             | Opcode::FpSub
             | Opcode::FpMul
+            | Opcode::FpFnmul
             | Opcode::FpDiv
             | Opcode::FpMaxnm
             | Opcode::FpMinnm

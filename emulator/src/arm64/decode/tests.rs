@@ -849,8 +849,15 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(fdiv_vec.rm, 28);
     assert_eq!(fdiv_vec.imm, 8);
     assert_eq!(fdiv_vec.size, 16);
+    let fnmul = decode(0x1E7F_8800).unwrap();
+    assert_eq!(fnmul.op, Opcode::FpFnmul);
+    assert_eq!(fnmul.rd, 0);
+    assert_eq!(fnmul.rn, 0);
+    assert_eq!(fnmul.rm, 31);
+    assert_eq!(fnmul.size, 8);
     assert!(decode(0x0E60_D400).is_none());
     assert!(decode(0x0E60_FC00).is_none());
+    assert!(decode(0x1EA1_8800).is_none());
     assert_eq!(decode(0x6EFD_87FF).unwrap().op, Opcode::SimdSubVec);
 }
 
@@ -858,6 +865,7 @@ fn decode_simd_userland_string_ops() {
 fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     let cases = [
         (0x1E7F_0800, Opcode::FpMul, "fmul"),
+        (0x1E7F_8800, Opcode::FpFnmul, "fnmul"),
         (0x1E79_2BFF, Opcode::FpAdd, "fadd"),
         (0x1E7B_3B9A, Opcode::FpSub, "fsub"),
         (0x1E60_1BE0, Opcode::FpDiv, "fdiv"),

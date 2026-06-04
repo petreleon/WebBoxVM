@@ -461,6 +461,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::FpAdd
         | Opcode::FpSub
         | Opcode::FpMul
+        | Opcode::FpFnmul
         | Opcode::FpDiv
         | Opcode::FpMaxnm
         | Opcode::FpMinnm

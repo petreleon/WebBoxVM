@@ -1708,6 +1708,9 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
     if (raw & 0xFF20_FC00) == 0x1E20_0800 {
         return Some(fp_instr(Opcode::FpMul, rd, rn, rm, 0, size));
     }
+    if (raw & 0xFF20_FC00) == 0x1E20_8800 {
+        return Some(fp_instr(Opcode::FpFnmul, rd, rn, rm, 0, size));
+    }
     if (raw & 0xFF20_FC00) == 0x1E20_2800 {
         return Some(fp_instr(Opcode::FpAdd, rd, rn, rm, 0, size));
     }

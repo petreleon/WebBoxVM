@@ -855,7 +855,18 @@ fn scalar_fp_busybox_arithmetic_and_conversion_ops() {
     execute(&mut cpu, &mut bus, decode(0x1E7F_0800).unwrap()).unwrap(); // fmul d0, d0, d31
     assert_eq!(f64_lane(&cpu, 0), 3.0);
 
+    cpu.simd[0] = 2.0f64.to_bits() as u128;
+    cpu.simd[31] = 4.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E7F_8800).unwrap()).unwrap(); // fnmul d0, d0, d31
+    assert_eq!(f64_lane(&cpu, 0), -8.0);
+
+    cpu.simd[0] = 1.5f32.to_bits() as u128;
+    cpu.simd[1] = (-2.0f32).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1E21_8800).unwrap()).unwrap(); // fnmul s0, s0, s1
+    assert_eq!(f32_lane(&cpu, 0), 3.0);
+
     cpu.simd[25] = 0.25f64.to_bits() as u128;
+    cpu.simd[31] = 2.0f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x1E79_2BFF).unwrap()).unwrap(); // fadd d31, d31, d25
     assert_eq!(f64_lane(&cpu, 31), 2.25);
 
