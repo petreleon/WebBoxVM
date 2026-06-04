@@ -16,6 +16,8 @@ impl super::Opcode {
     pub const SveSel: Self = Self(78);
     pub const SveLdr: Self = Self(79);
     pub const SveStr: Self = Self(80);
+    pub const SveCmpHs: Self = Self(302);
+    pub const SveCmpHsImm: Self = Self(303);
     pub const SveLd1rd: Self = Self(81);
     pub const SveLd1rqd: Self = Self(82);
     pub const SveLd1d: Self = Self(83);
