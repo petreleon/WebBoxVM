@@ -58,3 +58,20 @@ fn decode_crc32_scalar_forms() {
     assert_eq!(decode(0x1AC3_4842).unwrap().rm, 3);
     assert_eq!(decode(0x9AC4_4C42).unwrap().rm, 4);
 }
+
+#[test]
+fn decode_logical_immediate_forms() {
+    let cases = [
+        (0x9240_1C20, Opcode::AndImm, "and", 0xff),
+        (0xB278_1C62, Opcode::OrrImm, "orr", 0xff00),
+        (0x5200_9CA4, Opcode::EorImm, "eor", 0x00ff_00ff),
+        (0xF204_CCE6, Opcode::AndsImm, "ands", 0xf0f0_f0f0_f0f0_f0f0),
+    ];
+
+    for (raw, expected, mnemonic, imm) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!(instr.imm, imm, "raw=0x{raw:08x}");
+    }
+}

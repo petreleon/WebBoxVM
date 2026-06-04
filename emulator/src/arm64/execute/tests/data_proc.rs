@@ -91,3 +91,26 @@ fn cmp_immediate_uses_sp_base() {
 
     assert!(cpu.pstate.z());
 }
+
+#[test]
+fn logical_immediates_apply_decoded_masks() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.regs.set_x(1, 0x1234);
+    execute(&mut cpu, &mut bus, decode(0x9240_1C20).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 0x34);
+
+    cpu.regs.set_x(3, 0x12);
+    execute(&mut cpu, &mut bus, decode(0xB278_1C62).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(2), 0xff12);
+
+    cpu.regs.set_w(5, 0xffff_0000);
+    execute(&mut cpu, &mut bus, decode(0x5200_9CA4).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(4), 0xff00_00ff);
+
+    cpu.regs.set_x(7, 0x0f0f_0f0f_0f0f_0f0f);
+    execute(&mut cpu, &mut bus, decode(0xF204_CCE6).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(6), 0);
+    assert!(cpu.pstate.z());
+    assert!(!cpu.pstate.n());
+}

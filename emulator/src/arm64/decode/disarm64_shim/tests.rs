@@ -65,3 +65,19 @@ fn maps_scalar_bitfield_mnemonics() {
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
     }
 }
+
+#[test]
+fn maps_scalar_logical_immediate_mnemonics() {
+    let cases = [
+        (0x9240_1C20, Opcode::AndImm, "and"),
+        (0xB278_1C62, Opcode::OrrImm, "orr"),
+        (0x5200_9CA4, Opcode::EorImm, "eor"),
+        (0xF204_CCE6, Opcode::AndsImm, "ands"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode logical immediate");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
