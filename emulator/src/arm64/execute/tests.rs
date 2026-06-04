@@ -460,6 +460,14 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x0EBE_9FBD).unwrap()).unwrap(); // mul v29.2s, v29.2s, v30.2s
     assert_eq!(cpu.simd[29], 0xffff_fffa_0000_000f);
 
+    cpu.simd[31] = 0x8000_0000_0000_0003_0000_0002_ffff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x6EA0_BBFF).unwrap()).unwrap(); // neg v31.4s, v31.4s
+    assert_eq!(cpu.simd[31], 0x8000_0000_ffff_fffd_ffff_fffe_0000_0001);
+
+    cpu.simd[31] = 0x8000_0000_0000_0003;
+    execute(&mut cpu, &mut bus, decode(0x7EE0_BBFF).unwrap()).unwrap(); // neg d31, d31
+    assert_eq!(cpu.simd[31], 0x7fff_ffff_ffff_fffd);
+
     cpu.simd[31] = ((-3.0f64).to_bits() as u128) << 64 | 2.0f64.to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x6EE0_FBFF).unwrap()).unwrap(); // fneg v31.2d, v31.2d
     assert_eq!(
