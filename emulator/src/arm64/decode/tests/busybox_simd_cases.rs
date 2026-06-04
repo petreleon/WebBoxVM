@@ -28,6 +28,8 @@ fn decode_busybox_simd_cases_cross_checked_with_disarm64() {
         (0x6E21_3BD0, Opcode::SimdShll, "shll2"),
         (0x0EB9_02D0, Opcode::SimdSaddl, "saddl"),
         (0x4EB9_02D6, Opcode::SimdSaddl, "saddl2"),
+        (0x2E22_0230, Opcode::SimdUaddl, "uaddl"),
+        (0x6E22_0231, Opcode::SimdUaddl, "uaddl2"),
         (0x2EBD_23FE, Opcode::SimdUsubl, "usubl"),
         (0x6EBD_23FF, Opcode::SimdUsubl, "usubl2"),
         (0x0E7E_33BD, Opcode::SimdSsubw, "ssubw"),

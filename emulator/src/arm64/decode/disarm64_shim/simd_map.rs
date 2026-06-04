@@ -118,6 +118,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sshll => Opcode::SimdSshll,
         M::r#shll | M::r#shll2 => Opcode::SimdShll,
         M::r#saddl | M::r#saddl2 => Opcode::SimdSaddl,
+        M::r#uaddl | M::r#uaddl2 => Opcode::SimdUaddl,
         M::r#usubl | M::r#usubl2 => Opcode::SimdUsubl,
         M::r#ssubw | M::r#ssubw2 => Opcode::SimdSsubw,
         M::r#saddw | M::r#saddw2 => Opcode::SimdSaddw,

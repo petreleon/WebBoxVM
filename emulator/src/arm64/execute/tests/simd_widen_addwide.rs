@@ -32,6 +32,16 @@ fn simd_add_wide_forms_extend_rhs_and_wrap_destination_lanes() {
     cpu.simd[8] = u32x4([1, 2, 50, 1]);
     execute(&mut cpu, &mut bus, decode(0x6EA8_10E6).unwrap()).unwrap();
     assert_eq!(cpu.simd[6], u64x2([150, 0]));
+
+    cpu.simd[17] = vector_bytes(1);
+    cpu.simd[2] = vector_bytes(20);
+    execute(&mut cpu, &mut bus, decode(0x2E22_0230).unwrap()).unwrap();
+    assert_eq!(cpu.simd[16], u16x8([21, 23, 25, 27, 29, 31, 33, 35]));
+
+    cpu.simd[17] = vector_bytes(1);
+    cpu.simd[2] = vector_bytes(20);
+    execute(&mut cpu, &mut bus, decode(0x6E22_0231).unwrap()).unwrap();
+    assert_eq!(cpu.simd[17], u16x8([37, 39, 41, 43, 45, 47, 49, 51]));
 }
 
 fn i16x8(values: [i16; 8]) -> u128 {

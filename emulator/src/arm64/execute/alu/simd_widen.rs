@@ -7,6 +7,7 @@ pub(in crate::arm64::execute) fn is_simd_widen_opcode(op: Opcode) -> bool {
             | Opcode::SimdSshll
             | Opcode::SimdShll
             | Opcode::SimdSaddl
+            | Opcode::SimdUaddl
             | Opcode::SimdUsubl
             | Opcode::SimdSsubw
             | Opcode::SimdSaddw
@@ -83,6 +84,7 @@ pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Inst
             cpu.simd[rd] = out;
         }
         Opcode::SimdSaddl => exec_widen_add_sub(cpu, instr, false, true, false),
+        Opcode::SimdUaddl => exec_widen_add_sub(cpu, instr, false, false, false),
         Opcode::SimdUsubl => exec_widen_add_sub(cpu, instr, false, false, true),
         Opcode::SimdSsubw => exec_widen_add_sub(cpu, instr, true, true, true),
         Opcode::SimdSaddw => exec_widen_add_sub(cpu, instr, true, true, false),

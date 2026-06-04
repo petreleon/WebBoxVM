@@ -34,6 +34,8 @@ fn decode_simd_add_wide_forms_cross_checked_with_disarm64() {
             false,
         ),
         (0x6EA8_10E6, Opcode::SimdUaddw, "uaddw2", 6, 7, 8, 4, true),
+        (0x2E22_0230, Opcode::SimdUaddl, "uaddl", 16, 17, 2, 1, false),
+        (0x6E22_0231, Opcode::SimdUaddl, "uaddl2", 17, 17, 2, 1, true),
         (0x0E23_1041, Opcode::SimdSaddw, "saddw", 1, 2, 3, 1, false),
         (0x2E26_10A4, Opcode::SimdUaddw, "uaddw", 4, 5, 6, 1, false),
     ];
