@@ -7,6 +7,12 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_simd_fp_binary(raw, 0x2EA0_D400, Opcode::SimdFpAbd) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(step) = decode_simd_fp_abs_compare(raw, 0x2E20_EC00, Opcode::SimdFpFacgeVec) {
+        return step;
+    }
+    if let Some(step) = decode_simd_fp_abs_compare(raw, 0x2EA0_EC00, Opcode::SimdFpFacgtVec) {
+        return step;
+    }
     if (raw & 0xFF3F_FC00) == 0x7E20_B800 {
         return DecodeStep::Hit(Instr {
             op: Opcode::SimdNeg,
@@ -117,4 +123,25 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     DecodeStep::Miss
+}
+
+fn decode_simd_fp_abs_compare(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {
+    if (raw & 0xBFA0_FC00) != base {
+        return None;
+    }
+    let q = ((raw >> 30) & 1) != 0;
+    let double = ((raw >> 22) & 1) != 0;
+    if double && !q {
+        return Some(DecodeStep::Reject);
+    }
+    Some(DecodeStep::Hit(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: if double { 8 } else { 4 },
+        sf: true,
+        cond: 0,
+        size: if q { 16 } else { 8 },
+    }))
 }

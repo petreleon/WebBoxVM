@@ -124,4 +124,21 @@ fn decode_busybox_fp_field_details() {
     assert_eq!(fmul_elem.cond, 1);
     assert_eq!(fmul_elem.imm, 8);
     assert_eq!(fmul_elem.size, 16);
+
+    let facgt = decode(0x6EBD_EC21).unwrap(); // facgt v1.4s, v1.4s, v29.4s
+    assert_eq!(facgt.op, Opcode::SimdFpFacgtVec);
+    assert_eq!(facgt.rd, 1);
+    assert_eq!(facgt.rn, 1);
+    assert_eq!(facgt.rm, 29);
+    assert_eq!(facgt.imm, 4);
+    assert_eq!(facgt.size, 16);
+
+    let facge = decode(0x6E20_EC21).unwrap(); // facge v1.4s, v1.4s, v0.4s
+    assert_eq!(facge.op, Opcode::SimdFpFacgeVec);
+    assert_eq!(facge.rd, 1);
+    assert_eq!(facge.rn, 1);
+    assert_eq!(facge.rm, 0);
+    assert_eq!(facge.imm, 4);
+    assert_eq!(facge.size, 16);
+    assert!(decode(0x2E60_EC21).is_none());
 }

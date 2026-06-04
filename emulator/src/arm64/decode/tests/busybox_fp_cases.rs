@@ -21,6 +21,8 @@ fn decode_busybox_fp_cases_cross_checked_with_disarm64() {
         (0x6E7C_FF7B, Opcode::SimdFpDivVec, "fdiv"),
         (0x7EE9_D7FF, Opcode::SimdFpAbd, "fabd"),
         (0x6EA2_D420, Opcode::SimdFpAbd, "fabd"),
+        (0x6E38_EC03, Opcode::SimdFpFacgeVec, "facge"),
+        (0x6EBD_EC21, Opcode::SimdFpFacgtVec, "facgt"),
         (0x1E61_401F, Opcode::FpNeg, "fneg"),
         (0x1E60_C000, Opcode::FpAbs, "fabs"),
         (0x1E61_C000, Opcode::FpSqrt, "fsqrt"),
