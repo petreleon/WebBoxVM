@@ -86,25 +86,4 @@ pub(in crate::arm64::execute) fn simd_uzp(
     out & simd_vector_mask(vector_size)
 }
 
-pub(in crate::arm64::execute) fn simd_compare_elements_with_zero(
-    value: u128,
-    element_size: usize,
-    vector_size: usize,
-) -> u128 {
-    let bits = element_size * 8;
-    let element_mask = if bits == 128 {
-        u128::MAX
-    } else {
-        (1u128 << bits) - 1
-    };
-    let lanes = vector_size / element_size;
-    let mut out = 0u128;
-    for lane in 0..lanes {
-        if simd_element(value, lane, element_size) == 0 {
-            out |= element_mask << (lane * bits);
-        }
-    }
-    out
-}
-
 // ── Register extension & shifting ──

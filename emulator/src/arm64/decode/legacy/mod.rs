@@ -3,6 +3,7 @@ mod fp_scalar;
 mod load_store_helpers;
 mod scalar_ldst_branch;
 mod simd_compare;
+mod simd_compare_zero;
 mod simd_convert;
 mod simd_crypto_a;
 mod simd_dup_convert;
@@ -95,6 +96,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(simd_fp_compare_zero::decode(raw));
     try_stage!(simd_move_scalar_fp::decode(raw));
     try_stage!(simd_fp_unary_more::decode(raw));
+    try_stage!(simd_compare_zero::decode(raw));
     try_stage!(simd_fp_unary::decode(raw));
     try_stage!(simd_compare::decode(raw));
     try_stage!(simd_widen_integer::decode(raw));

@@ -43,6 +43,9 @@ impl super::Opcode {
     pub const SimdInsGprLane: Self = Self(125);
     pub const SimdCmeqZero: Self = Self(126);
     pub const SimdCmgeZero: Self = Self(127);
+    pub const SimdCmgtZero: Self = Self(364);
+    pub const SimdCmleZero: Self = Self(365);
+    pub const SimdCmltZero: Self = Self(366);
     pub const SimdCmeqReg: Self = Self(128);
     pub const SimdCmgtReg: Self = Self(362);
     pub const SimdCmgeReg: Self = Self(363);

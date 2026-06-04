@@ -6,25 +6,11 @@ pub(in crate::arm64::execute) fn exec_simd_unary_compare(cpu: &mut Armv8Cpu, ins
     let rm = instr.rm as usize;
 
     match instr.op {
-        Opcode::SimdCmeqZero => {
-            let src = cpu.simd[rn];
-            let element_size = instr.imm.max(1) as usize;
-            cpu.simd[rd] = simd_compare_elements_with_zero(src, element_size, instr.size as usize);
-        }
-        Opcode::SimdCmgeZero => {
-            let src = cpu.simd[rn];
-            let element_size = instr.imm.max(1) as usize;
-            let bits = element_size * 8;
-            let lanes = (instr.size as usize / element_size).max(1);
-            let element_mask = simd_element_mask(element_size);
-            let mut out = 0u128;
-            for lane in 0..lanes {
-                if simd_signed_element(src, lane, element_size) >= 0 {
-                    out |= element_mask << (lane * bits);
-                }
-            }
-            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
-        }
+        Opcode::SimdCmeqZero
+        | Opcode::SimdCmgtZero
+        | Opcode::SimdCmgeZero
+        | Opcode::SimdCmleZero
+        | Opcode::SimdCmltZero => cpu.simd[rd] = simd_compare_zero(cpu, instr),
         Opcode::SimdCmeqReg => {
             cpu.simd[rd] = simd_compare_register(cpu, instr);
         }
@@ -97,6 +83,29 @@ pub(in crate::arm64::execute) fn exec_simd_unary_compare(cpu: &mut Armv8Cpu, ins
         }
         _ => unreachable!(),
     }
+}
+
+fn simd_compare_zero(cpu: &Armv8Cpu, instr: Instr) -> u128 {
+    let element_size = instr.imm.max(1) as usize;
+    let bits = element_size * 8;
+    let lanes = (instr.size as usize / element_size).max(1);
+    let element_mask = simd_element_mask(element_size);
+    let mut out = 0u128;
+    for lane in 0..lanes {
+        let value = simd_signed_element(cpu.simd[instr.rn as usize], lane, element_size);
+        let pass = match instr.op {
+            Opcode::SimdCmeqZero => value == 0,
+            Opcode::SimdCmgtZero => value > 0,
+            Opcode::SimdCmgeZero => value >= 0,
+            Opcode::SimdCmleZero => value <= 0,
+            Opcode::SimdCmltZero => value < 0,
+            _ => false,
+        };
+        if pass {
+            out |= element_mask << (lane * bits);
+        }
+    }
+    out & simd_vector_mask(instr.size as usize)
 }
 
 fn simd_compare_register(cpu: &Armv8Cpu, instr: Instr) -> u128 {
