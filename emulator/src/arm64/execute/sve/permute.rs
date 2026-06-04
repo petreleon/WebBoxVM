@@ -27,6 +27,29 @@ pub(in crate::arm64::execute) fn exec_sve_zip(cpu: &mut Armv8Cpu, instr: Instr) 
     sve_write_z(cpu, instr.rd as usize, result);
 }
 
+pub(in crate::arm64::execute) fn exec_sve_uzp(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let pairs = elements / 2;
+    let part = if instr.op == Opcode::SveUzp2 { 1 } else { 0 };
+    let left = sve_read_z(cpu, instr.rn as usize);
+    let right = sve_read_z(cpu, instr.rm as usize);
+    let mut result = [0; 256];
+
+    for pair in 0..pairs {
+        copy_element(&mut result, pair, &left, pair * 2 + part, element_size);
+        copy_element(
+            &mut result,
+            pairs + pair,
+            &right,
+            pair * 2 + part,
+            element_size,
+        );
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
 pub(in crate::arm64::execute) fn exec_sve_tbl(cpu: &mut Armv8Cpu, instr: Instr) {
     let element_size = instr.size as usize;
     let vl_bytes = sve_vl_bytes(cpu);

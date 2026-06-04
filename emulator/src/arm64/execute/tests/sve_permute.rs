@@ -42,6 +42,34 @@ fn sve_zip_word_form_uses_current_vector_length() {
 }
 
 #[test]
+fn sve_uzp_packs_even_word_and_odd_dword_elements() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 32;
+
+    for lane in 0..8 {
+        set_z_word(&mut cpu, 30, lane, 0x10 + lane as u32);
+        set_z_word(&mut cpu, 27, lane, 0x80 + lane as u32);
+    }
+
+    execute(&mut cpu, &mut bus, decode(0x05BB_6BDE).unwrap()).unwrap(); // uzp1 z30.s, z30.s, z27.s
+    assert_eq!(z_word(&cpu, 30, 0), 0x10);
+    assert_eq!(z_word(&cpu, 30, 1), 0x12);
+    assert_eq!(z_word(&cpu, 30, 3), 0x16);
+    assert_eq!(z_word(&cpu, 30, 4), 0x80);
+    assert_eq!(z_word(&cpu, 30, 7), 0x86);
+
+    for lane in 0..4 {
+        set_z_elem(&mut cpu, 0, lane, 0x30 + lane as u64);
+        set_z_elem(&mut cpu, 31, lane, 0xA0 + lane as u64);
+    }
+    execute(&mut cpu, &mut bus, decode(0x05FF_6C18).unwrap()).unwrap(); // uzp2 z24.d, z0.d, z31.d
+    assert_eq!(z_elem(&cpu, 24, 0), 0x31);
+    assert_eq!(z_elem(&cpu, 24, 1), 0x33);
+    assert_eq!(z_elem(&cpu, 24, 2), 0xA1);
+    assert_eq!(z_elem(&cpu, 24, 3), 0xA3);
+}
+
+#[test]
 fn sve_tbl_single_table_zeroes_out_of_range_indices() {
     let (mut cpu, mut bus) = setup();
     cpu.sve_vl_bytes = 16;

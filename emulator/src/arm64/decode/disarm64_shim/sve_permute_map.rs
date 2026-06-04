@@ -5,6 +5,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     Some(match m {
         M::r#zip1 if vector_zip(raw, 0x0520_6000) => Opcode::SveZip1,
         M::r#zip2 if vector_zip(raw, 0x0520_6400) => Opcode::SveZip2,
+        M::r#uzp1 if vector_zip(raw, 0x0520_6800) => Opcode::SveUzp1,
+        M::r#uzp2 if vector_zip(raw, 0x0520_6C00) => Opcode::SveUzp2,
         M::r#tbl if vector_tbl(raw) => Opcode::SveTbl,
         _ => return None,
     })
