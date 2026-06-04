@@ -85,4 +85,10 @@ impl super::Opcode {
     pub const SveFpFscale: Self = Self(341);
     pub const SveFpFtsmul: Self = Self(342);
     pub const SveFpFtssel: Self = Self(343);
+    pub const SveUunpklo: Self = Self(344);
+    pub const SveUunpkhi: Self = Self(345);
+    pub const SveSunpklo: Self = Self(346);
+    pub const SveSunpkhi: Self = Self(347);
+    pub const SvePunpklo: Self = Self(348);
+    pub const SvePunpkhi: Self = Self(349);
 }
