@@ -3,9 +3,14 @@
 
 use super::block::Block;
 use crate::arm64::Armv8Cpu;
-use crate::arm64::opcodes::Opcode;
 use crate::bus::SystemBus;
 use std::collections::HashMap;
+
+mod ops;
+mod verbatim;
+
+use ops::*;
+use verbatim::can_emit_verbatim;
 
 pub struct NativeBlock {
     code: Vec<u8>,
@@ -91,91 +96,4 @@ impl A64Compiler {
         self.blocks.insert(block.start_pa, native);
         Ok(())
     }
-}
-
-fn can_emit_verbatim(op: Opcode) -> bool {
-    matches!(
-        op,
-        Opcode::Add
-            | Opcode::Sub
-            | Opcode::Adds
-            | Opcode::Subs
-            | Opcode::AddImm
-            | Opcode::SubImm
-            | Opcode::AddsImm
-            | Opcode::SubsImm
-            | Opcode::AndReg
-            | Opcode::OrrReg
-            | Opcode::EorReg
-            | Opcode::AndsReg
-            | Opcode::AndImm
-            | Opcode::OrrImm
-            | Opcode::EorImm
-            | Opcode::AndsImm
-            | Opcode::MovReg
-            | Opcode::Movz
-            | Opcode::Movk
-            | Opcode::Movn
-            | Opcode::Cmp
-            | Opcode::CmpImm
-            | Opcode::Sxtw
-            | Opcode::Sbfm
-            | Opcode::Bfm
-            | Opcode::Ubfm
-            | Opcode::Csel
-            | Opcode::Csinc
-            | Opcode::Csinv
-            | Opcode::Csneg
-            | Opcode::Ccmp
-            | Opcode::Udiv
-            | Opcode::Sdiv
-            | Opcode::Madd
-            | Opcode::Msub
-            | Opcode::Umulh
-            | Opcode::Smulh
-            | Opcode::Lslv
-            | Opcode::Lsrv
-            | Opcode::Asrv
-            | Opcode::Rorv
-            | Opcode::Rev
-            | Opcode::Rev32
-            | Opcode::Rev16
-            | Opcode::Rbit
-            | Opcode::Clz
-            | Opcode::Nop
-            | Opcode::NopBarrier
-            | Opcode::AddExt
-            | Opcode::SubExt
-            | Opcode::AddsExt
-            | Opcode::SubsExt
-    )
-}
-
-fn emit_a64(code: &mut Vec<u8>, instr: u32) {
-    code.extend_from_slice(&instr.to_le_bytes());
-}
-fn emit_mov(code: &mut Vec<u8>, rd: u8, rm: u8) {
-    emit_a64(code, 0xAA0003E0 | ((rm as u32) << 16) | (rd as u32));
-}
-fn encode_ldp_offset(off: usize) -> u32 {
-    ((off as u32 / 8) & 0x7F) << 15
-}
-
-fn emit_prologue(code: &mut Vec<u8>) {
-    emit_a64(code, 0xA9BF7BFD); // STP X29, X30, [SP, #-16]!
-    emit_a64(code, 0x910003FD); // MOV X29, SP
-    emit_a64(code, 0xA9BF4FF3); // STP X19, X20
-    emit_a64(code, 0xA9BF57F5); // STP X21, X22
-    emit_a64(code, 0xA9BF5FF7); // STP X23, X24
-    emit_a64(code, 0xA9BF67F9); // STP X25, X26
-    emit_a64(code, 0xA9BF6FFB); // STP X27, X28
-}
-fn emit_epilogue(code: &mut Vec<u8>) {
-    emit_a64(code, 0xA8C16FFB); // LDP X27, X28
-    emit_a64(code, 0xA8C167F9); // LDP X25, X26
-    emit_a64(code, 0xA8C15FF7); // LDP X23, X24
-    emit_a64(code, 0xA8C157F5); // LDP X21, X22
-    emit_a64(code, 0xA8C14FF3); // LDP X19, X20
-    emit_a64(code, 0xA8C17BFD); // LDP X29, X30
-    emit_a64(code, 0xD65F03C0); // RET
 }
