@@ -115,3 +115,18 @@ fn maps_scalar_addsub_extended_mnemonics() {
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
     }
 }
+
+#[test]
+fn maps_pair_load_store_mnemonics() {
+    let cases = [
+        (0x694C_9262, Opcode::Ldpsw, "ldpsw"),
+        (0xAD40_70DD, Opcode::SimdLdp, "ldp"),
+        (0xAC81_78DF, Opcode::SimdStp, "stp"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode pair load/store");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}

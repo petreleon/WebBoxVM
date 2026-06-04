@@ -46,3 +46,22 @@ fn ldpsw_loads_and_sign_extends_pair() {
     assert_eq!(cpu.regs.x(2), 0xffff_ffff_ffff_fffc);
     assert_eq!(cpu.regs.x(4), 0x7fff_fffe);
 }
+
+#[test]
+fn simd_pair_store_then_load_roundtrips_vectors() {
+    let (mut cpu, mut bus) = setup();
+    let base = 0x4000_0100;
+
+    cpu.regs.set_x(6, base);
+    cpu.simd[31] = 0x0011_2233_4455_6677_8899_aabb_ccdd_eeff;
+    cpu.simd[30] = 0xffee_ddcc_bbaa_9988_7766_5544_3322_1100;
+    execute(&mut cpu, &mut bus, decode(0xAC81_78DF).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(6), base + 32);
+
+    cpu.simd[29] = 0;
+    cpu.simd[28] = 0;
+    cpu.regs.set_x(6, base);
+    execute(&mut cpu, &mut bus, decode(0xAD40_70DD).unwrap()).unwrap();
+    assert_eq!(cpu.simd[29], 0x0011_2233_4455_6677_8899_aabb_ccdd_eeff);
+    assert_eq!(cpu.simd[28], 0xffee_ddcc_bbaa_9988_7766_5544_3322_1100);
+}

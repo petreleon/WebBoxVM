@@ -12,6 +12,8 @@ fn decode_stlxp_pair() {
 
 #[test]
 fn decode_ldpsw_pair() {
+    assert_disarm64_mnemonic(0x694C_9262, "ldpsw");
+
     let instr = decode(0x694C_9262).unwrap(); // ldpsw x2, x4, [x19, #100]
     assert_eq!(instr.op, Opcode::Ldpsw);
     assert_eq!(instr.rd, 2);
@@ -40,6 +42,9 @@ fn decode_simd_q_load_store_forms() {
 
 #[test]
 fn decode_simd_q_pair_forms() {
+    assert_disarm64_mnemonic(0xAD40_70DD, "ldp");
+    assert_disarm64_mnemonic(0xAC81_78DF, "stp");
+
     let ldp = decode(0xAD40_70DD).unwrap(); // ldp q29, q28, [x6]
     assert_eq!(ldp.op, Opcode::SimdLdp);
     assert_eq!(ldp.rd, 29);
