@@ -172,6 +172,10 @@ fn simd_pairwise_min_and_add_bytes() {
 
     execute(&mut cpu, &mut bus, decode(0x4E22_BC45).unwrap()).unwrap(); // addp v5.16b, v2.16b, v2.16b
     assert_eq!(cpu.simd[5], 0x0307_0b0f_1317_1b1f_0307_0b0f_1317_1b1f);
+
+    cpu.simd[28] = 0x0000_0000_0000_0003_ffff_ffff_ffff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x5EF1_BB9F).unwrap()).unwrap(); // addp d31, v28.2d
+    assert_eq!(cpu.simd[31], 2);
 }
 
 #[test]
@@ -445,6 +449,25 @@ fn simd_ld1r_replicates_loaded_doubleword() {
     execute(&mut cpu, &mut bus, decode(0x4D40_CC1F).unwrap()).unwrap(); // ld1r {v31.2d}, [x0]
 
     assert_eq!(cpu.simd[31], 0x1122_3344_5566_7788_1122_3344_5566_7788);
+
+    let post_imm_base = base + 0x20;
+    cpu.regs.set_x(10, post_imm_base);
+    bus.write(post_imm_base, 8, 0x0102_0304_0506_0708);
+
+    execute(&mut cpu, &mut bus, decode(0x4DDF_CD5A).unwrap()).unwrap(); // ld1r {v26.2d}, [x10], #8
+
+    assert_eq!(cpu.simd[26], 0x0102_0304_0506_0708_0102_0304_0506_0708);
+    assert_eq!(cpu.regs.x(10), post_imm_base + 8);
+
+    let post_reg_base = base + 0x40;
+    cpu.regs.set_x(0, post_reg_base);
+    cpu.regs.set_x(1, 0x18);
+    bus.write(post_reg_base, 8, 0x8877_6655_4433_2211);
+
+    execute(&mut cpu, &mut bus, decode(0x4DC1_CC00).unwrap()).unwrap(); // ld1r {v0.2d}, [x0], x1
+
+    assert_eq!(cpu.simd[0], 0x8877_6655_4433_2211_8877_6655_4433_2211);
+    assert_eq!(cpu.regs.x(0), post_reg_base + 0x18);
 }
 
 #[test]
@@ -573,6 +596,10 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     cpu.simd[11] = 0x8000_0000_0000_0000_7fff_ffff_ffff_ffff;
     execute(&mut cpu, &mut bus, decode(0x4F41_0561).unwrap()).unwrap(); // sshr v1.2d, v11.2d, #63
     assert_eq!(cpu.simd[1], 0xffff_ffff_ffff_ffff_0000_0000_0000_0000);
+
+    cpu.simd[31] = 0xffff_ffff_ffff_0000;
+    execute(&mut cpu, &mut bus, decode(0x5F70_07FD).unwrap()).unwrap(); // sshr d29, d31, #16
+    assert_eq!(cpu.simd[29], u64::MAX as u128);
 
     let mut shrn_source = 0u128;
     for lane in 0..8u128 {

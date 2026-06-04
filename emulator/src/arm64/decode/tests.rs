@@ -396,6 +396,18 @@ fn decode_simd_userland_string_ops() {
     assert!(decode(0x2EE0_8BFF).is_none());
     assert_eq!(decode(0x4C40_A03E).unwrap().op, Opcode::SimdLd1Multi);
     assert_eq!(decode(0x4C00_A2DE).unwrap().op, Opcode::SimdSt1Multi);
+    let ld1r_post_imm = decode(0x4DDF_CD5A).unwrap();
+    assert_eq!(ld1r_post_imm.op, Opcode::SimdLd1r);
+    assert_eq!(ld1r_post_imm.rd, 26);
+    assert_eq!(ld1r_post_imm.rn, 10);
+    assert_eq!(ld1r_post_imm.rm, 0xFE);
+    assert_eq!(ld1r_post_imm.imm, 8);
+    assert_eq!(ld1r_post_imm.cond, 8);
+    assert_eq!(ld1r_post_imm.size, 16);
+    let ld1r_post_reg = decode(0x4DC1_CC00).unwrap();
+    assert_eq!(ld1r_post_reg.op, Opcode::SimdLd1r);
+    assert_eq!(ld1r_post_reg.rm, 1);
+    assert_eq!(ld1r_post_reg.imm, 0);
     let post_index_ld1 = decode(0x4CDF_7A04).unwrap();
     assert_eq!(post_index_ld1.op, Opcode::SimdLd1);
     assert_eq!(post_index_ld1.rd, 4);
@@ -549,6 +561,14 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(ld4_post_reg.imm, 0);
     assert!(decode(0x0C40_0C3C).is_none());
     assert_eq!(decode(0x4E22_BC45).unwrap().op, Opcode::SimdAddp);
+    let addp_scalar = decode(0x5EF1_BB9F).unwrap();
+    assert_eq!(addp_scalar.op, Opcode::SimdAddp);
+    assert_eq!(addp_scalar.rd, 31);
+    assert_eq!(addp_scalar.rn, 28);
+    assert_eq!(addp_scalar.rm, 0xFF);
+    assert_eq!(addp_scalar.imm, 8);
+    assert_eq!(addp_scalar.size, 8);
+    assert!(decode(0x0EE0_BC00).is_none());
     assert_eq!(decode(0x6E1F_43FF).unwrap().op, Opcode::SimdExt);
     assert_eq!(decode(0x6E20_5BDE).unwrap().op, Opcode::SimdNot);
     assert_eq!(decode(0x4EFE_87FF).unwrap().op, Opcode::SimdAddVec);
@@ -598,6 +618,14 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(sshr_doublewords.imm, 63);
     assert_eq!(sshr_doublewords.cond, 8);
     assert_eq!(sshr_doublewords.size, 16);
+    let sshr_scalar = decode(0x5F70_07FD).unwrap();
+    assert_eq!(sshr_scalar.op, Opcode::SimdSshr);
+    assert_eq!(sshr_scalar.rd, 29);
+    assert_eq!(sshr_scalar.rn, 31);
+    assert_eq!(sshr_scalar.imm, 16);
+    assert_eq!(sshr_scalar.cond, 8);
+    assert_eq!(sshr_scalar.size, 8);
+    assert!(decode(0x5F00_0400).is_none());
     assert!(decode(0x0F40_0400).is_none());
     assert!(decode(0x2F40_0400).is_none());
     let shrn = decode(0x0F0A_87FF).unwrap();
@@ -1035,12 +1063,15 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x5EA1_B9EF, Opcode::SimdFcvtzs, "fcvtzs"),
         (0x4EA1_B800, Opcode::SimdFcvtzs, "fcvtzs"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
+        (0x4DDF_CD5A, Opcode::SimdLd1r, "ld1r"),
+        (0x5EF1_BB9F, Opcode::SimdAddp, "addp"),
         (0x4EE0_BBDE, Opcode::SimdAbs, "abs"),
         (0x5EE0_BB00, Opcode::SimdAbs, "abs"),
         (0x6EA0_BBFF, Opcode::SimdNeg, "neg"),
         (0x7EE0_BBFF, Opcode::SimdNeg, "neg"),
         (0x0E0A_2FE2, Opcode::SimdSmov, "smov"),
         (0x0F38_07FC, Opcode::SimdSshr, "sshr"),
+        (0x5F70_07FD, Opcode::SimdSshr, "sshr"),
         (0x4ECD_296D, Opcode::SimdTrn1, "trn1"),
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
         (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),

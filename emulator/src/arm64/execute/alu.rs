@@ -468,13 +468,23 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             );
         }
         Opcode::SimdAddp => {
-            let lhs = cpu.simd[rn];
-            let rhs = cpu.simd[rm];
             let element_size = instr.imm.max(1) as usize;
-            cpu.simd[rd] =
-                simd_pairwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, mask| {
-                    a.wrapping_add(b) & mask
-                });
+            if instr.rm == 0xFF {
+                let element_mask = simd_element_mask(element_size);
+                let lhs = simd_element(cpu.simd[rn], 0, element_size);
+                let rhs = simd_element(cpu.simd[rn], 1, element_size);
+                cpu.simd[rd] = lhs.wrapping_add(rhs) & element_mask;
+            } else {
+                let lhs = cpu.simd[rn];
+                let rhs = cpu.simd[rm];
+                cpu.simd[rd] = simd_pairwise_binary(
+                    lhs,
+                    rhs,
+                    element_size,
+                    instr.size as usize,
+                    |a, b, mask| a.wrapping_add(b) & mask,
+                );
+            }
         }
         Opcode::SimdAddv => {
             let element_size = instr.imm.max(1) as usize;

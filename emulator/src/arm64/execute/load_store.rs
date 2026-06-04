@@ -30,6 +30,7 @@ fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
             | Opcode::SimdLd2
             | Opcode::SimdLd3
             | Opcode::SimdLd4
+            | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt4
     ) && instr.rm == 0xFF
@@ -44,6 +45,7 @@ fn compute_ldst_va(cpu: &Armv8Cpu, instr: &Instr) -> (u64, Option<u64>) {
             | Opcode::SimdLd2
             | Opcode::SimdLd3
             | Opcode::SimdLd4
+            | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt4
     ) && instr.rm != 0xFF

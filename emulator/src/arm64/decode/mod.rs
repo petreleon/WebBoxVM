@@ -27,14 +27,26 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ldst1_lane(raw) {
         return Some(instr);
     }
-    if (raw & 0xBFFF_F000) == 0x0D40_C000 {
+    let ld1r_no_offset = (raw & 0xBFFF_F000) == 0x0D40_C000;
+    let ld1r_post_index = (raw & 0xBFE0_F000) == 0x0DC0_C000;
+    if ld1r_no_offset || ld1r_post_index {
         let element_size = 1u8 << (((raw >> 10) & 0x3) as u8);
+        let rm_field = ((raw >> 16) & 0x1F) as u8;
+        let (rm, imm) = if ld1r_post_index {
+            if rm_field == 31 {
+                (0xFE, element_size as u64)
+            } else {
+                (rm_field, 0)
+            }
+        } else {
+            (0xFF, 0)
+        };
         return Some(Instr {
             op: Opcode::SimdLd1r,
             rd: (raw & 0x1F) as u8,
             rn: ((raw >> 5) & 0x1F) as u8,
-            rm: 0xFF,
-            imm: 0,
+            rm,
+            imm,
             sf: true,
             cond: element_size,
             size: if (raw >> 30) != 0 { 16 } else { 8 },
@@ -849,6 +861,18 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 8,
         });
     }
+    if (raw & 0xFFFF_FC00) == 0x5EF1_B800 {
+        return Some(Instr {
+            op: Opcode::SimdAddp,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0xFF,
+            imm: 8,
+            sf: true,
+            cond: 0,
+            size: 8,
+        });
+    }
     if (raw & 0xFFFF_FC00) == 0x0E21_4000 {
         return Some(Instr {
             op: Opcode::SimdAddhn,
@@ -862,7 +886,11 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
         });
     }
     if (raw & 0xBF20_FC00) == 0x0E20_BC00 {
+        let q = ((raw >> 30) & 1) != 0;
         let element_size = 1u64 << ((raw >> 22) & 0x3);
+        if element_size == 8 && !q {
+            return None;
+        }
         return Some(Instr {
             op: Opcode::SimdAddp,
             rd: (raw & 0x1F) as u8,
@@ -871,7 +899,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             imm: element_size,
             sf: true,
             cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
+            size: if q { 16 } else { 8 },
         });
     }
     if (raw & 0xBF3F_FC00) == 0x0E31_B800 {
@@ -2213,6 +2241,26 @@ fn decode_simd_ushr(raw: u32) -> Option<Instr> {
 }
 
 fn decode_simd_sshr(raw: u32) -> Option<Instr> {
+    if (raw & 0xFF80_FC00) == 0x5F00_0400 {
+        let immh = ((raw >> 19) & 0xF) as u8;
+        if (immh & 0x8) == 0 {
+            return None;
+        }
+        let immb = ((raw >> 16) & 0x7) as u8;
+        let imm = ((immh as u16) << 3) | immb as u16;
+        let shift = 128u16.checked_sub(imm)? as u64;
+        return Some(Instr {
+            op: Opcode::SimdSshr,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: shift,
+            sf: true,
+            cond: 8,
+            size: 8,
+        });
+    }
+
     if (raw & 0xBF80_FC00) != 0x0F00_0400 {
         return None;
     }
