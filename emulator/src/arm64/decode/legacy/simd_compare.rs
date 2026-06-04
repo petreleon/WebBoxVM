@@ -15,8 +15,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     for (base, op) in [
         (0x5EE0_3400, Opcode::SimdCmgtReg),
         (0x5EE0_3C00, Opcode::SimdCmgeReg),
+        (0x5EE0_8C00, Opcode::SimdCmtst),
         (0x7EE0_3400, Opcode::SimdCmhiReg),
         (0x7EE0_3C00, Opcode::SimdCmhsReg),
+        (0x7EE0_8C00, Opcode::SimdCmeqReg),
     ] {
         if let Some(instr) = decode_scalar_compare_reg(raw, base, op) {
             return DecodeStep::Hit(instr);
