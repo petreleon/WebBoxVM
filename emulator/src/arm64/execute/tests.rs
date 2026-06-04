@@ -967,6 +967,16 @@ fn scalar_fp_compare_select_and_widening_simd_ops() {
     execute(&mut cpu, &mut bus, decode(0x6E21_3BD0).unwrap()).unwrap(); // shll2 v16.8h, v30.16b, #8
     assert_eq!(cpu.simd[16], 0x0f00_0e00_0d00_0c00_0b00_0a00_0900_0800);
 
+    cpu.simd[22] = 0x0000_0000_8000_0001;
+    cpu.simd[25] = 0xffff_ffff_0000_0002;
+    execute(&mut cpu, &mut bus, decode(0x0EB9_02D0).unwrap()).unwrap(); // saddl v16.2d, v22.2s, v25.2s
+    assert_eq!(cpu.simd[16], 0xffff_ffff_ffff_ffff_ffff_ffff_8000_0003);
+
+    cpu.simd[22] = 0x0000_0004_ffff_fffe_0000_0002_0000_0001;
+    cpu.simd[25] = 0xffff_fffd_0000_0005_0000_0006_0000_0007;
+    execute(&mut cpu, &mut bus, decode(0x4EB9_02D6).unwrap()).unwrap(); // saddl2 v22.2d, v22.4s, v25.4s
+    assert_eq!(cpu.simd[22], 0x0000_0000_0000_0001_0000_0000_0000_0003);
+
     cpu.simd[6] = (100u128 << 64) | 10;
     cpu.simd[28] = (4u128 << 32) | 3;
     cpu.simd[0] = 5;
