@@ -1,11 +1,4 @@
-use crate::arm64::helpers;
-use crate::arm64::opcodes::Opcode;
-use crate::arm64::{Armv8Cpu, decode, execute};
-use crate::bus::SystemBus;
-
-// ============================================================================
-// Intensive instruction tests for EFI stub loop instructions
-// ============================================================================
+use super::*;
 
 #[test]
 fn test_sub_flags_cmp_w2_21() {
@@ -148,69 +141,4 @@ fn test_ldrb_x26_zero() {
     execute(&mut cpu, &mut bus, instr).unwrap();
     // Address 0 in low region returns 0
     assert_eq!(cpu.regs.w(1), 0, "LDRB from address 0 should return 0");
-}
-
-#[test]
-fn test_decode_eb21c01f() {
-    let raw: u32 = 0xeb21c01f;
-    let instr = decode(raw).unwrap();
-    println!(
-        "raw=0x{:08x} op={:?} rd={} rn={} rm={}",
-        raw, instr.op, instr.rd, instr.rn, instr.rm
-    );
-    assert_eq!(instr.op, Opcode::Cmp, "Expected Cmp, got {:?}", instr.op);
-}
-
-#[test]
-fn test_decode_eb21c01f_debug() {
-    let raw: u32 = 0xeb21c01f;
-    let sf = ((raw >> 31) & 1) != 0;
-    let op = (raw >> 30) & 1;
-    let s = ((raw >> 29) & 1) != 0;
-    let n = ((raw >> 21) & 1) != 0;
-    let rd = (raw & 0x1F) as u8;
-    println!("sf={} op={} s={} n={} rd={}", sf, op, s, n, rd);
-    if s && op == 1 && rd == 31 {
-        println!("Would be Cmp");
-    } else {
-        println!("Would NOT be Cmp");
-    }
-}
-
-#[test]
-fn test_decode_121d7820() {
-    let raw: u32 = 0x121d7820;
-    match decode(raw) {
-        Some(instr) => println!(
-            "raw=0x{:08x} op={:?} rd={} rn={} imm={:#x}",
-            raw, instr.op, instr.rd, instr.rn, instr.imm
-        ),
-        None => println!("raw=0x{:08x} = None", raw),
-    }
-}
-
-#[test]
-fn test_fdt_header_verification_decoding() {
-    use crate::loader::kernel::load_kernel;
-    let mut bus = SystemBus::new();
-    load_kernel(
-        &mut bus,
-        concat!(env!("CARGO_MANIFEST_DIR"), "/../.artifacts/Image"),
-    )
-    .unwrap();
-
-    let addrs = [0x41e29d90u64, 0x41e29d94u64, 0x41e29d98u64];
-    for &addr in &addrs {
-        let raw = bus.mem.read(addr, 4).unwrap() as u32;
-        let instr = decode(raw);
-        println!("ADDR={:#x} RAW={:#010x} DECODED={:?}", addr, raw, instr);
-    }
-
-    println!("\n--- Relocated loop diagnostics at 0x400b6e50 ---");
-    for offset in (0..0x90).step_by(4) {
-        let addr = 0x400b6e50u64 + offset;
-        let raw = bus.mem.read(addr, 4).unwrap() as u32;
-        let instr = decode(raw);
-        println!("ADDR={:#x} RAW={:#010x} DECODED={:?}", addr, raw, instr);
-    }
 }
