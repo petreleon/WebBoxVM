@@ -118,3 +118,19 @@ pub(super) fn simd_fp_binary(raw: u32, base: u32) -> bool {
 pub(super) fn simd_fp_pairwise_scalar(raw: u32, base: u32) -> bool {
     (raw & 0xFFBF_FC00) == base
 }
+
+pub(super) fn simd_fp_compare(raw: u32, vector_base: u32, scalar_base: u32) -> bool {
+    (raw & 0xBFA0_FC00) == vector_base || (raw & 0xFFA0_FC00) == scalar_base
+}
+
+pub(super) fn simd_fp_zero_compare(raw: u32, vector_base: u32, scalar_base: u32) -> bool {
+    (raw & 0xBFBF_FC00) == vector_base || (raw & 0xFFBF_FC00) == scalar_base
+}
+
+pub(super) fn sve_fp_size_valid(raw: u32) -> bool {
+    ((raw >> 22) & 0x3) != 0
+}
+
+pub(super) fn sve_fp_cmp(raw: u32, vec_base: u32, zero_base: u32) -> bool {
+    (raw & 0xFF20_E010) == vec_base || (raw & 0xFF3F_E010) == zero_base
+}

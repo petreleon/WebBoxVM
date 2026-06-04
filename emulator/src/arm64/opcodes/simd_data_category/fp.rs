@@ -25,6 +25,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpFcmgeVec
             | Opcode::SimdFpFcmgtVec
             | Opcode::SimdFpFcmeqZero
+            | Opcode::SimdFpFcmgeZero
+            | Opcode::SimdFpFcmgtZero
             | Opcode::SimdFpFcmleZero
             | Opcode::SimdFpFcmltZero
             | Opcode::SimdFpFmlaVec

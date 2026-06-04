@@ -27,6 +27,8 @@ impl super::Opcode {
     pub const SimdFpFcmgtVec: Self = Self(311);
     pub const SimdFpFcmeqZero: Self = Self(312);
     pub const SimdFpFcmleZero: Self = Self(313);
+    pub const SimdFpFcmgeZero: Self = Self(390);
+    pub const SimdFpFcmgtZero: Self = Self(391);
     pub const SimdFpFrintnVec: Self = Self(338);
     pub const SimdFpFmaxv: Self = Self(373);
     pub const SimdFpFminv: Self = Self(374);

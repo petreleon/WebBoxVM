@@ -45,3 +45,51 @@ fn decode_simd_fp_compare_forms_cross_checked_with_disarm64() {
 
     assert!(decode(0x2E60_E400).is_none());
 }
+
+#[test]
+fn decode_simd_fp_scalar_compare_forms_cross_checked_with_disarm64() {
+    assert_decode_cases(&[
+        (0x7E22_E420, Opcode::SimdFpFcmgeVec, "fcmge"),
+        (0x7EA5_E483, Opcode::SimdFpFcmgtVec, "fcmgt"),
+        (0x7E28_ECE6, Opcode::SimdFpFacgeVec, "facge"),
+        (0x7EAB_ED49, Opcode::SimdFpFacgtVec, "facgt"),
+        (0x7E74_E672, Opcode::SimdFpFcmgeVec, "fcmge"),
+        (0x7EF7_E6D5, Opcode::SimdFpFcmgtVec, "fcmgt"),
+        (0x7E7A_EF38, Opcode::SimdFpFacgeVec, "facge"),
+        (0x7EFD_EF9B, Opcode::SimdFpFacgtVec, "facgt"),
+    ]);
+
+    let fcmge = decode(0x7E22_E420).unwrap();
+    assert_eq!((fcmge.rd, fcmge.rn, fcmge.rm), (0, 1, 2));
+    assert_eq!((fcmge.imm, fcmge.size), (4, 4));
+    let facgt = decode(0x7EFD_EF9B).unwrap();
+    assert_eq!((facgt.rd, facgt.rn, facgt.rm), (27, 28, 29));
+    assert_eq!((facgt.imm, facgt.size), (8, 8));
+}
+
+#[test]
+fn decode_simd_fp_zero_compare_ge_gt_and_scalar_forms() {
+    assert_decode_cases(&[
+        (0x2EA0_C820, Opcode::SimdFpFcmgeZero, "fcmge"),
+        (0x4EA0_C862, Opcode::SimdFpFcmgtZero, "fcmgt"),
+        (0x6EE0_C8A4, Opcode::SimdFpFcmgeZero, "fcmge"),
+        (0x4EE0_C8E6, Opcode::SimdFpFcmgtZero, "fcmgt"),
+        (0x7EA0_C820, Opcode::SimdFpFcmgeZero, "fcmge"),
+        (0x5EA0_C862, Opcode::SimdFpFcmgtZero, "fcmgt"),
+        (0x5EA0_D9AC, Opcode::SimdFpFcmeqZero, "fcmeq"),
+        (0x7EA0_D9EE, Opcode::SimdFpFcmleZero, "fcmle"),
+        (0x5EA0_EA30, Opcode::SimdFpFcmltZero, "fcmlt"),
+        (0x7EE0_C8A4, Opcode::SimdFpFcmgeZero, "fcmge"),
+        (0x5EE0_C8E6, Opcode::SimdFpFcmgtZero, "fcmgt"),
+        (0x5EE0_DBFE, Opcode::SimdFpFcmeqZero, "fcmeq"),
+        (0x7EE0_D820, Opcode::SimdFpFcmleZero, "fcmle"),
+        (0x5EE0_E862, Opcode::SimdFpFcmltZero, "fcmlt"),
+    ]);
+
+    let vector = decode(0x4EA0_C862).unwrap();
+    assert_eq!((vector.rd, vector.rn, vector.rm), (2, 3, 0));
+    assert_eq!((vector.imm, vector.size), (4, 16));
+    let scalar = decode(0x5EE0_E862).unwrap();
+    assert_eq!((scalar.rd, scalar.rn, scalar.rm), (2, 3, 0));
+    assert_eq!((scalar.imm, scalar.size), (8, 8));
+}

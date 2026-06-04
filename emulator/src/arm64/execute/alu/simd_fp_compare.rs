@@ -35,7 +35,11 @@ fn compare_passes(cpu: &Armv8Cpu, instr: Instr, lane: usize, element_size: usize
 fn compare_rhs(cpu: &Armv8Cpu, instr: Instr, lane: usize, element_size: usize) -> u128 {
     if matches!(
         instr.op,
-        Opcode::SimdFpFcmeqZero | Opcode::SimdFpFcmleZero | Opcode::SimdFpFcmltZero
+        Opcode::SimdFpFcmeqZero
+            | Opcode::SimdFpFcmgeZero
+            | Opcode::SimdFpFcmgtZero
+            | Opcode::SimdFpFcmleZero
+            | Opcode::SimdFpFcmltZero
     ) {
         0
     } else {
@@ -53,6 +57,8 @@ where
         Opcode::SimdFpFcmgeVec => left >= right,
         Opcode::SimdFpFcmgtVec => left > right,
         Opcode::SimdFpFcmeqZero => left == right,
+        Opcode::SimdFpFcmgeZero => left >= right,
+        Opcode::SimdFpFcmgtZero => left > right,
         Opcode::SimdFpFcmleZero => left <= right,
         Opcode::SimdFpFcmltZero => left < right,
         _ => unreachable!(),
