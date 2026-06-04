@@ -29,12 +29,14 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fdiv if (raw & 0xFF3F_E000) == 0x650D_8000 => Opcode::SveFpDiv,
         M::r#fdiv => Opcode::FpDiv,
         M::r#fdivr if (raw & 0xFF3F_E000) == 0x650C_8000 => Opcode::SveFpDivr,
+        M::r#fabd if (raw & 0xFF3F_E000) == 0x6508_8000 => Opcode::SveFpFabd,
         M::r#fabd if (raw & 0xFF20_FC00) == 0x7E20_D400 || (raw & 0xBFA0_FC00) == 0x2EA0_D400 => {
             Opcode::SimdFpAbd
         }
         M::r#fabs if (raw & 0xBFBF_FC00) == 0x0EA0_F800 => Opcode::SimdFpAbsVec,
         M::r#fabs if (raw & 0xFF3F_E000) == 0x041C_A000 => Opcode::SveFpAbs,
         M::r#fmax if (raw & 0xFF20_FC00) == 0x1E20_4800 => Opcode::FpMax,
+        M::r#fmin if (raw & 0xFF3F_E000) == 0x6507_8000 => Opcode::SveFpFmin,
         M::r#fmin if (raw & 0xFF20_FC00) == 0x1E20_5800 => Opcode::FpMin,
         M::r#fmaxnm if (raw & 0xFF20_FC00) == 0x1E20_6800 => Opcode::FpMaxnm,
         M::r#fminnm if (raw & 0xFF20_FC00) == 0x1E20_7800 => Opcode::FpMinnm,

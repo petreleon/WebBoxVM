@@ -72,6 +72,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveFpDiv
             | Opcode::SveFpSubr
             | Opcode::SveFpDivr
+            | Opcode::SveFpFmin
+            | Opcode::SveFpFabd
             | Opcode::SveFpMulImm
             | Opcode::SveFpDupImm
             | Opcode::SveFpCpyImm

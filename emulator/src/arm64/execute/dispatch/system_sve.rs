@@ -85,6 +85,8 @@ pub(super) fn execute(
         | Opcode::SveFpDiv
         | Opcode::SveFpSubr
         | Opcode::SveFpDivr
+        | Opcode::SveFpFmin
+        | Opcode::SveFpFabd
         | Opcode::SveFpMulImm => exec_sve_fp_binary(cpu, instr),
         Opcode::SveScvtf | Opcode::SveFcvtzs | Opcode::SveFpFcvt => exec_sve_fp_convert(cpu, instr),
         Opcode::SveFpAbs

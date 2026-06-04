@@ -1,4 +1,4 @@
-use super::super::alu::{f16_to_f32, f32_to_f16_bits};
+use super::super::alu::{f16_to_f32, f32_to_f16_bits, fp_min};
 use super::*;
 
 pub(in crate::arm64::execute) fn exec_sve_fp_binary(cpu: &mut Armv8Cpu, instr: Instr) {
@@ -70,6 +70,8 @@ fn fp_binary_f16(op: Opcode, left: u16, right: u16) -> u16 {
         Opcode::SveFpDiv => left / right,
         Opcode::SveFpSubr => right - left,
         Opcode::SveFpDivr => right / left,
+        Opcode::SveFpFmin => fp_min(left, right),
+        Opcode::SveFpFabd => (left - right).abs(),
         _ => unreachable!(),
     })
 }
@@ -84,6 +86,8 @@ fn fp_binary_f32(op: Opcode, left: u32, right: u32) -> u32 {
         Opcode::SveFpDiv => left / right,
         Opcode::SveFpSubr => right - left,
         Opcode::SveFpDivr => right / left,
+        Opcode::SveFpFmin => fp_min(left, right),
+        Opcode::SveFpFabd => (left - right).abs(),
         _ => unreachable!(),
     }
     .to_bits()
@@ -99,6 +103,8 @@ fn fp_binary_f64(op: Opcode, left: u64, right: u64) -> u64 {
         Opcode::SveFpDiv => left / right,
         Opcode::SveFpSubr => right - left,
         Opcode::SveFpDivr => right / left,
+        Opcode::SveFpFmin => fp_min(left, right),
+        Opcode::SveFpFabd => (left - right).abs(),
         _ => unreachable!(),
     }
     .to_bits()
