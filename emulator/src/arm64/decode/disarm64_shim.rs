@@ -191,7 +191,12 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#addp => Opcode::SimdAddp,
         M::r#addv => Opcode::SimdAddv,
         M::r#umaxv => Opcode::SimdUmaxv,
-        M::r#cmeq if (raw & 0xBF3F_FC00) == 0x0E20_9800 => Opcode::SimdCmeqZero,
+        M::r#cmeq
+            if ((raw & 0xFF20_FC00) == 0x5E20_9800 && ((raw >> 22) & 0x3) == 0x3)
+                || (raw & 0xBF3F_FC00) == 0x0E20_9800 =>
+        {
+            Opcode::SimdCmeqZero
+        }
         M::r#cmge if (raw & 0xFF3F_FC00) == 0x7E20_8800 || (raw & 0xBF3F_FC00) == 0x2E20_8800 => {
             Opcode::SimdCmgeZero
         }

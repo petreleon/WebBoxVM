@@ -760,6 +760,14 @@ fn decode_simd_userland_string_ops() {
     assert!(decode(0x2EE0_6400).is_none());
     assert!(decode(0x0EE0_6400).is_none());
     assert_eq!(decode(0x0E20_9800).unwrap().op, Opcode::SimdCmeqZero);
+    let cmeq_zero_scalar = decode(0x5EE0_9BFF).unwrap();
+    assert_eq!(cmeq_zero_scalar.op, Opcode::SimdCmeqZero);
+    assert_eq!(cmeq_zero_scalar.rd, 31);
+    assert_eq!(cmeq_zero_scalar.rn, 31);
+    assert_eq!(cmeq_zero_scalar.imm, 8);
+    assert_eq!(cmeq_zero_scalar.size, 8);
+    assert!(decode(0x5EA0_9800).is_none());
+    assert!(decode(0x0EE0_9800).is_none());
     let cmeq_words = decode(0x6EB9_8FFF).unwrap();
     assert_eq!(cmeq_words.op, Opcode::SimdCmeqReg);
     assert_eq!(cmeq_words.rd, 31);
@@ -1020,6 +1028,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2EBE_6FFF, Opcode::SimdUminVec, "umin"),
         (0x7EE0_8BFF, Opcode::SimdCmgeZero, "cmge"),
         (0x6EE0_8BFF, Opcode::SimdCmgeZero, "cmge"),
+        (0x5EE0_9BFF, Opcode::SimdCmeqZero, "cmeq"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x5E61_DBFF, Opcode::SimdScvtf, "scvtf"),
         (0x4E61_D800, Opcode::SimdScvtf, "scvtf"),
