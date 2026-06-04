@@ -1,0 +1,47 @@
+use super::*;
+
+impl Default for SystemRegisters {
+    fn default() -> Self {
+        Self {
+            sctlr_el1: 0,
+            tcr_el1: 0,
+            ttbr0_el1: 0,
+            ttbr1_el1: 0,
+            mair_el1: 0,
+            far_el1: 0,
+            vbar_el1: 0,
+            spsr_el1: 0,
+            elr_el1: 0,
+            esr_el1: 0,
+            cpacr_el1: 0,
+            fpcr: 0,
+            fpsr: 0,
+            cntfrq_el0: TIMER_FREQ_HZ,
+            cycle_count: 0,
+            cntkctl_el1: 0,
+            scr_el3: 0,
+            spsr_el3: 0,
+            elr_el3: 0,
+            hcr_el2: 0,
+            spsr_el2: 0,
+            elr_el2: 0,
+            sp_el0: 0,
+            sp_el1: 0,
+            tpidr_el0: 0,
+            tpidr_el1: 0,
+            tpidrro_el0: 0,
+            icc_pmr_el1: 0,
+            icc_ctlr_el1: 0,
+            icc_sre_el1: 0,
+            icc_iar1_el1: GIC_SPURIOUS_INTERRUPT,
+            cntp_ctl_el0: 0,
+            cntp_cval_el0: 0,
+            cntp_tval_el0: 0,
+            cntv_ctl_el0: 0,
+            cntv_cval_el0: 0,
+            cntv_tval_el0: 0,
+            irq_pending: false,
+            last_irq_id: GIC_SPURIOUS_INTERRUPT as u32,
+        }
+    }
+}
