@@ -95,6 +95,7 @@ mod simd_fp_vector;
 mod simd_helpers;
 mod simd_ld1_multi;
 mod simd_ld1r;
+mod simd_minmax;
 mod simd_narrow_high2;
 mod simd_narrow_round;
 mod simd_permute_secondary;

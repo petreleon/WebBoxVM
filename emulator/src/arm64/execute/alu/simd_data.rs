@@ -92,8 +92,11 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdAddv
         | Opcode::SimdUmaxv
         | Opcode::SimdSmaxVec
+        | Opcode::SimdSminVec
         | Opcode::SimdUmaxVec
         | Opcode::SimdUminVec
+        | Opcode::SimdSmaxp
+        | Opcode::SimdSminp
         | Opcode::SimdUmaxp
         | Opcode::SimdUminp => exec_simd_reduce(cpu, instr),
         Opcode::SimdShlImm

@@ -56,13 +56,16 @@ pub(in crate::arm64::execute) fn exec_simd_reduce(cpu: &mut Armv8Cpu, instr: Ins
             let element_size = instr.imm.max(1) as usize;
             cpu.simd[rd] =
                 simd_elementwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
-                    if simd_signed_element_value(a, element_size)
-                        >= simd_signed_element_value(b, element_size)
-                    {
-                        a
-                    } else {
-                        b
-                    }
+                    signed_max(a, b, element_size)
+                });
+        }
+        Opcode::SimdSminVec => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_elementwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
+                    signed_min(a, b, element_size)
                 });
         }
         Opcode::SimdUmaxVec => {
@@ -92,6 +95,24 @@ pub(in crate::arm64::execute) fn exec_simd_reduce(cpu: &mut Armv8Cpu, instr: Ins
                     a.max(b)
                 });
         }
+        Opcode::SimdSmaxp => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_pairwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
+                    signed_max(a, b, element_size)
+                });
+        }
+        Opcode::SimdSminp => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_pairwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
+                    signed_min(a, b, element_size)
+                });
+        }
         Opcode::SimdUminp => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
@@ -102,5 +123,21 @@ pub(in crate::arm64::execute) fn exec_simd_reduce(cpu: &mut Armv8Cpu, instr: Ins
                 });
         }
         _ => unreachable!(),
+    }
+}
+
+fn signed_max(a: u128, b: u128, element_size: usize) -> u128 {
+    if simd_signed_element_value(a, element_size) >= simd_signed_element_value(b, element_size) {
+        a
+    } else {
+        b
+    }
+}
+
+fn signed_min(a: u128, b: u128, element_size: usize) -> u128 {
+    if simd_signed_element_value(a, element_size) <= simd_signed_element_value(b, element_size) {
+        a
+    } else {
+        b
     }
 }

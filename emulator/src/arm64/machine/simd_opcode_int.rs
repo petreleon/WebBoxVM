@@ -46,8 +46,11 @@ pub(in crate::arm64::machine) fn is_simd_integer_opcode(op: Opcode) -> bool {
             | Opcode::SimdUmaxv
             | Opcode::SimdExt
             | Opcode::SimdSmaxVec
+            | Opcode::SimdSminVec
             | Opcode::SimdUmaxVec
             | Opcode::SimdUminVec
+            | Opcode::SimdSmaxp
+            | Opcode::SimdSminp
             | Opcode::SimdUmaxp
             | Opcode::SimdUminp
             | Opcode::SimdCnt

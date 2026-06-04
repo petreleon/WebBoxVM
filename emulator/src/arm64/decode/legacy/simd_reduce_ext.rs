@@ -13,79 +13,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
-    if (raw & 0xFF20_FC00) == 0x6E20_A400 {
-        let element_size = 1u64 << ((raw >> 22) & 0x3);
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdUmaxp,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: element_size,
-            sf: true,
-            cond: 0,
-            size: 16,
-        });
-    }
-    if (raw & 0xBF20_FC00) == 0x0E20_6400 {
-        let element_size = 1u64 << ((raw >> 22) & 0x3);
-        if element_size == 8 {
-            return DecodeStep::Reject;
+    for (base, op) in [
+        (0x0E20_6400, Opcode::SimdSmaxVec),
+        (0x0E20_6C00, Opcode::SimdSminVec),
+        (0x2E20_6400, Opcode::SimdUmaxVec),
+        (0x2E20_6C00, Opcode::SimdUminVec),
+        (0x0E20_A400, Opcode::SimdSmaxp),
+        (0x0E20_AC00, Opcode::SimdSminp),
+        (0x2E20_A400, Opcode::SimdUmaxp),
+        (0x2E20_AC00, Opcode::SimdUminp),
+    ] {
+        if let Some(step) = decode_minmax(raw, base, op) {
+            return step;
         }
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdSmaxVec,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: element_size,
-            sf: true,
-            cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
-    }
-    if (raw & 0xBF20_FC00) == 0x2E20_6400 {
-        let element_size = 1u64 << ((raw >> 22) & 0x3);
-        if element_size == 8 {
-            return DecodeStep::Reject;
-        }
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdUmaxVec,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: element_size,
-            sf: true,
-            cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
-    }
-    if (raw & 0xBF20_FC00) == 0x2E20_6C00 {
-        let element_size = 1u64 << ((raw >> 22) & 0x3);
-        if element_size == 8 {
-            return DecodeStep::Reject;
-        }
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdUminVec,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: element_size,
-            sf: true,
-            cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
-    }
-    if (raw & 0xBF20_FC00) == 0x2E20_AC00 {
-        let element_size = 1u64 << ((raw >> 22) & 0x3);
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdUminp,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: element_size,
-            sf: true,
-            cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
     }
     if (raw & 0xBF3F_FC00) == 0x0E20_5800 {
         return DecodeStep::Hit(Instr {
@@ -128,4 +68,24 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         }
     }
     DecodeStep::Miss
+}
+
+fn decode_minmax(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {
+    if (raw & 0xBF20_FC00) != base {
+        return None;
+    }
+    let element_size = 1u64 << ((raw >> 22) & 0x3);
+    if element_size == 8 {
+        return Some(DecodeStep::Reject);
+    }
+    Some(DecodeStep::Hit(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: element_size,
+        sf: true,
+        cond: 0,
+        size: if (raw >> 30) != 0 { 16 } else { 8 },
+    }))
 }

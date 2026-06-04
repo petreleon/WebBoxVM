@@ -60,8 +60,11 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdUmaxv
             | Opcode::SimdExt
             | Opcode::SimdSmaxVec
+            | Opcode::SimdSminVec
             | Opcode::SimdUmaxVec
             | Opcode::SimdUminVec
+            | Opcode::SimdSmaxp
+            | Opcode::SimdSminp
             | Opcode::SimdUmaxp
             | Opcode::SimdUminp
             | Opcode::SimdCnt
