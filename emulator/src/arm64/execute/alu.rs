@@ -342,6 +342,21 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
                 |a, b, mask| a.wrapping_mul(b) & mask,
             );
         }
+        Opcode::SimdMlaVec => {
+            let accumulator = cpu.simd[rd];
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            let element_mask = simd_element_mask(element_size);
+            cpu.simd[rd] = simd_elementwise_ternary(
+                accumulator,
+                lhs,
+                rhs,
+                element_size,
+                instr.size as usize,
+                |acc, a, b| acc.wrapping_add(a.wrapping_mul(b)) & element_mask,
+            );
+        }
         Opcode::SimdAddp => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
@@ -1570,6 +1585,30 @@ where
         let a = simd_element(lhs, lane, element_size);
         let b = simd_element(rhs, lane, element_size);
         out |= (f(a, b, element_mask) & element_mask) << (lane * bits);
+    }
+    out
+}
+
+fn simd_elementwise_ternary<F>(
+    dst: u128,
+    lhs: u128,
+    rhs: u128,
+    element_size: usize,
+    vector_size: usize,
+    f: F,
+) -> u128
+where
+    F: Fn(u128, u128, u128) -> u128,
+{
+    let bits = element_size * 8;
+    let element_mask = simd_element_mask(element_size);
+    let lanes = vector_size / element_size;
+    let mut out = 0u128;
+    for lane in 0..lanes {
+        let acc = simd_element(dst, lane, element_size);
+        let a = simd_element(lhs, lane, element_size);
+        let b = simd_element(rhs, lane, element_size);
+        out |= (f(acc, a, b) & element_mask) << (lane * bits);
     }
     out
 }

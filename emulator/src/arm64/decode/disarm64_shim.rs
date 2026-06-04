@@ -98,6 +98,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#eret => Opcode::Eret,
         M::r#hint => Opcode::Nop,
         M::r#mul if (raw & 0xBF20_FC00) == 0x0E20_9C00 => Opcode::SimdMulVec,
+        M::r#mla if (raw & 0xBF20_FC00) == 0x0E20_9400 => Opcode::SimdMlaVec,
         M::r#madd | M::r#mul => Opcode::Madd,
         M::r#msub => Opcode::Msub,
         M::r#smulh => Opcode::Smulh,

@@ -871,6 +871,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x4E7E_33FF, Opcode::SimdSsubw, "ssubw2"),
         (0x2F80_2386, Opcode::SimdUmlal, "umlal"),
         (0x0EBE_9FBD, Opcode::SimdMulVec, "mul"),
+        (0x4EBF_97FE, Opcode::SimdMlaVec, "mla"),
         (0x6EBF_67BD, Opcode::SimdUmaxVec, "umax"),
         (0x2EBE_6FFF, Opcode::SimdUminVec, "umin"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
@@ -1031,6 +1032,15 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(mul_16b.op, Opcode::SimdMulVec);
     assert_eq!(mul_16b.imm, 1);
     assert_eq!(mul_16b.size, 16);
+
+    let mla = decode(0x4EBF_97FE).unwrap();
+    assert_eq!(mla.op, Opcode::SimdMlaVec);
+    assert_eq!(mla.rd, 30);
+    assert_eq!(mla.rn, 31);
+    assert_eq!(mla.rm, 31);
+    assert_eq!(mla.imm, 4);
+    assert_eq!(mla.size, 16);
+    assert!(decode(0x4EE0_9400).is_none());
 }
 
 #[test]
