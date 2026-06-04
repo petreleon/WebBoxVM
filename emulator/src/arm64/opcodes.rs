@@ -1,9 +1,14 @@
 //! Instruction opcodes and decoded representation.
 
+mod categories;
 mod core_variants;
 mod fp_variants;
+mod fp_scalar_category;
+mod simd_data_category;
 mod simd_fp_variants;
+mod simd_memory_category;
 mod simd_variants;
+mod sve_category;
 mod sve_variants;
 mod system_variants;
 

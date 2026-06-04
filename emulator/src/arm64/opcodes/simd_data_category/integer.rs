@@ -1,0 +1,74 @@
+use crate::arm64::Opcode;
+
+pub(super) fn is_opcode(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SimdShrn
+            | Opcode::SimdShrn2
+            | Opcode::SimdRshrn
+            | Opcode::SimdRshrn2
+            | Opcode::SimdAddhn
+            | Opcode::SimdAddhn2
+            | Opcode::SimdRaddhn
+            | Opcode::SimdRaddhn2
+            | Opcode::SimdSubhn
+            | Opcode::SimdSubhn2
+            | Opcode::SimdRsubhn
+            | Opcode::SimdRsubhn2
+            | Opcode::SimdAddVec
+            | Opcode::SimdSubVec
+            | Opcode::SimdMulVec
+            | Opcode::SimdMlaVec
+            | Opcode::SimdAddp
+            | Opcode::SimdAddv
+            | Opcode::SimdSmaxv
+            | Opcode::SimdSminv
+            | Opcode::SimdUmaxv
+            | Opcode::SimdUminv
+            | Opcode::SimdExt
+            | Opcode::SimdSmaxVec
+            | Opcode::SimdSminVec
+            | Opcode::SimdUmaxVec
+            | Opcode::SimdUminVec
+            | Opcode::SimdSmaxp
+            | Opcode::SimdSminp
+            | Opcode::SimdUmaxp
+            | Opcode::SimdUminp
+            | Opcode::SimdShlImm
+            | Opcode::SimdSli
+            | Opcode::SimdSri
+            | Opcode::SimdSshr
+            | Opcode::SimdUshr
+            | Opcode::SimdUshl
+            | Opcode::SimdXtn
+            | Opcode::SimdXtn2
+            | Opcode::SimdRev64
+            | Opcode::SimdRev32
+            | Opcode::SimdInsElem
+            | Opcode::SimdUzp1
+            | Opcode::SimdUzp2
+            | Opcode::SimdTrn1
+            | Opcode::SimdTrn2
+            | Opcode::SimdZip1
+            | Opcode::SimdZip2
+            | Opcode::SimdTbl
+            | Opcode::SimdNot
+            | Opcode::SimdBsl
+            | Opcode::SimdBit
+            | Opcode::SimdBif
+            | Opcode::SimdAnd
+            | Opcode::SimdOrr
+            | Opcode::SimdOrn
+            | Opcode::SimdEor
+            | Opcode::SimdBic
+            | Opcode::SimdBicImm
+            | Opcode::SimdMvni
+            | Opcode::SimdUshll
+            | Opcode::SimdSshll
+            | Opcode::SimdShll
+            | Opcode::SimdSaddl
+            | Opcode::SimdUsubl
+            | Opcode::SimdSsubw
+            | Opcode::SimdUmlal
+    )
+}

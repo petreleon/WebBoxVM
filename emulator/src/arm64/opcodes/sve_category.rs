@@ -1,0 +1,95 @@
+use super::Opcode;
+
+pub(super) fn is_opcode(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SvePtrue
+            | Opcode::SvePtest
+            | Opcode::SvePredAnd
+            | Opcode::SvePredOrr
+            | Opcode::SvePredEor
+            | Opcode::SveMovprfx
+            | Opcode::SveDupGpr
+            | Opcode::SveDupImm
+            | Opcode::SveDupElem
+            | Opcode::SveAddVec
+            | Opcode::SveSubVec
+            | Opcode::SveAddImm
+            | Opcode::SveSubImm
+            | Opcode::SveAddPred
+            | Opcode::SveSubPred
+            | Opcode::SveAndVec
+            | Opcode::SveAndPred
+            | Opcode::SveOrrPred
+            | Opcode::SveEorPred
+            | Opcode::SveAsrImm
+            | Opcode::SveLsrImm
+            | Opcode::SveLslImm
+            | Opcode::SveUunpklo
+            | Opcode::SveUunpkhi
+            | Opcode::SveSunpklo
+            | Opcode::SveSunpkhi
+            | Opcode::SvePunpklo
+            | Opcode::SvePunpkhi
+            | Opcode::SveOrrVec
+            | Opcode::SveEorVec
+            | Opcode::SveAndImm
+            | Opcode::SveOrrImm
+            | Opcode::SveEorImm
+            | Opcode::SveDupm
+            | Opcode::SveSel
+            | Opcode::SveCmpHs
+            | Opcode::SveCmpHsImm
+            | Opcode::SveLdr
+            | Opcode::SveStr
+            | Opcode::SveLd1rd
+            | Opcode::SveLd1rqd
+            | Opcode::SveLd1d
+            | Opcode::SveSt1d
+            | Opcode::SveSt1b
+            | Opcode::SveLd1b
+            | Opcode::SveLd1rw
+            | Opcode::SveLd1rqw
+            | Opcode::SveLd1w
+            | Opcode::SveSt1w
+            | Opcode::SveFpAdd
+            | Opcode::SveFpAddImm
+            | Opcode::SveFpSub
+            | Opcode::SveFpMul
+            | Opcode::SveFpDiv
+            | Opcode::SveFpSubr
+            | Opcode::SveFpDivr
+            | Opcode::SveFpMulImm
+            | Opcode::SveFpDupImm
+            | Opcode::SveFpCpyImm
+            | Opcode::SveFpFexpa
+            | Opcode::SveFpFtmad
+            | Opcode::SveFpFscale
+            | Opcode::SveFpFtsmul
+            | Opcode::SveFpFtssel
+            | Opcode::SveFpAbs
+            | Opcode::SveFpNeg
+            | Opcode::SveFpSqrt
+            | Opcode::SveFpFrintn
+            | Opcode::SveFpFrinta
+            | Opcode::SveFpFrintz
+            | Opcode::SveScvtf
+            | Opcode::SveFcvtzs
+            | Opcode::SveFpFcvt
+            | Opcode::SveFpFacge
+            | Opcode::SveFpFacgt
+            | Opcode::SveFpFcmeq
+            | Opcode::SveFpFcmge
+            | Opcode::SveFpFcmgt
+            | Opcode::SveFpFcmne
+            | Opcode::SveFpFcmle
+            | Opcode::SveFpFcmlt
+            | Opcode::SveFpFmla
+            | Opcode::SveFpFmls
+            | Opcode::SveFpFmad
+            | Opcode::SveFpFmsb
+            | Opcode::SveFpFmlaIndex
+            | Opcode::SveFpFmlsIndex
+            | Opcode::SveFpMulIndex
+    )
+}
