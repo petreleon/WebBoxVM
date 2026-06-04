@@ -16,6 +16,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveDupGpr
             | Opcode::SveDupImm
             | Opcode::SveDupElem
+            | Opcode::SveCpyImm
+            | Opcode::SveCpyGpr
             | Opcode::SveAddVec
             | Opcode::SveSubVec
             | Opcode::SveAddImm

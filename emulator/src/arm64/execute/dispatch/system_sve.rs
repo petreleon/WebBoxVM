@@ -53,6 +53,8 @@ pub(super) fn execute(
         Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
         Opcode::SveDupImm => exec_sve_dup_imm(cpu, instr),
         Opcode::SveDupElem => exec_sve_dup_elem(cpu, instr),
+        Opcode::SveCpyImm => exec_sve_cpy_imm(cpu, instr),
+        Opcode::SveCpyGpr => exec_sve_cpy_gpr(cpu, instr),
         Opcode::SveIndex => exec_sve_index(cpu, instr),
         Opcode::SveAddVec | Opcode::SveSubVec | Opcode::SveUqadd => exec_sve_int_binary(cpu, instr),
         Opcode::SveAddImm | Opcode::SveSubImm => exec_sve_addsub_imm(cpu, instr),

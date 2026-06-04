@@ -23,6 +23,39 @@ fn sve_dup_immediate_and_indexed_fill_scalable_vector() {
     assert!((0..4).all(|lane| z_elem(&cpu, 22, lane) == 0));
 }
 
+#[test]
+fn sve_cpy_immediate_updates_active_lanes() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 32;
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E022).unwrap()).unwrap(); // ptrue p2.d, vl1
+    set_z_elem(&mut cpu, 31, 0, 0xAAAA);
+    set_z_elem(&mut cpu, 31, 1, 0xBBBB);
+    execute(&mut cpu, &mut bus, decode(0x05D2_401F).unwrap()).unwrap(); // cpy z31.d, p2/m, #0
+    assert_eq!(z_elem(&cpu, 31, 0), 0);
+    assert_eq!(z_elem(&cpu, 31, 1), 0xBBBB);
+
+    set_z_elem(&mut cpu, 31, 0, 0xAAAA);
+    set_z_elem(&mut cpu, 31, 1, 0xBBBB);
+    execute(&mut cpu, &mut bus, decode(0x05D2_001F).unwrap()).unwrap(); // mov z31.d, p2/z, #0
+    assert_eq!(z_elem(&cpu, 31, 0), 0);
+    assert_eq!(z_elem(&cpu, 31, 1), 0);
+}
+
+#[test]
+fn sve_cpy_gpr_updates_active_lanes() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 32;
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E021).unwrap()).unwrap(); // ptrue p1.d, vl1
+    cpu.regs.set_x(0, 0x1234_5678_9ABC_DEF0);
+    set_z_elem(&mut cpu, 26, 0, 0xAAAA);
+    set_z_elem(&mut cpu, 26, 1, 0xBBBB);
+    execute(&mut cpu, &mut bus, decode(0x05E8_A41A).unwrap()).unwrap(); // cpy z26.d, p1/m, x0
+    assert_eq!(z_elem(&cpu, 26, 0), 0x1234_5678_9ABC_DEF0);
+    assert_eq!(z_elem(&cpu, 26, 1), 0xBBBB);
+}
+
 fn set_z_word(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u32) {
     let offset = lane * 4;
     cpu.sve_z[reg][offset..offset + 4].copy_from_slice(&value.to_le_bytes());

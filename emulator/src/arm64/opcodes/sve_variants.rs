@@ -72,6 +72,8 @@ impl super::Opcode {
     pub const SveLslImm: Self = Self(318);
     pub const SveDupImm: Self = Self(319);
     pub const SveDupElem: Self = Self(320);
+    pub const SveCpyImm: Self = Self(484);
+    pub const SveCpyGpr: Self = Self(485);
     pub const SveAddImm: Self = Self(321);
     pub const SveSubImm: Self = Self(322);
     pub const SveAddPred: Self = Self(323);
