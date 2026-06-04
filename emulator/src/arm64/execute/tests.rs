@@ -307,6 +307,41 @@ fn simd_sha3_bitwise_ops() {
 }
 
 #[test]
+fn simd_crypto_schedule_and_polynomial_ops() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[0] = 0xfedc_ba98_7654_3210_0123_4567_89ab_cdef;
+    execute(&mut cpu, &mut bus, decode(0x0EE0_E000).unwrap()).unwrap(); // pmull v0.1q, v0.1d, v0.1d
+    assert_eq!(
+        cpu.simd[0],
+        polynomial_mult_u64(0x0123_4567_89ab_cdef, 0x0123_4567_89ab_cdef)
+    );
+
+    cpu.simd[0] = 0xffff_ffff_aaaa_5555_1234_5678_89ab_cdef;
+    execute(&mut cpu, &mut bus, decode(0x5E28_0800).unwrap()).unwrap(); // sha1h s0, s0
+    assert_eq!(cpu.simd[0], 0x89ab_cdefu32.rotate_left(30) as u128);
+
+    let sha256_input = u32x4([0x0302_0100, 0x0706_0504, 0x0b0a_0908, 0x0f0e_0d0c]);
+    cpu.simd[0] = sha256_input;
+    execute(&mut cpu, &mut bus, decode(0x5E28_2800).unwrap()).unwrap(); // sha256su0 v0.4s, v0.4s
+    assert_eq!(cpu.simd[0], sha256su0_expected(sha256_input, sha256_input));
+
+    let sha512_input = u64x2([0x0123_4567_89ab_cdef, 0xfedc_ba98_7654_3210]);
+    cpu.simd[0] = sha512_input;
+    execute(&mut cpu, &mut bus, decode(0xCEC0_8000).unwrap()).unwrap(); // sha512su0 v0.2d, v0.2d
+    assert_eq!(cpu.simd[0], sha512su0_expected(sha512_input, sha512_input));
+
+    let sm3_dst = u32x4([0x0011_2233, 0x4455_6677, 0x8899_aabb, 0xccdd_eeff]);
+    let sm3_n = u32x4([0x1020_3040, 0x5060_7080, 0x90a0_b0c0, 0xd0e0_f000]);
+    let sm3_m = u32x4([0x89ab_cdef, 0x0123_4567, 0x7654_3210, 0xfedc_ba98]);
+    cpu.simd[4] = sm3_dst;
+    cpu.simd[0] = sm3_n;
+    cpu.simd[3] = sm3_m;
+    execute(&mut cpu, &mut bus, decode(0xCE63_C004).unwrap()).unwrap(); // sm3partw1 v4.4s, v0.4s, v3.4s
+    assert_eq!(cpu.simd[4], sm3partw1_expected(sm3_dst, sm3_n, sm3_m));
+}
+
+#[test]
 fn simd_ld1_and_st1_multi_load_consecutive_vectors() {
     let (mut cpu, mut bus) = setup();
     let base = RAM_BASE + 0x1000;
@@ -739,6 +774,24 @@ fn f64x2(values: [f64; 2]) -> u128 {
         })
 }
 
+fn u32x4(values: [u32; 4]) -> u128 {
+    values
+        .into_iter()
+        .enumerate()
+        .fold(0u128, |bits, (lane, value)| {
+            bits | ((value as u128) << (lane * 32))
+        })
+}
+
+fn u64x2(values: [u64; 2]) -> u128 {
+    values
+        .into_iter()
+        .enumerate()
+        .fold(0u128, |bits, (lane, value)| {
+            bits | ((value as u128) << (lane * 64))
+        })
+}
+
 fn i32x4(values: [i32; 4]) -> u128 {
     values
         .into_iter()
@@ -755,6 +808,65 @@ fn i64x2(values: [i64; 2]) -> u128 {
         .fold(0u128, |bits, (lane, value)| {
             bits | ((value as u64 as u128) << (lane * 64))
         })
+}
+
+fn u32_lane(value: u128, lane: usize) -> u32 {
+    ((value >> (lane * 32)) & 0xffff_ffff) as u32
+}
+
+fn u64_lane(value: u128, lane: usize) -> u64 {
+    ((value >> (lane * 64)) & u64::MAX as u128) as u64
+}
+
+fn polynomial_mult_u64(lhs: u64, rhs: u64) -> u128 {
+    let mut out = 0u128;
+    for bit in 0..64 {
+        if ((rhs >> bit) & 1) != 0 {
+            out ^= (lhs as u128) << bit;
+        }
+    }
+    out
+}
+
+fn sha256su0_expected(d: u128, n: u128) -> u128 {
+    let schedule = [
+        u32_lane(d, 1),
+        u32_lane(d, 2),
+        u32_lane(d, 3),
+        u32_lane(n, 0),
+    ];
+    let mut out = [0u32; 4];
+    for lane in 0..4 {
+        let sigma0 = schedule[lane].rotate_right(7)
+            ^ schedule[lane].rotate_right(18)
+            ^ (schedule[lane] >> 3);
+        out[lane] = u32_lane(d, lane).wrapping_add(sigma0);
+    }
+    u32x4(out)
+}
+
+fn sha512su0_expected(d: u128, n: u128) -> u128 {
+    let w0 = u64_lane(d, 0);
+    let w1 = u64_lane(d, 1);
+    let x0 = u64_lane(n, 0);
+    let sig_w1 = w1.rotate_right(1) ^ w1.rotate_right(8) ^ (w1 >> 7);
+    let sig_x0 = x0.rotate_right(1) ^ x0.rotate_right(8) ^ (x0 >> 7);
+    u64x2([w0.wrapping_add(sig_w1), w1.wrapping_add(sig_x0)])
+}
+
+fn sm3partw1_expected(d: u128, n: u128, m: u128) -> u128 {
+    let mut words = [0u32; 4];
+    for lane in 0..3 {
+        words[lane] =
+            (u32_lane(d, lane) ^ u32_lane(n, lane)) ^ u32_lane(m, lane + 1).rotate_left(15);
+    }
+    for lane in 0..4 {
+        if lane == 3 {
+            words[3] = (u32_lane(d, 3) ^ u32_lane(n, 3)) ^ words[0].rotate_left(15);
+        }
+        words[lane] ^= words[lane].rotate_left(15) ^ words[lane].rotate_left(23);
+    }
+    u32x4(words)
 }
 
 #[test]

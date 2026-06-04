@@ -791,6 +791,70 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
+    if (raw & 0xBF20_FC00) == 0x0E20_E000 {
+        let size_bits = (raw >> 22) & 0x3;
+        if matches!(size_bits, 1 | 2) {
+            return None;
+        }
+        return Some(Instr {
+            op: Opcode::SimdPmull,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 1u64 << size_bits,
+            sf: ((raw >> 30) & 1) != 0,
+            cond: 0,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x5E28_0800 {
+        return Some(Instr {
+            op: Opcode::SimdSha1h,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 4,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0x5E28_2800 {
+        return Some(Instr {
+            op: Opcode::SimdSha256Su0,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFFF_FC00) == 0xCEC0_8000 {
+        return Some(Instr {
+            op: Opcode::SimdSha512Su0,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
+    if (raw & 0xFFE0_FC00) == 0xCE60_C000 {
+        return Some(Instr {
+            op: Opcode::SimdSm3Partw1,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
     if (raw & 0xFFE0_8000) == 0xCE00_0000 {
         return Some(Instr {
             op: Opcode::SimdEor3,

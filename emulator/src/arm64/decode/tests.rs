@@ -1172,6 +1172,11 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x4E28_5802, Opcode::SimdAesd, "aesd"),
         (0x4E28_6842, Opcode::SimdAesmc, "aesmc"),
         (0x4E28_7800, Opcode::SimdAesimc, "aesimc"),
+        (0x0EE0_E000, Opcode::SimdPmull, "pmull"),
+        (0x5E28_0800, Opcode::SimdSha1h, "sha1h"),
+        (0x5E28_2800, Opcode::SimdSha256Su0, "sha256su0"),
+        (0xCEC0_8000, Opcode::SimdSha512Su0, "sha512su0"),
+        (0xCE63_C004, Opcode::SimdSm3Partw1, "sm3partw1"),
         (0xCE02_0C24, Opcode::SimdEor3, "eor3"),
         (0xCE22_0C24, Opcode::SimdBcax, "bcax"),
         (0xCE62_8C24, Opcode::SimdRax1, "rax1"),
@@ -1306,6 +1311,41 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(xar.rm, 2);
     assert_eq!(xar.imm, 13);
     assert_eq!(xar.size, 16);
+
+    let pmull = decode(0x0EE0_E000).unwrap();
+    assert_eq!(pmull.op, Opcode::SimdPmull);
+    assert_eq!(pmull.rd, 0);
+    assert_eq!(pmull.rn, 0);
+    assert_eq!(pmull.rm, 0);
+    assert_eq!(pmull.imm, 8);
+    assert_eq!(pmull.size, 16);
+    assert!(decode(0x0E60_E000).is_none());
+    assert!(decode(0x0EA0_E000).is_none());
+
+    let sha1h = decode(0x5E28_0800).unwrap();
+    assert_eq!(sha1h.op, Opcode::SimdSha1h);
+    assert_eq!(sha1h.rd, 0);
+    assert_eq!(sha1h.rn, 0);
+    assert_eq!(sha1h.size, 4);
+
+    let sha256su0 = decode(0x5E28_2800).unwrap();
+    assert_eq!(sha256su0.op, Opcode::SimdSha256Su0);
+    assert_eq!(sha256su0.rd, 0);
+    assert_eq!(sha256su0.rn, 0);
+    assert_eq!(sha256su0.size, 16);
+
+    let sha512su0 = decode(0xCEC0_8000).unwrap();
+    assert_eq!(sha512su0.op, Opcode::SimdSha512Su0);
+    assert_eq!(sha512su0.rd, 0);
+    assert_eq!(sha512su0.rn, 0);
+    assert_eq!(sha512su0.size, 16);
+
+    let sm3partw1 = decode(0xCE63_C004).unwrap();
+    assert_eq!(sm3partw1.op, Opcode::SimdSm3Partw1);
+    assert_eq!(sm3partw1.rd, 4);
+    assert_eq!(sm3partw1.rn, 0);
+    assert_eq!(sm3partw1.rm, 3);
+    assert_eq!(sm3partw1.size, 16);
 
     let ushll = decode(0x2F20_A7FF).unwrap();
     assert_eq!(ushll.rd, 31);
