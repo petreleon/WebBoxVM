@@ -40,6 +40,8 @@ pub(super) fn execute(
         Opcode::SveDupImm => exec_sve_dup_imm(cpu, instr),
         Opcode::SveDupElem => exec_sve_dup_elem(cpu, instr),
         Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
+        Opcode::SveAddImm | Opcode::SveSubImm => exec_sve_addsub_imm(cpu, instr),
+        Opcode::SveAddPred | Opcode::SveSubPred => exec_sve_addsub_pred(cpu, instr),
         Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
         Opcode::SveAsrImm | Opcode::SveLsrImm | Opcode::SveLslImm => exec_sve_shift_imm(cpu, instr),
         Opcode::SveAndImm | Opcode::SveOrrImm | Opcode::SveEorImm | Opcode::SveDupm => {

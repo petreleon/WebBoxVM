@@ -25,6 +25,7 @@ mod simd_structure;
 mod simd_tail_system;
 mod simd_widen_helpers;
 mod simd_widen_integer;
+mod sve_addsub;
 mod sve_byte_store;
 mod sve_compare;
 mod sve_contiguous_load;
@@ -71,6 +72,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp::decode(raw));
     try_stage!(sve_dup::decode(raw));
     try_stage!(sve_shift_imm::decode(raw));
+    try_stage!(sve_addsub::decode(raw));
     try_stage!(sve_logical_imm::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));
     try_stage!(simd_dup_convert::decode(raw));

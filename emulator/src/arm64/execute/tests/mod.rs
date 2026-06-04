@@ -99,6 +99,7 @@ mod simd_shift_insert;
 mod simd_table_permute;
 mod simd_userland_permute_reduction;
 mod simd_word_immediate;
+mod sve_addsub;
 mod sve_compare;
 mod sve_counts;
 mod sve_dup;

@@ -4,6 +4,7 @@ use crate::arm64::helpers::read_base;
 use crate::arm64::mmu::{Fault, translate, translate_write};
 use crate::bus::SystemBus;
 
+mod addsub;
 mod count;
 mod dup;
 mod fp;
@@ -26,6 +27,7 @@ mod predicate_bytes;
 mod shift_imm;
 mod vector;
 
+pub(super) use addsub::{exec_sve_addsub_imm, exec_sve_addsub_pred};
 pub(super) use count::sve_pred_count;
 pub(super) use dup::{exec_sve_dup_elem, exec_sve_dup_imm};
 pub(super) use fp::exec_sve_fp_binary;

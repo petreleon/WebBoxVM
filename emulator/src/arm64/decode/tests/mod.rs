@@ -30,6 +30,7 @@ mod simd_userland_ld1;
 mod simd_userland_logical;
 mod simd_userland_struct_ldst;
 mod simd_userland_widen_fp;
+mod sve_addsub;
 mod sve_compare;
 mod sve_counts;
 mod sve_dup;
