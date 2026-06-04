@@ -196,6 +196,25 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             }
         }
     }
+    if (raw & 0xBFE0_FC00) == 0x0E00_2C00 {
+        let q = ((raw >> 30) & 1) != 0;
+        let imm5 = ((raw >> 16) & 0x1F) as u8;
+        if let Some((element_size, lane)) = decode_umov_element(imm5) {
+            let data_size = if q { 8 } else { 4 };
+            if (element_size as usize) < data_size {
+                return Some(Instr {
+                    op: Opcode::SimdSmov,
+                    rd: (raw & 0x1F) as u8,
+                    rn: ((raw >> 5) & 0x1F) as u8,
+                    rm: 0,
+                    imm: lane as u64,
+                    sf: q,
+                    cond: element_size,
+                    size: data_size as u8,
+                });
+            }
+        }
+    }
     if (raw & 0xFFE0_FC00) == 0x4E00_1C00 {
         return Some(Instr {
             op: Opcode::SimdInsGprLane,

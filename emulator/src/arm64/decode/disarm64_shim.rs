@@ -150,6 +150,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#fmov if (raw & 0xFFFF_FC00) == 0x9EAF_0000 => Opcode::SimdInsGprLane,
         M::r#fmov if (raw & 0xFF20_1C00) == 0x1E20_1000 => Opcode::FpMovImm,
         M::r#umov => Opcode::SimdUmov,
+        M::r#smov if simd_smov_is_valid(raw) => Opcode::SimdSmov,
         M::r#dup if (raw & 0xBFE0_FC00) == 0x0E00_0400 => Opcode::SimdDupElem,
         M::r#dup => Opcode::SimdDupByte,
         M::r#ins if (raw & 0xFFE0_8400) == 0x6E00_0400 => Opcode::SimdInsElem,
@@ -228,6 +229,34 @@ fn simd_ld1_multi_register_count(raw: u32) -> Option<u8> {
         0b0111 => Some(1),
         0b1010 => Some(2),
         _ => None,
+    }
+}
+
+fn simd_smov_is_valid(raw: u32) -> bool {
+    if (raw & 0xBFE0_FC00) != 0x0E00_2C00 {
+        return false;
+    }
+
+    let q = ((raw >> 30) & 1) != 0;
+    let imm5 = ((raw >> 16) & 0x1F) as u8;
+    let Some((element_size, _)) = simd_move_element(imm5) else {
+        return false;
+    };
+    let data_size = if q { 8 } else { 4 };
+    (element_size as usize) < data_size
+}
+
+fn simd_move_element(imm5: u8) -> Option<(u8, u8)> {
+    if imm5 & 0b00001 != 0 {
+        Some((1, imm5 >> 1))
+    } else if imm5 & 0b00010 != 0 {
+        Some((2, imm5 >> 2))
+    } else if imm5 & 0b00100 != 0 {
+        Some((4, imm5 >> 3))
+    } else if imm5 & 0b01000 != 0 {
+        Some((8, imm5 >> 4))
+    } else {
+        None
     }
 }
 

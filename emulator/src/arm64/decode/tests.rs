@@ -291,6 +291,21 @@ fn decode_simd_umov_halfword() {
     assert_eq!(instr.imm, 0);
     assert_eq!(instr.cond, 2);
     assert!(!instr.sf);
+
+    let smov_half = decode(0x0E0A_2FE2).unwrap(); // smov w2, v31.h[2]
+    assert_eq!(smov_half.op, Opcode::SimdSmov);
+    assert_eq!(smov_half.rd, 2);
+    assert_eq!(smov_half.rn, 31);
+    assert_eq!(smov_half.imm, 2);
+    assert_eq!(smov_half.cond, 2);
+    assert!(!smov_half.sf);
+
+    let smov_word_to_x = decode(0x4E04_2FE0).unwrap(); // smov x0, v31.s[0]
+    assert_eq!(smov_word_to_x.op, Opcode::SimdSmov);
+    assert_eq!(smov_word_to_x.cond, 4);
+    assert!(smov_word_to_x.sf);
+    assert!(decode(0x0E04_2FE0).is_none());
+    assert!(decode(0x4E08_2FE0).is_none());
 }
 
 #[test]
@@ -734,6 +749,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
         (0x6EA0_BBFF, Opcode::SimdNeg, "neg"),
         (0x7EE0_BBFF, Opcode::SimdNeg, "neg"),
+        (0x0E0A_2FE2, Opcode::SimdSmov, "smov"),
         (0x0F38_07FC, Opcode::SimdSshr, "sshr"),
         (0x4ECD_296D, Opcode::SimdTrn1, "trn1"),
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),

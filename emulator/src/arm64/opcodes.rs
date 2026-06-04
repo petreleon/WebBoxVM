@@ -107,6 +107,7 @@ pub enum Opcode {
     SimdFmovSToGpr,
     SimdFmovLaneToGpr,
     SimdUmov,
+    SimdSmov,
     SimdInsGprLane,
     SimdCmeqZero,
     SimdCmeqReg,

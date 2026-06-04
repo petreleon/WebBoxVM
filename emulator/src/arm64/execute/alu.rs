@@ -183,6 +183,15 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             let value = ((cpu.simd[rn] >> shift) & mask) as u64;
             write_reg(cpu, instr.rd, value, instr.sf);
         }
+        Opcode::SimdSmov => {
+            let element_size = instr.cond.max(1) as usize;
+            let value = simd_signed_element(cpu.simd[rn], instr.imm as usize, element_size);
+            if instr.sf {
+                write_reg(cpu, instr.rd, value as u64, true);
+            } else {
+                write_reg(cpu, instr.rd, value as i32 as u32 as u64, false);
+            }
+        }
         Opcode::SimdInsGprLane => {
             let shift = (instr.imm as u32) * 64;
             let mask = (u64::MAX as u128) << shift;

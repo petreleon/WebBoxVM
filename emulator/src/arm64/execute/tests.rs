@@ -115,7 +115,7 @@ fn simd_bic_immediate_clears_replicated_halfword_mask() {
 }
 
 #[test]
-fn simd_umov_zero_extends_halfword_to_w_register() {
+fn simd_umov_and_smov_extend_elements_to_gpr() {
     let (mut cpu, mut bus) = setup();
     cpu.simd[30] = 0x7777_6666_5555_4444_3333_2222_1111_abcd;
     cpu.regs.set_x(0, u64::MAX);
@@ -123,6 +123,16 @@ fn simd_umov_zero_extends_halfword_to_w_register() {
     execute(&mut cpu, &mut bus, decode(0x0E02_3FC0).unwrap()).unwrap();
 
     assert_eq!(cpu.regs.x(0), 0xabcd);
+
+    cpu.simd[31] = 0x7777_6666_5555_4444_3333_8000_1111_7fff;
+    cpu.regs.set_x(2, u64::MAX);
+    execute(&mut cpu, &mut bus, decode(0x0E0A_2FE2).unwrap()).unwrap(); // smov w2, v31.h[2]
+    assert_eq!(cpu.regs.x(2), 0x0000_0000_ffff_8000);
+
+    cpu.simd[31] = 0x7777_7777_7777_7777_0000_0002_8000_0001;
+    cpu.regs.set_x(0, 0);
+    execute(&mut cpu, &mut bus, decode(0x4E04_2FE0).unwrap()).unwrap(); // smov x0, v31.s[0]
+    assert_eq!(cpu.regs.x(0), 0xffff_ffff_8000_0001);
 }
 
 #[test]
