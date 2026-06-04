@@ -22,6 +22,10 @@ pub(super) fn execute(
             exec_brk(cpu, bus, instr)?;
             return Ok(Some(Flow::Return));
         }
+        Opcode::Udf => {
+            exec_udf(cpu)?;
+            return Ok(Some(Flow::Return));
+        }
         Opcode::Nop | Opcode::NopBarrier => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),

@@ -49,6 +49,24 @@ fn svc_from_el0_sets_syndrome_and_banks_stack() {
 }
 
 #[test]
+fn udf_from_el0_reports_unknown_reason_exception() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.pc = 0x4000_1000;
+    cpu.regs.sp = 0x7000_0000;
+    cpu.sys.sp_el1 = 0x8000_0000;
+    cpu.sys.vbar_el1 = 0xffff_8000_8000_0000;
+    cpu.pstate = cpu.pstate.with_el(0).with_irq_masked(false);
+
+    execute(&mut cpu, &mut bus, decode(0x0000_1234).unwrap()).unwrap();
+
+    assert_eq!(cpu.regs.pc, cpu.sys.vbar_el1 + VBAR_SYNC_LOWER_EL_AARCH64);
+    assert_eq!(cpu.sys.elr_el1, 0x4000_1000);
+    assert_eq!(cpu.sys.spsr_el1 & PSTATE_EL_MASK, 0);
+    assert_eq!(cpu.sys.esr_el1, (ESR_EC_UNKNOWN << 26) | ESR_IL);
+    assert_eq!(cpu.pstate.el(), 1);
+}
+
+#[test]
 fn eret_to_el0_restores_user_stack_and_saves_kernel_stack() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.pc = 0xffff_8000_8000_0400;

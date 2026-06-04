@@ -7,6 +7,7 @@ pub const ESR_EC_INSN_ABORT_LOWER_EL: u64 = 0x20;
 pub const ESR_EC_INSN_ABORT_CURRENT_EL: u64 = 0x21;
 pub const ESR_EC_DATA_ABORT_LOWER_EL: u64 = 0x24;
 pub const ESR_EC_DATA_ABORT_CURRENT_EL: u64 = 0x25;
+pub const ESR_EC_UNKNOWN: u64 = 0x00;
 pub const ESR_EC_SVC64: u64 = 0x15;
 pub const ESR_EC_BRK64: u64 = 0x3C;
 pub const ESR_EC_FP_ASIMD: u64 = 0x07;

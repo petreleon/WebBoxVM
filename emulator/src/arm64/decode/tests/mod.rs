@@ -63,6 +63,7 @@ mod sve_unpack;
 mod sve_word_load_store;
 mod sve_z_vector;
 mod system_misc;
+mod system_undefined;
 
 fn assert_decode_cases(cases: &[(u32, Opcode, &str)]) {
     for &(raw, expected, mnemonic) in cases {

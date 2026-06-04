@@ -109,7 +109,7 @@ mod tests {
         let mut cpu = Armv8Cpu::default();
         let mut bus = SystemBus::new();
         cpu.regs.pc = RAM_BASE;
-        bus.mem.write(RAM_BASE, 4, 0);
+        bus.mem.write(RAM_BASE, 4, 0xffff_ffff);
         bus.mem.write(RAM_BASE + 4, 4, 0xd503_201f);
 
         assert_eq!(

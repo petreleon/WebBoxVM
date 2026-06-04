@@ -20,7 +20,7 @@ use alu::*;
 use branch::{branch, branch_link, branch_link_reg, branch_reg, branch_target};
 use load_store::{exec_atomic, exec_exclusive, exec_ldp_stp, exec_ldr_lit, exec_ldr_str};
 use sve::*;
-use system::{exec_brk, exec_dc_zva, exec_eret, exec_msr, exec_svc};
+use system::{exec_brk, exec_dc_zva, exec_eret, exec_msr, exec_svc, exec_udf};
 
 use super::Armv8Cpu;
 use super::helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};

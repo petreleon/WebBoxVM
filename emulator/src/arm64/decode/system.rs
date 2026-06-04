@@ -110,3 +110,16 @@ pub(super) fn decode_barrier() -> Option<Instr> {
         size: 0,
     })
 }
+
+pub(super) fn decode_udf(raw: u32) -> Option<Instr> {
+    Some(Instr {
+        op: Opcode::Udf,
+        rd: 0,
+        rn: 0,
+        rm: 0,
+        imm: (raw & 0xFFFF) as u64,
+        sf: true,
+        cond: 0,
+        size: 0,
+    })
+}

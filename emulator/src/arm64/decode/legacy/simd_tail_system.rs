@@ -1,6 +1,9 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    if (raw >> 16) == 0 {
+        return DecodeStep::from_option(system::decode_udf(raw));
+    }
     if (raw & 0xFFFF_FC00) == 0x4F00_0400 {
         return DecodeStep::Hit(Instr {
             op: Opcode::SimdMovi,

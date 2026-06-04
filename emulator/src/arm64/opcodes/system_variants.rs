@@ -32,4 +32,5 @@ impl super::Opcode {
     pub const Casp: Self = Self(256);
     pub const Wfi: Self = Self(257);
     pub const Wfe: Self = Self(258);
+    pub const Udf: Self = Self(393);
 }
