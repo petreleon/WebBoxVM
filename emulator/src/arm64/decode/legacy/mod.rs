@@ -18,6 +18,7 @@ mod simd_fp_pairwise;
 mod simd_fp_unary;
 mod simd_fp_unary_more;
 mod simd_immediates_a;
+mod simd_immediates_b;
 mod simd_load_multi;
 mod simd_move_scalar_fp;
 mod simd_permute_logic;
@@ -140,6 +141,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     }
     try_stage!(simd_permute_logic::decode(raw));
     try_stage!(simd_immediates_a::decode(raw));
+    try_stage!(simd_immediates_b::decode(raw));
     try_stage!(system_extensions::decode(raw));
     try_stage!(simd_tail_system::decode(raw));
     try_stage!(scalar_ldst_branch::decode(raw));

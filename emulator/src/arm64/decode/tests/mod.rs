@@ -30,6 +30,7 @@ mod simd_fp_vector_convert;
 mod simd_fp_zero_compare;
 mod simd_ld4_single;
 mod simd_minmax;
+mod simd_modified_immediate;
 mod simd_pairwise_narrow;
 mod simd_permute_secondary;
 mod simd_rbit;

@@ -47,7 +47,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ands => Opcode::AndsReg,
         M::r#bic if (raw & 0xBFE0_FC00) == 0x0E60_1C00 => Opcode::SimdBic,
         M::r#bic if scalar_logical_register(raw) => Opcode::AndReg,
-        M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
+        M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 || (raw & 0xBFF8_9C00) == 0x0F00_1400 || (raw & 0xBFF8_DC00) == 0x0F00_9400 => if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 { Opcode::SimdOrr } else { Opcode::SimdOrrImm },
         M::r#orr if (raw & 0xFFFC_0000) == 0x0500_0000 => Opcode::SveOrrImm,
         M::r#orr if (raw & 0xFFE0_FC00) == 0x0460_3000 => Opcode::SveOrrVec,
         M::r#orr if (raw & 0xFFF0_C210) == 0x2580_4000 || (raw & 0xFFF0_C210) == 0x25C0_4000 => {

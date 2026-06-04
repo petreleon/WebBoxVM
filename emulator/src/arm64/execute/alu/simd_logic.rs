@@ -73,6 +73,11 @@ pub(in crate::arm64::execute) fn exec_simd_logic(cpu: &mut Armv8Cpu, instr: Inst
             };
             cpu.simd[rd] = (cpu.simd[rd] & !mask) & lanes_mask;
         }
+        Opcode::SimdOrrImm => {
+            let element_size = instr.cond.max(1) as usize;
+            let mask = simd_replicate_element(instr.imm as u128, element_size, instr.size as usize);
+            cpu.simd[rd] = (cpu.simd[rd] | mask) & simd_vector_mask(instr.size as usize);
+        }
         Opcode::SimdMvni => {
             let element_size = instr.cond.max(1) as usize;
             let bits = element_size * 8;
