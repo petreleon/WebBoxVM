@@ -36,6 +36,36 @@ fn sve_unsigned_higher_same_compare_writes_predicates_and_flags() {
     assert!(cpu.pstate.c());
 }
 
+#[test]
+fn sve_equal_and_higher_compare_forms_write_predicates() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 32;
+
+    execute(&mut cpu, &mut bus, decode(0x2598_E040).unwrap()).unwrap(); // ptrue p0.s, vl2
+    set_z_word(&mut cpu, 0, 0, 7);
+    set_z_word(&mut cpu, 0, 1, 8);
+    set_z_word(&mut cpu, 30, 0, 7);
+    set_z_word(&mut cpu, 30, 1, 9);
+    execute(&mut cpu, &mut bus, decode(0x249E_A003).unwrap()).unwrap(); // cmpeq p3.s, p0/z, z0.s, z30.s
+    assert!(pred_bit(&cpu, 3, 0));
+    assert!(!pred_bit(&cpu, 3, 4));
+
+    set_z_word(&mut cpu, 1, 0, 10);
+    set_z_word(&mut cpu, 30, 0, 9);
+    set_z_word(&mut cpu, 1, 1, 9);
+    set_z_word(&mut cpu, 30, 1, 9);
+    execute(&mut cpu, &mut bus, decode(0x249E_0032).unwrap()).unwrap(); // cmphi p2.s, p0/z, z1.s, z30.s
+    assert!(pred_bit(&cpu, 2, 0));
+    assert!(!pred_bit(&cpu, 2, 4));
+
+    execute(&mut cpu, &mut bus, decode(0x2518_E080).unwrap()).unwrap(); // ptrue p0.b, vl4
+    set_z_byte(&mut cpu, 1, 0, 0xFF);
+    set_z_byte(&mut cpu, 1, 1, 0x7F);
+    execute(&mut cpu, &mut bus, decode(0x251F_8030).unwrap()).unwrap(); // cmpne p0.b, p0/z, z1.b, #-1
+    assert!(!pred_bit(&cpu, 0, 0));
+    assert!(pred_bit(&cpu, 0, 1));
+}
+
 fn set_z_word(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u32) {
     let offset = lane * 4;
     cpu.sve_z[reg][offset..offset + 4].copy_from_slice(&value.to_le_bytes());

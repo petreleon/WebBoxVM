@@ -74,6 +74,12 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#cmphs if (raw & 0xFF20_2010) == 0x2420_0000 => Opcode::SveCmpHsImm,
         M::r#cmphs if (raw & 0xFF20_E010) == 0x2400_0000 => Opcode::SveCmpHs,
+        M::r#cmphi if (raw & 0xFF20_2010) == 0x2420_0010 => Opcode::SveCmpHiImm,
+        M::r#cmphi if (raw & 0xFF20_E010) == 0x2400_0010 => Opcode::SveCmpHi,
+        M::r#cmpeq if (raw & 0xFF20_E010) == 0x2500_8000 => Opcode::SveCmpEqImm,
+        M::r#cmpeq if (raw & 0xFF20_E010) == 0x2400_A000 => Opcode::SveCmpEq,
+        M::r#cmpne if (raw & 0xFF20_E010) == 0x2500_8010 => Opcode::SveCmpNeImm,
+        M::r#cmpne if (raw & 0xFF20_E010) == 0x2400_A010 => Opcode::SveCmpNe,
         M::r#abs if (raw & 0xBF3F_FC00) == 0x0E20_B800 || (raw & 0xFFFF_FC00) == 0x5EE0_B800 => {
             Opcode::SimdAbs
         }

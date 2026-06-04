@@ -46,6 +46,12 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveSel
             | Opcode::SveCmpHs
             | Opcode::SveCmpHsImm
+            | Opcode::SveCmpHi
+            | Opcode::SveCmpHiImm
+            | Opcode::SveCmpEq
+            | Opcode::SveCmpEqImm
+            | Opcode::SveCmpNe
+            | Opcode::SveCmpNeImm
             | Opcode::SveWhileLo
             | Opcode::SveLdr
             | Opcode::SveStr

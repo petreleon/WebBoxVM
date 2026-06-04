@@ -6,10 +6,10 @@ pub(in crate::arm64::execute) fn exec_sve_int_compare(cpu: &mut Armv8Cpu, instr:
     let elements = vl_bytes / element_size;
     let mask = cpu.sve_pred[instr.cond as usize];
     let lhs = sve_read_z(cpu, instr.rn as usize);
-    let rhs = if instr.op == Opcode::SveCmpHs {
-        Some(sve_read_z(cpu, instr.rm as usize))
-    } else {
+    let rhs = if is_immediate_compare(instr.op) {
         None
+    } else {
+        Some(sve_read_z(cpu, instr.rm as usize))
     };
     let mut result = [0; 4];
 
@@ -19,13 +19,48 @@ pub(in crate::arm64::execute) fn exec_sve_int_compare(cpu: &mut Armv8Cpu, instr:
             let right = rhs
                 .as_ref()
                 .map_or(instr.imm, |vec| sve_element(vec, element, element_size));
-            set_predicate_bit(&mut result, element * element_size, left >= right);
+            set_predicate_bit(
+                &mut result,
+                element * element_size,
+                compare_elements(instr.op, left, right, element_size),
+            );
         }
     }
 
     let flags = sve_pred_test(&mask, &result, element_size, vl_bytes);
     cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
     cpu.sve_pred[instr.rd as usize] = result;
+}
+
+fn is_immediate_compare(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SveCmpHsImm | Opcode::SveCmpHiImm | Opcode::SveCmpEqImm | Opcode::SveCmpNeImm
+    )
+}
+
+fn compare_elements(op: Opcode, left: u64, right: u64, element_size: usize) -> bool {
+    match op {
+        Opcode::SveCmpHs | Opcode::SveCmpHsImm => left >= right,
+        Opcode::SveCmpHi | Opcode::SveCmpHiImm => left > right,
+        Opcode::SveCmpEq | Opcode::SveCmpEqImm => {
+            sign_extend(left, element_size) == sign_extend(right, element_size)
+        }
+        Opcode::SveCmpNe | Opcode::SveCmpNeImm => {
+            sign_extend(left, element_size) != sign_extend(right, element_size)
+        }
+        _ => false,
+    }
+}
+
+fn sign_extend(value: u64, element_size: usize) -> i64 {
+    match element_size {
+        1 => value as u8 as i8 as i64,
+        2 => value as u16 as i16 as i64,
+        4 => value as u32 as i32 as i64,
+        8 => value as i64,
+        _ => 0,
+    }
 }
 
 pub(in crate::arm64::execute) fn exec_sve_whilelo(cpu: &mut Armv8Cpu, instr: Instr) {
