@@ -7,66 +7,21 @@ pub(in crate::arm64::decode) fn decode_dp_1src(raw: u32) -> Option<Instr> {
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
 
-    if opcode2 == 0 {
-        match opcode {
-            0b000000 => Some(Instr {
-                size: 0,
-                op: Opcode::Rbit,
-                rd,
-                rn,
-                rm: 0,
-                imm: 0,
-                sf,
-                cond: 0,
-            }),
-            0b000001 => Some(Instr {
-                size: 0,
-                op: Opcode::Rev16,
-                rd,
-                rn,
-                rm: 0,
-                imm: 0,
-                sf,
-                cond: 0,
-            }),
-            0b000010 => {
-                let op = if sf { Opcode::Rev32 } else { Opcode::Rev };
-                Some(Instr {
-                    size: 0,
-                    op,
-                    rd,
-                    rn,
-                    rm: 0,
-                    imm: 0,
-                    sf,
-                    cond: 0,
-                })
-            }
-            0b000011 => Some(Instr {
-                size: 0,
-                op: Opcode::Rev,
-                rd,
-                rn,
-                rm: 0,
-                imm: 0,
-                sf,
-                cond: 0,
-            }),
-            0b000100 => Some(Instr {
-                size: 0,
-                op: Opcode::Clz,
-                rd,
-                rn,
-                rm: 0,
-                imm: 0,
-                sf,
-                cond: 0,
-            }),
-            _ => None,
-        }
-    } else {
-        None
+    if opcode2 != 0 {
+        return None;
     }
+    let op = match opcode {
+        0b000000 => Opcode::Rbit,
+        0b000001 => Opcode::Rev16,
+        0b000010 => {
+            if sf { Opcode::Rev32 } else { Opcode::Rev }
+        }
+        0b000011 => Opcode::Rev,
+        0b000100 => Opcode::Clz,
+        0b000101 => Opcode::Cls,
+        _ => return None,
+    };
+    Some(dp_1src_instr(op, rd, rn, sf))
 }
 
 pub(in crate::arm64::decode) fn decode_dp_2src(raw: u32) -> Option<Instr> {
@@ -155,5 +110,18 @@ pub(in crate::arm64::decode) fn decode_dp_2src(raw: u32) -> Option<Instr> {
             cond: 0,
         }),
         _ => None,
+    }
+}
+
+fn dp_1src_instr(op: Opcode, rd: u8, rn: u8, sf: bool) -> Instr {
+    Instr {
+        size: 0,
+        op,
+        rd,
+        rn,
+        rm: 0,
+        imm: 0,
+        sf,
+        cond: 0,
     }
 }

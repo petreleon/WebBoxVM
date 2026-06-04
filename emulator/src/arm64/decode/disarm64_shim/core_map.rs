@@ -140,6 +140,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#rev32 if (raw & 0xFFFF_FC00) == 0xDAC0_0800 => Opcode::Rev32,
         M::r#rbit if (raw & 0x7FFF_FC00) == 0x5AC0_0000 => Opcode::Rbit,
         M::r#clz => Opcode::Clz,
+        M::r#cls => Opcode::Cls,
         M::r#crc32b | M::r#crc32h | M::r#crc32w | M::r#crc32x => Opcode::Crc32,
         M::r#crc32cb | M::r#crc32ch | M::r#crc32cw | M::r#crc32cx => Opcode::Crc32c,
         M::r#sxtw => Opcode::Sxtw,
@@ -151,9 +152,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         _ => return None,
     })
 }
-fn scalar_logical_register(raw: u32) -> bool {
-    (raw & 0x1F00_0000) == 0x0A00_0000
-}
+fn scalar_logical_register(raw: u32) -> bool { (raw & 0x1F00_0000) == 0x0A00_0000 }
 
 fn sve_ld1w(raw: u32) -> bool {
     (raw & 0xFF90_E000) == 0xA500_A000 || matches!(raw & 0xFFA0_E000, 0x8520_4000 | 0xC520_C000)

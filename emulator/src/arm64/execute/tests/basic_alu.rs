@@ -75,3 +75,32 @@ fn crc32_scalar_forms_update_w_destination() {
     execute(&mut cpu, &mut bus, decode(0x9AC4_5C42).unwrap()).unwrap(); // crc32cx w2, w2, x4
     assert_eq!(cpu.regs.x(2), 0xa3d2_07be);
 }
+
+#[test]
+fn cls_counts_leading_sign_bits_without_the_sign_bit() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.regs.set_x(1, 0);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_1420).unwrap()).unwrap(); // cls x0, x1
+    assert_eq!(cpu.regs.x(0), 63);
+
+    cpu.regs.set_x(1, u64::MAX);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_1420).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 63);
+
+    cpu.regs.set_x(1, 0xFFF0_0000_0000_0000);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_1420).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 11);
+
+    cpu.regs.set_x(1, 0x0000_0000_7FFF_FFFF);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_1420).unwrap()).unwrap(); // cls w0, w1
+    assert_eq!(cpu.regs.x(0), 0);
+
+    cpu.regs.set_x(1, 0);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_1420).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 31);
+
+    cpu.regs.set_x(1, 0xFFFF_FFFF);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_1420).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 31);
+}

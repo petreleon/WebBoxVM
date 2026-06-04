@@ -64,6 +64,21 @@ fn decode_crc32_scalar_forms() {
 }
 
 #[test]
+fn decode_cls_scalar_forms() {
+    let cases = [
+        (0x5AC0_1420, false, "cls"),
+        (0xDAC0_1420, true, "cls"),
+    ];
+
+    for (raw, sf, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::Cls);
+        assert_eq!((instr.rd, instr.rn, instr.sf), (0, 1, sf));
+    }
+}
+
+#[test]
 fn decode_logical_immediate_forms() {
     let cases = [
         (0x9240_1C20, Opcode::AndImm, "and", 0xff),
