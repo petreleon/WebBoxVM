@@ -24,6 +24,9 @@ fn decode_sve_z_vector_forms() {
         (0x64B6_00A4, Opcode::SveFpFmlaIndex, "fmla"),
         (0x64B6_04A4, Opcode::SveFpFmlsIndex, "fmls"),
         (0x64B6_20A4, Opcode::SveFpMulIndex, "fmul"),
+        (0x2579_CE00, Opcode::SveFpDupImm, "fdup"),
+        (0x25B9_DC05, Opcode::SveFpDupImm, "fdup"),
+        (0x25F9_C01D, Opcode::SveFpDupImm, "fdup"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -96,6 +99,19 @@ fn decode_sve_z_vector_forms() {
     assert_eq!(indexed.rm, 9);
     assert_eq!(indexed.imm, 1);
     assert_eq!(indexed.size, 8);
+
+    let fdup = decode(0x25B9_DC05).unwrap(); // fdup z5.s, #-0.5
+    assert_eq!(fdup.op, Opcode::SveFpDupImm);
+    assert_eq!(fdup.rd, 5);
+    assert_eq!(fdup.imm, 0xE0);
+    assert_eq!(fdup.size, 4);
+
+    let fdup_d = decode(0x25F9_C01D).unwrap(); // fdup z29.d, #2.0
+    assert_eq!(fdup_d.rd, 29);
+    assert_eq!(fdup_d.imm, 0);
+    assert_eq!(fdup_d.size, 8);
+
+    assert!(decode(0x2539_CE00).is_none());
 
     assert_ne!(
         decode(0x6583_BFFE).map(|instr| instr.op),

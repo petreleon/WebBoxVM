@@ -27,6 +27,7 @@ mod simd_widen_integer;
 mod sve_byte_store;
 mod sve_contiguous_load;
 mod sve_fp;
+mod sve_fp_dup_imm;
 mod sve_predicate_ld1r;
 
 use super::{DecodeStep, Instr, Opcode, branch, data_proc, ldst, system};

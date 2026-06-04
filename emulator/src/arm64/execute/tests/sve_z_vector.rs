@@ -85,6 +85,16 @@ fn sve_z_vector_forms_update_scalable_z_and_simd_alias() {
     assert_eq!(f64::from_bits(z_elem(&cpu, 1, 0)), 18.0);
     assert_eq!(f64::from_bits(z_elem(&cpu, 1, 1)), 10.0);
 
+    execute(&mut cpu, &mut bus, decode(0x2579_CE00).unwrap()).unwrap(); // fdup z0.h, #1.0
+    assert!((0..16).all(|lane| z_half(&cpu, 0, lane) == 0x3C00));
+
+    execute(&mut cpu, &mut bus, decode(0x25B9_DC05).unwrap()).unwrap(); // fdup z5.s, #-0.5
+    assert!((0..8).all(|lane| z_word(&cpu, 5, lane) == 0xBF00_0000));
+    assert_eq!(cpu.simd[5], 0xBF00_0000_BF00_0000_BF00_0000_BF00_0000);
+
+    execute(&mut cpu, &mut bus, decode(0x25F9_C01D).unwrap()).unwrap(); // fdup z29.d, #2.0
+    assert!((0..4).all(|lane| z_elem(&cpu, 29, lane) == 2.0f64.to_bits()));
+
     set_z_f32(&mut cpu, 4, [10.0, 20.0, 30.0, 40.0]);
     set_z_f32(&mut cpu, 5, [2.0, 3.0, 4.0, 5.0]);
     set_z_f32(&mut cpu, 6, [3.0, 4.0, 5.0, 6.0]);
@@ -127,4 +137,11 @@ fn set_z_f32(cpu: &mut Armv8Cpu, reg: usize, values: [f32; 4]) {
 
 fn z_f32(cpu: &Armv8Cpu, reg: usize, lane: usize) -> f32 {
     f32::from_bits(z_word(cpu, reg, lane))
+}
+
+fn z_half(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u16 {
+    let offset = lane * 2;
+    let mut bytes = [0; 2];
+    bytes.copy_from_slice(&cpu.sve_z[reg][offset..offset + 2]);
+    u16::from_le_bytes(bytes)
 }

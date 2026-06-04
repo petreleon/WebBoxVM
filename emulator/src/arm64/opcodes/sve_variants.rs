@@ -36,4 +36,5 @@ impl super::Opcode {
     pub const SveFpFmlsIndex: Self = Self(273);
     pub const SveFpMulIndex: Self = Self(274);
     pub const SveFpMulImm: Self = Self(281);
+    pub const SveFpDupImm: Self = Self(290);
 }

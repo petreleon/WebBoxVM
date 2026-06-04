@@ -1,6 +1,9 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    if let Some(step) = super::sve_fp_dup_imm::decode(raw) {
+        return step;
+    }
     if let Some(step) = try_decode_indexed(raw) {
         return step;
     }

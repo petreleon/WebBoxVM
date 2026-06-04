@@ -38,6 +38,7 @@ pub(super) fn execute(
         Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
         Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
         Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
+        Opcode::SveFpDupImm => exec_sve_fp_dup_imm(cpu, instr),
         Opcode::SveFpAdd
         | Opcode::SveFpSub
         | Opcode::SveFpMul
