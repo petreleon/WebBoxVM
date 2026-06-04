@@ -110,9 +110,14 @@ pub(super) fn execute(
         | Opcode::SveFpFcmne
         | Opcode::SveFpFcmle
         | Opcode::SveFpFcmlt => exec_sve_fp_compare(cpu, instr),
-        Opcode::SveFpFmla | Opcode::SveFpFmls | Opcode::SveFpFmad | Opcode::SveFpFmsb => {
-            exec_sve_fp_fused(cpu, instr)
-        }
+        Opcode::SveFpFmla
+        | Opcode::SveFpFmls
+        | Opcode::SveFpFmad
+        | Opcode::SveFpFmsb
+        | Opcode::SveFpFnmla
+        | Opcode::SveFpFnmls
+        | Opcode::SveFpFnmad
+        | Opcode::SveFpFnmsb => exec_sve_fp_fused(cpu, instr),
         Opcode::SveFpFmlaIndex | Opcode::SveFpFmlsIndex | Opcode::SveFpMulIndex => {
             exec_sve_fp_indexed(cpu, instr)
         }

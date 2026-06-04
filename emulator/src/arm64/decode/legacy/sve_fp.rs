@@ -78,8 +78,12 @@ fn try_decode_fused(raw: u32) -> Option<DecodeStep> {
     let op = match raw & 0xFF20_E000 {
         0x6520_0000 => Opcode::SveFpFmla,
         0x6520_2000 => Opcode::SveFpFmls,
+        0x6520_4000 => Opcode::SveFpFnmla,
+        0x6520_6000 => Opcode::SveFpFnmls,
         0x6520_8000 => Opcode::SveFpFmad,
         0x6520_A000 => Opcode::SveFpFmsb,
+        0x6520_C000 => Opcode::SveFpFnmad,
+        0x6520_E000 => Opcode::SveFpFnmsb,
         _ => return None,
     };
     let size = 1u8 << (((raw >> 22) & 0x3) as u8);
@@ -88,10 +92,10 @@ fn try_decode_fused(raw: u32) -> Option<DecodeStep> {
     }
     let rd = (raw & 0x1F) as u8;
     let (rn, rm, imm) = match op {
-        Opcode::SveFpFmla | Opcode::SveFpFmls => {
+        Opcode::SveFpFmla | Opcode::SveFpFmls | Opcode::SveFpFnmla | Opcode::SveFpFnmls => {
             (((raw >> 5) & 0x1F) as u8, ((raw >> 16) & 0x1F) as u8, 0)
         }
-        Opcode::SveFpFmad | Opcode::SveFpFmsb => {
+        Opcode::SveFpFmad | Opcode::SveFpFmsb | Opcode::SveFpFnmad | Opcode::SveFpFnmsb => {
             (rd, ((raw >> 5) & 0x1F) as u8, (raw >> 16) & 0x1F)
         }
         _ => unreachable!(),

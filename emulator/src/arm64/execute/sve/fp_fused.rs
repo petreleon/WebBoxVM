@@ -26,16 +26,20 @@ pub(in crate::arm64::execute) fn exec_sve_fp_fused(cpu: &mut Armv8Cpu, instr: In
 
 fn fused_left_operand(cpu: &mut Armv8Cpu, instr: Instr, dest: [u8; 256]) -> [u8; 256] {
     match instr.op {
-        Opcode::SveFpFmla | Opcode::SveFpFmls => sve_read_z(cpu, instr.rn as usize),
-        Opcode::SveFpFmad | Opcode::SveFpFmsb => dest,
+        Opcode::SveFpFmla | Opcode::SveFpFmls | Opcode::SveFpFnmla | Opcode::SveFpFnmls => {
+            sve_read_z(cpu, instr.rn as usize)
+        }
+        Opcode::SveFpFmad | Opcode::SveFpFmsb | Opcode::SveFpFnmad | Opcode::SveFpFnmsb => dest,
         _ => unreachable!(),
     }
 }
 
 fn fused_addend_operand(cpu: &mut Armv8Cpu, instr: Instr, dest: [u8; 256]) -> [u8; 256] {
     match instr.op {
-        Opcode::SveFpFmla | Opcode::SveFpFmls => dest,
-        Opcode::SveFpFmad | Opcode::SveFpFmsb => sve_read_z(cpu, instr.imm as usize),
+        Opcode::SveFpFmla | Opcode::SveFpFmls | Opcode::SveFpFnmla | Opcode::SveFpFnmls => dest,
+        Opcode::SveFpFmad | Opcode::SveFpFmsb | Opcode::SveFpFnmad | Opcode::SveFpFnmsb => {
+            sve_read_z(cpu, instr.imm as usize)
+        }
         _ => unreachable!(),
     }
 }
@@ -67,18 +71,39 @@ fn fp_fused_f64(op: Opcode, addend: u64, left: u64, right: u64) -> u64 {
     let addend = f64::from_bits(addend);
     let left = f64::from_bits(left);
     let right = f64::from_bits(right);
-    match op {
-        Opcode::SveFpFmla | Opcode::SveFpFmad => left.mul_add(right, addend),
-        Opcode::SveFpFmls | Opcode::SveFpFmsb => (-left).mul_add(right, addend),
-        _ => unreachable!(),
-    }
-    .to_bits()
+    let left = if negates_left(op) { -left } else { left };
+    let addend = if negates_addend(op) { -addend } else { addend };
+    left.mul_add(right, addend).to_bits()
 }
 
 fn fused_value(op: Opcode, addend: f32, left: f32, right: f32) -> f32 {
     match op {
-        Opcode::SveFpFmla | Opcode::SveFpFmad => left.mul_add(right, addend),
-        Opcode::SveFpFmls | Opcode::SveFpFmsb => (-left).mul_add(right, addend),
+        Opcode::SveFpFmla
+        | Opcode::SveFpFmls
+        | Opcode::SveFpFmad
+        | Opcode::SveFpFmsb
+        | Opcode::SveFpFnmla
+        | Opcode::SveFpFnmls
+        | Opcode::SveFpFnmad
+        | Opcode::SveFpFnmsb => {
+            let left = if negates_left(op) { -left } else { left };
+            let addend = if negates_addend(op) { -addend } else { addend };
+            left.mul_add(right, addend)
+        }
         _ => unreachable!(),
     }
+}
+
+fn negates_left(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SveFpFmls | Opcode::SveFpFmsb | Opcode::SveFpFnmla | Opcode::SveFpFnmad
+    )
+}
+
+fn negates_addend(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SveFpFnmla | Opcode::SveFpFnmls | Opcode::SveFpFnmad | Opcode::SveFpFnmsb
+    )
 }

@@ -135,6 +135,7 @@ mod sve_fp_compare;
 mod sve_fp_convert;
 mod sve_fp_div;
 mod sve_fp_fexpa;
+mod sve_fp_fused;
 mod sve_fp_immediate;
 mod sve_fp_scale;
 mod sve_fp_trig;

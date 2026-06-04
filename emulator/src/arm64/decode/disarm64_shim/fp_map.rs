@@ -71,6 +71,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fmls if (raw & 0xFF20_FC00) == 0x6420_0400 => Opcode::SveFpFmlsIndex,
         M::r#fmad if (raw & 0xFF20_E000) == 0x6520_8000 => Opcode::SveFpFmad,
         M::r#fmsb if (raw & 0xFF20_E000) == 0x6520_A000 => Opcode::SveFpFmsb,
+        M::r#fnmla if (raw & 0xFF20_E000) == 0x6520_4000 => Opcode::SveFpFnmla,
+        M::r#fnmls if (raw & 0xFF20_E000) == 0x6520_6000 => Opcode::SveFpFnmls,
+        M::r#fnmad if (raw & 0xFF20_E000) == 0x6520_C000 => Opcode::SveFpFnmad,
+        M::r#fnmsb if (raw & 0xFF20_E000) == 0x6520_E000 => Opcode::SveFpFnmsb,
         M::r#fcsel => Opcode::Fcsel,
         M::r#scvtf if (raw & 0xFFBF_FC00) == 0x5E21_D800 || (raw & 0xBFBF_FC00) == 0x0E21_D800 => {
             Opcode::SimdScvtf

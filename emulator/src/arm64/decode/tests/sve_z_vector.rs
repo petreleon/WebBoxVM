@@ -20,8 +20,12 @@ fn decode_sve_z_vector_forms() {
         (0x65C3_8020, Opcode::SveFpSubr, "fsubr"),
         (0x65E7_039A, Opcode::SveFpFmla, "fmla"),
         (0x65E7_239A, Opcode::SveFpFmls, "fmls"),
+        (0x65A6_44A4, Opcode::SveFpFnmla, "fnmla"),
+        (0x6565_7571, Opcode::SveFpFnmls, "fnmls"),
         (0x65FC_83BF, Opcode::SveFpFmad, "fmad"),
         (0x65FC_A3E6, Opcode::SveFpFmsb, "fmsb"),
+        (0x65E9_C907, Opcode::SveFpFnmad, "fnmad"),
+        (0x65FC_E03D, Opcode::SveFpFnmsb, "fnmsb"),
         (0x64B6_00A4, Opcode::SveFpFmlaIndex, "fmla"),
         (0x64B6_04A4, Opcode::SveFpFmlsIndex, "fmls"),
         (0x64B6_20A4, Opcode::SveFpMulIndex, "fmul"),
@@ -95,6 +99,20 @@ fn decode_sve_z_vector_forms() {
     assert_eq!(fmad.imm, 9);
     assert_eq!(fmad.cond, 2);
     assert_eq!(fmad.size, 8);
+
+    let fnmls = decode(0x6565_7571).unwrap(); // fnmls z17.h, p5/m, z11.h, z5.h
+    assert_eq!(fnmls.op, Opcode::SveFpFnmls);
+    assert_eq!(
+        (fnmls.rd, fnmls.rn, fnmls.rm, fnmls.cond, fnmls.size),
+        (17, 11, 5, 5, 2)
+    );
+
+    let fnmsb = decode(0x65FC_E03D).unwrap(); // fnmsb z29.d, p0/m, z1.d, z28.d
+    assert_eq!(fnmsb.op, Opcode::SveFpFnmsb);
+    assert_eq!(
+        (fnmsb.rd, fnmsb.rn, fnmsb.rm, fnmsb.imm, fnmsb.size),
+        (29, 29, 1, 28, 8)
+    );
 
     let indexed = decode(0x64F9_0107).unwrap(); // fmla z7.d, z8.d, z9.d[1]
     assert_eq!(indexed.op, Opcode::SveFpFmlaIndex);

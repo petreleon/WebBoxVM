@@ -113,6 +113,10 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveFpFmls
             | Opcode::SveFpFmad
             | Opcode::SveFpFmsb
+            | Opcode::SveFpFnmla
+            | Opcode::SveFpFnmls
+            | Opcode::SveFpFnmad
+            | Opcode::SveFpFnmsb
             | Opcode::SveFpFmlaIndex
             | Opcode::SveFpFmlsIndex
             | Opcode::SveFpMulIndex
