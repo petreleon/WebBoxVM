@@ -16,7 +16,7 @@ pub(in crate::arm64::execute) fn exec_sve_contiguous_load(
 fn exec_ld1b(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(), &'static str> {
     let element_size = instr.size as usize;
     let elements = sve_vl_bytes(cpu) / element_size;
-    let base = vector_base(cpu, instr, elements as i64);
+    let base = byte_base(cpu, instr, elements as i64);
     let mask = cpu.sve_pred[instr.cond as usize];
     let mut result = [0; 256];
     for element in 0..elements {
@@ -81,4 +81,12 @@ fn exec_ld1rqw(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
 fn vector_base(cpu: &Armv8Cpu, instr: Instr, in_memory_bytes: i64) -> u64 {
     let offset = (instr.imm as i64).wrapping_mul(in_memory_bytes) as u64;
     read_base(cpu, instr.rn, true).wrapping_add(offset)
+}
+
+fn byte_base(cpu: &Armv8Cpu, instr: Instr, in_memory_bytes: i64) -> u64 {
+    if instr.rm == 0xFF {
+        vector_base(cpu, instr, in_memory_bytes)
+    } else {
+        read_base(cpu, instr.rn, true).wrapping_add(read_reg(cpu, instr.rm, true))
+    }
 }

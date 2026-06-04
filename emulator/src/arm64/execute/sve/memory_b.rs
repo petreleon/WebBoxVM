@@ -8,9 +8,7 @@ pub(in crate::arm64::execute) fn exec_sve_st1b(
     let element_size = instr.size as usize;
     let vl_bytes = sve_vl_bytes(cpu);
     let elements = vl_bytes / element_size;
-    let in_memory_bytes = elements as i64;
-    let vector_offset = (instr.imm as i64).wrapping_mul(in_memory_bytes) as u64;
-    let base = read_base(cpu, instr.rn, true).wrapping_add(vector_offset);
+    let base = st1b_base(cpu, instr, elements as i64);
     let mask = cpu.sve_pred[instr.cond as usize];
     let source = sve_read_z(cpu, instr.rd as usize);
 
@@ -28,4 +26,13 @@ pub(in crate::arm64::execute) fn exec_sve_st1b(
     }
 
     Ok(())
+}
+
+fn st1b_base(cpu: &Armv8Cpu, instr: Instr, in_memory_bytes: i64) -> u64 {
+    if instr.rm == 0xFF {
+        let offset = (instr.imm as i64).wrapping_mul(in_memory_bytes) as u64;
+        read_base(cpu, instr.rn, true).wrapping_add(offset)
+    } else {
+        read_base(cpu, instr.rn, true).wrapping_add(read_reg(cpu, instr.rm, true))
+    }
 }

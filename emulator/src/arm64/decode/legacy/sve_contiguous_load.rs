@@ -27,6 +27,15 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             1u8 << (((raw >> 21) & 0x3) as u8),
         ));
     }
+    if (raw & 0xFF80_E000) == 0xA400_4000 {
+        let rm = ((raw >> 16) & 0x1F) as u8;
+        if rm == 31 {
+            return DecodeStep::Reject;
+        }
+        let mut instr = scalar_load(raw, Opcode::SveLd1b, 0, 1u8 << (((raw >> 21) & 0x3) as u8));
+        instr.rm = rm;
+        return DecodeStep::Hit(instr);
+    }
     DecodeStep::Miss
 }
 

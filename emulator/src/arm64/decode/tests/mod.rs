@@ -45,6 +45,7 @@ mod simd_userland_widen_fp;
 mod simd_widen_addwide;
 mod simd_xtn2;
 mod sve_addsub;
+mod sve_byte_load_store;
 mod sve_compare;
 mod sve_counts;
 mod sve_dup;
