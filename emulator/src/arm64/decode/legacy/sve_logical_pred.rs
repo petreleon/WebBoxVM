@@ -7,7 +7,7 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_vector_predicated(raw) {
         return DecodeStep::Hit(instr);
     }
-    if let Some(instr) = decode_predicate_eor(raw) {
+    if let Some(instr) = decode_predicate_logical(raw) {
         return DecodeStep::Hit(instr);
     }
     DecodeStep::Miss
@@ -48,12 +48,19 @@ fn decode_vector_predicated(raw: u32) -> Option<Instr> {
     })
 }
 
-fn decode_predicate_eor(raw: u32) -> Option<Instr> {
-    if !matches!(raw & 0xFFF0_C210, 0x2500_4200 | 0x2540_4200) {
-        return None;
-    }
+fn decode_predicate_logical(raw: u32) -> Option<Instr> {
+    let op = match (raw & 0xFFF0_C210) & !0x0040_0000 {
+        0x2500_4000 => Opcode::SvePredAnd,
+        0x2500_4010 => Opcode::SvePredBic,
+        0x2500_4200 => Opcode::SvePredEor,
+        0x2580_4000 => Opcode::SvePredOrr,
+        0x2580_4010 => Opcode::SvePredOrn,
+        0x2580_4200 => Opcode::SvePredNor,
+        0x2580_4210 => Opcode::SvePredNand,
+        _ => return None,
+    };
     Some(Instr {
-        op: Opcode::SvePredEor,
+        op,
         rd: (raw & 0xF) as u8,
         rn: ((raw >> 5) & 0xF) as u8,
         rm: ((raw >> 16) & 0xF) as u8,

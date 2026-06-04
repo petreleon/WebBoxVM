@@ -35,21 +35,9 @@ pub(in crate::arm64::execute) fn exec_sve_pred_logical(cpu: &mut Armv8Cpu, instr
 
     for element in 0..elements {
         if predicate_element(&mask, element, element_size) {
-            let bit = match instr.op {
-                Opcode::SvePredAnd => {
-                    predicate_element(&operand1, element, element_size)
-                        && predicate_element(&operand2, element, element_size)
-                }
-                Opcode::SvePredOrr => {
-                    predicate_element(&operand1, element, element_size)
-                        || predicate_element(&operand2, element, element_size)
-                }
-                Opcode::SvePredEor => {
-                    predicate_element(&operand1, element, element_size)
-                        ^ predicate_element(&operand2, element, element_size)
-                }
-                _ => unreachable!(),
-            };
+            let left = predicate_element(&operand1, element, element_size);
+            let right = predicate_element(&operand2, element, element_size);
+            let bit = pred_logical_bit(instr.op, left, right);
             set_predicate_bit(&mut result, element * element_size, bit);
         }
     }
@@ -59,6 +47,19 @@ pub(in crate::arm64::execute) fn exec_sve_pred_logical(cpu: &mut Armv8Cpu, instr
         cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
     }
     cpu.sve_pred[instr.rd as usize] = result;
+}
+
+fn pred_logical_bit(op: Opcode, left: bool, right: bool) -> bool {
+    match op {
+        Opcode::SvePredAnd => left && right,
+        Opcode::SvePredBic => left && !right,
+        Opcode::SvePredOrr => left || right,
+        Opcode::SvePredOrn => left || !right,
+        Opcode::SvePredEor => left ^ right,
+        Opcode::SvePredNor => !(left || right),
+        Opcode::SvePredNand => !(left && right),
+        _ => unreachable!(),
+    }
 }
 
 pub(in crate::arm64::execute) fn sve_pred_test(

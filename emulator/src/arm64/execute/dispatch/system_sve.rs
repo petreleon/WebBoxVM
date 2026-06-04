@@ -33,9 +33,13 @@ pub(super) fn execute(
         }
         Opcode::SvePtrue => exec_sve_ptrue(cpu, instr),
         Opcode::SvePtest => exec_sve_ptest(cpu, instr),
-        Opcode::SvePredAnd | Opcode::SvePredOrr | Opcode::SvePredEor => {
-            exec_sve_pred_logical(cpu, instr)
-        }
+        Opcode::SvePredAnd
+        | Opcode::SvePredBic
+        | Opcode::SvePredOrr
+        | Opcode::SvePredOrn
+        | Opcode::SvePredEor
+        | Opcode::SvePredNor
+        | Opcode::SvePredNand => exec_sve_pred_logical(cpu, instr),
         Opcode::SveCmpHs
         | Opcode::SveCmpHsImm
         | Opcode::SveCmpHi

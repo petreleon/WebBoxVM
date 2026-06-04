@@ -6,8 +6,12 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
         Opcode::SvePtrue
             | Opcode::SvePtest
             | Opcode::SvePredAnd
+            | Opcode::SvePredBic
             | Opcode::SvePredOrr
+            | Opcode::SvePredOrn
             | Opcode::SvePredEor
+            | Opcode::SvePredNor
+            | Opcode::SvePredNand
             | Opcode::SveMovprfx
             | Opcode::SveDupGpr
             | Opcode::SveDupImm

@@ -46,3 +46,26 @@ fn sve_predicate_eor_zeroes_inactive_and_sets_flags_for_eors() {
     assert!(!cpu.pstate.z());
     assert!(!cpu.pstate.c());
 }
+
+#[test]
+fn sve_predicate_inverted_logicals_zero_inactive_and_set_flags() {
+    let (mut cpu, mut bus) = setup();
+    execute(&mut cpu, &mut bus, decode(0x2518_E3E0).unwrap()).unwrap(); // ptrue p0.b
+    execute(&mut cpu, &mut bus, decode(0x2518_E022).unwrap()).unwrap(); // ptrue p2.b, vl1
+    execute(&mut cpu, &mut bus, decode(0x2518_E041).unwrap()).unwrap(); // ptrue p1.b, vl2
+    execute(&mut cpu, &mut bus, decode(0x2518_E063).unwrap()).unwrap(); // ptrue p3.b, vl3
+    execute(&mut cpu, &mut bus, decode(0x2518_E02F).unwrap()).unwrap(); // ptrue p15.b, vl1
+
+    execute(&mut cpu, &mut bus, decode(0x250F_4413).unwrap()).unwrap(); // bic p3.b, p1/z, p0.b, p15.b
+    assert!(!pred_bit(&cpu, 3, 0));
+    assert!(pred_bit(&cpu, 3, 1));
+    assert!(!pred_bit(&cpu, 3, 2));
+
+    execute(&mut cpu, &mut bus, decode(0x2518_E063).unwrap()).unwrap(); // ptrue p3.b, vl3
+    execute(&mut cpu, &mut bus, decode(0x25C2_4073).unwrap()).unwrap(); // orns p3.b, p0/z, p3.b, p2.b
+    assert!(pred_bit(&cpu, 3, 0));
+    assert!(pred_bit(&cpu, 3, 15));
+    assert!(cpu.pstate.n());
+    assert!(!cpu.pstate.z());
+    assert!(!cpu.pstate.c());
+}

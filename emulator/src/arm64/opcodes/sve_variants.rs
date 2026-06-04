@@ -81,6 +81,10 @@ impl super::Opcode {
     pub const SveEorPred: Self = Self(327);
     pub const SveAndPred: Self = Self(328);
     pub const SvePredEor: Self = Self(329);
+    pub const SvePredBic: Self = Self(477);
+    pub const SvePredOrn: Self = Self(478);
+    pub const SvePredNor: Self = Self(479);
+    pub const SvePredNand: Self = Self(480);
     pub const SveFpSqrt: Self = Self(330);
     pub const SveFpFrintn: Self = Self(331);
     pub const SveFpFrinta: Self = Self(332);
