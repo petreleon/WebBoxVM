@@ -9,6 +9,7 @@ mod busybox_fp_cases;
 mod busybox_fp_fields;
 mod busybox_simd_cases;
 mod cmp_aliases;
+mod cssc;
 mod exclusive;
 mod loads_literals;
 mod logical_aliases;

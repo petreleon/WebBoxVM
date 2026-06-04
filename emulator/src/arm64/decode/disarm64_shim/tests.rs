@@ -52,6 +52,24 @@ fn maps_scalar_reverse_mnemonics() {
 }
 
 #[test]
+fn maps_scalar_cssc_mnemonics() {
+    let cases = [
+        (0x5AC0_2020, Opcode::Abs, "abs"),
+        (0xDAC0_2020, Opcode::Abs, "abs"),
+        (0x5AC0_1820, Opcode::Ctz, "ctz"),
+        (0xDAC0_1820, Opcode::Ctz, "ctz"),
+        (0x5AC0_1C20, Opcode::Cnt, "cnt"),
+        (0xDAC0_1C20, Opcode::Cnt, "cnt"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode CSSC word");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
+
+#[test]
 fn maps_scalar_bitfield_mnemonics() {
     let cases = [
         (0x9343_3020, Opcode::Sbfm, "sbfm"),

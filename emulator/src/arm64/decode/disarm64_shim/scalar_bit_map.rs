@@ -11,6 +11,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#cls if scalar_sf(raw, 0x5AC0_1400) => Opcode::Cls,
         M::r#ctz if scalar_sf(raw, 0x5AC0_1800) => Opcode::Ctz,
         M::r#cnt if scalar_sf(raw, 0x5AC0_1C00) => Opcode::Cnt,
+        M::r#abs if scalar_sf(raw, 0x5AC0_2000) => Opcode::Abs,
         _ => return None,
     })
 }

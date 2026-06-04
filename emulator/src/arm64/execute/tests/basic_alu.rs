@@ -129,3 +129,24 @@ fn cssc_scalar_bit_counts_update_destination_width() {
     execute(&mut cpu, &mut bus, decode(0x5AC0_1C20).unwrap()).unwrap(); // cnt w0, w1
     assert_eq!(cpu.regs.x(0), 2);
 }
+
+#[test]
+fn cssc_scalar_abs_wraps_in_destination_width() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.regs.set_x(1, (-42i64) as u64);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_2020).unwrap()).unwrap(); // abs x0, x1
+    assert_eq!(cpu.regs.x(0), 42);
+
+    cpu.regs.set_x(1, i64::MIN as u64);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_2020).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), i64::MIN as u64);
+
+    cpu.regs.set_x(1, 0xFFFF_FFFF_8000_0001);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_2020).unwrap()).unwrap(); // abs w0, w1
+    assert_eq!(cpu.regs.x(0), 0x7FFF_FFFF);
+
+    cpu.regs.set_x(1, 0xFFFF_FFFF_8000_0000);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_2020).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 0x8000_0000);
+}

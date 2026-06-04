@@ -87,24 +87,6 @@ pub(in crate::arm64::execute) fn exec_cls(cpu: &mut Armv8Cpu, instr: Instr) {
     write_reg(cpu, instr.rd, count as u64, instr.sf);
 }
 
-pub(in crate::arm64::execute) fn exec_ctz(cpu: &mut Armv8Cpu, instr: Instr) {
-    let count = if instr.sf {
-        read_reg(cpu, instr.rn, true).trailing_zeros()
-    } else {
-        (read_reg(cpu, instr.rn, false) as u32).trailing_zeros()
-    };
-    write_reg(cpu, instr.rd, count as u64, instr.sf);
-}
-
-pub(in crate::arm64::execute) fn exec_cnt(cpu: &mut Armv8Cpu, instr: Instr) {
-    let count = if instr.sf {
-        read_reg(cpu, instr.rn, true).count_ones()
-    } else {
-        (read_reg(cpu, instr.rn, false) as u32).count_ones()
-    };
-    write_reg(cpu, instr.rd, count as u64, instr.sf);
-}
-
 pub(in crate::arm64::execute) fn exec_crc32(cpu: &mut Armv8Cpu, instr: Instr) {
     exec_crc(cpu, instr, 0xedb8_8320);
 }
