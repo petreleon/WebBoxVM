@@ -17,6 +17,8 @@ mod helpers;
 mod scalar_alias_map;
 #[cfg(test)]
 mod scalar_alias_tests;
+#[cfg(test)]
+mod scalar_ldst_tests;
 mod simd_ldst_map;
 mod simd_map;
 mod system_map;

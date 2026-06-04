@@ -65,7 +65,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ldr if matches!(raw & 0xFFC0_E000, 0x8580_0000 | 0x8580_4000) => Opcode::SveLdr,
         M::r#ldr if (raw & 0x3B00_0000) == 0x1800_0000 => Opcode::LdrLit,
         M::r#ldr | M::r#ldur if ((raw >> 26) & 1) != 0 => Opcode::SimdLdr,
-        M::r#ldr | M::r#ldur => Opcode::Ldr,
+        M::r#ldr | M::r#ldur | M::r#ldrb | M::r#ldurb | M::r#ldrh | M::r#ldurh => Opcode::Ldr,
         M::r#ld1rd if (raw & 0xFFC0_E000) == 0x85C0_E000 => Opcode::SveLd1rd,
         M::r#ld1rqd if (raw & 0xFFF0_E000) == 0xA580_2000 => Opcode::SveLd1rqd,
         M::r#ld1d if (raw & 0xFFE0_E000) == 0xC5E0_C000 || (raw & 0xFFF0_E000) == 0xA5E0_A000 => {
@@ -73,10 +73,12 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#st1d if (raw & 0xFFF0_E000) == 0xE5E0_E000 => Opcode::SveSt1d,
         M::r#ldrsw if (raw & 0x3B00_0000) == 0x1800_0000 => Opcode::LdrLit,
-        M::r#ldrsw => Opcode::LdrSign,
+        M::r#ldrsb | M::r#ldursb | M::r#ldrsh | M::r#ldursh | M::r#ldrsw | M::r#ldursw => {
+            Opcode::LdrSign
+        }
         M::r#str if matches!(raw & 0xFFC0_E000, 0xE580_0000 | 0xE580_4000) => Opcode::SveStr,
         M::r#str | M::r#stur if ((raw >> 26) & 1) != 0 => Opcode::SimdStr,
-        M::r#str | M::r#stur => Opcode::Str,
+        M::r#str | M::r#stur | M::r#strb | M::r#sturb | M::r#strh | M::r#sturh => Opcode::Str,
         M::r#ldp if ((raw >> 26) & 1) != 0 => Opcode::SimdLdp,
         M::r#ldp => Opcode::Ldp,
         M::r#ldpsw => Opcode::Ldpsw,

@@ -12,6 +12,7 @@ mod exclusive;
 mod loads_literals;
 mod pairs_and_initial_simd;
 mod scalar_aliases;
+mod scalar_ldst;
 mod simd_pairwise_narrow;
 mod simd_userland_arith_move;
 mod simd_userland_dup;
