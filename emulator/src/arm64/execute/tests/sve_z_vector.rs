@@ -20,6 +20,12 @@ fn sve_z_vector_forms_update_scalable_z_and_simd_alias() {
     execute(&mut cpu, &mut bus, decode(0x04FE_07FE).unwrap()).unwrap(); // sub z30.d, z31.d, z30.d
     assert!((0..4).all(|lane| z_elem(&cpu, 30, lane) == 15));
 
+    set_z_elem(&mut cpu, 27, 0, (10u64 << 32) | (u32::MAX - 1) as u64);
+    set_z_elem(&mut cpu, 26, 0, (5u64 << 32) | 4);
+    execute(&mut cpu, &mut bus, decode(0x04BA_177B).unwrap()).unwrap(); // uqadd z27.s, z27.s, z26.s
+    assert_eq!(z_word(&cpu, 27, 0), u32::MAX);
+    assert_eq!(z_word(&cpu, 27, 1), 15);
+
     set_z_elem(&mut cpu, 28, 0, 0x1111);
     set_z_elem(&mut cpu, 28, 1, 0x2222);
     set_z_elem(&mut cpu, 28, 2, 0x3333);

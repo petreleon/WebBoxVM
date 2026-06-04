@@ -8,6 +8,7 @@ fn decode_sve_z_vector_forms() {
         (0x05E0_383E, Opcode::SveDupGpr, "dup"),
         (0x04F8_03D8, Opcode::SveAddVec, "add"),
         (0x04FE_07FE, Opcode::SveSubVec, "sub"),
+        (0x04BA_177B, Opcode::SveUqadd, "uqadd"),
         (0x0460_301B, Opcode::SveOrrVec, "orr"),
         (0x04A0_3000, Opcode::SveEorVec, "eor"),
         (0x05FF_C040, Opcode::SveSel, "sel"),
@@ -55,6 +56,9 @@ fn decode_sve_z_vector_forms() {
     assert_eq!(add.rn, 30);
     assert_eq!(add.rm, 24);
     assert_eq!(add.size, 8);
+
+    let uqadd = decode(0x04BA_177B).unwrap(); // uqadd z27.s, z27.s, z26.s
+    assert_eq!((uqadd.rd, uqadd.rn, uqadd.rm, uqadd.size), (27, 27, 26, 4));
 
     let sel = decode(0x05FF_C040).unwrap(); // sel z0.d, p0, z2.d, z31.d
     assert_eq!(sel.rd, 0);

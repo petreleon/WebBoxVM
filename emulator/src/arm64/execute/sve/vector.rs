@@ -52,12 +52,21 @@ pub(in crate::arm64::execute) fn exec_sve_int_binary(cpu: &mut Armv8Cpu, instr: 
         let value = match instr.op {
             Opcode::SveAddVec => left.wrapping_add(right),
             Opcode::SveSubVec => left.wrapping_sub(right),
+            Opcode::SveUqadd => saturating_add(left, right, mask),
             _ => unreachable!(),
         } & mask;
         sve_set_element(&mut result, element, element_size, value);
     }
 
     sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn saturating_add(left: u64, right: u64, mask: u64) -> u64 {
+    if left > mask - right {
+        mask
+    } else {
+        left + right
+    }
 }
 
 pub(in crate::arm64::execute) fn exec_sve_logical_binary(cpu: &mut Armv8Cpu, instr: Instr) {

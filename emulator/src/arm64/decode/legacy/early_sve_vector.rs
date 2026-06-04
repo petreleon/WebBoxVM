@@ -123,12 +123,12 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     let sve_addsub_base = raw & 0xFF20_FC00;
-    if sve_addsub_base == 0x0420_0000 || sve_addsub_base == 0x0420_0400 {
+    if matches!(sve_addsub_base, 0x0420_0000 | 0x0420_0400 | 0x0420_1400) {
         return DecodeStep::Hit(Instr {
-            op: if sve_addsub_base == 0x0420_0000 {
-                Opcode::SveAddVec
-            } else {
-                Opcode::SveSubVec
+            op: match sve_addsub_base {
+                0x0420_0000 => Opcode::SveAddVec,
+                0x0420_0400 => Opcode::SveSubVec,
+                _ => Opcode::SveUqadd,
             },
             rd: (raw & 0x1F) as u8,
             rn: ((raw >> 5) & 0x1F) as u8,

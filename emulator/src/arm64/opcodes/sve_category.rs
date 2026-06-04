@@ -40,6 +40,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveZip2
             | Opcode::SveUzp1
             | Opcode::SveUzp2
+            | Opcode::SveUqadd
             | Opcode::SveTbl
             | Opcode::SveRevh
             | Opcode::SveIndex

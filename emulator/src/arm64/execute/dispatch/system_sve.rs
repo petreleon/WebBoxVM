@@ -54,7 +54,7 @@ pub(super) fn execute(
         Opcode::SveDupImm => exec_sve_dup_imm(cpu, instr),
         Opcode::SveDupElem => exec_sve_dup_elem(cpu, instr),
         Opcode::SveIndex => exec_sve_index(cpu, instr),
-        Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
+        Opcode::SveAddVec | Opcode::SveSubVec | Opcode::SveUqadd => exec_sve_int_binary(cpu, instr),
         Opcode::SveAddImm | Opcode::SveSubImm => exec_sve_addsub_imm(cpu, instr),
         Opcode::SveAddPred | Opcode::SveSubPred => exec_sve_addsub_pred(cpu, instr),
         Opcode::SveAndVec | Opcode::SveOrrVec | Opcode::SveEorVec => {
