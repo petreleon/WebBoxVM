@@ -110,6 +110,7 @@ mod simd_rbit;
 mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
 mod simd_scalar_load_store;
+mod simd_saturating_add;
 mod simd_sha1;
 mod simd_sha256;
 mod simd_sha512;

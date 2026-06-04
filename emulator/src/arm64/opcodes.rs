@@ -5,6 +5,7 @@ mod core_variants;
 mod fp_scalar_category;
 mod fp_variants;
 mod simd_data_category;
+mod simd_crypto_variants;
 mod simd_fp_variants;
 mod simd_memory_category;
 mod simd_variants;

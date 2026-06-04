@@ -37,6 +37,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: element_size as u8,
         });
     }
+    if let Some(step) = decode_simd_compare_reg(raw, 0x2E20_0C00, Opcode::SimdUqadd) {
+        return step;
+    }
     if (raw & 0xBF20_FC00) == 0x2E20_3800 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         if element_size < 8 {

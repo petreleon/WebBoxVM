@@ -35,6 +35,7 @@ mod simd_permute_secondary;
 mod simd_rbit;
 mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
+mod simd_saturating_add;
 mod simd_sha1_sha256;
 mod simd_sha512;
 mod simd_shift_accumulate;

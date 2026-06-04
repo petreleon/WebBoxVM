@@ -17,23 +17,6 @@ pub(in crate::arm64::execute) fn exec_simd_unary_compare(cpu: &mut Armv8Cpu, ins
         Opcode::SimdCmgtReg | Opcode::SimdCmgeReg | Opcode::SimdCmhsReg | Opcode::SimdCmhiReg => {
             cpu.simd[rd] = simd_compare_register(cpu, instr);
         }
-        Opcode::SimdUqsub => {
-            const FPSR_QC: u64 = 1 << 27;
-
-            let element_size = instr.imm.max(1) as usize;
-            let mask = simd_element_mask(element_size);
-            let lhs = cpu.simd[rn] & mask;
-            let rhs = cpu.simd[rm] & mask;
-            let (value, saturated) = if lhs < rhs {
-                (0, true)
-            } else {
-                (lhs - rhs, false)
-            };
-            if saturated {
-                cpu.sys.fpsr |= FPSR_QC;
-            }
-            cpu.simd[rd] = value;
-        }
         Opcode::SimdAbs => {
             let element_size = instr.imm.max(1) as usize;
             let bits = element_size * 8;
@@ -130,7 +113,11 @@ fn simd_compare_register(cpu: &Armv8Cpu, instr: Instr) -> u128 {
                 }
                 _ => false,
             };
-            if pass { mask } else { 0 }
+            if pass {
+                mask
+            } else {
+                0
+            }
         },
     )
 }
