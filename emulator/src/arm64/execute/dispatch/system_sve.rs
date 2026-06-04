@@ -59,6 +59,9 @@ pub(super) fn execute(
         Opcode::SveAddVec | Opcode::SveSubVec | Opcode::SveUqadd => exec_sve_int_binary(cpu, instr),
         Opcode::SveAddImm | Opcode::SveSubImm => exec_sve_addsub_imm(cpu, instr),
         Opcode::SveAddPred | Opcode::SveSubPred => exec_sve_addsub_pred(cpu, instr),
+        Opcode::SveMla | Opcode::SveMls | Opcode::SveMad | Opcode::SveMsb => {
+            exec_sve_muladd_pred(cpu, instr)
+        }
         Opcode::SveAndVec | Opcode::SveOrrVec | Opcode::SveEorVec => {
             exec_sve_logical_binary(cpu, instr)
         }

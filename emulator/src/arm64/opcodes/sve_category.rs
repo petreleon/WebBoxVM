@@ -21,6 +21,10 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveCpyGpr
             | Opcode::SveAddVec
             | Opcode::SveSubVec
+            | Opcode::SveMla
+            | Opcode::SveMls
+            | Opcode::SveMad
+            | Opcode::SveMsb
             | Opcode::SveAddImm
             | Opcode::SveSubImm
             | Opcode::SveAddPred

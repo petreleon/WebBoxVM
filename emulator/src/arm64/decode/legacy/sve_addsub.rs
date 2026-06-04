@@ -7,6 +7,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_predicated(raw) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = decode_muladd(raw) {
+        return DecodeStep::Hit(instr);
+    }
     DecodeStep::Miss
 }
 
@@ -46,6 +49,36 @@ fn decode_predicated(raw: u32) -> Option<Instr> {
         rn: (raw & 0x1F) as u8,
         rm: ((raw >> 5) & 0x1F) as u8,
         imm: 0,
+        sf: false,
+        cond: ((raw >> 10) & 0x7) as u8,
+        size: 1u8 << (((raw >> 22) & 0x3) as u8),
+    })
+}
+
+fn decode_muladd(raw: u32) -> Option<Instr> {
+    let op = match raw & 0xFF20_E000 {
+        0x0400_4000 => Opcode::SveMla,
+        0x0400_6000 => Opcode::SveMls,
+        0x0400_C000 => Opcode::SveMad,
+        0x0400_E000 => Opcode::SveMsb,
+        _ => return None,
+    };
+    let rd = (raw & 0x1F) as u8;
+    let rn = if matches!(op, Opcode::SveMad | Opcode::SveMsb) {
+        rd
+    } else {
+        ((raw >> 5) & 0x1F) as u8
+    };
+    Some(Instr {
+        op,
+        rd,
+        rn,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: if matches!(op, Opcode::SveMad | Opcode::SveMsb) {
+            ((raw >> 5) & 0x1F) as u64
+        } else {
+            0
+        },
         sf: false,
         cond: ((raw >> 10) & 0x7) as u8,
         size: 1u8 << (((raw >> 22) & 0x3) as u8),

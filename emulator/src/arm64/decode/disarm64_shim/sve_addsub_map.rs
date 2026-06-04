@@ -7,6 +7,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sub if (raw & 0xFF3F_C000) == 0x2521_C000 => Some(Opcode::SveSubImm),
         M::r#add if (raw & 0xFF3F_E000) == 0x0400_0000 => Some(Opcode::SveAddPred),
         M::r#sub if (raw & 0xFF3F_E000) == 0x0401_0000 => Some(Opcode::SveSubPred),
+        M::r#mla if (raw & 0xFF20_E000) == 0x0400_4000 => Some(Opcode::SveMla),
+        M::r#mls if (raw & 0xFF20_E000) == 0x0400_6000 => Some(Opcode::SveMls),
+        M::r#mad if (raw & 0xFF20_E000) == 0x0400_C000 => Some(Opcode::SveMad),
+        M::r#msb if (raw & 0xFF20_E000) == 0x0400_E000 => Some(Opcode::SveMsb),
         _ => None,
     }
 }

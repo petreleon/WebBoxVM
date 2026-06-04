@@ -12,6 +12,10 @@ impl super::Opcode {
     pub const SveDupGpr: Self = Self(73);
     pub const SveAddVec: Self = Self(74);
     pub const SveSubVec: Self = Self(75);
+    pub const SveMla: Self = Self(494);
+    pub const SveMls: Self = Self(495);
+    pub const SveMad: Self = Self(496);
+    pub const SveMsb: Self = Self(497);
     pub const SveOrrVec: Self = Self(76);
     pub const SveEorVec: Self = Self(77);
     pub const SveSel: Self = Self(78);

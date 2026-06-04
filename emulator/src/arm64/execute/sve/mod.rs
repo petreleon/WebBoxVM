@@ -38,7 +38,7 @@ mod unpack;
 mod vector;
 mod xar;
 
-pub(super) use addsub::{exec_sve_addsub_imm, exec_sve_addsub_pred};
+pub(super) use addsub::{exec_sve_addsub_imm, exec_sve_addsub_pred, exec_sve_muladd_pred};
 pub(super) use count::sve_pred_count;
 pub(super) use dup::{exec_sve_cpy_gpr, exec_sve_cpy_imm, exec_sve_dup_elem, exec_sve_dup_imm};
 pub(super) use fp::exec_sve_fp_binary;
