@@ -336,6 +336,14 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x2EFE_1FE0).unwrap().op, Opcode::SimdBif);
     assert_eq!(decode(0x0E20_5BFF).unwrap().op, Opcode::SimdCnt);
     assert_eq!(decode(0x0E31_BBFF).unwrap().op, Opcode::SimdAddv);
+    let umaxv = decode(0x6EB0_ABBF).unwrap();
+    assert_eq!(umaxv.op, Opcode::SimdUmaxv);
+    assert_eq!(umaxv.rd, 31);
+    assert_eq!(umaxv.rn, 29);
+    assert_eq!(umaxv.imm, 4);
+    assert_eq!(umaxv.size, 16);
+    assert!(decode(0x2EB0_ABBF).is_none());
+    assert!(decode(0x6EF0_ABBF).is_none());
     assert_eq!(decode(0x4C40_A03E).unwrap().op, Opcode::SimdLd1Multi);
     assert_eq!(decode(0x4C00_A2DE).unwrap().op, Opcode::SimdSt1Multi);
     let post_index_ld1 = decode(0x4CDF_7A04).unwrap();
@@ -872,6 +880,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2F80_2386, Opcode::SimdUmlal, "umlal"),
         (0x0EBE_9FBD, Opcode::SimdMulVec, "mul"),
         (0x4EBF_97FE, Opcode::SimdMlaVec, "mla"),
+        (0x6EB0_ABBF, Opcode::SimdUmaxv, "umaxv"),
         (0x6EBF_67BD, Opcode::SimdUmaxVec, "umax"),
         (0x2EBE_6FFF, Opcode::SimdUminVec, "umin"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),

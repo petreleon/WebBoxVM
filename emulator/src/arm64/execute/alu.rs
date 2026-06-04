@@ -382,6 +382,15 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = sum;
         }
+        Opcode::SimdUmaxv => {
+            let element_size = instr.imm.max(1) as usize;
+            let lanes = instr.size as usize / element_size;
+            let mut max = simd_element(cpu.simd[rn], 0, element_size);
+            for lane in 1..lanes {
+                max = max.max(simd_element(cpu.simd[rn], lane, element_size));
+            }
+            cpu.simd[rd] = max;
+        }
         Opcode::SimdExt => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];

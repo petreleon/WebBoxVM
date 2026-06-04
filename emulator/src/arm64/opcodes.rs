@@ -121,6 +121,7 @@ pub enum Opcode {
     SimdMlaVec,
     SimdAddp,
     SimdAddv,
+    SimdUmaxv,
     SimdExt,
     SimdUmaxVec,
     SimdUminVec,

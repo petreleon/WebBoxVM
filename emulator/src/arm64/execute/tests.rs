@@ -223,6 +223,10 @@ fn simd_userland_vector_permute_and_reduction_ops() {
     execute(&mut cpu, &mut bus, decode(0x0E20_5BFF).unwrap()).unwrap(); // cnt v31.8b, v31.8b
     execute(&mut cpu, &mut bus, decode(0x0E31_BBFF).unwrap()).unwrap(); // addv b31, v31.8b
     assert_eq!(cpu.simd[31], 29);
+
+    cpu.simd[29] = 0x0000_00fe_0000_1000_ffff_fffe_0000_0007;
+    execute(&mut cpu, &mut bus, decode(0x6EB0_ABBF).unwrap()).unwrap(); // umaxv s31, v29.4s
+    assert_eq!(cpu.simd[31], 0xffff_fffe);
 }
 
 #[test]

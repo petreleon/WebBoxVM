@@ -1053,6 +1053,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdMlaVec
             | Opcode::SimdAddp
             | Opcode::SimdAddv
+            | Opcode::SimdUmaxv
             | Opcode::SimdExt
             | Opcode::SimdUmaxVec
             | Opcode::SimdUminVec
