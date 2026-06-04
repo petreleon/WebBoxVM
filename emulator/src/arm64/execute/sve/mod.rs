@@ -31,6 +31,7 @@ mod memory_w;
 mod permute;
 mod predicate;
 mod predicate_bytes;
+mod reverse;
 mod shift_imm;
 mod unpack;
 mod vector;
@@ -63,6 +64,7 @@ pub(super) use memory_w::exec_sve_ld1_st1_w;
 pub(super) use permute::{exec_sve_tbl, exec_sve_zip};
 pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue, sve_pred_test};
 use predicate_bytes::*;
+pub(super) use reverse::exec_sve_reverse;
 pub(super) use shift_imm::exec_sve_shift_imm;
 pub(super) use unpack::exec_sve_unpack;
 pub(super) use vector::{

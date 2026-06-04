@@ -55,6 +55,7 @@ mod sve_logical_imm;
 mod sve_logical_pred;
 mod sve_permute;
 mod sve_predicate_ld1r;
+mod sve_reverse;
 mod sve_shift_imm;
 mod sve_unpack;
 mod sve_word_load_store;
@@ -103,6 +104,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_xar::decode(raw));
     try_stage!(sve_unpack::decode(raw));
     try_stage!(sve_permute::decode(raw));
+    try_stage!(sve_reverse::decode(raw));
     try_stage!(sve_addsub::decode(raw));
     try_stage!(sve_logical_imm::decode(raw));
     try_stage!(sve_logical_pred::decode(raw));

@@ -61,6 +61,7 @@ pub(super) fn execute(
         | Opcode::SvePunpkhi => exec_sve_unpack(cpu, instr),
         Opcode::SveZip1 | Opcode::SveZip2 => exec_sve_zip(cpu, instr),
         Opcode::SveTbl => exec_sve_tbl(cpu, instr),
+        Opcode::SveRevh => exec_sve_reverse(cpu, instr),
         Opcode::SveAndImm | Opcode::SveOrrImm | Opcode::SveEorImm | Opcode::SveDupm => {
             exec_sve_logical_imm(cpu, instr)
         }

@@ -96,4 +96,5 @@ impl super::Opcode {
     pub const SveZip2: Self = Self(427);
     pub const SveXar: Self = Self(428);
     pub const SveTbl: Self = Self(453);
+    pub const SveRevh: Self = Self(456);
 }

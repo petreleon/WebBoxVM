@@ -71,6 +71,7 @@ mod sve_logical_imm;
 mod sve_logical_pred;
 mod sve_permute;
 mod sve_predicate;
+mod sve_reverse;
 mod sve_shift_imm;
 mod sve_unpack;
 mod sve_whilelo;

@@ -70,6 +70,7 @@ mod sve_permute_map;
 mod sve_predicate_map;
 #[cfg(test)]
 mod sve_predicate_tests;
+mod sve_reverse_map;
 mod sve_shift_map;
 mod sve_unpack_map;
 #[cfg(test)]
@@ -125,6 +126,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| sve_xar_map::map(raw, m))
         .or_else(|| sve_unpack_map::map(raw, m))
         .or_else(|| sve_permute_map::map(raw, m))
+        .or_else(|| sve_reverse_map::map(raw, m))
         .or_else(|| sve_logical_map::map(raw, m))
         .or_else(|| sve_predicate_map::map(raw, m))
         .or_else(|| sve_fp_convert_map::map(raw, m))

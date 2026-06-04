@@ -144,6 +144,7 @@ mod sve_permute;
 mod sve_predicate;
 mod sve_predicated_dword_load_store;
 mod sve_register_load_store;
+mod sve_reverse;
 mod sve_shift_imm;
 mod sve_unpack;
 mod sve_whilelo;
