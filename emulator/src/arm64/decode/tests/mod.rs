@@ -62,6 +62,7 @@ mod sve_fp_unpredicated;
 mod sve_load_store;
 mod sve_logical_imm;
 mod sve_logical_pred;
+mod sve_permute;
 mod sve_predicate;
 mod sve_shift_imm;
 mod sve_unpack;

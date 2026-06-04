@@ -92,4 +92,6 @@ impl super::Opcode {
     pub const SveSunpkhi: Self = Self(347);
     pub const SvePunpklo: Self = Self(348);
     pub const SvePunpkhi: Self = Self(349);
+    pub const SveZip1: Self = Self(426);
+    pub const SveZip2: Self = Self(427);
 }
