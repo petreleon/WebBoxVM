@@ -503,7 +503,7 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             let mut out = 0u128;
             for lane in 0..lanes {
                 let value = simd_element(cpu.simd[rn], lane, element_size);
-                let shift = simd_signed_element(cpu.simd[rm], lane, element_size);
+                let shift = simd_element(cpu.simd[rm], lane, element_size) as u8 as i8;
                 let shifted = if shift >= 0 {
                     let amount = shift as usize;
                     if amount >= bits { 0 } else { value << amount }

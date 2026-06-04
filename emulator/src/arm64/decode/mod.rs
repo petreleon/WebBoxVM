@@ -456,8 +456,24 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
+    if (raw & 0xFFE0_FC00) == 0x7EE0_4400 {
+        return Some(Instr {
+            op: Opcode::SimdUshl,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 8,
+            sf: true,
+            cond: 0,
+            size: 8,
+        });
+    }
     if (raw & 0xBF20_FC00) == 0x2E20_4400 {
+        let q = (raw >> 30) != 0;
         let element_size = 1u64 << ((raw >> 22) & 0x3);
+        if element_size == 8 && !q {
+            return None;
+        }
         return Some(Instr {
             op: Opcode::SimdUshl,
             rd: (raw & 0x1F) as u8,
@@ -466,7 +482,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             imm: element_size,
             sf: true,
             cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
+            size: if q { 16 } else { 8 },
         });
     }
     if (raw & 0xBF20_FC00) == 0x0E00_1800 {

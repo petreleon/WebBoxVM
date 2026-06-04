@@ -548,7 +548,18 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(shrn_strlen.imm, 4);
     assert_eq!(shrn_strlen.cond, 1);
     assert_eq!(decode(0x4E08_077D).unwrap().op, Opcode::SimdDupElem);
-    assert_eq!(decode(0x6EF9_47BD).unwrap().op, Opcode::SimdUshl);
+    let ushl = decode(0x6EF9_47BD).unwrap();
+    assert_eq!(ushl.op, Opcode::SimdUshl);
+    assert_eq!(ushl.imm, 8);
+    assert_eq!(ushl.size, 16);
+    let ushl_scalar = decode(0x7EFF_47DF).unwrap();
+    assert_eq!(ushl_scalar.op, Opcode::SimdUshl);
+    assert_eq!(ushl_scalar.rd, 31);
+    assert_eq!(ushl_scalar.rn, 30);
+    assert_eq!(ushl_scalar.rm, 31);
+    assert_eq!(ushl_scalar.imm, 8);
+    assert_eq!(ushl_scalar.size, 8);
+    assert!(decode(0x2EFF_47DF).is_none());
     assert_eq!(decode(0x4E9C_1BDE).unwrap().op, Opcode::SimdUzp1);
     let zip1_bytes = decode(0x4E1B_3BFD).unwrap();
     assert_eq!(zip1_bytes.op, Opcode::SimdZip1);
@@ -772,6 +783,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2F07_E61F, Opcode::SimdMovi, "movi"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
+        (0x6EF9_47BD, Opcode::SimdUshl, "ushl"),
+        (0x7EFF_47DF, Opcode::SimdUshl, "ushl"),
         (0x6EBD_37FD, Opcode::SimdCmhiReg, "cmhi"),
         (0x7EFF_37DF, Opcode::SimdCmhiReg, "cmhi"),
         (0x2E21_3BDE, Opcode::SimdShll, "shll"),
