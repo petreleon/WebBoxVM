@@ -70,6 +70,21 @@ fn sve_z_vector_forms_update_scalable_z_and_simd_alias() {
     assert_eq!(f64::from_bits(z_elem(&cpu, 7, 0)), -7.0);
     assert_eq!(f64::from_bits(z_elem(&cpu, 7, 1)), 20.0);
 
+    set_z_elem(&mut cpu, 28, 0, 5.0f64.to_bits());
+    set_z_elem(&mut cpu, 28, 1, 6.0f64.to_bits());
+    set_z_elem(&mut cpu, 31, 0, 7.0f64.to_bits());
+    set_z_elem(&mut cpu, 31, 1, 8.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65DC_0BFF).unwrap()).unwrap(); // fmul z31.d, z31.d, z28.d
+    assert_eq!(f64::from_bits(z_elem(&cpu, 31, 0)), 35.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 31, 1)), 48.0);
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E023).unwrap()).unwrap(); // ptrue p3.d, vl1
+    set_z_elem(&mut cpu, 1, 0, 9.0f64.to_bits());
+    set_z_elem(&mut cpu, 1, 1, 10.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65DA_8C21).unwrap()).unwrap(); // fmul z1.d, p3/m, z1.d, #2
+    assert_eq!(f64::from_bits(z_elem(&cpu, 1, 0)), 18.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 1, 1)), 10.0);
+
     set_z_f32(&mut cpu, 4, [10.0, 20.0, 30.0, 40.0]);
     set_z_f32(&mut cpu, 5, [2.0, 3.0, 4.0, 5.0]);
     set_z_f32(&mut cpu, 6, [3.0, 4.0, 5.0, 6.0]);

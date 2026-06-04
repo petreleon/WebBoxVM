@@ -14,6 +14,8 @@ fn decode_sve_z_vector_forms() {
         (0x6580_8020, Opcode::SveFpAdd, "fadd"),
         (0x6581_8020, Opcode::SveFpSub, "fsub"),
         (0x65C2_8020, Opcode::SveFpMul, "fmul"),
+        (0x65DC_0BFF, Opcode::SveFpMul, "fmul"),
+        (0x65DA_8C21, Opcode::SveFpMulImm, "fmul"),
         (0x65C3_8020, Opcode::SveFpSubr, "fsubr"),
         (0x65E7_039A, Opcode::SveFpFmla, "fmla"),
         (0x65E7_239A, Opcode::SveFpFmls, "fmls"),
@@ -64,6 +66,19 @@ fn decode_sve_z_vector_forms() {
     assert_eq!(fmul.rm, 6);
     assert_eq!(fmul.cond, 1);
     assert_eq!(fmul.size, 8);
+
+    let fmul_unpred = decode(0x65DC_0BFF).unwrap(); // fmul z31.d, z31.d, z28.d
+    assert_eq!(fmul_unpred.op, Opcode::SveFpMul);
+    assert_eq!(fmul_unpred.rd, 31);
+    assert_eq!(fmul_unpred.rn, 31);
+    assert_eq!(fmul_unpred.rm, 28);
+    assert_eq!(fmul_unpred.cond, 0xFF);
+
+    let fmul_imm = decode(0x65DA_8C21).unwrap(); // fmul z1.d, p3/m, z1.d, #2.0
+    assert_eq!(fmul_imm.op, Opcode::SveFpMulImm);
+    assert_eq!(fmul_imm.rd, 1);
+    assert_eq!(fmul_imm.imm, 1);
+    assert_eq!(fmul_imm.cond, 3);
 
     let fmad = decode(0x65E9_8907).unwrap(); // fmad z7.d, p2/m, z8.d, z9.d
     assert_eq!(fmad.op, Opcode::SveFpFmad);
