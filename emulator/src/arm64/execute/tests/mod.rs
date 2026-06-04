@@ -88,6 +88,7 @@ mod simd_basic;
 mod simd_cmhs;
 mod simd_cmp_sat_strlen;
 mod simd_crypto;
+mod simd_fp_compare;
 mod simd_fp_unary_more;
 mod simd_fp_vector;
 mod simd_helpers;

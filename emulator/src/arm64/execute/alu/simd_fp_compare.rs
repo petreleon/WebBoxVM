@@ -18,7 +18,7 @@ pub(in crate::arm64::execute) fn exec_simd_fp_compare(cpu: &mut Armv8Cpu, instr:
 
 fn compare_passes(cpu: &Armv8Cpu, instr: Instr, lane: usize, element_size: usize) -> bool {
     let lhs = simd_element(cpu.simd[instr.rn as usize], lane, element_size);
-    let rhs = simd_element(cpu.simd[instr.rm as usize], lane, element_size);
+    let rhs = compare_rhs(cpu, instr, lane, element_size);
     match element_size {
         4 => {
             let left = f32::from_bits(lhs as u32);
@@ -32,14 +32,29 @@ fn compare_passes(cpu: &Armv8Cpu, instr: Instr, lane: usize, element_size: usize
     }
 }
 
+fn compare_rhs(cpu: &Armv8Cpu, instr: Instr, lane: usize, element_size: usize) -> u128 {
+    if matches!(
+        instr.op,
+        Opcode::SimdFpFcmeqZero | Opcode::SimdFpFcmleZero | Opcode::SimdFpFcmltZero
+    ) {
+        0
+    } else {
+        simd_element(cpu.simd[instr.rm as usize], lane, element_size)
+    }
+}
+
 fn compare_fp<T>(op: Opcode, left: T, right: T) -> bool
 where
-    T: PartialOrd + Copy + From<f32> + AbsValue,
+    T: PartialOrd + Copy + AbsValue,
 {
     match op {
         Opcode::SimdFpFacgeVec => left.abs_value() >= right.abs_value(),
         Opcode::SimdFpFacgtVec => left.abs_value() > right.abs_value(),
-        Opcode::SimdFpFcmltZero => left < T::from(0.0_f32),
+        Opcode::SimdFpFcmgeVec => left >= right,
+        Opcode::SimdFpFcmgtVec => left > right,
+        Opcode::SimdFpFcmeqZero => left == right,
+        Opcode::SimdFpFcmleZero => left <= right,
+        Opcode::SimdFpFcmltZero => left < right,
         _ => unreachable!(),
     }
 }

@@ -6,6 +6,7 @@ mod condition_logic;
 mod control;
 mod memory;
 mod scalar_basic;
+mod simd_data_ops;
 mod simd_fp;
 mod system_sve;
 

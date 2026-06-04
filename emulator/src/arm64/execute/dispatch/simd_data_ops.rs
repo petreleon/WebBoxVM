@@ -1,9 +1,23 @@
-use super::*;
+use crate::arm64::Opcode;
 
-pub(in crate::arm64::machine) fn is_simd_integer_opcode(op: Opcode) -> bool {
+pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
     matches!(
         op,
-        Opcode::SimdDupByte
+        Opcode::SimdAese
+            | Opcode::SimdAesd
+            | Opcode::SimdAesmc
+            | Opcode::SimdAesimc
+            | Opcode::SimdPmull
+            | Opcode::SimdSha1h
+            | Opcode::SimdSha256Su0
+            | Opcode::SimdSha512Su0
+            | Opcode::SimdSm4e
+            | Opcode::SimdSm3Partw1
+            | Opcode::SimdEor3
+            | Opcode::SimdBcax
+            | Opcode::SimdRax1
+            | Opcode::SimdXar
+            | Opcode::SimdDupByte
             | Opcode::SimdDupElem
             | Opcode::SimdFmovReg64
             | Opcode::SimdFmovGprToD
@@ -52,7 +66,6 @@ pub(in crate::arm64::machine) fn is_simd_integer_opcode(op: Opcode) -> bool {
             | Opcode::SimdBit
             | Opcode::SimdBif
             | Opcode::SimdAnd
-            | Opcode::SimdBic
             | Opcode::SimdOrr
             | Opcode::SimdOrn
             | Opcode::SimdEor
@@ -62,6 +75,7 @@ pub(in crate::arm64::machine) fn is_simd_integer_opcode(op: Opcode) -> bool {
             | Opcode::SimdZip1
             | Opcode::SimdZip2
             | Opcode::SimdTbl
+            | Opcode::SimdBic
             | Opcode::SimdBicImm
             | Opcode::SimdMvni
             | Opcode::SimdUshll

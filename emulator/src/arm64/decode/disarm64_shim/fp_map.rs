@@ -37,18 +37,22 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fcmeq if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_6000, 0x6512_2000) => {
             Opcode::SveFpFcmeq
         }
+        M::r#fcmeq if (raw & 0xBFBF_FC00) == 0x0EA0_D800 => Opcode::SimdFpFcmeqZero,
         M::r#fcmge if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_4000, 0x6510_2000) => {
             Opcode::SveFpFcmge
         }
+        M::r#fcmge if (raw & 0xBFA0_FC00) == 0x2E20_E400 => Opcode::SimdFpFcmgeVec,
         M::r#fcmgt if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_4010, 0x6510_2010) => {
             Opcode::SveFpFcmgt
         }
+        M::r#fcmgt if (raw & 0xBFA0_FC00) == 0x2EA0_E400 => Opcode::SimdFpFcmgtVec,
         M::r#fcmne if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_6010, 0x6513_2000) => {
             Opcode::SveFpFcmne
         }
         M::r#fcmle if sve_fp_size_valid(raw) && (raw & 0xFF3F_E010) == 0x6511_2010 => {
             Opcode::SveFpFcmle
         }
+        M::r#fcmle if (raw & 0xBFBF_FC00) == 0x2EA0_D800 => Opcode::SimdFpFcmleZero,
         M::r#fcmlt if sve_fp_size_valid(raw) && (raw & 0xFF3F_E010) == 0x6511_2000 => {
             Opcode::SveFpFcmlt
         }
