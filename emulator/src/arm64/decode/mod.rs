@@ -71,6 +71,16 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size,
         });
     }
+    if let Some(instr) =
+        decode_simd_int_fp_convert(raw, 0x5E21_D800, 0x0E21_D800, Opcode::SimdScvtf)
+    {
+        return Some(instr);
+    }
+    if let Some(instr) =
+        decode_simd_int_fp_convert(raw, 0x5EA1_B800, 0x0EA1_B800, Opcode::SimdFcvtzs)
+    {
+        return Some(instr);
+    }
     if (raw & 0xBFE0_FC00) == 0x0E00_0400 {
         let q = ((raw >> 30) & 1) != 0;
         let imm5 = ((raw >> 16) & 0x1F) as u8;
@@ -1673,6 +1683,49 @@ fn decode_movi_doubleword_imm(imm8: u32) -> u64 {
         }
     }
     value
+}
+
+fn decode_simd_int_fp_convert(
+    raw: u32,
+    scalar_pattern: u32,
+    vector_pattern: u32,
+    op: Opcode,
+) -> Option<Instr> {
+    let rd = (raw & 0x1F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let element_size = if ((raw >> 22) & 1) != 0 { 8 } else { 4 };
+
+    if (raw & 0xFFBF_FC00) == scalar_pattern {
+        return Some(Instr {
+            op,
+            rd,
+            rn,
+            rm: 0,
+            imm: element_size as u64,
+            sf: true,
+            cond: 0,
+            size: element_size,
+        });
+    }
+
+    if (raw & 0xBFBF_FC00) == vector_pattern {
+        let q = ((raw >> 30) & 1) != 0;
+        if element_size == 8 && !q {
+            return None;
+        }
+        return Some(Instr {
+            op,
+            rd,
+            rn,
+            rm: 0,
+            imm: element_size as u64,
+            sf: true,
+            cond: 0,
+            size: if q { 16 } else { 8 },
+        });
+    }
+
+    None
 }
 
 fn decode_fp_scalar(raw: u32) -> Option<Instr> {

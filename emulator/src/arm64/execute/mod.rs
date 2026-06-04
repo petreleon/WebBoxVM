@@ -452,6 +452,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdUqsub
         | Opcode::SimdAbs
         | Opcode::SimdNeg
+        | Opcode::SimdScvtf
+        | Opcode::SimdFcvtzs
         | Opcode::SimdFcvtzu
         | Opcode::SimdFpAddVec
         | Opcode::SimdFpSubVec

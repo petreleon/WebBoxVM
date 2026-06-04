@@ -688,6 +688,24 @@ fn f64x2(values: [f64; 2]) -> u128 {
         })
 }
 
+fn i32x4(values: [i32; 4]) -> u128 {
+    values
+        .into_iter()
+        .enumerate()
+        .fold(0u128, |bits, (lane, value)| {
+            bits | ((value as u32 as u128) << (lane * 32))
+        })
+}
+
+fn i64x2(values: [i64; 2]) -> u128 {
+    values
+        .into_iter()
+        .enumerate()
+        .fold(0u128, |bits, (lane, value)| {
+            bits | ((value as u64 as u128) << (lane * 64))
+        })
+}
+
 #[test]
 fn simd_fp_vector_arithmetic_ops() {
     let (mut cpu, mut bus) = setup();
@@ -720,6 +738,30 @@ fn simd_fp_vector_arithmetic_ops() {
     cpu.simd[2] = (-2.25f64).to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x7EE2_D420).unwrap()).unwrap(); // fabd d0, d1, d2
     assert_eq!(f64_lane(&cpu, 0), 11.75);
+
+    cpu.simd[0] = i64x2([3, -4]);
+    execute(&mut cpu, &mut bus, decode(0x4E61_D800).unwrap()).unwrap(); // scvtf v0.2d, v0.2d
+    assert_eq!(cpu.simd[0], f64x2([3.0, -4.0]));
+
+    cpu.simd[1] = i32x4([2, -3, 4, -5]);
+    execute(&mut cpu, &mut bus, decode(0x4E21_D821).unwrap()).unwrap(); // scvtf v1.4s, v1.4s
+    assert_eq!(cpu.simd[1], f32x4([2.0, -3.0, 4.0, -5.0]));
+
+    cpu.simd[31] = (-7i64 as u64) as u128;
+    execute(&mut cpu, &mut bus, decode(0x5E61_DBFF).unwrap()).unwrap(); // scvtf d31, d31
+    assert_eq!(f64_lane(&cpu, 31), -7.0);
+
+    cpu.simd[0] = f64x2([3.9, -2.1]);
+    execute(&mut cpu, &mut bus, decode(0x4EE1_B800).unwrap()).unwrap(); // fcvtzs v0.2d, v0.2d
+    assert_eq!(cpu.simd[0], i64x2([3, -2]));
+
+    cpu.simd[1] = f32x4([1.9, -1.9, 7.0, -8.5]);
+    execute(&mut cpu, &mut bus, decode(0x4EA1_B821).unwrap()).unwrap(); // fcvtzs v1.4s, v1.4s
+    assert_eq!(cpu.simd[1], i32x4([1, -1, 7, -8]));
+
+    cpu.simd[31] = (-2.75f64).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x5EE1_BBFF).unwrap()).unwrap(); // fcvtzs d31, d31
+    assert_eq!(cpu.simd[31], (-2i64 as u64) as u128);
 }
 
 #[test]

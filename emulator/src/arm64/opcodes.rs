@@ -167,6 +167,8 @@ pub enum Opcode {
     SimdUqsub,
     SimdAbs,
     SimdNeg,
+    SimdScvtf,
+    SimdFcvtzs,
     SimdFcvtzu,
     SimdFpAddVec,
     SimdFpSubVec,
