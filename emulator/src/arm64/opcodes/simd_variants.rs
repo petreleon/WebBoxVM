@@ -127,4 +127,5 @@ impl super::Opcode {
     pub const SimdFpFcmgtVec: Self = Self(311);
     pub const SimdFpFcmeqZero: Self = Self(312);
     pub const SimdFpFcmleZero: Self = Self(313);
+    pub const SimdFpFrintnVec: Self = Self(338);
 }

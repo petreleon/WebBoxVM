@@ -100,6 +100,7 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpAbd
             | Opcode::SimdFpNeg
             | Opcode::SimdFpAbsVec
+            | Opcode::SimdFpFrintnVec
             | Opcode::SimdFpFrintaVec
             | Opcode::SimdFpSqrtVec
             | Opcode::SimdFpFacgeVec

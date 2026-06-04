@@ -5,6 +5,11 @@ fn decode_simd_fp_abs_and_round_vectors() {
     let cases = [
         (0x4EA0_F81F, Opcode::SimdFpAbsVec, "fabs"),
         (0x4EE0_F81D, Opcode::SimdFpAbsVec, "fabs"),
+        (0x0E79_8800, Opcode::SimdFpFrintnVec, "frintn"),
+        (0x4E79_8800, Opcode::SimdFpFrintnVec, "frintn"),
+        (0x0E21_8800, Opcode::SimdFpFrintnVec, "frintn"),
+        (0x4E21_881F, Opcode::SimdFpFrintnVec, "frintn"),
+        (0x4E61_8BA6, Opcode::SimdFpFrintnVec, "frintn"),
         (0x6E21_8B9C, Opcode::SimdFpFrintaVec, "frinta"),
         (0x6E61_8B9C, Opcode::SimdFpFrintaVec, "frinta"),
         (0x6EA1_FBC5, Opcode::SimdFpSqrtVec, "fsqrt"),
@@ -21,6 +26,15 @@ fn decode_simd_fp_abs_and_round_vectors() {
     let fabs_double = decode(0x4EE0_F81D).unwrap();
     assert_eq!(fabs_double.imm, 8);
     assert_eq!(fabs_double.size, 16);
+
+    let frintn = decode(0x4E61_8BA6).unwrap();
+    assert_eq!(frintn.rd, 6);
+    assert_eq!(frintn.rn, 29);
+    assert_eq!(frintn.imm, 8);
+    assert_eq!(frintn.size, 16);
+    assert_eq!(decode(0x0E79_8800).unwrap().imm, 2);
+    assert_eq!(decode(0x0E21_8800).unwrap().size, 8);
+    assert!(decode(0x0E61_8800).is_none());
 
     let frinta = decode(0x2E21_8B9C).unwrap();
     assert_eq!(frinta.rd, 28);
