@@ -14,6 +14,7 @@ pub(in crate::arm64::execute) fn is_simd_widen_opcode(op: Opcode) -> bool {
             | Opcode::SimdUaddw
             | Opcode::SimdUsubw
             | Opcode::SimdUmlal
+            | Opcode::SimdUmlsl
             | Opcode::SimdUmlalVec
             | Opcode::SimdUmull
             | Opcode::SimdUmullElem
@@ -91,9 +92,11 @@ pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Inst
         Opcode::SimdSaddw => exec_widen_add_sub(cpu, instr, true, true, false),
         Opcode::SimdUaddw => exec_widen_add_sub(cpu, instr, true, false, false),
         Opcode::SimdUsubw => exec_widen_add_sub(cpu, instr, true, false, true),
-        Opcode::SimdUmlal | Opcode::SimdUmlalVec | Opcode::SimdUmull | Opcode::SimdUmullElem => {
-            exec_simd_widen_mul(cpu, instr)
-        }
+        Opcode::SimdUmlal
+        | Opcode::SimdUmlsl
+        | Opcode::SimdUmlalVec
+        | Opcode::SimdUmull
+        | Opcode::SimdUmullElem => exec_simd_widen_mul(cpu, instr),
         _ => unreachable!(),
     }
 }

@@ -79,6 +79,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdUaddw
             | Opcode::SimdUsubw
             | Opcode::SimdUmlal
+            | Opcode::SimdUmlsl
             | Opcode::SimdUmlalVec
             | Opcode::SimdUmull
             | Opcode::SimdUmullElem

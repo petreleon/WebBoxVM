@@ -25,6 +25,15 @@ fn simd_unsigned_widen_multiply_vectors_select_source_half() {
 
     execute(&mut cpu, &mut bus, decode(0x6F87_A9D7).unwrap()).unwrap();
     assert_eq!(cpu.simd[23], u64x2([85, 119]));
+
+    cpu.simd[24] = u32x4([200, 400, 600, 800]);
+    cpu.simd[11] = u16x8([1, 2, 3, 4, 5, 6, 7, 8]);
+    cpu.simd[1] = u16x8([10, 20, 30, 40, 50, 60, 70, 80]);
+    execute(&mut cpu, &mut bus, decode(0x6F61_6978).unwrap()).unwrap();
+    assert_eq!(
+        cpu.simd[24],
+        u32x4([u32::MAX - 149, u32::MAX - 19, 110, 240])
+    );
 }
 
 #[test]

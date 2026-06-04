@@ -7,6 +7,8 @@ fn decode_simd_unsigned_widen_multiply_vectors_cross_checked_with_disarm64() {
         (0x6E63_C041, Opcode::SimdUmull, "umull2", 2, true, 0),
         (0x2F87_A9D7, Opcode::SimdUmullElem, "umull", 4, false, 2),
         (0x6F87_A9D7, Opcode::SimdUmullElem, "umull2", 4, true, 2),
+        (0x2F61_6978, Opcode::SimdUmlsl, "umlsl", 2, false, 6),
+        (0x6F61_6978, Opcode::SimdUmlsl, "umlsl2", 2, true, 6),
         (0x2E65_80A4, Opcode::SimdUmlalVec, "umlal", 2, false, 0),
         (0x6EA7_80E6, Opcode::SimdUmlalVec, "umlal2", 4, true, 0),
     ];

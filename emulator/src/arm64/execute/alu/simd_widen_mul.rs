@@ -20,7 +20,12 @@ pub(in crate::arm64::execute) fn exec_simd_widen_mul(cpu: &mut Armv8Cpu, instr: 
         } else {
             simd_element(cpu.simd[rd], lane, dst_size)
         };
-        let value = accum.wrapping_add(lhs.wrapping_mul(rhs)) & dst_mask;
+        let product = lhs.wrapping_mul(rhs) & dst_mask;
+        let value = if instr.op == Opcode::SimdUmlsl {
+            accum.wrapping_sub(product)
+        } else {
+            accum.wrapping_add(product)
+        } & dst_mask;
         out &= !(dst_mask << (lane * dst_bits));
         out |= value << (lane * dst_bits);
     }
@@ -36,7 +41,10 @@ fn mul_rhs(
     src_size: usize,
     rm: usize,
 ) -> u128 {
-    if matches!(instr.op, Opcode::SimdUmlal | Opcode::SimdUmullElem) {
+    if matches!(
+        instr.op,
+        Opcode::SimdUmlal | Opcode::SimdUmlsl | Opcode::SimdUmullElem
+    ) {
         simd_element(cpu.simd[rm], instr.imm as usize, src_size)
     } else {
         simd_element(cpu.simd[rm], source_base_lane + lane, src_size)

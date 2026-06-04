@@ -65,6 +65,7 @@ pub(super) fn decode_simd_sshll(raw: u32) -> Option<Instr> {
 pub(super) fn decode_simd_widen_mul_by_element(raw: u32) -> Option<Instr> {
     let op = match raw & 0xBF00_F400 {
         0x2F00_2000 => Opcode::SimdUmlal,
+        0x2F00_6000 => Opcode::SimdUmlsl,
         0x2F00_A000 => Opcode::SimdUmullElem,
         _ => return None,
     };

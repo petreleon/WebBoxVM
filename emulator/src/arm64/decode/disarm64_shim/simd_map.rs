@@ -133,6 +133,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#usubw | M::r#usubw2 => Opcode::SimdUsubw,
         M::r#umlal | M::r#umlal2 if (raw & 0xBF20_FC00) == 0x2E20_8000 => Opcode::SimdUmlalVec,
         M::r#umlal | M::r#umlal2 => Opcode::SimdUmlal,
+        M::r#umlsl | M::r#umlsl2 if (raw & 0xBF00_F400) == 0x2F00_6000 => Opcode::SimdUmlsl,
         M::r#umull | M::r#umull2 if (raw & 0xBF00_F400) == 0x2F00_A000 => Opcode::SimdUmullElem,
         M::r#umull | M::r#umull2 => Opcode::SimdUmull,
         M::r#uqsub if (raw & 0xFF20_FC00) == 0x7E20_2C00 => Opcode::SimdUqsub,
