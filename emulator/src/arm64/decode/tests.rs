@@ -185,6 +185,45 @@ fn decode_sve_z_vector_forms() {
 }
 
 #[test]
+fn decode_sve_register_load_store_forms() {
+    let cases = [
+        (0x8580_43E8, Opcode::SveLdr, "ldr"),
+        (0x8580_03E4, Opcode::SveLdr, "ldr"),
+        (0xE580_43EA, Opcode::SveStr, "str"),
+        (0xE580_03E4, Opcode::SveStr, "str"),
+    ];
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+
+    let ldr_z = decode(0x8582_4BF7).unwrap(); // ldr z23, [sp, #18, mul vl]
+    assert_eq!(ldr_z.op, Opcode::SveLdr);
+    assert_eq!(ldr_z.rd, 23);
+    assert_eq!(ldr_z.rn, 31);
+    assert_eq!(ldr_z.imm as i64, 18);
+    assert_eq!(ldr_z.cond, 1);
+
+    let str_z_neg = decode(0xE5BF_5FEA).unwrap(); // str z10, [sp, #-1, mul vl]
+    assert_eq!(str_z_neg.op, Opcode::SveStr);
+    assert_eq!(str_z_neg.rd, 10);
+    assert_eq!(str_z_neg.imm as i64, -1);
+    assert_eq!(str_z_neg.cond, 1);
+
+    let ldr_p = decode(0x8581_03EB).unwrap(); // ldr p11, [sp, #8, mul vl]
+    assert_eq!(ldr_p.op, Opcode::SveLdr);
+    assert_eq!(ldr_p.rd, 11);
+    assert_eq!(ldr_p.imm as i64, 8);
+    assert_eq!(ldr_p.cond, 0);
+
+    let str_p_neg = decode(0xE5BF_1FE4).unwrap(); // str p4, [sp, #-1, mul vl]
+    assert_eq!(str_p_neg.op, Opcode::SveStr);
+    assert_eq!(str_p_neg.rd, 4);
+    assert_eq!(str_p_neg.imm as i64, -1);
+    assert_eq!(str_p_neg.cond, 0);
+}
+
+#[test]
 fn decode_br_x0() {
     let instr = decode(0xD61F0000).unwrap();
     assert_eq!(instr.op, Opcode::Br);

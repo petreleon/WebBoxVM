@@ -1018,6 +1018,8 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SveOrrVec
             | Opcode::SveEorVec
             | Opcode::SveSel
+            | Opcode::SveLdr
+            | Opcode::SveStr
             | Opcode::SimdLdp
             | Opcode::SimdStp
             | Opcode::SimdLdr

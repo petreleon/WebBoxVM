@@ -21,6 +21,7 @@ use system::{exec_brk, exec_dc_zva, exec_eret, exec_msr, exec_svc};
 
 use super::Armv8Cpu;
 use super::helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};
+use super::mmu::{Fault, translate, translate_write};
 use crate::bus::SystemBus;
 use crate::constants::*;
 use std::env;
@@ -393,6 +394,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
         Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
         Opcode::SveSel => exec_sve_sel(cpu, instr),
+        Opcode::SveLdr | Opcode::SveStr => exec_sve_ldr_str(cpu, bus, instr)?,
         Opcode::SimdMovi => {
             cpu.simd[instr.rd as usize] = if instr.cond == 0 {
                 simd_replicate_byte(instr.imm as u8) & simd_vector_mask(instr.size as usize)
@@ -761,6 +763,46 @@ fn exec_sve_sel(cpu: &mut Armv8Cpu, instr: Instr) {
     sve_write_z(cpu, instr.rd as usize, result);
 }
 
+fn exec_sve_ldr_str(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    instr: Instr,
+) -> Result<(), &'static str> {
+    let is_vector = instr.cond == 1;
+    let transfer_bytes = if is_vector {
+        sve_vl_bytes(cpu)
+    } else {
+        sve_pl_bytes(cpu)
+    };
+    let offset = (instr.imm as i64).wrapping_mul(transfer_bytes as i64) as u64;
+    let va = read_base(cpu, instr.rn, true).wrapping_add(offset);
+
+    match instr.op {
+        Opcode::SveLdr => {
+            let bytes = read_sve_bytes(cpu, bus, va, transfer_bytes, "SVE load fault")?;
+            if is_vector {
+                let mut value = [0; 256];
+                value[..transfer_bytes].copy_from_slice(&bytes[..transfer_bytes]);
+                sve_write_z(cpu, instr.rd as usize, value);
+            } else {
+                cpu.sve_pred[(instr.rd & 0xF) as usize] = predicate_from_bytes(&bytes);
+            }
+        }
+        Opcode::SveStr => {
+            if is_vector {
+                let value = sve_read_z(cpu, instr.rd as usize);
+                write_sve_bytes(cpu, bus, va, &value[..transfer_bytes], "SVE store fault")?;
+            } else {
+                let bytes = predicate_to_bytes(cpu.sve_pred[(instr.rd & 0xF) as usize]);
+                write_sve_bytes(cpu, bus, va, &bytes[..transfer_bytes], "SVE store fault")?;
+            }
+        }
+        _ => unreachable!(),
+    }
+
+    Ok(())
+}
+
 fn sve_pred_test(
     mask: &[u64; 4],
     result: &[u64; 4],
@@ -805,6 +847,65 @@ fn set_predicate_bit(pred: &mut [u64; 4], bit: usize, value: bool) {
 
 fn predicate_bit(pred: &[u64; 4], bit: usize) -> bool {
     bit < 256 && (pred[bit / 64] & (1 << (bit % 64))) != 0
+}
+
+fn read_sve_bytes(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    va: u64,
+    len: usize,
+    err: &'static str,
+) -> Result<[u8; 256], &'static str> {
+    let mut bytes = [0; 256];
+    for (offset, byte) in bytes.iter_mut().take(len).enumerate() {
+        let byte_va = va.wrapping_add(offset as u64);
+        let pa = translate_sve_byte(cpu, bus, byte_va, false, err)?;
+        *byte = bus.read(pa, 1).ok_or(err)? as u8;
+    }
+    Ok(bytes)
+}
+
+fn write_sve_bytes(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    va: u64,
+    bytes: &[u8],
+    err: &'static str,
+) -> Result<(), &'static str> {
+    for (offset, byte) in bytes.iter().enumerate() {
+        let byte_va = va.wrapping_add(offset as u64);
+        let pa = translate_sve_byte(cpu, bus, byte_va, true, err)?;
+        bus.write(pa, 1, *byte as u64);
+    }
+    Ok(())
+}
+
+fn translate_sve_byte(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    va: u64,
+    write: bool,
+    err: &'static str,
+) -> Result<u64, &'static str> {
+    let result = if write {
+        translate_write(&cpu.sys, &mut bus.mem, va, cpu.pstate.el())
+    } else {
+        translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va)
+    };
+
+    match result {
+        Ok(pa) => Ok(pa),
+        Err(
+            fault @ (Fault::TranslationFault | Fault::AccessFlagFault | Fault::PermissionFault),
+        ) => {
+            cpu.sys.far_el1 = va;
+            Err(match fault {
+                Fault::TranslationFault => err,
+                Fault::AccessFlagFault => "access flag fault",
+                Fault::PermissionFault => "permission fault",
+            })
+        }
+    }
 }
 
 fn sve_read_z(cpu: &mut Armv8Cpu, reg: usize) -> [u8; 256] {
@@ -856,8 +957,31 @@ fn sve_element_mask(element_size: usize) -> u64 {
     }
 }
 
+fn predicate_to_bytes(pred: [u64; 4]) -> [u8; 32] {
+    let mut bytes = [0; 32];
+    for (word_index, word) in pred.iter().enumerate() {
+        bytes[word_index * 8..word_index * 8 + 8].copy_from_slice(&word.to_le_bytes());
+    }
+    bytes
+}
+
+fn predicate_from_bytes(bytes: &[u8; 256]) -> [u64; 4] {
+    let mut pred = [0; 4];
+    for (word_index, word) in pred.iter_mut().enumerate() {
+        let offset = word_index * 8;
+        let mut word_bytes = [0; 8];
+        word_bytes.copy_from_slice(&bytes[offset..offset + 8]);
+        *word = u64::from_le_bytes(word_bytes);
+    }
+    pred
+}
+
 fn sve_vl_bytes(cpu: &Armv8Cpu) -> usize {
     (cpu.sve_vl_bytes as usize).clamp(16, 256)
+}
+
+fn sve_pl_bytes(cpu: &Armv8Cpu) -> usize {
+    sve_vl_bytes(cpu) / 8
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -27,6 +27,28 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ldst1_lane(raw) {
         return Some(instr);
     }
+    let sve_ldst_base = raw & 0xFFC0_E000;
+    if matches!(
+        sve_ldst_base,
+        0x8580_0000 | 0x8580_4000 | 0xE580_0000 | 0xE580_4000
+    ) {
+        let imm9 = ((((raw >> 16) & 0x3F) << 3) | ((raw >> 10) & 0x7)) as u16;
+        let signed_imm = ((imm9 as i16) << 7) >> 7;
+        return Some(Instr {
+            op: if (raw & 0x4000_0000) == 0 {
+                Opcode::SveLdr
+            } else {
+                Opcode::SveStr
+            },
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: signed_imm as i64 as u64,
+            sf: true,
+            cond: if (raw & 0x4000) != 0 { 1 } else { 0 },
+            size: 0,
+        });
+    }
     if (raw & 0xFFFF_FC00) == 0x0420_BC00 {
         return Some(Instr {
             op: Opcode::SveMovprfx,

@@ -88,6 +88,8 @@ pub enum Opcode {
     SveOrrVec,
     SveEorVec,
     SveSel,
+    SveLdr,
+    SveStr,
     SimdLdp,
     SimdStp,
     SimdLdr,
