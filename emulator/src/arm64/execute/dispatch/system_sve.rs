@@ -41,6 +41,9 @@ pub(super) fn execute(
         Opcode::SveFpAdd | Opcode::SveFpSub | Opcode::SveFpMul | Opcode::SveFpSubr => {
             exec_sve_fp_binary(cpu, instr)
         }
+        Opcode::SveFpFmla | Opcode::SveFpFmls | Opcode::SveFpFmad | Opcode::SveFpFmsb => {
+            exec_sve_fp_fused(cpu, instr)
+        }
         Opcode::SveSel => exec_sve_sel(cpu, instr),
         Opcode::SveLdr | Opcode::SveStr => exec_sve_ldr_str(cpu, bus, instr)?,
         Opcode::SveLd1b | Opcode::SveLd1rw | Opcode::SveLd1rqw => {

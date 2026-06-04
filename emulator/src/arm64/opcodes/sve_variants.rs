@@ -28,4 +28,8 @@ impl super::Opcode {
     pub const SveFpSub: Self = Self(265);
     pub const SveFpMul: Self = Self(266);
     pub const SveFpSubr: Self = Self(267);
+    pub const SveFpFmla: Self = Self(268);
+    pub const SveFpFmls: Self = Self(269);
+    pub const SveFpFmad: Self = Self(270);
+    pub const SveFpFmsb: Self = Self(271);
 }

@@ -6,6 +6,7 @@ use crate::bus::SystemBus;
 
 mod count;
 mod fp;
+mod fp_fused;
 mod helpers;
 mod memory_b;
 mod memory_contiguous;
@@ -17,6 +18,7 @@ mod vector;
 
 pub(super) use count::sve_pred_count;
 pub(super) use fp::exec_sve_fp_binary;
+pub(super) use fp_fused::exec_sve_fp_fused;
 use helpers::*;
 pub(super) use memory_b::exec_sve_st1b;
 pub(super) use memory_contiguous::exec_sve_contiguous_load;
