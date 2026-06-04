@@ -43,6 +43,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ands if (raw & 0x1F80_0000) == 0x1200_0000 => Opcode::AndsImm,
         M::r#ands => Opcode::AndsReg,
         M::r#bic if (raw & 0xBFE0_FC00) == 0x0E60_1C00 => Opcode::SimdBic,
+        M::r#bic if scalar_logical_register(raw) => Opcode::AndReg,
         M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
         M::r#orr if (raw & 0xFFE0_FC00) == 0x0460_3000 => Opcode::SveOrrVec,
         M::r#orr if (raw & 0xFFF0_C210) == 0x2580_4000 || (raw & 0xFFF0_C210) == 0x25C0_4000 => {
@@ -50,6 +51,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#orr if (raw & 0x1F80_0000) == 0x1200_0000 => Opcode::OrrImm,
         M::r#orn if (raw & 0xBFE0_FC00) == 0x0EE0_1C00 => Opcode::SimdOrn,
+        M::r#orn if scalar_logical_register(raw) => Opcode::OrrReg,
         M::r#orrs if (raw & 0xFFF0_C210) == 0x25C0_4000 => Opcode::SvePredOrr,
         M::r#bsl if (raw & 0xBFE0_FC00) == 0x2E60_1C00 => Opcode::SimdBsl,
         M::r#bit if (raw & 0xBFE0_FC00) == 0x2EA0_1C00 => Opcode::SimdBit,
@@ -58,6 +60,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#eor if (raw & 0xFFE0_FC00) == 0x04A0_3000 => Opcode::SveEorVec,
         M::r#eor if (raw & 0x1F80_0000) == 0x1200_0000 => Opcode::EorImm,
         M::r#eor => Opcode::EorReg,
+        M::r#eon if scalar_logical_register(raw) => Opcode::EorReg,
+        M::r#bics if scalar_logical_register(raw) => Opcode::AndsReg,
         M::r#csel => Opcode::Csel,
         M::r#csinc => Opcode::Csinc,
         M::r#csinv => Opcode::Csinv,
@@ -128,4 +132,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ubfm if (raw & 0x7F80_0000) == 0x5300_0000 => Opcode::Ubfm,
         _ => return None,
     })
+}
+
+fn scalar_logical_register(raw: u32) -> bool {
+    (raw & 0x1F00_0000) == 0x0A00_0000
 }

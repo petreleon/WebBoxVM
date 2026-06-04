@@ -14,6 +14,8 @@ mod exclusive_map;
 mod exclusive_tests;
 mod fp_map;
 mod helpers;
+#[cfg(test)]
+mod logical_alias_tests;
 mod scalar_alias_map;
 #[cfg(test)]
 mod scalar_alias_tests;
