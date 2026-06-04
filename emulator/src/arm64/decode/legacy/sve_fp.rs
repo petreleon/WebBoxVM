@@ -10,7 +10,7 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(step) = try_decode_unpredicated(raw) {
         return step;
     }
-    if let Some(step) = try_decode_immediate(raw) {
+    if let Some(step) = super::sve_fp_arith_imm::decode(raw) {
         return step;
     }
     match try_decode_fused(raw) {
@@ -52,44 +52,24 @@ fn indexed_size_index_rm(raw: u32) -> (u8, u8, u8) {
 }
 
 fn try_decode_unpredicated(raw: u32) -> Option<DecodeStep> {
-    if (raw & 0xFF20_FC00) != 0x6500_0800 {
-        return None;
-    }
-    let size = 1u8 << (((raw >> 22) & 0x3) as u8);
-    if size == 1 {
-        return Some(DecodeStep::Reject);
-    }
-    Some(DecodeStep::Hit(Instr {
-        op: Opcode::SveFpMul,
-        rd: (raw & 0x1F) as u8,
-        rn: ((raw >> 5) & 0x1F) as u8,
-        rm: ((raw >> 16) & 0x1F) as u8,
-        imm: 0,
-        sf: true,
-        cond: 0xFF,
-        size,
-    }))
-}
-
-fn try_decode_immediate(raw: u32) -> Option<DecodeStep> {
-    let op = match raw & 0xFF3F_E3C0 {
-        0x6518_8000 => Opcode::SveFpAddImm,
-        0x651A_8000 => Opcode::SveFpMulImm,
+    let op = match raw & 0xFF20_FC00 {
+        0x6500_0000 => Opcode::SveFpAdd,
+        0x6500_0400 => Opcode::SveFpSub,
+        0x6500_0800 => Opcode::SveFpMul,
         _ => return None,
     };
     let size = 1u8 << (((raw >> 22) & 0x3) as u8);
     if size == 1 {
         return Some(DecodeStep::Reject);
     }
-    let rd = (raw & 0x1F) as u8;
     Some(DecodeStep::Hit(Instr {
         op,
-        rd,
-        rn: rd,
-        rm: 0,
-        imm: ((raw >> 5) & 1) as u64,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: 0,
         sf: true,
-        cond: ((raw >> 10) & 0x7) as u8,
+        cond: 0xFF,
         size,
     }))
 }

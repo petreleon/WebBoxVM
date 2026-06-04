@@ -29,6 +29,7 @@ mod sve_byte_store;
 mod sve_compare;
 mod sve_contiguous_load;
 mod sve_fp;
+mod sve_fp_arith_imm;
 mod sve_fp_compare;
 mod sve_fp_dup_imm;
 mod sve_fp_unary;

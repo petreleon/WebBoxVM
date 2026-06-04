@@ -6,6 +6,7 @@ use crate::bus::SystemBus;
 
 mod count;
 mod fp;
+mod fp_arith_immediate;
 mod fp_compare;
 mod fp_fused;
 mod fp_immediate;
@@ -25,6 +26,7 @@ mod vector;
 
 pub(super) use count::sve_pred_count;
 pub(super) use fp::exec_sve_fp_binary;
+pub(super) use fp_arith_immediate::{exec_sve_fp_imm, sve_fp_arith_is_immediate};
 pub(super) use fp_compare::exec_sve_fp_compare;
 pub(super) use fp_fused::exec_sve_fp_fused;
 pub(super) use fp_immediate::exec_sve_fp_dup_imm;

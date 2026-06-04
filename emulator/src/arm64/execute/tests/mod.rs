@@ -105,6 +105,7 @@ mod sve_fp_compare;
 mod sve_fp_div;
 mod sve_fp_immediate;
 mod sve_fp_unary;
+mod sve_fp_unpredicated;
 mod sve_logical_imm;
 mod sve_predicate;
 mod sve_predicated_dword_load_store;
