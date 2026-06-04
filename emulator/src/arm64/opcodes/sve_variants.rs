@@ -21,4 +21,7 @@ impl super::Opcode {
     pub const SveLd1d: Self = Self(83);
     pub const SveSt1d: Self = Self(84);
     pub const SveSt1b: Self = Self(260);
+    pub const SveLd1b: Self = Self(261);
+    pub const SveLd1rw: Self = Self(262);
+    pub const SveLd1rqw: Self = Self(263);
 }

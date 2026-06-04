@@ -22,6 +22,7 @@ mod simd_tail_system;
 mod simd_widen_helpers;
 mod simd_widen_integer;
 mod sve_byte_store;
+mod sve_contiguous_load;
 mod sve_predicate_ld1r;
 
 use super::{DecodeStep, Instr, Opcode, branch, data_proc, ldst, system};
@@ -47,6 +48,7 @@ macro_rules! try_stage {
 
 pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(early_sve_vector::decode(raw));
+    try_stage!(sve_contiguous_load::decode(raw));
     try_stage!(sve_byte_store::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));
     try_stage!(simd_dup_convert::decode(raw));

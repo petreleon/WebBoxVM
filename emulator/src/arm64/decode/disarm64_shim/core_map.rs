@@ -75,7 +75,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ldr | M::r#ldur if ((raw >> 26) & 1) != 0 => Opcode::SimdLdr,
         M::r#ldr | M::r#ldur | M::r#ldrb | M::r#ldurb | M::r#ldrh | M::r#ldurh => Opcode::Ldr,
         M::r#ld1rd if (raw & 0xFFC0_E000) == 0x85C0_E000 => Opcode::SveLd1rd,
+        M::r#ld1rw if (raw & 0xFFC0_E000) == 0x8540_C000 => Opcode::SveLd1rw,
         M::r#ld1rqd if (raw & 0xFFF0_E000) == 0xA580_2000 => Opcode::SveLd1rqd,
+        M::r#ld1rqw if (raw & 0xFFF0_E000) == 0xA500_2000 => Opcode::SveLd1rqw,
+        M::r#ld1b if (raw & 0xFF90_E000) == 0xA400_A000 => Opcode::SveLd1b,
         M::r#ld1d if (raw & 0xFFE0_E000) == 0xC5E0_C000 || (raw & 0xFFF0_E000) == 0xA5E0_A000 => {
             Opcode::SveLd1d
         }

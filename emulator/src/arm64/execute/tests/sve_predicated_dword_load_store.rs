@@ -74,4 +74,31 @@ fn sve_predicated_dword_load_store_forms_transfer_active_lanes() {
     execute(&mut cpu, &mut bus, decode(0xE461_ECA7).unwrap()).unwrap(); // st1b { z7.d }, p3, [x5, #0x1, mul vl]
     assert_eq!(bus.mem.read(base + 0x504, 1), Some(0x55));
     assert_eq!(bus.mem.read(base + 0x505, 1), Some(0xCC));
+
+    cpu.sve_vl_bytes = 16;
+    cpu.regs.set_x(0, base + 0x600);
+    execute(&mut cpu, &mut bus, decode(0x2558_E061).unwrap()).unwrap(); // ptrue p1.h, vl3
+    for offset in 0..8 {
+        bus.write(base + 0x5F8 + offset, 1, 0x40 + offset);
+    }
+    execute(&mut cpu, &mut bus, decode(0xA42F_A401).unwrap()).unwrap(); // ld1b { z1.h }, p1/z, [x0, #-0x1, mul vl]
+    assert_eq!(cpu.sve_z[1][0], 0x40);
+    assert_eq!(cpu.sve_z[1][2], 0x41);
+    assert_eq!(cpu.sve_z[1][4], 0x42);
+    assert_eq!(cpu.sve_z[1][6], 0);
+
+    bus.write(base + 0x604, 4, 0xAABB_CCDD);
+    execute(&mut cpu, &mut bus, decode(0x2518_E3E2).unwrap()).unwrap(); // ptrue p2.b
+    execute(&mut cpu, &mut bus, decode(0x8541_C802).unwrap()).unwrap(); // ld1rw { z2.s }, p2/z, [x0, #0x4]
+    assert_eq!(z_word(&cpu, 2, 0), 0xAABB_CCDD);
+    assert_eq!(z_word(&cpu, 2, 3), 0xAABB_CCDD);
+
+    for lane in 0..4 {
+        bus.write(base + 0x610 + lane * 4, 4, 0x1000 + lane);
+    }
+    execute(&mut cpu, &mut bus, decode(0xA501_2C03).unwrap()).unwrap(); // ld1rqw { z3.s }, p3/z, [x0, #0x10]
+    assert_eq!(z_word(&cpu, 3, 0), 0x1000);
+    assert_eq!(z_word(&cpu, 3, 1), 0);
+    assert_eq!(z_word(&cpu, 3, 2), 0);
+    assert_eq!(z_word(&cpu, 3, 3), 0);
 }

@@ -24,6 +24,13 @@ fn z_elem(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u64 {
     u64::from_le_bytes(bytes)
 }
 
+fn z_word(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u32 {
+    let offset = lane * 4;
+    let mut bytes = [0; 4];
+    bytes.copy_from_slice(&cpu.sve_z[reg][offset..offset + 4]);
+    u32::from_le_bytes(bytes)
+}
+
 fn set_z_elem(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u64) {
     let offset = lane * 8;
     cpu.sve_z[reg][offset..offset + 8].copy_from_slice(&value.to_le_bytes());
