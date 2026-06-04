@@ -31,7 +31,7 @@ pub(super) fn execute(
             let result = read_base(cpu, instr.rn, true).wrapping_add(offset);
             write_reg_sp(cpu, instr.rd, result, true);
         }
-        Opcode::SvePtrue => exec_sve_ptrue(cpu, instr),
+        Opcode::SvePtrue | Opcode::SvePtrues => exec_sve_ptrue(cpu, instr),
         Opcode::SvePtest => exec_sve_ptest(cpu, instr),
         Opcode::SvePredAnd
         | Opcode::SvePredBic

@@ -4,6 +4,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
     matches!(
         op,
         Opcode::SvePtrue
+            | Opcode::SvePtrues
             | Opcode::SvePtest
             | Opcode::SvePredAnd
             | Opcode::SvePredBic

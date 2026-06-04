@@ -11,6 +11,10 @@ pub(in crate::arm64::execute) fn exec_sve_ptrue(cpu: &mut Armv8Cpu, instr: Instr
         set_predicate_bit(&mut pred, element * element_size, true);
     }
 
+    if instr.op == Opcode::SvePtrues {
+        let flags = sve_pred_test(&pred, &pred, element_size, vl_bytes);
+        cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
+    }
     cpu.sve_pred[instr.rd as usize] = pred;
 }
 

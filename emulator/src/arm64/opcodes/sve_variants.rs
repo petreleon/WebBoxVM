@@ -4,6 +4,7 @@ impl super::Opcode {
     pub const SveAddvl: Self = Self(66);
     pub const SveAddsvl: Self = Self(67);
     pub const SvePtrue: Self = Self(68);
+    pub const SvePtrues: Self = Self(489);
     pub const SvePtest: Self = Self(69);
     pub const SvePredAnd: Self = Self(70);
     pub const SvePredOrr: Self = Self(71);

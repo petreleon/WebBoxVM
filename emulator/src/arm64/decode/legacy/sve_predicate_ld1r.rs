@@ -30,10 +30,15 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 1u8 << (((raw >> 22) & 0x3) as u8),
         });
     }
-    if (raw & 0xFF3F_FC10) == 0x2518_E000 {
+    let ptrue_base = raw & 0xFF3F_FC10;
+    if ptrue_base == 0x2518_E000 || ptrue_base == 0x2519_E000 {
         let size_bits = ((raw >> 22) & 0x3) as u8;
         return DecodeStep::Hit(Instr {
-            op: Opcode::SvePtrue,
+            op: if ptrue_base == 0x2518_E000 {
+                Opcode::SvePtrue
+            } else {
+                Opcode::SvePtrues
+            },
             rd: (raw & 0xF) as u8,
             rn: 0,
             rm: 0,

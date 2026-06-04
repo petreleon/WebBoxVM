@@ -8,6 +8,7 @@ fn maps_sve_predicate_mnemonics_by_encoding() {
         (0x2562_0FE0, Opcode::SveWhileLo),
         (0x25A6_0FE1, Opcode::SveWhileLo),
         (0x25E9_1CA3, Opcode::SveWhileLo),
+        (0x2599_E3E0, Opcode::SvePtrues),
     ];
 
     for (raw, expected) in cases {

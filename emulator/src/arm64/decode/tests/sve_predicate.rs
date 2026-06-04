@@ -5,6 +5,7 @@ fn decode_sve_predicate_forms() {
     let cases = [
         (0x2518_E3E3, Opcode::SvePtrue, "ptrue"),
         (0x25D8_E3E1, Opcode::SvePtrue, "ptrue"),
+        (0x2599_E3E0, Opcode::SvePtrues, "ptrues"),
         (0x2550_C060, Opcode::SvePtest, "ptest"),
         (0x2583_4443, Opcode::SvePredOrr, "orr"),
         (0x250F_480F, Opcode::SvePredAnd, "and"),
@@ -21,6 +22,12 @@ fn decode_sve_predicate_forms() {
     assert_eq!(ptrue.rd, 4);
     assert_eq!(ptrue.cond, 3);
     assert_eq!(ptrue.size, 2);
+
+    let ptrues = decode(0x2599_E061).unwrap(); // ptrues p1.s, vl3
+    assert_eq!(ptrues.op, Opcode::SvePtrues);
+    assert_eq!(ptrues.rd, 1);
+    assert_eq!(ptrues.cond, 3);
+    assert_eq!(ptrues.size, 4);
 
     let ptest = decode(0x2550_C460).unwrap(); // ptest p1, p3.b
     assert_eq!(ptest.op, Opcode::SvePtest);

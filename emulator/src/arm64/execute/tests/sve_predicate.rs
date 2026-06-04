@@ -24,6 +24,21 @@ fn sve_predicate_forms_update_predicates_and_flags() {
     assert!(pred_bit(&cpu, 4, 4));
     assert!(!pred_bit(&cpu, 4, 6));
 
+    execute(&mut cpu, &mut bus, decode(0x2599_E061).unwrap()).unwrap(); // ptrues p1.s, vl3
+    assert!(pred_bit(&cpu, 1, 0));
+    assert!(pred_bit(&cpu, 1, 4));
+    assert!(pred_bit(&cpu, 1, 8));
+    assert!(!pred_bit(&cpu, 1, 12));
+    assert!(cpu.pstate.n());
+    assert!(!cpu.pstate.z());
+    assert!(!cpu.pstate.c());
+
+    execute(&mut cpu, &mut bus, decode(0x2599_E125).unwrap()).unwrap(); // ptrues p5.s, vl16
+    assert_eq!(cpu.sve_pred[5], [0; 4]);
+    assert!(!cpu.pstate.n());
+    assert!(cpu.pstate.z());
+    assert!(cpu.pstate.c());
+
     cpu.sve_vl_bytes = 16;
     execute(&mut cpu, &mut bus, decode(0x2518_E3E0).unwrap()).unwrap(); // ptrue p0.b
     execute(&mut cpu, &mut bus, decode(0x2518_E022).unwrap()).unwrap(); // ptrue p2.b, vl1
