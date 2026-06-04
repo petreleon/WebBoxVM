@@ -37,6 +37,7 @@ pub(super) fn execute(
             exec_sve_pred_logical(cpu, instr)
         }
         Opcode::SveCmpHs | Opcode::SveCmpHsImm => exec_sve_int_compare(cpu, instr),
+        Opcode::SveWhileLo => exec_sve_whilelo(cpu, instr),
         Opcode::SveMovprfx => exec_sve_movprfx(cpu, instr),
         Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
         Opcode::SveDupImm => exec_sve_dup_imm(cpu, instr),

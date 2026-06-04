@@ -1,6 +1,6 @@
 use super::{Instr, Opcode};
 use crate::arm64::Armv8Cpu;
-use crate::arm64::helpers::read_base;
+use crate::arm64::helpers::{read_base, read_reg};
 use crate::arm64::mmu::{Fault, translate, translate_write};
 use crate::bus::SystemBus;
 
@@ -50,7 +50,7 @@ pub(super) use fp_indexed::exec_sve_fp_indexed;
 pub(super) use fp_trig_pair::exec_sve_fp_trig_pair;
 pub(super) use fp_unary::exec_sve_fp_unary;
 use helpers::*;
-pub(super) use int_compare::exec_sve_int_compare;
+pub(super) use int_compare::{exec_sve_int_compare, exec_sve_whilelo};
 pub(super) use logical_imm::exec_sve_logical_imm;
 pub(super) use logical_pred::exec_sve_logical_pred;
 pub(super) use memory_b::exec_sve_st1b;

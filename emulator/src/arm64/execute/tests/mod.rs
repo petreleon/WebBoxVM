@@ -133,6 +133,7 @@ mod sve_predicated_dword_load_store;
 mod sve_register_load_store;
 mod sve_shift_imm;
 mod sve_unpack;
+mod sve_whilelo;
 mod sve_word_load_store;
 mod sve_z_vector;
 mod system_misc;
