@@ -62,11 +62,12 @@ pub(super) fn decode_simd_sshll(raw: u32) -> Option<Instr> {
     })
 }
 
-pub(super) fn decode_simd_umlal_by_element(raw: u32) -> Option<Instr> {
-    if (raw & 0xBF00_F400) != 0x2F00_2000 {
-        return None;
-    }
-
+pub(super) fn decode_simd_widen_mul_by_element(raw: u32) -> Option<Instr> {
+    let op = match raw & 0xBF00_F400 {
+        0x2F00_2000 => Opcode::SimdUmlal,
+        0x2F00_A000 => Opcode::SimdUmullElem,
+        _ => return None,
+    };
     let size = ((raw >> 22) & 0x3) as u8;
     let q = ((raw >> 30) & 1) != 0;
     let l = ((raw >> 21) & 1) as u8;
@@ -80,12 +81,35 @@ pub(super) fn decode_simd_umlal_by_element(raw: u32) -> Option<Instr> {
     };
 
     Some(Instr {
-        op: Opcode::SimdUmlal,
+        op,
         rd: (raw & 0x1F) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
         rm,
         imm: index as u64,
         sf: q,
+        cond: element_size,
+        size: 16,
+    })
+}
+
+pub(super) fn decode_simd_widen_mul_vector(raw: u32) -> Option<Instr> {
+    let op = match raw & 0xBF20_FC00 {
+        0x2E20_8000 => Opcode::SimdUmlalVec,
+        0x2E20_C000 => Opcode::SimdUmull,
+        _ => return None,
+    };
+    let element_size = 1u8 << ((raw >> 22) & 0x3);
+    if element_size > 4 {
+        return None;
+    }
+
+    Some(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: 0,
+        sf: ((raw >> 30) & 1) != 0,
         cond: element_size,
         size: 16,
     })

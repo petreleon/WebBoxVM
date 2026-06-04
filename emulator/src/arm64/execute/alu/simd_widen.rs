@@ -12,13 +12,15 @@ pub(in crate::arm64::execute) fn is_simd_widen_opcode(op: Opcode) -> bool {
             | Opcode::SimdSaddw
             | Opcode::SimdUaddw
             | Opcode::SimdUmlal
+            | Opcode::SimdUmlalVec
+            | Opcode::SimdUmull
+            | Opcode::SimdUmullElem
     )
 }
 
 pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Instr) {
     let rd = instr.rd as usize;
     let rn = instr.rn as usize;
-    let rm = instr.rm as usize;
 
     match instr.op {
         Opcode::SimdUshll => {
@@ -85,23 +87,8 @@ pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Inst
         Opcode::SimdSsubw => exec_widen_add_sub(cpu, instr, true, true, true),
         Opcode::SimdSaddw => exec_widen_add_sub(cpu, instr, true, true, false),
         Opcode::SimdUaddw => exec_widen_add_sub(cpu, instr, true, false, false),
-        Opcode::SimdUmlal => {
-            let src_element_size = instr.cond.max(1) as usize;
-            let dst_element_size = src_element_size * 2;
-            let dst_bits = dst_element_size * 8;
-            let dst_mask = simd_element_mask(dst_element_size);
-            let lanes = 8 / src_element_size;
-            let source_base_lane = if instr.sf { lanes } else { 0 };
-            let scalar = simd_element(cpu.simd[rm], instr.imm as usize, src_element_size);
-            let mut out = cpu.simd[rd];
-            for lane in 0..lanes {
-                let lhs = simd_element(cpu.simd[rn], source_base_lane + lane, src_element_size);
-                let accum = simd_element(cpu.simd[rd], lane, dst_element_size);
-                let value = accum.wrapping_add(lhs.wrapping_mul(scalar)) & dst_mask;
-                out &= !(dst_mask << (lane * dst_bits));
-                out |= value << (lane * dst_bits);
-            }
-            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+        Opcode::SimdUmlal | Opcode::SimdUmlalVec | Opcode::SimdUmull | Opcode::SimdUmullElem => {
+            exec_simd_widen_mul(cpu, instr)
         }
         _ => unreachable!(),
     }

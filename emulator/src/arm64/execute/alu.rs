@@ -46,6 +46,7 @@ mod simd_reduce_helpers;
 mod simd_shift;
 mod simd_unary_compare;
 mod simd_widen;
+mod simd_widen_mul;
 
 use super::{Instr, Opcode};
 use crate::arm64::Armv8Cpu;
@@ -98,3 +99,4 @@ pub(super) use simd_reduce_helpers::*;
 pub(super) use simd_shift::*;
 pub(super) use simd_unary_compare::*;
 pub(super) use simd_widen::*;
+pub(super) use simd_widen_mul::*;

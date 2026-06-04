@@ -46,7 +46,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             });
         }
     }
-    if let Some(instr) = decode_simd_umlal_by_element(raw) {
+    if let Some(instr) = decode_simd_widen_mul_by_element(raw) {
+        return DecodeStep::Hit(instr);
+    }
+    if let Some(instr) = decode_simd_widen_mul_vector(raw) {
         return DecodeStep::Hit(instr);
     }
     if (raw & 0xBF20_FC00) == 0x0E20_8400 {
