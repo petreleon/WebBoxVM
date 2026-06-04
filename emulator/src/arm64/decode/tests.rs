@@ -830,6 +830,27 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x7E20_BBE1).unwrap().op, Opcode::SimdNeg);
     assert!(decode(0x2EE0_BBE1).is_none());
     assert_eq!(decode(0x6EE0_FBFF).unwrap().op, Opcode::SimdFpNeg);
+    let fadd_vec = decode(0x4E20_D400).unwrap();
+    assert_eq!(fadd_vec.op, Opcode::SimdFpAddVec);
+    assert_eq!(fadd_vec.imm, 4);
+    assert_eq!(fadd_vec.size, 16);
+    let fsub_vec = decode(0x4EA3_D441).unwrap();
+    assert_eq!(fsub_vec.op, Opcode::SimdFpSubVec);
+    assert_eq!(fsub_vec.rd, 1);
+    assert_eq!(fsub_vec.rn, 2);
+    assert_eq!(fsub_vec.rm, 3);
+    let fmul_vec = decode(0x6E26_DCA4).unwrap();
+    assert_eq!(fmul_vec.op, Opcode::SimdFpMulVec);
+    assert_eq!(fmul_vec.size, 16);
+    let fdiv_vec = decode(0x6E7C_FF7B).unwrap();
+    assert_eq!(fdiv_vec.op, Opcode::SimdFpDivVec);
+    assert_eq!(fdiv_vec.rd, 27);
+    assert_eq!(fdiv_vec.rn, 27);
+    assert_eq!(fdiv_vec.rm, 28);
+    assert_eq!(fdiv_vec.imm, 8);
+    assert_eq!(fdiv_vec.size, 16);
+    assert!(decode(0x0E60_D400).is_none());
+    assert!(decode(0x0E60_FC00).is_none());
     assert_eq!(decode(0x6EFD_87FF).unwrap().op, Opcode::SimdSubVec);
 }
 
@@ -840,6 +861,10 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E79_2BFF, Opcode::FpAdd, "fadd"),
         (0x1E7B_3B9A, Opcode::FpSub, "fsub"),
         (0x1E60_1BE0, Opcode::FpDiv, "fdiv"),
+        (0x4E20_D400, Opcode::SimdFpAddVec, "fadd"),
+        (0x4EA3_D441, Opcode::SimdFpSubVec, "fsub"),
+        (0x6E26_DCA4, Opcode::SimdFpMulVec, "fmul"),
+        (0x6E7C_FF7B, Opcode::SimdFpDivVec, "fdiv"),
         (0x1E61_401F, Opcode::FpNeg, "fneg"),
         (0x1E60_C000, Opcode::FpAbs, "fabs"),
         (0x1E61_C000, Opcode::FpSqrt, "fsqrt"),

@@ -245,6 +245,18 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: if q { 16 } else { 8 },
         });
     }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x0E20_D400, Opcode::SimdFpAddVec) {
+        return Some(instr);
+    }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x0EA0_D400, Opcode::SimdFpSubVec) {
+        return Some(instr);
+    }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x2E20_DC00, Opcode::SimdFpMulVec) {
+        return Some(instr);
+    }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x2E20_FC00, Opcode::SimdFpDivVec) {
+        return Some(instr);
+    }
     if (raw & 0xFF3F_FC00) == 0x7E20_B800 {
         return Some(Instr {
             op: Opcode::SimdNeg,
@@ -2200,6 +2212,27 @@ fn decode_umov_element(imm5: u8) -> Option<(u8, u8)> {
     } else {
         None
     }
+}
+
+fn decode_simd_fp_binary(raw: u32, pattern: u32, op: Opcode) -> Option<Instr> {
+    if (raw & 0xBFA0_FC00) != pattern {
+        return None;
+    }
+    let q = ((raw >> 30) & 1) != 0;
+    let element_size = if ((raw >> 22) & 1) != 0 { 8 } else { 4 };
+    if element_size == 8 && !q {
+        return None;
+    }
+    Some(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: element_size,
+        sf: true,
+        cond: 0,
+        size: if q { 16 } else { 8 },
+    })
 }
 
 fn is_ldst_pair(raw: u32) -> bool {

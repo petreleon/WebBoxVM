@@ -301,6 +301,46 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             };
             write_fp_bits(cpu, instr.rd, value, instr.size);
         }
+        Opcode::SimdFpAddVec => {
+            cpu.simd[rd] = simd_fp_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b| a + b,
+                |a, b| a + b,
+            );
+        }
+        Opcode::SimdFpSubVec => {
+            cpu.simd[rd] = simd_fp_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b| a - b,
+                |a, b| a - b,
+            );
+        }
+        Opcode::SimdFpMulVec => {
+            cpu.simd[rd] = simd_fp_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b| a * b,
+                |a, b| a * b,
+            );
+        }
+        Opcode::SimdFpDivVec => {
+            cpu.simd[rd] = simd_fp_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b| a / b,
+                |a, b| a / b,
+            );
+        }
         Opcode::SimdShrn => {
             let src = cpu.simd[rn];
             let shift = instr.imm as usize;
@@ -1652,6 +1692,40 @@ where
         out |= (f(acc, a, b) & element_mask) << (lane * bits);
     }
     out
+}
+
+fn simd_fp_elementwise_binary<F32, F64>(
+    lhs: u128,
+    rhs: u128,
+    element_size: usize,
+    vector_size: usize,
+    op32: F32,
+    op64: F64,
+) -> u128
+where
+    F32: Fn(f32, f32) -> f32,
+    F64: Fn(f64, f64) -> f64,
+{
+    let lanes = vector_size / element_size;
+    let mut out = 0u128;
+    match element_size {
+        4 => {
+            for lane in 0..lanes {
+                let a = f32::from_bits(simd_element(lhs, lane, element_size) as u32);
+                let b = f32::from_bits(simd_element(rhs, lane, element_size) as u32);
+                out |= (op32(a, b).to_bits() as u128) << (lane * 32);
+            }
+        }
+        8 => {
+            for lane in 0..lanes {
+                let a = f64::from_bits(simd_element(lhs, lane, element_size) as u64);
+                let b = f64::from_bits(simd_element(rhs, lane, element_size) as u64);
+                out |= (op64(a, b).to_bits() as u128) << (lane * 64);
+            }
+        }
+        _ => {}
+    }
+    out & simd_vector_mask(vector_size)
 }
 
 fn simd_pairwise_binary<F>(
