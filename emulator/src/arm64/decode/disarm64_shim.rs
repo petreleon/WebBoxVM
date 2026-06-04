@@ -9,6 +9,8 @@ mod fp_map;
 mod helpers;
 mod simd_ldst_map;
 mod simd_map;
+#[cfg(test)]
+mod tests;
 
 use super::super::opcodes::{Instr, Opcode};
 use disarm64::decoder;

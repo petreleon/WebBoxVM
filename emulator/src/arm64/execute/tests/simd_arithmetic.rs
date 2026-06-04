@@ -73,3 +73,15 @@ fn simd_userland_arithmetic_ops() {
     execute(&mut cpu, &mut bus, decode(0x4EB6_8FDF).unwrap()).unwrap(); // cmtst v31.4s, v30.4s, v22.4s
     assert_eq!(cpu.simd[31], 0x0000_0000_ffff_ffff_0000_0000_ffff_ffff);
 }
+
+#[test]
+fn simd_addhn_uses_decoded_rm_register() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[7] = 0xf000_1111_abcd_1234_ffff_8000_0100_00ff;
+    cpu.simd[8] = 0x1000_eeee_1111_0101_0001_8000_0200_0001;
+
+    execute(&mut cpu, &mut bus, decode(0x0E28_40E6).unwrap()).unwrap();
+
+    assert_eq!(cpu.simd[6], 0x00ff_bc13_0000_0301);
+}

@@ -19,6 +19,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#xar => Opcode::SimdXar,
         M::r#sel if (raw & 0xFF20_C000) == 0x0520_C000 => Opcode::SveSel,
         M::r#addp => Opcode::SimdAddp,
+        M::r#addhn if (raw & 0xFFE0_FC00) == 0x0E20_4000 => Opcode::SimdAddhn,
         M::r#addv => Opcode::SimdAddv,
         M::r#umaxv => Opcode::SimdUmaxv,
         M::r#cmeq
@@ -34,6 +35,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#cmhi if (raw & 0xBF20_FC00) == 0x2E20_3400 || (raw & 0xFFE0_FC00) == 0x7EE0_3400 => {
             Opcode::SimdCmhiReg
         }
+        M::r#cmhs if (raw & 0xFFE0_FC00) == 0x6E20_3C00 => Opcode::SimdCmhsReg,
         M::r#abs if (raw & 0xBF3F_FC00) == 0x0E20_B800 || (raw & 0xFFFF_FC00) == 0x5EE0_B800 => {
             Opcode::SimdAbs
         }
@@ -71,6 +73,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ssubw | M::r#ssubw2 => Opcode::SimdSsubw,
         M::r#umlal | M::r#umlal2 => Opcode::SimdUmlal,
         M::r#uqsub if (raw & 0xFF20_FC00) == 0x7E20_2C00 => Opcode::SimdUqsub,
+        M::r#umaxp if (raw & 0xFF20_FC00) == 0x6E20_A400 => Opcode::SimdUmaxp,
         M::r#uminp => Opcode::SimdUminp,
         _ => return None,
     })

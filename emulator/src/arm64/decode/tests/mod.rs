@@ -10,6 +10,7 @@ mod busybox_fp_fields;
 mod busybox_simd_cases;
 mod loads_literals;
 mod pairs_and_initial_simd;
+mod simd_pairwise_narrow;
 mod simd_userland_arith_move;
 mod simd_userland_dup;
 mod simd_userland_fp_imm_cmp;

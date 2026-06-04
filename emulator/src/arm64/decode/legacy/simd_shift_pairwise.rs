@@ -66,7 +66,7 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 8,
         });
     }
-    if (raw & 0xFFFF_FC00) == 0x0E21_4000 {
+    if (raw & 0xFFE0_FC00) == 0x0E20_4000 {
         return DecodeStep::Hit(Instr {
             op: Opcode::SimdAddhn,
             rd: (raw & 0x1F) as u8,
