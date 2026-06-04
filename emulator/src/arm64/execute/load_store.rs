@@ -442,9 +442,20 @@ pub(super) fn exec_ldr_lit(
     instr: Instr,
 ) -> Result<(), &'static str> {
     let va = branch_target(cpu.regs.pc, instr.imm);
-    let size = if instr.sf { 8 } else { 4 };
-    let val = read_guest(cpu, bus, va, size, "LDR literal bus fault")?;
-    write_reg(cpu, instr.rd, val, instr.sf);
+    if instr.size != 0 {
+        cpu.simd[instr.rd as usize] =
+            read_simd_guest(cpu, bus, va, instr.size, "SIMD LDR literal bus fault")?;
+        return Ok(());
+    }
+
+    if instr.cond == 1 {
+        let val = read_guest(cpu, bus, va, 4, "LDR literal bus fault")?;
+        write_reg(cpu, instr.rd, val as u32 as i32 as i64 as u64, true);
+    } else {
+        let size = if instr.sf { 8 } else { 4 };
+        let val = read_guest(cpu, bus, va, size, "LDR literal bus fault")?;
+        write_reg(cpu, instr.rd, val, instr.sf);
+    }
     Ok(())
 }
 

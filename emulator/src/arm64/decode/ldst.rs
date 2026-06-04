@@ -4,7 +4,14 @@ use super::{Instr, Opcode};
 
 pub(super) fn decode_ldr_lit(raw: u32) -> Option<Instr> {
     let opc = (raw >> 30) & 0x3;
+    let simd = ((raw >> 26) & 1) != 0;
+    let imm19 = ((raw >> 5) & 0x7FFFF) as i32;
+    let offset = (imm19 << 13) >> 11;
+    let rt = (raw & 0x1F) as u8;
     if opc == 0b11 {
+        if simd {
+            return None;
+        }
         return Some(Instr {
             size: 0,
             op: Opcode::Nop,
@@ -16,18 +23,17 @@ pub(super) fn decode_ldr_lit(raw: u32) -> Option<Instr> {
             cond: 0,
         });
     }
-    let imm19 = ((raw >> 5) & 0x7FFFF) as i32;
-    let offset = (imm19 << 13) >> 11;
-    let rt = (raw & 0x1F) as u8;
+
+    let size = if simd { 4u8 << opc } else { 0 };
     Some(Instr {
-        size: 0,
+        size,
         op: Opcode::LdrLit,
         rd: rt,
         rn: 0,
         rm: 0,
         imm: offset as u64,
-        sf: opc != 0,
-        cond: 0,
+        sf: opc != 0 || simd,
+        cond: if !simd && opc == 0b10 { 1 } else { 0 },
     })
 }
 

@@ -1438,7 +1438,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
         return ldst::decode_ldst(raw);
     }
 
-    if ((raw >> 24) & 0xF8) == 0x58 {
+    if (raw & 0x3B00_0000) == 0x1800_0000 {
         return ldst::decode_ldr_lit(raw);
     }
 

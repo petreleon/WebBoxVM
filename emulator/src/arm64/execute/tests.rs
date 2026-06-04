@@ -1547,6 +1547,44 @@ fn ldr_str_roundtrip() {
 }
 
 #[test]
+fn ldr_literal_loads_gpr_and_simd_registers() {
+    let (mut cpu, mut bus) = setup();
+    let pc = RAM_BASE + 0x3000;
+
+    cpu.regs.pc = pc;
+    bus.mem.write(pc, 4, 0xCAFE_BABE);
+    execute(&mut cpu, &mut bus, decode(0x1800_0003).unwrap()).unwrap(); // ldr w3, #0
+    assert_eq!(cpu.regs.w(3), 0xCAFE_BABE);
+    assert_eq!(cpu.regs.x(3) >> 32, 0);
+
+    cpu.regs.pc = pc;
+    bus.mem.write(pc, 8, 0x0123_4567_89AB_CDEF);
+    execute(&mut cpu, &mut bus, decode(0x5800_0004).unwrap()).unwrap(); // ldr x4, #0
+    assert_eq!(cpu.regs.x(4), 0x0123_4567_89AB_CDEF);
+
+    cpu.regs.pc = pc;
+    bus.mem.write(pc, 4, 0xFFFF_FFFC);
+    execute(&mut cpu, &mut bus, decode(0x9800_0005).unwrap()).unwrap(); // ldrsw x5, #0
+    assert_eq!(cpu.regs.x(5), 0xFFFF_FFFF_FFFF_FFFC);
+
+    cpu.regs.pc = pc;
+    bus.mem.write(pc, 4, 0x3F80_0000);
+    execute(&mut cpu, &mut bus, decode(0x1C00_0006).unwrap()).unwrap(); // ldr s6, #0
+    assert_eq!(cpu.simd[6], 0x3F80_0000);
+
+    cpu.regs.pc = pc;
+    bus.mem.write(pc, 8, 0x4008_0000_0000_0000);
+    execute(&mut cpu, &mut bus, decode(0x5C00_0007).unwrap()).unwrap(); // ldr d7, #0
+    assert_eq!(cpu.simd[7], 0x4008_0000_0000_0000);
+
+    cpu.regs.pc = pc;
+    bus.mem.write(pc, 8, 0x0706_0504_0302_0100);
+    bus.mem.write(pc + 8, 8, 0x0F0E_0D0C_0B0A_0908);
+    execute(&mut cpu, &mut bus, decode(0x9C00_0008).unwrap()).unwrap(); // ldr q8, #0
+    assert_eq!(cpu.simd[8], 0x0F0E_0D0C_0B0A_0908_0706_0504_0302_0100);
+}
+
+#[test]
 fn ccmp_immediate_compares_literal() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.set_w(5, 0);
