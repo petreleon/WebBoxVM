@@ -19,7 +19,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#xar => Opcode::SimdXar,
         M::r#sel if (raw & 0xFF20_C000) == 0x0520_C000 => Opcode::SveSel,
         M::r#addp => Opcode::SimdAddp,
-        M::r#addhn if (raw & 0xFFE0_FC00) == 0x0E20_4000 => Opcode::SimdAddhn,
+        M::r#addhn if (raw & 0xFF20_FC00) == 0x0E20_4000 => Opcode::SimdAddhn,
+        M::r#subhn if (raw & 0xFF20_FC00) == 0x0E20_6000 => Opcode::SimdSubhn,
         M::r#addv => Opcode::SimdAddv,
         M::r#umaxv => Opcode::SimdUmaxv,
         M::r#cmeq

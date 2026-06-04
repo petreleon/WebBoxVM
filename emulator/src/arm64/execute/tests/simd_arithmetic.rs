@@ -85,3 +85,18 @@ fn simd_addhn_uses_decoded_rm_register() {
 
     assert_eq!(cpu.simd[6], 0x00ff_bc13_0000_0301);
 }
+
+#[test]
+fn simd_subhn_keeps_high_half_of_wrapping_difference() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[0] = 0x0001_0000_8000_ffff_1234_0000_0200_0100;
+    cpu.simd[30] = 0x0002_0001_0001_0000_1200_0001_0100_0300;
+    execute(&mut cpu, &mut bus, decode(0x0E7E_6002).unwrap()).unwrap(); // subhn v2.4h, v0.4s, v30.4s
+    assert_eq!(cpu.simd[2], 0xfffe_7fff_0033_00ff);
+
+    cpu.simd[2] = 0x0000_0000_0000_0000_0000_0002_0000_0000;
+    cpu.simd[5] = 0x0000_0001_0000_0000_0000_0000_0000_0001;
+    execute(&mut cpu, &mut bus, decode(0x0EA5_6042).unwrap()).unwrap(); // subhn v2.2s, v2.2d, v5.2d
+    assert_eq!(cpu.simd[2], 0xffff_ffff_0000_0001);
+}

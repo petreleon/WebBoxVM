@@ -23,16 +23,15 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
-        Opcode::SimdAddhn => {
-            let lhs = cpu.simd[rn];
-            let rhs = cpu.simd[rm];
-            let mut out = 0u128;
-            for lane in 0..8 {
-                let a = ((lhs >> (lane * 16)) & 0xffff) as u16;
-                let b = ((rhs >> (lane * 16)) & 0xffff) as u16;
-                out |= ((((a as u32 + b as u32) >> 8) & 0xff) as u128) << (lane * 8);
-            }
-            cpu.simd[rd] = out;
+        Opcode::SimdAddhn | Opcode::SimdSubhn => {
+            cpu.simd[rd] =
+                simd_narrow_high(cpu.simd[rn], cpu.simd[rm], instr.imm as usize, |a, b| {
+                    if instr.op == Opcode::SimdAddhn {
+                        a.wrapping_add(b)
+                    } else {
+                        a.wrapping_sub(b)
+                    }
+                });
         }
         Opcode::SimdAddVec => {
             cpu.simd[rd] = simd_elementwise_binary(
@@ -90,4 +89,24 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
         }
         _ => unreachable!(),
     }
+}
+
+fn simd_narrow_high<F>(lhs: u128, rhs: u128, dest_element_size: usize, op: F) -> u128
+where
+    F: Fn(u128, u128) -> u128,
+{
+    let src_element_size = dest_element_size * 2;
+    let dest_bits = dest_element_size * 8;
+    let dest_mask = simd_element_mask(dest_element_size);
+    let src_mask = simd_element_mask(src_element_size);
+    let lanes = 8 / dest_element_size;
+    let mut out = 0u128;
+    for lane in 0..lanes {
+        let value = op(
+            simd_element(lhs, lane, src_element_size),
+            simd_element(rhs, lane, src_element_size),
+        ) & src_mask;
+        out |= ((value >> dest_bits) & dest_mask) << (lane * dest_bits);
+    }
+    out & simd_vector_mask(lanes * dest_element_size)
 }

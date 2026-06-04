@@ -42,6 +42,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         | Opcode::SimdCmhiReg
         | Opcode::SimdShrn
         | Opcode::SimdAddhn
+        | Opcode::SimdSubhn
         | Opcode::SimdAddVec
         | Opcode::SimdSubVec
         | Opcode::SimdMulVec

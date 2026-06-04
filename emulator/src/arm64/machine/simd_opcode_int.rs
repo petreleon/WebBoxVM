@@ -22,6 +22,7 @@ pub(in crate::arm64::machine) fn is_simd_integer_opcode(op: Opcode) -> bool {
             | Opcode::SimdCmhiReg
             | Opcode::SimdShrn
             | Opcode::SimdAddhn
+            | Opcode::SimdSubhn
             | Opcode::SimdAddVec
             | Opcode::SimdSubVec
             | Opcode::SimdMulVec

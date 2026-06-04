@@ -66,17 +66,11 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 8,
         });
     }
-    if (raw & 0xFFE0_FC00) == 0x0E20_4000 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdAddhn,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: 0,
-            sf: false,
-            cond: 0,
-            size: 8,
-        });
+    if let Some(step) = decode_simd_narrow_high(raw, 0x0E20_4000, Opcode::SimdAddhn) {
+        return step;
+    }
+    if let Some(step) = decode_simd_narrow_high(raw, 0x0E20_6000, Opcode::SimdSubhn) {
+        return step;
     }
     if (raw & 0xBF20_FC00) == 0x0E20_BC00 {
         let q = ((raw >> 30) & 1) != 0;
@@ -126,4 +120,25 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     DecodeStep::Miss
+}
+
+fn decode_simd_narrow_high(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {
+    if (raw & 0xFF20_FC00) != base {
+        return None;
+    }
+    let size = (raw >> 22) & 0x3;
+    if size == 0x3 {
+        return Some(DecodeStep::Reject);
+    }
+    let dest_element_size = 1u64 << size;
+    Some(DecodeStep::Hit(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: dest_element_size,
+        sf: false,
+        cond: 0,
+        size: 8,
+    }))
 }
