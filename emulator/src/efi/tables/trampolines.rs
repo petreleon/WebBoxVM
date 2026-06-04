@@ -119,9 +119,6 @@ pub(super) fn build_locate_protocol_trampoline() -> Vec<u32> {
 }
 
 /// Build the AllocatePages trampoline.
-///
-/// Signature: AllocatePages(Type=X0, MemoryType=X1, Pages=X2, *Memory=X3)
-///
 /// Loads the current bump head from EFI_PAGE_ALLOC_HEAD, rounds up to page
 /// boundary, bumps by Pages * 4096, stores the allocated address into *Memory,
 /// and returns EFI_SUCCESS.

@@ -1,14 +1,6 @@
 //! Apply PE32+ base relocations (.reloc section).
 //!
-//! When a PE/COFF image is loaded at a different address than its
-//! preferred base, every absolute pointer in the image must be adjusted
-//! by the delta.  This module walks the .reloc directory and applies
-//! these fixups.
-//!
-//! Supported relocation types:
-//!   - IMAGE_REL_BASED_ABSOLUTE (0) — padding, no-op
-//!   - IMAGE_REL_BASED_HIGHLOW  (3) — 32-bit fixup
-//!   - IMAGE_REL_BASED_DIR64    (10) — 64-bit fixup
+//! Walks the .reloc directory and adjusts absolute pointers by load delta.
 
 use crate::bus::SystemBus;
 use crate::constants::*;
