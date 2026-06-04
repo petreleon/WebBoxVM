@@ -138,6 +138,7 @@ mod sve_fp_scale;
 mod sve_fp_trig;
 mod sve_fp_unary;
 mod sve_fp_unpredicated;
+mod sve_index;
 mod sve_logical_imm;
 mod sve_logical_pred;
 mod sve_permute;

@@ -52,6 +52,7 @@ mod sve_fp_fscale;
 mod sve_fp_ftmad;
 mod sve_fp_trig;
 mod sve_fp_unary;
+mod sve_index;
 mod sve_logical_imm;
 mod sve_logical_pred;
 mod sve_permute;
@@ -101,6 +102,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp_compare::decode(raw));
     try_stage!(sve_fp::decode(raw));
     try_stage!(sve_dup::decode(raw));
+    try_stage!(sve_index::decode(raw));
     try_stage!(sve_shift_imm::decode(raw));
     try_stage!(sve_xar::decode(raw));
     try_stage!(sve_unpack::decode(raw));
