@@ -547,6 +547,15 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdTrn1 => {
+            cpu.simd[rd] = simd_trn(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                false,
+            );
+        }
         Opcode::SimdZip1 | Opcode::SimdZip2 => {
             let element_size = instr.imm.max(1) as usize;
             let high_half = instr.op == Opcode::SimdZip2;
@@ -1483,6 +1492,25 @@ fn simd_zip(
     for lane in 0..half {
         out |= simd_element(lhs, start + lane, element_size) << ((lane * 2) * bits);
         out |= simd_element(rhs, start + lane, element_size) << ((lane * 2 + 1) * bits);
+    }
+    out & simd_vector_mask(vector_size)
+}
+
+fn simd_trn(
+    lhs: u128,
+    rhs: u128,
+    element_size: usize,
+    vector_size: usize,
+    high_half: bool,
+) -> u128 {
+    let bits = element_size * 8;
+    let lanes = vector_size / element_size;
+    let start = if high_half { 1 } else { 0 };
+    let mut out = 0u128;
+    for pair in 0..(lanes / 2) {
+        let source_lane = start + pair * 2;
+        out |= simd_element(lhs, source_lane, element_size) << ((pair * 2) * bits);
+        out |= simd_element(rhs, source_lane, element_size) << ((pair * 2 + 1) * bits);
     }
     out & simd_vector_mask(vector_size)
 }

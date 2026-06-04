@@ -425,6 +425,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdEor
         | Opcode::SimdInsElem
         | Opcode::SimdUzp1
+        | Opcode::SimdTrn1
         | Opcode::SimdZip1
         | Opcode::SimdZip2
         | Opcode::SimdTbl

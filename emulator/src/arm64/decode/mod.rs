@@ -379,6 +379,10 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     }
     if (raw & 0xBF20_FC00) == 0x0E00_1800 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
+        let vector_size = if (raw >> 30) != 0 { 16 } else { 8 };
+        if element_size >= vector_size {
+            return None;
+        }
         return Some(Instr {
             op: Opcode::SimdUzp1,
             rd: (raw & 0x1F) as u8,
@@ -387,11 +391,32 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             imm: element_size,
             sf: true,
             cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
+            size: vector_size as u8,
+        });
+    }
+    if (raw & 0xBF20_FC00) == 0x0E00_2800 {
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        let vector_size = if (raw >> 30) != 0 { 16 } else { 8 };
+        if element_size >= vector_size {
+            return None;
+        }
+        return Some(Instr {
+            op: Opcode::SimdTrn1,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: element_size,
+            sf: true,
+            cond: 0,
+            size: vector_size as u8,
         });
     }
     if (raw & 0xBF20_FC00) == 0x0E00_3800 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
+        let vector_size = if (raw >> 30) != 0 { 16 } else { 8 };
+        if element_size >= vector_size {
+            return None;
+        }
         return Some(Instr {
             op: Opcode::SimdZip1,
             rd: (raw & 0x1F) as u8,
@@ -400,11 +425,15 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             imm: element_size,
             sf: true,
             cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
+            size: vector_size as u8,
         });
     }
     if (raw & 0xBF20_FC00) == 0x0E00_7800 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
+        let vector_size = if (raw >> 30) != 0 { 16 } else { 8 };
+        if element_size >= vector_size {
+            return None;
+        }
         return Some(Instr {
             op: Opcode::SimdZip2,
             rd: (raw & 0x1F) as u8,
@@ -413,7 +442,7 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             imm: element_size,
             sf: true,
             cond: 0,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
+            size: vector_size as u8,
         });
     }
     if (raw & 0xBFE0_9C00) == 0x0E00_0000 {

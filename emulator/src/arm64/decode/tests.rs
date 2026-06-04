@@ -533,6 +533,14 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(zip2_halfwords.rn, 31);
     assert_eq!(zip2_halfwords.rm, 27);
     assert_eq!(zip2_halfwords.imm, 2);
+    let trn1_doublewords = decode(0x4ECD_296D).unwrap();
+    assert_eq!(trn1_doublewords.op, Opcode::SimdTrn1);
+    assert_eq!(trn1_doublewords.rd, 13);
+    assert_eq!(trn1_doublewords.rn, 11);
+    assert_eq!(trn1_doublewords.rm, 13);
+    assert_eq!(trn1_doublewords.imm, 8);
+    assert_eq!(trn1_doublewords.size, 16);
+    assert!(decode(0x0EC0_2800).is_none());
     let tbl = decode(0x4E17_03FF).unwrap();
     assert_eq!(tbl.op, Opcode::SimdTbl);
     assert_eq!(tbl.rd, 31);
@@ -698,6 +706,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x0EBE_9FBD, Opcode::SimdMulVec, "mul"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
+        (0x4ECD_296D, Opcode::SimdTrn1, "trn1"),
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
         (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),
         (0x4E17_03FF, Opcode::SimdTbl, "tbl"),

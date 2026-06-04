@@ -537,6 +537,16 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     execute(&mut cpu, &mut bus, decode(0x4E9C_1BDE).unwrap()).unwrap(); // uzp1 v30.4s, v30.4s, v28.4s
     assert_eq!(cpu.simd[30], 0x0000_0007_0000_0005_0000_0003_0000_0001);
 
+    cpu.simd[8] = vector_bytes(0);
+    cpu.simd[12] = vector_bytes(0x80);
+    execute(&mut cpu, &mut bus, decode(0x4E0C_290B).unwrap()).unwrap(); // trn1 v11.16b, v8.16b, v12.16b
+    assert_eq!(cpu.simd[11], 0x8e0e_8c0c_8a0a_8808_8606_8404_8202_8000);
+
+    cpu.simd[12] = 0x0000_0004_0000_0003_0000_0002_0000_0001;
+    cpu.simd[14] = 0x1004_0000_1003_0000_1002_0000_1001_0000;
+    execute(&mut cpu, &mut bus, decode(0x4ECE_298B).unwrap()).unwrap(); // trn1 v11.2d, v12.2d, v14.2d
+    assert_eq!(cpu.simd[11], 0x1002_0000_1001_0000_0000_0002_0000_0001);
+
     cpu.simd[31] = vector_bytes(0);
     cpu.simd[27] = vector_bytes(0x80);
     execute(&mut cpu, &mut bus, decode(0x4E1B_3BFD).unwrap()).unwrap(); // zip1 v29.16b, v31.16b, v27.16b
