@@ -42,3 +42,30 @@ fn decode_sve_ftmad_forms_cross_checked_with_disarm64() {
 
     assert!(decode(0x6510_8000).is_none());
 }
+
+#[test]
+fn decode_sve_ftsmul_and_ftssel_forms_cross_checked_with_disarm64() {
+    assert_decode_cases(&[
+        (0x6543_0C41, Opcode::SveFpFtsmul, "ftsmul"),
+        (0x6583_0C41, Opcode::SveFpFtsmul, "ftsmul"),
+        (0x65C3_0C41, Opcode::SveFpFtsmul, "ftsmul"),
+        (0x0463_B041, Opcode::SveFpFtssel, "ftssel"),
+        (0x04A3_B041, Opcode::SveFpFtssel, "ftssel"),
+        (0x04E3_B041, Opcode::SveFpFtssel, "ftssel"),
+    ]);
+
+    let smul = decode(0x6583_0C41).unwrap(); // ftsmul z1.s, z2.s, z3.s
+    assert_eq!(
+        (smul.rd, smul.rn, smul.rm, smul.cond, smul.size),
+        (1, 2, 3, 0xFF, 4)
+    );
+
+    let ssel = decode(0x04E3_B041).unwrap(); // ftssel z1.d, z2.d, z3.d
+    assert_eq!(
+        (ssel.rd, ssel.rn, ssel.rm, ssel.cond, ssel.size),
+        (1, 2, 3, 0xFF, 8)
+    );
+
+    assert!(decode(0x6503_0C41).is_none());
+    assert!(decode(0x0423_B041).is_none());
+}
