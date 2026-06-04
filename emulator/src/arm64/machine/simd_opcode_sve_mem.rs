@@ -32,6 +32,9 @@ pub(in crate::arm64::machine) fn is_sve_opcode(op: Opcode) -> bool {
             | Opcode::SveFpFmls
             | Opcode::SveFpFmad
             | Opcode::SveFpFmsb
+            | Opcode::SveFpFmlaIndex
+            | Opcode::SveFpFmlsIndex
+            | Opcode::SveFpMulIndex
     )
 }
 

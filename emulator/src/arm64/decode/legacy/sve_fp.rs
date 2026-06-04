@@ -1,9 +1,44 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    if let Some(step) = try_decode_indexed(raw) {
+        return step;
+    }
     match try_decode_fused(raw) {
         Some(step) => step,
         None => decode_binary(raw),
+    }
+}
+
+fn try_decode_indexed(raw: u32) -> Option<DecodeStep> {
+    let op = match raw & 0xFF20_FC00 {
+        0x6420_0000 => Opcode::SveFpFmlaIndex,
+        0x6420_0400 => Opcode::SveFpFmlsIndex,
+        0x6420_2000 => Opcode::SveFpMulIndex,
+        _ => return None,
+    };
+    let (size, index, rm) = indexed_size_index_rm(raw);
+    Some(DecodeStep::Hit(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm,
+        imm: index as u64,
+        sf: true,
+        cond: 0xFF,
+        size,
+    }))
+}
+
+fn indexed_size_index_rm(raw: u32) -> (u8, u8, u8) {
+    if ((raw >> 23) & 1) == 0 {
+        let index = ((((raw >> 22) & 1) << 2) | ((raw >> 19) & 0x3)) as u8;
+        (2, index, ((raw >> 16) & 0x7) as u8)
+    } else if ((raw >> 22) & 1) == 0 {
+        let index = ((((raw >> 20) & 1) << 1) | ((raw >> 19) & 1)) as u8;
+        (4, index, ((raw >> 16) & 0x7) as u8)
+    } else {
+        (8, ((raw >> 20) & 1) as u8, ((raw >> 16) & 0xF) as u8)
     }
 }
 

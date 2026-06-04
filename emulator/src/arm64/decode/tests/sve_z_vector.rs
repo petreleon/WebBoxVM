@@ -19,6 +19,9 @@ fn decode_sve_z_vector_forms() {
         (0x65E7_239A, Opcode::SveFpFmls, "fmls"),
         (0x65FC_83BF, Opcode::SveFpFmad, "fmad"),
         (0x65FC_A3E6, Opcode::SveFpFmsb, "fmsb"),
+        (0x64B6_00A4, Opcode::SveFpFmlaIndex, "fmla"),
+        (0x64B6_04A4, Opcode::SveFpFmlsIndex, "fmls"),
+        (0x64B6_20A4, Opcode::SveFpMulIndex, "fmul"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -70,6 +73,14 @@ fn decode_sve_z_vector_forms() {
     assert_eq!(fmad.imm, 9);
     assert_eq!(fmad.cond, 2);
     assert_eq!(fmad.size, 8);
+
+    let indexed = decode(0x64F9_0107).unwrap(); // fmla z7.d, z8.d, z9.d[1]
+    assert_eq!(indexed.op, Opcode::SveFpFmlaIndex);
+    assert_eq!(indexed.rd, 7);
+    assert_eq!(indexed.rn, 8);
+    assert_eq!(indexed.rm, 9);
+    assert_eq!(indexed.imm, 1);
+    assert_eq!(indexed.size, 8);
 
     assert_ne!(
         decode(0x6583_BFFE).map(|instr| instr.op),
