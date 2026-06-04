@@ -224,6 +224,51 @@ fn decode_sve_register_load_store_forms() {
 }
 
 #[test]
+fn decode_sve_predicated_dword_load_store_forms() {
+    let cases = [
+        (0x85C8_EC07, Opcode::SveLd1rd, "ld1rd"),
+        (0xA582_2C00, Opcode::SveLd1rqd, "ld1rqd"),
+        (0xC5E6_C07D, Opcode::SveLd1d, "ld1d"),
+        (0xA5E0_AC00, Opcode::SveLd1d, "ld1d"),
+        (0xE5E0_EC00, Opcode::SveSt1d, "st1d"),
+    ];
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+
+    let ld1rd = decode(0x85C8_EC07).unwrap(); // ld1rd { z7.d }, p3/z, [x0, #0x40]
+    assert_eq!(ld1rd.rd, 7);
+    assert_eq!(ld1rd.rn, 0);
+    assert_eq!(ld1rd.cond, 3);
+    assert_eq!(ld1rd.imm, 64);
+    assert_eq!(ld1rd.size, 8);
+
+    let ld1rqd = decode(0xA58E_2C07).unwrap(); // ld1rqd { z7.d }, p3/z, [x0, #-0x20]
+    assert_eq!(ld1rqd.rd, 7);
+    assert_eq!(ld1rqd.cond, 3);
+    assert_eq!(ld1rqd.imm as i64, -32);
+
+    let gather = decode(0xC5E6_C07D).unwrap(); // ld1d { z29.d }, p0/z, [x3, z6.d, lsl #3]
+    assert_eq!(gather.rd, 29);
+    assert_eq!(gather.rn, 3);
+    assert_eq!(gather.rm, 6);
+    assert_eq!(gather.cond, 0);
+
+    let ld1d_imm = decode(0xA5E1_AC00).unwrap(); // ld1d { z0.d }, p3/z, [x0, #0x1, mul vl]
+    assert_eq!(ld1d_imm.rd, 0);
+    assert_eq!(ld1d_imm.rn, 0);
+    assert_eq!(ld1d_imm.rm, 0xFF);
+    assert_eq!(ld1d_imm.cond, 3);
+    assert_eq!(ld1d_imm.imm as i64, 1);
+
+    let st1d_imm = decode(0xE5EF_EC00).unwrap(); // st1d { z0.d }, p3, [x0, #-0x1, mul vl]
+    assert_eq!(st1d_imm.op, Opcode::SveSt1d);
+    assert_eq!(st1d_imm.rm, 0xFF);
+    assert_eq!(st1d_imm.imm as i64, -1);
+}
+
+#[test]
 fn decode_br_x0() {
     let instr = decode(0xD61F0000).unwrap();
     assert_eq!(instr.op, Opcode::Br);

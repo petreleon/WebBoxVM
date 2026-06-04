@@ -1,0 +1,141 @@
+use super::*;
+
+pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, &'static str> {
+    match instr.op {
+        Opcode::SimdMovi => {
+            cpu.simd[instr.rd as usize] = if instr.cond == 0 {
+                simd_replicate_byte(instr.imm as u8) & simd_vector_mask(instr.size as usize)
+            } else {
+                simd_replicate_element(instr.imm as u128, instr.cond as usize, instr.size as usize)
+            };
+        }
+        Opcode::SimdAese
+        | Opcode::SimdAesd
+        | Opcode::SimdAesmc
+        | Opcode::SimdAesimc
+        | Opcode::SimdPmull
+        | Opcode::SimdSha1h
+        | Opcode::SimdSha256Su0
+        | Opcode::SimdSha512Su0
+        | Opcode::SimdSm4e
+        | Opcode::SimdSm3Partw1
+        | Opcode::SimdEor3
+        | Opcode::SimdBcax
+        | Opcode::SimdRax1
+        | Opcode::SimdXar
+        | Opcode::SimdDupByte
+        | Opcode::SimdDupElem
+        | Opcode::SimdFmovReg64
+        | Opcode::SimdFmovGprToD
+        | Opcode::SimdFmovGprToS
+        | Opcode::SimdFmovDToGpr
+        | Opcode::SimdFmovSToGpr
+        | Opcode::SimdFmovLaneToGpr
+        | Opcode::SimdUmov
+        | Opcode::SimdSmov
+        | Opcode::SimdInsGprLane
+        | Opcode::SimdCmeqZero
+        | Opcode::SimdCmgeZero
+        | Opcode::SimdCmeqReg
+        | Opcode::SimdCmhsReg
+        | Opcode::SimdCmhiReg
+        | Opcode::SimdShrn
+        | Opcode::SimdAddhn
+        | Opcode::SimdAddVec
+        | Opcode::SimdSubVec
+        | Opcode::SimdMulVec
+        | Opcode::SimdMlaVec
+        | Opcode::SimdAddp
+        | Opcode::SimdAddv
+        | Opcode::SimdUmaxv
+        | Opcode::SimdExt
+        | Opcode::SimdSmaxVec
+        | Opcode::SimdUmaxVec
+        | Opcode::SimdUminVec
+        | Opcode::SimdUmaxp
+        | Opcode::SimdUminp
+        | Opcode::SimdCnt
+        | Opcode::SimdCmtst
+        | Opcode::SimdShlImm
+        | Opcode::SimdSli
+        | Opcode::SimdSri
+        | Opcode::SimdSshr
+        | Opcode::SimdUshr
+        | Opcode::SimdUshl
+        | Opcode::SimdXtn
+        | Opcode::SimdRev64
+        | Opcode::SimdRev32
+        | Opcode::SimdNot
+        | Opcode::SimdBsl
+        | Opcode::SimdBit
+        | Opcode::SimdBif
+        | Opcode::SimdAnd
+        | Opcode::SimdOrr
+        | Opcode::SimdOrn
+        | Opcode::SimdEor
+        | Opcode::SimdInsElem
+        | Opcode::SimdUzp1
+        | Opcode::SimdTrn1
+        | Opcode::SimdZip1
+        | Opcode::SimdZip2
+        | Opcode::SimdTbl
+        | Opcode::SimdBic
+        | Opcode::SimdBicImm
+        | Opcode::SimdMvni
+        | Opcode::SimdUshll
+        | Opcode::SimdSshll
+        | Opcode::SimdShll
+        | Opcode::SimdSaddl
+        | Opcode::SimdUsubl
+        | Opcode::SimdSsubw
+        | Opcode::SimdUmlal
+        | Opcode::SimdUqsub
+        | Opcode::SimdAbs
+        | Opcode::SimdNeg
+        | Opcode::SimdScvtf
+        | Opcode::SimdFcvtzs
+        | Opcode::SimdFcvtzu
+        | Opcode::SimdFpAddVec
+        | Opcode::SimdFpSubVec
+        | Opcode::SimdFpMulVec
+        | Opcode::SimdFpDivVec
+        | Opcode::SimdFpAbd
+        | Opcode::SimdFpNeg => exec_simd_data(cpu, instr),
+        Opcode::FpAdd
+        | Opcode::FpSub
+        | Opcode::FpMul
+        | Opcode::FpFnmul
+        | Opcode::FpDiv
+        | Opcode::FpMaxnm
+        | Opcode::FpMinnm
+        | Opcode::FpNeg
+        | Opcode::FpAbs
+        | Opcode::FpSqrt
+        | Opcode::FpFcvt
+        | Opcode::FpFrintm
+        | Opcode::FpFrintn
+        | Opcode::FpFrinta
+        | Opcode::FpFrintx
+        | Opcode::FpFrintz
+        | Opcode::FpFrintp
+        | Opcode::FpFrinti
+        | Opcode::FpMovImm
+        | Opcode::Fmadd
+        | Opcode::Fmsub
+        | Opcode::Fnmsub
+        | Opcode::Scvtf
+        | Opcode::Ucvtf
+        | Opcode::Fcvtns
+        | Opcode::Fcvtms
+        | Opcode::Fcvtzs
+        | Opcode::Fcvtzu
+        | Opcode::Fcvtas
+        | Opcode::Fcmp
+        | Opcode::Fcmpe
+        | Opcode::Fccmp
+        | Opcode::Fccmpe
+        | Opcode::Fcsel => exec_fp_scalar(cpu, instr),
+        _ => return Ok(None),
+    }
+    Ok(Some(Flow::Advance))
+}

@@ -1,0 +1,37 @@
+#[allow(non_upper_case_globals)]
+impl super::Opcode {
+    pub const FpAdd: Self = Self(193);
+    pub const FpSub: Self = Self(194);
+    pub const FpMul: Self = Self(195);
+    pub const FpFnmul: Self = Self(196);
+    pub const FpDiv: Self = Self(197);
+    pub const FpMaxnm: Self = Self(198);
+    pub const FpMinnm: Self = Self(199);
+    pub const FpNeg: Self = Self(200);
+    pub const FpAbs: Self = Self(201);
+    pub const FpSqrt: Self = Self(202);
+    pub const FpFcvt: Self = Self(203);
+    pub const FpFrintm: Self = Self(204);
+    pub const FpFrintn: Self = Self(205);
+    pub const FpFrinta: Self = Self(206);
+    pub const FpFrintx: Self = Self(207);
+    pub const FpFrintz: Self = Self(208);
+    pub const FpFrintp: Self = Self(209);
+    pub const FpFrinti: Self = Self(210);
+    pub const FpMovImm: Self = Self(211);
+    pub const Fmadd: Self = Self(212);
+    pub const Fmsub: Self = Self(213);
+    pub const Fnmsub: Self = Self(214);
+    pub const Scvtf: Self = Self(215);
+    pub const Ucvtf: Self = Self(216);
+    pub const Fcvtns: Self = Self(217);
+    pub const Fcvtms: Self = Self(218);
+    pub const Fcvtzs: Self = Self(219);
+    pub const Fcvtzu: Self = Self(220);
+    pub const Fcvtas: Self = Self(221);
+    pub const Fcmp: Self = Self(222);
+    pub const Fcmpe: Self = Self(223);
+    pub const Fccmp: Self = Self(224);
+    pub const Fccmpe: Self = Self(225);
+    pub const Fcsel: Self = Self(226);
+}

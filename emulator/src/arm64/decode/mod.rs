@@ -27,6 +27,60 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ldst1_lane(raw) {
         return Some(instr);
     }
+    if (raw & 0xFFC0_E000) == 0x85C0_E000 {
+        return Some(Instr {
+            op: Opcode::SveLd1rd,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0xFF,
+            imm: (((raw >> 16) & 0x3F) * 8) as u64,
+            sf: true,
+            cond: ((raw >> 10) & 0x7) as u8,
+            size: 8,
+        });
+    }
+    if (raw & 0xFFF0_E000) == 0xA580_2000 {
+        let signed_imm = (((((raw >> 16) & 0xF) as i32) << 28) >> 28) as i64;
+        return Some(Instr {
+            op: Opcode::SveLd1rqd,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0xFF,
+            imm: signed_imm.wrapping_mul(16) as u64,
+            sf: true,
+            cond: ((raw >> 10) & 0x7) as u8,
+            size: 8,
+        });
+    }
+    if (raw & 0xFFE0_E000) == 0xC5E0_C000 {
+        return Some(Instr {
+            op: Opcode::SveLd1d,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 0,
+            sf: true,
+            cond: ((raw >> 10) & 0x7) as u8,
+            size: 8,
+        });
+    }
+    if (raw & 0xFFF0_E000) == 0xA5E0_A000 || (raw & 0xFFF0_E000) == 0xE5E0_E000 {
+        let signed_imm = (((((raw >> 16) & 0xF) as i32) << 28) >> 28) as i64;
+        return Some(Instr {
+            op: if (raw & 0x4000_0000) == 0 {
+                Opcode::SveLd1d
+            } else {
+                Opcode::SveSt1d
+            },
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0xFF,
+            imm: signed_imm as u64,
+            sf: true,
+            cond: ((raw >> 10) & 0x7) as u8,
+            size: 8,
+        });
+    }
     let sve_ldst_base = raw & 0xFFC0_E000;
     if matches!(
         sve_ldst_base,
