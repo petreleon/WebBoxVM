@@ -36,4 +36,8 @@ impl super::Opcode {
     pub const SimdFpFminVec: Self = Self(378);
     pub const SimdFpFmaxnmVec: Self = Self(379);
     pub const SimdFpFminnmVec: Self = Self(380);
+    pub const SimdFpFmaxp: Self = Self(381);
+    pub const SimdFpFminp: Self = Self(382);
+    pub const SimdFpFmaxnmp: Self = Self(383);
+    pub const SimdFpFminnmp: Self = Self(384);
 }

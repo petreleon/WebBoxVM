@@ -40,6 +40,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fmin if simd_fp_binary(raw, 0x0EA0_F400) => Opcode::SimdFpFminVec,
         M::r#fmaxnm if simd_fp_binary(raw, 0x0E20_C400) => Opcode::SimdFpFmaxnmVec,
         M::r#fminnm if simd_fp_binary(raw, 0x0EA0_C400) => Opcode::SimdFpFminnmVec,
+        M::r#fmaxp if simd_fp_binary(raw, 0x2E20_F400) => Opcode::SimdFpFmaxp,
+        M::r#fminp if simd_fp_binary(raw, 0x2EA0_F400) => Opcode::SimdFpFminp,
+        M::r#fmaxnmp if simd_fp_binary(raw, 0x2E20_C400) => Opcode::SimdFpFmaxnmp,
+        M::r#fminnmp if simd_fp_binary(raw, 0x2EA0_C400) => Opcode::SimdFpFminnmp,
         M::r#cmeq
             if ((raw & 0xFF20_FC00) == 0x5E20_9800 && ((raw >> 22) & 0x3) == 0x3)
                 || (raw & 0xBF3F_FC00) == 0x0E20_9800 =>
