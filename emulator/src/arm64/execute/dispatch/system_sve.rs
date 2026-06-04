@@ -33,7 +33,9 @@ pub(super) fn execute(
         }
         Opcode::SvePtrue => exec_sve_ptrue(cpu, instr),
         Opcode::SvePtest => exec_sve_ptest(cpu, instr),
-        Opcode::SvePredAnd | Opcode::SvePredOrr => exec_sve_pred_logical(cpu, instr),
+        Opcode::SvePredAnd | Opcode::SvePredOrr | Opcode::SvePredEor => {
+            exec_sve_pred_logical(cpu, instr)
+        }
         Opcode::SveCmpHs | Opcode::SveCmpHsImm => exec_sve_int_compare(cpu, instr),
         Opcode::SveMovprfx => exec_sve_movprfx(cpu, instr),
         Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
@@ -42,7 +44,12 @@ pub(super) fn execute(
         Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
         Opcode::SveAddImm | Opcode::SveSubImm => exec_sve_addsub_imm(cpu, instr),
         Opcode::SveAddPred | Opcode::SveSubPred => exec_sve_addsub_pred(cpu, instr),
-        Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
+        Opcode::SveAndVec | Opcode::SveOrrVec | Opcode::SveEorVec => {
+            exec_sve_logical_binary(cpu, instr)
+        }
+        Opcode::SveAndPred | Opcode::SveOrrPred | Opcode::SveEorPred => {
+            exec_sve_logical_pred(cpu, instr)
+        }
         Opcode::SveAsrImm | Opcode::SveLsrImm | Opcode::SveLslImm => exec_sve_shift_imm(cpu, instr),
         Opcode::SveAndImm | Opcode::SveOrrImm | Opcode::SveEorImm | Opcode::SveDupm => {
             exec_sve_logical_imm(cpu, instr)

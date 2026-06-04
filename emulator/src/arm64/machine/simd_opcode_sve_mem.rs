@@ -7,6 +7,7 @@ pub(in crate::arm64::machine) fn is_sve_opcode(op: Opcode) -> bool {
             | Opcode::SvePtest
             | Opcode::SvePredAnd
             | Opcode::SvePredOrr
+            | Opcode::SvePredEor
             | Opcode::SveMovprfx
             | Opcode::SveDupGpr
             | Opcode::SveDupImm
@@ -17,6 +18,10 @@ pub(in crate::arm64::machine) fn is_sve_opcode(op: Opcode) -> bool {
             | Opcode::SveSubImm
             | Opcode::SveAddPred
             | Opcode::SveSubPred
+            | Opcode::SveAndVec
+            | Opcode::SveAndPred
+            | Opcode::SveOrrPred
+            | Opcode::SveEorPred
             | Opcode::SveAsrImm
             | Opcode::SveLsrImm
             | Opcode::SveLslImm

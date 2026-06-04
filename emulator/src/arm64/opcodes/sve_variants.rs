@@ -67,4 +67,9 @@ impl super::Opcode {
     pub const SveSubImm: Self = Self(322);
     pub const SveAddPred: Self = Self(323);
     pub const SveSubPred: Self = Self(324);
+    pub const SveAndVec: Self = Self(325);
+    pub const SveOrrPred: Self = Self(326);
+    pub const SveEorPred: Self = Self(327);
+    pub const SveAndPred: Self = Self(328);
+    pub const SvePredEor: Self = Self(329);
 }

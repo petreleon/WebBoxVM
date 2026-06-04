@@ -36,6 +36,7 @@ mod sve_fp_compare;
 mod sve_fp_dup_imm;
 mod sve_fp_unary;
 mod sve_logical_imm;
+mod sve_logical_pred;
 mod sve_predicate_ld1r;
 mod sve_shift_imm;
 mod sve_word_load_store;
@@ -74,6 +75,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_shift_imm::decode(raw));
     try_stage!(sve_addsub::decode(raw));
     try_stage!(sve_logical_imm::decode(raw));
+    try_stage!(sve_logical_pred::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));
     try_stage!(simd_dup_convert::decode(raw));
     try_stage!(simd_fp_by_element::decode(raw));

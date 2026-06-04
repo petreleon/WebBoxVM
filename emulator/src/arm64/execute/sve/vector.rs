@@ -68,6 +68,7 @@ pub(in crate::arm64::execute) fn exec_sve_logical_binary(cpu: &mut Armv8Cpu, ins
 
     for byte in 0..vl_bytes {
         result[byte] = match instr.op {
+            Opcode::SveAndVec => lhs[byte] & rhs[byte],
             Opcode::SveOrrVec => lhs[byte] | rhs[byte],
             Opcode::SveEorVec => lhs[byte] ^ rhs[byte],
             _ => unreachable!(),

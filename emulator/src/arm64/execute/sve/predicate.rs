@@ -44,6 +44,10 @@ pub(in crate::arm64::execute) fn exec_sve_pred_logical(cpu: &mut Armv8Cpu, instr
                     predicate_element(&operand1, element, element_size)
                         || predicate_element(&operand2, element, element_size)
                 }
+                Opcode::SvePredEor => {
+                    predicate_element(&operand1, element, element_size)
+                        ^ predicate_element(&operand2, element, element_size)
+                }
                 _ => unreachable!(),
             };
             set_predicate_bit(&mut result, element * element_size, bit);
