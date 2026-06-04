@@ -422,6 +422,21 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out;
         }
+        Opcode::SimdSmaxVec => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_elementwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
+                    if simd_signed_element_value(a, element_size)
+                        >= simd_signed_element_value(b, element_size)
+                    {
+                        a
+                    } else {
+                        b
+                    }
+                });
+        }
         Opcode::SimdUmaxVec => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
@@ -1556,8 +1571,11 @@ fn simd_reverse_elements_in_groups(
 }
 
 fn simd_signed_element(value: u128, lane: usize, element_size: usize) -> i64 {
+    simd_signed_element_value(simd_element(value, lane, element_size), element_size)
+}
+
+fn simd_signed_element_value(raw: u128, element_size: usize) -> i64 {
     let bits = element_size * 8;
-    let raw = simd_element(value, lane, element_size);
     if bits == 64 {
         raw as u64 as i64
     } else {

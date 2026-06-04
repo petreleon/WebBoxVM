@@ -873,6 +873,22 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
+    if (raw & 0xBF20_FC00) == 0x0E20_6400 {
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        if element_size == 8 {
+            return None;
+        }
+        return Some(Instr {
+            op: Opcode::SimdSmaxVec,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: element_size,
+            sf: true,
+            cond: 0,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
+        });
+    }
     if (raw & 0xBF20_FC00) == 0x2E20_6400 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         if element_size == 8 {

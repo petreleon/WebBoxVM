@@ -409,6 +409,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdAddv
         | Opcode::SimdUmaxv
         | Opcode::SimdExt
+        | Opcode::SimdSmaxVec
         | Opcode::SimdUmaxVec
         | Opcode::SimdUminVec
         | Opcode::SimdUmaxp

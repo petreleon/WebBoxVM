@@ -165,6 +165,11 @@ fn simd_pairwise_min_and_add_bytes() {
     execute(&mut cpu, &mut bus, decode(0x6EBF_67BD).unwrap()).unwrap(); // umax v29.4s, v29.4s, v31.4s
     assert_eq!(cpu.simd[29], 0x0000_0004_ffff_ffff_ffff_ffff_0000_0002);
 
+    cpu.simd[30] = 0x0000_0003_8000_0001;
+    cpu.simd[31] = 0xffff_fff0_7fff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x0EBF_67DF).unwrap()).unwrap(); // smax v31.2s, v30.2s, v31.2s
+    assert_eq!(cpu.simd[31], 0x0000_0003_7fff_ffff);
+
     execute(&mut cpu, &mut bus, decode(0x4E22_BC45).unwrap()).unwrap(); // addp v5.16b, v2.16b, v2.16b
     assert_eq!(cpu.simd[5], 0x0307_0b0f_1317_1b1f_0307_0b0f_1317_1b1f);
 }
