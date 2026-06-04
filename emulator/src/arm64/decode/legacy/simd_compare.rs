@@ -12,17 +12,15 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             return step;
         }
     }
-    if (raw & 0xFFE0_FC00) == 0x7EE0_3400 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdCmhiReg,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: 8,
-            sf: true,
-            cond: 0,
-            size: 8,
-        });
+    for (base, op) in [
+        (0x5EE0_3400, Opcode::SimdCmgtReg),
+        (0x5EE0_3C00, Opcode::SimdCmgeReg),
+        (0x7EE0_3400, Opcode::SimdCmhiReg),
+        (0x7EE0_3C00, Opcode::SimdCmhsReg),
+    ] {
+        if let Some(instr) = decode_scalar_compare_reg(raw, base, op) {
+            return DecodeStep::Hit(instr);
+        }
     }
     if (raw & 0xFF20_FC00) == 0x7E20_2C00 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
@@ -83,6 +81,22 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         }
     }
     DecodeStep::Miss
+}
+
+fn decode_scalar_compare_reg(raw: u32, base: u32, op: Opcode) -> Option<Instr> {
+    if (raw & 0xFFE0_FC00) != base {
+        return None;
+    }
+    Some(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: 8,
+        sf: true,
+        cond: 0,
+        size: 8,
+    })
 }
 
 fn decode_simd_compare_reg(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {

@@ -19,4 +19,9 @@ fn simd_cmhs_register_compares_unsigned_lane_widths() {
     cpu.simd[30] = u64x2([8, 5]);
     execute(&mut cpu, &mut bus, decode(0x6EFE_3FE3).unwrap()).unwrap(); // cmhs v3.2d, v31.2d, v30.2d
     assert_eq!(cpu.simd[3], u64x2([u64::MAX, 0]));
+
+    cpu.simd[1] = u64x2([4, 99]);
+    cpu.simd[0] = u64x2([4, 1]);
+    execute(&mut cpu, &mut bus, decode(0x7EE0_3C20).unwrap()).unwrap(); // cmhs d0, d1, d0
+    assert_eq!(cpu.simd[0], u64::MAX as u128);
 }

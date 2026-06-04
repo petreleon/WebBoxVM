@@ -11,6 +11,8 @@ fn decode_simd_signed_register_compares_cross_checked_with_disarm64() {
         (0x0E7A_3484, Opcode::SimdCmgtReg, "cmgt"),
         (0x4EBD_3739, Opcode::SimdCmgtReg, "cmgt"),
         (0x4EFE_37E3, Opcode::SimdCmgtReg, "cmgt"),
+        (0x5EE0_3420, Opcode::SimdCmgtReg, "cmgt"),
+        (0x5EE0_3C20, Opcode::SimdCmgeReg, "cmge"),
     ];
     assert_decode_cases(&cases);
 
@@ -24,6 +26,10 @@ fn decode_simd_signed_register_compares_cross_checked_with_disarm64() {
     let doublewords = decode(0x4EFE_37E3).unwrap();
     assert_eq!(doublewords.imm, 8);
     assert_eq!(doublewords.size, 16);
+    let scalar = decode(0x5EE0_3420).unwrap();
+    assert_eq!((scalar.rd, scalar.rn, scalar.rm), (0, 1, 0));
+    assert_eq!((scalar.imm, scalar.size), (8, 8));
     assert!(decode(0x0EE2_3420).is_none());
     assert!(decode(0x0EE2_3C20).is_none());
+    assert!(decode(0x5EA0_3420).is_none());
 }

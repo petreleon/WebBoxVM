@@ -7,6 +7,7 @@ fn decode_simd_cmhs_vector_lane_widths() {
         (0x2E7A_3C84, Opcode::SimdCmhsReg, "cmhs"),
         (0x6EBD_3F39, Opcode::SimdCmhsReg, "cmhs"),
         (0x6EFE_3FE3, Opcode::SimdCmhsReg, "cmhs"),
+        (0x7EE0_3C20, Opcode::SimdCmhsReg, "cmhs"),
     ]);
 
     let bytes = decode(0x2E22_3C20).unwrap();
@@ -30,5 +31,9 @@ fn decode_simd_cmhs_vector_lane_widths() {
     assert_eq!(doublewords.rm, 30);
     assert_eq!(doublewords.imm, 8);
     assert_eq!(doublewords.size, 16);
+    let scalar = decode(0x7EE0_3C20).unwrap();
+    assert_eq!((scalar.rd, scalar.rn, scalar.rm), (0, 1, 0));
+    assert_eq!((scalar.imm, scalar.size), (8, 8));
     assert!(decode(0x2EE2_3C20).is_none());
+    assert!(decode(0x7EA0_3C20).is_none());
 }

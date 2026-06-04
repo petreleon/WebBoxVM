@@ -21,4 +21,9 @@ fn simd_signed_register_compares_use_signed_lane_ordering() {
 
     execute(&mut cpu, &mut bus, decode(0x4EFE_37E3).unwrap()).unwrap();
     assert_eq!(cpu.simd[3], u64x2([0, 0]));
+
+    cpu.simd[1] = i64x2([5, -1]);
+    cpu.simd[0] = i64x2([-3, -3]);
+    execute(&mut cpu, &mut bus, decode(0x5EE0_3420).unwrap()).unwrap();
+    assert_eq!(cpu.simd[0], u64::MAX as u128);
 }
