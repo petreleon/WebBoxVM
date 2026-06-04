@@ -25,6 +25,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#facge if (raw & 0xBFA0_FC00) == 0x2E20_EC00 => Opcode::SimdFpFacgeVec,
         M::r#facgt if (raw & 0xBFA0_FC00) == 0x2EA0_EC00 => Opcode::SimdFpFacgtVec,
+        M::r#fabs if (raw & 0xBFBF_FC00) == 0x0EA0_F800 => Opcode::SimdFpAbsVec,
         M::r#fmaxnm => Opcode::FpMaxnm,
         M::r#fminnm => Opcode::FpMinnm,
         M::r#fneg if (raw & 0xBFBF_FC00) == 0x2EA0_F800 => Opcode::SimdFpNeg,
@@ -34,6 +35,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fcvt => Opcode::FpFcvt,
         M::r#frintm => Opcode::FpFrintm,
         M::r#frintn => Opcode::FpFrintn,
+        M::r#frinta if (raw & 0xBFBF_FC00) == 0x2E21_8800 => Opcode::SimdFpFrintaVec,
         M::r#frinta => Opcode::FpFrinta,
         M::r#frintx => Opcode::FpFrintx,
         M::r#frintz => Opcode::FpFrintz,

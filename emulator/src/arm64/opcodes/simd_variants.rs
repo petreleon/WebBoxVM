@@ -117,4 +117,6 @@ impl super::Opcode {
     pub const SimdFmovImm: Self = Self(280);
     pub const SimdFpFacgeVec: Self = Self(282);
     pub const SimdFpFacgtVec: Self = Self(283);
+    pub const SimdFpAbsVec: Self = Self(284);
+    pub const SimdFpFrintaVec: Self = Self(285);
 }
