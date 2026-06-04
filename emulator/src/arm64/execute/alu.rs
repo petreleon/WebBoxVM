@@ -341,6 +341,16 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
                 |a, b| a / b,
             );
         }
+        Opcode::SimdFpAbd => {
+            cpu.simd[rd] = simd_fp_elementwise_binary(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                instr.imm.max(1) as usize,
+                instr.size as usize,
+                |a, b| (a - b).abs(),
+                |a, b| (a - b).abs(),
+            );
+        }
         Opcode::SimdShrn => {
             let src = cpu.simd[rn];
             let shift = instr.imm as usize;

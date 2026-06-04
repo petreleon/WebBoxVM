@@ -457,6 +457,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdFpSubVec
         | Opcode::SimdFpMulVec
         | Opcode::SimdFpDivVec
+        | Opcode::SimdFpAbd
         | Opcode::SimdFpNeg => exec_simd_data(cpu, instr),
         Opcode::FpAdd
         | Opcode::FpSub

@@ -245,6 +245,18 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: if q { 16 } else { 8 },
         });
     }
+    if (raw & 0xFF20_FC00) == 0x7E20_D400 {
+        return Some(Instr {
+            op: Opcode::SimdFpAbd,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: if ((raw >> 22) & 1) != 0 { 8 } else { 4 },
+            sf: true,
+            cond: 0,
+            size: if ((raw >> 22) & 1) != 0 { 8 } else { 4 },
+        });
+    }
     if let Some(instr) = decode_simd_fp_binary(raw, 0x0E20_D400, Opcode::SimdFpAddVec) {
         return Some(instr);
     }
@@ -255,6 +267,9 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
         return Some(instr);
     }
     if let Some(instr) = decode_simd_fp_binary(raw, 0x2E20_FC00, Opcode::SimdFpDivVec) {
+        return Some(instr);
+    }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x2EA0_D400, Opcode::SimdFpAbd) {
         return Some(instr);
     }
     if (raw & 0xFF3F_FC00) == 0x7E20_B800 {

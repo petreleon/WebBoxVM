@@ -124,6 +124,9 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#fnmul => Opcode::FpFnmul,
         M::r#fdiv if (raw & 0xBFA0_FC00) == 0x2E20_FC00 => Opcode::SimdFpDivVec,
         M::r#fdiv => Opcode::FpDiv,
+        M::r#fabd if (raw & 0xFF20_FC00) == 0x7E20_D400 || (raw & 0xBFA0_FC00) == 0x2EA0_D400 => {
+            Opcode::SimdFpAbd
+        }
         M::r#fmaxnm => Opcode::FpMaxnm,
         M::r#fminnm => Opcode::FpMinnm,
         M::r#fneg if (raw & 0xBFBF_FC00) == 0x2EA0_F800 => Opcode::SimdFpNeg,

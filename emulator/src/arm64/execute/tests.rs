@@ -710,6 +710,16 @@ fn simd_fp_vector_arithmetic_ops() {
     cpu.simd[9] = f64x2([3.0, 2.0]);
     execute(&mut cpu, &mut bus, decode(0x6E69_FD07).unwrap()).unwrap(); // fdiv v7.2d, v8.2d, v9.2d
     assert_eq!(cpu.simd[7], f64x2([3.0, -4.0]));
+
+    cpu.simd[1] = f32x4([-1.0, 5.5, 8.0, -4.0]);
+    cpu.simd[2] = f32x4([2.5, 1.5, -2.0, -9.0]);
+    execute(&mut cpu, &mut bus, decode(0x6EA2_D420).unwrap()).unwrap(); // fabd v0.4s, v1.4s, v2.4s
+    assert_eq!(cpu.simd[0], f32x4([3.5, 4.0, 10.0, 5.0]));
+
+    cpu.simd[1] = 9.5f64.to_bits() as u128;
+    cpu.simd[2] = (-2.25f64).to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x7EE2_D420).unwrap()).unwrap(); // fabd d0, d1, d2
+    assert_eq!(f64_lane(&cpu, 0), 11.75);
 }
 
 #[test]

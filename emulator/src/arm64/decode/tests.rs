@@ -849,6 +849,17 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(fdiv_vec.rm, 28);
     assert_eq!(fdiv_vec.imm, 8);
     assert_eq!(fdiv_vec.size, 16);
+    let fabd_scalar = decode(0x7EE9_D7FF).unwrap();
+    assert_eq!(fabd_scalar.op, Opcode::SimdFpAbd);
+    assert_eq!(fabd_scalar.rd, 31);
+    assert_eq!(fabd_scalar.rn, 31);
+    assert_eq!(fabd_scalar.rm, 9);
+    assert_eq!(fabd_scalar.imm, 8);
+    assert_eq!(fabd_scalar.size, 8);
+    let fabd_vec = decode(0x6EA2_D420).unwrap();
+    assert_eq!(fabd_vec.op, Opcode::SimdFpAbd);
+    assert_eq!(fabd_vec.imm, 4);
+    assert_eq!(fabd_vec.size, 16);
     let fnmul = decode(0x1E7F_8800).unwrap();
     assert_eq!(fnmul.op, Opcode::FpFnmul);
     assert_eq!(fnmul.rd, 0);
@@ -875,6 +886,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x4EA3_D441, Opcode::SimdFpSubVec, "fsub"),
         (0x6E26_DCA4, Opcode::SimdFpMulVec, "fmul"),
         (0x6E7C_FF7B, Opcode::SimdFpDivVec, "fdiv"),
+        (0x7EE9_D7FF, Opcode::SimdFpAbd, "fabd"),
+        (0x6EA2_D420, Opcode::SimdFpAbd, "fabd"),
         (0x1E61_401F, Opcode::FpNeg, "fneg"),
         (0x1E60_C000, Opcode::FpAbs, "fabs"),
         (0x1E61_C000, Opcode::FpSqrt, "fsqrt"),

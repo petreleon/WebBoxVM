@@ -172,6 +172,7 @@ pub enum Opcode {
     SimdFpSubVec,
     SimdFpMulVec,
     SimdFpDivVec,
+    SimdFpAbd,
     SimdFpNeg,
     FpAdd,
     FpSub,

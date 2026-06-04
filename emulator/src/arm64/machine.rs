@@ -1104,6 +1104,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpSubVec
             | Opcode::SimdFpMulVec
             | Opcode::SimdFpDivVec
+            | Opcode::SimdFpAbd
             | Opcode::SimdFpNeg
             | Opcode::FpAdd
             | Opcode::FpSub
