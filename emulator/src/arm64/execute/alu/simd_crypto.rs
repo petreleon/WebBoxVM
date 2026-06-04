@@ -1,7 +1,8 @@
 use super::*;
 
 pub(in crate::arm64::execute) fn is_simd_crypto_opcode(op: Opcode) -> bool {
-    matches!(
+    is_simd_sm3_opcode(op)
+        || matches!(
         op,
         Opcode::SimdAese
             | Opcode::SimdAesd
@@ -23,7 +24,6 @@ pub(in crate::arm64::execute) fn is_simd_crypto_opcode(op: Opcode) -> bool {
             | Opcode::SimdSha256H2
             | Opcode::SimdSha256Su1
             | Opcode::SimdSm4e
-            | Opcode::SimdSm3Partw1
             | Opcode::SimdEor3
             | Opcode::SimdBcax
             | Opcode::SimdRax1
@@ -96,25 +96,7 @@ pub(in crate::arm64::execute) fn exec_simd_crypto(cpu: &mut Armv8Cpu, instr: Ins
             }
             cpu.simd[rd] = pack_u32_lanes(words);
         }
-        Opcode::SimdSm3Partw1 => {
-            let vd = cpu.simd[rd];
-            let vn = cpu.simd[rn];
-            let vm = cpu.simd[rm];
-            let mut words = [0u32; 4];
-            for (lane, word) in words.iter_mut().enumerate().take(3) {
-                let base = (simd_element(vd, lane, 4) ^ simd_element(vn, lane, 4)) as u32;
-                let rotated = (simd_element(vm, lane + 1, 4) as u32).rotate_left(15);
-                *word = base ^ rotated;
-            }
-            for lane in 0..4 {
-                if lane == 3 {
-                    let base = (simd_element(vd, 3, 4) ^ simd_element(vn, 3, 4)) as u32;
-                    words[3] = base ^ words[0].rotate_left(15);
-                }
-                words[lane] ^= words[lane].rotate_left(15) ^ words[lane].rotate_left(23);
-            }
-            cpu.simd[rd] = pack_u32_lanes(words);
-        }
+        op if is_simd_sm3_opcode(op) => exec_simd_sm3(cpu, instr),
         Opcode::SimdEor3 => {
             let ra = instr.cond as usize;
             cpu.simd[rd] = cpu.simd[rn] ^ cpu.simd[rm] ^ cpu.simd[ra];

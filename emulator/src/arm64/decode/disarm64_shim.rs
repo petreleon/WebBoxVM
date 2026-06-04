@@ -36,6 +36,7 @@ mod scalar_alias_map;
 mod scalar_alias_tests;
 #[cfg(test)]
 mod scalar_ldst_tests;
+mod simd_crypto_map;
 mod simd_ldst_map;
 mod simd_map;
 #[cfg(test)]
@@ -137,6 +138,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))
         .or_else(|| exclusive_map::map(m))
+        .or_else(|| simd_crypto_map::map(m))
         .or_else(|| simd_map::map(raw, m))
         .or_else(|| fp_compare_map::map(raw, m))
         .or_else(|| fp_map::map(raw, m))

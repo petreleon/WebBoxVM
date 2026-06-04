@@ -77,18 +77,6 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 16,
         });
     }
-    if (raw & 0xFFE0_FC00) == 0xCE60_C000 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdSm3Partw1,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: 0,
-            sf: true,
-            cond: 0,
-            size: 16,
-        });
-    }
     if (raw & 0xFFE0_8000) == 0xCE00_0000 {
         return DecodeStep::Hit(Instr {
             op: Opcode::SimdEor3,

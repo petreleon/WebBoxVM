@@ -113,6 +113,7 @@ mod simd_sha256;
 mod simd_sha512;
 mod simd_shift_insert;
 mod simd_signed_compare;
+mod simd_sm3;
 mod simd_struct_store;
 mod simd_table_permute;
 mod simd_userland_permute_reduction;
