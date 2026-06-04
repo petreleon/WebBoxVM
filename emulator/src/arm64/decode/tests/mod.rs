@@ -33,6 +33,7 @@ mod simd_pairwise_narrow;
 mod simd_permute_secondary;
 mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
+mod simd_sha512;
 mod simd_signed_compare;
 mod simd_ucvtf;
 mod simd_userland_arith_move;

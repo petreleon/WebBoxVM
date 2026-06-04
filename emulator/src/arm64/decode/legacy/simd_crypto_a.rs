@@ -53,6 +53,18 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 16,
         });
     }
+    if let Some(op) = sha512_three_reg(raw) {
+        return DecodeStep::Hit(Instr {
+            op,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
     if (raw & 0xFFFF_FC00) == 0xCEC0_8400 {
         return DecodeStep::Hit(Instr {
             op: Opcode::SimdSm4e,
@@ -126,4 +138,13 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     DecodeStep::Miss
+}
+
+fn sha512_three_reg(raw: u32) -> Option<Opcode> {
+    match raw & 0xFFE0_FC00 {
+        0xCE60_8000 => Some(Opcode::SimdSha512H),
+        0xCE60_8400 => Some(Opcode::SimdSha512H2),
+        0xCE60_8800 => Some(Opcode::SimdSha512Su1),
+        _ => None,
+    }
 }

@@ -24,6 +24,9 @@ impl super::Opcode {
     pub const SimdSha1h: Self = Self(106);
     pub const SimdSha256Su0: Self = Self(107);
     pub const SimdSha512Su0: Self = Self(108);
+    pub const SimdSha512H: Self = Self(429);
+    pub const SimdSha512H2: Self = Self(430);
+    pub const SimdSha512Su1: Self = Self(431);
     pub const SimdSm4e: Self = Self(109);
     pub const SimdSm3Partw1: Self = Self(110);
     pub const SimdEor3: Self = Self(111);

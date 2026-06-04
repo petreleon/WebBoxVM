@@ -10,6 +10,9 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdSha1h
         | Opcode::SimdSha256Su0
         | Opcode::SimdSha512Su0
+        | Opcode::SimdSha512H
+        | Opcode::SimdSha512H2
+        | Opcode::SimdSha512Su1
         | Opcode::SimdSm4e
         | Opcode::SimdSm3Partw1
         | Opcode::SimdEor3

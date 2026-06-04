@@ -108,6 +108,7 @@ mod simd_permute_secondary;
 mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
 mod simd_scalar_load_store;
+mod simd_sha512;
 mod simd_shift_insert;
 mod simd_signed_compare;
 mod sme_memory;

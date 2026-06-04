@@ -27,6 +27,9 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdSha1h
             | Opcode::SimdSha256Su0
             | Opcode::SimdSha512Su0
+            | Opcode::SimdSha512H
+            | Opcode::SimdSha512H2
+            | Opcode::SimdSha512Su1
             | Opcode::SimdSm4e
             | Opcode::SimdSm3Partw1
             | Opcode::SimdEor3

@@ -66,6 +66,9 @@ pub(in crate::arm64::execute) fn exec_simd_crypto(cpu: &mut Armv8Cpu, instr: Ins
             cpu.simd[rd] =
                 w0.wrapping_add(sig_w1) as u128 | ((w1.wrapping_add(sig_x0) as u128) << 64);
         }
+        Opcode::SimdSha512H | Opcode::SimdSha512H2 | Opcode::SimdSha512Su1 => {
+            exec_simd_sha512(cpu, instr);
+        }
         Opcode::SimdSm4e => {
             let keys = cpu.simd[rn];
             let mut words = [
