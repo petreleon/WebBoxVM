@@ -30,6 +30,7 @@ mod simd_shift_pairwise;
 mod simd_shift_right;
 mod simd_sha1_sha256;
 mod simd_structure;
+mod simd_structure_lane;
 mod simd_tail_system;
 mod simd_widen_helpers;
 mod simd_widen_integer;
@@ -68,6 +69,7 @@ use simd_shift_insert::*;
 use simd_shift_left::*;
 use simd_shift_right::*;
 use simd_structure::*;
+use simd_structure_lane::*;
 use simd_widen_helpers::*;
 
 macro_rules! try_stage {

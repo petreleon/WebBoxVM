@@ -55,7 +55,7 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
             _ => unreachable!(),
         };
         exec_ld_structure(cpu, bus, va, instr, structure_count)?;
-    } else if matches!(instr.op, Opcode::SimdStr | Opcode::SimdSt4Single) {
+    } else if instr.op == Opcode::SimdStr {
         write_simd_guest(
             cpu,
             bus,
@@ -64,6 +64,9 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
             cpu.simd[instr.rd as usize],
             "SIMD store fault",
         )?;
+    } else if instr.op == Opcode::SimdSt4Single {
+        let lane = (instr.imm & 0xff) as usize;
+        exec_st_structure_lane(cpu, bus, va, instr, 4, lane)?;
     } else if instr.op == Opcode::SimdSt1Multi {
         exec_st1_multi(cpu, bus, va, instr)?;
     } else if instr.op == Opcode::SimdSt1Lane {
@@ -80,8 +83,17 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
             value,
             "ST1 lane bus fault",
         )?;
-    } else if instr.op == Opcode::SimdSt4 {
-        exec_st4(cpu, bus, va, instr)?;
+    } else if matches!(
+        instr.op,
+        Opcode::SimdSt2 | Opcode::SimdSt3 | Opcode::SimdSt4
+    ) {
+        let structure_count = match instr.op {
+            Opcode::SimdSt2 => 2,
+            Opcode::SimdSt3 => 3,
+            Opcode::SimdSt4 => 4,
+            _ => unreachable!(),
+        };
+        exec_st_structure(cpu, bus, va, instr, structure_count)?;
     } else if is_load {
         let mut val = read_guest(cpu, bus, va, size, "LDR bus fault")?;
         trace_syscall_frame_access(cpu, &instr, "LDR", va, pa, size, Some(val));

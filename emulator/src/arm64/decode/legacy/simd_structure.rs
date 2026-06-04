@@ -1,8 +1,18 @@
 use super::*;
 
 pub(super) fn decode_simd_ld_structure_multi(raw: u32) -> Option<Instr> {
-    let no_offset = (raw & 0xBFFF_0000) == 0x0C40_0000;
-    let post_index = (raw & 0xBFE0_0000) == 0x0CC0_0000;
+    decode_simd_structure_multi(raw, true)
+}
+
+pub(super) fn decode_simd_st_structure_multi(raw: u32) -> Option<Instr> {
+    decode_simd_structure_multi(raw, false)
+}
+
+fn decode_simd_structure_multi(raw: u32, load: bool) -> Option<Instr> {
+    let no_offset_base = if load { 0x0C40_0000 } else { 0x0C00_0000 };
+    let post_index_base = if load { 0x0CC0_0000 } else { 0x0C80_0000 };
+    let no_offset = (raw & 0xBFFF_0000) == no_offset_base;
+    let post_index = (raw & 0xBFE0_0000) == post_index_base;
     if !no_offset && !post_index {
         return None;
     }
@@ -12,10 +22,10 @@ pub(super) fn decode_simd_ld_structure_multi(raw: u32) -> Option<Instr> {
     if size == 3 && q == 0 {
         return None;
     }
-    let (op, structure_count) = match (raw >> 12) & 0xF {
-        0b0000 => (Opcode::SimdLd4, 4),
-        0b0100 => (Opcode::SimdLd3, 3),
-        0b1000 => (Opcode::SimdLd2, 2),
+    let (load_op, store_op, structure_count) = match (raw >> 12) & 0xF {
+        0b0000 => (Opcode::SimdLd4, Opcode::SimdSt4, 4),
+        0b0100 => (Opcode::SimdLd3, Opcode::SimdSt3, 3),
+        0b1000 => (Opcode::SimdLd2, Opcode::SimdSt2, 2),
         _ => return None,
     };
 
@@ -32,7 +42,7 @@ pub(super) fn decode_simd_ld_structure_multi(raw: u32) -> Option<Instr> {
     };
 
     Some(Instr {
-        op,
+        op: if load { load_op } else { store_op },
         rd: (raw & 0x1F) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
         rm,

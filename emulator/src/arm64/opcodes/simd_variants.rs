@@ -16,6 +16,8 @@ impl super::Opcode {
     pub const SimdLd4: Self = Self(98);
     pub const SimdSt4: Self = Self(99);
     pub const SimdSt4Single: Self = Self(100);
+    pub const SimdSt2: Self = Self(443);
+    pub const SimdSt3: Self = Self(444);
     pub const SimdAese: Self = Self(101);
     pub const SimdAesd: Self = Self(102);
     pub const SimdAesmc: Self = Self(103);

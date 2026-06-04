@@ -19,6 +19,12 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_simd_ld_structure_multi(raw) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = decode_simd_st_structure_multi(raw) {
+        return DecodeStep::Hit(instr);
+    }
+    if let Some(instr) = decode_simd_st4_single_lane(raw) {
+        return DecodeStep::Hit(instr);
+    }
     if let Some(instr) = decode_simd_st1_multi(raw) {
         return DecodeStep::Hit(instr);
     }

@@ -130,6 +130,8 @@ fn memory_fault_is_write(instr: Instr) -> bool {
             | Opcode::SimdStp
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt1Lane
+            | Opcode::SimdSt2
+            | Opcode::SimdSt3
             | Opcode::SimdSt4Single
             | Opcode::SimdSt4
             | Opcode::Stxr

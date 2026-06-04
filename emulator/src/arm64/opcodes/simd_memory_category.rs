@@ -17,6 +17,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt1Lane
             | Opcode::SimdLd4
+            | Opcode::SimdSt2
+            | Opcode::SimdSt3
             | Opcode::SimdSt4Single
             | Opcode::SimdSt4
             | Opcode::SimdAese

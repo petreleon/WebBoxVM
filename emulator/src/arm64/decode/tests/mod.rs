@@ -36,6 +36,7 @@ mod simd_scalar_bitwise_compare;
 mod simd_sha1_sha256;
 mod simd_sha512;
 mod simd_signed_compare;
+mod simd_struct_store;
 mod simd_ucvtf;
 mod simd_userland_arith_move;
 mod simd_userland_dup;

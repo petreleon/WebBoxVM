@@ -20,6 +20,8 @@ pub(super) fn execute(
         | Opcode::SimdSt1Multi
         | Opcode::SimdSt1Lane
         | Opcode::SimdLd4
+        | Opcode::SimdSt2
+        | Opcode::SimdSt3
         | Opcode::SimdSt4Single
         | Opcode::SimdSt4 => exec_ldr_str(cpu, bus, instr)?,
         Opcode::LdrLit => exec_ldr_lit(cpu, bus, instr)?,

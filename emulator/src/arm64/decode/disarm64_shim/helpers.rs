@@ -73,6 +73,27 @@ pub(super) fn simd_ld_structure_elements(raw: u32) -> Option<u8> {
     }
 }
 
+pub(super) fn simd_st_structure_elements(raw: u32) -> Option<u8> {
+    let no_offset = (raw & 0xBFFF_0000) == 0x0C00_0000;
+    let post_index = (raw & 0xBFE0_0000) == 0x0C80_0000;
+    if !no_offset && !post_index {
+        return None;
+    }
+
+    let q = ((raw >> 30) & 1) as u8;
+    let size = ((raw >> 10) & 0x3) as u8;
+    if size == 3 && q == 0 {
+        return None;
+    }
+
+    match (raw >> 12) & 0xF {
+        0b0000 => Some(4),
+        0b0100 => Some(3),
+        0b1000 => Some(2),
+        _ => None,
+    }
+}
+
 pub(super) fn simd_st1_multi_register_count(raw: u32) -> Option<u8> {
     let no_offset = (raw & 0xBFFF_0000) == 0x0C00_0000;
     let post_index = (raw & 0xBFE0_0000) == 0x0C80_0000;

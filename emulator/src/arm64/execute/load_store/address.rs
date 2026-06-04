@@ -16,6 +16,18 @@ pub(in crate::arm64::execute) fn compute_ldst_va(
         return (base, writeback);
     }
 
+    if instr.op == Opcode::SimdSt4Single {
+        let base = base_addr(cpu, instr.rn);
+        let writeback = if instr.rm == 0xFF {
+            None
+        } else if instr.rm == SIMD_MULTI_POST_INDEX {
+            Some(base.wrapping_add((instr.cond.max(1) as u64) * 4))
+        } else {
+            Some(base.wrapping_add(read_reg(cpu, instr.rm, true)))
+        };
+        return (base, writeback);
+    }
+
     if matches!(
         instr.op,
         Opcode::SimdLd1
@@ -25,6 +37,9 @@ pub(in crate::arm64::execute) fn compute_ldst_va(
             | Opcode::SimdLd4
             | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
+            | Opcode::SimdSt2
+            | Opcode::SimdSt3
+            | Opcode::SimdSt4Single
             | Opcode::SimdSt4
     ) && instr.rm == 0xFF
     {
@@ -40,6 +55,9 @@ pub(in crate::arm64::execute) fn compute_ldst_va(
             | Opcode::SimdLd4
             | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
+            | Opcode::SimdSt2
+            | Opcode::SimdSt3
+            | Opcode::SimdSt4Single
             | Opcode::SimdSt4
     ) && instr.rm != 0xFF
         && instr.rm != SIMD_MULTI_POST_INDEX
