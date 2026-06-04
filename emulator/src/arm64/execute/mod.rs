@@ -370,6 +370,21 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             write_reg(cpu, instr.rd, val, true);
         }
         Opcode::Msr => exec_msr(cpu, instr),
+        Opcode::SveCnt => {
+            let elements = (cpu.sve_vl_bytes as u64) / instr.size as u64;
+            let count = sve_pred_count(instr.cond, elements).wrapping_mul(instr.imm);
+            write_reg(cpu, instr.rd, count, true);
+        }
+        Opcode::SveAddvl | Opcode::SveAddsvl => {
+            let vl_bytes = if instr.op == Opcode::SveAddvl {
+                cpu.sve_vl_bytes as i64
+            } else {
+                cpu.sme_svl_bytes as i64
+            };
+            let offset = (instr.imm as i64).wrapping_mul(vl_bytes) as u64;
+            let result = read_base(cpu, instr.rn, true).wrapping_add(offset);
+            write_reg_sp(cpu, instr.rd, result, true);
+        }
         Opcode::SimdMovi => {
             cpu.simd[instr.rd as usize] = if instr.cond == 0 {
                 simd_replicate_byte(instr.imm as u8) & simd_vector_mask(instr.size as usize)
@@ -554,6 +569,30 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
     advance_pc(cpu);
     check_timer_irq(cpu);
     Ok(())
+}
+
+fn sve_pred_count(pattern: u8, elements: u64) -> u64 {
+    match pattern {
+        0 => highest_power_of_two_le(elements),
+        1..=8 => elements.min(pattern as u64),
+        9 => elements.min(16),
+        10 => elements.min(32),
+        11 => elements.min(64),
+        12 => elements.min(128),
+        13 => elements.min(256),
+        29 => elements - elements % 4,
+        30 => elements - elements % 3,
+        31 => elements,
+        literal => elements.min(literal as u64),
+    }
+}
+
+fn highest_power_of_two_le(value: u64) -> u64 {
+    if value == 0 {
+        0
+    } else {
+        1 << (u64::BITS - 1 - value.leading_zeros())
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════

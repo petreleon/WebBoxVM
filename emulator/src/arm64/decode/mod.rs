@@ -27,6 +27,37 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ldst1_lane(raw) {
         return Some(instr);
     }
+    if (raw & 0xFF20_E000) == 0x0420_E000 {
+        let size_bits = ((raw >> 22) & 0x3) as u8;
+        return Some(Instr {
+            op: Opcode::SveCnt,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: (((raw >> 16) & 0xF) + 1) as u64,
+            sf: true,
+            cond: ((raw >> 5) & 0x1F) as u8,
+            size: 1u8 << size_bits,
+        });
+    }
+    if (raw & 0xFFE0_F800) == 0x0420_5000 || (raw & 0xFFE0_F800) == 0x0420_5800 {
+        let imm6 = ((raw >> 5) & 0x3F) as u8;
+        let signed_imm = ((imm6 as i8) << 2) >> 2;
+        return Some(Instr {
+            op: if (raw & 0x800) == 0 {
+                Opcode::SveAddvl
+            } else {
+                Opcode::SveAddsvl
+            },
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 16) & 0x1F) as u8,
+            rm: 0,
+            imm: signed_imm as i64 as u64,
+            sf: true,
+            cond: 0,
+            size: 0,
+        });
+    }
     let ld1r_no_offset = (raw & 0xBFFF_F000) == 0x0D40_C000;
     let ld1r_post_index = (raw & 0xBFE0_F000) == 0x0DC0_C000;
     if ld1r_no_offset || ld1r_post_index {
