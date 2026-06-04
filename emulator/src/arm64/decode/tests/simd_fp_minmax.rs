@@ -28,3 +28,25 @@ fn decode_simd_fp_minmax_vector_forms_cross_checked_with_disarm64() {
         assert!(decode(raw).is_none(), "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_simd_fp_pairwise_scalar_minmax_forms_cross_checked_with_disarm64() {
+    let cases = [
+        (0x7E30_F820, Opcode::SimdFpFmaxp, "fmaxp"),
+        (0x7EB0_F862, Opcode::SimdFpFminp, "fminp"),
+        (0x7E30_C8A4, Opcode::SimdFpFmaxnmp, "fmaxnmp"),
+        (0x7EB0_C8E6, Opcode::SimdFpFminnmp, "fminnmp"),
+        (0x7E70_F928, Opcode::SimdFpFmaxp, "fmaxp"),
+        (0x7EF0_F96A, Opcode::SimdFpFminp, "fminp"),
+        (0x7E70_C9AC, Opcode::SimdFpFmaxnmp, "fmaxnmp"),
+        (0x7EF0_C9EE, Opcode::SimdFpFminnmp, "fminnmp"),
+    ];
+    assert_decode_cases(&cases);
+
+    let fmaxp = decode(0x7E30_F820).unwrap();
+    assert_eq!((fmaxp.rd, fmaxp.rn, fmaxp.rm), (0, 1, 0));
+    assert_eq!((fmaxp.imm, fmaxp.size), (4, 4));
+    let fminnmp = decode(0x7EF0_C9EE).unwrap();
+    assert_eq!((fminnmp.rd, fminnmp.rn, fminnmp.rm), (14, 15, 0));
+    assert_eq!((fminnmp.imm, fminnmp.size), (8, 8));
+}

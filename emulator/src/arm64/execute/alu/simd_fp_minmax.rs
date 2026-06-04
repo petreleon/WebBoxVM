@@ -2,10 +2,15 @@ use super::*;
 
 pub(in crate::arm64::execute) fn exec_simd_fp_minmax(cpu: &mut Armv8Cpu, instr: Instr) {
     if is_pairwise(instr.op) {
+        let element_size = instr.imm.max(1) as usize;
+        if instr.size == instr.imm as u8 {
+            exec_scalar_pairwise_minmax(cpu, instr, element_size);
+            return;
+        }
         cpu.simd[instr.rd as usize] = pairwise_minmax(
             cpu.simd[instr.rn as usize],
             cpu.simd[instr.rm as usize],
-            instr.imm.max(1) as usize,
+            element_size,
             instr.size as usize,
             instr.op,
         );
@@ -56,6 +61,17 @@ fn is_pairwise(op: Opcode) -> bool {
     )
 }
 
+fn exec_scalar_pairwise_minmax(cpu: &mut Armv8Cpu, instr: Instr, element_size: usize) {
+    let src = cpu.simd[instr.rn as usize];
+    let bits = minmax_fp_bits(
+        simd_element(src, 0, element_size),
+        simd_element(src, 1, element_size),
+        element_size,
+        instr.op,
+    );
+    write_fp_bits(cpu, instr.rd, bits as u64, instr.size);
+}
+
 fn pairwise_minmax(
     lhs: u128,
     rhs: u128,
@@ -81,9 +97,17 @@ fn pairwise_lane(
 ) -> u128 {
     let a = pairwise_source(lhs, rhs, element_size, lanes, lane * 2);
     let b = pairwise_source(lhs, rhs, element_size, lanes, lane * 2 + 1);
+    minmax_fp_bits(a, b, element_size, op)
+}
+
+fn minmax_fp_bits(lhs: u128, rhs: u128, element_size: usize, op: Opcode) -> u128 {
     match element_size {
-        4 => apply_f32(op, f32::from_bits(a as u32), f32::from_bits(b as u32)).to_bits() as u128,
-        8 => apply_f64(op, f64::from_bits(a as u64), f64::from_bits(b as u64)).to_bits() as u128,
+        4 => {
+            apply_f32(op, f32::from_bits(lhs as u32), f32::from_bits(rhs as u32)).to_bits() as u128
+        }
+        8 => {
+            apply_f64(op, f64::from_bits(lhs as u64), f64::from_bits(rhs as u64)).to_bits() as u128
+        }
         _ => 0,
     }
 }

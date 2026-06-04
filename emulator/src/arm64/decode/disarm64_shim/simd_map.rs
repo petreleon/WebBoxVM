@@ -44,7 +44,13 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fminp if simd_fp_binary(raw, 0x2EA0_F400) => Opcode::SimdFpFminp,
         M::r#fmaxnmp if simd_fp_binary(raw, 0x2E20_C400) => Opcode::SimdFpFmaxnmp,
         M::r#fminnmp if simd_fp_binary(raw, 0x2EA0_C400) => Opcode::SimdFpFminnmp,
-        M::r#faddp if simd_fp_binary(raw, 0x2E20_D400) || simd_fp_pairwise_scalar(raw) => {
+        M::r#fmaxp if simd_fp_pairwise_scalar(raw, 0x7E30_F800) => Opcode::SimdFpFmaxp,
+        M::r#fminp if simd_fp_pairwise_scalar(raw, 0x7EB0_F800) => Opcode::SimdFpFminp,
+        M::r#fmaxnmp if simd_fp_pairwise_scalar(raw, 0x7E30_C800) => Opcode::SimdFpFmaxnmp,
+        M::r#fminnmp if simd_fp_pairwise_scalar(raw, 0x7EB0_C800) => Opcode::SimdFpFminnmp,
+        M::r#faddp
+            if simd_fp_binary(raw, 0x2E20_D400) || simd_fp_pairwise_scalar(raw, 0x7E30_D800) =>
+        {
             Opcode::SimdFpAddp
         }
         M::r#cmeq
@@ -133,26 +139,4 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#uminp if simd_minmax(raw, 0x2E20_AC00) => Opcode::SimdUminp,
         _ => return None,
     })
-}
-
-fn simd_minmax(raw: u32, base: u32) -> bool {
-    (raw & 0xBF20_FC00) == base && ((raw >> 22) & 0x3) != 0x3
-}
-
-fn simd_across_minmax(raw: u32, base: u32) -> bool {
-    let q = ((raw >> 30) & 1) != 0;
-    let element_size = 1u64 << ((raw >> 22) & 0x3);
-    (raw & 0xBF3F_FC00) == base && element_size < 8 && (element_size != 4 || q)
-}
-
-fn simd_fp_reduce_s(raw: u32, base: u32) -> bool {
-    (raw & 0xFFFF_FC00) == base
-}
-
-fn simd_fp_binary(raw: u32, base: u32) -> bool {
-    (raw & 0xBFA0_FC00) == base && (((raw >> 22) & 1) == 0 || ((raw >> 30) & 1) != 0)
-}
-
-fn simd_fp_pairwise_scalar(raw: u32) -> bool {
-    (raw & 0xFFBF_FC00) == 0x7E30_D800
 }

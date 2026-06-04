@@ -61,3 +61,43 @@ fn simd_fp_minmax_pairwise_forms_group_source_lanes() {
     execute(&mut cpu, &mut bus, decode(0x6EEB_C549).unwrap()).unwrap();
     assert_eq!(cpu.simd[9], f64x2([6.0, -0.0]));
 }
+
+#[test]
+fn simd_fp_pairwise_scalar_minmax_forms_write_scalar_result() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[1] = f32x4([-0.0, 0.0, 99.0, 100.0]);
+    execute(&mut cpu, &mut bus, decode(0x7E30_F820).unwrap()).unwrap();
+    assert_eq!(u32_lane(cpu.simd[0], 0), 0.0f32.to_bits());
+    assert_eq!(cpu.simd[0] >> 32, 0);
+
+    cpu.simd[3] = f32x4([-0.0, 0.0, 99.0, 100.0]);
+    execute(&mut cpu, &mut bus, decode(0x7EB0_F862).unwrap()).unwrap();
+    assert_eq!(u32_lane(cpu.simd[2], 0), (-0.0f32).to_bits());
+    assert_eq!(cpu.simd[2] >> 32, 0);
+
+    cpu.simd[5] = f32x4([f32::NAN, 7.0, 99.0, 100.0]);
+    execute(&mut cpu, &mut bus, decode(0x7E30_C8A4).unwrap()).unwrap();
+    assert_eq!(f32_lane(&cpu, 4), 7.0);
+
+    cpu.simd[7] = f32x4([f32::NAN, -5.0, 99.0, 100.0]);
+    execute(&mut cpu, &mut bus, decode(0x7EB0_C8E6).unwrap()).unwrap();
+    assert_eq!(f32_lane(&cpu, 6), -5.0);
+
+    cpu.simd[9] = f64x2([f64::NAN, 1.0]);
+    execute(&mut cpu, &mut bus, decode(0x7E70_F928).unwrap()).unwrap();
+    assert!(f64_lane(&cpu, 8).is_nan());
+    assert_eq!(cpu.simd[8] >> 64, 0);
+
+    cpu.simd[11] = f64x2([3.0, -4.0]);
+    execute(&mut cpu, &mut bus, decode(0x7EF0_F96A).unwrap()).unwrap();
+    assert_eq!(f64_lane(&cpu, 10), -4.0);
+
+    cpu.simd[13] = f64x2([f64::NAN, 6.0]);
+    execute(&mut cpu, &mut bus, decode(0x7E70_C9AC).unwrap()).unwrap();
+    assert_eq!(f64_lane(&cpu, 12), 6.0);
+
+    cpu.simd[15] = f64x2([-0.0, 0.0]);
+    execute(&mut cpu, &mut bus, decode(0x7EF0_C9EE).unwrap()).unwrap();
+    assert_eq!(u64_lane(cpu.simd[14], 0), (-0.0f64).to_bits());
+}

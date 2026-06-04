@@ -96,3 +96,25 @@ pub(super) fn simd_fmulx_elem(raw: u32) -> bool {
 pub(super) fn simd_fmulx_direct(raw: u32) -> bool {
     (raw & 0xBFA0_FC00) == 0x0E20_DC00 || (raw & 0xFF20_FC00) == 0x5E20_DC00
 }
+
+pub(super) fn simd_minmax(raw: u32, base: u32) -> bool {
+    (raw & 0xBF20_FC00) == base && ((raw >> 22) & 0x3) != 0x3
+}
+
+pub(super) fn simd_across_minmax(raw: u32, base: u32) -> bool {
+    let q = ((raw >> 30) & 1) != 0;
+    let element_size = 1u64 << ((raw >> 22) & 0x3);
+    (raw & 0xBF3F_FC00) == base && element_size < 8 && (element_size != 4 || q)
+}
+
+pub(super) fn simd_fp_reduce_s(raw: u32, base: u32) -> bool {
+    (raw & 0xFFFF_FC00) == base
+}
+
+pub(super) fn simd_fp_binary(raw: u32, base: u32) -> bool {
+    (raw & 0xBFA0_FC00) == base && (((raw >> 22) & 1) == 0 || ((raw >> 30) & 1) != 0)
+}
+
+pub(super) fn simd_fp_pairwise_scalar(raw: u32, base: u32) -> bool {
+    (raw & 0xFFBF_FC00) == base
+}
