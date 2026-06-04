@@ -35,6 +35,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#movk => Opcode::Movk,
         M::r#movn => Opcode::Movn,
         M::r#and if (raw & 0xBFE0_FC00) == 0x0E20_1C00 => Opcode::SimdAnd,
+        M::r#and if (raw & 0xFFFC_0000) == 0x0580_0000 => Opcode::SveAndImm,
         M::r#and if (raw & 0xFFF0_C210) == 0x2500_4000 || (raw & 0xFFF0_C210) == 0x2540_4000 => {
             Opcode::SvePredAnd
         }
@@ -46,6 +47,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#bic if (raw & 0xBFE0_FC00) == 0x0E60_1C00 => Opcode::SimdBic,
         M::r#bic if scalar_logical_register(raw) => Opcode::AndReg,
         M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
+        M::r#orr if (raw & 0xFFFC_0000) == 0x0500_0000 => Opcode::SveOrrImm,
         M::r#orr if (raw & 0xFFE0_FC00) == 0x0460_3000 => Opcode::SveOrrVec,
         M::r#orr if (raw & 0xFFF0_C210) == 0x2580_4000 || (raw & 0xFFF0_C210) == 0x25C0_4000 => {
             Opcode::SvePredOrr
@@ -54,10 +56,12 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#orn if (raw & 0xBFE0_FC00) == 0x0EE0_1C00 => Opcode::SimdOrn,
         M::r#orn if scalar_logical_register(raw) => Opcode::OrrReg,
         M::r#orrs if (raw & 0xFFF0_C210) == 0x25C0_4000 => Opcode::SvePredOrr,
+        M::r#dupm if (raw & 0xFFFC_0000) == 0x05C0_0000 => Opcode::SveDupm,
         M::r#bsl if (raw & 0xBFE0_FC00) == 0x2E60_1C00 => Opcode::SimdBsl,
         M::r#bit if (raw & 0xBFE0_FC00) == 0x2EA0_1C00 => Opcode::SimdBit,
         M::r#bif if (raw & 0xBFE0_FC00) == 0x2EE0_1C00 => Opcode::SimdBif,
         M::r#orr => Opcode::OrrReg,
+        M::r#eor if (raw & 0xFFFC_0000) == 0x0540_0000 => Opcode::SveEorImm,
         M::r#eor if (raw & 0xFFE0_FC00) == 0x04A0_3000 => Opcode::SveEorVec,
         M::r#eor if (raw & 0xFFE0_FC00) == 0x6E20_1C00 || (raw & 0xFFE0_FC00) == 0x2E20_1C00 => {
             Opcode::SimdEor
