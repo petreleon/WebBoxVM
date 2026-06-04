@@ -109,4 +109,6 @@ impl super::Opcode {
     pub const SimdFpDivVec: Self = Self(190);
     pub const SimdFpAbd: Self = Self(191);
     pub const SimdFpNeg: Self = Self(192);
+    pub const SimdFpFmlaVec: Self = Self(275);
+    pub const SimdFpFmlsVec: Self = Self(276);
 }

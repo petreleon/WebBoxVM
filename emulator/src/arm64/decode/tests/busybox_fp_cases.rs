@@ -13,6 +13,8 @@ fn decode_busybox_fp_cases_cross_checked_with_disarm64() {
         (0x4E20_D400, Opcode::SimdFpAddVec, "fadd"),
         (0x4EA3_D441, Opcode::SimdFpSubVec, "fsub"),
         (0x6E26_DCA4, Opcode::SimdFpMulVec, "fmul"),
+        (0x4E3E_CF7A, Opcode::SimdFpFmlaVec, "fmla"),
+        (0x4EBC_CF1C, Opcode::SimdFpFmlsVec, "fmls"),
         (0x6E7C_FF7B, Opcode::SimdFpDivVec, "fdiv"),
         (0x7EE9_D7FF, Opcode::SimdFpAbd, "fabd"),
         (0x6EA2_D420, Opcode::SimdFpAbd, "fabd"),

@@ -19,6 +19,17 @@ fn simd_fp_vector_arithmetic_ops() {
     execute(&mut cpu, &mut bus, decode(0x6E26_DCA4).unwrap()).unwrap(); // fmul v4.4s, v5.4s, v6.4s
     assert_eq!(cpu.simd[4], f32x4([8.0, -15.0, -1.0, 2.0]));
 
+    cpu.simd[26] = f32x4([10.0, 20.0, 30.0, 40.0]);
+    cpu.simd[27] = f32x4([1.0, 2.0, 3.0, 4.0]);
+    cpu.simd[30] = f32x4([0.5, 1.5, 2.5, 3.5]);
+    execute(&mut cpu, &mut bus, decode(0x4E3E_CF7A).unwrap()).unwrap(); // fmla v26.4s, v27.4s, v30.4s
+    assert_eq!(cpu.simd[26], f32x4([10.5, 23.0, 37.5, 54.0]));
+
+    cpu.simd[28] = f32x4([10.0, 20.0, 30.0, 40.0]);
+    cpu.simd[24] = f32x4([1.0, 2.0, 3.0, 4.0]);
+    execute(&mut cpu, &mut bus, decode(0x4EBC_CF1C).unwrap()).unwrap(); // fmls v28.4s, v24.4s, v28.4s
+    assert_eq!(cpu.simd[28], f32x4([0.0, -20.0, -60.0, -120.0]));
+
     cpu.simd[8] = f64x2([9.0, -8.0]);
     cpu.simd[9] = f64x2([3.0, 2.0]);
     execute(&mut cpu, &mut bus, decode(0x6E69_FD07).unwrap()).unwrap(); // fdiv v7.2d, v8.2d, v9.2d

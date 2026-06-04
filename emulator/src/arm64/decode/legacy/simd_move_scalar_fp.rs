@@ -129,5 +129,11 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_simd_fp_binary(raw, 0x2E20_DC00, Opcode::SimdFpMulVec) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x0E20_CC00, Opcode::SimdFpFmlaVec) {
+        return DecodeStep::Hit(instr);
+    }
+    if let Some(instr) = decode_simd_fp_binary(raw, 0x0EA0_CC00, Opcode::SimdFpFmlsVec) {
+        return DecodeStep::Hit(instr);
+    }
     DecodeStep::Miss
 }
