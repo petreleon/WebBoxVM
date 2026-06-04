@@ -69,7 +69,13 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(step) = decode_simd_narrow_high(raw, 0x0E20_4000, Opcode::SimdAddhn) {
         return step;
     }
+    if let Some(step) = decode_simd_narrow_high(raw, 0x4E20_4000, Opcode::SimdAddhn2) {
+        return step;
+    }
     if let Some(step) = decode_simd_narrow_high(raw, 0x0E20_6000, Opcode::SimdSubhn) {
+        return step;
+    }
+    if let Some(step) = decode_simd_narrow_high(raw, 0x4E20_6000, Opcode::SimdSubhn2) {
         return step;
     }
     if (raw & 0xBF20_FC00) == 0x0E20_BC00 {
@@ -139,6 +145,6 @@ fn decode_simd_narrow_high(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep
         imm: dest_element_size,
         sf: false,
         cond: 0,
-        size: 8,
+        size: if (raw >> 30) & 1 != 0 { 16 } else { 8 },
     }))
 }

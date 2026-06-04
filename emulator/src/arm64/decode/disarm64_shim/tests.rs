@@ -5,6 +5,9 @@ fn maps_simd_pairwise_narrow_mnemonics() {
     let cases = [
         (0x6E22_3C20, Opcode::SimdCmhsReg, "cmhs"),
         (0x0E28_40E6, Opcode::SimdAddhn, "addhn"),
+        (0x4E2B_4149, Opcode::SimdAddhn2, "addhn2"),
+        (0x4E60_6000, Opcode::SimdSubhn2, "subhn2"),
+        (0x4F0A_87E2, Opcode::SimdShrn2, "shrn2"),
         (0x6E25_A483, Opcode::SimdUmaxp, "umaxp"),
     ];
 
@@ -13,15 +16,6 @@ fn maps_simd_pairwise_narrow_mnemonics() {
         assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
     }
-}
-
-#[test]
-fn leaves_addhn2_unmapped_until_upper_half_execution_exists() {
-    let raw = 0x4E2B_4149;
-    let decoded = decoder::decode(raw).expect("disarm64 should decode addhn2");
-
-    assert_eq!(format!("{:?}", decoded.mnemonic), "addhn2");
-    assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), None);
 }
 
 #[test]

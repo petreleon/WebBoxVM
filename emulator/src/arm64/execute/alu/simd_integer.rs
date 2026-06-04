@@ -6,7 +6,7 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
     let rm = instr.rm as usize;
 
     match instr.op {
-        Opcode::SimdShrn => {
+        Opcode::SimdShrn | Opcode::SimdShrn2 => {
             let src = cpu.simd[rn];
             let shift = instr.imm as usize;
             let dest_element_size = instr.cond.max(1) as usize;
@@ -14,24 +14,27 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
             let dest_bits = dest_element_size * 8;
             let src_bits = src_element_size * 8;
             let dest_mask = simd_element_mask(dest_element_size);
-            let lanes = (instr.size as usize / dest_element_size).max(1);
+            let lanes = (8 / dest_element_size).max(1);
             let mut out = 0u128;
             for lane in 0..lanes {
                 let value = simd_element(src, lane, src_element_size);
                 let shifted = if shift >= src_bits { 0 } else { value >> shift };
                 out |= (shifted & dest_mask) << (lane * dest_bits);
             }
-            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+            cpu.simd[rd] = place_narrow_part(cpu.simd[rd], out, instr.op == Opcode::SimdShrn2);
         }
-        Opcode::SimdAddhn | Opcode::SimdSubhn => {
-            cpu.simd[rd] =
+        Opcode::SimdAddhn | Opcode::SimdAddhn2 | Opcode::SimdSubhn | Opcode::SimdSubhn2 => {
+            let add = matches!(instr.op, Opcode::SimdAddhn | Opcode::SimdAddhn2);
+            let narrow =
                 simd_narrow_high(cpu.simd[rn], cpu.simd[rm], instr.imm as usize, |a, b| {
-                    if instr.op == Opcode::SimdAddhn {
+                    if add {
                         a.wrapping_add(b)
                     } else {
                         a.wrapping_sub(b)
                     }
                 });
+            let high = matches!(instr.op, Opcode::SimdAddhn2 | Opcode::SimdSubhn2);
+            cpu.simd[rd] = place_narrow_part(cpu.simd[rd], narrow, high);
         }
         Opcode::SimdAddVec => {
             cpu.simd[rd] = simd_elementwise_binary(
@@ -88,6 +91,15 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
             cpu.simd[rd] = out;
         }
         _ => unreachable!(),
+    }
+}
+
+fn place_narrow_part(old: u128, narrow: u128, high: bool) -> u128 {
+    let narrow = narrow & u64::MAX as u128;
+    if high {
+        (old & u64::MAX as u128) | (narrow << 64)
+    } else {
+        narrow
     }
 }
 

@@ -20,7 +20,9 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sel if (raw & 0xFF20_C000) == 0x0520_C000 => Opcode::SveSel,
         M::r#addp => Opcode::SimdAddp,
         M::r#addhn if (raw & 0xFF20_FC00) == 0x0E20_4000 => Opcode::SimdAddhn,
+        M::r#addhn2 if (raw & 0xFF20_FC00) == 0x4E20_4000 => Opcode::SimdAddhn2,
         M::r#subhn if (raw & 0xFF20_FC00) == 0x0E20_6000 => Opcode::SimdSubhn,
+        M::r#subhn2 if (raw & 0xFF20_FC00) == 0x4E20_6000 => Opcode::SimdSubhn2,
         M::r#addv => Opcode::SimdAddv,
         M::r#umaxv => Opcode::SimdUmaxv,
         M::r#cmeq
@@ -54,6 +56,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sli => Opcode::SimdSli,
         M::r#sri => Opcode::SimdSri,
         M::r#shrn => Opcode::SimdShrn,
+        M::r#shrn2 => Opcode::SimdShrn2,
         M::r#sshr => Opcode::SimdSshr,
         M::r#ushr => Opcode::SimdUshr,
         M::r#ushl => Opcode::SimdUshl,
