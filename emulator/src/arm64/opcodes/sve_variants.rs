@@ -82,4 +82,5 @@ impl super::Opcode {
     pub const SveFpFexpa: Self = Self(337);
     pub const SveFpFcvt: Self = Self(339);
     pub const SveFpFtmad: Self = Self(340);
+    pub const SveFpFscale: Self = Self(341);
 }

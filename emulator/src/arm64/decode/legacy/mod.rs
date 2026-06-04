@@ -36,6 +36,7 @@ mod sve_fp_compare;
 mod sve_fp_convert;
 mod sve_fp_dup_imm;
 mod sve_fp_fexpa;
+mod sve_fp_fscale;
 mod sve_fp_ftmad;
 mod sve_fp_unary;
 mod sve_logical_imm;
@@ -74,6 +75,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp_convert::decode(raw));
     try_stage!(sve_fp_unary::decode(raw));
     try_stage!(sve_fp_fexpa::decode(raw));
+    try_stage!(sve_fp_fscale::decode(raw));
     try_stage!(sve_fp_ftmad::decode(raw));
     try_stage!(sve_fp_compare::decode(raw));
     try_stage!(sve_fp::decode(raw));

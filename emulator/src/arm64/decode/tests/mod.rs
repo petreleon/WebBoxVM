@@ -39,6 +39,7 @@ mod sve_fp_convert;
 mod sve_fp_div;
 mod sve_fp_fexpa;
 mod sve_fp_immediate;
+mod sve_fp_scale;
 mod sve_fp_trig;
 mod sve_fp_unary;
 mod sve_fp_unpredicated;

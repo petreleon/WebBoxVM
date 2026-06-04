@@ -57,6 +57,7 @@ pub(super) fn execute(
         Opcode::SveFpDupImm | Opcode::SveFpCpyImm => exec_sve_fp_dup_imm(cpu, instr),
         Opcode::SveFpFexpa => exec_sve_fp_fexpa(cpu, instr),
         Opcode::SveFpFtmad => exec_sve_fp_ftmad(cpu, instr),
+        Opcode::SveFpFscale => exec_sve_fp_fscale(cpu, instr),
         Opcode::SveFpAdd
         | Opcode::SveFpAddImm
         | Opcode::SveFpSub

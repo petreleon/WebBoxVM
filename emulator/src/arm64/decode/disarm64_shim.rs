@@ -44,6 +44,9 @@ mod sve_fp_fexpa_tests;
 mod sve_fp_immediate_map;
 #[cfg(test)]
 mod sve_fp_immediate_tests;
+mod sve_fp_scale_map;
+#[cfg(test)]
+mod sve_fp_scale_tests;
 mod sve_fp_trig_map;
 #[cfg(test)]
 mod sve_fp_trig_tests;
@@ -100,6 +103,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| sve_logical_map::map(raw, m))
         .or_else(|| sve_fp_convert_map::map(raw, m))
         .or_else(|| sve_fp_fexpa_map::map(raw, m))
+        .or_else(|| sve_fp_scale_map::map(raw, m))
         .or_else(|| sve_fp_trig_map::map(raw, m))
         .or_else(|| sve_fp_immediate_map::map(raw, m))
         .or_else(|| sve_fp_unary_map::map(raw, m))
