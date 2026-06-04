@@ -20,6 +20,7 @@ mod simd_alias_mappings;
 mod simd_cmhs;
 mod simd_compare_zero;
 mod simd_fp_minmax;
+mod simd_fp_pairwise;
 mod simd_fp_unary_more;
 mod simd_fp_vector_convert;
 mod simd_fp_zero_compare;

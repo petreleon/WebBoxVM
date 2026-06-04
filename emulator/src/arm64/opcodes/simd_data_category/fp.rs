@@ -38,6 +38,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpFminp
             | Opcode::SimdFpFmaxnmp
             | Opcode::SimdFpFminnmp
+            | Opcode::SimdFpAddp
             | Opcode::SimdFpFmaxv
             | Opcode::SimdFpFminv
             | Opcode::SimdFpFmaxnmv

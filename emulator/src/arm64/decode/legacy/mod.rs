@@ -11,6 +11,7 @@ mod simd_fp_by_element;
 mod simd_fp_compare;
 mod simd_fp_compare_zero;
 mod simd_fp_minmax;
+mod simd_fp_pairwise;
 mod simd_fp_unary;
 mod simd_fp_unary_more;
 mod simd_immediates_a;
@@ -97,6 +98,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(simd_fp_compare::decode(raw));
     try_stage!(simd_fp_compare_zero::decode(raw));
     try_stage!(simd_fp_minmax::decode(raw));
+    try_stage!(simd_fp_pairwise::decode(raw));
     try_stage!(simd_move_scalar_fp::decode(raw));
     try_stage!(simd_fp_unary_more::decode(raw));
     try_stage!(simd_compare_zero::decode(raw));
