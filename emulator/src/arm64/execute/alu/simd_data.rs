@@ -70,6 +70,10 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdFpFmlaElem
         | Opcode::SimdFpFmlsElem
         | Opcode::SimdFpMulElem => exec_simd_fp_fused(cpu, instr),
+        Opcode::SimdFpFmaxv
+        | Opcode::SimdFpFminv
+        | Opcode::SimdFpFmaxnmv
+        | Opcode::SimdFpFminnmv => exec_simd_fp_reduce(cpu, instr),
         Opcode::SimdShrn
         | Opcode::SimdShrn2
         | Opcode::SimdRshrn

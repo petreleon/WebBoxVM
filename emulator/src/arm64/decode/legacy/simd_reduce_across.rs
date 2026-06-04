@@ -6,6 +6,16 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return DecodeStep::Hit(reduce_instr(raw, Opcode::SimdAddv, element_size));
     }
     for (base, op) in [
+        (0x6E30_F800, Opcode::SimdFpFmaxv),
+        (0x6EB0_F800, Opcode::SimdFpFminv),
+        (0x6E30_C800, Opcode::SimdFpFmaxnmv),
+        (0x6EB0_C800, Opcode::SimdFpFminnmv),
+    ] {
+        if (raw & 0xFFFF_FC00) == base {
+            return DecodeStep::Hit(reduce_instr(raw, op, 4));
+        }
+    }
+    for (base, op) in [
         (0x0E30_A800, Opcode::SimdSmaxv),
         (0x0E31_A800, Opcode::SimdSminv),
         (0x2E30_A800, Opcode::SimdUmaxv),

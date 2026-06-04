@@ -151,4 +151,8 @@ impl super::Opcode {
     pub const SimdFpFcmeqZero: Self = Self(312);
     pub const SimdFpFcmleZero: Self = Self(313);
     pub const SimdFpFrintnVec: Self = Self(338);
+    pub const SimdFpFmaxv: Self = Self(373);
+    pub const SimdFpFminv: Self = Self(374);
+    pub const SimdFpFmaxnmv: Self = Self(375);
+    pub const SimdFpFminnmv: Self = Self(376);
 }

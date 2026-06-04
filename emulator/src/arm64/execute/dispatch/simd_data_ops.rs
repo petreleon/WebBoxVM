@@ -138,5 +138,9 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpFmlaElem
             | Opcode::SimdFpFmlsElem
             | Opcode::SimdFpMulElem
+            | Opcode::SimdFpFmaxv
+            | Opcode::SimdFpFminv
+            | Opcode::SimdFpFmaxnmv
+            | Opcode::SimdFpFminnmv
     )
 }
