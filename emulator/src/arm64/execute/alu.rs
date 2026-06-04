@@ -384,6 +384,24 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out;
         }
+        Opcode::SimdUmaxVec => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_elementwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
+                    a.max(b)
+                });
+        }
+        Opcode::SimdUminVec => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] =
+                simd_elementwise_binary(lhs, rhs, element_size, instr.size as usize, |a, b, _| {
+                    a.min(b)
+                });
+        }
         Opcode::SimdUmaxp => {
             let lhs = cpu.simd[rn];
             let rhs = cpu.simd[rm];
