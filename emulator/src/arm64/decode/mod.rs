@@ -843,6 +843,18 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
             size: 16,
         });
     }
+    if (raw & 0xFFFF_FC00) == 0xCEC0_8400 {
+        return Some(Instr {
+            op: Opcode::SimdSm4e,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 16,
+        });
+    }
     if (raw & 0xFFE0_FC00) == 0xCE60_C000 {
         return Some(Instr {
             op: Opcode::SimdSm3Partw1,

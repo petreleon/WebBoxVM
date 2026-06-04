@@ -1176,6 +1176,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x5E28_0800, Opcode::SimdSha1h, "sha1h"),
         (0x5E28_2800, Opcode::SimdSha256Su0, "sha256su0"),
         (0xCEC0_8000, Opcode::SimdSha512Su0, "sha512su0"),
+        (0xCEC0_8400, Opcode::SimdSm4e, "sm4e"),
         (0xCE63_C004, Opcode::SimdSm3Partw1, "sm3partw1"),
         (0xCE02_0C24, Opcode::SimdEor3, "eor3"),
         (0xCE22_0C24, Opcode::SimdBcax, "bcax"),
@@ -1339,6 +1340,12 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     assert_eq!(sha512su0.rd, 0);
     assert_eq!(sha512su0.rn, 0);
     assert_eq!(sha512su0.size, 16);
+
+    let sm4e = decode(0xCEC0_8400).unwrap();
+    assert_eq!(sm4e.op, Opcode::SimdSm4e);
+    assert_eq!(sm4e.rd, 0);
+    assert_eq!(sm4e.rn, 0);
+    assert_eq!(sm4e.size, 16);
 
     let sm3partw1 = decode(0xCE63_C004).unwrap();
     assert_eq!(sm3partw1.op, Opcode::SimdSm3Partw1);

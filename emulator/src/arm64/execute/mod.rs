@@ -385,6 +385,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdSha1h
         | Opcode::SimdSha256Su0
         | Opcode::SimdSha512Su0
+        | Opcode::SimdSm4e
         | Opcode::SimdSm3Partw1
         | Opcode::SimdEor3
         | Opcode::SimdBcax

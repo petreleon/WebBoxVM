@@ -331,6 +331,14 @@ fn simd_crypto_schedule_and_polynomial_ops() {
     execute(&mut cpu, &mut bus, decode(0xCEC0_8000).unwrap()).unwrap(); // sha512su0 v0.2d, v0.2d
     assert_eq!(cpu.simd[0], sha512su0_expected(sha512_input, sha512_input));
 
+    cpu.simd[0] = u32x4([0x0123_4567, 0x89ab_cdef, 0xfedc_ba98, 0x7654_3210]);
+    cpu.simd[1] = u32x4([0xf121_86f9, 0x4166_2b61, 0x5a6a_b19a, 0x7ba9_2077]);
+    execute(&mut cpu, &mut bus, decode(0xCEC0_8420).unwrap()).unwrap(); // sm4e v0.4s, v1.4s
+    assert_eq!(
+        cpu.simd[0],
+        u32x4([0x27fa_d345, 0xa18b_4cb2, 0x11c1_e22a, 0xcc13_e2ee])
+    );
+
     let sm3_dst = u32x4([0x0011_2233, 0x4455_6677, 0x8899_aabb, 0xccdd_eeff]);
     let sm3_n = u32x4([0x1020_3040, 0x5060_7080, 0x90a0_b0c0, 0xd0e0_f000]);
     let sm3_m = u32x4([0x89ab_cdef, 0x0123_4567, 0x7654_3210, 0xfedc_ba98]);

@@ -198,6 +198,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#sha1h => Opcode::SimdSha1h,
         M::r#sha256su0 => Opcode::SimdSha256Su0,
         M::r#sha512su0 => Opcode::SimdSha512Su0,
+        M::r#sm4e => Opcode::SimdSm4e,
         M::r#sm3partw1 => Opcode::SimdSm3Partw1,
         M::r#eor3 => Opcode::SimdEor3,
         M::r#bcax => Opcode::SimdBcax,

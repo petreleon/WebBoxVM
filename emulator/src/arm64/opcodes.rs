@@ -98,6 +98,7 @@ pub enum Opcode {
     SimdSha1h,
     SimdSha256Su0,
     SimdSha512Su0,
+    SimdSm4e,
     SimdSm3Partw1,
     SimdEor3,
     SimdBcax,
