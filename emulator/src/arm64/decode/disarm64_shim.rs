@@ -4,6 +4,10 @@
 //! opcode, and return the legacy Instr (which has proven operand extraction).
 //! This gives us disarm64 correctness validation without operand extraction bugs.
 
+mod atomic_map;
+mod atomic_mnemonics;
+#[cfg(test)]
+mod atomic_tests;
 mod core_map;
 mod fp_map;
 mod helpers;
@@ -51,6 +55,7 @@ fn log_disarm64_mismatches() -> bool {
 
 fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     core_map::map(raw, m)
+        .or_else(|| atomic_map::map(raw, m))
         .or_else(|| fp_map::map(raw, m))
         .or_else(|| simd_map::map(raw, m))
         .or_else(|| simd_ldst_map::map(raw, m))
