@@ -1,3 +1,4 @@
+use super::simd_helpers::vector_bytes;
 use super::*;
 
 #[test]
@@ -49,4 +50,28 @@ fn sve_predicated_dword_load_store_forms_transfer_active_lanes() {
     assert_eq!(bus.mem.read(base + 0x308, 8), Some(0xDEAD_0001));
     assert_eq!(bus.mem.read(base + 0x310, 8), Some(0xDEAD_0002));
     assert_eq!(bus.mem.read(base + 0x318, 8), Some(0xDEAD_0003));
+
+    cpu.sve_vl_bytes = 16;
+    cpu.regs.set_x(4, base + 0x420);
+    execute(&mut cpu, &mut bus, decode(0x2518_E080).unwrap()).unwrap(); // ptrue p0.b, vl4
+    cpu.simd[2] = vector_bytes(0x10);
+    for offset in 0..16 {
+        bus.write(base + 0x400 + offset, 1, 0xAA);
+    }
+    execute(&mut cpu, &mut bus, decode(0xE40E_E082).unwrap()).unwrap(); // st1b { z2.b }, p0, [x4, #-0x2, mul vl]
+    assert_eq!(bus.mem.read(base + 0x400, 1), Some(0x10));
+    assert_eq!(bus.mem.read(base + 0x403, 1), Some(0x13));
+    assert_eq!(bus.mem.read(base + 0x404, 1), Some(0xAA));
+
+    cpu.sve_vl_bytes = 32;
+    cpu.regs.set_x(5, base + 0x500);
+    execute(&mut cpu, &mut bus, decode(0x25D8_E023).unwrap()).unwrap(); // ptrue p3.d, vl1
+    set_z_elem(&mut cpu, 7, 0, 0xAAAA_AAAA_AAAA_AA55);
+    set_z_elem(&mut cpu, 7, 1, 0xBBBB_BBBB_BBBB_BB66);
+    for offset in 0..8 {
+        bus.write(base + 0x504 + offset, 1, 0xCC);
+    }
+    execute(&mut cpu, &mut bus, decode(0xE461_ECA7).unwrap()).unwrap(); // st1b { z7.d }, p3, [x5, #0x1, mul vl]
+    assert_eq!(bus.mem.read(base + 0x504, 1), Some(0x55));
+    assert_eq!(bus.mem.read(base + 0x505, 1), Some(0xCC));
 }

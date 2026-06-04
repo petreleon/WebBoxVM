@@ -20,4 +20,5 @@ impl super::Opcode {
     pub const SveLd1rqd: Self = Self(82);
     pub const SveLd1d: Self = Self(83);
     pub const SveSt1d: Self = Self(84);
+    pub const SveSt1b: Self = Self(260);
 }

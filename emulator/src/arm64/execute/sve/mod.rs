@@ -6,6 +6,7 @@ use crate::bus::SystemBus;
 
 mod count;
 mod helpers;
+mod memory_b;
 mod memory_d;
 mod memory_register;
 mod predicate;
@@ -14,6 +15,7 @@ mod vector;
 
 pub(super) use count::sve_pred_count;
 use helpers::*;
+pub(super) use memory_b::exec_sve_st1b;
 pub(super) use memory_d::exec_sve_ld1_st1_d;
 pub(super) use memory_register::exec_sve_ldr_str;
 pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue};

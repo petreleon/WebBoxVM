@@ -40,6 +40,7 @@ pub(super) fn execute(
         Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
         Opcode::SveSel => exec_sve_sel(cpu, instr),
         Opcode::SveLdr | Opcode::SveStr => exec_sve_ldr_str(cpu, bus, instr)?,
+        Opcode::SveSt1b => exec_sve_st1b(cpu, bus, instr)?,
         Opcode::SveLd1rd | Opcode::SveLd1rqd | Opcode::SveLd1d | Opcode::SveSt1d => {
             exec_sve_ld1_st1_d(cpu, bus, instr)?
         }

@@ -47,6 +47,10 @@ fn decode_sve_predicated_dword_load_store_forms() {
         (0xC5E6_C07D, Opcode::SveLd1d, "ld1d"),
         (0xA5E0_AC00, Opcode::SveLd1d, "ld1d"),
         (0xE5E0_EC00, Opcode::SveSt1d, "st1d"),
+        (0xE400_E000, Opcode::SveSt1b, "st1b"),
+        (0xE420_E000, Opcode::SveSt1b, "st1b"),
+        (0xE440_E000, Opcode::SveSt1b, "st1b"),
+        (0xE460_E000, Opcode::SveSt1b, "st1b"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -82,4 +86,12 @@ fn decode_sve_predicated_dword_load_store_forms() {
     assert_eq!(st1d_imm.op, Opcode::SveSt1d);
     assert_eq!(st1d_imm.rm, 0xFF);
     assert_eq!(st1d_imm.imm as i64, -1);
+
+    let st1b = decode(0xE40E_E082).unwrap(); // st1b { z2.b }, p0, [x4, #-0x2, mul vl]
+    assert_eq!(st1b.op, Opcode::SveSt1b);
+    assert_eq!(st1b.rd, 2);
+    assert_eq!(st1b.rn, 4);
+    assert_eq!(st1b.cond, 0);
+    assert_eq!(st1b.imm as i64, -2);
+    assert_eq!(st1b.size, 1);
 }
