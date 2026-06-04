@@ -23,7 +23,7 @@ use load_store::{
     exec_mte_mem,
 };
 use sve::*;
-use system::{exec_brk, exec_dc_zva, exec_eret, exec_msr, exec_svc, exec_udf};
+use system::{exec_brk, exec_dc_gva, exec_dc_zva, exec_eret, exec_msr, exec_svc, exec_udf};
 
 use super::Armv8Cpu;
 use super::helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};

@@ -6,12 +6,23 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#hint if raw == 0xD503_205F => Opcode::Wfe,
         M::r#hint if raw == 0xD503_207F => Opcode::Wfi,
         M::r#hint => Opcode::Nop,
+        M::r#chkfeat if raw == 0xD503_251F => Opcode::Chkfeat,
         M::r#clrex if raw == 0xD503_305F => Opcode::NopBarrier,
         M::r#dmb | M::r#dsb | M::r#isb if legacy_barrier(raw) => Opcode::NopBarrier,
+        M::r#gcspushm if (raw & 0xFFFF_FFE0) == 0xD50B_7700 => Opcode::GcsPushM,
+        M::r#gcspushx if raw == 0xD508_779F => Opcode::GcsPushX,
+        M::r#gcspopm if (raw & 0xFFFF_FFE0) == 0xD52B_7720 => Opcode::GcsPopM,
+        M::r#gcspopx if raw == 0xD508_77DF => Opcode::GcsPopX,
+        M::r#gcspopcx if raw == 0xD508_77BF => Opcode::GcsPopCx,
+        M::r#gcsss1 if (raw & 0xFFFF_FFE0) == 0xD50B_7740 => Opcode::GcsSs1,
+        M::r#gcsss2 if (raw & 0xFFFF_FFE0) == 0xD52B_7760 => Opcode::GcsSs2,
+        M::r#smstop if smstop(raw) => Opcode::Smstop,
         M::r#mrs if ((raw >> 20) & 0xFFF) == 0xD53 => Opcode::Mrs,
         M::r#msr if ((raw >> 20) & 0xFFF) == 0xD51 => Opcode::Msr,
         M::r#msr if legacy_daif_alias(raw) => Opcode::Nop,
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7420 => Opcode::DcZva,
+        M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7460 => Opcode::DcGva,
+        M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7480 => Opcode::DcGzva,
         M::r#sys if legacy_tlbi(raw) => Opcode::Tlbi,
         M::r#svc => Opcode::Svc,
         M::r#brk => Opcode::Brk,
@@ -43,4 +54,8 @@ fn legacy_tlbi(raw: u32) -> bool {
     let l = (raw >> 21) & 1;
     let crn = (raw >> 12) & 0xF;
     l == 0 && op0 == 1 && crn == 8
+}
+
+fn smstop(raw: u32) -> bool {
+    matches!(raw, 0xD503_427F | 0xD503_447F | 0xD503_467F)
 }

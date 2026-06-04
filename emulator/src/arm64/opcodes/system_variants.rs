@@ -49,4 +49,15 @@ impl super::Opcode {
     pub const MopsSetP: Self = Self(410);
     pub const MopsSetM: Self = Self(411);
     pub const MopsSetE: Self = Self(412);
+    pub const Chkfeat: Self = Self(413);
+    pub const GcsPushM: Self = Self(414);
+    pub const GcsPushX: Self = Self(415);
+    pub const GcsPopM: Self = Self(416);
+    pub const GcsPopX: Self = Self(417);
+    pub const GcsPopCx: Self = Self(418);
+    pub const GcsSs1: Self = Self(419);
+    pub const GcsSs2: Self = Self(420);
+    pub const Smstop: Self = Self(421);
+    pub const DcGva: Self = Self(422);
+    pub const DcGzva: Self = Self(423);
 }

@@ -123,3 +123,16 @@ pub(super) fn decode_udf(raw: u32) -> Option<Instr> {
         size: 0,
     })
 }
+
+pub(super) fn decode_extension_nop(op: Opcode, rd: u8) -> Option<Instr> {
+    Some(Instr {
+        op,
+        rd,
+        rn: 0,
+        rm: 0,
+        imm: 0,
+        sf: true,
+        cond: 0,
+        size: 0,
+    })
+}

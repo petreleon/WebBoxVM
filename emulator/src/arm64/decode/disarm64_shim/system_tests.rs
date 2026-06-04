@@ -6,6 +6,8 @@ fn maps_system_mnemonics() {
         (0xD503_305F, Opcode::NopBarrier, "clrex"),
         (0xD503_3BBF, Opcode::NopBarrier, "dmb"),
         (0xD50B_7423, Opcode::DcZva, "sys"),
+        (0xD50B_7462, Opcode::DcGva, "sys"),
+        (0xD50B_7482, Opcode::DcGzva, "sys"),
         (0xD508_871F, Opcode::Tlbi, "sys"),
         (0xD518_4102, Opcode::Msr, "msr"),
         (0xD538_4103, Opcode::Mrs, "mrs"),

@@ -9,7 +9,8 @@ pub(super) fn execute(
         Opcode::Tlbi => {
             cpu.tlb.invalidate_all();
         }
-        Opcode::DcZva => exec_dc_zva(cpu, bus, instr)?,
+        Opcode::DcZva | Opcode::DcGzva => exec_dc_zva(cpu, bus, instr)?,
+        Opcode::DcGva => exec_dc_gva(cpu, bus, instr)?,
         Opcode::Svc => {
             exec_svc(cpu, instr.imm)?;
             return Ok(Some(Flow::Return));
@@ -26,7 +27,17 @@ pub(super) fn execute(
             exec_udf(cpu)?;
             return Ok(Some(Flow::Return));
         }
-        Opcode::Nop | Opcode::NopBarrier => exec_nop_like(cpu, instr),
+        Opcode::Nop
+        | Opcode::NopBarrier
+        | Opcode::Chkfeat
+        | Opcode::GcsPushM
+        | Opcode::GcsPushX
+        | Opcode::GcsPopM
+        | Opcode::GcsPopX
+        | Opcode::GcsPopCx
+        | Opcode::GcsSs1
+        | Opcode::GcsSs2
+        | Opcode::Smstop => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }

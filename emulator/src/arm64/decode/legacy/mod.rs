@@ -53,6 +53,7 @@ mod sve_predicate_ld1r;
 mod sve_shift_imm;
 mod sve_unpack;
 mod sve_word_load_store;
+mod system_extensions;
 
 use super::{DecodeStep, Instr, Opcode, branch, data_proc, ldst, system};
 use fp_scalar::decode_fp_scalar;
@@ -118,6 +119,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(simd_reduce_ext::decode(raw));
     try_stage!(simd_permute_logic::decode(raw));
     try_stage!(simd_immediates_a::decode(raw));
+    try_stage!(system_extensions::decode(raw));
     try_stage!(simd_tail_system::decode(raw));
     try_stage!(scalar_ldst_branch::decode(raw));
     None
