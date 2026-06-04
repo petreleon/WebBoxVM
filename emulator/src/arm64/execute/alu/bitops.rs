@@ -1,0 +1,95 @@
+use super::*;
+
+pub(in crate::arm64::execute) fn exec_rev(cpu: &mut Armv8Cpu, instr: Instr) {
+    if instr.sf {
+        write_reg(
+            cpu,
+            instr.rd,
+            read_reg(cpu, instr.rn, true).swap_bytes(),
+            true,
+        );
+    } else {
+        write_reg(
+            cpu,
+            instr.rd,
+            (read_reg(cpu, instr.rn, false) as u32).swap_bytes() as u64,
+            false,
+        );
+    }
+}
+
+pub(in crate::arm64::execute) fn exec_rev16(cpu: &mut Armv8Cpu, instr: Instr) {
+    const MASK_EVEN: u64 = 0xFF00_FF00_FF00_FF00;
+    const MASK_ODD: u64 = 0x00FF_00FF_00FF_00FF;
+    if instr.sf {
+        let val = read_reg(cpu, instr.rn, true);
+        write_reg(
+            cpu,
+            instr.rd,
+            ((val & MASK_EVEN) >> 8) | ((val & MASK_ODD) << 8),
+            true,
+        );
+    } else {
+        let val = read_reg(cpu, instr.rn, false) as u32;
+        write_reg(
+            cpu,
+            instr.rd,
+            (((val & 0xFF00_FF00) >> 8) | ((val & 0x00FF_00FF) << 8)) as u64,
+            false,
+        );
+    }
+}
+
+pub(in crate::arm64::execute) fn exec_rbit(cpu: &mut Armv8Cpu, instr: Instr) {
+    if instr.sf {
+        write_reg(
+            cpu,
+            instr.rd,
+            read_reg(cpu, instr.rn, true).reverse_bits(),
+            true,
+        );
+    } else {
+        write_reg(
+            cpu,
+            instr.rd,
+            (read_reg(cpu, instr.rn, false) as u32).reverse_bits() as u64,
+            false,
+        );
+    }
+}
+
+pub(in crate::arm64::execute) fn exec_clz(cpu: &mut Armv8Cpu, instr: Instr) {
+    if instr.sf {
+        write_reg(
+            cpu,
+            instr.rd,
+            read_reg(cpu, instr.rn, true).leading_zeros() as u64,
+            true,
+        );
+    } else {
+        write_reg(
+            cpu,
+            instr.rd,
+            (read_reg(cpu, instr.rn, false) as u32).leading_zeros() as u64,
+            false,
+        );
+    }
+}
+
+pub(in crate::arm64::execute) fn exec_crc32(cpu: &mut Armv8Cpu, instr: Instr) {
+    let mut crc = read_reg(cpu, instr.rn, false) as u32;
+    let value = read_reg(cpu, instr.rm, instr.size == 8);
+
+    for byte_index in 0..instr.size {
+        crc ^= ((value >> (byte_index * 8)) & 0xff) as u32;
+        for _ in 0..8 {
+            crc = if (crc & 1) != 0 {
+                (crc >> 1) ^ 0xedb8_8320
+            } else {
+                crc >> 1
+            };
+        }
+    }
+
+    write_reg(cpu, instr.rd, crc as u64, false);
+}
