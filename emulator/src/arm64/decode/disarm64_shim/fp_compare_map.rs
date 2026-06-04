@@ -14,6 +14,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fcmeq if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_6000, 0x6512_2000) => {
             Opcode::SveFpFcmeq
         }
+        M::r#fcmeq if simd_fp_compare(raw, 0x0E20_E400, 0x5E20_E400) => Opcode::SimdFpFcmeqVec,
         M::r#fcmeq if simd_fp_zero_compare(raw, 0x0EA0_D800, 0x5EA0_D800) => {
             Opcode::SimdFpFcmeqZero
         }

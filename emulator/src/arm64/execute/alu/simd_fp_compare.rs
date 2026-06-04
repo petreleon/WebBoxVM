@@ -54,6 +54,7 @@ where
     match op {
         Opcode::SimdFpFacgeVec => left.abs_value() >= right.abs_value(),
         Opcode::SimdFpFacgtVec => left.abs_value() > right.abs_value(),
+        Opcode::SimdFpFcmeqVec => left == right,
         Opcode::SimdFpFcmgeVec => left >= right,
         Opcode::SimdFpFcmgtVec => left > right,
         Opcode::SimdFpFcmeqZero => left == right,

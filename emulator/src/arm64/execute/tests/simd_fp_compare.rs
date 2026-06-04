@@ -5,6 +5,16 @@ use super::*;
 fn simd_fp_vector_compare_forms() {
     let (mut cpu, mut bus) = setup();
 
+    cpu.simd[1] = f32x4([3.0, -0.0, f32::NAN, 4.0]);
+    cpu.simd[2] = f32x4([3.0, 0.0, f32::NAN, 5.0]);
+    execute(&mut cpu, &mut bus, decode(0x0E22_E420).unwrap()).unwrap();
+    assert_eq!(cpu.simd[0], u32x4([u32::MAX, u32::MAX, 0, 0]));
+
+    cpu.simd[7] = f64x2([1.0, f64::NAN]);
+    cpu.simd[8] = f64x2([1.0, f64::NAN]);
+    execute(&mut cpu, &mut bus, decode(0x4E68_E4E6).unwrap()).unwrap();
+    assert_eq!(cpu.simd[6], u64x2([u64::MAX, 0]));
+
     cpu.simd[31] = f32x4([3.0, 1.0, f32::NAN, -2.0]);
     cpu.simd[0] = f32x4([2.0, 1.0, 0.0, -3.0]);
     execute(&mut cpu, &mut bus, decode(0x6E20_E7FE).unwrap()).unwrap();
@@ -61,6 +71,11 @@ fn simd_fp_ge_gt_zero_compare_forms_use_literal_zero() {
 fn simd_fp_scalar_compare_forms_write_scalar_masks() {
     let (mut cpu, mut bus) = setup();
 
+    cpu.simd[10] = f32x4([-0.0, 99.0, 99.0, 99.0]);
+    cpu.simd[11] = f32x4([0.0, 99.0, 99.0, 99.0]);
+    execute(&mut cpu, &mut bus, decode(0x5E2B_E549).unwrap()).unwrap();
+    assert_eq!(cpu.simd[9], u32::MAX as u128);
+
     cpu.simd[1] = f32x4([3.0, 99.0, 99.0, 99.0]);
     cpu.simd[2] = f32x4([2.0, 99.0, 99.0, 99.0]);
     execute(&mut cpu, &mut bus, decode(0x7E22_E420).unwrap()).unwrap();
@@ -80,6 +95,11 @@ fn simd_fp_scalar_compare_forms_write_scalar_masks() {
     cpu.simd[29] = f64x2([2.0, 99.0]);
     execute(&mut cpu, &mut bus, decode(0x7EFD_EF9B).unwrap()).unwrap();
     assert_eq!(cpu.simd[27], u64::MAX as u128);
+
+    cpu.simd[13] = f64x2([f64::NAN, 99.0]);
+    cpu.simd[14] = f64x2([f64::NAN, 99.0]);
+    execute(&mut cpu, &mut bus, decode(0x5E6E_E5AC).unwrap()).unwrap();
+    assert_eq!(cpu.simd[12], 0);
 }
 
 #[test]

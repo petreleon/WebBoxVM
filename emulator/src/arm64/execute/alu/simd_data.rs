@@ -62,6 +62,7 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdFpSqrtVec => exec_simd_fp_unary_more(cpu, instr),
         Opcode::SimdFpFacgeVec
         | Opcode::SimdFpFacgtVec
+        | Opcode::SimdFpFcmeqVec
         | Opcode::SimdFpFcmgeVec
         | Opcode::SimdFpFcmgtVec
         | Opcode::SimdFpFcmeqZero

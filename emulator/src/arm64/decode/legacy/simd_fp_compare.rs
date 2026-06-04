@@ -2,6 +2,7 @@ use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
     for (base, op, zero) in [
+        (0x5E20_E400, Opcode::SimdFpFcmeqVec, false),
         (0x7E20_E400, Opcode::SimdFpFcmgeVec, false),
         (0x7EA0_E400, Opcode::SimdFpFcmgtVec, false),
         (0x7E20_EC00, Opcode::SimdFpFacgeVec, false),
@@ -20,6 +21,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return step;
     }
     if let Some(step) = decode_compare(raw, 0x0EA0_C800, Opcode::SimdFpFcmgtZero, true) {
+        return step;
+    }
+    if let Some(step) = decode_compare(raw, 0x0E20_E400, Opcode::SimdFpFcmeqVec, false) {
         return step;
     }
     if let Some(step) = decode_compare(raw, 0x2E20_E400, Opcode::SimdFpFcmgeVec, false) {

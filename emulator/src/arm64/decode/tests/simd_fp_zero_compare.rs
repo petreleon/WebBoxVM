@@ -25,6 +25,9 @@ fn decode_simd_fcmlt_zero_vector_forms() {
 #[test]
 fn decode_simd_fp_compare_forms_cross_checked_with_disarm64() {
     assert_decode_cases(&[
+        (0x0E22_E420, Opcode::SimdFpFcmeqVec, "fcmeq"),
+        (0x4E25_E483, Opcode::SimdFpFcmeqVec, "fcmeq"),
+        (0x4E68_E4E6, Opcode::SimdFpFcmeqVec, "fcmeq"),
         (0x6E20_E7FE, Opcode::SimdFpFcmgeVec, "fcmge"),
         (0x6E63_E7C3, Opcode::SimdFpFcmgeVec, "fcmge"),
         (0x6EBC_E77C, Opcode::SimdFpFcmgtVec, "fcmgt"),
@@ -38,6 +41,9 @@ fn decode_simd_fp_compare_forms_cross_checked_with_disarm64() {
     let fcmge = decode(0x6E20_E7FE).unwrap();
     assert_eq!((fcmge.rd, fcmge.rn, fcmge.rm), (30, 31, 0));
     assert_eq!((fcmge.imm, fcmge.size), (4, 16));
+    let fcmeq = decode(0x4E68_E4E6).unwrap();
+    assert_eq!((fcmeq.rd, fcmeq.rn, fcmeq.rm), (6, 7, 8));
+    assert_eq!((fcmeq.imm, fcmeq.size), (8, 16));
 
     let fcmle = decode(0x6EE0_DB7D).unwrap();
     assert_eq!((fcmle.rd, fcmle.rn, fcmle.rm), (29, 27, 0));
@@ -49,6 +55,8 @@ fn decode_simd_fp_compare_forms_cross_checked_with_disarm64() {
 #[test]
 fn decode_simd_fp_scalar_compare_forms_cross_checked_with_disarm64() {
     assert_decode_cases(&[
+        (0x5E2B_E549, Opcode::SimdFpFcmeqVec, "fcmeq"),
+        (0x5E6E_E5AC, Opcode::SimdFpFcmeqVec, "fcmeq"),
         (0x7E22_E420, Opcode::SimdFpFcmgeVec, "fcmge"),
         (0x7EA5_E483, Opcode::SimdFpFcmgtVec, "fcmgt"),
         (0x7E28_ECE6, Opcode::SimdFpFacgeVec, "facge"),
@@ -59,6 +67,9 @@ fn decode_simd_fp_scalar_compare_forms_cross_checked_with_disarm64() {
         (0x7EFD_EF9B, Opcode::SimdFpFacgtVec, "facgt"),
     ]);
 
+    let fcmeq = decode(0x5E2B_E549).unwrap();
+    assert_eq!((fcmeq.rd, fcmeq.rn, fcmeq.rm), (9, 10, 11));
+    assert_eq!((fcmeq.imm, fcmeq.size), (4, 4));
     let fcmge = decode(0x7E22_E420).unwrap();
     assert_eq!((fcmge.rd, fcmge.rn, fcmge.rm), (0, 1, 2));
     assert_eq!((fcmge.imm, fcmge.size), (4, 4));
