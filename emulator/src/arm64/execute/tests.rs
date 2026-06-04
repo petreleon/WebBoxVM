@@ -515,6 +515,18 @@ fn simd_userland_arithmetic_shift_and_insert_ops() {
     }
     assert_eq!(cpu.simd[31], expected_sri);
 
+    cpu.simd[0] = 0x7f80_ff01_0010_f0f8;
+    execute(&mut cpu, &mut bus, decode(0x0F08_0401).unwrap()).unwrap(); // sshr v1.8b, v0.8b, #8
+    assert_eq!(cpu.simd[1], 0x00ff_ff00_0000_ffff);
+
+    cpu.simd[31] = 0x8000_0000_ffff_ff00_7fff_ff00_0000_0100;
+    execute(&mut cpu, &mut bus, decode(0x4F38_07FC).unwrap()).unwrap(); // sshr v28.4s, v31.4s, #8
+    assert_eq!(cpu.simd[28], 0xff80_0000_ffff_ffff_007f_ffff_0000_0001);
+
+    cpu.simd[11] = 0x8000_0000_0000_0000_7fff_ffff_ffff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x4F41_0561).unwrap()).unwrap(); // sshr v1.2d, v11.2d, #63
+    assert_eq!(cpu.simd[1], 0xffff_ffff_ffff_ffff_0000_0000_0000_0000);
+
     let mut shrn_source = 0u128;
     for lane in 0..8u128 {
         shrn_source |= ((lane + 1) * 0x40) << (lane * 16);

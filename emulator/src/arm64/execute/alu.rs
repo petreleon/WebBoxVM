@@ -444,6 +444,24 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdSshr => {
+            let element_size = instr.cond.max(1) as usize;
+            let shift = instr.imm as u32;
+            let bits = (element_size * 8) as u32;
+            let lanes = (instr.size as usize / element_size).max(1);
+            let element_mask = simd_element_mask(element_size);
+            let mut out = 0u128;
+            for lane in 0..lanes {
+                let value = simd_signed_element(cpu.simd[rn], lane, element_size);
+                let shifted = if shift >= bits {
+                    if value < 0 { -1i128 } else { 0 }
+                } else {
+                    (value >> shift) as i128
+                };
+                out |= ((shifted as u128) & element_mask) << (lane * bits as usize);
+            }
+            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+        }
         Opcode::SimdUshl => {
             let element_size = instr.imm.max(1) as usize;
             let bits = element_size * 8;

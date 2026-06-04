@@ -411,6 +411,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdShlImm
         | Opcode::SimdSli
         | Opcode::SimdSri
+        | Opcode::SimdSshr
         | Opcode::SimdUshr
         | Opcode::SimdUshl
         | Opcode::SimdXtn
