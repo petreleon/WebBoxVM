@@ -1,5 +1,20 @@
 use super::*;
 
+pub(in crate::arm64::execute) fn is_simd_widen_opcode(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SimdUshll
+            | Opcode::SimdSshll
+            | Opcode::SimdShll
+            | Opcode::SimdSaddl
+            | Opcode::SimdUsubl
+            | Opcode::SimdSsubw
+            | Opcode::SimdSaddw
+            | Opcode::SimdUaddw
+            | Opcode::SimdUmlal
+    )
+}
+
 pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Instr) {
     let rd = instr.rd as usize;
     let rn = instr.rn as usize;
@@ -65,60 +80,11 @@ pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Inst
             }
             cpu.simd[rd] = out;
         }
-        Opcode::SimdSaddl => {
-            let src_element_size = instr.cond.max(1) as usize;
-            let dst_element_size = src_element_size * 2;
-            let dst_bits = dst_element_size * 8;
-            let dst_mask = simd_element_mask(dst_element_size);
-            let lanes = 8 / src_element_size;
-            let source_base_lane = if instr.sf { lanes } else { 0 };
-            let mut out = 0u128;
-            for lane in 0..lanes {
-                let lhs =
-                    simd_signed_element(cpu.simd[rn], source_base_lane + lane, src_element_size)
-                        as i128;
-                let rhs =
-                    simd_signed_element(cpu.simd[rm], source_base_lane + lane, src_element_size)
-                        as i128;
-                let value = ((lhs + rhs) as u128) & dst_mask;
-                out |= value << (lane * dst_bits);
-            }
-            cpu.simd[rd] = out;
-        }
-        Opcode::SimdUsubl => {
-            let src_element_size = instr.cond.max(1) as usize;
-            let dst_element_size = src_element_size * 2;
-            let dst_bits = dst_element_size * 8;
-            let dst_mask = simd_element_mask(dst_element_size);
-            let lanes = 8 / src_element_size;
-            let source_base_lane = if instr.sf { lanes } else { 0 };
-            let mut out = 0u128;
-            for lane in 0..lanes {
-                let lhs = simd_element(cpu.simd[rn], source_base_lane + lane, src_element_size);
-                let rhs = simd_element(cpu.simd[rm], source_base_lane + lane, src_element_size);
-                let value = lhs.wrapping_sub(rhs) & dst_mask;
-                out |= value << (lane * dst_bits);
-            }
-            cpu.simd[rd] = out;
-        }
-        Opcode::SimdSsubw => {
-            let src_element_size = instr.cond.max(1) as usize;
-            let dst_element_size = src_element_size * 2;
-            let dst_bits = dst_element_size * 8;
-            let dst_mask = simd_element_mask(dst_element_size);
-            let lanes = 8 / src_element_size;
-            let source_base_lane = if instr.sf { lanes } else { 0 };
-            let mut out = 0u128;
-            for lane in 0..lanes {
-                let lhs = simd_signed_element(cpu.simd[rn], lane, dst_element_size) as i128;
-                let rhs =
-                    simd_signed_element(cpu.simd[rm], source_base_lane + lane, src_element_size)
-                        as i128;
-                let value = ((lhs - rhs) as u128) & dst_mask;
-                out |= value << (lane * dst_bits);
-            }
-            cpu.simd[rd] = out;
-        }
+        Opcode::SimdSaddl => exec_widen_add_sub(cpu, instr, false, true, false),
+        Opcode::SimdUsubl => exec_widen_add_sub(cpu, instr, false, false, true),
+        Opcode::SimdSsubw => exec_widen_add_sub(cpu, instr, true, true, true),
+        Opcode::SimdSaddw => exec_widen_add_sub(cpu, instr, true, true, false),
+        Opcode::SimdUaddw => exec_widen_add_sub(cpu, instr, true, false, false),
         Opcode::SimdUmlal => {
             let src_element_size = instr.cond.max(1) as usize;
             let dst_element_size = src_element_size * 2;
@@ -138,5 +104,56 @@ pub(in crate::arm64::execute) fn exec_simd_widen(cpu: &mut Armv8Cpu, instr: Inst
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
         _ => unreachable!(),
+    }
+}
+
+fn exec_widen_add_sub(
+    cpu: &mut Armv8Cpu,
+    instr: Instr,
+    lhs_wide: bool,
+    signed: bool,
+    subtract: bool,
+) {
+    let rd = instr.rd as usize;
+    let rn = instr.rn as usize;
+    let rm = instr.rm as usize;
+    let src_element_size = instr.cond.max(1) as usize;
+    let dst_element_size = src_element_size * 2;
+    let dst_bits = dst_element_size * 8;
+    let dst_mask = simd_element_mask(dst_element_size);
+    let lanes = 8 / src_element_size;
+    let source_base_lane = if instr.sf { lanes } else { 0 };
+    let mut out = 0u128;
+
+    for lane in 0..lanes {
+        let lhs_lane = if lhs_wide {
+            lane
+        } else {
+            source_base_lane + lane
+        };
+        let lhs_size = if lhs_wide {
+            dst_element_size
+        } else {
+            src_element_size
+        };
+        let lhs = widen_arith_operand(cpu.simd[rn], lhs_lane, lhs_size, signed);
+        let rhs = widen_arith_operand(
+            cpu.simd[rm],
+            source_base_lane + lane,
+            src_element_size,
+            signed,
+        );
+        let value = if subtract { lhs - rhs } else { lhs + rhs };
+        out |= ((value as u128) & dst_mask) << (lane * dst_bits);
+    }
+
+    cpu.simd[rd] = out;
+}
+
+fn widen_arith_operand(value: u128, lane: usize, element_size: usize, signed: bool) -> i128 {
+    if signed {
+        simd_signed_element(value, lane, element_size) as i128
+    } else {
+        simd_element(value, lane, element_size) as i128
     }
 }

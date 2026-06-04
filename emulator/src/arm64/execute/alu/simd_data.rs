@@ -148,13 +148,7 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdBic
         | Opcode::SimdBicImm
         | Opcode::SimdMvni => exec_simd_logic(cpu, instr),
-        Opcode::SimdUshll
-        | Opcode::SimdSshll
-        | Opcode::SimdShll
-        | Opcode::SimdSaddl
-        | Opcode::SimdUsubl
-        | Opcode::SimdSsubw
-        | Opcode::SimdUmlal => exec_simd_widen(cpu, instr),
+        op if is_simd_widen_opcode(op) => exec_simd_widen(cpu, instr),
         _ => unreachable!(),
     }
 }

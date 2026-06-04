@@ -131,6 +131,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#saddl | M::r#saddl2 => Opcode::SimdSaddl,
         M::r#usubl | M::r#usubl2 => Opcode::SimdUsubl,
         M::r#ssubw | M::r#ssubw2 => Opcode::SimdSsubw,
+        M::r#saddw | M::r#saddw2 => Opcode::SimdSaddw,
+        M::r#uaddw | M::r#uaddw2 => Opcode::SimdUaddw,
         M::r#umlal | M::r#umlal2 => Opcode::SimdUmlal,
         M::r#uqsub if (raw & 0xFF20_FC00) == 0x7E20_2C00 => Opcode::SimdUqsub,
         M::r#smaxp if simd_minmax(raw, 0x0E20_A400) => Opcode::SimdSmaxp,

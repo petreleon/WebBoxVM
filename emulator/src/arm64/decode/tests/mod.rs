@@ -40,6 +40,7 @@ mod simd_userland_ld1;
 mod simd_userland_logical;
 mod simd_userland_struct_ldst;
 mod simd_userland_widen_fp;
+mod simd_widen_addwide;
 mod simd_xtn2;
 mod sve_addsub;
 mod sve_compare;

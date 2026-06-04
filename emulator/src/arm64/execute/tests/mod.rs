@@ -110,6 +110,7 @@ mod simd_shift_insert;
 mod simd_signed_compare;
 mod simd_table_permute;
 mod simd_userland_permute_reduction;
+mod simd_widen_addwide;
 mod simd_word_immediate;
 mod simd_xtn2;
 mod sve_addsub;
