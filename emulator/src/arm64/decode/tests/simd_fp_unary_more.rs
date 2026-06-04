@@ -7,6 +7,8 @@ fn decode_simd_fp_abs_and_round_vectors() {
         (0x4EE0_F81D, Opcode::SimdFpAbsVec, "fabs"),
         (0x6E21_8B9C, Opcode::SimdFpFrintaVec, "frinta"),
         (0x6E61_8B9C, Opcode::SimdFpFrintaVec, "frinta"),
+        (0x6EA1_FBC5, Opcode::SimdFpSqrtVec, "fsqrt"),
+        (0x6EE1_FBE4, Opcode::SimdFpSqrtVec, "fsqrt"),
     ];
     assert_decode_cases(&cases);
 
@@ -26,4 +28,14 @@ fn decode_simd_fp_abs_and_round_vectors() {
     assert_eq!(frinta.imm, 4);
     assert_eq!(frinta.size, 8);
     assert!(decode(0x2E61_8B9C).is_none());
+
+    let fsqrt = decode(0x6EA1_FBC5).unwrap();
+    assert_eq!(fsqrt.rd, 5);
+    assert_eq!(fsqrt.rn, 30);
+    assert_eq!(fsqrt.imm, 4);
+    assert_eq!(fsqrt.size, 16);
+    let fsqrt_double = decode(0x6EE1_FBE4).unwrap();
+    assert_eq!(fsqrt_double.imm, 8);
+    assert_eq!(fsqrt_double.size, 16);
+    assert!(decode(0x2EE1_F840).is_none());
 }

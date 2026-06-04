@@ -7,6 +7,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(step) = decode_unary(raw, 0x2E21_8800, Opcode::SimdFpFrintaVec) {
         return step;
     }
+    if let Some(step) = decode_unary(raw, 0x2EA1_F800, Opcode::SimdFpSqrtVec) {
+        return step;
+    }
     DecodeStep::Miss
 }
 

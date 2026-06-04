@@ -8,6 +8,9 @@ pub(in crate::arm64::execute) fn exec_simd_fp_unary_more(cpu: &mut Armv8Cpu, ins
         Opcode::SimdFpFrintaVec => {
             simd_fp_round(cpu.simd[instr.rn as usize], element_size, vector_size)
         }
+        Opcode::SimdFpSqrtVec => {
+            simd_fp_sqrt(cpu.simd[instr.rn as usize], element_size, vector_size)
+        }
         _ => unreachable!(),
     };
 }
@@ -31,6 +34,18 @@ fn simd_fp_round(value: u128, element_size: usize, vector_size: usize) -> u128 {
         }),
         8 => simd_fp_elementwise_unary(value, element_size, vector_size, |bits| {
             f64::from_bits(bits).round().to_bits()
+        }),
+        _ => 0,
+    }
+}
+
+fn simd_fp_sqrt(value: u128, element_size: usize, vector_size: usize) -> u128 {
+    match element_size {
+        4 => simd_fp_elementwise_unary(value, element_size, vector_size, |bits| {
+            f32::from_bits(bits as u32).sqrt().to_bits() as u64
+        }),
+        8 => simd_fp_elementwise_unary(value, element_size, vector_size, |bits| {
+            f64::from_bits(bits).sqrt().to_bits()
         }),
         _ => 0,
     }

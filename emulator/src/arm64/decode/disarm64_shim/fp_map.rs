@@ -31,6 +31,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fneg if (raw & 0xBFBF_FC00) == 0x2EA0_F800 => Opcode::SimdFpNeg,
         M::r#fneg => Opcode::FpNeg,
         M::r#fabs => Opcode::FpAbs,
+        M::r#fsqrt if (raw & 0xBFBF_FC00) == 0x2EA1_F800 => Opcode::SimdFpSqrtVec,
         M::r#fsqrt => Opcode::FpSqrt,
         M::r#fcvt => Opcode::FpFcvt,
         M::r#frintm => Opcode::FpFrintm,
