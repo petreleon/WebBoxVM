@@ -40,6 +40,7 @@ mod sve_fp_unpredicated;
 mod sve_load_store;
 mod sve_logical_imm;
 mod sve_predicate;
+mod sve_shift_imm;
 mod sve_word_load_store;
 mod sve_z_vector;
 mod system_misc;

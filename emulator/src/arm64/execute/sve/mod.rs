@@ -22,6 +22,7 @@ mod memory_register;
 mod memory_w;
 mod predicate;
 mod predicate_bytes;
+mod shift_imm;
 mod vector;
 
 pub(super) use count::sve_pred_count;
@@ -42,6 +43,7 @@ pub(super) use memory_register::exec_sve_ldr_str;
 pub(super) use memory_w::exec_sve_ld1_st1_w;
 pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue, sve_pred_test};
 use predicate_bytes::*;
+pub(super) use shift_imm::exec_sve_shift_imm;
 pub(super) use vector::{
     exec_sve_dup_gpr, exec_sve_int_binary, exec_sve_logical_binary, exec_sve_movprfx, exec_sve_sel,
 };
