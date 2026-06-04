@@ -18,6 +18,10 @@ impl super::Opcode {
     pub const Ctz: Self = Self(504);
     pub const Cnt: Self = Self(505);
     pub const Abs: Self = Self(506);
+    pub const Smax: Self = Self(507);
+    pub const Smin: Self = Self(508);
+    pub const Umax: Self = Self(509);
+    pub const Umin: Self = Self(510);
     pub const Udiv: Self = Self(240);
     pub const Sdiv: Self = Self(241);
     pub const Lslv: Self = Self(242);

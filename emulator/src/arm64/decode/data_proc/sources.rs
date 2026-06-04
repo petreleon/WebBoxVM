@@ -112,6 +112,10 @@ pub(in crate::arm64::decode) fn decode_dp_2src(raw: u32) -> Option<Instr> {
             sf,
             cond: 0,
         }),
+        0b011000 => dp_2src_instr(Opcode::Smax, rd, rn, rm, sf),
+        0b011001 => dp_2src_instr(Opcode::Umax, rd, rn, rm, sf),
+        0b011010 => dp_2src_instr(Opcode::Smin, rd, rn, rm, sf),
+        0b011011 => dp_2src_instr(Opcode::Umin, rd, rn, rm, sf),
         _ => None,
     }
 }
@@ -127,4 +131,17 @@ fn dp_1src_instr(op: Opcode, rd: u8, rn: u8, sf: bool) -> Instr {
         sf,
         cond: 0,
     }
+}
+
+fn dp_2src_instr(op: Opcode, rd: u8, rn: u8, rm: u8, sf: bool) -> Option<Instr> {
+    Some(Instr {
+        size: 0,
+        op,
+        rd,
+        rn,
+        rm,
+        imm: 0,
+        sf,
+        cond: 0,
+    })
 }

@@ -11,6 +11,11 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if bits28_23 == 0b100010 {
         return DecodeStep::from_option(data_proc::decode_addsub_imm(raw));
     }
+    if bits28_23 == 0b100011 {
+        if let Some(instr) = data_proc::decode_cssc_minmax_imm(raw) {
+            return DecodeStep::Hit(instr);
+        }
+    }
     if bits28_23 == 0b100101 {
         let opc = (raw >> 29) & 3;
         if opc == 0 {

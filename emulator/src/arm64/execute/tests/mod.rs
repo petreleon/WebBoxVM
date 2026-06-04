@@ -69,10 +69,10 @@ fn map_two_user_pages(
     cpu.sys.tcr_el1 = (25 << TCR_T1SZ_SHIFT) | 25;
     cpu.sys.sctlr_el1 = SCTLR_MMU_ENABLE;
 }
-
 mod atomics;
 mod basic_alu;
 mod branch;
+mod cssc;
 mod data_proc;
 mod exceptions;
 mod load_store;
