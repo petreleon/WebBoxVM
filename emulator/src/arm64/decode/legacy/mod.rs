@@ -55,6 +55,7 @@ mod sve_predicate_ld1r;
 mod sve_shift_imm;
 mod sve_unpack;
 mod sve_word_load_store;
+mod sve_xar;
 mod system_extensions;
 
 use super::{DecodeStep, Instr, Opcode, branch, data_proc, ldst, system};
@@ -95,6 +96,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(sve_fp::decode(raw));
     try_stage!(sve_dup::decode(raw));
     try_stage!(sve_shift_imm::decode(raw));
+    try_stage!(sve_xar::decode(raw));
     try_stage!(sve_unpack::decode(raw));
     try_stage!(sve_permute::decode(raw));
     try_stage!(sve_addsub::decode(raw));

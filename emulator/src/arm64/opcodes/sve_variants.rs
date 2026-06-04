@@ -94,4 +94,5 @@ impl super::Opcode {
     pub const SvePunpkhi: Self = Self(349);
     pub const SveZip1: Self = Self(426);
     pub const SveZip2: Self = Self(427);
+    pub const SveXar: Self = Self(428);
 }

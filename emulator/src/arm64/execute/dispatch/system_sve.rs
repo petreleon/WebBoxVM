@@ -52,6 +52,7 @@ pub(super) fn execute(
             exec_sve_logical_pred(cpu, instr)
         }
         Opcode::SveAsrImm | Opcode::SveLsrImm | Opcode::SveLslImm => exec_sve_shift_imm(cpu, instr),
+        Opcode::SveXar => exec_sve_xar(cpu, instr),
         Opcode::SveUunpklo
         | Opcode::SveUunpkhi
         | Opcode::SveSunpklo

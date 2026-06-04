@@ -140,6 +140,7 @@ mod sve_shift_imm;
 mod sve_unpack;
 mod sve_whilelo;
 mod sve_word_load_store;
+mod sve_xar;
 mod sve_z_vector;
 mod system_extensions;
 mod system_misc;

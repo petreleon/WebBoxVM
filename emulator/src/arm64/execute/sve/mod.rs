@@ -34,6 +34,7 @@ mod predicate_bytes;
 mod shift_imm;
 mod unpack;
 mod vector;
+mod xar;
 
 pub(super) use addsub::{exec_sve_addsub_imm, exec_sve_addsub_pred};
 pub(super) use count::sve_pred_count;
@@ -67,3 +68,4 @@ pub(super) use unpack::exec_sve_unpack;
 pub(super) use vector::{
     exec_sve_dup_gpr, exec_sve_int_binary, exec_sve_logical_binary, exec_sve_movprfx, exec_sve_sel,
 };
+pub(super) use xar::exec_sve_xar;
