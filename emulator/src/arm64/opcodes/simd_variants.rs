@@ -113,6 +113,7 @@ impl super::Opcode {
     pub const SimdRev64: Self = Self(155);
     pub const SimdRev32: Self = Self(156);
     pub const SimdNot: Self = Self(157);
+    pub const SimdRbit: Self = Self(451);
     pub const SimdBsl: Self = Self(158);
     pub const SimdBit: Self = Self(159);
     pub const SimdBif: Self = Self(160);

@@ -100,6 +100,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#xtn2 => Opcode::SimdXtn2,
         M::r#rev64 if (raw & 0xBF3F_FC00) == 0x0E20_0800 => Opcode::SimdRev64,
         M::r#rev32 if (raw & 0xBF3F_FC00) == 0x2E20_0800 => Opcode::SimdRev32,
+        M::r#rbit if (raw & 0xBFFF_FC00) == 0x2E60_5800 => Opcode::SimdRbit,
         M::r#uzp1 if (raw & 0xBF20_FC00) == 0x0E00_1800 => Opcode::SimdUzp1,
         M::r#uzp2 if (raw & 0xBF20_FC00) == 0x0E00_5800 => Opcode::SimdUzp2,
         M::r#trn1 if (raw & 0xBF20_FC00) == 0x0E00_2800 => Opcode::SimdTrn1,

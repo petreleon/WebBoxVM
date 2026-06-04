@@ -13,6 +13,18 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
+    if (raw & 0xBFFF_FC00) == 0x2E60_5800 {
+        return DecodeStep::Hit(Instr {
+            op: Opcode::SimdRbit,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: if (raw >> 30) != 0 { 16 } else { 8 },
+        });
+    }
     if (raw & 0xFFE0_8400) == 0x6E00_0400 {
         let imm5 = ((raw >> 16) & 0x1F) as u8;
         if let Some((element_size, dest_lane)) = decode_umov_element(imm5) {

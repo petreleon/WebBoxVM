@@ -31,6 +31,7 @@ mod simd_fp_zero_compare;
 mod simd_minmax;
 mod simd_pairwise_narrow;
 mod simd_permute_secondary;
+mod simd_rbit;
 mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
 mod simd_sha1_sha256;

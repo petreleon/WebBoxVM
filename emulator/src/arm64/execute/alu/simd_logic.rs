@@ -14,6 +14,14 @@ pub(in crate::arm64::execute) fn exec_simd_logic(cpu: &mut Armv8Cpu, instr: Inst
             };
             cpu.simd[rd] = !cpu.simd[rn] & lanes_mask;
         }
+        Opcode::SimdRbit => {
+            let mut out = 0u128;
+            for lane in 0..instr.size as usize {
+                let byte = simd_byte(cpu.simd[rn], lane).reverse_bits();
+                out |= (byte as u128) << (lane * 8);
+            }
+            cpu.simd[rd] = out;
+        }
         Opcode::SimdBsl => {
             let vector_mask = simd_vector_mask(instr.size as usize);
             let mask = cpu.simd[rd] & vector_mask;
