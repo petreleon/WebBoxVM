@@ -68,6 +68,7 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdUshr
             | Opcode::SimdUshl
             | Opcode::SimdXtn
+            | Opcode::SimdXtn2
             | Opcode::SimdRev64
             | Opcode::SimdRev32
             | Opcode::SimdNot

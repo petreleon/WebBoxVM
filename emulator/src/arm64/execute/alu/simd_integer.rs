@@ -106,17 +106,17 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
                 |acc, a, b| acc.wrapping_add(a.wrapping_mul(b)) & element_mask,
             );
         }
-        Opcode::SimdXtn => {
+        Opcode::SimdXtn | Opcode::SimdXtn2 => {
             let dest_element_size = instr.imm.max(1) as usize;
             let src_element_size = dest_element_size * 2;
             let dest_mask = simd_element_mask(dest_element_size);
-            let lanes = instr.size as usize / dest_element_size;
+            let lanes = 8 / dest_element_size;
             let mut out = 0u128;
             for lane in 0..lanes {
                 out |= (simd_element(cpu.simd[rn], lane, src_element_size) & dest_mask)
                     << (lane * dest_element_size * 8);
             }
-            cpu.simd[rd] = out;
+            cpu.simd[rd] = place_narrow_part(cpu.simd[rd], out, instr.op == Opcode::SimdXtn2);
         }
         _ => unreachable!(),
     }
@@ -132,12 +132,11 @@ fn place_narrow_part(old: u128, narrow: u128, high: bool) -> u128 {
 }
 
 fn rounded_shift(value: i128, shift: usize, round: bool) -> u128 {
-    let shifted = if round {
+    (if round {
         (value + (1i128 << (shift - 1))) >> shift
     } else {
         value >> shift
-    };
-    shifted as u128
+    }) as u128
 }
 
 fn simd_narrow_high<F>(lhs: u128, rhs: u128, dest_element_size: usize, round: bool, op: F) -> u128

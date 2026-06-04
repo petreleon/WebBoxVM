@@ -41,17 +41,25 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = decode_simd_ushll(raw) {
         return DecodeStep::Hit(instr);
     }
-    if (raw & 0xFF3F_FC00) == 0x0E21_2800 {
-        let dest_element_size = 1u64 << ((raw >> 22) & 0x3);
+    if (raw & 0xBF3F_FC00) == 0x0E21_2800 {
+        let size = (raw >> 22) & 0x3;
+        if size == 0x3 {
+            return DecodeStep::Reject;
+        }
+        let dest_element_size = 1u64 << size;
         return DecodeStep::Hit(Instr {
-            op: Opcode::SimdXtn,
+            op: if (raw >> 30) & 1 != 0 {
+                Opcode::SimdXtn2
+            } else {
+                Opcode::SimdXtn
+            },
             rd: (raw & 0x1F) as u8,
             rn: ((raw >> 5) & 0x1F) as u8,
             rm: 0,
             imm: dest_element_size,
             sf: true,
             cond: 0,
-            size: 8,
+            size: if (raw >> 30) & 1 != 0 { 16 } else { 8 },
         });
     }
     if (raw & 0xFFFF_FC00) == 0x5EF1_B800 {
