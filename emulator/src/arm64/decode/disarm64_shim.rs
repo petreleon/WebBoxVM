@@ -14,6 +14,9 @@ mod exclusive_map;
 mod exclusive_tests;
 mod fp_map;
 mod helpers;
+mod scalar_alias_map;
+#[cfg(test)]
+mod scalar_alias_tests;
 mod simd_ldst_map;
 mod simd_map;
 mod system_map;
@@ -57,7 +60,8 @@ fn log_disarm64_mismatches() -> bool {
 }
 
 fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
-    core_map::map(raw, m)
+    scalar_alias_map::map(raw, m)
+        .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))
         .or_else(|| exclusive_map::map(m))
         .or_else(|| fp_map::map(raw, m))

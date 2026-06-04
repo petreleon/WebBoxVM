@@ -79,6 +79,9 @@ fn decode_daifset_and_daifclr_immediate_fields() {
 
 #[test]
 fn decode_extract_separately_from_bitfield() {
+    assert_disarm64_mnemonic(0x1381_0820, "extr");
+    assert_disarm64_mnemonic(0x1384_1C62, "extr");
+
     let ror = decode(0x1381_0820).unwrap(); // ror w0, w1, #2
     assert_eq!(ror.op, Opcode::Extr);
     assert_eq!(ror.rd, 0);
