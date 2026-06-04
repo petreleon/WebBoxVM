@@ -1,0 +1,18 @@
+pub const VBAR_SYNC_CURRENT_EL: u64 = 0x200;
+pub const VBAR_IRQ_CURRENT_EL: u64 = 0x280;
+pub const VBAR_SYNC_LOWER_EL_AARCH64: u64 = 0x400;
+pub const VBAR_IRQ_LOWER_EL_AARCH64: u64 = 0x480;
+
+pub const ESR_EC_INSN_ABORT_LOWER_EL: u64 = 0x20;
+pub const ESR_EC_INSN_ABORT_CURRENT_EL: u64 = 0x21;
+pub const ESR_EC_DATA_ABORT_LOWER_EL: u64 = 0x24;
+pub const ESR_EC_DATA_ABORT_CURRENT_EL: u64 = 0x25;
+pub const ESR_EC_SVC64: u64 = 0x15;
+pub const ESR_EC_BRK64: u64 = 0x3C;
+pub const ESR_EC_FP_ASIMD: u64 = 0x07;
+pub const ESR_IL: u64 = 1 << 25;
+pub const ESR_FP_ASIMD_ISS_AARCH64: u64 = ESR_IL | (1 << 24) | (0b1110 << 20);
+pub const ESR_FSC_TRANSLATION_LEVEL3: u64 = 0b000111;
+pub const ESR_FSC_ACCESS_FLAG_LEVEL3: u64 = 0b001011;
+pub const ESR_FSC_PERMISSION_LEVEL3: u64 = 0b001111;
+pub const ESR_DATA_ABORT_WNR: u64 = 1 << 6;
