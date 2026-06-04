@@ -47,6 +47,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = decode_simd_fp_to_int_vector(raw, 0x0E21_C800, Opcode::SimdFcvtas) {
+        return DecodeStep::Hit(instr);
+    }
     if (raw & 0xBFE0_FC00) == 0x0E00_0400 {
         let q = ((raw >> 30) & 1) != 0;
         let imm5 = ((raw >> 16) & 0x1F) as u8;

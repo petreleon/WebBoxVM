@@ -98,6 +98,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         | Opcode::SimdUcvtf
         | Opcode::SimdFcvtzs
         | Opcode::SimdFcvtzu
+        | Opcode::SimdFcvtas
         | Opcode::SimdFpAddVec
         | Opcode::SimdFpSubVec
         | Opcode::SimdFpMulVec

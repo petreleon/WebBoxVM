@@ -43,6 +43,27 @@ pub(super) fn decode_simd_int_fp_convert(
     None
 }
 
+pub(super) fn decode_simd_fp_to_int_vector(raw: u32, pattern: u32, op: Opcode) -> Option<Instr> {
+    if (raw & 0xBFBF_FC00) != pattern {
+        return None;
+    }
+    let q = ((raw >> 30) & 1) != 0;
+    let element_size = if ((raw >> 22) & 1) != 0 { 8 } else { 4 };
+    if element_size == 8 && !q {
+        return None;
+    }
+    Some(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: element_size as u64,
+        sf: true,
+        cond: 0,
+        size: if q { 16 } else { 8 },
+    })
+}
+
 pub(super) fn decode_umov_element(imm5: u8) -> Option<(u8, u8)> {
     if imm5 & 0b00001 != 0 {
         Some((1, imm5 >> 1))

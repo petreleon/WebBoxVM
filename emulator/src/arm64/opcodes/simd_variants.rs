@@ -121,4 +121,5 @@ impl super::Opcode {
     pub const SimdFpFrintaVec: Self = Self(285);
     pub const SimdFpSqrtVec: Self = Self(286);
     pub const SimdSubhn: Self = Self(287);
+    pub const SimdFcvtas: Self = Self(288);
 }

@@ -101,6 +101,14 @@ fn simd_fp_vector_arithmetic_ops() {
     execute(&mut cpu, &mut bus, decode(0x4EA1_B821).unwrap()).unwrap(); // fcvtzs v1.4s, v1.4s
     assert_eq!(cpu.simd[1], i32x4([1, -1, 7, -8]));
 
+    cpu.simd[0] = f32x4([1.4, 1.5, -1.5, -2.6]);
+    execute(&mut cpu, &mut bus, decode(0x4E21_C802).unwrap()).unwrap(); // fcvtas v2.4s, v0.4s
+    assert_eq!(cpu.simd[2], i32x4([1, 2, -2, -3]));
+
+    cpu.simd[29] = f64x2([2.5, -2.5]);
+    execute(&mut cpu, &mut bus, decode(0x4E61_CBBB).unwrap()).unwrap(); // fcvtas v27.2d, v29.2d
+    assert_eq!(cpu.simd[27], i64x2([3, -3]));
+
     cpu.simd[31] = (-2.75f64).to_bits() as u128;
     execute(&mut cpu, &mut bus, decode(0x5EE1_BBFF).unwrap()).unwrap(); // fcvtzs d31, d31
     assert_eq!(cpu.simd[31], (-2i64 as u64) as u128);

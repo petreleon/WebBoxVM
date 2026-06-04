@@ -19,6 +19,7 @@ mod scalar_ldst;
 mod simd_alias_mappings;
 mod simd_cmhs;
 mod simd_fp_unary_more;
+mod simd_fp_vector_convert;
 mod simd_pairwise_narrow;
 mod simd_ucvtf;
 mod simd_userland_arith_move;
