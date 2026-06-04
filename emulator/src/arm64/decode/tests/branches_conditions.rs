@@ -22,6 +22,23 @@ fn decode_blr() {
 }
 
 #[test]
+fn decode_conditional_branch_cross_checked_with_disarm64() {
+    let cases = [
+        (0x5400_0000, 0, 0),
+        (0x5400_0001, 1, 0),
+        (0x5400_002A, 10, 4),
+    ];
+
+    for (raw, cond, imm) in cases {
+        assert_disarm64_mnemonic(raw, "b_");
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::BCond, "raw=0x{raw:08x}");
+        assert_eq!(instr.cond, cond, "raw=0x{raw:08x}");
+        assert_eq!(instr.imm, imm, "raw=0x{raw:08x}");
+    }
+}
+
+#[test]
 fn decode_ccmp_imm_pl_imm_d() {
     let raw: u32 = 0xFA405A4D;
     let instr = decode(raw).unwrap();

@@ -8,6 +8,8 @@ mod atomic_map;
 mod atomic_mnemonics;
 #[cfg(test)]
 mod atomic_tests;
+#[cfg(test)]
+mod branch_tests;
 mod core_map;
 mod exclusive_map;
 #[cfg(test)]
