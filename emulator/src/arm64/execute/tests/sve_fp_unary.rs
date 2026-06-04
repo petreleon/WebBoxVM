@@ -23,6 +23,39 @@ fn sve_fp_abs_and_neg_merge_inactive_lanes() {
     assert_eq!(f64::from_bits(z_elem(&cpu, 10, 1)), 7.0);
 }
 
+#[test]
+fn sve_fp_round_and_sqrt_merge_inactive_lanes() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 32;
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E020).unwrap()).unwrap(); // ptrue p0.d, vl1
+    set_z_elem(&mut cpu, 0, 0, 2.5f64.to_bits());
+    set_z_elem(&mut cpu, 29, 1, 77.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65C0_A01D).unwrap()).unwrap(); // frintn z29.d, p0/m, z0.d
+    assert_eq!(f64::from_bits(z_elem(&cpu, 29, 0)), 2.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 29, 1)), 77.0);
+
+    set_z_elem(&mut cpu, 28, 0, (-2.5f64).to_bits());
+    set_z_elem(&mut cpu, 28, 1, 77.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65C4_A39C).unwrap()).unwrap(); // frinta z28.d, p0/m, z28.d
+    assert_eq!(f64::from_bits(z_elem(&cpu, 28, 0)), -3.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 28, 1)), 77.0);
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E023).unwrap()).unwrap(); // ptrue p3.d, vl1
+    set_z_elem(&mut cpu, 1, 0, (-2.9f64).to_bits());
+    set_z_elem(&mut cpu, 29, 1, 88.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65C3_AC3D).unwrap()).unwrap(); // frintz z29.d, p3/m, z1.d
+    assert_eq!(f64::from_bits(z_elem(&cpu, 29, 0)), -2.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 29, 1)), 88.0);
+
+    execute(&mut cpu, &mut bus, decode(0x25D8_E022).unwrap()).unwrap(); // ptrue p2.d, vl1
+    set_z_elem(&mut cpu, 31, 0, 9.0f64.to_bits());
+    set_z_elem(&mut cpu, 27, 1, 99.0f64.to_bits());
+    execute(&mut cpu, &mut bus, decode(0x65CD_ABFB).unwrap()).unwrap(); // fsqrt z27.d, p2/m, z31.d
+    assert_eq!(f64::from_bits(z_elem(&cpu, 27, 0)), 3.0);
+    assert_eq!(f64::from_bits(z_elem(&cpu, 27, 1)), 99.0);
+}
+
 fn set_z_half(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u16) {
     let offset = lane * 2;
     cpu.sve_z[reg][offset..offset + 2].copy_from_slice(&value.to_le_bytes());

@@ -72,4 +72,8 @@ impl super::Opcode {
     pub const SveEorPred: Self = Self(327);
     pub const SveAndPred: Self = Self(328);
     pub const SvePredEor: Self = Self(329);
+    pub const SveFpSqrt: Self = Self(330);
+    pub const SveFpFrintn: Self = Self(331);
+    pub const SveFpFrinta: Self = Self(332);
+    pub const SveFpFrintz: Self = Self(333);
 }

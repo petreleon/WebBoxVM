@@ -63,7 +63,12 @@ pub(super) fn execute(
         | Opcode::SveFpSubr
         | Opcode::SveFpDivr
         | Opcode::SveFpMulImm => exec_sve_fp_binary(cpu, instr),
-        Opcode::SveFpAbs | Opcode::SveFpNeg => exec_sve_fp_unary(cpu, instr),
+        Opcode::SveFpAbs
+        | Opcode::SveFpNeg
+        | Opcode::SveFpSqrt
+        | Opcode::SveFpFrintn
+        | Opcode::SveFpFrinta
+        | Opcode::SveFpFrintz => exec_sve_fp_unary(cpu, instr),
         Opcode::SveFpFacge
         | Opcode::SveFpFacgt
         | Opcode::SveFpFcmeq
