@@ -9,6 +9,9 @@ mod atomic_mnemonics;
 #[cfg(test)]
 mod atomic_tests;
 mod core_map;
+mod exclusive_map;
+#[cfg(test)]
+mod exclusive_tests;
 mod fp_map;
 mod helpers;
 mod simd_ldst_map;
@@ -56,6 +59,7 @@ fn log_disarm64_mismatches() -> bool {
 fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     core_map::map(raw, m)
         .or_else(|| atomic_map::map(raw, m))
+        .or_else(|| exclusive_map::map(m))
         .or_else(|| fp_map::map(raw, m))
         .or_else(|| simd_map::map(raw, m))
         .or_else(|| simd_ldst_map::map(raw, m))

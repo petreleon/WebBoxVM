@@ -2,6 +2,8 @@ use super::*;
 
 #[test]
 fn decode_stlxp_pair() {
+    assert_disarm64_mnemonic(0xC823_8440, "stlxp");
+
     let instr = decode(0xC823_8440).unwrap(); // stlxp w3, x0, x1, [x2]
     assert_eq!(instr.op, Opcode::Stxp);
     assert_eq!(instr.rd, 0);

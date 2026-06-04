@@ -1,0 +1,26 @@
+use super::*;
+
+#[test]
+fn maps_exclusive_mnemonics() {
+    let cases = [
+        (0xC85F_7C40, Opcode::Ldxr, "ldxr"),
+        (0xC85F_FC40, Opcode::Ldxr, "ldaxr"),
+        (0x485F_FC83, Opcode::Ldxr, "ldaxrh"),
+        (0x085F_FCC5, Opcode::Ldxr, "ldaxrb"),
+        (0xC81F_7C40, Opcode::Stxr, "stxr"),
+        (0xC807_FD28, Opcode::Stxr, "stlxr"),
+        (0x480A_FD8B, Opcode::Stxr, "stlxrh"),
+        (0x080D_FDEE, Opcode::Stxr, "stlxrb"),
+        (0xC8DF_FC40, Opcode::Ldar, "ldar"),
+        (0x48DF_FE30, Opcode::Ldar, "ldarh"),
+        (0x089F_FE72, Opcode::Stlr, "stlrb"),
+        (0xC87F_8440, Opcode::Ldxp, "ldaxp"),
+        (0xC823_8440, Opcode::Stxp, "stlxp"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode exclusive word");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}

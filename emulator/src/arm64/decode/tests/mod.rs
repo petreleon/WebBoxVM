@@ -8,6 +8,7 @@ mod busybox_crypto_fields;
 mod busybox_fp_cases;
 mod busybox_fp_fields;
 mod busybox_simd_cases;
+mod exclusive;
 mod loads_literals;
 mod pairs_and_initial_simd;
 mod simd_pairwise_narrow;
