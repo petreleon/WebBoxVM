@@ -146,6 +146,7 @@ impl super::Opcode {
     pub const SimdSsubw: Self = Self(179);
     pub const SimdSaddw: Self = Self(394);
     pub const SimdUaddw: Self = Self(395);
+    pub const SimdUsubw: Self = Self(467);
     pub const SimdUmlal: Self = Self(180);
     pub const SimdUmlalVec: Self = Self(432);
     pub const SimdUmull: Self = Self(433);

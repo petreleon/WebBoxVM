@@ -46,6 +46,21 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             });
         }
     }
+    if (raw & 0xBF20_FC00) == 0x2E20_3000 {
+        let element_size = 1u64 << ((raw >> 22) & 0x3);
+        if element_size < 8 {
+            return DecodeStep::Hit(Instr {
+                op: Opcode::SimdUsubw,
+                rd: (raw & 0x1F) as u8,
+                rn: ((raw >> 5) & 0x1F) as u8,
+                rm: ((raw >> 16) & 0x1F) as u8,
+                imm: 0,
+                sf: (raw >> 30) != 0,
+                cond: element_size as u8,
+                size: 16,
+            });
+        }
+    }
     if let Some(instr) = decode_simd_widen_mul_by_element(raw) {
         return DecodeStep::Hit(instr);
     }

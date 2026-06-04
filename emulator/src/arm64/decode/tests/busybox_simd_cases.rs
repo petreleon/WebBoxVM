@@ -34,6 +34,8 @@ fn decode_busybox_simd_cases_cross_checked_with_disarm64() {
         (0x6EBD_23FF, Opcode::SimdUsubl, "usubl2"),
         (0x0E7E_33BD, Opcode::SimdSsubw, "ssubw"),
         (0x4E7E_33FF, Opcode::SimdSsubw, "ssubw2"),
+        (0x2E23_32D6, Opcode::SimdUsubw, "usubw"),
+        (0x6E23_32F7, Opcode::SimdUsubw, "usubw2"),
         (0x2F80_2386, Opcode::SimdUmlal, "umlal"),
         (0x0EBE_9FBD, Opcode::SimdMulVec, "mul"),
         (0x4EBF_97FE, Opcode::SimdMlaVec, "mla"),
