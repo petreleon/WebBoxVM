@@ -11,17 +11,9 @@ use crate::devices::pl011::Pl011Uart;
 use crate::devices::virtio_blk::VirtioBlk;
 use crate::memory::PhysicalMemory;
 
-/// Mask for the bottom 21 bits of an address, used for UART fixmap remapping.
-const FIXMAP_LOW_MASK: u64 = 0x001F_FFFF;
+mod ranges;
 
-/// Lower 16 bits of the UART fixmap address (0x09_0000 within a 2 MiB block).
-const UART_FIXMAP_BASE: u64 = 0x090000;
-
-/// Upper bound of the UART fixmap address (0x09_1000 = UART_FIXMAP_BASE + 4 KiB page).
-const UART_FIXMAP_END: u64 = 0x091000;
-
-/// Mask for the bottom 12 bits — in-page offset.
-const PAGE_OFFSET_MASK: u64 = 0xFFF;
+use ranges::*;
 
 pub struct SystemBus {
     pub mem: PhysicalMemory,
@@ -115,60 +107,5 @@ impl SystemBus {
     }
 }
 
-// ── Address range predicates ──
-
-fn in_uart_range(addr: u64) -> bool {
-    addr >= UART_BASE && addr < UART_END
-}
-
-fn in_uart_fixmap_range(low: u64) -> bool {
-    low >= UART_FIXMAP_BASE && low < UART_FIXMAP_END
-}
-
-fn in_gicd_range(addr: u64) -> bool {
-    addr >= GICD_BASE && addr < GICD_BASE + GICD_SIZE
-}
-
-fn in_gicr_range(addr: u64) -> bool {
-    addr >= GICR_BASE && addr < GICR_BASE + GICR_SIZE
-}
-
-fn in_virtio_blk_range(addr: u64) -> bool {
-    addr >= VIRTIO_BLK_BASE && addr < VIRTIO_BLK_END
-}
-
-fn in_virtio_disk_range(addr: u64) -> bool {
-    addr >= VIRTIO_DISK_BASE && addr < VIRTIO_DISK_END
-}
-
-/// Returns true for printable ASCII (0x20–0x7E), newline (0x0A), or CR (0x0D).
-fn is_printable_or_control(b: u8) -> bool {
-    matches!(b, b' '..=b'~' | b'\n' | b'\r')
-}
-
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn uart_priority_over_ram() {
-        let mut bus = SystemBus::new();
-        bus.write(UART_BASE, 1, b'A' as u64);
-        assert_eq!(bus.uart.output_string(), "A");
-    }
-
-    #[test]
-    fn ram_read_write() {
-        let mut bus = SystemBus::new();
-        bus.write(RAM_BASE, 8, 0xDEADBEEF);
-        assert_eq!(bus.read(RAM_BASE, 8), Some(0xDEADBEEF));
-    }
-
-    #[test]
-    fn second_virtio_disk_has_own_mmio_window() {
-        let mut bus = SystemBus::new();
-
-        assert_eq!(bus.read(VIRTIO_BLK_BASE, 4), Some(0x7472_6976));
-        assert_eq!(bus.read(VIRTIO_DISK_BASE, 4), Some(0x7472_6976));
-    }
-}
+mod tests;

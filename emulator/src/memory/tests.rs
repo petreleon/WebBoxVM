@@ -1,0 +1,57 @@
+use super::*;
+
+#[test]
+fn u64_roundtrip() {
+    let mut m = PhysicalMemory::new();
+    assert!(m.write(RAM_BASE, 8, 0xCAFE0000_DEADBEEF).is_some());
+    assert_eq!(m.read(RAM_BASE, 8), Some(0xCAFE0000_DEADBEEF));
+}
+
+#[test]
+fn kernel_region_roundtrip() {
+    let mut m = PhysicalMemory::new();
+    assert!(m.write(0x1_0000, 8, 0x1234_5678_9ABC_DEFF).is_some());
+    assert_eq!(m.read(0x1_0000, 8), Some(0x1234_5678_9ABC_DEFF));
+}
+
+#[test]
+fn u8_roundtrip() {
+    let mut m = PhysicalMemory::new();
+    assert!(m.write(0x4000_0100, 1, 0x42).is_some());
+    assert_eq!(m.read(0x4000_0100, 1), Some(0x42));
+}
+
+#[test]
+fn unmapped_fails() {
+    let m = PhysicalMemory::new();
+    assert_eq!(m.read(0x0000_0000, 4), Some(0));
+}
+
+#[test]
+fn new_memory_does_not_allocate_guest_pages() {
+    let m = PhysicalMemory::new();
+    assert_eq!(m.allocated_pages(), 0);
+    assert_eq!(m.read(RAM_BASE + 0x1000, 8), Some(0));
+    assert_eq!(m.allocated_pages(), 0);
+}
+
+#[test]
+fn bulk_access_crosses_sparse_pages() {
+    let mut m = PhysicalMemory::new();
+    let addr = RAM_BASE + PAGE_SIZE - 2;
+    let bytes = [1, 2, 3, 4, 5];
+    let mut out = [0u8; 5];
+
+    m.write_bytes(addr, &bytes).unwrap();
+    m.read_bytes(addr, &mut out).unwrap();
+
+    assert_eq!(out, bytes);
+    assert_eq!(m.read(addr, 4), Some(0x0403_0201));
+}
+
+#[test]
+fn range_must_stay_inside_one_region() {
+    let mut m = PhysicalMemory::new();
+    assert_eq!(m.write_bytes(LOW_REGION_END - 2, &[1, 2, 3]), None);
+    assert_eq!(m.read(EFI_REGION_END, 1), None);
+}
