@@ -94,3 +94,22 @@ fn decode_addsub_immediate_forms() {
         assert_eq!(instr.imm, imm, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_addsub_extended_forms() {
+    let cases = [
+        (0x8B22_4820, Opcode::AddExt, "add", 2, 2),
+        (0xCB25_E483, Opcode::SubExt, "sub", 7, 1),
+        (0x2B28_0CE6, Opcode::AddsExt, "adds", 0, 3),
+        (0xEB2B_A949, Opcode::SubsExt, "subs", 5, 2),
+        (0xEB2D_499F, Opcode::Cmp, "subs", 10, 2),
+    ];
+
+    for (raw, expected, mnemonic, cond, imm) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!(instr.cond, cond, "raw=0x{raw:08x}");
+        assert_eq!(instr.imm, imm, "raw=0x{raw:08x}");
+    }
+}
