@@ -112,6 +112,7 @@ pub enum Opcode {
     SimdCmeqZero,
     SimdCmeqReg,
     SimdCmhsReg,
+    SimdCmhiReg,
     SimdShrn,
     SimdAddhn,
     SimdAddVec,

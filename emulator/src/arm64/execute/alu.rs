@@ -220,6 +220,18 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             let rhs = cpu.simd[rm];
             cpu.simd[rd] = simd_compare_vec_bytes(lhs, rhs, |a, b| a >= b);
         }
+        Opcode::SimdCmhiReg => {
+            let lhs = cpu.simd[rn];
+            let rhs = cpu.simd[rm];
+            let element_size = instr.imm.max(1) as usize;
+            cpu.simd[rd] = simd_elementwise_binary(
+                lhs,
+                rhs,
+                element_size,
+                instr.size as usize,
+                |a, b, mask| if a > b { mask } else { 0 },
+            );
+        }
         Opcode::SimdUqsub => {
             const FPSR_QC: u64 = 1 << 27;
 

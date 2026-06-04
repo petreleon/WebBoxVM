@@ -625,6 +625,25 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(cmeq_words.rm, 25);
     assert_eq!(cmeq_words.imm, 4);
     assert_eq!(cmeq_words.size, 16);
+    let cmhi_words = decode(0x6EBD_37FD).unwrap();
+    assert_eq!(cmhi_words.op, Opcode::SimdCmhiReg);
+    assert_eq!(cmhi_words.rd, 29);
+    assert_eq!(cmhi_words.rn, 31);
+    assert_eq!(cmhi_words.rm, 29);
+    assert_eq!(cmhi_words.imm, 4);
+    assert_eq!(cmhi_words.size, 16);
+    let cmhi_doublewords = decode(0x6EFD_37FC).unwrap();
+    assert_eq!(cmhi_doublewords.op, Opcode::SimdCmhiReg);
+    assert_eq!(cmhi_doublewords.imm, 8);
+    assert_eq!(cmhi_doublewords.size, 16);
+    let cmhi_scalar = decode(0x7EFF_37DF).unwrap();
+    assert_eq!(cmhi_scalar.op, Opcode::SimdCmhiReg);
+    assert_eq!(cmhi_scalar.rd, 31);
+    assert_eq!(cmhi_scalar.rn, 30);
+    assert_eq!(cmhi_scalar.rm, 31);
+    assert_eq!(cmhi_scalar.imm, 8);
+    assert_eq!(cmhi_scalar.size, 8);
+    assert!(decode(0x2EE0_3400).is_none());
     let uqsub = decode(0x7E6F_2FFF).unwrap();
     assert_eq!(uqsub.op, Opcode::SimdUqsub);
     assert_eq!(uqsub.rd, 31);
@@ -753,6 +772,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x2F07_E61F, Opcode::SimdMovi, "movi"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
+        (0x6EBD_37FD, Opcode::SimdCmhiReg, "cmhi"),
+        (0x7EFF_37DF, Opcode::SimdCmhiReg, "cmhi"),
         (0x2E21_3BDE, Opcode::SimdShll, "shll"),
         (0x6E21_3BD0, Opcode::SimdShll, "shll2"),
         (0x0EB9_02D0, Opcode::SimdSaddl, "saddl"),

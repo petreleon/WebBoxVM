@@ -1013,6 +1013,26 @@ fn simd_cmeq_register_compares_word_lanes() {
 }
 
 #[test]
+fn simd_cmhi_register_compares_unsigned_lanes() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.simd[31] = 0x0000_0007_0000_0005_ffff_ffff_0000_0003;
+    cpu.simd[29] = 0x0000_0006_0000_0005_ffff_fffe_0000_0004;
+    execute(&mut cpu, &mut bus, decode(0x6EBD_37FD).unwrap()).unwrap(); // cmhi v29.4s, v31.4s, v29.4s
+    assert_eq!(cpu.simd[29], 0xffff_ffff_0000_0000_ffff_ffff_0000_0000);
+
+    cpu.simd[31] = 0x0000_0000_0000_0000_0000_0000_0000_0005;
+    cpu.simd[29] = 0xffff_ffff_ffff_ffff_0000_0000_0000_0004;
+    execute(&mut cpu, &mut bus, decode(0x6EFD_37FC).unwrap()).unwrap(); // cmhi v28.2d, v31.2d, v29.2d
+    assert_eq!(cpu.simd[28], 0x0000_0000_0000_0000_ffff_ffff_ffff_ffff);
+
+    cpu.simd[30] = 7;
+    cpu.simd[31] = 6;
+    execute(&mut cpu, &mut bus, decode(0x7EFF_37DF).unwrap()).unwrap(); // cmhi d31, d30, d31
+    assert_eq!(cpu.simd[31], u64::MAX as u128);
+}
+
+#[test]
 fn simd_scalar_uqsub_saturates_halfword() {
     let (mut cpu, mut bus) = setup();
     let qc = 1 << 27;
