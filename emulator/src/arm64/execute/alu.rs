@@ -780,6 +780,22 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
             }
             cpu.simd[rd] = out;
         }
+        Opcode::SimdUsubl => {
+            let src_element_size = instr.cond.max(1) as usize;
+            let dst_element_size = src_element_size * 2;
+            let dst_bits = dst_element_size * 8;
+            let dst_mask = simd_element_mask(dst_element_size);
+            let lanes = 8 / src_element_size;
+            let source_base_lane = if instr.sf { lanes } else { 0 };
+            let mut out = 0u128;
+            for lane in 0..lanes {
+                let lhs = simd_element(cpu.simd[rn], source_base_lane + lane, src_element_size);
+                let rhs = simd_element(cpu.simd[rm], source_base_lane + lane, src_element_size);
+                let value = lhs.wrapping_sub(rhs) & dst_mask;
+                out |= value << (lane * dst_bits);
+            }
+            cpu.simd[rd] = out;
+        }
         Opcode::SimdSsubw => {
             let src_element_size = instr.cond.max(1) as usize;
             let dst_element_size = src_element_size * 2;

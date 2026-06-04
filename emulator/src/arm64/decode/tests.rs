@@ -733,6 +733,20 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(saddl2.rm, 25);
     assert_eq!(saddl2.cond, 4);
     assert!(saddl2.sf);
+    let usubl = decode(0x2EBD_23FE).unwrap();
+    assert_eq!(usubl.op, Opcode::SimdUsubl);
+    assert_eq!(usubl.rd, 30);
+    assert_eq!(usubl.rn, 31);
+    assert_eq!(usubl.rm, 29);
+    assert_eq!(usubl.cond, 4);
+    assert!(!usubl.sf);
+    let usubl2 = decode(0x6EBD_23FF).unwrap();
+    assert_eq!(usubl2.op, Opcode::SimdUsubl);
+    assert_eq!(usubl2.rd, 31);
+    assert_eq!(usubl2.rn, 31);
+    assert_eq!(usubl2.rm, 29);
+    assert_eq!(usubl2.cond, 4);
+    assert!(usubl2.sf);
     let ssubw = decode(0x0E7E_33BD).unwrap();
     assert_eq!(ssubw.op, Opcode::SimdSsubw);
     assert_eq!(ssubw.rd, 29);
@@ -851,6 +865,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x6E21_3BD0, Opcode::SimdShll, "shll2"),
         (0x0EB9_02D0, Opcode::SimdSaddl, "saddl"),
         (0x4EB9_02D6, Opcode::SimdSaddl, "saddl2"),
+        (0x2EBD_23FE, Opcode::SimdUsubl, "usubl"),
+        (0x6EBD_23FF, Opcode::SimdUsubl, "usubl2"),
         (0x0E7E_33BD, Opcode::SimdSsubw, "ssubw"),
         (0x4E7E_33FF, Opcode::SimdSsubw, "ssubw2"),
         (0x2F80_2386, Opcode::SimdUmlal, "umlal"),
