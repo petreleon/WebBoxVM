@@ -626,7 +626,29 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(movi_half_shift.op, Opcode::SimdMovi);
     assert_eq!(movi_half_shift.imm, 0x8000);
     assert_eq!(movi_half_shift.cond, 2);
+    let movi_bytes = decode(0x0F03_E7FF).unwrap();
+    assert_eq!(movi_bytes.op, Opcode::SimdMovi);
+    assert_eq!(movi_bytes.rd, 31);
+    assert_eq!(movi_bytes.imm, 0x7f);
+    assert_eq!(movi_bytes.cond, 0);
+    assert_eq!(movi_bytes.size, 8);
     assert_eq!(decode(0x2F00_051E).unwrap().op, Opcode::SimdMvni);
+    let mvni_half_shift = decode(0x2F04_A480).unwrap();
+    assert_eq!(mvni_half_shift.op, Opcode::SimdMvni);
+    assert_eq!(mvni_half_shift.rd, 0);
+    assert_eq!(mvni_half_shift.imm, 0x8400);
+    assert_eq!(mvni_half_shift.cond, 2);
+    assert_eq!(mvni_half_shift.size, 8);
+    let mvni_half = decode(0x2F03_87E0).unwrap();
+    assert_eq!(mvni_half.op, Opcode::SimdMvni);
+    assert_eq!(mvni_half.imm, 0x7f);
+    assert_eq!(mvni_half.cond, 2);
+    let mvni_msl = decode(0x2F03_D7FE).unwrap();
+    assert_eq!(mvni_msl.op, Opcode::SimdMvni);
+    assert_eq!(mvni_msl.rd, 30);
+    assert_eq!(mvni_msl.imm, 0x007f_ffff);
+    assert_eq!(mvni_msl.cond, 4);
+    assert_eq!(mvni_msl.size, 8);
     assert_eq!(decode(0x6E22_AC20).unwrap().op, Opcode::SimdUminp);
     assert_eq!(decode(0x0E20_9800).unwrap().op, Opcode::SimdCmeqZero);
     let cmeq_words = decode(0x6EB9_8FFF).unwrap();
@@ -779,8 +801,11 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x6F00_E400, Opcode::SimdMovi, "movi"),
         (0x0F00_848F, Opcode::SimdMovi, "movi"),
         (0x0F04_A41F, Opcode::SimdMovi, "movi"),
+        (0x0F03_E7FF, Opcode::SimdMovi, "movi"),
         (0x2F00_E41F, Opcode::SimdMovi, "movi"),
         (0x2F07_E61F, Opcode::SimdMovi, "movi"),
+        (0x2F04_A480, Opcode::SimdMvni, "mvni"),
+        (0x2F03_D7FE, Opcode::SimdMvni, "mvni"),
         (0x2F20_A7FF, Opcode::SimdUshll, "ushll"),
         (0x0F20_A7FF, Opcode::SimdSshll, "sshll"),
         (0x6EF9_47BD, Opcode::SimdUshl, "ushl"),

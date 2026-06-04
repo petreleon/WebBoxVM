@@ -370,7 +370,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::Msr => exec_msr(cpu, instr),
         Opcode::SimdMovi => {
             cpu.simd[instr.rd as usize] = if instr.cond == 0 {
-                simd_replicate_byte(instr.imm as u8)
+                simd_replicate_byte(instr.imm as u8) & simd_vector_mask(instr.size as usize)
             } else {
                 simd_replicate_element(instr.imm as u128, instr.cond as usize, instr.size as usize)
             };

@@ -1416,7 +1416,7 @@ fn fp_expand_imm(imm8: u8, size: u8) -> u64 {
     }
 }
 
-fn simd_vector_mask(vector_size: usize) -> u128 {
+pub(super) fn simd_vector_mask(vector_size: usize) -> u128 {
     match vector_size {
         0 => 0,
         16.. => u128::MAX,
