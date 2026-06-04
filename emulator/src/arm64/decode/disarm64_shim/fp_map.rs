@@ -16,12 +16,15 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fsubr if (raw & 0xFF3F_E000) == 0x6503_8000 => Opcode::SveFpSubr,
         M::r#fsub => Opcode::FpSub,
         M::r#fmul if (raw & 0xBFA0_FC00) == 0x2E20_DC00 => Opcode::SimdFpMulVec,
-        M::r#fmul if (raw & 0xBF00_F400) == 0x0F00_9000 => Opcode::SimdFpMulElem,
+        M::r#fmul if (raw & 0xBF80_F400) == 0x0F80_9000 => Opcode::SimdFpMulElem,
         M::r#fmul if (raw & 0xFF20_FC00) == 0x6420_2000 => Opcode::SveFpMulIndex,
         M::r#fmul if (raw & 0xFF20_FC00) == 0x6500_0800 => Opcode::SveFpMul,
         M::r#fmul if (raw & 0xFF3F_E3C0) == 0x651A_8000 => Opcode::SveFpMulImm,
         M::r#fmul if (raw & 0xFF3F_E000) == 0x6502_8000 => Opcode::SveFpMul,
         M::r#fmul => Opcode::FpMul,
+        M::r#fmulx if (raw & 0xBF80_F400) == 0x2F80_9000 || (raw & 0xBF80_F400) == 0x3F80_9000 => {
+            Opcode::SimdFpMulxElem
+        }
         M::r#fmulx if (raw & 0xBFA0_FC00) == 0x0E20_DC00 || (raw & 0xFF20_FC00) == 0x5E20_DC00 => {
             Opcode::SimdFpMulx
         }
@@ -90,11 +93,11 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fmsub => Opcode::Fmsub,
         M::r#fnmsub => Opcode::Fnmsub,
         M::r#fmla if (raw & 0xBFA0_FC00) == 0x0E20_CC00 => Opcode::SimdFpFmlaVec,
-        M::r#fmla if (raw & 0xBF00_F400) == 0x0F00_1000 => Opcode::SimdFpFmlaElem,
+        M::r#fmla if (raw & 0xBF80_F400) == 0x0F80_1000 => Opcode::SimdFpFmlaElem,
         M::r#fmla if (raw & 0xFF20_E000) == 0x6520_0000 => Opcode::SveFpFmla,
         M::r#fmla if (raw & 0xFF20_FC00) == 0x6420_0000 => Opcode::SveFpFmlaIndex,
         M::r#fmls if (raw & 0xBFA0_FC00) == 0x0EA0_CC00 => Opcode::SimdFpFmlsVec,
-        M::r#fmls if (raw & 0xBF00_F400) == 0x0F00_5000 => Opcode::SimdFpFmlsElem,
+        M::r#fmls if (raw & 0xBF80_F400) == 0x0F80_5000 => Opcode::SimdFpFmlsElem,
         M::r#fmls if (raw & 0xFF20_E000) == 0x6520_2000 => Opcode::SveFpFmls,
         M::r#fmls if (raw & 0xFF20_FC00) == 0x6420_0400 => Opcode::SveFpFmlsIndex,
         M::r#fmad if (raw & 0xFF20_E000) == 0x6520_8000 => Opcode::SveFpFmad,

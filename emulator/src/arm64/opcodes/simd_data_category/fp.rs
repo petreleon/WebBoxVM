@@ -12,6 +12,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdFpSubVec
             | Opcode::SimdFpMulVec
             | Opcode::SimdFpMulx
+            | Opcode::SimdFpMulxElem
             | Opcode::SimdFpDivVec
             | Opcode::SimdFpAbd
             | Opcode::SimdFpNeg

@@ -15,6 +15,25 @@ pub(in crate::arm64::execute) fn exec_simd_fp_mulx(cpu: &mut Armv8Cpu, instr: In
     );
 }
 
+pub(in crate::arm64::execute) fn exec_simd_fp_mulx_elem(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.imm.max(1) as usize;
+    let vector_size = instr.size as usize;
+    let lane_value = simd_element(
+        cpu.simd[instr.rm as usize],
+        instr.cond as usize,
+        element_size,
+    );
+    let rhs = broadcast_lane(lane_value, element_size, vector_size);
+    cpu.simd[instr.rd as usize] = simd_fp_elementwise_binary(
+        cpu.simd[instr.rn as usize],
+        rhs,
+        element_size,
+        vector_size,
+        fmulx32,
+        fmulx64,
+    );
+}
+
 fn exec_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
     match instr.size {
         4 => {
@@ -29,6 +48,14 @@ fn exec_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         }
         _ => {}
     }
+}
+
+fn broadcast_lane(lane_value: u128, element_size: usize, vector_size: usize) -> u128 {
+    let mut out = 0u128;
+    for lane in 0..vector_size / element_size {
+        out |= lane_value << (lane * element_size * 8);
+    }
+    out
 }
 
 fn fmulx32(lhs: f32, rhs: f32) -> f32 {

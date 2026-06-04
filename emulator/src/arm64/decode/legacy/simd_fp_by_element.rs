@@ -1,17 +1,19 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
-    let op = match raw & 0xBF00_F400 {
-        0x0F00_1000 => Opcode::SimdFpFmlaElem,
-        0x0F00_5000 => Opcode::SimdFpFmlsElem,
-        0x0F00_9000 => Opcode::SimdFpMulElem,
+    let (op, scalar) = match raw & 0xBF80_F400 {
+        0x0F80_1000 => (Opcode::SimdFpFmlaElem, false),
+        0x0F80_5000 => (Opcode::SimdFpFmlsElem, false),
+        0x0F80_9000 => (Opcode::SimdFpMulElem, false),
+        0x2F80_9000 => (Opcode::SimdFpMulxElem, false),
+        0x3F80_9000 => (Opcode::SimdFpMulxElem, true),
         _ => return DecodeStep::Miss,
     };
     let q = ((raw >> 30) & 1) != 0;
     let sz = ((raw >> 22) & 1) != 0;
     let l = ((raw >> 21) & 1) as u8;
 
-    if sz && (!q || l != 0) {
+    if (scalar && !q) || (sz && (l != 0 || (!scalar && !q))) {
         return DecodeStep::Reject;
     }
 
@@ -26,6 +28,12 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         imm: element_size,
         sf: true,
         cond: lane,
-        size: if q { 16 } else { 8 },
+        size: if scalar {
+            element_size as u8
+        } else if q {
+            16
+        } else {
+            8
+        },
     })
 }

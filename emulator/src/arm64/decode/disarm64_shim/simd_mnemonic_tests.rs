@@ -45,6 +45,8 @@ fn maps_shared_simd_mnemonics_by_encoding() {
         (0x5E22_DC20, Opcode::SimdFpMulx, "fmulx"),
         (0x4E2B_DD49, Opcode::SimdFpMulx, "fmulx"),
         (0x4E6E_DDAC, Opcode::SimdFpMulx, "fmulx"),
+        (0x2F82_9020, Opcode::SimdFpMulxElem, "fmulx"),
+        (0x7F8B_9949, Opcode::SimdFpMulxElem, "fmulx"),
         (0x4E9C_5BDE, Opcode::SimdUzp2, "uzp2"),
         (0x4E0C_690B, Opcode::SimdTrn2, "trn2"),
         (0x4EA1_2BEF, Opcode::SimdXtn2, "xtn2"),
