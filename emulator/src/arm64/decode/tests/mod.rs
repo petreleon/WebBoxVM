@@ -8,6 +8,7 @@ mod busybox_crypto_fields;
 mod busybox_fp_cases;
 mod busybox_fp_fields;
 mod busybox_simd_cases;
+mod cmp_aliases;
 mod exclusive;
 mod loads_literals;
 mod logical_aliases;

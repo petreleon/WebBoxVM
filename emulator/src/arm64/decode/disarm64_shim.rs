@@ -10,6 +10,8 @@ mod atomic_mnemonics;
 mod atomic_tests;
 #[cfg(test)]
 mod branch_tests;
+#[cfg(test)]
+mod cmp_tests;
 mod core_map;
 mod exclusive_map;
 #[cfg(test)]
