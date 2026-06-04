@@ -92,7 +92,9 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdRev32
         | Opcode::SimdInsElem
         | Opcode::SimdUzp1
+        | Opcode::SimdUzp2
         | Opcode::SimdTrn1
+        | Opcode::SimdTrn2
         | Opcode::SimdZip1
         | Opcode::SimdZip2
         | Opcode::SimdTbl => exec_simd_permute(cpu, instr),

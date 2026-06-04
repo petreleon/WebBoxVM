@@ -44,25 +44,24 @@ pub(in crate::arm64::execute) fn exec_simd_permute(cpu: &mut Armv8Cpu, instr: In
             cpu.simd[rd] =
                 (cpu.simd[rd] & !dest_mask) | ((element & element_mask) << (dest_lane * bits));
         }
-        Opcode::SimdUzp1 => {
+        Opcode::SimdUzp1 | Opcode::SimdUzp2 => {
             let element_size = instr.imm.max(1) as usize;
-            let bits = element_size * 8;
-            let lanes = instr.size as usize / element_size;
-            let half = lanes / 2;
-            let mut out = 0u128;
-            for lane in 0..half {
-                out |= simd_element(cpu.simd[rn], lane * 2, element_size) << (lane * bits);
-                out |= simd_element(cpu.simd[rm], lane * 2, element_size) << ((lane + half) * bits);
-            }
-            cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
+            let high_half = instr.op == Opcode::SimdUzp2;
+            cpu.simd[rd] = simd_uzp(
+                cpu.simd[rn],
+                cpu.simd[rm],
+                element_size,
+                instr.size as usize,
+                high_half,
+            );
         }
-        Opcode::SimdTrn1 => {
+        Opcode::SimdTrn1 | Opcode::SimdTrn2 => {
             cpu.simd[rd] = simd_trn(
                 cpu.simd[rn],
                 cpu.simd[rm],
                 instr.imm.max(1) as usize,
                 instr.size as usize,
-                false,
+                instr.op == Opcode::SimdTrn2,
             );
         }
         Opcode::SimdZip1 | Opcode::SimdZip2 => {

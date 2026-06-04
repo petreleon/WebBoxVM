@@ -71,7 +71,9 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdEor
             | Opcode::SimdInsElem
             | Opcode::SimdUzp1
+            | Opcode::SimdUzp2
             | Opcode::SimdTrn1
+            | Opcode::SimdTrn2
             | Opcode::SimdZip1
             | Opcode::SimdZip2
             | Opcode::SimdTbl

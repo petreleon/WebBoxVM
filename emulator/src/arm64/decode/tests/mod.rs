@@ -22,6 +22,7 @@ mod simd_fp_unary_more;
 mod simd_fp_vector_convert;
 mod simd_fp_zero_compare;
 mod simd_pairwise_narrow;
+mod simd_permute_secondary;
 mod simd_ucvtf;
 mod simd_userland_arith_move;
 mod simd_userland_dup;

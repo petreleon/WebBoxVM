@@ -67,6 +67,25 @@ pub(in crate::arm64::execute) fn simd_trn(
     out & simd_vector_mask(vector_size)
 }
 
+pub(in crate::arm64::execute) fn simd_uzp(
+    lhs: u128,
+    rhs: u128,
+    element_size: usize,
+    vector_size: usize,
+    high_half: bool,
+) -> u128 {
+    let bits = element_size * 8;
+    let lanes = vector_size / element_size;
+    let half = lanes / 2;
+    let start = if high_half { 1 } else { 0 };
+    let mut out = 0u128;
+    for lane in 0..half {
+        out |= simd_element(lhs, start + lane * 2, element_size) << (lane * bits);
+        out |= simd_element(rhs, start + lane * 2, element_size) << ((lane + half) * bits);
+    }
+    out & simd_vector_mask(vector_size)
+}
+
 pub(in crate::arm64::execute) fn simd_compare_elements_with_zero(
     value: u128,
     element_size: usize,

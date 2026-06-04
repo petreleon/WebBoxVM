@@ -83,7 +83,9 @@ impl super::Opcode {
     pub const SimdEor: Self = Self(165);
     pub const SimdInsElem: Self = Self(166);
     pub const SimdUzp1: Self = Self(167);
+    pub const SimdUzp2: Self = Self(350);
     pub const SimdTrn1: Self = Self(168);
+    pub const SimdTrn2: Self = Self(351);
     pub const SimdZip1: Self = Self(169);
     pub const SimdZip2: Self = Self(170);
     pub const SimdTbl: Self = Self(171);
