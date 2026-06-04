@@ -12,6 +12,7 @@ mod cmp_aliases;
 mod exclusive;
 mod loads_literals;
 mod logical_aliases;
+mod mops;
 mod mte;
 mod multiply_long;
 mod pairs_and_initial_simd;

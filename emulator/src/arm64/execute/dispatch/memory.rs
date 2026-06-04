@@ -36,6 +36,15 @@ pub(super) fn execute(
         Opcode::MteLdg | Opcode::MteStg | Opcode::MteStzg | Opcode::MteSt2g | Opcode::MteStz2g => {
             exec_mte_mem(cpu, bus, instr)?
         }
+        Opcode::MopsCpyFp
+        | Opcode::MopsCpyFm
+        | Opcode::MopsCpyFe
+        | Opcode::MopsCpyP
+        | Opcode::MopsCpyM
+        | Opcode::MopsCpyE
+        | Opcode::MopsSetP
+        | Opcode::MopsSetM
+        | Opcode::MopsSetE => exec_mops(cpu, bus, instr)?,
         _ => return Ok(None),
     }
     Ok(Some(Flow::Advance))

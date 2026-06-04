@@ -40,4 +40,13 @@ impl super::Opcode {
     pub const MteStzg: Self = Self(401);
     pub const MteSt2g: Self = Self(402);
     pub const MteStz2g: Self = Self(403);
+    pub const MopsCpyFp: Self = Self(404);
+    pub const MopsCpyFm: Self = Self(405);
+    pub const MopsCpyFe: Self = Self(406);
+    pub const MopsCpyP: Self = Self(407);
+    pub const MopsCpyM: Self = Self(408);
+    pub const MopsCpyE: Self = Self(409);
+    pub const MopsSetP: Self = Self(410);
+    pub const MopsSetM: Self = Self(411);
+    pub const MopsSetE: Self = Self(412);
 }

@@ -23,6 +23,9 @@ mod fp_scalar_tests;
 mod helpers;
 #[cfg(test)]
 mod logical_alias_tests;
+mod mops_map;
+#[cfg(test)]
+mod mops_tests;
 mod mte_map;
 #[cfg(test)]
 mod mte_tests;
@@ -128,6 +131,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| fp_compare_map::map(raw, m))
         .or_else(|| fp_map::map(raw, m))
         .or_else(|| simd_ldst_map::map(raw, m))
+        .or_else(|| mops_map::map(raw, m))
         .or_else(|| mte_map::map(raw, m))
         .or_else(|| system_map::map(raw, m))
 }
