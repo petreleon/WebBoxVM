@@ -388,6 +388,11 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         Opcode::SvePtrue => exec_sve_ptrue(cpu, instr),
         Opcode::SvePtest => exec_sve_ptest(cpu, instr),
         Opcode::SvePredAnd | Opcode::SvePredOrr => exec_sve_pred_logical(cpu, instr),
+        Opcode::SveMovprfx => exec_sve_movprfx(cpu, instr),
+        Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
+        Opcode::SveAddVec | Opcode::SveSubVec => exec_sve_int_binary(cpu, instr),
+        Opcode::SveOrrVec | Opcode::SveEorVec => exec_sve_logical_binary(cpu, instr),
+        Opcode::SveSel => exec_sve_sel(cpu, instr),
         Opcode::SimdMovi => {
             cpu.simd[instr.rd as usize] = if instr.cond == 0 {
                 simd_replicate_byte(instr.imm as u8) & simd_vector_mask(instr.size as usize)
@@ -659,6 +664,103 @@ fn exec_sve_pred_logical(cpu: &mut Armv8Cpu, instr: Instr) {
     cpu.sve_pred[instr.rd as usize] = result;
 }
 
+fn exec_sve_movprfx(cpu: &mut Armv8Cpu, instr: Instr) {
+    let vl_bytes = sve_vl_bytes(cpu);
+    let source = sve_read_z(cpu, instr.rn as usize);
+    let mut result = if instr.cond == 0xFF || !instr.sf {
+        [0; 256]
+    } else {
+        sve_read_z(cpu, instr.rd as usize)
+    };
+
+    if instr.cond == 0xFF {
+        result[..vl_bytes].copy_from_slice(&source[..vl_bytes]);
+    } else {
+        let element_size = instr.size as usize;
+        let elements = vl_bytes / element_size;
+        let mask = cpu.sve_pred[instr.cond as usize];
+        for element in 0..elements {
+            if predicate_element(&mask, element, element_size) {
+                copy_sve_element(&mut result, &source, element, element_size);
+            }
+        }
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn exec_sve_dup_gpr(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let value = read_base(cpu, instr.rn, true) & sve_element_mask(element_size);
+    let mut result = [0; 256];
+
+    for element in 0..elements {
+        sve_set_element(&mut result, element, element_size, value);
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn exec_sve_int_binary(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let lhs = sve_read_z(cpu, instr.rn as usize);
+    let rhs = sve_read_z(cpu, instr.rm as usize);
+    let mask = sve_element_mask(element_size);
+    let mut result = [0; 256];
+
+    for element in 0..elements {
+        let left = sve_element(&lhs, element, element_size);
+        let right = sve_element(&rhs, element, element_size);
+        let value = match instr.op {
+            Opcode::SveAddVec => left.wrapping_add(right),
+            Opcode::SveSubVec => left.wrapping_sub(right),
+            _ => unreachable!(),
+        } & mask;
+        sve_set_element(&mut result, element, element_size, value);
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn exec_sve_logical_binary(cpu: &mut Armv8Cpu, instr: Instr) {
+    let vl_bytes = sve_vl_bytes(cpu);
+    let lhs = sve_read_z(cpu, instr.rn as usize);
+    let rhs = sve_read_z(cpu, instr.rm as usize);
+    let mut result = [0; 256];
+
+    for byte in 0..vl_bytes {
+        result[byte] = match instr.op {
+            Opcode::SveOrrVec => lhs[byte] | rhs[byte],
+            Opcode::SveEorVec => lhs[byte] ^ rhs[byte],
+            _ => unreachable!(),
+        };
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
+fn exec_sve_sel(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let vl_bytes = sve_vl_bytes(cpu);
+    let elements = vl_bytes / element_size;
+    let mask = cpu.sve_pred[instr.cond as usize];
+    let true_source = sve_read_z(cpu, instr.rn as usize);
+    let false_source = sve_read_z(cpu, instr.rm as usize);
+    let mut result = [0; 256];
+
+    for element in 0..elements {
+        if predicate_element(&mask, element, element_size) {
+            copy_sve_element(&mut result, &true_source, element, element_size);
+        } else {
+            copy_sve_element(&mut result, &false_source, element, element_size);
+        }
+    }
+
+    sve_write_z(cpu, instr.rd as usize, result);
+}
+
 fn sve_pred_test(
     mask: &[u64; 4],
     result: &[u64; 4],
@@ -703,6 +805,55 @@ fn set_predicate_bit(pred: &mut [u64; 4], bit: usize, value: bool) {
 
 fn predicate_bit(pred: &[u64; 4], bit: usize) -> bool {
     bit < 256 && (pred[bit / 64] & (1 << (bit % 64))) != 0
+}
+
+fn sve_read_z(cpu: &mut Armv8Cpu, reg: usize) -> [u8; 256] {
+    sync_z_from_simd(cpu, reg);
+    cpu.sve_z[reg]
+}
+
+fn sve_write_z(cpu: &mut Armv8Cpu, reg: usize, mut value: [u8; 256]) {
+    let vl_bytes = sve_vl_bytes(cpu);
+    value[vl_bytes..].fill(0);
+    cpu.sve_z[reg] = value;
+    sync_simd_from_z(cpu, reg);
+}
+
+fn sync_z_from_simd(cpu: &mut Armv8Cpu, reg: usize) {
+    cpu.sve_z[reg][..16].copy_from_slice(&cpu.simd[reg].to_le_bytes());
+}
+
+fn sync_simd_from_z(cpu: &mut Armv8Cpu, reg: usize) {
+    let mut bytes = [0; 16];
+    bytes.copy_from_slice(&cpu.sve_z[reg][..16]);
+    cpu.simd[reg] = u128::from_le_bytes(bytes);
+}
+
+fn copy_sve_element(dest: &mut [u8; 256], src: &[u8; 256], element: usize, element_size: usize) {
+    let offset = element * element_size;
+    dest[offset..offset + element_size].copy_from_slice(&src[offset..offset + element_size]);
+}
+
+fn sve_element(vec: &[u8; 256], element: usize, element_size: usize) -> u64 {
+    let offset = element * element_size;
+    let mut bytes = [0; 8];
+    bytes[..element_size].copy_from_slice(&vec[offset..offset + element_size]);
+    u64::from_le_bytes(bytes)
+}
+
+fn sve_set_element(vec: &mut [u8; 256], element: usize, element_size: usize, value: u64) {
+    let offset = element * element_size;
+    vec[offset..offset + element_size].copy_from_slice(&value.to_le_bytes()[..element_size]);
+}
+
+fn sve_element_mask(element_size: usize) -> u64 {
+    match element_size {
+        1 => u8::MAX as u64,
+        2 => u16::MAX as u64,
+        4 => u32::MAX as u64,
+        8 => u64::MAX,
+        _ => 0,
+    }
 }
 
 fn sve_vl_bytes(cpu: &Armv8Cpu) -> usize {

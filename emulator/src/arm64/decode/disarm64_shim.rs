@@ -46,9 +46,11 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         {
             Opcode::SimdAddVec
         }
+        M::r#add if (raw & 0xFF20_FC00) == 0x0420_0000 => Opcode::SveAddVec,
         M::r#add => Opcode::Add,
         M::r#adds => Opcode::Adds,
         M::r#sub if (raw & 0xBF20_FC00) == 0x2E20_8400 => Opcode::SimdSubVec,
+        M::r#sub if (raw & 0xFF20_FC00) == 0x0420_0400 => Opcode::SveSubVec,
         M::r#sub => Opcode::Sub,
         M::r#subs => Opcode::Subs,
         M::r#adc => Opcode::Adc,
@@ -67,6 +69,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#ands => Opcode::AndsReg,
         M::r#bic if (raw & 0xBFE0_FC00) == 0x0E60_1C00 => Opcode::SimdBic,
         M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
+        M::r#orr if (raw & 0xFFE0_FC00) == 0x0460_3000 => Opcode::SveOrrVec,
         M::r#orr if (raw & 0xFFF0_C210) == 0x2580_4000 || (raw & 0xFFF0_C210) == 0x25C0_4000 => {
             Opcode::SvePredOrr
         }
@@ -76,6 +79,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#bit if (raw & 0xBFE0_FC00) == 0x2EA0_1C00 => Opcode::SimdBit,
         M::r#bif if (raw & 0xBFE0_FC00) == 0x2EE0_1C00 => Opcode::SimdBif,
         M::r#orr => Opcode::OrrReg,
+        M::r#eor if (raw & 0xFFE0_FC00) == 0x04A0_3000 => Opcode::SveEorVec,
         M::r#eor => Opcode::EorReg,
         M::r#csel => Opcode::Csel,
         M::r#csinc => Opcode::Csinc,
@@ -119,6 +123,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#addsvl => Opcode::SveAddsvl,
         M::r#ptrue => Opcode::SvePtrue,
         M::r#ptest => Opcode::SvePtest,
+        M::r#movprfx => Opcode::SveMovprfx,
         M::r#eret => Opcode::Eret,
         M::r#hint => Opcode::Nop,
         M::r#mul if (raw & 0xBF20_FC00) == 0x0E20_9C00 => Opcode::SimdMulVec,
@@ -197,6 +202,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#fmov if (raw & 0xFF20_1C00) == 0x1E20_1000 => Opcode::FpMovImm,
         M::r#umov => Opcode::SimdUmov,
         M::r#smov if simd_smov_is_valid(raw) => Opcode::SimdSmov,
+        M::r#dup if (raw & 0xFF3F_FC00) == 0x0520_3800 => Opcode::SveDupGpr,
         M::r#dup if (raw & 0xBFE0_FC00) == 0x0E00_0400 || (raw & 0xFFE0_FC00) == 0x5E00_0400 => {
             Opcode::SimdDupElem
         }
@@ -217,6 +223,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#bcax => Opcode::SimdBcax,
         M::r#rax1 => Opcode::SimdRax1,
         M::r#xar => Opcode::SimdXar,
+        M::r#sel if (raw & 0xFF20_C000) == 0x0520_C000 => Opcode::SveSel,
         M::r#addp => Opcode::SimdAddp,
         M::r#addv => Opcode::SimdAddv,
         M::r#umaxv => Opcode::SimdUmaxv,

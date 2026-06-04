@@ -27,6 +27,88 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ldst1_lane(raw) {
         return Some(instr);
     }
+    if (raw & 0xFFFF_FC00) == 0x0420_BC00 {
+        return Some(Instr {
+            op: Opcode::SveMovprfx,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: false,
+            cond: 0xFF,
+            size: 0,
+        });
+    }
+    if (raw & 0xFF3E_E000) == 0x0410_2000 {
+        return Some(Instr {
+            op: Opcode::SveMovprfx,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: (raw & 0x0001_0000) != 0,
+            cond: ((raw >> 10) & 0x7) as u8,
+            size: 1u8 << (((raw >> 22) & 0x3) as u8),
+        });
+    }
+    if (raw & 0xFF3F_FC00) == 0x0520_3800 {
+        return Some(Instr {
+            op: Opcode::SveDupGpr,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 1u8 << (((raw >> 22) & 0x3) as u8),
+        });
+    }
+    let sve_addsub_base = raw & 0xFF20_FC00;
+    if sve_addsub_base == 0x0420_0000 || sve_addsub_base == 0x0420_0400 {
+        return Some(Instr {
+            op: if sve_addsub_base == 0x0420_0000 {
+                Opcode::SveAddVec
+            } else {
+                Opcode::SveSubVec
+            },
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 0,
+            sf: false,
+            cond: 0,
+            size: 1u8 << (((raw >> 22) & 0x3) as u8),
+        });
+    }
+    let sve_logical_base = raw & 0xFFE0_FC00;
+    if sve_logical_base == 0x0460_3000 || sve_logical_base == 0x04A0_3000 {
+        return Some(Instr {
+            op: if sve_logical_base == 0x0460_3000 {
+                Opcode::SveOrrVec
+            } else {
+                Opcode::SveEorVec
+            },
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 0,
+            sf: false,
+            cond: 0,
+            size: 8,
+        });
+    }
+    if (raw & 0xFF20_C000) == 0x0520_C000 {
+        return Some(Instr {
+            op: Opcode::SveSel,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0x1F) as u8,
+            rm: ((raw >> 16) & 0x1F) as u8,
+            imm: 0,
+            sf: false,
+            cond: ((raw >> 10) & 0xF) as u8,
+            size: 1u8 << (((raw >> 22) & 0x3) as u8),
+        });
+    }
     if (raw & 0xFF3F_FC10) == 0x2518_E000 {
         let size_bits = ((raw >> 22) & 0x3) as u8;
         return Some(Instr {
