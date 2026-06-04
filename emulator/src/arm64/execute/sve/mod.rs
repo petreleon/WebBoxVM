@@ -6,6 +6,7 @@ use crate::bus::SystemBus;
 
 mod count;
 mod fp;
+mod fp_compare;
 mod fp_fused;
 mod fp_immediate;
 mod fp_indexed;
@@ -22,6 +23,7 @@ mod vector;
 
 pub(super) use count::sve_pred_count;
 pub(super) use fp::exec_sve_fp_binary;
+pub(super) use fp_compare::exec_sve_fp_compare;
 pub(super) use fp_fused::exec_sve_fp_fused;
 pub(super) use fp_immediate::exec_sve_fp_dup_imm;
 pub(super) use fp_indexed::exec_sve_fp_indexed;
@@ -32,7 +34,7 @@ pub(super) use memory_b::exec_sve_st1b;
 pub(super) use memory_contiguous::exec_sve_contiguous_load;
 pub(super) use memory_d::exec_sve_ld1_st1_d;
 pub(super) use memory_register::exec_sve_ldr_str;
-pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue};
+pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue, sve_pred_test};
 use predicate_bytes::*;
 pub(super) use vector::{
     exec_sve_dup_gpr, exec_sve_int_binary, exec_sve_logical_binary, exec_sve_movprfx, exec_sve_sel,

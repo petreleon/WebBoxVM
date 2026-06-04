@@ -26,7 +26,13 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#fabd if (raw & 0xFF20_FC00) == 0x7E20_D400 || (raw & 0xBFA0_FC00) == 0x2EA0_D400 => {
             Opcode::SimdFpAbd
         }
+        M::r#facge if sve_fp_size_valid(raw) && (raw & 0xFF20_E010) == 0x6500_C010 => {
+            Opcode::SveFpFacge
+        }
         M::r#facge if (raw & 0xBFA0_FC00) == 0x2E20_EC00 => Opcode::SimdFpFacgeVec,
+        M::r#facgt if sve_fp_size_valid(raw) && (raw & 0xFF20_E010) == 0x6500_E010 => {
+            Opcode::SveFpFacgt
+        }
         M::r#facgt if (raw & 0xBFA0_FC00) == 0x2EA0_EC00 => Opcode::SimdFpFacgtVec,
         M::r#fcmlt if (raw & 0xBFBF_FC00) == 0x0EA0_E800 => Opcode::SimdFpFcmltZero,
         M::r#fabs if (raw & 0xBFBF_FC00) == 0x0EA0_F800 => Opcode::SimdFpAbsVec,
@@ -107,4 +113,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ins if (raw & 0xFFE0_FC00) == 0x4E00_1C00 => Opcode::SimdInsGprLane,
         _ => return None,
     })
+}
+
+fn sve_fp_size_valid(raw: u32) -> bool {
+    ((raw >> 22) & 0x3) != 0
 }

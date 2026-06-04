@@ -31,6 +31,7 @@ mod simd_userland_logical;
 mod simd_userland_struct_ldst;
 mod simd_userland_widen_fp;
 mod sve_counts;
+mod sve_fp_compare;
 mod sve_fp_div;
 mod sve_fp_immediate;
 mod sve_fp_unary;
