@@ -39,16 +39,20 @@ fn decode_addsub_with_carry() {
 #[test]
 fn decode_crc32_scalar_forms() {
     let cases = [
-        (0x1AC5_4042, 1, "crc32b"),
-        (0x1AC5_4442, 2, "crc32h"),
-        (0x1AC3_4842, 4, "crc32w"),
-        (0x9AC4_4C42, 8, "crc32x"),
+        (0x1AC5_4042, Opcode::Crc32, 1, "crc32b"),
+        (0x1AC5_4442, Opcode::Crc32, 2, "crc32h"),
+        (0x1AC3_4842, Opcode::Crc32, 4, "crc32w"),
+        (0x9AC4_4C42, Opcode::Crc32, 8, "crc32x"),
+        (0x1AC5_5042, Opcode::Crc32c, 1, "crc32cb"),
+        (0x1AC5_5442, Opcode::Crc32c, 2, "crc32ch"),
+        (0x1AC3_5842, Opcode::Crc32c, 4, "crc32cw"),
+        (0x9AC4_5C42, Opcode::Crc32c, 8, "crc32cx"),
     ];
 
-    for (raw, size, mnemonic) in cases {
+    for (raw, expected, size, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
         let instr = decode(raw).unwrap();
-        assert_eq!(instr.op, Opcode::Crc32, "raw=0x{raw:08x}");
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
         assert_eq!(instr.rd, 2);
         assert_eq!(instr.rn, 2);
         assert_eq!(instr.size, size);

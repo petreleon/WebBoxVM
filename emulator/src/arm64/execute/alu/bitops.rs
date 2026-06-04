@@ -77,17 +77,21 @@ pub(in crate::arm64::execute) fn exec_clz(cpu: &mut Armv8Cpu, instr: Instr) {
 }
 
 pub(in crate::arm64::execute) fn exec_crc32(cpu: &mut Armv8Cpu, instr: Instr) {
+    exec_crc(cpu, instr, 0xedb8_8320);
+}
+
+pub(in crate::arm64::execute) fn exec_crc32c(cpu: &mut Armv8Cpu, instr: Instr) {
+    exec_crc(cpu, instr, 0x82f6_3b78);
+}
+
+fn exec_crc(cpu: &mut Armv8Cpu, instr: Instr, poly: u32) {
     let mut crc = read_reg(cpu, instr.rn, false) as u32;
     let value = read_reg(cpu, instr.rm, instr.size == 8);
 
     for byte_index in 0..instr.size {
         crc ^= ((value >> (byte_index * 8)) & 0xff) as u32;
         for _ in 0..8 {
-            crc = if (crc & 1) != 0 {
-                (crc >> 1) ^ 0xedb8_8320
-            } else {
-                crc >> 1
-            };
+            crc = if (crc & 1) != 0 { (crc >> 1) ^ poly } else { crc >> 1 };
         }
     }
 

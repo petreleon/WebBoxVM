@@ -82,6 +82,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         Opcode::Rbit => exec_rbit(cpu, instr),
         Opcode::Clz => exec_clz(cpu, instr),
         Opcode::Crc32 => exec_crc32(cpu, instr),
+        Opcode::Crc32c => exec_crc32c(cpu, instr),
         _ => return Ok(None),
     }
     Ok(Some(Flow::Advance))

@@ -54,4 +54,24 @@ fn crc32_scalar_forms_update_w_destination() {
     cpu.regs.set_x(4, 0x0123_4567_89ab_cdef);
     execute(&mut cpu, &mut bus, decode(0x9AC4_4C42).unwrap()).unwrap(); // crc32x w2, w2, x4
     assert_eq!(cpu.regs.x(2), 0x9b62_eadf);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(5, 0xffff_ffff_ffff_00ab);
+    execute(&mut cpu, &mut bus, decode(0x1AC5_5042).unwrap()).unwrap(); // crc32cb w2, w2, w5
+    assert_eq!(cpu.regs.x(2), 0xc091_2609);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(5, 0xffff_ffff_0000_cdef);
+    execute(&mut cpu, &mut bus, decode(0x1AC5_5442).unwrap()).unwrap(); // crc32ch w2, w2, w5
+    assert_eq!(cpu.regs.x(2), 0xb54a_8725);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(3, 0xffff_ffff_89ab_cdef);
+    execute(&mut cpu, &mut bus, decode(0x1AC3_5842).unwrap()).unwrap(); // crc32cw w2, w2, w3
+    assert_eq!(cpu.regs.x(2), 0xa360_621e);
+
+    cpu.regs.set_x(2, 0xffff_ffff_1234_5678);
+    cpu.regs.set_x(4, 0x0123_4567_89ab_cdef);
+    execute(&mut cpu, &mut bus, decode(0x9AC4_5C42).unwrap()).unwrap(); // crc32cx w2, w2, x4
+    assert_eq!(cpu.regs.x(2), 0xa3d2_07be);
 }
