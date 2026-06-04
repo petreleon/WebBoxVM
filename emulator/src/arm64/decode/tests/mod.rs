@@ -11,6 +11,7 @@ mod busybox_simd_cases;
 mod exclusive;
 mod loads_literals;
 mod logical_aliases;
+mod multiply_long;
 mod pairs_and_initial_simd;
 mod scalar_aliases;
 mod scalar_ldst;
