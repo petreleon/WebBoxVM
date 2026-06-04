@@ -78,4 +78,5 @@ impl super::Opcode {
     pub const SveFpFrintz: Self = Self(333);
     pub const SveScvtf: Self = Self(334);
     pub const SveFcvtzs: Self = Self(335);
+    pub const SveFpCpyImm: Self = Self(336);
 }

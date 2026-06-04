@@ -54,7 +54,7 @@ pub(super) fn execute(
         Opcode::SveAndImm | Opcode::SveOrrImm | Opcode::SveEorImm | Opcode::SveDupm => {
             exec_sve_logical_imm(cpu, instr)
         }
-        Opcode::SveFpDupImm => exec_sve_fp_dup_imm(cpu, instr),
+        Opcode::SveFpDupImm | Opcode::SveFpCpyImm => exec_sve_fp_dup_imm(cpu, instr),
         Opcode::SveFpAdd
         | Opcode::SveFpAddImm
         | Opcode::SveFpSub

@@ -38,6 +38,9 @@ mod sve_dup_map;
 mod sve_fp_convert_map;
 #[cfg(test)]
 mod sve_fp_convert_tests;
+mod sve_fp_immediate_map;
+#[cfg(test)]
+mod sve_fp_immediate_tests;
 mod sve_fp_unary_map;
 #[cfg(test)]
 mod sve_fp_unary_tests;
@@ -90,6 +93,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| sve_shift_map::map(raw, m))
         .or_else(|| sve_logical_map::map(raw, m))
         .or_else(|| sve_fp_convert_map::map(raw, m))
+        .or_else(|| sve_fp_immediate_map::map(raw, m))
         .or_else(|| sve_fp_unary_map::map(raw, m))
         .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))

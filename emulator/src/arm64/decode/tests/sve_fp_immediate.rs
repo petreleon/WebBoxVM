@@ -16,6 +16,8 @@ fn decode_sve_fadd_immediate_forms() {
         (0x659B_8000, Opcode::SveFpSubr, "fsubr"),
         (0x659B_8020, Opcode::SveFpSubr, "fsubr"),
         (0x65DB_801D, Opcode::SveFpSubr, "fsubr"),
+        (0x0592_C01D, Opcode::SveFpCpyImm, "fcpy"),
+        (0x05D3_CE1F, Opcode::SveFpCpyImm, "fcpy"),
     ];
 
     for (raw, expected, mnemonic) in cases {
@@ -39,5 +41,12 @@ fn decode_sve_fadd_immediate_forms() {
     assert_eq!(fsubr.rm, 0xFF);
     assert_eq!(fsubr.imm, 1);
 
+    let fcpy = decode(0x05D3_CE1F).unwrap(); // fcpy z31.d, p3/m, #1
+    assert_eq!(fcpy.rd, 31);
+    assert_eq!(fcpy.cond, 3);
+    assert_eq!(fcpy.imm, 0x70);
+    assert_eq!(fcpy.size, 8);
+
     assert!(decode(0x6518_8000).is_none());
+    assert!(decode(0x0510_C020).is_none());
 }
