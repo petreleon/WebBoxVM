@@ -110,6 +110,7 @@ pub enum Opcode {
     SimdSmov,
     SimdInsGprLane,
     SimdCmeqZero,
+    SimdCmgeZero,
     SimdCmeqReg,
     SimdCmhsReg,
     SimdCmhiReg,

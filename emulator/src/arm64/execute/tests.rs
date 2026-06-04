@@ -696,6 +696,18 @@ fn simd_word_immediates_and_cmeq_zero() {
     cpu.simd[0] = 0x0001_0000_00ff_0000;
     execute(&mut cpu, &mut bus, decode(0x0E20_9800).unwrap()).unwrap(); // cmeq v0.8b, v0.8b, #0
     assert_eq!(cpu.simd[0], 0xff00_ffff_ff00_ffff);
+
+    cpu.simd[31] = u64::MAX as u128;
+    execute(&mut cpu, &mut bus, decode(0x7EE0_8BFF).unwrap()).unwrap(); // cmge d31, d31, #0
+    assert_eq!(cpu.simd[31], 0);
+
+    cpu.simd[31] = 0x7fff_ffff_ffff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x7EE0_8BFF).unwrap()).unwrap(); // cmge d31, d31, #0
+    assert_eq!(cpu.simd[31], u64::MAX as u128);
+
+    cpu.simd[30] = 0x8000_0000_0000_0001_7fff_ffff_ffff_ffff;
+    execute(&mut cpu, &mut bus, decode(0x6EE0_8BDE).unwrap()).unwrap(); // cmge v30.2d, v30.2d, #0
+    assert_eq!(cpu.simd[30], 0x0000_0000_0000_0000_ffff_ffff_ffff_ffff);
 }
 
 #[test]

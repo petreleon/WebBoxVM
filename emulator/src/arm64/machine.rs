@@ -1042,6 +1042,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdSmov
             | Opcode::SimdInsGprLane
             | Opcode::SimdCmeqZero
+            | Opcode::SimdCmgeZero
             | Opcode::SimdCmeqReg
             | Opcode::SimdCmhsReg
             | Opcode::SimdCmhiReg

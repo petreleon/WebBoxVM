@@ -395,6 +395,7 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::SimdSmov
         | Opcode::SimdInsGprLane
         | Opcode::SimdCmeqZero
+        | Opcode::SimdCmgeZero
         | Opcode::SimdCmeqReg
         | Opcode::SimdCmhsReg
         | Opcode::SimdCmhiReg

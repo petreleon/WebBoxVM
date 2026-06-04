@@ -344,6 +344,17 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(umaxv.size, 16);
     assert!(decode(0x2EB0_ABBF).is_none());
     assert!(decode(0x6EF0_ABBF).is_none());
+    let cmge_scalar_zero = decode(0x7EE0_8BFF).unwrap();
+    assert_eq!(cmge_scalar_zero.op, Opcode::SimdCmgeZero);
+    assert_eq!(cmge_scalar_zero.rd, 31);
+    assert_eq!(cmge_scalar_zero.rn, 31);
+    assert_eq!(cmge_scalar_zero.imm, 8);
+    assert_eq!(cmge_scalar_zero.size, 8);
+    let cmge_doublewords_zero = decode(0x6EE0_8BFF).unwrap();
+    assert_eq!(cmge_doublewords_zero.op, Opcode::SimdCmgeZero);
+    assert_eq!(cmge_doublewords_zero.imm, 8);
+    assert_eq!(cmge_doublewords_zero.size, 16);
+    assert!(decode(0x2EE0_8BFF).is_none());
     assert_eq!(decode(0x4C40_A03E).unwrap().op, Opcode::SimdLd1Multi);
     assert_eq!(decode(0x4C00_A2DE).unwrap().op, Opcode::SimdSt1Multi);
     let post_index_ld1 = decode(0x4CDF_7A04).unwrap();
@@ -883,6 +894,8 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x6EB0_ABBF, Opcode::SimdUmaxv, "umaxv"),
         (0x6EBF_67BD, Opcode::SimdUmaxVec, "umax"),
         (0x2EBE_6FFF, Opcode::SimdUminVec, "umin"),
+        (0x7EE0_8BFF, Opcode::SimdCmgeZero, "cmge"),
+        (0x6EE0_8BFF, Opcode::SimdCmgeZero, "cmge"),
         (0x6EB9_8FFF, Opcode::SimdCmeqReg, "cmeq"),
         (0x7E6F_2FFF, Opcode::SimdUqsub, "uqsub"),
         (0x4EE0_BBDE, Opcode::SimdAbs, "abs"),
