@@ -23,3 +23,26 @@ fn decode_sve_zip_vectors_cross_checked_with_disarm64() {
         (4, 17, 19, 0xFF, 8)
     );
 }
+
+#[test]
+fn decode_sve_tbl_vectors_cross_checked_with_disarm64() {
+    assert_decode_cases(&[
+        (0x0520_3000, Opcode::SveTbl, "tbl"),
+        (0x0564_2811, Opcode::SveTbl, "tbl"),
+        (0x05A7_2822, Opcode::SveTbl, "tbl"),
+        (0x05F3_2824, Opcode::SveTbl, "tbl"),
+        (0x053F_3063, Opcode::SveTbl, "tbl"),
+    ]);
+
+    let single = decode(0x053F_3063).unwrap();
+    assert_eq!(
+        (single.rd, single.rn, single.rm, single.imm, single.size),
+        (3, 3, 31, 1, 1)
+    );
+
+    let pair = decode(0x05F3_2824).unwrap();
+    assert_eq!(
+        (pair.rd, pair.rn, pair.rm, pair.imm, pair.size),
+        (4, 1, 19, 2, 8)
+    );
+}

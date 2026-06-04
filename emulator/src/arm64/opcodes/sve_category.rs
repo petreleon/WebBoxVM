@@ -34,6 +34,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SvePunpkhi
             | Opcode::SveZip1
             | Opcode::SveZip2
+            | Opcode::SveTbl
             | Opcode::SveOrrVec
             | Opcode::SveEorVec
             | Opcode::SveAndImm

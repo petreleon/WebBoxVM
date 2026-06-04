@@ -38,4 +38,32 @@ fn simd_userland_table_and_permute_ops() {
     cpu.simd[23] = 0x100f_0e0d_0c0b_0a09_0807_0605_0403_0201;
     execute(&mut cpu, &mut bus, decode(0x4E17_03FF).unwrap()).unwrap(); // tbl v31.16b, {v31.16b}, v23.16b
     assert_eq!(cpu.simd[31], 0x004f_4e4d_4c4b_4a49_4847_4645_4443_4241);
+
+    cpu.simd[1] = repeat_byte(0xA0);
+    cpu.simd[4] = bytes16([0, 17, 33, 49, 63, 64, 2, 18, 34, 50, 62, 99, 3, 19, 35, 51]);
+    cpu.simd[20] = vector_bytes(0x10);
+    cpu.simd[21] = vector_bytes(0x20);
+    cpu.simd[22] = vector_bytes(0x30);
+    cpu.simd[23] = vector_bytes(0x40);
+    execute(&mut cpu, &mut bus, decode(0x4E04_7281).unwrap()).unwrap(); // tbx v1.16b, {v20.16b-v23.16b}, v4.16b
+    assert_eq!(
+        cpu.simd[1],
+        bytes16([
+            0x10, 0x21, 0x31, 0x41, 0x4F, 0xA0, 0x12, 0x22, 0x32, 0x42, 0x4E, 0xA0, 0x13, 0x23,
+            0x33, 0x43
+        ])
+    );
+}
+
+fn bytes16(bytes: [u8; 16]) -> u128 {
+    bytes
+        .into_iter()
+        .enumerate()
+        .fold(0u128, |out, (lane, byte)| {
+            out | ((byte as u128) << (lane * 8))
+        })
+}
+
+fn repeat_byte(byte: u8) -> u128 {
+    bytes16([byte; 16])
 }

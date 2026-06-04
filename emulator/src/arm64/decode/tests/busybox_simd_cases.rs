@@ -61,6 +61,7 @@ fn decode_busybox_simd_cases_cross_checked_with_disarm64() {
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
         (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),
         (0x4E17_03FF, Opcode::SimdTbl, "tbl"),
+        (0x4E04_7281, Opcode::SimdTbx, "tbx"),
         (0x4EE1_1C00, Opcode::SimdOrn, "orn"),
         (0x4E28_4806, Opcode::SimdAese, "aese"),
         (0x4E28_5802, Opcode::SimdAesd, "aesd"),

@@ -60,7 +60,7 @@ pub(super) use memory_contiguous::exec_sve_contiguous_load;
 pub(super) use memory_d::exec_sve_ld1_st1_d;
 pub(super) use memory_register::exec_sve_ldr_str;
 pub(super) use memory_w::exec_sve_ld1_st1_w;
-pub(super) use permute::exec_sve_zip;
+pub(super) use permute::{exec_sve_tbl, exec_sve_zip};
 pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue, sve_pred_test};
 use predicate_bytes::*;
 pub(super) use shift_imm::exec_sve_shift_imm;

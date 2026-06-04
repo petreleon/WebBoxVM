@@ -52,6 +52,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdZip1
             | Opcode::SimdZip2
             | Opcode::SimdTbl
+            | Opcode::SimdTbx
             | Opcode::SimdNot
             | Opcode::SimdRbit
             | Opcode::SimdBsl

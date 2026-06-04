@@ -75,21 +75,32 @@ pub(in crate::arm64::execute) fn exec_simd_permute(cpu: &mut Armv8Cpu, instr: In
                 high_half,
             );
         }
-        Opcode::SimdTbl => {
+        Opcode::SimdTbl | Opcode::SimdTbx => {
             let table_count = instr.cond.max(1) as usize;
-            let mut out = 0u128;
+            let mut out = if instr.op == Opcode::SimdTbx {
+                cpu.simd[rd] & simd_low_mask(instr.size as usize)
+            } else {
+                0
+            };
             for lane in 0..instr.size as usize {
                 let index = simd_byte(cpu.simd[rm], lane) as usize;
-                let byte = if index < table_count * 16 {
+                if index < table_count * 16 {
                     let table_reg = (rn + index / 16) % 32;
-                    simd_byte(cpu.simd[table_reg], index % 16)
-                } else {
-                    0
-                };
-                out |= (byte as u128) << (lane * 8);
+                    let byte = simd_byte(cpu.simd[table_reg], index % 16);
+                    let shift = lane * 8;
+                    out = (out & !(0xffu128 << shift)) | ((byte as u128) << shift);
+                }
             }
             cpu.simd[rd] = out;
         }
         _ => unreachable!(),
+    }
+}
+
+fn simd_low_mask(bytes: usize) -> u128 {
+    if bytes >= 16 {
+        u128::MAX
+    } else {
+        (1u128 << (bytes * 8)) - 1
     }
 }

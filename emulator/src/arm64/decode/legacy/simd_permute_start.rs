@@ -20,16 +20,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return decode_perm(raw, Opcode::SimdZip2);
     }
     if (raw & 0xBFE0_9C00) == 0x0E00_0000 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdTbl,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: ((raw >> 16) & 0x1F) as u8,
-            imm: 0,
-            sf: true,
-            cond: (((raw >> 13) & 0x3) + 1) as u8,
-            size: if (raw >> 30) != 0 { 16 } else { 8 },
-        });
+        return decode_table(raw, Opcode::SimdTbl);
+    }
+    if (raw & 0xBFE0_9C00) == 0x0E00_1000 {
+        return decode_table(raw, Opcode::SimdTbx);
     }
     if (raw & 0xFFFF_FC00) == 0x4E28_4800 {
         return DecodeStep::Hit(Instr {
@@ -80,6 +74,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     DecodeStep::Miss
+}
+
+fn decode_table(raw: u32, op: Opcode) -> DecodeStep {
+    DecodeStep::Hit(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: 0,
+        sf: true,
+        cond: (((raw >> 13) & 0x3) + 1) as u8,
+        size: if (raw >> 30) != 0 { 16 } else { 8 },
+    })
 }
 
 fn decode_perm(raw: u32, op: Opcode) -> DecodeStep {

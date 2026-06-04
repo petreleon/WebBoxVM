@@ -41,8 +41,60 @@ fn sve_zip_word_form_uses_current_vector_length() {
     assert_eq!(z_word(&cpu, 17, 7), 0x83);
 }
 
+#[test]
+fn sve_tbl_single_table_zeroes_out_of_range_indices() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+
+    for lane in 0..16 {
+        cpu.sve_z[3][lane] = 0x40 + lane as u8;
+    }
+    cpu.sve_z[31][..16].copy_from_slice(&[0, 1, 15, 16, 2, 99, 3, 14, 4, 5, 6, 7, 8, 9, 10, 11]);
+    sync_simd_alias(&mut cpu, 3);
+    sync_simd_alias(&mut cpu, 31);
+
+    execute(&mut cpu, &mut bus, decode(0x053F_3063).unwrap()).unwrap();
+    assert_eq!(
+        &cpu.sve_z[3][..8],
+        &[0x40, 0x41, 0x4F, 0, 0x42, 0, 0x43, 0x4E]
+    );
+    assert_eq!(cpu.simd[3] as u8, 0x40);
+}
+
+#[test]
+fn sve_tbl_two_table_indexes_second_register() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+
+    for lane in 0..8 {
+        set_z_half(&mut cpu, 6, lane, 0x100 + lane as u16);
+        set_z_half(&mut cpu, 7, lane, 0x200 + lane as u16);
+    }
+    for (lane, index) in [0, 7, 8, 15, 16, 2, 9, 6].into_iter().enumerate() {
+        set_z_half(&mut cpu, 4, lane, index);
+    }
+
+    execute(&mut cpu, &mut bus, decode(0x0564_28C7).unwrap()).unwrap();
+    assert_eq!(z_half(&cpu, 7, 0), 0x100);
+    assert_eq!(z_half(&cpu, 7, 1), 0x107);
+    assert_eq!(z_half(&cpu, 7, 2), 0x200);
+    assert_eq!(z_half(&cpu, 7, 3), 0x207);
+    assert_eq!(z_half(&cpu, 7, 4), 0);
+}
+
 fn set_z_word(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u32) {
     let offset = lane * 4;
     cpu.sve_z[reg][offset..offset + 4].copy_from_slice(&value.to_le_bytes());
     sync_simd_alias(cpu, reg);
+}
+
+fn set_z_half(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u16) {
+    let offset = lane * 2;
+    cpu.sve_z[reg][offset..offset + 2].copy_from_slice(&value.to_le_bytes());
+    sync_simd_alias(cpu, reg);
+}
+
+fn z_half(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u16 {
+    let offset = lane * 2;
+    u16::from_le_bytes(cpu.sve_z[reg][offset..offset + 2].try_into().unwrap())
 }
