@@ -575,6 +575,9 @@ pub(super) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::SimdOrr => {
             cpu.simd[rd] = (cpu.simd[rn] | cpu.simd[rm]) & simd_vector_mask(instr.size as usize);
         }
+        Opcode::SimdOrn => {
+            cpu.simd[rd] = (cpu.simd[rn] | !cpu.simd[rm]) & simd_vector_mask(instr.size as usize);
+        }
         Opcode::SimdInsElem => {
             let element_size = instr.cond.max(1) as usize;
             let dest_lane = (instr.imm >> 8) as usize;

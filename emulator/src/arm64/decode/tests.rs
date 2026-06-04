@@ -313,6 +313,12 @@ fn decode_simd_userland_string_ops() {
     assert_eq!(decode(0x0E04_0E8F).unwrap().op, Opcode::SimdDupByte);
     assert_eq!(decode(0x4E04_0C40).unwrap().op, Opcode::SimdDupByte);
     assert_eq!(decode(0x4EB9_1F18).unwrap().op, Opcode::SimdOrr);
+    let orn_bytes = decode(0x4EE1_1C00).unwrap();
+    assert_eq!(orn_bytes.op, Opcode::SimdOrn);
+    assert_eq!(orn_bytes.rd, 0);
+    assert_eq!(orn_bytes.rn, 0);
+    assert_eq!(orn_bytes.rm, 1);
+    assert_eq!(orn_bytes.size, 16);
     assert_eq!(decode(0x4E20_1C21).unwrap().op, Opcode::SimdAnd);
     let bic_bytes = decode(0x0E64_1FDE).unwrap();
     assert_eq!(bic_bytes.op, Opcode::SimdBic);
@@ -830,6 +836,7 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x4E1B_3BFD, Opcode::SimdZip1, "zip1"),
         (0x4E5B_7BFF, Opcode::SimdZip2, "zip2"),
         (0x4E17_03FF, Opcode::SimdTbl, "tbl"),
+        (0x4EE1_1C00, Opcode::SimdOrn, "orn"),
         (0x4E28_4806, Opcode::SimdAese, "aese"),
         (0x4E28_5802, Opcode::SimdAesd, "aesd"),
         (0x4E28_6842, Opcode::SimdAesmc, "aesmc"),

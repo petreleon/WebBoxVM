@@ -1073,6 +1073,7 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::SimdAnd
             | Opcode::SimdBic
             | Opcode::SimdOrr
+            | Opcode::SimdOrn
             | Opcode::SimdEor
             | Opcode::SimdInsElem
             | Opcode::SimdUzp1

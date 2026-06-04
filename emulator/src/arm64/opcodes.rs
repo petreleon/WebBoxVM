@@ -141,6 +141,7 @@ pub enum Opcode {
     SimdAnd,
     SimdBic,
     SimdOrr,
+    SimdOrn,
     SimdEor,
     SimdInsElem,
     SimdUzp1,
