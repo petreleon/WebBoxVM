@@ -75,6 +75,7 @@ pub(super) fn execute(
         Opcode::SveLd1rd | Opcode::SveLd1rqd | Opcode::SveLd1d | Opcode::SveSt1d => {
             exec_sve_ld1_st1_d(cpu, bus, instr)?
         }
+        Opcode::SveLd1w | Opcode::SveSt1w => exec_sve_ld1_st1_w(cpu, bus, instr)?,
         _ => return Ok(None),
     }
     Ok(Some(Flow::Advance))

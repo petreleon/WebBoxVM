@@ -18,6 +18,7 @@ mod memory_b;
 mod memory_contiguous;
 mod memory_d;
 mod memory_register;
+mod memory_w;
 mod predicate;
 mod predicate_bytes;
 mod vector;
@@ -36,6 +37,7 @@ pub(super) use memory_b::exec_sve_st1b;
 pub(super) use memory_contiguous::exec_sve_contiguous_load;
 pub(super) use memory_d::exec_sve_ld1_st1_d;
 pub(super) use memory_register::exec_sve_ldr_str;
+pub(super) use memory_w::exec_sve_ld1_st1_w;
 pub(super) use predicate::{exec_sve_pred_logical, exec_sve_ptest, exec_sve_ptrue, sve_pred_test};
 use predicate_bytes::*;
 pub(super) use vector::{

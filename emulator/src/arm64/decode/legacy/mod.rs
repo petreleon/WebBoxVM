@@ -34,6 +34,7 @@ mod sve_fp_dup_imm;
 mod sve_fp_unary;
 mod sve_logical_imm;
 mod sve_predicate_ld1r;
+mod sve_word_load_store;
 
 use super::{DecodeStep, Instr, Opcode, branch, data_proc, ldst, system};
 use fp_scalar::decode_fp_scalar;
@@ -58,6 +59,7 @@ macro_rules! try_stage {
 
 pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(early_sve_vector::decode(raw));
+    try_stage!(sve_word_load_store::decode(raw));
     try_stage!(sve_contiguous_load::decode(raw));
     try_stage!(sve_byte_store::decode(raw));
     try_stage!(sve_compare::decode(raw));

@@ -86,8 +86,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ld1d if (raw & 0xFFE0_E000) == 0xC5E0_C000 || (raw & 0xFFF0_E000) == 0xA5E0_A000 => {
             Opcode::SveLd1d
         }
+        M::r#ld1w if sve_ld1w(raw) => Opcode::SveLd1w,
         M::r#st1b if (raw & 0xFF90_E000) == 0xE400_E000 => Opcode::SveSt1b,
         M::r#st1d if (raw & 0xFFF0_E000) == 0xE5E0_E000 => Opcode::SveSt1d,
+        M::r#st1w if (raw & 0xFF90_E000) == 0xE500_E000 => Opcode::SveSt1w,
         M::r#ldrsw if (raw & 0x3B00_0000) == 0x1800_0000 => Opcode::LdrLit,
         M::r#ldrsb | M::r#ldursb | M::r#ldrsh | M::r#ldursh | M::r#ldrsw | M::r#ldursw => {
             Opcode::LdrSign
@@ -150,4 +152,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
 
 fn scalar_logical_register(raw: u32) -> bool {
     (raw & 0x1F00_0000) == 0x0A00_0000
+}
+
+fn sve_ld1w(raw: u32) -> bool {
+    (raw & 0xFF90_E000) == 0xA500_A000 || matches!(raw & 0xFFA0_E000, 0x8520_4000 | 0xC520_C000)
 }
