@@ -104,3 +104,28 @@ fn cls_counts_leading_sign_bits_without_the_sign_bit() {
     execute(&mut cpu, &mut bus, decode(0x5AC0_1420).unwrap()).unwrap();
     assert_eq!(cpu.regs.x(0), 31);
 }
+
+#[test]
+fn cssc_scalar_bit_counts_update_destination_width() {
+    let (mut cpu, mut bus) = setup();
+
+    cpu.regs.set_x(1, 0);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_1820).unwrap()).unwrap(); // ctz x0, x1
+    assert_eq!(cpu.regs.x(0), 64);
+
+    cpu.regs.set_x(1, 0x0000_0000_8000_0000);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_1820).unwrap()).unwrap(); // ctz w0, w1
+    assert_eq!(cpu.regs.x(0), 31);
+
+    cpu.regs.set_x(1, 0x8000_0000_0000_0010);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_1820).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 4);
+
+    cpu.regs.set_x(1, u64::MAX);
+    execute(&mut cpu, &mut bus, decode(0xDAC0_1C20).unwrap()).unwrap(); // cnt x0, x1
+    assert_eq!(cpu.regs.x(0), 64);
+
+    cpu.regs.set_x(1, 0xFFFF_0000_8000_0001);
+    execute(&mut cpu, &mut bus, decode(0x5AC0_1C20).unwrap()).unwrap(); // cnt w0, w1
+    assert_eq!(cpu.regs.x(0), 2);
+}

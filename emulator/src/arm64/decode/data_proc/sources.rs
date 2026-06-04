@@ -19,6 +19,8 @@ pub(in crate::arm64::decode) fn decode_dp_1src(raw: u32) -> Option<Instr> {
         0b000011 => Opcode::Rev,
         0b000100 => Opcode::Clz,
         0b000101 => Opcode::Cls,
+        0b000110 => Opcode::Ctz,
+        0b000111 => Opcode::Cnt,
         _ => return None,
     };
     Some(dp_1src_instr(op, rd, rn, sf))

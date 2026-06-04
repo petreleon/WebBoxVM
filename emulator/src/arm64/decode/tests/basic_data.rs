@@ -79,6 +79,23 @@ fn decode_cls_scalar_forms() {
 }
 
 #[test]
+fn decode_cssc_scalar_bit_count_forms() {
+    let cases = [
+        (0x5AC0_1820, Opcode::Ctz, false, "ctz"),
+        (0xDAC0_1820, Opcode::Ctz, true, "ctz"),
+        (0x5AC0_1C20, Opcode::Cnt, false, "cnt"),
+        (0xDAC0_1C20, Opcode::Cnt, true, "cnt"),
+    ];
+
+    for (raw, expected, sf, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected);
+        assert_eq!((instr.rd, instr.rn, instr.sf), (0, 1, sf));
+    }
+}
+
+#[test]
 fn decode_logical_immediate_forms() {
     let cases = [
         (0x9240_1C20, Opcode::AndImm, "and", 0xff),

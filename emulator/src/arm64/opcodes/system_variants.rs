@@ -15,6 +15,8 @@ impl super::Opcode {
     pub const Crc32: Self = Self(239);
     pub const Crc32c: Self = Self(502);
     pub const Cls: Self = Self(503);
+    pub const Ctz: Self = Self(504);
+    pub const Cnt: Self = Self(505);
     pub const Udiv: Self = Self(240);
     pub const Sdiv: Self = Self(241);
     pub const Lslv: Self = Self(242);

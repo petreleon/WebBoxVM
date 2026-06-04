@@ -31,6 +31,7 @@ mod mte_map;
 mod mte_tests;
 #[cfg(test)]
 mod multiply_tests;
+mod scalar_bit_map;
 mod scalar_alias_map;
 #[cfg(test)]
 mod scalar_alias_tests;
@@ -139,6 +140,7 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| sve_fp_unary_map::map(raw, m))
         .or_else(|| sme_map::map(raw, m))
         .or_else(|| sve_byte_mem_map::map(raw, m))
+        .or_else(|| scalar_bit_map::map(raw, m))
         .or_else(|| core_map::map(raw, m))
         .or_else(|| atomic_map::map(raw, m))
         .or_else(|| exclusive_map::map(m))
