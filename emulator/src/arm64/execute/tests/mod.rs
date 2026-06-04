@@ -99,6 +99,7 @@ mod simd_fp_pairwise;
 mod simd_fp_unary_more;
 mod simd_fp_vector;
 mod simd_helpers;
+mod simd_ld4_single;
 mod simd_ld1_multi;
 mod simd_ld1r;
 mod simd_minmax;

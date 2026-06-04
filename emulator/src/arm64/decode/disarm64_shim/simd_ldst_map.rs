@@ -15,6 +15,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ld4 if simd_ld_structure_elements(raw) == Some(2) => Opcode::SimdLd2,
         M::r#ld4 if simd_ld_structure_elements(raw) == Some(3) => Opcode::SimdLd3,
         M::r#ld4 if simd_ld_structure_elements(raw) == Some(4) => Opcode::SimdLd4,
+        M::r#ld4 if simd_ld4_single_lane(raw) => Opcode::SimdLd4Single,
         M::r#st2 if simd_st_structure_elements(raw) == Some(2) => Opcode::SimdSt2,
         M::r#st3 if simd_st_structure_elements(raw) == Some(3) => Opcode::SimdSt3,
         M::r#st4 if simd_st_structure_elements(raw) == Some(2) => Opcode::SimdSt2,
@@ -31,6 +32,15 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
 fn simd_st4_single_lane(raw: u32) -> bool {
     let no_offset = (raw & 0xBFFF_0000) == 0x0D20_0000;
     let post_index = (raw & 0xBFE0_0000) == 0x0DA0_0000;
+    if !no_offset && !post_index {
+        return false;
+    }
+    matches!((raw >> 13) & 0x7, 0b001 | 0b011 | 0b101)
+}
+
+fn simd_ld4_single_lane(raw: u32) -> bool {
+    let no_offset = (raw & 0xBFFF_2000) == 0x0D60_2000;
+    let post_index = (raw & 0xBFE0_2000) == 0x0DE0_2000;
     if !no_offset && !post_index {
         return false;
     }

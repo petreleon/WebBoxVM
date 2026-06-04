@@ -16,7 +16,7 @@ pub(in crate::arm64::execute) fn compute_ldst_va(
         return (base, writeback);
     }
 
-    if instr.op == Opcode::SimdSt4Single {
+    if matches!(instr.op, Opcode::SimdLd4Single | Opcode::SimdSt4Single) {
         let base = base_addr(cpu, instr.rn);
         let writeback = if instr.rm == 0xFF {
             None
@@ -35,6 +35,7 @@ pub(in crate::arm64::execute) fn compute_ldst_va(
             | Opcode::SimdLd2
             | Opcode::SimdLd3
             | Opcode::SimdLd4
+            | Opcode::SimdLd4Single
             | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt2
@@ -53,6 +54,7 @@ pub(in crate::arm64::execute) fn compute_ldst_va(
             | Opcode::SimdLd2
             | Opcode::SimdLd3
             | Opcode::SimdLd4
+            | Opcode::SimdLd4Single
             | Opcode::SimdLd1r
             | Opcode::SimdSt1Multi
             | Opcode::SimdSt2

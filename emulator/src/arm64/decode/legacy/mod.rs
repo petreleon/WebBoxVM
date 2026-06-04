@@ -129,6 +129,9 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(simd_shift_pairwise::decode(raw));
     try_stage!(simd_reduce_across::decode(raw));
     try_stage!(simd_reduce_ext::decode(raw));
+    if let Some(instr) = simd_structure_lane::decode_simd_ld4_single_lane(raw) {
+        return Some(instr);
+    }
     try_stage!(simd_permute_logic::decode(raw));
     try_stage!(simd_immediates_a::decode(raw));
     try_stage!(system_extensions::decode(raw));

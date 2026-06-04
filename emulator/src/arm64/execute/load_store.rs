@@ -21,6 +21,7 @@ mod mte;
 mod pair;
 mod scalar;
 mod simd_structure;
+mod simd_structure_lane;
 
 pub(super) use atomic::exec_atomic;
 pub(super) use exclusive::exec_exclusive;
@@ -34,3 +35,4 @@ use guest::*;
 use guest_trace::*;
 use guest_translate::*;
 use simd_structure::*;
+use simd_structure_lane::*;

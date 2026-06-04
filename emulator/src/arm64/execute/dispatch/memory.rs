@@ -20,6 +20,7 @@ pub(super) fn execute(
         | Opcode::SimdSt1Multi
         | Opcode::SimdSt1Lane
         | Opcode::SimdLd4
+        | Opcode::SimdLd4Single
         | Opcode::SimdSt2
         | Opcode::SimdSt3
         | Opcode::SimdSt4Single

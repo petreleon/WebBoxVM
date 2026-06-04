@@ -19,6 +19,7 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
             | Opcode::SimdLd2
             | Opcode::SimdLd3
             | Opcode::SimdLd4
+            | Opcode::SimdLd4Single
     );
 
     let pa = translate_or_data_fault(cpu, &mut bus.mem, va, !is_load, "LDR/STR translation fault")?;
@@ -55,6 +56,9 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
             _ => unreachable!(),
         };
         exec_ld_structure(cpu, bus, va, instr, structure_count)?;
+    } else if instr.op == Opcode::SimdLd4Single {
+        let lane = (instr.imm & 0xff) as usize;
+        exec_ld_structure_lane(cpu, bus, va, instr, 4, lane)?;
     } else if instr.op == Opcode::SimdStr {
         write_simd_guest(
             cpu,
