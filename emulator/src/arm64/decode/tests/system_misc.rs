@@ -72,3 +72,21 @@ fn decode_register_rotate_right() {
     assert_eq!(rorv.rm, 2);
     assert!(rorv.sf);
 }
+
+#[test]
+fn decode_scalar_reverse_forms() {
+    let cases = [
+        (0x5AC0_0862, Opcode::Rev, "rev", false),
+        (0x5AC0_04E6, Opcode::Rev16, "rev16", false),
+        (0xDAC0_04A4, Opcode::Rev16, "rev16", true),
+        (0xDAC0_0928, Opcode::Rev32, "rev32", true),
+        (0xDAC0_0C20, Opcode::Rev, "rev", true),
+    ];
+
+    for (raw, expected, mnemonic, sf) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!(instr.sf, sf, "raw=0x{raw:08x}");
+    }
+}

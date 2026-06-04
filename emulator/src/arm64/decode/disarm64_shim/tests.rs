@@ -35,3 +35,18 @@ fn maps_scalar_variable_rotate_mnemonic() {
         Some(Opcode::Rorv)
     );
 }
+
+#[test]
+fn maps_scalar_reverse_mnemonics() {
+    let cases = [
+        (0x5AC0_04E6, Opcode::Rev16, "rev16"),
+        (0xDAC0_04A4, Opcode::Rev16, "rev16"),
+        (0xDAC0_0928, Opcode::Rev32, "rev32"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode reverse word");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
