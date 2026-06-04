@@ -19,6 +19,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdSubVec
             | Opcode::SimdMulVec
             | Opcode::SimdMlaVec
+            | Opcode::SimdMlsVec
             | Opcode::SimdAddp
             | Opcode::SimdAddv
             | Opcode::SimdSmaxv

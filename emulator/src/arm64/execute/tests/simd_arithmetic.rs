@@ -53,6 +53,15 @@ fn simd_userland_arithmetic_ops() {
     execute(&mut cpu, &mut bus, decode(0x4EBF_97FE).unwrap()).unwrap(); // mla v30.4s, v31.4s, v31.4s
     assert_eq!(cpu.simd[30], 0x0000_0011_0000_0008_0000_0014_0000_0003);
 
+    cpu.simd[5] = u16x8([3, 0, 0x1000, 0x8000, 0xffff, 5, 0x2222, 1]);
+    cpu.simd[2] = u16x8([0xffff, 2, 0x0100, 2, 3, 0xffff, 0x8000, 0x1234]);
+    cpu.simd[23] = u16x8([2, 3, 0x0010, 0x8000, 2, 0xffff, 2, 0x0010]);
+    execute(&mut cpu, &mut bus, decode(0x6E77_9445).unwrap()).unwrap(); // mls v5.8h, v2.8h, v23.8h
+    assert_eq!(
+        cpu.simd[5],
+        u16x8([5, 0xfffa, 0, 0x8000, 0xfff9, 4, 0x2222, 0xdcc1])
+    );
+
     cpu.simd[31] = 0x8000_0000_0000_0003_0000_0002_ffff_ffff;
     execute(&mut cpu, &mut bus, decode(0x6EA0_BBFF).unwrap()).unwrap(); // neg v31.4s, v31.4s
     assert_eq!(cpu.simd[31], 0x8000_0000_ffff_fffd_ffff_fffe_0000_0001);

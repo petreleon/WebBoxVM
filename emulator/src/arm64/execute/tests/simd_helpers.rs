@@ -61,6 +61,15 @@ pub(super) fn u32x4(values: [u32; 4]) -> u128 {
         })
 }
 
+pub(super) fn u16x8(values: [u16; 8]) -> u128 {
+    values
+        .into_iter()
+        .enumerate()
+        .fold(0u128, |bits, (lane, value)| {
+            bits | ((value as u128) << (lane * 16))
+        })
+}
+
 pub(super) fn u64x2(values: [u64; 2]) -> u128 {
     values
         .into_iter()

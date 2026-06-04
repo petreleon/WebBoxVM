@@ -41,12 +41,3 @@ fn simd_unsigned_widen_multiply_accumulate_vectors_wrap_lanes() {
     execute(&mut cpu, &mut bus, decode(0x6EA7_80E6).unwrap()).unwrap();
     assert_eq!(cpu.simd[6], u64x2([35, 32]));
 }
-
-fn u16x8(values: [u16; 8]) -> u128 {
-    values
-        .into_iter()
-        .enumerate()
-        .fold(0u128, |bits, (lane, value)| {
-            bits | ((value as u128) << (lane * 16))
-        })
-}

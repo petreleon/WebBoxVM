@@ -79,6 +79,7 @@ impl super::Opcode {
     pub const SimdSubVec: Self = Self(134);
     pub const SimdMulVec: Self = Self(135);
     pub const SimdMlaVec: Self = Self(136);
+    pub const SimdMlsVec: Self = Self(458);
     pub const SimdAddp: Self = Self(137);
     pub const SimdAddv: Self = Self(138);
     pub const SimdSmaxv: Self = Self(370);

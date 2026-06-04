@@ -82,30 +82,6 @@ pub(in crate::arm64::execute) fn exec_simd_integer(cpu: &mut Armv8Cpu, instr: In
                 |a, b, mask| a.wrapping_sub(b) & mask,
             );
         }
-        Opcode::SimdMulVec => {
-            cpu.simd[rd] = simd_elementwise_binary(
-                cpu.simd[rn],
-                cpu.simd[rm],
-                instr.imm.max(1) as usize,
-                instr.size as usize,
-                |a, b, mask| a.wrapping_mul(b) & mask,
-            );
-        }
-        Opcode::SimdMlaVec => {
-            let accumulator = cpu.simd[rd];
-            let lhs = cpu.simd[rn];
-            let rhs = cpu.simd[rm];
-            let element_size = instr.imm.max(1) as usize;
-            let element_mask = simd_element_mask(element_size);
-            cpu.simd[rd] = simd_elementwise_ternary(
-                accumulator,
-                lhs,
-                rhs,
-                element_size,
-                instr.size as usize,
-                |acc, a, b| acc.wrapping_add(a.wrapping_mul(b)) & element_mask,
-            );
-        }
         Opcode::SimdXtn | Opcode::SimdXtn2 => {
             let dest_element_size = instr.imm.max(1) as usize;
             let src_element_size = dest_element_size * 2;

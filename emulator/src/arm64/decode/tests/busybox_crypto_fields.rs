@@ -114,4 +114,13 @@ fn decode_busybox_crypto_and_vector_field_details() {
     assert_eq!(mla.imm, 4);
     assert_eq!(mla.size, 16);
     assert!(decode(0x4EE0_9400).is_none());
+
+    let mls = decode(0x6E77_9445).unwrap();
+    assert_eq!(mls.op, Opcode::SimdMlsVec);
+    assert_eq!(mls.rd, 5);
+    assert_eq!(mls.rn, 2);
+    assert_eq!(mls.rm, 23);
+    assert_eq!(mls.imm, 2);
+    assert_eq!(mls.size, 16);
+    assert!(decode(0x6EE0_9400).is_none());
 }
