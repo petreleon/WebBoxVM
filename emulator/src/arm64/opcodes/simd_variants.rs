@@ -44,6 +44,8 @@ impl super::Opcode {
     pub const SimdCmeqZero: Self = Self(126);
     pub const SimdCmgeZero: Self = Self(127);
     pub const SimdCmeqReg: Self = Self(128);
+    pub const SimdCmgtReg: Self = Self(362);
+    pub const SimdCmgeReg: Self = Self(363);
     pub const SimdCmhsReg: Self = Self(129);
     pub const SimdCmhiReg: Self = Self(130);
     pub const SimdShrn: Self = Self(131);

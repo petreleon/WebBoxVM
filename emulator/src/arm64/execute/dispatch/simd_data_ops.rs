@@ -32,6 +32,8 @@ pub(super) fn is_simd_data_opcode(op: Opcode) -> bool {
             | Opcode::SimdCmeqZero
             | Opcode::SimdCmgeZero
             | Opcode::SimdCmeqReg
+            | Opcode::SimdCmgtReg
+            | Opcode::SimdCmgeReg
             | Opcode::SimdCmhsReg
             | Opcode::SimdCmhiReg
             | Opcode::SimdShrn

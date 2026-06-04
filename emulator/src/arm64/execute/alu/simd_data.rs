@@ -31,6 +31,8 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         Opcode::SimdCmeqZero
         | Opcode::SimdCmgeZero
         | Opcode::SimdCmeqReg
+        | Opcode::SimdCmgtReg
+        | Opcode::SimdCmgeReg
         | Opcode::SimdCmhsReg
         | Opcode::SimdCmhiReg
         | Opcode::SimdUqsub

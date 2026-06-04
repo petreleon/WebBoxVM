@@ -39,6 +39,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
             Opcode::SimdCmgeZero
         }
         M::r#cmeq if (raw & 0xBF20_FC00) == 0x2E20_8C00 => Opcode::SimdCmeqReg,
+        M::r#cmgt if (raw & 0xBF20_FC00) == 0x0E20_3400 => Opcode::SimdCmgtReg,
+        M::r#cmge if (raw & 0xBF20_FC00) == 0x0E20_3C00 => Opcode::SimdCmgeReg,
         M::r#cmhi if (raw & 0xBF20_FC00) == 0x2E20_3400 || (raw & 0xFFE0_FC00) == 0x7EE0_3400 => {
             Opcode::SimdCmhiReg
         }

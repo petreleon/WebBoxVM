@@ -26,40 +26,10 @@ pub(in crate::arm64::execute) fn exec_simd_unary_compare(cpu: &mut Armv8Cpu, ins
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
         Opcode::SimdCmeqReg => {
-            let lhs = cpu.simd[rn];
-            let rhs = cpu.simd[rm];
-            let element_size = instr.imm.max(1) as usize;
-            cpu.simd[rd] = simd_elementwise_binary(
-                lhs,
-                rhs,
-                element_size,
-                instr.size as usize,
-                |a, b, mask| if a == b { mask } else { 0 },
-            );
+            cpu.simd[rd] = simd_compare_register(cpu, instr);
         }
-        Opcode::SimdCmhsReg => {
-            let lhs = cpu.simd[rn];
-            let rhs = cpu.simd[rm];
-            let element_size = instr.imm.max(1) as usize;
-            cpu.simd[rd] = simd_elementwise_binary(
-                lhs,
-                rhs,
-                element_size,
-                instr.size as usize,
-                |a, b, mask| if a >= b { mask } else { 0 },
-            );
-        }
-        Opcode::SimdCmhiReg => {
-            let lhs = cpu.simd[rn];
-            let rhs = cpu.simd[rm];
-            let element_size = instr.imm.max(1) as usize;
-            cpu.simd[rd] = simd_elementwise_binary(
-                lhs,
-                rhs,
-                element_size,
-                instr.size as usize,
-                |a, b, mask| if a > b { mask } else { 0 },
-            );
+        Opcode::SimdCmgtReg | Opcode::SimdCmgeReg | Opcode::SimdCmhsReg | Opcode::SimdCmhiReg => {
+            cpu.simd[rd] = simd_compare_register(cpu, instr);
         }
         Opcode::SimdUqsub => {
             const FPSR_QC: u64 = 1 << 27;
@@ -127,4 +97,31 @@ pub(in crate::arm64::execute) fn exec_simd_unary_compare(cpu: &mut Armv8Cpu, ins
         }
         _ => unreachable!(),
     }
+}
+
+fn simd_compare_register(cpu: &Armv8Cpu, instr: Instr) -> u128 {
+    let element_size = instr.imm.max(1) as usize;
+    simd_elementwise_binary(
+        cpu.simd[instr.rn as usize],
+        cpu.simd[instr.rm as usize],
+        element_size,
+        instr.size as usize,
+        |a, b, mask| {
+            let pass = match instr.op {
+                Opcode::SimdCmeqReg => a == b,
+                Opcode::SimdCmhiReg => a > b,
+                Opcode::SimdCmhsReg => a >= b,
+                Opcode::SimdCmgtReg => {
+                    simd_signed_element_value(a, element_size)
+                        > simd_signed_element_value(b, element_size)
+                }
+                Opcode::SimdCmgeReg => {
+                    simd_signed_element_value(a, element_size)
+                        >= simd_signed_element_value(b, element_size)
+                }
+                _ => false,
+            };
+            if pass { mask } else { 0 }
+        },
+    )
 }
