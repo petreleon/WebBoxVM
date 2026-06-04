@@ -32,6 +32,7 @@ mod simd_userland_struct_ldst;
 mod simd_userland_widen_fp;
 mod sve_counts;
 mod sve_fp_immediate;
+mod sve_fp_unary;
 mod sve_load_store;
 mod sve_logical_imm;
 mod sve_predicate;

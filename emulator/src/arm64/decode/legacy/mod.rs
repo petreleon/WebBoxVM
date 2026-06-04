@@ -28,6 +28,7 @@ mod sve_byte_store;
 mod sve_contiguous_load;
 mod sve_fp;
 mod sve_fp_dup_imm;
+mod sve_fp_unary;
 mod sve_logical_imm;
 mod sve_predicate_ld1r;
 
@@ -56,6 +57,7 @@ pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(early_sve_vector::decode(raw));
     try_stage!(sve_contiguous_load::decode(raw));
     try_stage!(sve_byte_store::decode(raw));
+    try_stage!(sve_fp_unary::decode(raw));
     try_stage!(sve_fp::decode(raw));
     try_stage!(sve_logical_imm::decode(raw));
     try_stage!(sve_predicate_ld1r::decode(raw));
