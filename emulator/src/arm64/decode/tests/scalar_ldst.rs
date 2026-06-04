@@ -25,3 +25,20 @@ fn decode_scalar_byte_halfword_load_store_cross_checked_with_disarm64() {
         assert_eq!(instr.sf, sf, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_authenticated_loads_cross_checked_with_disarm64() {
+    let cases = [
+        (0xF87F_060D, Opcode::Ldraa, "ldraa", 13, 16, (-128i64) as u64, 0),
+        (0xF8FF_060D, Opcode::Ldrab, "ldrab", 13, 16, (-128i64) as u64, 0),
+        (0xF820_2C20, Opcode::Ldraa, "ldraa", 0, 1, 16, 3),
+        (0xF8A0_2C20, Opcode::Ldrab, "ldrab", 0, 1, 16, 3),
+    ];
+
+    for (raw, expected, mnemonic, rd, rn, imm, cond) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!((instr.rd, instr.rn, instr.imm, instr.cond, instr.size), (rd, rn, imm, cond, 8));
+    }
+}

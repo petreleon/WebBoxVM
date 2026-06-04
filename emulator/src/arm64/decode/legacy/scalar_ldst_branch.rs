@@ -62,6 +62,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
 
     let ldst_family = (raw >> 24) & 0xF8;
     if ldst_family == 0x38 || ldst_family == 0x78 || ldst_family == 0xB8 || ldst_family == 0xF8 {
+        if let Some(instr) = ldst::decode_ldrauth(raw) {
+            return DecodeStep::Hit(instr);
+        }
         if ((raw >> 22) & 0x3FF) == 0b1111100110 {
             return DecodeStep::from_option(system::decode_nop());
         }

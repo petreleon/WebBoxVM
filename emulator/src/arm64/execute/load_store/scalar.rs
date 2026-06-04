@@ -11,6 +11,8 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
         instr.op,
         Opcode::Ldr
             | Opcode::LdrSign
+            | Opcode::Ldraa
+            | Opcode::Ldrab
             | Opcode::SimdLdr
             | Opcode::SimdLd1
             | Opcode::SimdLd1Multi

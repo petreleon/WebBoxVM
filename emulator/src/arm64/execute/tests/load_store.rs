@@ -48,6 +48,26 @@ fn ldpsw_loads_and_sign_extends_pair() {
 }
 
 #[test]
+fn authenticated_loads_read_doubleword_and_preindex_writeback() {
+    let (mut cpu, mut bus) = setup();
+    let base = 0x4000_0200;
+    bus.mem.write(base - 128, 8, 0x1122_3344_5566_7788);
+    cpu.regs.set_x(16, base);
+
+    execute(&mut cpu, &mut bus, decode(0xF8FF_060D).unwrap()).unwrap();
+
+    assert_eq!(cpu.regs.x(13), 0x1122_3344_5566_7788);
+    assert_eq!(cpu.regs.x(16), base);
+
+    bus.mem.write(base + 16, 8, 0xAABB_CCDD_EEFF_0011);
+    cpu.regs.set_x(1, base);
+    execute(&mut cpu, &mut bus, decode(0xF820_2C20).unwrap()).unwrap();
+
+    assert_eq!(cpu.regs.x(0), 0xAABB_CCDD_EEFF_0011);
+    assert_eq!(cpu.regs.x(1), base + 16);
+}
+
+#[test]
 fn simd_pair_store_then_load_roundtrips_vectors() {
     let (mut cpu, mut bus) = setup();
     let base = 0x4000_0100;

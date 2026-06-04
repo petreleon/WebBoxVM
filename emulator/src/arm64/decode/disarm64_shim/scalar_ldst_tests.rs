@@ -15,6 +15,8 @@ fn maps_scalar_byte_halfword_load_store_mnemonics() {
         (0x7900_160F, Opcode::Str, "strh"),
         (0x381F_D251, Opcode::Str, "sturb"),
         (0x781F_C293, Opcode::Str, "sturh"),
+        (0xF87F_060D, Opcode::Ldraa, "ldraa"),
+        (0xF8FF_060D, Opcode::Ldrab, "ldrab"),
     ];
 
     for (raw, expected, mnemonic) in cases {
