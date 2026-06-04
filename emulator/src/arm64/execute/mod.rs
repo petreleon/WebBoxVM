@@ -385,6 +385,9 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
             let result = read_base(cpu, instr.rn, true).wrapping_add(offset);
             write_reg_sp(cpu, instr.rd, result, true);
         }
+        Opcode::SvePtrue => exec_sve_ptrue(cpu, instr),
+        Opcode::SvePtest => exec_sve_ptest(cpu, instr),
+        Opcode::SvePredAnd | Opcode::SvePredOrr => exec_sve_pred_logical(cpu, instr),
         Opcode::SimdMovi => {
             cpu.simd[instr.rd as usize] = if instr.cond == 0 {
                 simd_replicate_byte(instr.imm as u8) & simd_vector_mask(instr.size as usize)
@@ -574,17 +577,21 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
 fn sve_pred_count(pattern: u8, elements: u64) -> u64 {
     match pattern {
         0 => highest_power_of_two_le(elements),
-        1..=8 => elements.min(pattern as u64),
-        9 => elements.min(16),
-        10 => elements.min(32),
-        11 => elements.min(64),
-        12 => elements.min(128),
-        13 => elements.min(256),
+        1..=8 => exact_pred_count(pattern as u64, elements),
+        9 => exact_pred_count(16, elements),
+        10 => exact_pred_count(32, elements),
+        11 => exact_pred_count(64, elements),
+        12 => exact_pred_count(128, elements),
+        13 => exact_pred_count(256, elements),
         29 => elements - elements % 4,
         30 => elements - elements % 3,
         31 => elements,
-        literal => elements.min(literal as u64),
+        literal => exact_pred_count(literal as u64, elements),
     }
+}
+
+fn exact_pred_count(count: u64, elements: u64) -> u64 {
+    if count <= elements { count } else { 0 }
 }
 
 fn highest_power_of_two_le(value: u64) -> u64 {
@@ -593,6 +600,113 @@ fn highest_power_of_two_le(value: u64) -> u64 {
     } else {
         1 << (u64::BITS - 1 - value.leading_zeros())
     }
+}
+
+fn exec_sve_ptrue(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let vl_bytes = sve_vl_bytes(cpu);
+    let elements = vl_bytes / element_size;
+    let count = sve_pred_count(instr.cond, elements as u64) as usize;
+    let mut pred = [0; 4];
+
+    for element in 0..count {
+        set_predicate_bit(&mut pred, element * element_size, true);
+    }
+
+    cpu.sve_pred[instr.rd as usize] = pred;
+}
+
+fn exec_sve_ptest(cpu: &mut Armv8Cpu, instr: Instr) {
+    let flags = sve_pred_test(
+        &cpu.sve_pred[instr.rd as usize],
+        &cpu.sve_pred[instr.rn as usize],
+        instr.size as usize,
+        sve_vl_bytes(cpu),
+    );
+    cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
+}
+
+fn exec_sve_pred_logical(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let vl_bytes = sve_vl_bytes(cpu);
+    let elements = vl_bytes / element_size;
+    let mask = cpu.sve_pred[instr.cond as usize];
+    let operand1 = cpu.sve_pred[instr.rn as usize];
+    let operand2 = cpu.sve_pred[instr.rm as usize];
+    let mut result = [0; 4];
+
+    for element in 0..elements {
+        if predicate_element(&mask, element, element_size) {
+            let bit = match instr.op {
+                Opcode::SvePredAnd => {
+                    predicate_element(&operand1, element, element_size)
+                        && predicate_element(&operand2, element, element_size)
+                }
+                Opcode::SvePredOrr => {
+                    predicate_element(&operand1, element, element_size)
+                        || predicate_element(&operand2, element, element_size)
+                }
+                _ => unreachable!(),
+            };
+            set_predicate_bit(&mut result, element * element_size, bit);
+        }
+    }
+
+    if instr.sf {
+        let flags = sve_pred_test(&mask, &result, element_size, vl_bytes);
+        cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
+    }
+    cpu.sve_pred[instr.rd as usize] = result;
+}
+
+fn sve_pred_test(
+    mask: &[u64; 4],
+    result: &[u64; 4],
+    element_size: usize,
+    vl_bytes: usize,
+) -> (bool, bool, bool) {
+    let elements = vl_bytes / element_size;
+    let mut first_active = None;
+    let mut last_active = None;
+    let mut any = false;
+
+    for element in 0..elements {
+        if predicate_element(mask, element, element_size) {
+            first_active.get_or_insert(element);
+            last_active = Some(element);
+            any |= predicate_element(result, element, element_size);
+        }
+    }
+
+    let first =
+        first_active.is_some_and(|element| predicate_element(result, element, element_size));
+    let last = last_active.is_some_and(|element| predicate_element(result, element, element_size));
+    (first, !any, !last)
+}
+
+fn predicate_element(pred: &[u64; 4], element: usize, element_size: usize) -> bool {
+    predicate_bit(pred, element * element_size)
+}
+
+fn set_predicate_bit(pred: &mut [u64; 4], bit: usize, value: bool) {
+    if bit >= 256 {
+        return;
+    }
+    let word = bit / 64;
+    let offset = bit % 64;
+    if value {
+        pred[word] |= 1 << offset;
+    } else {
+        pred[word] &= !(1 << offset);
+    }
+}
+
+fn predicate_bit(pred: &[u64; 4], bit: usize) -> bool {
+    bit < 256 && (pred[bit / 64] & (1 << (bit % 64))) != 0
+}
+
+fn sve_vl_bytes(cpu: &Armv8Cpu) -> usize {
+    (cpu.sve_vl_bytes as usize).clamp(16, 256)
 }
 
 // ═══════════════════════════════════════════════════════════════════

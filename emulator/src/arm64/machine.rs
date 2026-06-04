@@ -1007,7 +1007,11 @@ fn is_fp_simd_access(instr: Instr) -> bool {
 fn is_fp_simd_opcode(op: Opcode) -> bool {
     matches!(
         op,
-        Opcode::SimdLdp
+        Opcode::SvePtrue
+            | Opcode::SvePtest
+            | Opcode::SvePredAnd
+            | Opcode::SvePredOrr
+            | Opcode::SimdLdp
             | Opcode::SimdStp
             | Opcode::SimdLdr
             | Opcode::SimdStr

@@ -59,11 +59,19 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#movk => Opcode::Movk,
         M::r#movn => Opcode::Movn,
         M::r#and if (raw & 0xBFE0_FC00) == 0x0E20_1C00 => Opcode::SimdAnd,
+        M::r#and if (raw & 0xFFF0_C210) == 0x2500_4000 || (raw & 0xFFF0_C210) == 0x2540_4000 => {
+            Opcode::SvePredAnd
+        }
         M::r#and => Opcode::AndReg,
+        M::r#ands if (raw & 0xFFF0_C210) == 0x2540_4000 => Opcode::SvePredAnd,
         M::r#ands => Opcode::AndsReg,
         M::r#bic if (raw & 0xBFE0_FC00) == 0x0E60_1C00 => Opcode::SimdBic,
         M::r#orr if (raw & 0xBFE0_FC00) == 0x0EA0_1C00 => Opcode::SimdOrr,
+        M::r#orr if (raw & 0xFFF0_C210) == 0x2580_4000 || (raw & 0xFFF0_C210) == 0x25C0_4000 => {
+            Opcode::SvePredOrr
+        }
         M::r#orn if (raw & 0xBFE0_FC00) == 0x0EE0_1C00 => Opcode::SimdOrn,
+        M::r#orrs if (raw & 0xFFF0_C210) == 0x25C0_4000 => Opcode::SvePredOrr,
         M::r#bsl if (raw & 0xBFE0_FC00) == 0x2E60_1C00 => Opcode::SimdBsl,
         M::r#bit if (raw & 0xBFE0_FC00) == 0x2EA0_1C00 => Opcode::SimdBit,
         M::r#bif if (raw & 0xBFE0_FC00) == 0x2EE0_1C00 => Opcode::SimdBif,
@@ -109,6 +117,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#cntb | M::r#cnth | M::r#cntw | M::r#cntd => Opcode::SveCnt,
         M::r#addvl => Opcode::SveAddvl,
         M::r#addsvl => Opcode::SveAddsvl,
+        M::r#ptrue => Opcode::SvePtrue,
+        M::r#ptest => Opcode::SvePtest,
         M::r#eret => Opcode::Eret,
         M::r#hint => Opcode::Nop,
         M::r#mul if (raw & 0xBF20_FC00) == 0x0E20_9C00 => Opcode::SimdMulVec,

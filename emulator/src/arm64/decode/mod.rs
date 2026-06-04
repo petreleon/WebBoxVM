@@ -27,6 +27,51 @@ pub(crate) fn decode_legacy(raw: u32) -> Option<Instr> {
     if let Some(instr) = decode_simd_ldst1_lane(raw) {
         return Some(instr);
     }
+    if (raw & 0xFF3F_FC10) == 0x2518_E000 {
+        let size_bits = ((raw >> 22) & 0x3) as u8;
+        return Some(Instr {
+            op: Opcode::SvePtrue,
+            rd: (raw & 0xF) as u8,
+            rn: 0,
+            rm: 0,
+            imm: 0,
+            sf: false,
+            cond: ((raw >> 5) & 0x1F) as u8,
+            size: 1u8 << size_bits,
+        });
+    }
+    if (raw & 0xFFFF_C21F) == 0x2550_C000 {
+        return Some(Instr {
+            op: Opcode::SvePtest,
+            rd: ((raw >> 10) & 0xF) as u8,
+            rn: ((raw >> 5) & 0xF) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: 0,
+            size: 1,
+        });
+    }
+    let pred_logical_base = raw & 0xFFF0_C210;
+    if matches!(
+        pred_logical_base,
+        0x2500_4000 | 0x2540_4000 | 0x2580_4000 | 0x25C0_4000
+    ) {
+        return Some(Instr {
+            op: if (raw & 0x0080_0000) == 0 {
+                Opcode::SvePredAnd
+            } else {
+                Opcode::SvePredOrr
+            },
+            rd: (raw & 0xF) as u8,
+            rn: ((raw >> 5) & 0xF) as u8,
+            rm: ((raw >> 16) & 0xF) as u8,
+            imm: 0,
+            sf: (raw & 0x0040_0000) != 0,
+            cond: ((raw >> 10) & 0xF) as u8,
+            size: 1,
+        });
+    }
     if (raw & 0xFF20_E000) == 0x0420_E000 {
         let size_bits = ((raw >> 22) & 0x3) as u8;
         return Some(Instr {
