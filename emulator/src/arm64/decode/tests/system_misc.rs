@@ -2,6 +2,8 @@ use super::*;
 
 #[test]
 fn decode_dc_zva() {
+    assert_disarm64_mnemonic(0xD50B_7423, "sys");
+
     let instr = decode(0xD50B_7423).unwrap(); // dc zva, x3
     assert_eq!(instr.op, Opcode::DcZva);
     assert_eq!(instr.rd, 3);
@@ -9,11 +11,42 @@ fn decode_dc_zva() {
 
 #[test]
 fn decode_dmb_ish_as_barrier() {
+    assert_disarm64_mnemonic(0xD503_3BBF, "dmb");
+    assert_disarm64_mnemonic(0xD503_39BF, "dmb");
+
     let instr = decode(0xD503_3BBF).unwrap(); // dmb ish
     assert_eq!(instr.op, Opcode::NopBarrier);
 
     let load_barrier = decode(0xD503_39BF).unwrap(); // dmb ishld
     assert_eq!(load_barrier.op, Opcode::NopBarrier);
+}
+
+#[test]
+fn decode_wait_and_clrex_system_forms() {
+    let cases = [
+        (0xD503_205F, Opcode::Wfe, "hint"),
+        (0xD503_207F, Opcode::Wfi, "hint"),
+        (0xD503_305F, Opcode::NopBarrier, "clrex"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+}
+
+#[test]
+fn decode_sysreg_and_tlbi_forms() {
+    let cases = [
+        (0xD518_4102, Opcode::Msr, "msr"),
+        (0xD538_4103, Opcode::Mrs, "mrs"),
+        (0xD508_871F, Opcode::Tlbi, "sys"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
 }
 
 #[test]

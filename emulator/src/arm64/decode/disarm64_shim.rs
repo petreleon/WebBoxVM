@@ -9,6 +9,9 @@ mod fp_map;
 mod helpers;
 mod simd_ldst_map;
 mod simd_map;
+mod system_map;
+#[cfg(test)]
+mod system_tests;
 #[cfg(test)]
 mod tests;
 
@@ -51,4 +54,5 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         .or_else(|| fp_map::map(raw, m))
         .or_else(|| simd_map::map(raw, m))
         .or_else(|| simd_ldst_map::map(raw, m))
+        .or_else(|| system_map::map(raw, m))
 }
