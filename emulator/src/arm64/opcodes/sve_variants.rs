@@ -34,6 +34,12 @@ impl super::Opcode {
     pub const SveFpDivr: Self = Self(299);
     pub const SveFpFacge: Self = Self(300);
     pub const SveFpFacgt: Self = Self(301);
+    pub const SveFpFcmeq: Self = Self(304);
+    pub const SveFpFcmge: Self = Self(305);
+    pub const SveFpFcmgt: Self = Self(306);
+    pub const SveFpFcmne: Self = Self(307);
+    pub const SveFpFcmle: Self = Self(308);
+    pub const SveFpFcmlt: Self = Self(309);
     pub const SveFpFmla: Self = Self(268);
     pub const SveFpFmls: Self = Self(269);
     pub const SveFpFmad: Self = Self(270);

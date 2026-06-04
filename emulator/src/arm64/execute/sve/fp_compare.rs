@@ -7,20 +7,24 @@ pub(in crate::arm64::execute) fn exec_sve_fp_compare(cpu: &mut Armv8Cpu, instr: 
     let elements = vl_bytes / element_size;
     let mask = cpu.sve_pred[instr.cond as usize];
     let lhs = sve_read_z(cpu, instr.rn as usize);
-    let rhs = sve_read_z(cpu, instr.rm as usize);
+    let rhs = if instr.imm == 0 {
+        Some(sve_read_z(cpu, instr.rm as usize))
+    } else {
+        None
+    };
     let mut result = [0; 4];
 
     for element in 0..elements {
         if predicate_element(&mask, element, element_size) {
             let left = sve_element(&lhs, element, element_size);
-            let right = sve_element(&rhs, element, element_size);
+            let right = rhs
+                .as_ref()
+                .map_or(0, |vec| sve_element(vec, element, element_size));
             let bit = fp_compare(instr.op, left, right, element_size);
             set_predicate_bit(&mut result, element * element_size, bit);
         }
     }
 
-    let flags = sve_pred_test(&mask, &result, element_size, vl_bytes);
-    cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
     cpu.sve_pred[instr.rd as usize] = result;
 }
 
@@ -41,6 +45,12 @@ fn compare_f32(op: Opcode, left: f32, right: f32) -> bool {
     match op {
         Opcode::SveFpFacge => left.abs() >= right.abs(),
         Opcode::SveFpFacgt => left.abs() > right.abs(),
+        Opcode::SveFpFcmeq => left == right,
+        Opcode::SveFpFcmge => left >= right,
+        Opcode::SveFpFcmgt => left > right,
+        Opcode::SveFpFcmne => left != right,
+        Opcode::SveFpFcmle => left <= right,
+        Opcode::SveFpFcmlt => left < right,
         _ => unreachable!(),
     }
 }
@@ -49,6 +59,12 @@ fn compare_f64(op: Opcode, left: f64, right: f64) -> bool {
     match op {
         Opcode::SveFpFacge => left.abs() >= right.abs(),
         Opcode::SveFpFacgt => left.abs() > right.abs(),
+        Opcode::SveFpFcmeq => left == right,
+        Opcode::SveFpFcmge => left >= right,
+        Opcode::SveFpFcmgt => left > right,
+        Opcode::SveFpFcmne => left != right,
+        Opcode::SveFpFcmle => left <= right,
+        Opcode::SveFpFcmlt => left < right,
         _ => unreachable!(),
     }
 }

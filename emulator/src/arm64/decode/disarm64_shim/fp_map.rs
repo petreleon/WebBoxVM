@@ -34,6 +34,24 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
             Opcode::SveFpFacgt
         }
         M::r#facgt if (raw & 0xBFA0_FC00) == 0x2EA0_EC00 => Opcode::SimdFpFacgtVec,
+        M::r#fcmeq if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_6000, 0x6512_2000) => {
+            Opcode::SveFpFcmeq
+        }
+        M::r#fcmge if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_4000, 0x6510_2000) => {
+            Opcode::SveFpFcmge
+        }
+        M::r#fcmgt if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_4010, 0x6510_2010) => {
+            Opcode::SveFpFcmgt
+        }
+        M::r#fcmne if sve_fp_size_valid(raw) && sve_fp_cmp(raw, 0x6500_6010, 0x6513_2000) => {
+            Opcode::SveFpFcmne
+        }
+        M::r#fcmle if sve_fp_size_valid(raw) && (raw & 0xFF3F_E010) == 0x6511_2010 => {
+            Opcode::SveFpFcmle
+        }
+        M::r#fcmlt if sve_fp_size_valid(raw) && (raw & 0xFF3F_E010) == 0x6511_2000 => {
+            Opcode::SveFpFcmlt
+        }
         M::r#fcmlt if (raw & 0xBFBF_FC00) == 0x0EA0_E800 => Opcode::SimdFpFcmltZero,
         M::r#fabs if (raw & 0xBFBF_FC00) == 0x0EA0_F800 => Opcode::SimdFpAbsVec,
         M::r#fabs if (raw & 0xFF3F_E000) == 0x041C_A000 => Opcode::SveFpAbs,
@@ -117,4 +135,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
 
 fn sve_fp_size_valid(raw: u32) -> bool {
     ((raw >> 22) & 0x3) != 0
+}
+
+fn sve_fp_cmp(raw: u32, vec_base: u32, zero_base: u32) -> bool {
+    (raw & 0xFF20_E010) == vec_base || (raw & 0xFF3F_E010) == zero_base
 }

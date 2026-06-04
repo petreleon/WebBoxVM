@@ -9,6 +9,16 @@ fn decode_sve_fp_absolute_compare_forms() {
         (0x65DB_FFD3, Opcode::SveFpFacgt, "facgt"),
         (0x65C0_C372, Opcode::SveFpFacge, "facge"),
         (0x659F_E012, Opcode::SveFpFacgt, "facgt"),
+        (0x6541_6000, Opcode::SveFpFcmeq, "fcmeq"),
+        (0x6584_4861, Opcode::SveFpFcmge, "fcmge"),
+        (0x65C6_4CB2, Opcode::SveFpFcmgt, "fcmgt"),
+        (0x659F_7FD3, Opcode::SveFpFcmne, "fcmne"),
+        (0x65D0_2901, Opcode::SveFpFcmge, "fcmge"),
+        (0x6590_2D32, Opcode::SveFpFcmgt, "fcmgt"),
+        (0x6552_3143, Opcode::SveFpFcmeq, "fcmeq"),
+        (0x6593_3564, Opcode::SveFpFcmne, "fcmne"),
+        (0x65D1_3985, Opcode::SveFpFcmlt, "fcmlt"),
+        (0x6591_3DB6, Opcode::SveFpFcmle, "fcmle"),
     ];
 
     for (raw, expected, mnemonic) in cases {
@@ -30,5 +40,12 @@ fn decode_sve_fp_absolute_compare_forms() {
     assert_eq!(gt.cond, 7);
     assert_eq!(gt.size, 8);
 
+    let zero = decode(0x65D0_2901).unwrap(); // fcmge p1.d, p2/z, z8.d, #0.0
+    assert_eq!(zero.rd, 1);
+    assert_eq!(zero.rn, 8);
+    assert_eq!(zero.cond, 2);
+    assert_eq!(zero.imm, 1);
+
     assert!(decode(0x6500_C010).is_none());
+    assert!(decode(0x6500_6000).is_none());
 }
