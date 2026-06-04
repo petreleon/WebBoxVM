@@ -104,6 +104,7 @@ mod sve_compare;
 mod sve_counts;
 mod sve_dup;
 mod sve_fp_compare;
+mod sve_fp_convert;
 mod sve_fp_div;
 mod sve_fp_immediate;
 mod sve_fp_unary;
