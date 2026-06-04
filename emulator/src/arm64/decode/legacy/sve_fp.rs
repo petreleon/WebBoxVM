@@ -134,6 +134,8 @@ fn decode_binary(raw: u32) -> DecodeStep {
         0x6501_8000 => Opcode::SveFpSub,
         0x6502_8000 => Opcode::SveFpMul,
         0x6503_8000 => Opcode::SveFpSubr,
+        0x650C_8000 => Opcode::SveFpDivr,
+        0x650D_8000 => Opcode::SveFpDiv,
         _ => return DecodeStep::Miss,
     };
     let size = 1u8 << (((raw >> 22) & 0x3) as u8);

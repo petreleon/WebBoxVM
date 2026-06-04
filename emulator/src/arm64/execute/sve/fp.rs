@@ -116,7 +116,9 @@ fn fp_binary_f16(op: Opcode, left: u16, right: u16) -> u16 {
         Opcode::SveFpAdd => left + right,
         Opcode::SveFpSub => left - right,
         Opcode::SveFpMul => left * right,
+        Opcode::SveFpDiv => left / right,
         Opcode::SveFpSubr => right - left,
+        Opcode::SveFpDivr => right / left,
         _ => unreachable!(),
     })
 }
@@ -128,7 +130,9 @@ fn fp_binary_f32(op: Opcode, left: u32, right: u32) -> u32 {
         Opcode::SveFpAdd => left + right,
         Opcode::SveFpSub => left - right,
         Opcode::SveFpMul => left * right,
+        Opcode::SveFpDiv => left / right,
         Opcode::SveFpSubr => right - left,
+        Opcode::SveFpDivr => right / left,
         _ => unreachable!(),
     }
     .to_bits()
@@ -141,7 +145,9 @@ fn fp_binary_f64(op: Opcode, left: u64, right: u64) -> u64 {
         Opcode::SveFpAdd => left + right,
         Opcode::SveFpSub => left - right,
         Opcode::SveFpMul => left * right,
+        Opcode::SveFpDiv => left / right,
         Opcode::SveFpSubr => right - left,
+        Opcode::SveFpDivr => right / left,
         _ => unreachable!(),
     }
     .to_bits()

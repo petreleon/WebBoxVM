@@ -46,7 +46,9 @@ pub(super) fn execute(
         | Opcode::SveFpAddImm
         | Opcode::SveFpSub
         | Opcode::SveFpMul
+        | Opcode::SveFpDiv
         | Opcode::SveFpSubr
+        | Opcode::SveFpDivr
         | Opcode::SveFpMulImm => exec_sve_fp_binary(cpu, instr),
         Opcode::SveFpAbs | Opcode::SveFpNeg => exec_sve_fp_unary(cpu, instr),
         Opcode::SveFpFmla | Opcode::SveFpFmls | Opcode::SveFpFmad | Opcode::SveFpFmsb => {

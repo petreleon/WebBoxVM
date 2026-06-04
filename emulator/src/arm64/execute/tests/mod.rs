@@ -99,6 +99,7 @@ mod simd_table_permute;
 mod simd_userland_permute_reduction;
 mod simd_word_immediate;
 mod sve_counts;
+mod sve_fp_div;
 mod sve_fp_immediate;
 mod sve_fp_unary;
 mod sve_logical_imm;
