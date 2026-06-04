@@ -1792,6 +1792,38 @@ fn decode_fp_scalar(raw: u32) -> Option<Instr> {
         instr.cond = 1;
         return Some(instr);
     }
+    if (raw & 0x7FBF_0000) == 0x1E18_0000 {
+        let scale = ((raw >> 10) & 0x3F) as u8;
+        if (raw >> 31) == 0 && (scale & 0x20) == 0 {
+            return None;
+        }
+        let fbits = 64u8.checked_sub(scale)?;
+        let mut instr = fp_instr(Opcode::Fcvtzs, rd, rn, 0, fbits as u64, size);
+        instr.sf = (raw >> 31) != 0;
+        instr.cond = 1;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_0000) == 0x1E19_0000 {
+        let scale = ((raw >> 10) & 0x3F) as u8;
+        if (raw >> 31) == 0 && (scale & 0x20) == 0 {
+            return None;
+        }
+        let fbits = 64u8.checked_sub(scale)?;
+        let mut instr = fp_instr(Opcode::Fcvtzu, rd, rn, 0, fbits as u64, size);
+        instr.sf = (raw >> 31) != 0;
+        instr.cond = 1;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_FC00) == 0x1E20_0000 {
+        let mut instr = fp_instr(Opcode::Fcvtns, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
+    if (raw & 0x7FBF_FC00) == 0x1E30_0000 {
+        let mut instr = fp_instr(Opcode::Fcvtms, rd, rn, 0, 0, size);
+        instr.sf = (raw >> 31) != 0;
+        return Some(instr);
+    }
     if (raw & 0x7FBF_FC00) == 0x1E38_0000 {
         let mut instr = fp_instr(Opcode::Fcvtzs, rd, rn, 0, 0, size);
         instr.sf = (raw >> 31) != 0;

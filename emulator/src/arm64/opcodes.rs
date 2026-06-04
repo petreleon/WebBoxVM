@@ -197,6 +197,8 @@ pub enum Opcode {
     Fnmsub,
     Scvtf,
     Ucvtf,
+    Fcvtns,
+    Fcvtms,
     Fcvtzs,
     Fcvtzu,
     Fcvtas,

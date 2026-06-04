@@ -902,8 +902,12 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
         (0x1E63_003F, Opcode::Ucvtf, "ucvtf"),
         (0x9E63_001F, Opcode::Ucvtf, "ucvtf"),
         (0x1E03_FC00, Opcode::Ucvtf, "ucvtf"),
+        (0x9E60_0002, Opcode::Fcvtns, "fcvtns"),
+        (0x1E70_03E1, Opcode::Fcvtms, "fcvtms"),
         (0x1E78_03E0, Opcode::Fcvtzs, "fcvtzs"),
+        (0x1E58_FBE0, Opcode::Fcvtzs, "fcvtzs"),
         (0x1E79_03E0, Opcode::Fcvtzu, "fcvtzu"),
+        (0x1E19_F3A1, Opcode::Fcvtzu, "fcvtzu"),
         (0x9E79_0000, Opcode::Fcvtzu, "fcvtzu"),
         (0x9E64_03A3, Opcode::Fcvtas, "fcvtas"),
         (0x1E60_23E8, Opcode::Fcmp, "fcmp"),
@@ -979,6 +983,24 @@ fn decode_busybox_fp_and_widening_ops_cross_checked_with_disarm64() {
     let fixed_unsigned = decode(0x1E03_FC00).unwrap();
     assert_eq!(fixed_unsigned.imm, 1);
     assert_eq!(fixed_unsigned.cond, 1);
+
+    let fixed_to_signed = decode(0x1E58_FBE0).unwrap();
+    assert_eq!(fixed_to_signed.op, Opcode::Fcvtzs);
+    assert_eq!(fixed_to_signed.rn, 31);
+    assert_eq!(fixed_to_signed.imm, 2);
+    assert_eq!(fixed_to_signed.cond, 1);
+    assert_eq!(fixed_to_signed.size, 8);
+    assert!(!fixed_to_signed.sf);
+
+    let fixed_to_unsigned = decode(0x1E19_F3A1).unwrap();
+    assert_eq!(fixed_to_unsigned.op, Opcode::Fcvtzu);
+    assert_eq!(fixed_to_unsigned.rd, 1);
+    assert_eq!(fixed_to_unsigned.rn, 29);
+    assert_eq!(fixed_to_unsigned.imm, 4);
+    assert_eq!(fixed_to_unsigned.cond, 1);
+    assert_eq!(fixed_to_unsigned.size, 4);
+    assert!(!fixed_to_unsigned.sf);
+    assert!(decode(0x1E18_03E0).is_none());
 
     let fmov_five = decode(0x1E62_900F).unwrap();
     assert_eq!(fmov_five.rd, 15);

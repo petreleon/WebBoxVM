@@ -482,6 +482,8 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
         | Opcode::Fnmsub
         | Opcode::Scvtf
         | Opcode::Ucvtf
+        | Opcode::Fcvtns
+        | Opcode::Fcvtms
         | Opcode::Fcvtzs
         | Opcode::Fcvtzu
         | Opcode::Fcvtas

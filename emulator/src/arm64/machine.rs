@@ -1129,6 +1129,8 @@ fn is_fp_simd_opcode(op: Opcode) -> bool {
             | Opcode::Fnmsub
             | Opcode::Scvtf
             | Opcode::Ucvtf
+            | Opcode::Fcvtns
+            | Opcode::Fcvtms
             | Opcode::Fcvtzs
             | Opcode::Fcvtzu
             | Opcode::Fcvtas

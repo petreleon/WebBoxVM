@@ -144,6 +144,8 @@ fn mnemonic_to_opcode(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode
         M::r#fcsel => Opcode::Fcsel,
         M::r#scvtf => Opcode::Scvtf,
         M::r#ucvtf => Opcode::Ucvtf,
+        M::r#fcvtns => Opcode::Fcvtns,
+        M::r#fcvtms => Opcode::Fcvtms,
         M::r#fcvtzs => Opcode::Fcvtzs,
         M::r#fcvtzu if (raw & 0xFFBF_FC00) == 0x7EA1_B800 => Opcode::SimdFcvtzu,
         M::r#fcvtzu => Opcode::Fcvtzu,

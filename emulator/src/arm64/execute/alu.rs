@@ -1139,8 +1139,28 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
                 write_fp_bits(cpu, instr.rd, scaled.to_bits(), 8);
             }
         }
+        Opcode::Fcvtns => {
+            let value = round_ties_even(read_fp_as_f64(cpu, instr.rn, instr.size));
+            if instr.sf {
+                write_reg(cpu, instr.rd, value as i64 as u64, true);
+            } else {
+                write_reg(cpu, instr.rd, value as i32 as u32 as u64, false);
+            }
+        }
+        Opcode::Fcvtms => {
+            let value = read_fp_as_f64(cpu, instr.rn, instr.size).floor();
+            if instr.sf {
+                write_reg(cpu, instr.rd, value as i64 as u64, true);
+            } else {
+                write_reg(cpu, instr.rd, value as i32 as u32 as u64, false);
+            }
+        }
         Opcode::Fcvtzs => {
-            let value = read_fp_as_f64(cpu, instr.rn, instr.size).trunc();
+            let mut value = read_fp_as_f64(cpu, instr.rn, instr.size);
+            if instr.cond == 1 {
+                value *= 2f64.powi(instr.imm as i32);
+            }
+            let value = value.trunc();
             if instr.sf {
                 write_reg(cpu, instr.rd, value as i64 as u64, true);
             } else {
@@ -1148,7 +1168,11 @@ pub(super) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
             }
         }
         Opcode::Fcvtzu => {
-            let value = read_fp_as_f64(cpu, instr.rn, instr.size).trunc();
+            let mut value = read_fp_as_f64(cpu, instr.rn, instr.size);
+            if instr.cond == 1 {
+                value *= 2f64.powi(instr.imm as i32);
+            }
+            let value = value.trunc();
             if instr.sf {
                 write_reg(cpu, instr.rd, value as u64, true);
             } else {
