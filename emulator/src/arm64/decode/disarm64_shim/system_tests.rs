@@ -79,6 +79,15 @@ fn maps_pauth_hint_aliases_by_encoding() {
 }
 
 #[test]
+fn maps_pauth_register_aliases_by_encoding() {
+    for (raw, expected, mnemonic, display) in pauth_register_cases() {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode PAuth word");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
+#[test]
 fn maps_bti_hint_aliases_by_encoding() {
     for (raw, expected, display) in bti_hint_cases() {
         let decoded = decoder::decode(raw).expect("disarm64 should decode BTI hint");
@@ -94,10 +103,7 @@ fn maps_all_barrier_aliases_by_encoding() {
     let decoded = decoder::decode(raw).expect("disarm64 should decode dmb sy");
 
     assert_eq!(format!("{:?}", decoded.mnemonic), "dmb");
-    assert_eq!(
-        mnemonic_to_opcode(raw, decoded.mnemonic),
-        Some(Opcode::Dmb)
-    );
+    assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(Opcode::Dmb));
 }
 
 fn pauth_hint_cases() -> [(u32, Opcode, &'static str); 13] {
@@ -124,5 +130,28 @@ fn bti_hint_cases() -> [(u32, Opcode, &'static str); 4] {
         (0xD503_245F, Opcode::BtiC, "bti\t\tc"),
         (0xD503_249F, Opcode::BtiJ, "bti\t\tj"),
         (0xD503_24DF, Opcode::BtiJc, "bti\t\tjc"),
+    ]
+}
+
+fn pauth_register_cases() -> [(u32, Opcode, &'static str, &'static str); 18] {
+    [
+        (0xDAC1_0000, Opcode::Pacia, "pacia", "pacia\t\tx0, x0"),
+        (0xDAC1_0400, Opcode::Pacib, "pacib", "pacib\t\tx0, x0"),
+        (0xDAC1_0800, Opcode::Pacda, "pacda", "pacda\t\tx0, x0"),
+        (0xDAC1_0C00, Opcode::Pacdb, "pacdb", "pacdb\t\tx0, x0"),
+        (0xDAC1_1000, Opcode::Autia, "autia", "autia\t\tx0, x0"),
+        (0xDAC1_1400, Opcode::Autib, "autib", "autib\t\tx0, x0"),
+        (0xDAC1_1800, Opcode::Autda, "autda", "autda\t\tx0, x0"),
+        (0xDAC1_1C00, Opcode::Autdb, "autdb", "autdb\t\tx0, x0"),
+        (0xDAC1_23E0, Opcode::Paciza, "paciza", "paciza\t\tx0"),
+        (0xDAC1_27E0, Opcode::Pacizb, "pacizb", "pacizb\t\tx0"),
+        (0xDAC1_2BE0, Opcode::Pacdza, "pacdza", "pacdza\t\tx0"),
+        (0xDAC1_2FE0, Opcode::Pacdzb, "pacdzb", "pacdzb\t\tx0"),
+        (0xDAC1_33E0, Opcode::Autiza, "autiza", "autiza\t\tx0"),
+        (0xDAC1_37E0, Opcode::Autizb, "autizb", "autizb\t\tx0"),
+        (0xDAC1_3BE0, Opcode::Autdza, "autdza", "autdza\t\tx0"),
+        (0xDAC1_3FE0, Opcode::Autdzb, "autdzb", "autdzb\t\tx0"),
+        (0xDAC1_43E0, Opcode::Xpaci, "xpaci", "xpaci\t\tx0"),
+        (0xDAC1_47E0, Opcode::Xpacd, "xpacd", "xpacd\t\tx0"),
     ]
 }

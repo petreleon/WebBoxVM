@@ -113,4 +113,22 @@ impl super::Opcode {
     pub const Dmb: Self = Self(575);
     pub const Dsb: Self = Self(576);
     pub const Isb: Self = Self(577);
+    pub const Pacia: Self = Self(578);
+    pub const Pacib: Self = Self(579);
+    pub const Pacda: Self = Self(580);
+    pub const Pacdb: Self = Self(581);
+    pub const Autia: Self = Self(582);
+    pub const Autib: Self = Self(583);
+    pub const Autda: Self = Self(584);
+    pub const Autdb: Self = Self(585);
+    pub const Paciza: Self = Self(586);
+    pub const Pacizb: Self = Self(587);
+    pub const Pacdza: Self = Self(588);
+    pub const Pacdzb: Self = Self(589);
+    pub const Autiza: Self = Self(590);
+    pub const Autizb: Self = Self(591);
+    pub const Autdza: Self = Self(592);
+    pub const Autdzb: Self = Self(593);
+    pub const Xpaci: Self = Self(594);
+    pub const Xpacd: Self = Self(595);
 }

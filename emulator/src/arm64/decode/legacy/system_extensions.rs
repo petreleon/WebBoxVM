@@ -1,5 +1,7 @@
 use super::*;
 
+mod pauth_register;
+
 pub(super) fn decode(raw: u32) -> DecodeStep {
     if raw == 0xD503_251F {
         return DecodeStep::from_option(system::decode_extension_nop(Opcode::Chkfeat, 16));
@@ -18,6 +20,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     }
     if let Some(op) = decode_pauth_hint(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, 0));
+    }
+    if let Some(instr) = pauth_register::decode(raw) {
+        return DecodeStep::Hit(instr);
     }
     if let Some(op) = decode_gcs_alias(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, (raw & 0x1F) as u8));

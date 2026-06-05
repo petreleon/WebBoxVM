@@ -27,6 +27,24 @@ pub(super) fn is_nop_like(op: Opcode) -> bool {
             | Opcode::Autibz
             | Opcode::Autibsp
             | Opcode::Xpaclri
+            | Opcode::Pacia
+            | Opcode::Pacib
+            | Opcode::Pacda
+            | Opcode::Pacdb
+            | Opcode::Autia
+            | Opcode::Autib
+            | Opcode::Autda
+            | Opcode::Autdb
+            | Opcode::Paciza
+            | Opcode::Pacizb
+            | Opcode::Pacdza
+            | Opcode::Pacdzb
+            | Opcode::Autiza
+            | Opcode::Autizb
+            | Opcode::Autdza
+            | Opcode::Autdzb
+            | Opcode::Xpaci
+            | Opcode::Xpacd
             | Opcode::Bti
             | Opcode::BtiC
             | Opcode::BtiJ

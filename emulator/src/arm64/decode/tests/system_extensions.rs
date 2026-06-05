@@ -84,6 +84,36 @@ fn decode_pauth_hint_aliases_as_named_noops() {
 }
 
 #[test]
+fn decode_pauth_register_aliases_as_named_noops() {
+    let cases = [
+        (0xDAC1_0000, Opcode::Pacia, "pacia"),
+        (0xDAC1_0400, Opcode::Pacib, "pacib"),
+        (0xDAC1_0800, Opcode::Pacda, "pacda"),
+        (0xDAC1_0C00, Opcode::Pacdb, "pacdb"),
+        (0xDAC1_1000, Opcode::Autia, "autia"),
+        (0xDAC1_1400, Opcode::Autib, "autib"),
+        (0xDAC1_1800, Opcode::Autda, "autda"),
+        (0xDAC1_1C00, Opcode::Autdb, "autdb"),
+        (0xDAC1_23E0, Opcode::Paciza, "paciza"),
+        (0xDAC1_27E0, Opcode::Pacizb, "pacizb"),
+        (0xDAC1_2BE0, Opcode::Pacdza, "pacdza"),
+        (0xDAC1_2FE0, Opcode::Pacdzb, "pacdzb"),
+        (0xDAC1_33E0, Opcode::Autiza, "autiza"),
+        (0xDAC1_37E0, Opcode::Autizb, "autizb"),
+        (0xDAC1_3BE0, Opcode::Autdza, "autdza"),
+        (0xDAC1_3FE0, Opcode::Autdzb, "autdzb"),
+        (0xDAC1_43E0, Opcode::Xpaci, "xpaci"),
+        (0xDAC1_47E0, Opcode::Xpacd, "xpacd"),
+    ];
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+    assert_eq!(decode(0xDAC1_0062).unwrap().rn, 3);
+    assert_eq!(decode(0xDAC1_0062).unwrap().rd, 2);
+}
+
+#[test]
 fn decode_bti_hint_aliases_as_named_noops() {
     let cases = [
         (0xD503_241F, Opcode::Bti, "bti"),

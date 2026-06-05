@@ -7,7 +7,6 @@ use crate::constants::{
     SYSREG_CNTP_TVAL_EL0, SYSREG_CNTV_CTL_EL0, SYSREG_CNTV_TVAL_EL0, TCR_T1SZ_SHIFT,
     TIMER_CTL_ENABLE, TIMER_CTL_IMASK, VBAR_IRQ_CURRENT_EL, VBAR_IRQ_LOWER_EL_AARCH64, VBAR_SYNC_LOWER_EL_AARCH64, VIRTUAL_TIMER_IRQ_ID,
 };
-
 fn setup() -> (Armv8Cpu, SystemBus) {
     (Armv8Cpu::new(), SystemBus::new())
 }
@@ -77,6 +76,7 @@ mod exceptions;
 mod load_store;
 mod mops;
 mod mte;
+mod pauth;
 mod scalar_addsub_ext;
 mod scalar_bitfield;
 mod scalar_fp_arithmetic;
