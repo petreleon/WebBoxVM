@@ -55,7 +55,7 @@ impl WasmExpr {
                 } else {
                     OP_I64_SUB
                 };
-                self.emit_write_reg_sp_with(instr.rd, instr.sf, |this| {
+                self.emit_write_reg_with(instr.rd, instr.sf, |this| {
                     this.emit_read_reg(instr.rn, instr.sf);
                     this.emit_read_reg(instr.rm, instr.sf);
                     this.op(op);

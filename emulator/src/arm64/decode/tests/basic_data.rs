@@ -129,6 +129,17 @@ fn decode_addsub_immediate_forms() {
 }
 
 #[test]
+fn decode_addsub_shifted_rd31_cross_checked_with_disarm64() {
+    let cases = [(0x8B02_003F, Opcode::Add, "add"), (0xCB02_003F, Opcode::Sub, "sub")];
+    for (raw, expected, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!(instr.rd, 31);
+    }
+}
+
+#[test]
 fn decode_addsub_extended_forms() {
     let cases = [
         (0x8B22_4820, Opcode::AddExt, "add", 2, 2),

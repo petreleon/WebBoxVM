@@ -17,6 +17,20 @@ fn add_imm_adds_constant() {
 }
 
 #[test]
+fn addsub_shifted_register_rd31_is_zero_register() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.sp = 0x8000;
+    cpu.regs.set_x(1, 10);
+    cpu.regs.set_x(2, 3);
+
+    execute(&mut cpu, &mut bus, decode(0x8B02_003F).unwrap()).unwrap();
+    assert_eq!(cpu.regs.sp, 0x8000);
+
+    execute(&mut cpu, &mut bus, decode(0xCB02_003F).unwrap()).unwrap();
+    assert_eq!(cpu.regs.sp, 0x8000);
+}
+
+#[test]
 fn movk_merges_value() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.set_x(0, 0xDEAD_BEEF_0000_0000);

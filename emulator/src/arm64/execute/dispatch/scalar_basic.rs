@@ -2,7 +2,7 @@ use super::*;
 
 pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, &'static str> {
     match instr.op {
-        Opcode::Add => write_reg_sp(
+        Opcode::Add => write_reg(
             cpu,
             instr.rd,
             read_reg(cpu, instr.rn, instr.sf).wrapping_add(shifted_reg_val(
@@ -14,7 +14,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
             )),
             instr.sf,
         ),
-        Opcode::Sub => write_reg_sp(
+        Opcode::Sub => write_reg(
             cpu,
             instr.rd,
             read_reg(cpu, instr.rn, instr.sf).wrapping_sub(shifted_reg_val(
