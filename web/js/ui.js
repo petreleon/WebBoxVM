@@ -31,6 +31,7 @@ export class UiController {
       this.els.uartValue.textContent = "0 B";
       this.els.pagesValue.textContent = "0";
       this.els.diskValue.textContent = "0 B";
+      this.updateJitStats(undefined);
       this.updateStorageMetric(disk);
       return;
     }
@@ -40,7 +41,12 @@ export class UiController {
     this.els.uartValue.textContent = formatBytes(emulator.uart_output_len());
     this.els.pagesValue.textContent = emulator.allocated_pages().toString();
     this.els.diskValue.textContent = formatBytes(Number(emulator.install_disk_allocated_bytes()));
+    this.updateJitStats(emulator);
     this.updateStorageMetric(disk);
+  }
+
+  updateJitStats(emulator) {
+    this.els.jitStatsValue.textContent = JSON.stringify(emulator?.jit_stats?.() ?? null);
   }
 
   updateStorageMetric(disk) {

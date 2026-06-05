@@ -7,6 +7,7 @@ export const els = {
   diskValue: document.querySelector("#diskValue"),
   eventLog: document.querySelector("#eventLog"),
   isoFile: document.querySelector("#isoFile"),
+  jitStatsValue: document.querySelector("#jitStatsValue"),
   pagesValue: document.querySelector("#pagesValue"),
   pauseVm: document.querySelector("#pauseVm"),
   pcValue: document.querySelector("#pcValue"),

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="./styles.css">
     <script defer src="https://cdn.jsdelivr.net/npm/@xterm/xterm/lib/xterm.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit/lib/addon-fit.js"></script>
-    <script type="module" src="./app.js?v=20260606-jittelemetry"></script>
+    <script type="module" src="./app.js?v=20260606-jitprobe"></script>
   </head>
   <body>
     <main class="shell">
@@ -88,6 +88,7 @@
 
         <section class="terminal-pane" aria-label="Guest serial console">
           <div id="terminal"></div>
+          <pre id="jitStatsValue" data-testid="webboxvm-jit-stats" hidden></pre>
         </section>
       </section>
     </main>
