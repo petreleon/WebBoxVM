@@ -20,7 +20,12 @@ pub(in crate::arm64::execute) fn exec_fp_arithmetic(cpu: &mut Armv8Cpu, instr: I
 }
 
 pub(in crate::arm64::execute) fn exec_fp_fnmadd(cpu: &mut Armv8Cpu, instr: Instr) {
-    if instr.size == 4 {
+    if instr.size == 2 {
+        let n = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16);
+        let m = f16_to_f32(read_fp_bits(cpu, instr.rm, 2) as u16);
+        let a = f16_to_f32(read_fp_bits(cpu, instr.cond, 2) as u16);
+        write_fp_bits(cpu, instr.rd, f32_to_f16_bits(-n.mul_add(m, a)) as u64, 2);
+    } else if instr.size == 4 {
         let n = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
         let m = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
         let a = f32::from_bits(read_fp_bits(cpu, instr.cond, 4) as u32);
@@ -34,7 +39,12 @@ pub(in crate::arm64::execute) fn exec_fp_fnmadd(cpu: &mut Armv8Cpu, instr: Instr
 }
 
 pub(in crate::arm64::execute) fn exec_fp_fnmsub(cpu: &mut Armv8Cpu, instr: Instr) {
-    if instr.size == 4 {
+    if instr.size == 2 {
+        let n = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16);
+        let m = f16_to_f32(read_fp_bits(cpu, instr.rm, 2) as u16);
+        let a = f16_to_f32(read_fp_bits(cpu, instr.cond, 2) as u16);
+        write_fp_bits(cpu, instr.rd, f32_to_f16_bits(n.mul_add(m, -a)) as u64, 2);
+    } else if instr.size == 4 {
         let n = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
         let m = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
         let a = f32::from_bits(read_fp_bits(cpu, instr.cond, 4) as u32);
@@ -52,7 +62,17 @@ pub(in crate::arm64::execute) fn exec_fp_fused(
     instr: Instr,
     subtract_product: bool,
 ) {
-    if instr.size == 4 {
+    if instr.size == 2 {
+        let n = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16);
+        let m = f16_to_f32(read_fp_bits(cpu, instr.rm, 2) as u16);
+        let a = f16_to_f32(read_fp_bits(cpu, instr.cond, 2) as u16);
+        let value = if subtract_product {
+            (-n).mul_add(m, a)
+        } else {
+            n.mul_add(m, a)
+        };
+        write_fp_bits(cpu, instr.rd, f32_to_f16_bits(value) as u64, 2);
+    } else if instr.size == 4 {
         let n = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
         let m = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
         let a = f32::from_bits(read_fp_bits(cpu, instr.cond, 4) as u32);
@@ -84,7 +104,11 @@ pub(in crate::arm64::execute) fn exec_fp_binary<F32, F64>(
     F32: FnOnce(f32, f32) -> f32,
     F64: FnOnce(f64, f64) -> f64,
 {
-    if instr.size == 4 {
+    if instr.size == 2 {
+        let lhs = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16);
+        let rhs = f16_to_f32(read_fp_bits(cpu, instr.rm, 2) as u16);
+        write_fp_bits(cpu, instr.rd, f32_to_f16_bits(op32(lhs, rhs)) as u64, 2);
+    } else if instr.size == 4 {
         let lhs = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
         let rhs = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
         write_fp_bits(cpu, instr.rd, op32(lhs, rhs).to_bits() as u64, 4);

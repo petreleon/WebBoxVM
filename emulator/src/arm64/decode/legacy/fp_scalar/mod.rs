@@ -39,11 +39,7 @@ pub(super) fn decode_fp_scalar(raw: u32) -> Option<Instr> {
 
     try_fp_stage!(type_convert::decode(raw, fields));
 
-    let size = match ftype {
-        0 => 4,
-        1 => 8,
-        _ => return None,
-    };
+    let size = fp_scalar_type_size(ftype)?;
     let fields = FpFields { size, ..fields };
 
     try_fp_stage!(arithmetic::decode(raw, fields));

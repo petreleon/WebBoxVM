@@ -8,13 +8,13 @@ pub(super) fn decode(raw: u32, fields: FpFields) -> DecodeStep {
     let rm = fields.rm;
     let size = fields.size;
 
-    if (raw & 0xFFBF_FC00) == 0x1E21_4000 {
+    if (raw & 0xFFFF_FC00) == 0x1EE1_4000 || (raw & 0xFFBF_FC00) == 0x1E21_4000 {
         return DecodeStep::Hit(fp_instr(Opcode::FpNeg, rd, rn, 0, 0, size));
     }
-    if (raw & 0xFFBF_FC00) == 0x1E20_C000 {
+    if (raw & 0xFFFF_FC00) == 0x1EE0_C000 || (raw & 0xFFBF_FC00) == 0x1E20_C000 {
         return DecodeStep::Hit(fp_instr(Opcode::FpAbs, rd, rn, 0, 0, size));
     }
-    if (raw & 0xFFBF_FC00) == 0x1E21_C000 {
+    if (raw & 0xFFFF_FC00) == 0x1EE1_C000 || (raw & 0xFFBF_FC00) == 0x1E21_C000 {
         return DecodeStep::Hit(fp_instr(Opcode::FpSqrt, rd, rn, 0, 0, size));
     }
     if (raw & 0xFF3F_FC00) == 0x1E25_4000 {

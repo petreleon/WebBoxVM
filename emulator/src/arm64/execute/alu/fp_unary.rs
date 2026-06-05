@@ -3,10 +3,10 @@ use super::*;
 pub(in crate::arm64::execute) fn exec_fp_unary(cpu: &mut Armv8Cpu, instr: Instr) {
     match instr.op {
         Opcode::FpNeg => {
-            let sign_mask = if instr.size == 4 {
-                1u64 << 31
-            } else {
-                1u64 << 63
+            let sign_mask = match instr.size {
+                2 => 1u64 << 15,
+                4 => 1u64 << 31,
+                _ => 1u64 << 63,
             };
             write_fp_bits(
                 cpu,
@@ -16,10 +16,10 @@ pub(in crate::arm64::execute) fn exec_fp_unary(cpu: &mut Armv8Cpu, instr: Instr)
             );
         }
         Opcode::FpAbs => {
-            let sign_mask = if instr.size == 4 {
-                1u64 << 31
-            } else {
-                1u64 << 63
+            let sign_mask = match instr.size {
+                2 => 1u64 << 15,
+                4 => 1u64 << 31,
+                _ => 1u64 << 63,
             };
             write_fp_bits(
                 cpu,
@@ -29,7 +29,10 @@ pub(in crate::arm64::execute) fn exec_fp_unary(cpu: &mut Armv8Cpu, instr: Instr)
             );
         }
         Opcode::FpSqrt => {
-            if instr.size == 4 {
+            if instr.size == 2 {
+                let value = f16_to_f32(read_fp_bits(cpu, instr.rn, 2) as u16).sqrt();
+                write_fp_bits(cpu, instr.rd, f32_to_f16_bits(value) as u64, 2);
+            } else if instr.size == 4 {
                 let value = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32).sqrt();
                 write_fp_bits(cpu, instr.rd, value.to_bits() as u64, 4);
             } else {
