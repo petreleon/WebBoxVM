@@ -1,6 +1,8 @@
 use super::*;
 use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
 
+mod bitfield;
+
 fn block(instructions: Vec<Instr>) -> Block {
     let instruction_pas = (0..instructions.len())
         .map(|idx| 0x4000_1000 + idx as u64 * 4)

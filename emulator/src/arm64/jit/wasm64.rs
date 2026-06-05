@@ -17,6 +17,7 @@ use super::block::Block;
 use crate::arm64::Opcode;
 use crate::constants::{SP_REGISTER_INDEX, ZERO_REGISTER_INDEX};
 
+mod bitfield;
 mod emit_instr;
 mod encoding;
 mod expr;

@@ -97,6 +97,25 @@ impl WasmExpr {
                 self.emit_write_reg_with(instr.rd, true, |this| this.i64_const(target));
                 true
             }
+            Opcode::Ubfm | Opcode::Sbfm => {
+                if !helpers::can_emit_bitfield(instr) {
+                    return false;
+                }
+                let signed = instr.op == Opcode::Sbfm;
+                self.emit_write_reg_with(instr.rd, instr.sf, |this| {
+                    this.emit_bitfield_extract(instr, signed);
+                });
+                true
+            }
+            Opcode::Bfm => {
+                if !helpers::can_emit_bitfield(instr) {
+                    return false;
+                }
+                self.emit_write_reg_with(instr.rd, instr.sf, |this| {
+                    this.emit_bitfield_insert(instr);
+                });
+                true
+            }
             Opcode::Adrp => {
                 let page = pc & !PAGE_OFFSET_MASK;
                 let target = (page as i64 + instr.imm as i64) as u64;
