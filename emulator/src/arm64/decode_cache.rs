@@ -7,12 +7,19 @@ use super::decode;
 use super::opcodes::Instr;
 use crate::constants::*;
 use crate::memory::PhysicalMemory;
-use std::collections::HashMap;
+
+const DECODE_CACHE_LINES: usize = 16 * 1024;
 
 #[derive(Debug, Clone)]
 struct DecodedPage {
     raw_words: Vec<u32>,
     instrs: Vec<Instr>,
+}
+
+#[derive(Debug, Clone)]
+struct CacheLine {
+    page_base: u64,
+    page: DecodedPage,
 }
 
 /// Per-core instruction decode cache.
@@ -21,7 +28,7 @@ struct DecodedPage {
 /// words. On fetch, the requested word is compared with memory before reusing
 /// the page so boot-time patching or self-modifying code gets re-decoded.
 pub struct DecodeCache {
-    pages: HashMap<u64, DecodedPage>,
+    pages: Vec<Option<CacheLine>>,
     pub hits: u64,
     pub misses: u64,
 }
@@ -29,7 +36,7 @@ pub struct DecodeCache {
 impl DecodeCache {
     pub fn new() -> Self {
         Self {
-            pages: HashMap::new(),
+            pages: vec![None; DECODE_CACHE_LINES],
             hits: 0,
             misses: 0,
         }
@@ -43,18 +50,20 @@ impl DecodeCache {
         let page_base = pa & !PAGE_OFFSET_MASK;
         let word_offset = ((pa & PAGE_OFFSET_MASK) / INSTRUCTION_SIZE) as usize;
         let raw = read_raw_word(mem, pa)?;
+        let slot = cache_slot(page_base);
 
-        if let Some(page) = self.pages.get(&page_base)
-            && page.raw_words.get(word_offset).copied() == Some(raw)
+        if let Some(line) = &self.pages[slot]
+            && line.page_base == page_base
+            && line.page.raw_words.get(word_offset).copied() == Some(raw)
         {
             self.hits += 1;
-            return page.instrs.get(word_offset).copied();
+            return line.page.instrs.get(word_offset).copied();
         }
 
         self.misses += 1;
         let page = decode_page(mem, page_base)?;
         let result = page.instrs.get(word_offset).copied();
-        self.pages.insert(page_base, page);
+        self.pages[slot] = Some(CacheLine { page_base, page });
         result
     }
 }
@@ -82,46 +91,9 @@ fn read_raw_word(mem: &PhysicalMemory, pa: u64) -> Option<u32> {
     mem.read(pa, 4).map(|raw| raw as u32)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::arm64::Opcode;
-    use crate::constants::RAM_BASE;
-
-    #[test]
-    fn cached_fetch_reuses_unchanged_page() {
-        let mut mem = PhysicalMemory::new();
-        let mut cache = DecodeCache::new();
-
-        mem.write(RAM_BASE, 4, 0xd503_201f).unwrap();
-
-        assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
-        assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
-        assert_eq!(cache.misses, 1);
-        assert_eq!(cache.hits, 1);
-    }
-
-    #[test]
-    fn cached_fetch_redecodes_changed_word() {
-        let mut mem = PhysicalMemory::new();
-        let mut cache = DecodeCache::new();
-
-        mem.write(RAM_BASE, 4, 0xd503_201f).unwrap();
-        assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
-
-        mem.write(RAM_BASE, 4, 0x1400_0000).unwrap();
-
-        assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::B);
-        assert_eq!(cache.misses, 2);
-    }
-
-    #[test]
-    fn undecoded_words_are_tolerated_as_nops() {
-        let mut mem = PhysicalMemory::new();
-        let mut cache = DecodeCache::new();
-
-        mem.write(RAM_BASE, 4, 0xffff_ffff).unwrap();
-
-        assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
-    }
+fn cache_slot(page_base: u64) -> usize {
+    ((page_base / PAGE_SIZE) as usize) & (DECODE_CACHE_LINES - 1)
 }
+
+#[cfg(test)]
+mod tests;
