@@ -1,4 +1,5 @@
 use super::*;
+use std::sync::OnceLock;
 
 pub(in crate::arm64::execute) fn trace_syscall_frame_access(
     cpu: &mut Armv8Cpu,
@@ -9,7 +10,7 @@ pub(in crate::arm64::execute) fn trace_syscall_frame_access(
     size: u8,
     value: Option<u64>,
 ) {
-    if env::var_os("WEBBOXVM_TRACE_SYSCALL_FRAME").is_none()
+    if !trace_syscall_frame_enabled()
         || cpu.pstate.el() != 1
         || cpu.trace_syscall_access_budget == 0
         || cpu.trace_syscall_stack_top == 0
@@ -50,11 +51,8 @@ pub(in crate::arm64::execute) fn trace_text_store(
     size: u8,
     value: u64,
 ) {
-    let trace_text = env::var_os("WEBBOXVM_TRACE_TEXT_PATCH").is_some();
-    let trace_store = env::var_os("WEBBOXVM_TRACE_STORE_PA").and_then(|target| {
-        let target = target.to_string_lossy();
-        u64::from_str_radix(target.trim_start_matches("0x"), 16).ok()
-    });
+    let trace_text = trace_text_patch_enabled();
+    let trace_store = trace_store_pa();
     if !trace_text && trace_store.is_none() {
         return;
     }
@@ -85,4 +83,24 @@ pub(in crate::arm64::execute) fn trace_text_store(
         cpu.regs.x(30),
         cpu.regs.sp,
     );
+}
+
+fn trace_syscall_frame_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| env::var_os("WEBBOXVM_TRACE_SYSCALL_FRAME").is_some())
+}
+
+fn trace_text_patch_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| env::var_os("WEBBOXVM_TRACE_TEXT_PATCH").is_some())
+}
+
+fn trace_store_pa() -> Option<u64> {
+    static TARGET: OnceLock<Option<u64>> = OnceLock::new();
+    *TARGET.get_or_init(|| {
+        env::var_os("WEBBOXVM_TRACE_STORE_PA").and_then(|target| {
+            let target = target.to_string_lossy();
+            u64::from_str_radix(target.trim_start_matches("0x"), 16).ok()
+        })
+    })
 }

@@ -1,5 +1,6 @@
 use super::*;
 use std::env;
+use std::sync::OnceLock;
 
 pub(super) fn trace_write_permission(
     sys: &SystemRegisters,
@@ -7,7 +8,7 @@ pub(super) fn trace_write_permission(
     va: u64,
     current_el: u8,
 ) {
-    if env::var_os("WEBBOXVM_TRACE_WRITE_PERM").is_none() {
+    if !trace_write_perm_enabled() {
         return;
     }
 
@@ -29,6 +30,11 @@ pub(super) fn trace_write_permission(
         (sys.tcr_el1 & TCR_HA_BIT) != 0,
         (sys.tcr_el1 & TCR_HD_BIT) != 0,
     );
+}
+
+fn trace_write_perm_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| env::var_os("WEBBOXVM_TRACE_WRITE_PERM").is_some())
 }
 
 pub(super) fn check_write_permission(
