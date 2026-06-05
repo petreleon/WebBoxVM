@@ -4,6 +4,7 @@ mod arithmetic;
 mod branching;
 mod condition_logic;
 mod control;
+mod control_nop;
 mod memory;
 mod scalar_basic;
 mod simd_data_ops;

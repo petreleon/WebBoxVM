@@ -68,6 +68,7 @@ mod sve_shift_imm;
 mod sve_unpack;
 mod sve_word_load_store;
 mod sve_xar;
+mod system_barriers;
 mod system_extensions;
 
 use super::{DecodeStep, Instr, Opcode, branch, data_proc, ldst, system};

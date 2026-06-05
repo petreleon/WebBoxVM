@@ -3,11 +3,13 @@ use super::*;
 #[test]
 fn maps_system_mnemonics() {
     let cases = [
-        (0xD503_305F, Opcode::NopBarrier, "clrex"),
+        (0xD503_305F, Opcode::Clrex, "clrex"),
         (0xD503_20DF, Opcode::Dgh, "dgh"),
         (0xD503_30FF, Opcode::Sb, "sb"),
-        (0xD503_3BBF, Opcode::NopBarrier, "dmb"),
-        (0xD503_3B9F, Opcode::NopBarrier, "dsb"),
+        (0xD503_3BBF, Opcode::Dmb, "dmb"),
+        (0xD503_3B9F, Opcode::Dsb, "dsb"),
+        (0xD503_323F, Opcode::Dsb, "dsb"),
+        (0xD503_3FDF, Opcode::Isb, "isb"),
         (0xD503_1005, Opcode::Wfe, "wfet"),
         (0xD503_1025, Opcode::Wfi, "wfit"),
         (0xD500_401F, Opcode::Cfinv, "cfinv"),
@@ -94,7 +96,7 @@ fn maps_all_barrier_aliases_by_encoding() {
     assert_eq!(format!("{:?}", decoded.mnemonic), "dmb");
     assert_eq!(
         mnemonic_to_opcode(raw, decoded.mnemonic),
-        Some(Opcode::NopBarrier)
+        Some(Opcode::Dmb)
     );
 }
 

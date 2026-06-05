@@ -26,7 +26,7 @@ pub(super) fn decode_wait_timeout(raw: u32, op: Opcode) -> Option<Instr> {
 }
 
 pub(super) fn decode_clrex() -> Option<Instr> {
-    Some(simple(Opcode::NopBarrier, 3))
+    Some(simple(Opcode::Clrex, 3))
 }
 
 pub(super) fn decode_cfinv() -> Option<Instr> {
@@ -90,8 +90,8 @@ pub(super) fn decode_dc_zva(raw: u32) -> Option<Instr> {
     })
 }
 
-pub(super) fn decode_barrier() -> Option<Instr> {
-    Some(simple(Opcode::NopBarrier, 0))
+pub(super) fn decode_barrier(op: Opcode) -> Option<Instr> {
+    Some(simple(op, 0))
 }
 
 pub(super) fn decode_cache_maintenance(raw: u32) -> Option<Instr> {

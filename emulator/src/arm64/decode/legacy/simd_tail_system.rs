@@ -88,8 +88,8 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     if (raw >> 24) == 0xD5 {
-        if is_barrier(raw) {
-            return DecodeStep::from_option(system::decode_barrier());
+        if let Some(op) = system_barriers::opcode(raw) {
+            return DecodeStep::from_option(system::decode_barrier(op));
         }
         if (raw & 0xFFFF_FFE0) == 0xD503_1000 {
             return DecodeStep::from_option(system::decode_wait_timeout(raw, Opcode::Wfe));
@@ -99,7 +99,7 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         }
         match raw {
             0xD503_20DF | 0xD503_30FF => {
-                return DecodeStep::from_option(system::decode_barrier());
+                return DecodeStep::from_option(system::decode_barrier(Opcode::NopBarrier));
             }
             0xD503_203F => return DecodeStep::from_option(system::decode_yield()),
             0xD503_205F => return DecodeStep::from_option(system::decode_wfe()),
@@ -148,10 +148,6 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return DecodeStep::from_option(data_proc::decode_adr(raw));
     }
     DecodeStep::Miss
-}
-
-fn is_barrier(raw: u32) -> bool {
-    matches!(raw & 0xFFFF_F0FF, 0xD503_309F | 0xD503_30BF | 0xD503_30DF)
 }
 
 fn is_cache_maintenance(raw: u32) -> bool {

@@ -109,4 +109,8 @@ impl super::Opcode {
     pub const Sb: Self = Self(570);
     pub const DaifSet: Self = Self(571);
     pub const DaifClr: Self = Self(572);
+    pub const Clrex: Self = Self(574);
+    pub const Dmb: Self = Self(575);
+    pub const Dsb: Self = Self(576);
+    pub const Isb: Self = Self(577);
 }

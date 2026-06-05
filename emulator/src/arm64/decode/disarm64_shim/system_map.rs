@@ -13,10 +13,12 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
             .unwrap_or(Opcode::Nop),
         M::r#cfinv if raw == 0xD500_401F => Opcode::Cfinv,
         M::r#chkfeat if raw == 0xD503_251F => Opcode::Chkfeat,
-        M::r#clrex if raw == 0xD503_305F => Opcode::NopBarrier,
+        M::r#clrex if raw == 0xD503_305F => Opcode::Clrex,
         M::r#dgh if raw == 0xD503_20DF => Opcode::Dgh,
         M::r#sb if raw == 0xD503_30FF => Opcode::Sb,
-        M::r#dmb | M::r#dsb | M::r#isb if barrier(raw) => Opcode::NopBarrier,
+        M::r#dmb if dmb(raw) => Opcode::Dmb,
+        M::r#dsb if dsb(raw) => Opcode::Dsb,
+        M::r#isb if isb(raw) => Opcode::Isb,
         M::r#wfet if (raw & 0xFFFF_FFE0) == 0xD503_1000 => Opcode::Wfe,
         M::r#wfit if (raw & 0xFFFF_FFE0) == 0xD503_1020 => Opcode::Wfi,
         M::r#rmif if (raw & 0xFFE0_7C10) == 0xBA00_0400 => Opcode::Rmif,
@@ -51,8 +53,16 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     })
 }
 
-fn barrier(raw: u32) -> bool {
-    matches!(raw & 0xFFFF_F0FF, 0xD503_309F | 0xD503_30BF | 0xD503_30DF)
+fn dmb(raw: u32) -> bool {
+    (raw & 0xFFFF_F0FF) == 0xD503_30BF
+}
+
+fn dsb(raw: u32) -> bool {
+    (raw & 0xFFFF_F0FF) == 0xD503_309F || (raw & 0xFFFF_F3FF) == 0xD503_323F
+}
+
+fn isb(raw: u32) -> bool {
+    (raw & 0xFFFF_F0FF) == 0xD503_30DF
 }
 
 fn cache_maintenance(raw: u32) -> bool {
