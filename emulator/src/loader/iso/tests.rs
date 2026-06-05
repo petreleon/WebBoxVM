@@ -29,6 +29,7 @@ fn appends_serial_bootargs_when_missing() {
     assert!(args.contains(ISO_VIRTIO_MMIO_ARG));
     assert!(args.contains(DISK_VIRTIO_MMIO_ARG));
     assert!(args.contains("clocksource.arm_arch_timer.evtstrm=false"));
+    assert!(args.contains("auto=false"));
     assert!(args.contains("---"));
     assert!(args.contains("DEBIAN_FRONTEND=text"));
     assert!(args.contains("TERM=vt102"));
@@ -49,6 +50,7 @@ fn inserts_kernel_bootargs_before_debian_separator() {
     assert!(tokens[..separator].contains(&ISO_VIRTIO_MMIO_ARG));
     assert!(tokens[..separator].contains(&DISK_VIRTIO_MMIO_ARG));
     assert!(tokens[..separator].contains(&"clocksource.arm_arch_timer.evtstrm=false"));
+    assert!(tokens[..separator].contains(&"auto=false"));
     assert_eq!(
         &tokens[separator..],
         &[

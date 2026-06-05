@@ -1,6 +1,7 @@
 pub(super) const ISO_VIRTIO_MMIO_ARG: &str = "virtio_mmio.device=4K@0x0a000000:48";
 pub(super) const DISK_VIRTIO_MMIO_ARG: &str = "virtio_mmio.device=4K@0x0a001000:49";
-pub(super) const DEFAULT_ISO_BOOTARGS: &str = "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 loglevel=7 kvm-arm.mode=none kvm.enable_virt_at_load=0 initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init cryptomgr.notests=1 virtio_mmio.device=4K@0x0a000000:48 virtio_mmio.device=4K@0x0a001000:49 clocksource.arm_arch_timer.evtstrm=false";
+pub(super) const DEFAULT_ISO_BOOTARGS: &str = "earlycon=pl011,0x09000000 console=ttyAMA0,115200n8 loglevel=7 kvm-arm.mode=none kvm.enable_virt_at_load=0 initcall_blacklist=finalize_pkvm,bpf_tcp_ca_kfunc_init cryptomgr.notests=1 virtio_mmio.device=4K@0x0a000000:48 virtio_mmio.device=4K@0x0a001000:49 clocksource.arm_arch_timer.evtstrm=false auto=false";
+const DI_SINGLE_CONSOLE_ARG: &str = "auto=false";
 
 pub(super) fn ensure_serial_bootargs(args: &str) -> String {
     let trimmed = args.trim();
@@ -31,6 +32,7 @@ pub(super) fn ensure_serial_bootargs(args: &str) -> String {
         "clocksource.arm_arch_timer.evtstrm=",
         "clocksource.arm_arch_timer.evtstrm=false",
     );
+    ensure_kernel_arg(&mut tokens, "auto=", DI_SINGLE_CONSOLE_ARG);
     remove_installer_arg(&mut tokens, "quiet");
     ensure_installer_arg(&mut tokens, "console=ttyAMA", "console=ttyAMA0,115200n8");
     ensure_installer_arg(&mut tokens, "DEBIAN_FRONTEND=", "DEBIAN_FRONTEND=text");
