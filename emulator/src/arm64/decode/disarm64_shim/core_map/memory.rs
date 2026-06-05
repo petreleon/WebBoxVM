@@ -8,6 +8,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ldr if (raw & 0x3B00_0000) == 0x1800_0000 => Opcode::LdrLit,
         M::r#ldr | M::r#ldur if ((raw >> 26) & 1) != 0 => Opcode::SimdLdr,
         M::r#ldr | M::r#ldur | M::r#ldrb | M::r#ldurb | M::r#ldrh | M::r#ldurh => Opcode::Ldr,
+        M::r#ldapur if is_rcpc3_simd_load(raw) => Opcode::SimdLdr,
         M::r#ldapur | M::r#ldapurb | M::r#ldapurh => Opcode::Ldapur,
         M::r#ldapursb | M::r#ldapursh | M::r#ldapursw => Opcode::Ldapurs,
         M::r#ldraa | M::r#ldrab => {
@@ -33,6 +34,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#str if matches!(raw & 0xFFC0_E000, 0xE580_0000 | 0xE580_4000) => Opcode::SveStr,
         M::r#str | M::r#stur if ((raw >> 26) & 1) != 0 => Opcode::SimdStr,
+        M::r#stlur if is_rcpc3_simd_store(raw) => Opcode::SimdStr,
         M::r#stlur | M::r#stlurb | M::r#stlurh => Opcode::Stlur,
         M::r#str | M::r#stur | M::r#strb | M::r#sturb | M::r#strh | M::r#sturh => Opcode::Str,
         M::r#ldp if ((raw >> 26) & 1) != 0 => Opcode::SimdLdp,
@@ -46,4 +48,12 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
 
 fn sve_ld1w(raw: u32) -> bool {
     (raw & 0xFF90_E000) == 0xA500_A000 || matches!(raw & 0xFFA0_E000, 0x8520_4000 | 0xC520_C000)
+}
+
+fn is_rcpc3_simd_load(raw: u32) -> bool {
+    (raw & 0x3F60_0C00) == 0x1D40_0800
+}
+
+fn is_rcpc3_simd_store(raw: u32) -> bool {
+    (raw & 0x3F60_0C00) == 0x1D00_0800
 }

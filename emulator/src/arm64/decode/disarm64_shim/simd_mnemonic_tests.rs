@@ -100,3 +100,19 @@ fn maps_shared_simd_mnemonics_by_encoding() {
         assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), None);
     }
 }
+
+#[test]
+fn maps_simd_rcpc_unscaled_mnemonics_by_encoding() {
+    let cases = [
+        (0x1D40_0820, Opcode::SimdLdr, "ldapur"),
+        (0x1DC0_4884, Opcode::SimdLdr, "ldapur"),
+        (0x1D00_0820, Opcode::SimdStr, "stlur"),
+        (0x1D80_4884, Opcode::SimdStr, "stlur"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode RCpc SIMD memory");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}

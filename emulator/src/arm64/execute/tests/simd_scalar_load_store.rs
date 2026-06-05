@@ -74,3 +74,34 @@ fn simd_scalar_byte_halfword_load_store_forms() {
     execute(&mut cpu, &mut bus, decode(0x7C20_783C).unwrap()).unwrap(); // str h28, [x1, x0, lsl #1]
     assert_eq!(bus.read(base + 0xb6, 2), Some(0xface));
 }
+
+#[test]
+fn simd_rcpc_unscaled_load_store_forms_transfer_values() {
+    let (mut cpu, mut bus) = setup();
+    let base = RAM_BASE + 0x5400;
+
+    cpu.regs.set_x(1, base);
+    bus.write(base, 1, 0x5a);
+    execute(&mut cpu, &mut bus, decode(0x1D40_0820).unwrap()).unwrap(); // ldapur b0, [x1]
+    assert_eq!(cpu.simd[0], 0x5a);
+
+    let low = 0x1122_3344_5566_7788;
+    let high = 0x99aa_bbcc_ddee_ff00;
+    cpu.regs.set_x(4, base + 0x30);
+    bus.write(base + 0x34, 8, low);
+    bus.write(base + 0x3c, 8, high);
+    execute(&mut cpu, &mut bus, decode(0x1DC0_4884).unwrap()).unwrap(); // ldapur q4, [x4, #4]
+    assert_eq!(cpu.simd[4], ((high as u128) << 64) | low as u128);
+
+    cpu.regs.set_x(2, base + 0x80);
+    cpu.simd[1] = 0xcafe;
+    execute(&mut cpu, &mut bus, decode(0x5D00_1841).unwrap()).unwrap(); // stlur h1, [x2, #1]
+    assert_eq!(bus.read(base + 0x81, 2), Some(0xcafe));
+
+    let q_low = 0x0102_0304_0506_0708;
+    let q_high = 0x8877_6655_4433_2211;
+    cpu.simd[4] = ((q_high as u128) << 64) | q_low as u128;
+    execute(&mut cpu, &mut bus, decode(0x1D80_4884).unwrap()).unwrap(); // stlur q4, [x4, #4]
+    assert_eq!(bus.read(base + 0x34, 8), Some(q_low));
+    assert_eq!(bus.read(base + 0x3c, 8), Some(q_high));
+}

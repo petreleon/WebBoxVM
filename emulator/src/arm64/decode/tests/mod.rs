@@ -35,6 +35,7 @@ mod simd_modified_immediate;
 mod simd_pairwise_narrow;
 mod simd_permute_secondary;
 mod simd_rbit;
+mod simd_rcpc_ldst;
 mod simd_reduce_across;
 mod simd_scalar_bitwise_compare;
 mod simd_saturating_add;
