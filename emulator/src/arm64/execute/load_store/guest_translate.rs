@@ -5,7 +5,7 @@ pub(in crate::arm64::execute) fn translate_or_data_fault(
     mem: &mut crate::memory::PhysicalMemory,
     va: u64,
     write: bool,
-    err: &'static str,
+    _err: &'static str,
 ) -> Result<u64, &'static str> {
     let result = if write {
         translate_write(&cpu.sys, mem, va, cpu.pstate.el())
@@ -20,7 +20,7 @@ pub(in crate::arm64::execute) fn translate_or_data_fault(
         ) => {
             cpu.sys.far_el1 = va;
             Err(match fault {
-                Fault::TranslationFault => err,
+                Fault::TranslationFault => "translation fault",
                 Fault::AccessFlagFault => "access flag fault",
                 Fault::PermissionFault => "permission fault",
             })

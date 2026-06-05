@@ -35,8 +35,7 @@ pub(in crate::arm64::execute) fn write_simd_guest(
         4 => write_guest(cpu, bus, va, 4, value as u32 as u64, err)?,
         8 => write_guest(cpu, bus, va, 8, value as u64, err)?,
         16 => {
-            write_guest(cpu, bus, va, 8, value as u64, err)?;
-            write_guest(cpu, bus, va.wrapping_add(8), 8, (value >> 64) as u64, err)?;
+            write_guest_bytes(cpu, bus, va, &value.to_le_bytes(), err)?;
         }
         _ => return Err("unsupported SIMD store size"),
     }
@@ -85,11 +84,26 @@ pub(in crate::arm64::execute) fn write_guest(
         return Ok(());
     }
 
-    for offset in 0..size {
+    let bytes = value.to_le_bytes();
+    write_guest_bytes(cpu, bus, va, &bytes[..size as usize], err)
+}
+
+fn write_guest_bytes(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    va: u64,
+    bytes: &[u8],
+    err: &'static str,
+) -> Result<(), &'static str> {
+    let mut pas = [0u64; 16];
+    for (offset, _) in bytes.iter().enumerate() {
         let byte_va = va.wrapping_add(offset as u64);
-        let pa = translate_or_data_fault(cpu, &mut bus.mem, byte_va, true, err)?;
-        bus.write(pa, 1, (value >> (offset * 8)) & 0xff);
-        cpu.clear_exclusive_if_overlaps(pa, 1);
+        pas[offset] = translate_or_data_fault(cpu, &mut bus.mem, byte_va, true, err)?;
+    }
+
+    for (offset, byte) in bytes.iter().enumerate() {
+        bus.write(pas[offset], 1, *byte as u64);
+        cpu.clear_exclusive_if_overlaps(pas[offset], 1);
     }
     Ok(())
 }

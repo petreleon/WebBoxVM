@@ -37,3 +37,28 @@ fn rcpc3_pair_load_store_forms_transfer_and_writeback() {
     assert_eq!(bus.mem.read(base + 0x88, 8), Some(0xfedc_ba98_7654_3210));
     assert_eq!(cpu.regs.x(23), base + 0x80);
 }
+
+#[test]
+fn simd_q_store_faults_without_partial_cross_page_write() {
+    let (mut cpu, mut bus) = setup();
+    let dst_va = 0x1ff8;
+    let first_pa = RAM_BASE + 0x0500_0000;
+    let second_pa = RAM_BASE + 0x0600_0000;
+    let old = 0xaaaa_aaaa_aaaa_aaaa;
+    let low = 0x6974_7069_7263_7365u64;
+    let high = 0x4320_3a6e_6f69_7470u64;
+    let l3_second_pte = RAM_BASE + 2 * PAGE_SIZE + 2 * 8;
+
+    map_two_user_pages(&mut cpu, &mut bus, 0x1000, first_pa, second_pa);
+    bus.mem.write(l3_second_pte, 8, 0);
+    bus.write(first_pa + 0xff8, 8, old);
+    cpu.regs.set_x(0, 0);
+    cpu.regs.set_x(28, dst_va);
+    cpu.simd[31] = ((high as u128) << 64) | low as u128;
+
+    let err = execute(&mut cpu, &mut bus, decode(0x3CA0_6B9F).unwrap()).unwrap_err();
+
+    assert_eq!(err, "translation fault");
+    assert_eq!(cpu.sys.far_el1, 0x2000);
+    assert_eq!(bus.read(first_pa + 0xff8, 8), Some(old));
+}

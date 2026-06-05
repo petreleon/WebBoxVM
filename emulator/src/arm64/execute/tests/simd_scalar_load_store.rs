@@ -128,3 +128,27 @@ fn simd_rcpc_single_lane_forms_transfer_doubleword_lanes() {
     execute(&mut cpu, &mut bus, decode(0x4D01_8462).unwrap()).unwrap(); // stl1 {v2.d}[1], [x3]
     assert_eq!(bus.read(base + 0x20, 8), Some(0x8877_6655_4433_2211));
 }
+
+#[test]
+fn simd_q_register_offset_copy_matches_inflate_loop() {
+    let (mut cpu, mut bus) = setup();
+    let src_va = 0x1800;
+    let dst_va = 0x1ff8;
+    let first_pa = RAM_BASE + 0x0300_0000;
+    let second_pa = RAM_BASE + 0x0400_0000;
+    let low = 0x6974_7069_7263_7365;
+    let high = 0x4320_3a6e_6f69_7470;
+
+    map_two_user_pages(&mut cpu, &mut bus, 0x1000, first_pa, second_pa);
+    bus.write(first_pa + 0x800, 8, low);
+    bus.write(first_pa + 0x808, 8, high);
+    cpu.regs.set_x(0, 0);
+    cpu.regs.set_x(1, src_va);
+    cpu.regs.set_x(28, dst_va);
+
+    execute(&mut cpu, &mut bus, decode(0x3CE0_683F).unwrap()).unwrap(); // ldr q31, [x1, x0]
+    execute(&mut cpu, &mut bus, decode(0x3CA0_6B9F).unwrap()).unwrap(); // str q31, [x28, x0]
+
+    assert_eq!(bus.read(first_pa + 0xff8, 8), Some(low));
+    assert_eq!(bus.read(second_pa, 8), Some(high));
+}
