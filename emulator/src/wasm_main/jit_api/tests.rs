@@ -1,6 +1,6 @@
 use super::validate::validate_jit_block;
-use crate::arm64::jit::WasmJitCpuState;
 use crate::arm64::jit::hash_raw_words;
+use crate::arm64::jit::WasmJitCpuState;
 use crate::arm64::machine::Machine;
 use crate::constants::{
     DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, PL011_UART_IRQ_ID, RAM_BASE, SCTLR_MMU_ENABLE,
@@ -57,9 +57,7 @@ fn validate_jit_block_rejects_changed_second_instruction_translation() {
 #[test]
 fn commit_rejects_jit_block_when_uart_input_still_asserts_irq() {
     let mut machine = Machine::new(1);
-    let irq_word = (PL011_UART_IRQ_ID / 32) as usize;
-    let irq_bit = 1 << (PL011_UART_IRQ_ID % 32);
-    machine.bus.gic.enable[irq_word] |= irq_bit;
+    machine.bus.gic.enable_interrupt(PL011_UART_IRQ_ID);
     machine
         .bus
         .uart

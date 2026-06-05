@@ -32,15 +32,11 @@ impl Gicv3 {
             }
             o if gicd_in_range(o, 0x0200, 0x0280) => {
                 let idx = gicd_word_index(o, 0x0200);
-                if idx < INT_WORDS {
-                    self.pending[idx] |= value as u32;
-                }
+                self.set_pending_word_bits(idx, value as u32);
             }
             o if gicd_in_range(o, 0x0280, 0x0300) => {
                 let idx = gicd_word_index(o, 0x0280);
-                if idx < INT_WORDS {
-                    self.pending[idx] &= !(value as u32);
-                }
+                self.clear_pending_word_bits(idx, value as u32);
             }
             o if gicd_in_range(o, 0x0400, 0x0800) => self.write_priority(o, value, size),
             o if gicd_in_range(o, 0x0800, 0x0880) => {
@@ -78,15 +74,11 @@ impl Gicv3 {
 
     fn set_bitmap_word(&mut self, offset: u64, base: u64, value: u32) {
         let idx = gicd_word_index(offset, base);
-        if idx < INT_WORDS {
-            self.enable[idx] |= value;
-        }
+        self.set_enable_word_bits(idx, value);
     }
 
     fn clear_bitmap_word(&mut self, offset: u64, base: u64, value: u32) {
         let idx = gicd_word_index(offset, base);
-        if idx < INT_WORDS {
-            self.enable[idx] &= !value;
-        }
+        self.clear_enable_word_bits(idx, value);
     }
 }

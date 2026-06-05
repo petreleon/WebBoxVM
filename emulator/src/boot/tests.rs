@@ -37,11 +37,7 @@ fn feeding_uart_input_queues_rx_and_injects_irq() {
 
     ctx.feed_uart_input("ls\r");
 
-    assert_ne!(
-        ctx.machine.bus.gic.pending[(PL011_UART_IRQ_ID / 32) as usize]
-            & (1 << (PL011_UART_IRQ_ID % 32)),
-        0
-    );
+    assert!(ctx.machine.bus.gic.is_pending(PL011_UART_IRQ_ID));
     assert_eq!(
         ctx.machine
             .bus

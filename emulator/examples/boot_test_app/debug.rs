@@ -23,10 +23,10 @@ pub(super) fn print_debug_state(ctx: &BootContext) {
     );
     println!(
         "GIC: enable0=0x{:08x} enable1=0x{:08x} pending0=0x{:08x} pending1=0x{:08x} group0=0x{:08x} group1=0x{:08x}",
-        ctx.machine.bus.gic.enable[0],
-        ctx.machine.bus.gic.enable[1],
-        ctx.machine.bus.gic.pending[0],
-        ctx.machine.bus.gic.pending[1],
+        ctx.machine.bus.gic.enable_word(0),
+        ctx.machine.bus.gic.enable_word(1),
+        ctx.machine.bus.gic.pending_word(0),
+        ctx.machine.bus.gic.pending_word(1),
         ctx.machine.bus.gic.group[0],
         ctx.machine.bus.gic.group[1],
     );

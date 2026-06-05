@@ -14,7 +14,10 @@
 use crate::constants::*;
 
 mod distributor;
+mod pending;
 mod redistributor;
+#[cfg(test)]
+mod tests;
 
 /// Number of 32-bit words for the enable/pending/group bitmap arrays.
 const INT_WORDS: usize = 32;
@@ -27,11 +30,13 @@ const GICR_TYPER_LAST: u64 = 1 << 4;
 
 pub struct Gicv3 {
     // ── Distributor (GICD) registers ──
-    pub ctld: u64,                      // GICD_CTLR  (0x0000)
-    pub typer: u64,                     // GICD_TYPER (0x0008, read-only)
-    pub iidr: u32,                      // GICD_IIDR  (0x0018, read-only)
-    pub enable: [u32; INT_WORDS],       // ISENABLER / ICENABLER (0x0100–0x017C)
-    pub pending: [u32; INT_WORDS],      // ISPENDR / ICPENDR     (0x0200–0x027C)
+    pub ctld: u64,             // GICD_CTLR  (0x0000)
+    pub typer: u64,            // GICD_TYPER (0x0008, read-only)
+    pub iidr: u32,             // GICD_IIDR  (0x0018, read-only)
+    enable: [u32; INT_WORDS],  // ISENABLER / ICENABLER (0x0100–0x017C)
+    pending: [u32; INT_WORDS], // ISPENDR / ICPENDR     (0x0200–0x027C)
+    pending_enabled: [u32; INT_WORDS],
+    pending_enabled_words: u32,
     pub priority: [u8; MAX_INTERRUPTS], // IPRIORITYR (0x0400–0x07FC)
     pub group: [u32; INT_WORDS],        // IGROUPR / IGRPMODR    (0x0800–0x087C)
 
@@ -49,38 +54,14 @@ impl Gicv3 {
             iidr: GICD_IIDR_VAL,
             enable: [0; INT_WORDS],
             pending: [0; INT_WORDS],
+            pending_enabled: [0; INT_WORDS],
+            pending_enabled_words: 0,
             priority: [0; MAX_INTERRUPTS],
             group: [0; INT_WORDS],
             rctlr: 0,
             rwaker: 0,
             rtyper: GICR_TYPER_LAST, // ProcessorNumber = 0, last redistributor
         }
-    }
-
-    pub fn set_pending(&mut self, int_id: u32) {
-        let idx = (int_id / 32) as usize;
-        let bit = 1u32 << (int_id % 32);
-        if idx < INT_WORDS {
-            self.pending[idx] |= bit;
-        }
-    }
-
-    pub fn clear_pending(&mut self, int_id: u32) {
-        let idx = (int_id / 32) as usize;
-        let bit = 1u32 << (int_id % 32);
-        if idx < INT_WORDS {
-            self.pending[idx] &= !bit;
-        }
-    }
-
-    pub fn next_pending_enabled(&self) -> Option<u32> {
-        for idx in 0..INT_WORDS {
-            let active = self.pending[idx] & self.enable[idx];
-            if active != 0 {
-                return Some((idx as u32) * 32 + active.trailing_zeros());
-            }
-        }
-        None
     }
 }
 
@@ -93,5 +74,9 @@ pub(in crate::devices::gicv3) fn gicd_word_index(offset: u64, base: u64) -> usiz
 }
 
 pub(in crate::devices::gicv3) fn read_bitmap_word(arr: &[u32; INT_WORDS], idx: usize) -> u64 {
-    if idx < INT_WORDS { arr[idx] as u64 } else { 0 }
+    if idx < INT_WORDS {
+        arr[idx] as u64
+    } else {
+        0
+    }
 }
