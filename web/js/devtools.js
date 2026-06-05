@@ -39,10 +39,13 @@ function installDomBridge(getEmulator) {
     "position:fixed",
     "left:0",
     "top:0",
-    "width:24px",
-    "height:24px",
+    "width:32px",
+    "height:48px",
     "opacity:0.01",
-    "overflow:visible",
+    "display:grid",
+    "grid-template-columns:repeat(2, 16px)",
+    "grid-auto-rows:16px",
+    "overflow:hidden",
     "z-index:2147483647",
   ].join(";");
 
@@ -78,6 +81,7 @@ function makeTextarea(testId) {
   const textarea = document.createElement("textarea");
   textarea.dataset.testid = testId;
   textarea.tabIndex = -1;
+  styleControl(textarea);
   return textarea;
 }
 
@@ -87,6 +91,7 @@ function makeButton(testId) {
   button.dataset.testid = testId;
   button.tabIndex = -1;
   button.textContent = testId;
+  styleControl(button);
   return button;
 }
 
@@ -96,7 +101,18 @@ function makeCheckbox(testId) {
   checkbox.checked = true;
   checkbox.dataset.testid = testId;
   checkbox.tabIndex = -1;
+  styleControl(checkbox);
   return checkbox;
+}
+
+function styleControl(element) {
+  element.style.cssText = [
+    "width:16px",
+    "height:16px",
+    "min-width:0",
+    "padding:0",
+    "font-size:1px",
+  ].join(";");
 }
 
 function parseBytes(input) {
