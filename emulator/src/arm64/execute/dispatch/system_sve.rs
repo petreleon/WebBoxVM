@@ -36,9 +36,14 @@ pub(super) fn execute(
         | Opcode::SveCmpEqImm
         | Opcode::SveCmpNe
         | Opcode::SveCmpNeImm => exec_sve_int_compare(cpu, instr),
-        Opcode::SveWhileLo | Opcode::SveWhileLt | Opcode::SveWhileLe | Opcode::SveWhileLs => {
-            exec_sve_while_predicate(cpu, instr)
-        }
+        Opcode::SveWhileLo
+        | Opcode::SveWhileLt
+        | Opcode::SveWhileLe
+        | Opcode::SveWhileLs
+        | Opcode::SveWhileGe
+        | Opcode::SveWhileGt
+        | Opcode::SveWhileHs
+        | Opcode::SveWhileHi => exec_sve_while_predicate(cpu, instr),
         Opcode::SveMovprfx => exec_sve_movprfx(cpu, instr),
         Opcode::SveDupGpr => exec_sve_dup_gpr(cpu, instr),
         Opcode::SveDupImm => exec_sve_dup_imm(cpu, instr),

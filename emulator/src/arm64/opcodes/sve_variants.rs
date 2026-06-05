@@ -45,6 +45,10 @@ impl super::Opcode {
     pub const SveWhileLt: Self = Self(527);
     pub const SveWhileLe: Self = Self(528);
     pub const SveWhileLs: Self = Self(529);
+    pub const SveWhileGe: Self = Self(530);
+    pub const SveWhileGt: Self = Self(531);
+    pub const SveWhileHs: Self = Self(532);
+    pub const SveWhileHi: Self = Self(533);
     pub const SveLd1rd: Self = Self(81);
     pub const SveLd1rqd: Self = Self(82);
     pub const SveLd1d: Self = Self(83);

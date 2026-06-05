@@ -85,6 +85,10 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveWhileLt
             | Opcode::SveWhileLe
             | Opcode::SveWhileLs
+            | Opcode::SveWhileGe
+            | Opcode::SveWhileGt
+            | Opcode::SveWhileHs
+            | Opcode::SveWhileHi
             | Opcode::SveLdr
             | Opcode::SveStr
             | Opcode::SveLd1rd

@@ -73,10 +73,18 @@ pub(in crate::arm64::execute) fn exec_sve_while_predicate(cpu: &mut Armv8Cpu, in
     let mut still_lower = true;
     let mut result = [0; 4];
 
-    for element in 0..elements {
-        still_lower &= while_predicate_compare(instr.op, value, limit, instr.sf);
-        set_predicate_bit(&mut result, element * element_size, still_lower);
-        value = value.wrapping_add(1) & width_mask;
+    if while_predicate_counts_down(instr.op) {
+        for element in (0..elements).rev() {
+            still_lower &= while_predicate_compare(instr.op, value, limit, instr.sf);
+            set_predicate_bit(&mut result, element * element_size, still_lower);
+            value = value.wrapping_sub(1) & width_mask;
+        }
+    } else {
+        for element in 0..elements {
+            still_lower &= while_predicate_compare(instr.op, value, limit, instr.sf);
+            set_predicate_bit(&mut result, element * element_size, still_lower);
+            value = value.wrapping_add(1) & width_mask;
+        }
     }
 
     let flags = sve_pred_test(&[u64::MAX; 4], &result, element_size, vl_bytes);
@@ -84,12 +92,23 @@ pub(in crate::arm64::execute) fn exec_sve_while_predicate(cpu: &mut Armv8Cpu, in
     cpu.sve_pred[instr.rd as usize] = result;
 }
 
+fn while_predicate_counts_down(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::SveWhileGe | Opcode::SveWhileGt | Opcode::SveWhileHs | Opcode::SveWhileHi
+    )
+}
+
 fn while_predicate_compare(op: Opcode, left: u64, right: u64, wide: bool) -> bool {
     match op {
         Opcode::SveWhileLt => signed_value(left, wide) < signed_value(right, wide),
         Opcode::SveWhileLe => signed_value(left, wide) <= signed_value(right, wide),
+        Opcode::SveWhileGe => signed_value(left, wide) >= signed_value(right, wide),
+        Opcode::SveWhileGt => signed_value(left, wide) > signed_value(right, wide),
         Opcode::SveWhileLo => left < right,
         Opcode::SveWhileLs => left <= right,
+        Opcode::SveWhileHs => left >= right,
+        Opcode::SveWhileHi => left > right,
         _ => false,
     }
 }

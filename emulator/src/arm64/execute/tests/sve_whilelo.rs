@@ -86,3 +86,48 @@ fn sve_whilels_uses_unsigned_less_or_same() {
     assert_eq!(cpu.sve_pred[1], [0; 4]);
     assert!(cpu.pstate.z());
 }
+
+#[test]
+fn sve_while_down_counting_variants_fill_high_lanes() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+    cpu.regs.set_x(5, 3);
+    cpu.regs.set_x(2, 1);
+
+    execute(&mut cpu, &mut bus, decode(0x2522_00A1).unwrap()).unwrap();
+    for bit in 13..16 {
+        assert!(pred_bit(&cpu, 1, bit));
+    }
+    assert!(!pred_bit(&cpu, 1, 12));
+    assert!(!cpu.pstate.n());
+    assert!(!cpu.pstate.z());
+    assert!(!cpu.pstate.c());
+
+    execute(&mut cpu, &mut bus, decode(0x2522_00B1).unwrap()).unwrap();
+    assert!(pred_bit(&cpu, 1, 15));
+    assert!(pred_bit(&cpu, 1, 14));
+    assert!(!pred_bit(&cpu, 1, 13));
+}
+
+#[test]
+fn sve_while_down_counting_signed_and_unsigned_differ() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+    cpu.regs.set_x(5, u32::MAX as u64);
+    cpu.regs.set_x(2, 1);
+
+    execute(&mut cpu, &mut bus, decode(0x2522_00A1).unwrap()).unwrap();
+    assert_eq!(cpu.sve_pred[1], [0; 4]);
+
+    execute(&mut cpu, &mut bus, decode(0x2522_08A1).unwrap()).unwrap();
+    assert!(pred_bit(&cpu, 1, 15));
+    assert!(pred_bit(&cpu, 1, 14));
+    assert!(pred_bit(&cpu, 1, 13));
+
+    cpu.regs.set_x(5, 3);
+    cpu.regs.set_x(2, 1);
+    execute(&mut cpu, &mut bus, decode(0x2522_08B1).unwrap()).unwrap();
+    assert!(pred_bit(&cpu, 1, 15));
+    assert!(pred_bit(&cpu, 1, 14));
+    assert!(!pred_bit(&cpu, 1, 13));
+}

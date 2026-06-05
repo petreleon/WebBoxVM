@@ -67,8 +67,12 @@ fn simm5(value: u32) -> i64 {
 
 fn while_predicate_op(raw: u32) -> Option<Opcode> {
     match raw & 0xFF20_FC10 {
+        0x2520_0000 | 0x2520_1000 => Some(Opcode::SveWhileGe),
+        0x2520_0010 | 0x2520_1010 => Some(Opcode::SveWhileGt),
         0x2520_0400 | 0x2520_1400 => Some(Opcode::SveWhileLt),
         0x2520_0410 | 0x2520_1410 => Some(Opcode::SveWhileLe),
+        0x2520_0800 | 0x2520_1800 => Some(Opcode::SveWhileHs),
+        0x2520_0810 | 0x2520_1810 => Some(Opcode::SveWhileHi),
         0x2520_0C00 | 0x2520_1C00 => Some(Opcode::SveWhileLo),
         0x2520_0C10 | 0x2520_1C10 => Some(Opcode::SveWhileLs),
         _ => None,
