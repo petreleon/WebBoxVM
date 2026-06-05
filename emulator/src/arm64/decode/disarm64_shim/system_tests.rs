@@ -4,8 +4,12 @@ use super::*;
 fn maps_system_mnemonics() {
     let cases = [
         (0xD503_305F, Opcode::NopBarrier, "clrex"),
+        (0xD503_20DF, Opcode::NopBarrier, "dgh"),
+        (0xD503_30FF, Opcode::NopBarrier, "sb"),
         (0xD503_3BBF, Opcode::NopBarrier, "dmb"),
         (0xD503_3B9F, Opcode::NopBarrier, "dsb"),
+        (0xD503_1005, Opcode::Wfe, "wfet"),
+        (0xD503_1025, Opcode::Wfi, "wfit"),
         (0xD50B_7423, Opcode::DcZva, "sys"),
         (0xD50B_7462, Opcode::DcGva, "sys"),
         (0xD50B_7482, Opcode::DcGzva, "sys"),

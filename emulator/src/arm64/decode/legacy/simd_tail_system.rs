@@ -91,7 +91,16 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         if is_barrier(raw) {
             return DecodeStep::from_option(system::decode_barrier());
         }
+        if (raw & 0xFFFF_FFE0) == 0xD503_1000 {
+            return DecodeStep::from_option(system::decode_wait_timeout(raw, Opcode::Wfe));
+        }
+        if (raw & 0xFFFF_FFE0) == 0xD503_1020 {
+            return DecodeStep::from_option(system::decode_wait_timeout(raw, Opcode::Wfi));
+        }
         match raw {
+            0xD503_20DF | 0xD503_30FF => {
+                return DecodeStep::from_option(system::decode_barrier());
+            }
             0xD503_203F => return DecodeStep::from_option(system::decode_yield()),
             0xD503_205F => return DecodeStep::from_option(system::decode_wfe()),
             0xD503_207F => return DecodeStep::from_option(system::decode_wfi()),

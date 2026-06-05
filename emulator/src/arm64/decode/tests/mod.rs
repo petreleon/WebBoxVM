@@ -88,6 +88,7 @@ mod sve_xar;
 mod sve_z_vector;
 mod system_extensions;
 mod system_misc;
+mod system_wait_barrier;
 mod system_undefined;
 
 fn assert_decode_cases(cases: &[(u32, Opcode, &str)]) {
