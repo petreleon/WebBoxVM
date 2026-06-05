@@ -81,9 +81,12 @@ fn event_hint_aliases_advance_without_mutation() {
 
     execute(&mut cpu, &mut bus, decode(0xD503_209F).unwrap()).unwrap(); // sev
     execute(&mut cpu, &mut bus, decode(0xD503_20BF).unwrap()).unwrap(); // sevl
+    execute(&mut cpu, &mut bus, decode(0xD503_203F).unwrap()).unwrap(); // yield
+    execute(&mut cpu, &mut bus, decode(0xD503_20DF).unwrap()).unwrap(); // dgh
+    execute(&mut cpu, &mut bus, decode(0xD503_30FF).unwrap()).unwrap(); // sb
 
     assert_eq!(cpu.regs.x(2), 0x5E7);
-    assert_eq!(cpu.regs.pc, RAM_BASE + 8);
+    assert_eq!(cpu.regs.pc, RAM_BASE + 20);
 }
 
 #[test]

@@ -7,6 +7,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(op) = decode_event_hint(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, 0));
     }
+    if let Some(op) = decode_basic_hint(raw) {
+        return DecodeStep::from_option(system::decode_extension_nop(op, 0));
+    }
     if let Some(op) = decode_sync_hint(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, 0));
     }
@@ -51,6 +54,14 @@ fn decode_event_hint(raw: u32) -> Option<Opcode> {
     Some(match raw {
         0xD503_209F => Opcode::Sev,
         0xD503_20BF => Opcode::Sevl,
+        _ => return None,
+    })
+}
+
+fn decode_basic_hint(raw: u32) -> Option<Opcode> {
+    Some(match raw {
+        0xD503_20DF => Opcode::Dgh,
+        0xD503_30FF => Opcode::Sb,
         _ => return None,
     })
 }

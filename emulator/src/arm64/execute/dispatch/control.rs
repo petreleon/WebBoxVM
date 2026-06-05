@@ -69,7 +69,10 @@ pub(super) fn execute(
         | Opcode::TsbCsync
         | Opcode::GcsbDsync
         | Opcode::Csdb
-        | Opcode::Clrbhb => exec_nop_like(cpu, instr),
+        | Opcode::Clrbhb
+        | Opcode::Yield
+        | Opcode::Dgh
+        | Opcode::Sb => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }

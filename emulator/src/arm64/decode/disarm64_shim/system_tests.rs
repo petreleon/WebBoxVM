@@ -4,8 +4,8 @@ use super::*;
 fn maps_system_mnemonics() {
     let cases = [
         (0xD503_305F, Opcode::NopBarrier, "clrex"),
-        (0xD503_20DF, Opcode::NopBarrier, "dgh"),
-        (0xD503_30FF, Opcode::NopBarrier, "sb"),
+        (0xD503_20DF, Opcode::Dgh, "dgh"),
+        (0xD503_30FF, Opcode::Sb, "sb"),
         (0xD503_3BBF, Opcode::NopBarrier, "dmb"),
         (0xD503_3B9F, Opcode::NopBarrier, "dsb"),
         (0xD503_1005, Opcode::Wfe, "wfet"),
@@ -44,7 +44,7 @@ fn maps_system_mnemonics() {
 fn maps_hint_aliases_by_encoding() {
     let cases = [
         (0xD503_201F, Opcode::Nop, "nop"),
-        (0xD503_203F, Opcode::Nop, "yield"),
+        (0xD503_203F, Opcode::Yield, "yield"),
         (0xD503_205F, Opcode::Wfe, "wfe"),
         (0xD503_207F, Opcode::Wfi, "wfi"),
         (0xD503_209F, Opcode::Sev, "sev"),

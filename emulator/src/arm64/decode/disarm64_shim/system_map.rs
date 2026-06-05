@@ -3,6 +3,7 @@ use super::*;
 pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic as M;
     Some(match m {
+        M::r#hint if raw == 0xD503_203F => Opcode::Yield,
         M::r#hint if raw == 0xD503_205F => Opcode::Wfe,
         M::r#hint if raw == 0xD503_207F => Opcode::Wfi,
         M::r#hint => event_hint(raw)
@@ -13,8 +14,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#cfinv if raw == 0xD500_401F => Opcode::Cfinv,
         M::r#chkfeat if raw == 0xD503_251F => Opcode::Chkfeat,
         M::r#clrex if raw == 0xD503_305F => Opcode::NopBarrier,
-        M::r#dgh if raw == 0xD503_20DF => Opcode::NopBarrier,
-        M::r#sb if raw == 0xD503_30FF => Opcode::NopBarrier,
+        M::r#dgh if raw == 0xD503_20DF => Opcode::Dgh,
+        M::r#sb if raw == 0xD503_30FF => Opcode::Sb,
         M::r#dmb | M::r#dsb | M::r#isb if barrier(raw) => Opcode::NopBarrier,
         M::r#wfet if (raw & 0xFFFF_FFE0) == 0xD503_1000 => Opcode::Wfe,
         M::r#wfit if (raw & 0xFFFF_FFE0) == 0xD503_1020 => Opcode::Wfi,

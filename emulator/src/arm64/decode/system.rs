@@ -7,7 +7,7 @@ pub(super) fn decode_nop() -> Option<Instr> {
 }
 
 pub(super) fn decode_yield() -> Option<Instr> {
-    Some(simple(Opcode::Nop, 4))
+    Some(simple(Opcode::Yield, 4))
 }
 
 pub(super) fn decode_wfi() -> Option<Instr> {

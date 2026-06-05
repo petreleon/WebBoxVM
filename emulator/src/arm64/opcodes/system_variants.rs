@@ -104,4 +104,7 @@ impl super::Opcode {
     pub const GcsbDsync: Self = Self(565);
     pub const Csdb: Self = Self(566);
     pub const Clrbhb: Self = Self(567);
+    pub const Yield: Self = Self(568);
+    pub const Dgh: Self = Self(569);
+    pub const Sb: Self = Self(570);
 }
