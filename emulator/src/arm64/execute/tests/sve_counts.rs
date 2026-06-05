@@ -119,4 +119,14 @@ fn sve_scalar_vector_length_forms_use_configured_lengths() {
         u64::from_le_bytes(cpu.sve_z[3][8..16].try_into().unwrap()),
         u64::MAX
     );
+
+    cpu.sve_vl_bytes = 32;
+    cpu.sve_pred[7] = [1 | (1 << 16) | (1 << 24), 0, 0, 0];
+    cpu.sve_pred[3] = [1 | (1 << 8) | (1 << 16), 0, 0, 0];
+    execute(&mut cpu, &mut bus, decode(0x25E0_9C61).unwrap()).unwrap(); // cntp x1, p7, p3.d
+    assert_eq!(cpu.regs.x(1), 2);
+
+    cpu.sve_pred[5] = [1 | (1 << 4) | (1 << 12), 0, 0, 0];
+    execute(&mut cpu, &mut bus, decode(0x25A0_8CA2).unwrap()).unwrap(); // cntp x2, p3, p5.s
+    assert_eq!(cpu.regs.x(2), 1);
 }

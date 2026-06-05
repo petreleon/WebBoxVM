@@ -18,6 +18,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveDecpVector
             | Opcode::SveIncPatternVector
             | Opcode::SveDecPatternVector
+            | Opcode::SveCntp
     )
 }
 
@@ -29,6 +30,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) {
             exec_add_len(cpu, instr)
         }
         Opcode::SveIncScalar | Opcode::SveDecScalar => exec_inc_dec_scalar(cpu, instr),
+        Opcode::SveCntp => exec_cntp(cpu, instr),
         Opcode::SveIncpScalar | Opcode::SveDecpScalar => exec_incp_decp_scalar(cpu, instr),
         Opcode::SveIncpVector | Opcode::SveDecpVector => exec_incp_decp_vector(cpu, instr),
         Opcode::SveIncPatternVector | Opcode::SveDecPatternVector => {
@@ -87,6 +89,19 @@ fn exec_incp_decp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         old.wrapping_sub(count)
     };
     write_reg(cpu, instr.rd, result, true);
+}
+
+fn exec_cntp(cpu: &mut Armv8Cpu, instr: Instr) {
+    let elements = sve_vl_bytes(cpu) / instr.size as usize;
+    let mask = cpu.sve_pred[instr.cond as usize];
+    let pred = cpu.sve_pred[instr.rn as usize];
+    let count = (0..elements)
+        .filter(|element| {
+            let bit = element * instr.size as usize;
+            predicate_bit(&mask, bit) && predicate_bit(&pred, bit)
+        })
+        .count() as u64;
+    write_reg(cpu, instr.rd, count, true);
 }
 
 fn true_predicate_elements(cpu: &Armv8Cpu, pred: u8, element_size: usize) -> u64 {

@@ -15,6 +15,7 @@ impl super::Opcode {
     pub const SveDecpVector: Self = Self(524);
     pub const SveIncPatternVector: Self = Self(525);
     pub const SveDecPatternVector: Self = Self(526);
+    pub const SveCntp: Self = Self(534);
     pub const SvePtrue: Self = Self(68);
     pub const SvePtrues: Self = Self(489);
     pub const SvePtest: Self = Self(69);

@@ -19,6 +19,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#incp if (raw & 0xFF3F_FE00) == 0x252C_8800 => Some(Opcode::SveIncpScalar),
         M::r#decp if (raw & 0xFF3F_FE00) == 0x252D_8000 => Some(Opcode::SveDecpVector),
         M::r#decp if (raw & 0xFF3F_FE00) == 0x252D_8800 => Some(Opcode::SveDecpScalar),
+        M::r#cntp if (raw & 0xFF3F_C200) == 0x2520_8000 => Some(Opcode::SveCntp),
         _ => None,
     }
 }
@@ -80,6 +81,10 @@ mod tests {
             (0x0471_C7F1, Opcode::SveDecPatternVector),
             (0x04B1_C7F1, Opcode::SveDecPatternVector),
             (0x04F1_C7F1, Opcode::SveDecPatternVector),
+            (0x2520_8000, Opcode::SveCntp),
+            (0x2560_8000, Opcode::SveCntp),
+            (0x25A0_8000, Opcode::SveCntp),
+            (0x25E0_8000, Opcode::SveCntp),
         ];
 
         for (raw, expected) in cases {

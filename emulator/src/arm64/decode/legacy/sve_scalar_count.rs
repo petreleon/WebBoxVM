@@ -14,6 +14,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return pattern_count_instr(raw, op, size);
     }
 
+    if (raw & 0xFF3F_C200) == 0x2520_8000 {
+        return DecodeStep::Hit(Instr {
+            op: Opcode::SveCntp,
+            rd: (raw & 0x1F) as u8,
+            rn: ((raw >> 5) & 0xF) as u8,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: ((raw >> 10) & 0xF) as u8,
+            size: 1 << ((raw >> 22) & 0x3),
+        });
+    }
+
     if matches!(raw & 0xFF3F_FE00, 0x252C_8000 | 0x252D_8000) {
         let size_bits = ((raw >> 22) & 0x3) as u8;
         if size_bits == 0 {

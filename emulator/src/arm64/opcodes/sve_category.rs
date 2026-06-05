@@ -18,6 +18,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveDecpVector
             | Opcode::SveIncPatternVector
             | Opcode::SveDecPatternVector
+            | Opcode::SveCntp
             | Opcode::SvePtrue
             | Opcode::SvePtrues
             | Opcode::SvePtest

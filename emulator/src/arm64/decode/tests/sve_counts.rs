@@ -41,6 +41,10 @@ fn decode_sve_scalar_vector_length_forms() {
         (0x0471_C7F1, Opcode::SveDecPatternVector, "dech"),
         (0x04B1_C7F1, Opcode::SveDecPatternVector, "decw"),
         (0x04F1_C7F1, Opcode::SveDecPatternVector, "decd"),
+        (0x2520_8000, Opcode::SveCntp, "cntp"),
+        (0x2560_8000, Opcode::SveCntp, "cntp"),
+        (0x25A0_8000, Opcode::SveCntp, "cntp"),
+        (0x25E0_8000, Opcode::SveCntp, "cntp"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -115,4 +119,11 @@ fn decode_sve_scalar_vector_length_forms() {
     assert_eq!(incd_vec.cond, 31);
     assert_eq!(incd_vec.imm, 2);
     assert_eq!(incd_vec.size, 8);
+
+    let cntp = decode(0x25E0_9C61).unwrap(); // cntp x1, p7, p3.d
+    assert_eq!(cntp.op, Opcode::SveCntp);
+    assert_eq!(cntp.rd, 1);
+    assert_eq!(cntp.rn, 3);
+    assert_eq!(cntp.cond, 7);
+    assert_eq!(cntp.size, 8);
 }
