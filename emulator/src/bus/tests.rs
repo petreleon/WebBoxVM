@@ -22,6 +22,14 @@ fn second_virtio_disk_has_own_mmio_window() {
 }
 
 #[test]
+fn bulk_write_rejects_device_ranges() {
+    let mut bus = SystemBus::new();
+    assert_eq!(bus.write_bytes(RAM_BASE + 0x100, &[1, 2, 3, 4]), Some(()));
+    assert_eq!(bus.mem.read(RAM_BASE + 0x100, 4), Some(0x0403_0201));
+    assert_eq!(bus.write_bytes(UART_BASE, b"A"), None);
+}
+
+#[test]
 fn refresh_interrupts_reasserts_uart_rx_while_input_remains() {
     let mut bus = SystemBus::new();
     bus.write(UART_BASE + 0x38, 4, 0x50);

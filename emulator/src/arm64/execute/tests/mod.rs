@@ -26,7 +26,6 @@ fn z_word(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u32 {
     bytes.copy_from_slice(&cpu.sve_z[reg][offset..offset + 4]);
     u32::from_le_bytes(bytes)
 }
-
 fn set_z_elem(cpu: &mut Armv8Cpu, reg: usize, lane: usize, value: u64) {
     let offset = lane * 8;
     cpu.sve_z[reg][offset..offset + 8].copy_from_slice(&value.to_le_bytes());
@@ -97,18 +96,18 @@ mod simd_fp_pairwise;
 mod simd_fp_unary_more;
 mod simd_fp_vector;
 mod simd_helpers;
-mod simd_ld4_single;
 mod simd_ld1_multi;
 mod simd_ld1r;
+mod simd_ld4_single;
 mod simd_minmax;
 mod simd_narrow_high2;
 mod simd_narrow_round;
 mod simd_permute_secondary;
 mod simd_rbit;
 mod simd_reduce_across;
+mod simd_saturating_add;
 mod simd_scalar_bitwise_compare;
 mod simd_scalar_load_store;
-mod simd_saturating_add;
 mod simd_sha1;
 mod simd_sha256;
 mod simd_sha512;
@@ -116,6 +115,7 @@ mod simd_shift_accumulate;
 mod simd_shift_insert;
 mod simd_signed_compare;
 mod simd_sm3;
+mod simd_store_fast_path;
 mod simd_struct_store;
 mod simd_table_permute;
 mod simd_userland_permute_reduction;

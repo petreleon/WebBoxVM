@@ -67,6 +67,13 @@ impl SystemBus {
         self.mem.read(addr, size)
     }
 
+    pub fn write_bytes(&mut self, addr: u64, bytes: &[u8]) -> Option<()> {
+        if overlaps_device_range(addr, bytes.len()) {
+            return None;
+        }
+        self.mem.write_bytes(addr, bytes)
+    }
+
     pub fn refresh_interrupts(&mut self) {
         if self.uart.masked_rx_interrupt_pending() {
             self.gic.set_pending(PL011_UART_IRQ_ID);

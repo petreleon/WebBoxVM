@@ -95,8 +95,19 @@ fn write_guest_bytes(
     bytes: &[u8],
     err: &'static str,
 ) -> Result<(), &'static str> {
+    if bytes.is_empty() {
+        return Ok(());
+    }
+
+    let first_pa = translate_or_data_fault(cpu, &mut bus.mem, va, true, err)?;
+    if !access_crosses_page(va, bytes.len() as u8) && bus.write_bytes(first_pa, bytes).is_some() {
+        cpu.clear_exclusive_if_overlaps(first_pa, bytes.len() as u8);
+        return Ok(());
+    }
+
     let mut pas = [0u64; 16];
-    for (offset, _) in bytes.iter().enumerate() {
+    pas[0] = first_pa;
+    for offset in 1..bytes.len() {
         let byte_va = va.wrapping_add(offset as u64);
         pas[offset] = translate_or_data_fault(cpu, &mut bus.mem, byte_va, true, err)?;
     }
