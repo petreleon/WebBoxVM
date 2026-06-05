@@ -3,7 +3,14 @@ use super::Opcode;
 pub(super) fn is_opcode(op: Opcode) -> bool {
     matches!(
         op,
-        Opcode::SvePtrue
+        Opcode::SveCnt
+            | Opcode::SveAddvl
+            | Opcode::SveAddsvl
+            | Opcode::SveAddpl
+            | Opcode::SveAddspl
+            | Opcode::SveRdvl
+            | Opcode::SveRdsvl
+            | Opcode::SvePtrue
             | Opcode::SvePtrues
             | Opcode::SvePtest
             | Opcode::SvePredAnd

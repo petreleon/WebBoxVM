@@ -93,25 +93,6 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: 1u8 << size_bits,
         });
     }
-    let add_len_base = raw & 0xFFE0_F800;
-    if matches!(add_len_base, 0x0420_5000 | 0x0420_5800 | 0x0460_5000) {
-        let imm6 = ((raw >> 5) & 0x3F) as u8;
-        let signed_imm = ((imm6 as i8) << 2) >> 2;
-        return DecodeStep::Hit(Instr {
-            op: match add_len_base {
-                0x0420_5000 => Opcode::SveAddvl,
-                0x0420_5800 => Opcode::SveAddsvl,
-                _ => Opcode::SveAddpl,
-            },
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 16) & 0x1F) as u8,
-            rm: 0,
-            imm: signed_imm as i64 as u64,
-            sf: true,
-            cond: 0,
-            size: 0,
-        });
-    }
     let ld1r_no_offset = (raw & 0xBFFF_F000) == 0x0D40_C000;
     let ld1r_post_index = (raw & 0xBFE0_F000) == 0x0DC0_C000;
     if ld1r_no_offset || ld1r_post_index {

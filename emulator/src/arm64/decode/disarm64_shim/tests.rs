@@ -100,6 +100,21 @@ fn maps_scalar_addsub_immediate_mnemonics() {
 }
 
 #[test]
+fn maps_sve_scalar_length_mnemonics() {
+    let cases = [
+        (0x0470_5A10, Opcode::SveAddspl, "addspl"),
+        (0x04BF_5210, Opcode::SveRdvl, "rdvl"),
+        (0x04BF_5A10, Opcode::SveRdsvl, "rdsvl"),
+    ];
+
+    for (raw, expected, mnemonic) in cases {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode scalar length word");
+        assert_eq!(format!("{:?}", decoded.mnemonic), mnemonic);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
+
+#[test]
 fn maps_scalar_addsub_extended_mnemonics() {
     let cases = [
         (0x8B22_4820, Opcode::AddExt, "add"),
