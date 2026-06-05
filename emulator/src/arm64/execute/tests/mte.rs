@@ -63,3 +63,27 @@ fn mte_tag_stores_preserve_data_and_zeroing_stores_clear_granules() {
     assert_eq!(bus.mem.read(RAM_BASE + 24, 8), Some(0));
     assert_eq!(cpu.regs.x(0), RAM_BASE + 32);
 }
+
+#[test]
+fn mte_stgp_stores_pair_data_in_tagless_model() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.set_x(2, RAM_BASE);
+    cpu.regs.set_x(0, 0x1111_2222_3333_4444);
+    cpu.regs.set_x(1, 0x5555_6666_7777_8888);
+
+    execute(&mut cpu, &mut bus, decode(0x6900_0440).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(RAM_BASE, 8), Some(0x1111_2222_3333_4444));
+    assert_eq!(bus.mem.read(RAM_BASE + 8, 8), Some(0x5555_6666_7777_8888));
+
+    cpu.regs.set_x(10, RAM_BASE);
+    cpu.regs.set_x(8, 0xAAAA_BBBB_CCCC_DDDD);
+    cpu.regs.set_x(9, 0xEEEE_FFFF_0000_1111);
+    execute(&mut cpu, &mut bus, decode(0x6881_2548).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(RAM_BASE, 8), Some(0xAAAA_BBBB_CCCC_DDDD));
+    assert_eq!(bus.mem.read(RAM_BASE + 8, 8), Some(0xEEEE_FFFF_0000_1111));
+    assert_eq!(cpu.regs.x(10), RAM_BASE + 32);
+
+    cpu.regs.set_x(2, RAM_BASE + 8);
+    let err = execute(&mut cpu, &mut bus, decode(0x6900_0440).unwrap()).unwrap_err();
+    assert_eq!(err, "MTE tag granule alignment fault");
+}

@@ -16,6 +16,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if (raw & 0xFFE0_0C00) == 0xD960_0000 {
         return DecodeStep::Hit(decode_mem(raw, Opcode::MteLdg, 0));
     }
+    let stgp_mode = ((raw >> 23) & 0x3) as u8;
+    if (raw & 0x7E40_0000) == 0x6800_0000 && stgp_mode != 0 && ((raw >> 22) & 1) == 0 {
+        return DecodeStep::Hit(decode_stgp(raw));
+    }
 
     let mode = ((raw >> 10) & 0x3) as u8;
     if mode == 0 {
@@ -67,6 +71,25 @@ fn decode_mem(raw: u32, op: Opcode, mode: u8) -> Instr {
         sf: true,
         cond: writeback_mode(mode),
         size: tag_store_size(op),
+    }
+}
+
+fn decode_stgp(raw: u32) -> Instr {
+    let imm7 = ((raw >> 15) & 0x7F) as i64;
+    let signed = if (imm7 & 0x40) != 0 {
+        imm7 - 0x80
+    } else {
+        imm7
+    };
+    Instr {
+        op: Opcode::MteStgp,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 10) & 0x1F) as u8,
+        imm: (signed * 16) as u64,
+        sf: true,
+        cond: ((raw >> 23) & 0x3) as u8,
+        size: 8,
     }
 }
 

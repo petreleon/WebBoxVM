@@ -31,9 +31,12 @@ pub(super) fn execute(
         | Opcode::SimdSt4Single
         | Opcode::SimdSt4 => exec_ldr_str(cpu, bus, instr)?,
         Opcode::LdrLit => exec_ldr_lit(cpu, bus, instr)?,
-        Opcode::Ldp | Opcode::Ldpsw | Opcode::Stp | Opcode::SimdLdp | Opcode::SimdStp => {
-            exec_ldp_stp(cpu, bus, instr)?
-        }
+        Opcode::Ldp
+        | Opcode::Ldpsw
+        | Opcode::Stp
+        | Opcode::MteStgp
+        | Opcode::SimdLdp
+        | Opcode::SimdStp => exec_ldp_stp(cpu, bus, instr)?,
         Opcode::Ldxr | Opcode::Ldar | Opcode::Stxr | Opcode::Stlr | Opcode::Ldxp | Opcode::Stxp => {
             exec_exclusive(cpu, bus, instr)?
         }

@@ -21,7 +21,10 @@ pub(in crate::arm64::execute) fn exec_ldp_stp(
         }
         _ => (branch_target(base, instr.imm), base),
     };
-    let is_store = matches!(instr.op, Opcode::Stp | Opcode::SimdStp);
+    if instr.op == Opcode::MteStgp && va % 16 != 0 {
+        return Err("MTE tag granule alignment fault");
+    }
+    let is_store = matches!(instr.op, Opcode::Stp | Opcode::MteStgp | Opcode::SimdStp);
     let pa1 =
         translate_or_data_fault(cpu, &mut bus.mem, va, is_store, "LDP/STP translation fault")?;
     let pa2 = translate_or_data_fault(
@@ -50,24 +53,34 @@ pub(in crate::arm64::execute) fn exec_ldp_stp(
             write_reg(cpu, instr.rd, lo, true);
             write_reg(cpu, instr.rm, hi, true);
         }
-        Opcode::Stp => {
+        Opcode::Stp | Opcode::MteStgp => {
             let access_size = size as u8;
             let val1 = read_reg(cpu, instr.rd, instr.sf);
             let val2 = read_reg(cpu, instr.rm, instr.sf);
-            trace_syscall_frame_access(cpu, &instr, "STP.0", va, pa1, access_size, Some(val1));
+            let (label0, label1) = if instr.op == Opcode::MteStgp {
+                ("STGP.0", "STGP.1")
+            } else {
+                ("STP.0", "STP.1")
+            };
+            let fault_label = if instr.op == Opcode::MteStgp {
+                "STGP bus fault"
+            } else {
+                "STP bus fault"
+            };
+            trace_syscall_frame_access(cpu, &instr, label0, va, pa1, access_size, Some(val1));
             trace_syscall_frame_access(
                 cpu,
                 &instr,
-                "STP.1",
+                label1,
                 va + size,
                 pa2,
                 access_size,
                 Some(val2),
             );
-            trace_text_store(cpu, bus, &instr, "STP.0", va, pa1, access_size, val1);
-            write_guest(cpu, bus, va, access_size, val1, "STP bus fault")?;
-            trace_text_store(cpu, bus, &instr, "STP.1", va + size, pa2, access_size, val2);
-            write_guest(cpu, bus, va + size, access_size, val2, "STP bus fault")?;
+            trace_text_store(cpu, bus, &instr, label0, va, pa1, access_size, val1);
+            write_guest(cpu, bus, va, access_size, val1, fault_label)?;
+            trace_text_store(cpu, bus, &instr, label1, va + size, pa2, access_size, val2);
+            write_guest(cpu, bus, va + size, access_size, val2, fault_label)?;
         }
         Opcode::SimdLdp => {
             let access_size = size as u8;

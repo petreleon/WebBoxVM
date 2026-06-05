@@ -59,3 +59,25 @@ fn decode_mte_tag_memory_forms_cross_checked_with_disarm64() {
         assert_eq!(instr.imm as i64, imm);
     }
 }
+
+#[test]
+fn decode_mte_store_pair_forms_cross_checked_with_disarm64() {
+    let cases = [
+        (0x6900_0440, 0, 2, 1, 0, 2, "stgp"),
+        (0x6900_90A3, 3, 5, 4, 16, 2, "stgp"),
+        (0x69BF_9FE6, 6, 31, 7, -16, 3, "stgp"),
+        (0x6881_2548, 8, 10, 9, 32, 1, "stgp"),
+        (0x69AF_7E41, 1, 18, 31, -544, 3, "stgp"),
+    ];
+
+    for (raw, rd, rn, rm, imm, cond, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::MteStgp);
+        assert_eq!(
+            (instr.rd, instr.rn, instr.rm, instr.imm as i64, instr.cond),
+            (rd, rn, rm, imm, cond)
+        );
+        assert_eq!((instr.sf, instr.size), (true, 8));
+    }
+}

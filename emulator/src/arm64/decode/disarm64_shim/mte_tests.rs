@@ -9,6 +9,7 @@ fn maps_mte_mnemonics_by_encoding() {
         (0x9AC1_1000, Opcode::MteIrg, "irg"),
         (0x9ADF_1401, Opcode::MteGmi, "gmi"),
         (0xD920_0800, Opcode::MteStg, "stg"),
+        (0x6900_0440, Opcode::MteStgp, "stgp"),
         (0xD960_0800, Opcode::MteStzg, "stzg"),
         (0xD9A0_0800, Opcode::MteSt2g, "st2g"),
         (0xD9E0_0800, Opcode::MteStz2g, "stz2g"),
