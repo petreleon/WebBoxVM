@@ -82,12 +82,12 @@ fn decode_prfm_register_offset_as_hint() {
 #[test]
 fn decode_daifset_and_daifclr_immediate_fields() {
     let set = decode(0xD503_42DF).unwrap(); // msr daifset, #2
-    assert_eq!(set.op, Opcode::Nop);
+    assert_eq!(set.op, Opcode::DaifSet);
     assert_eq!(set.cond, 1);
     assert_eq!(set.imm, 2);
 
     let clear = decode(0xD503_42FF).unwrap(); // msr daifclr, #2
-    assert_eq!(clear.op, Opcode::Nop);
+    assert_eq!(clear.op, Opcode::DaifClr);
     assert_eq!(clear.cond, 2);
     assert_eq!(clear.imm, 2);
 }

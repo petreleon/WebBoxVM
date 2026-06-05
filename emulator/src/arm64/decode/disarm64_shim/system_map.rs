@@ -32,7 +32,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#smstop if smstop(raw) => Opcode::Smstop,
         M::r#mrs if ((raw >> 20) & 0xFFF) == 0xD53 => Opcode::Mrs,
         M::r#msr if ((raw >> 20) & 0xFFF) == 0xD51 => Opcode::Msr,
-        M::r#msr if legacy_daif_alias(raw) => Opcode::Nop,
+        M::r#msr if daif_set(raw) => Opcode::DaifSet,
+        M::r#msr if daif_clr(raw) => Opcode::DaifClr,
         M::r#sysl if (raw & 0xFFF8_0000) == 0xD528_0000 => Opcode::Sysl,
         M::r#sysp if (raw & 0xFFF8_0000) == 0xD548_0000 => Opcode::Sysp,
         M::r#mrrs if (raw & 0xFFF0_0000) == 0xD570_0000 => Opcode::Mrrs,
@@ -58,8 +59,16 @@ fn cache_maintenance(raw: u32) -> bool {
     matches!(raw & 0xFFFF_FFE0, 0xD50B_7520 | 0xD50B_7B20)
 }
 
-fn legacy_daif_alias(raw: u32) -> bool {
-    (raw & 0xFFFF_F01F) == 0xD503_401F && matches!((raw >> 5) & 0x7, 0b110 | 0b111)
+fn daif_set(raw: u32) -> bool {
+    daif_alias(raw, 0b110)
+}
+
+fn daif_clr(raw: u32) -> bool {
+    daif_alias(raw, 0b111)
+}
+
+fn daif_alias(raw: u32, op2: u32) -> bool {
+    (raw & 0xFFFF_F01F) == 0xD503_401F && ((raw >> 5) & 0x7) == op2
 }
 
 fn legacy_tlbi(raw: u32) -> bool {

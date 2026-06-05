@@ -107,4 +107,6 @@ impl super::Opcode {
     pub const Yield: Self = Self(568);
     pub const Dgh: Self = Self(569);
     pub const Sb: Self = Self(570);
+    pub const DaifSet: Self = Self(571);
+    pub const DaifClr: Self = Self(572);
 }

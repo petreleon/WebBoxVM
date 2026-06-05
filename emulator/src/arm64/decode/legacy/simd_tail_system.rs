@@ -128,9 +128,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
                 _ => 0,
             };
             if cond != 0 {
+                let op = if cond == 1 { Opcode::DaifSet } else { Opcode::DaifClr };
                 return DecodeStep::Hit(Instr {
                     size: 0,
-                    op: Opcode::Nop,
+                    op,
                     rd: 0,
                     rn: 0,
                     rm: 0,
