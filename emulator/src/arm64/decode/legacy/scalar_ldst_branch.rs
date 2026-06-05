@@ -70,6 +70,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = ldst::decode_rcpc3_gpr_writeback(raw) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = ldst::decode_rcpc3_pair(raw) {
+        return DecodeStep::Hit(instr);
+    }
     if let Some(instr) = ldst::decode_ldapur(raw) {
         return DecodeStep::Hit(instr);
     }

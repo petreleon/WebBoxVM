@@ -20,6 +20,7 @@ mod pairs_and_initial_simd;
 mod scalar_aliases;
 mod scalar_fp_minmax;
 mod scalar_ldst;
+mod scalar_rcpc_pair;
 mod simd_alias_mappings;
 mod simd_cmhs;
 mod simd_compare_zero;

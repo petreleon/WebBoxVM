@@ -70,6 +70,38 @@ pub(in crate::arm64::decode) fn decode_rcpc3_gpr_writeback(raw: u32) -> Option<I
     })
 }
 
+pub(in crate::arm64::decode) fn decode_rcpc3_pair(raw: u32) -> Option<Instr> {
+    let op = match raw & 0x3FE0_EC00 {
+        0x1940_0800 => Opcode::Ldp,
+        0x1900_0800 => Opcode::Stp,
+        _ => return None,
+    };
+    let size = match (raw >> 30) & 3 {
+        2 => 4,
+        3 => 8,
+        _ => return None,
+    };
+    let opc2 = (raw >> 12) & 0xF;
+    let (cond, imm) = match (op, opc2) {
+        (Opcode::Ldp, 0) => (1, (size * 2) as i64),
+        (Opcode::Ldp, 1) => (0, 0),
+        (Opcode::Stp, 0) => (3, -((size * 2) as i64)),
+        (Opcode::Stp, 1) => (0, 0),
+        _ => return None,
+    };
+
+    Some(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: ((raw >> 16) & 0x1F) as u8,
+        imm: imm as u64,
+        sf: size == 8,
+        cond,
+        size: 0,
+    })
+}
+
 pub(in crate::arm64::decode) fn decode_stlur(raw: u32) -> Option<Instr> {
     let (size, sf) = match raw & 0xFFE0_0C00 {
         0x1900_0000 => (1, false),

@@ -10,7 +10,6 @@ use crate::constants::{
 fn setup() -> (Armv8Cpu, SystemBus) {
     (Armv8Cpu::new(), SystemBus::new())
 }
-
 fn pred_bit(cpu: &Armv8Cpu, pred: usize, bit: usize) -> bool {
     (cpu.sve_pred[pred][bit / 64] & (1 << (bit % 64))) != 0
 }
@@ -74,6 +73,7 @@ mod cssc;
 mod data_proc;
 mod exceptions;
 mod load_store;
+mod load_store_rcpc_pair;
 mod mops;
 mod mte;
 mod pauth;

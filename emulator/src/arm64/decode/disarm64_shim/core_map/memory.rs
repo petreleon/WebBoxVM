@@ -38,9 +38,11 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#stlur | M::r#stlurb | M::r#stlurh => Opcode::Stlur,
         M::r#str | M::r#stur | M::r#strb | M::r#sturb | M::r#strh | M::r#sturh => Opcode::Str,
         M::r#ldp if ((raw >> 26) & 1) != 0 => Opcode::SimdLdp,
+        M::r#ldiapp => Opcode::Ldp,
         M::r#ldp => Opcode::Ldp,
         M::r#ldpsw => Opcode::Ldpsw,
         M::r#stp if ((raw >> 26) & 1) != 0 => Opcode::SimdStp,
+        M::r#stilp => Opcode::Stp,
         M::r#stp => Opcode::Stp,
         _ => return None,
     })

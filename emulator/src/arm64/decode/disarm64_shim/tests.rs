@@ -137,8 +137,12 @@ fn maps_scalar_addsub_extended_mnemonics() {
 fn maps_pair_load_store_mnemonics() {
     let cases = [
         (0x694C_9262, Opcode::Ldpsw, "ldpsw"),
+        (0x9941_1840, Opcode::Ldp, "ldiapp"),
+        (0xD94A_0969, Opcode::Ldp, "ldiapp"),
         (0xAD40_70DD, Opcode::SimdLdp, "ldp"),
         (0xAC81_78DF, Opcode::SimdStp, "stp"),
+        (0x990D_19CC, Opcode::Stp, "stilp"),
+        (0xD916_0AF5, Opcode::Stp, "stilp"),
     ];
 
     for (raw, expected, mnemonic) in cases {
