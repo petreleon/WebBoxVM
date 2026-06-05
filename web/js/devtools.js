@@ -1,5 +1,5 @@
 export function installWebboxVmDevtools(getEmulator, getRunner) {
-  installDomBridge(getEmulator);
+  const bridge = installDomBridge(getEmulator);
   window.__webboxvm = {
     metrics() {
       const emulator = getEmulator();
@@ -29,6 +29,7 @@ export function installWebboxVmDevtools(getEmulator, getRunner) {
       getEmulator()?.send_uart_bytes(input);
     },
   };
+  return bridge;
 }
 
 function installDomBridge(getEmulator) {
@@ -68,6 +69,9 @@ function installDomBridge(getEmulator) {
   root.addEventListener("submit", (event) => event.preventDefault());
   root.append(textInput, sendText, bytesInput, sendBytes, jitEnabled, applyJit);
   document.body.append(root);
+  return {
+    jitEnabled: () => jitEnabled.checked,
+  };
 }
 
 function makeTextarea(testId) {

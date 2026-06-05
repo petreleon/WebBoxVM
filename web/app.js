@@ -18,7 +18,7 @@ let bootedName = "";
 
 await waitForTerminal();
 term = mountTerminal(els, () => emulator);
-installWebboxVmDevtools(() => emulator, () => runner);
+const devtools = installWebboxVmDevtools(() => emulator, () => runner);
 runner = new VmRunner({
   els,
   term,
@@ -37,6 +37,7 @@ booter = new VmBooter({
   setEmulator: (value) => {
     emulator = value;
   },
+  getJitEnabled: () => devtools.jitEnabled(),
   resetEmulator: resetEmulatorOnly,
   onBooted: (name) => {
     bootedName = name;

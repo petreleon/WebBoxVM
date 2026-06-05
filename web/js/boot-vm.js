@@ -9,17 +9,19 @@ export class VmBooter {
   #term;
   #runner;
   #setEmulator;
+  #getJitEnabled;
   #resetEmulator;
   #onBooted;
   #wasmReady = false;
 
-  constructor({ els, ui, disk, term, runner, setEmulator, resetEmulator, onBooted }) {
+  constructor({ els, ui, disk, term, runner, setEmulator, getJitEnabled, resetEmulator, onBooted }) {
     this.#els = els;
     this.#ui = ui;
     this.#disk = disk;
     this.#term = term;
     this.#runner = runner;
     this.#setEmulator = setEmulator;
+    this.#getJitEnabled = getJitEnabled;
     this.#resetEmulator = resetEmulator;
     this.#onBooted = onBooted;
   }
@@ -34,6 +36,7 @@ export class VmBooter {
     await nextFrame();
 
     const emulator = new WorkerVm();
+    emulator.set_jit_enabled(this.#getJitEnabled());
     this.#setEmulator(emulator);
     const result = await emulator.boot_iso_with_disk(bytes, 1, this.#diskSizeBytes());
     this.#ui.log(result);
