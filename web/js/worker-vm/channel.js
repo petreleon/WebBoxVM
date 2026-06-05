@@ -102,6 +102,10 @@ export class WorkerChannel {
       totalSteps: metrics.totalSteps,
       uartOutputLen: metrics.uartOutputLen,
     };
+    const jitProbe = document.querySelector("[data-testid='webboxvm-jit-stats']");
+    if (jitProbe) {
+      jitProbe.textContent = JSON.stringify(this.#metrics.jitStats ?? null);
+    }
   }
 
   #rejectAll(error) {
