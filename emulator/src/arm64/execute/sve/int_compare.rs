@@ -63,7 +63,7 @@ fn sign_extend(value: u64, element_size: usize) -> i64 {
     }
 }
 
-pub(in crate::arm64::execute) fn exec_sve_whilelo(cpu: &mut Armv8Cpu, instr: Instr) {
+pub(in crate::arm64::execute) fn exec_sve_while_predicate(cpu: &mut Armv8Cpu, instr: Instr) {
     let element_size = instr.size as usize;
     let vl_bytes = sve_vl_bytes(cpu);
     let elements = vl_bytes / element_size;
@@ -74,7 +74,7 @@ pub(in crate::arm64::execute) fn exec_sve_whilelo(cpu: &mut Armv8Cpu, instr: Ins
     let mut result = [0; 4];
 
     for element in 0..elements {
-        still_lower &= value < limit;
+        still_lower &= while_predicate_compare(instr.op, value, limit, instr.sf);
         set_predicate_bit(&mut result, element * element_size, still_lower);
         value = value.wrapping_add(1) & width_mask;
     }
@@ -82,4 +82,22 @@ pub(in crate::arm64::execute) fn exec_sve_whilelo(cpu: &mut Armv8Cpu, instr: Ins
     let flags = sve_pred_test(&[u64::MAX; 4], &result, element_size, vl_bytes);
     cpu.pstate.set_nzcv(flags.0, flags.1, flags.2, false);
     cpu.sve_pred[instr.rd as usize] = result;
+}
+
+fn while_predicate_compare(op: Opcode, left: u64, right: u64, wide: bool) -> bool {
+    match op {
+        Opcode::SveWhileLt => signed_value(left, wide) < signed_value(right, wide),
+        Opcode::SveWhileLe => signed_value(left, wide) <= signed_value(right, wide),
+        Opcode::SveWhileLo => left < right,
+        Opcode::SveWhileLs => left <= right,
+        _ => false,
+    }
+}
+
+fn signed_value(value: u64, wide: bool) -> i64 {
+    if wide {
+        value as i64
+    } else {
+        value as u32 as i32 as i64
+    }
 }

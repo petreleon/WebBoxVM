@@ -7,8 +7,8 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some((op, imm)) = immediate_compare_op(raw) {
         return DecodeStep::Hit(decode_compare_imm(raw, op, imm));
     }
-    if (raw & 0xFF20_EC10) == 0x2520_0C00 {
-        return DecodeStep::Hit(decode_whilelo(raw));
+    if let Some(op) = while_predicate_op(raw) {
+        return DecodeStep::Hit(decode_while_predicate(raw, op));
     }
     DecodeStep::Miss
 }
@@ -65,9 +65,19 @@ fn simm5(value: u32) -> i64 {
     (((value & 0x1F) as i8) << 3 >> 3) as i64
 }
 
-fn decode_whilelo(raw: u32) -> Instr {
+fn while_predicate_op(raw: u32) -> Option<Opcode> {
+    match raw & 0xFF20_FC10 {
+        0x2520_0400 | 0x2520_1400 => Some(Opcode::SveWhileLt),
+        0x2520_0410 | 0x2520_1410 => Some(Opcode::SveWhileLe),
+        0x2520_0C00 | 0x2520_1C00 => Some(Opcode::SveWhileLo),
+        0x2520_0C10 | 0x2520_1C10 => Some(Opcode::SveWhileLs),
+        _ => None,
+    }
+}
+
+fn decode_while_predicate(raw: u32, op: Opcode) -> Instr {
     Instr {
-        op: Opcode::SveWhileLo,
+        op,
         rd: (raw & 0xF) as u8,
         rn: ((raw >> 5) & 0x1F) as u8,
         rm: ((raw >> 16) & 0x1F) as u8,

@@ -61,7 +61,7 @@ pub(super) use helpers::{
 };
 use helpers::*;
 pub(super) use index::exec_sve_index;
-pub(super) use int_compare::{exec_sve_int_compare, exec_sve_whilelo};
+pub(super) use int_compare::{exec_sve_int_compare, exec_sve_while_predicate};
 pub(super) use logical_imm::exec_sve_logical_imm;
 pub(super) use logical_pred::exec_sve_logical_pred;
 pub(super) use memory_b::exec_sve_st1b;

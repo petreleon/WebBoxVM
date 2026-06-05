@@ -45,3 +45,44 @@ fn sve_whilelo_uses_x_width_and_element_stride() {
     assert!(cpu.pstate.c());
     assert_eq!(cpu.regs.x(5), u64::MAX - 1);
 }
+
+#[test]
+fn sve_while_signed_variants_use_signed_compare() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+    cpu.regs.set_x(5, u32::MAX as u64);
+    cpu.regs.set_x(2, 2);
+
+    execute(&mut cpu, &mut bus, decode(0x2522_04A1).unwrap()).unwrap();
+    assert!(pred_bit(&cpu, 1, 0));
+    assert!(pred_bit(&cpu, 1, 1));
+    assert!(pred_bit(&cpu, 1, 2));
+    assert!(!pred_bit(&cpu, 1, 3));
+
+    cpu.regs.set_x(5, 0);
+    execute(&mut cpu, &mut bus, decode(0x2522_04B1).unwrap()).unwrap();
+    for bit in 0..3 {
+        assert!(pred_bit(&cpu, 1, bit));
+    }
+    assert!(!pred_bit(&cpu, 1, 3));
+}
+
+#[test]
+fn sve_whilels_uses_unsigned_less_or_same() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sve_vl_bytes = 16;
+    cpu.regs.set_x(5, 3);
+    cpu.regs.set_x(2, 5);
+
+    execute(&mut cpu, &mut bus, decode(0x2522_0CB1).unwrap()).unwrap();
+    for bit in 0..3 {
+        assert!(pred_bit(&cpu, 1, bit));
+    }
+    assert!(!pred_bit(&cpu, 1, 3));
+
+    cpu.regs.set_x(5, u32::MAX as u64);
+    cpu.regs.set_x(2, 1);
+    execute(&mut cpu, &mut bus, decode(0x2522_0CB1).unwrap()).unwrap();
+    assert_eq!(cpu.sve_pred[1], [0; 4]);
+    assert!(cpu.pstate.z());
+}
