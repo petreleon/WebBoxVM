@@ -6,6 +6,7 @@ impl WasmExpr {
     pub(super) fn emit_instr(&mut self, instr: crate::arm64::Instr, pc: u64) -> bool {
         match instr.op {
             Opcode::Nop | Opcode::NopBarrier => true,
+            op if helpers::is_wasm_noop_alias(op) => true,
             Opcode::Movz | Opcode::Movn => {
                 self.emit_write_reg_with(instr.rd, instr.sf, |this| this.i64_const(instr.imm));
                 true

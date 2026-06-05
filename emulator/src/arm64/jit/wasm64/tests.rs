@@ -2,6 +2,7 @@ use super::*;
 use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
 
 mod bitfield;
+mod hints;
 
 fn block(instructions: Vec<Instr>) -> Block {
     let instruction_pas = (0..instructions.len())

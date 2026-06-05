@@ -38,3 +38,55 @@ pub(super) fn bitfield_mask(len: u32) -> u64 {
         (1u64 << len) - 1
     }
 }
+
+pub(super) fn is_wasm_noop_alias(op: Opcode) -> bool {
+    matches!(
+        op,
+        Opcode::Pacia1716
+            | Opcode::Pacib1716
+            | Opcode::Autia1716
+            | Opcode::Autib1716
+            | Opcode::Paciaz
+            | Opcode::Paciasp
+            | Opcode::Pacibz
+            | Opcode::Pacibsp
+            | Opcode::Autiaz
+            | Opcode::Autiasp
+            | Opcode::Autibz
+            | Opcode::Autibsp
+            | Opcode::Xpaclri
+            | Opcode::Pacia
+            | Opcode::Pacib
+            | Opcode::Pacda
+            | Opcode::Pacdb
+            | Opcode::Autia
+            | Opcode::Autib
+            | Opcode::Autda
+            | Opcode::Autdb
+            | Opcode::Paciza
+            | Opcode::Pacizb
+            | Opcode::Pacdza
+            | Opcode::Pacdzb
+            | Opcode::Autiza
+            | Opcode::Autizb
+            | Opcode::Autdza
+            | Opcode::Autdzb
+            | Opcode::Xpaci
+            | Opcode::Xpacd
+            | Opcode::Bti
+            | Opcode::BtiC
+            | Opcode::BtiJ
+            | Opcode::BtiJc
+            | Opcode::Sev
+            | Opcode::Sevl
+            | Opcode::Esb
+            | Opcode::PsbCsync
+            | Opcode::TsbCsync
+            | Opcode::GcsbDsync
+            | Opcode::Csdb
+            | Opcode::Clrbhb
+            | Opcode::Yield
+            | Opcode::Dgh
+            | Opcode::Sb
+    )
+}
