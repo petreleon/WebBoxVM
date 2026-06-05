@@ -8,7 +8,7 @@ pub(in crate::arm64::execute) fn translate_or_data_fault(
     _err: &'static str,
 ) -> Result<u64, &'static str> {
     let result = if write {
-        translate_write(&cpu.sys, mem, va, cpu.pstate.el())
+        translate_write(&cpu.sys, &mut cpu.tlb, mem, va, cpu.pstate.el())
     } else {
         translate(&cpu.sys, &mut cpu.tlb, mem, va)
     };

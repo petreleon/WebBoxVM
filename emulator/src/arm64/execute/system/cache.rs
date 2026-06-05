@@ -37,10 +37,11 @@ fn visit_dc_block(
     while offset < block_size {
         let size = (block_size - offset).min(8) as u8;
         let va = base + offset;
-        let pa = translate_write(&cpu.sys, &mut bus.mem, va, cpu.pstate.el()).map_err(|fault| {
-            cpu.sys.far_el1 = va;
-            fault_to_error(fault)
-        })?;
+        let pa = translate_write(&cpu.sys, &mut cpu.tlb, &mut bus.mem, va, cpu.pstate.el())
+            .map_err(|fault| {
+                cpu.sys.far_el1 = va;
+                fault_to_error(fault)
+            })?;
         if zero_data {
             bus.write(pa, size, 0);
         }

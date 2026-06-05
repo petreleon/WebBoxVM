@@ -75,6 +75,7 @@ pub fn translate(
 
 pub fn translate_write(
     sys: &SystemRegisters,
+    tlb: &mut Tlb,
     mem: &mut PhysicalMemory,
     va: u64,
     current_el: u8,
@@ -90,9 +91,14 @@ pub fn translate_write(
         }
     }
 
+    if let Some(pa) = tlb.lookup_write(va, current_el) {
+        return Ok(pa);
+    }
+
     let walk = page_table_walk_with_desc(sys, mem, va)?;
     trace_write_permission(sys, walk, va, current_el);
     check_write_permission(sys, mem, walk.desc_addr, walk.desc, current_el)?;
+    tlb.insert_write(va, walk.pa, (walk.desc & DESC_AP_EL0) != 0);
     Ok(walk.pa)
 }
 

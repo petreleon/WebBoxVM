@@ -64,7 +64,7 @@ pub(in crate::arm64::execute) fn translate_sve_byte(
     _err: &'static str,
 ) -> Result<u64, &'static str> {
     let result = if write {
-        translate_write(&cpu.sys, &mut bus.mem, va, cpu.pstate.el())
+        translate_write(&cpu.sys, &mut cpu.tlb, &mut bus.mem, va, cpu.pstate.el())
     } else {
         translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va)
     };
