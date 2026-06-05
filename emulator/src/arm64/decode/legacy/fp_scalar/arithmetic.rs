@@ -24,6 +24,11 @@ pub(super) fn decode(raw: u32, fields: FpFields) -> DecodeStep {
         instr.cond = ((raw >> 10) & 0x1F) as u8;
         return DecodeStep::Hit(instr);
     }
+    if (raw & 0xFF20_8000) == 0x1F20_0000 {
+        let mut instr = fp_instr(Opcode::Fnmadd, rd, rn, rm, 0, size);
+        instr.cond = ((raw >> 10) & 0x1F) as u8;
+        return DecodeStep::Hit(instr);
+    }
     if (raw & 0xFF20_8000) == 0x1F20_8000 {
         let mut instr = fp_instr(Opcode::Fnmsub, rd, rn, rm, 0, size);
         instr.cond = ((raw >> 10) & 0x1F) as u8;

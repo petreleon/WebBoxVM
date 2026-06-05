@@ -44,6 +44,7 @@ fn decode_busybox_fp_cases_cross_checked_with_disarm64() {
         (0x4F03_F61E, Opcode::SimdFmovImm, "fmov"),
         (0x1F5B_7B9E, Opcode::Fmadd, "fmadd"),
         (0x1F5F_FBBE, Opcode::Fmsub, "fmsub"),
+        (0x1F62_0C24, Opcode::Fnmadd, "fnmadd"),
         (0x1F76_E7F9, Opcode::Fnmsub, "fnmsub"),
         (0x1E62_0000, Opcode::Scvtf, "scvtf"),
         (0x1E22_0280, Opcode::Scvtf, "scvtf"),

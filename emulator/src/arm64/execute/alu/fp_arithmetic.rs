@@ -13,8 +13,23 @@ pub(in crate::arm64::execute) fn exec_fp_arithmetic(cpu: &mut Armv8Cpu, instr: I
         Opcode::FpMinnm => exec_fp_binary(cpu, instr, f32::min, f64::min),
         Opcode::Fmadd => exec_fp_fused(cpu, instr, false),
         Opcode::Fmsub => exec_fp_fused(cpu, instr, true),
+        Opcode::Fnmadd => exec_fp_fnmadd(cpu, instr),
         Opcode::Fnmsub => exec_fp_fnmsub(cpu, instr),
         _ => unreachable!(),
+    }
+}
+
+pub(in crate::arm64::execute) fn exec_fp_fnmadd(cpu: &mut Armv8Cpu, instr: Instr) {
+    if instr.size == 4 {
+        let n = f32::from_bits(read_fp_bits(cpu, instr.rn, 4) as u32);
+        let m = f32::from_bits(read_fp_bits(cpu, instr.rm, 4) as u32);
+        let a = f32::from_bits(read_fp_bits(cpu, instr.cond, 4) as u32);
+        write_fp_bits(cpu, instr.rd, (-n.mul_add(m, a)).to_bits() as u64, 4);
+    } else {
+        let n = f64::from_bits(read_fp_bits(cpu, instr.rn, 8));
+        let m = f64::from_bits(read_fp_bits(cpu, instr.rm, 8));
+        let a = f64::from_bits(read_fp_bits(cpu, instr.cond, 8));
+        write_fp_bits(cpu, instr.rd, (-n.mul_add(m, a)).to_bits(), 8);
     }
 }
 

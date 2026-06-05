@@ -13,6 +13,7 @@ pub(in crate::arm64::execute) fn exec_fp_scalar(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::FpMinnm
         | Opcode::Fmadd
         | Opcode::Fmsub
+        | Opcode::Fnmadd
         | Opcode::Fnmsub => exec_fp_arithmetic(cpu, instr),
         Opcode::FpNeg | Opcode::FpAbs | Opcode::FpSqrt | Opcode::FpFcvt | Opcode::FpMovImm => {
             exec_fp_unary(cpu, instr)

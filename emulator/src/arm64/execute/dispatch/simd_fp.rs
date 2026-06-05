@@ -33,6 +33,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
         | Opcode::FpMovImm
         | Opcode::Fmadd
         | Opcode::Fmsub
+        | Opcode::Fnmadd
         | Opcode::Fnmsub
         | Opcode::Scvtf
         | Opcode::Ucvtf

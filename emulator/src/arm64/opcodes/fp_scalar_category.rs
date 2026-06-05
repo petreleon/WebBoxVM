@@ -26,6 +26,7 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::FpMovImm
             | Opcode::Fmadd
             | Opcode::Fmsub
+            | Opcode::Fnmadd
             | Opcode::Fnmsub
             | Opcode::Scvtf
             | Opcode::Ucvtf

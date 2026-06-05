@@ -17,6 +17,18 @@ fn scalar_fp_fused_multiply_add_ops() {
     execute(&mut cpu, &mut bus, decode(0x1F5F_FBBE).unwrap()).unwrap(); // fmsub d30, d29, d31, d30
     assert_eq!(f64_lane(&cpu, 30), 4.0);
 
+    cpu.simd[1] = 2.0f64.to_bits() as u128;
+    cpu.simd[2] = 3.0f64.to_bits() as u128;
+    cpu.simd[3] = 4.0f64.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1F62_0C24).unwrap()).unwrap(); // fnmadd d4, d1, d2, d3
+    assert_eq!(f64_lane(&cpu, 4), -10.0);
+
+    cpu.simd[5] = 2.0f32.to_bits() as u128;
+    cpu.simd[6] = 3.0f32.to_bits() as u128;
+    cpu.simd[7] = 4.0f32.to_bits() as u128;
+    execute(&mut cpu, &mut bus, decode(0x1F26_1CA8).unwrap()).unwrap(); // fnmadd s8, s5, s6, s7
+    assert_eq!(f32_lane(&cpu, 8), -10.0);
+
     cpu.simd[31] = 2.0f64.to_bits() as u128;
     cpu.simd[22] = 3.0f64.to_bits() as u128;
     cpu.simd[25] = 4.0f64.to_bits() as u128;

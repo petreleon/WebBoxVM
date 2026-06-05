@@ -22,6 +22,7 @@ impl super::Opcode {
     pub const Fmadd: Self = Self(212);
     pub const Fmsub: Self = Self(213);
     pub const Fnmsub: Self = Self(214);
+    pub const Fnmadd: Self = Self(601);
     pub const Scvtf: Self = Self(215);
     pub const Ucvtf: Self = Self(216);
     pub const Fcvtns: Self = Self(217);
