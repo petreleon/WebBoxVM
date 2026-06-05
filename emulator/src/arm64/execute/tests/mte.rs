@@ -24,6 +24,19 @@ fn mte_ldg_clears_tag_in_tagless_model() {
 }
 
 #[test]
+fn mte_addg_and_subg_adjust_address_and_clear_tag_in_tagless_model() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.set_x(1, 0x0A00_0000_0000_1000);
+
+    execute(&mut cpu, &mut bus, decode(0x91BF_0C20).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 0x1000 + 1008);
+
+    cpu.regs.sp = 0x0B00_0000_0000_2000;
+    execute(&mut cpu, &mut bus, decode(0xD1BF_3FFF).unwrap()).unwrap();
+    assert_eq!(cpu.regs.sp, 0x2000 - 1008);
+}
+
+#[test]
 fn mte_tag_stores_preserve_data_and_zeroing_stores_clear_granules() {
     let (mut cpu, mut bus) = setup();
     bus.mem.write(RAM_BASE, 8, u64::MAX);

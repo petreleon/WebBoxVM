@@ -3,6 +3,8 @@ use super::*;
 #[test]
 fn maps_mte_mnemonics_by_encoding() {
     let cases = [
+        (0x9180_0000, Opcode::MteAddg, "addg"),
+        (0xD180_0000, Opcode::MteSubg, "subg"),
         (0xD960_0000, Opcode::MteLdg, "ldg"),
         (0x9AC1_1000, Opcode::MteIrg, "irg"),
         (0x9ADF_1401, Opcode::MteGmi, "gmi"),

@@ -18,6 +18,26 @@ fn decode_mte_gpr_forms_cross_checked_with_disarm64() {
 }
 
 #[test]
+fn decode_mte_tag_address_forms_cross_checked_with_disarm64() {
+    let cases = [
+        (0x9180_0000, Opcode::MteAddg, 0, 0, 0, 0, "addg"),
+        (0x91BF_0C20, Opcode::MteAddg, 0, 1, 1008, 3, "addg"),
+        (0xD180_0000, Opcode::MteSubg, 0, 0, 0, 0, "subg"),
+        (0xD1BF_3FFF, Opcode::MteSubg, 31, 31, 1008, 15, "subg"),
+    ];
+
+    for (raw, op, rd, rn, imm, tag_offset, mnemonic) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, op);
+        assert_eq!(
+            (instr.rd, instr.rn, instr.imm, instr.cond),
+            (rd, rn, imm, tag_offset)
+        );
+    }
+}
+
+#[test]
 fn decode_mte_tag_memory_forms_cross_checked_with_disarm64() {
     let cases = [
         (0xD960_0000, Opcode::MteLdg, 0, 0, 0, 0, "ldg"),

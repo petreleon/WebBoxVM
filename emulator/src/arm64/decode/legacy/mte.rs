@@ -1,6 +1,12 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    if (raw & 0xFFC0_C000) == 0x9180_0000 {
+        return DecodeStep::Hit(decode_tag_addsub(raw, Opcode::MteAddg));
+    }
+    if (raw & 0xFFC0_C000) == 0xD180_0000 {
+        return DecodeStep::Hit(decode_tag_addsub(raw, Opcode::MteSubg));
+    }
     if (raw & 0xFFE0_FC00) == 0x9AC0_1000 {
         return DecodeStep::Hit(decode_gpr(raw, Opcode::MteIrg));
     }
@@ -22,6 +28,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         0xD9A0_0000 => DecodeStep::Hit(decode_mem(raw, Opcode::MteSt2g, mode)),
         0xD9E0_0000 => DecodeStep::Hit(decode_mem(raw, Opcode::MteStz2g, mode)),
         _ => DecodeStep::Miss,
+    }
+}
+
+fn decode_tag_addsub(raw: u32, op: Opcode) -> Instr {
+    Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0xFF,
+        imm: ((raw >> 16) & 0x3F) as u64 * 16,
+        sf: true,
+        cond: ((raw >> 10) & 0xF) as u8,
+        size: 8,
     }
 }
 

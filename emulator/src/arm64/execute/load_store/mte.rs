@@ -4,6 +4,7 @@ const TAG_GRANULE: u64 = 16;
 const LOGICAL_TAG_SHIFT: u64 = 56;
 const LOGICAL_TAG_MASK: u64 = 0x0F00_0000_0000_0000;
 const USER_TOP_BYTE_MASK: u64 = 0xFF00_0000_0000_0000;
+const TAGLESS_EXCLUDE_MASK: u16 = 0xFFFE;
 
 pub(in crate::arm64::execute) fn exec_mte_gpr(cpu: &mut Armv8Cpu, instr: Instr) {
     match instr.op {
@@ -16,6 +17,16 @@ pub(in crate::arm64::execute) fn exec_mte_gpr(cpu: &mut Armv8Cpu, instr: Instr) 
             let tag = logical_tag(read_base(cpu, instr.rn, true));
             let mask = read_reg(cpu, instr.rm, true) | (1u64 << tag);
             write_reg(cpu, instr.rd, mask, true);
+        }
+        Opcode::MteAddg | Opcode::MteSubg => {
+            let base = read_base(cpu, instr.rn, true);
+            let address = if instr.op == Opcode::MteAddg {
+                base.wrapping_add(instr.imm)
+            } else {
+                base.wrapping_sub(instr.imm)
+            };
+            let tag = choose_tag_from(logical_tag(base), instr.cond, TAGLESS_EXCLUDE_MASK);
+            write_reg_sp(cpu, instr.rd, with_logical_tag(address, tag), true);
         }
         _ => unreachable!(),
     }
@@ -96,7 +107,15 @@ fn mte_address(cpu: &Armv8Cpu, instr: Instr) -> (u64, Option<u64>) {
 }
 
 fn choose_tag(exclude: u16) -> u8 {
-    (0..16).find(|tag| (exclude & (1 << tag)) == 0).unwrap_or(0)
+    choose_tag_from(0, 0, exclude)
+}
+
+fn choose_tag_from(start: u8, offset: u8, exclude: u16) -> u8 {
+    let first = start.wrapping_add(offset) & 0xF;
+    (0..16)
+        .map(|step| first.wrapping_add(step) & 0xF)
+        .find(|tag| (exclude & (1 << tag)) == 0)
+        .unwrap_or(0)
 }
 
 fn logical_tag(address: u64) -> u8 {
