@@ -79,4 +79,17 @@ impl super::Opcode {
     pub const Sysp: Self = Self(540);
     pub const Mrrs: Self = Self(541);
     pub const Msrr: Self = Self(542);
+    pub const Pacia1716: Self = Self(543);
+    pub const Pacib1716: Self = Self(544);
+    pub const Autia1716: Self = Self(545);
+    pub const Autib1716: Self = Self(546);
+    pub const Paciaz: Self = Self(547);
+    pub const Paciasp: Self = Self(548);
+    pub const Pacibz: Self = Self(549);
+    pub const Pacibsp: Self = Self(550);
+    pub const Autiaz: Self = Self(551);
+    pub const Autiasp: Self = Self(552);
+    pub const Autibz: Self = Self(553);
+    pub const Autibsp: Self = Self(554);
+    pub const Xpaclri: Self = Self(555);
 }

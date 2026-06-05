@@ -58,6 +58,16 @@ fn maps_hint_aliases_by_encoding() {
 }
 
 #[test]
+fn maps_pauth_hint_aliases_by_encoding() {
+    for (raw, expected, display) in pauth_hint_cases() {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode PAuth hint");
+        assert_eq!(format!("{:?}", decoded.mnemonic), "hint");
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
+
+#[test]
 fn maps_all_barrier_aliases_by_encoding() {
     let raw = 0xD503_3FBF;
     let decoded = decoder::decode(raw).expect("disarm64 should decode dmb sy");
@@ -67,4 +77,22 @@ fn maps_all_barrier_aliases_by_encoding() {
         mnemonic_to_opcode(raw, decoded.mnemonic),
         Some(Opcode::NopBarrier)
     );
+}
+
+fn pauth_hint_cases() -> [(u32, Opcode, &'static str); 13] {
+    [
+        (0xD503_211F, Opcode::Pacia1716, "pacia1716"),
+        (0xD503_215F, Opcode::Pacib1716, "pacib1716"),
+        (0xD503_219F, Opcode::Autia1716, "autia1716"),
+        (0xD503_21DF, Opcode::Autib1716, "autib1716"),
+        (0xD503_231F, Opcode::Paciaz, "paciaz"),
+        (0xD503_233F, Opcode::Paciasp, "paciasp"),
+        (0xD503_235F, Opcode::Pacibz, "pacibz"),
+        (0xD503_237F, Opcode::Pacibsp, "pacibsp"),
+        (0xD503_239F, Opcode::Autiaz, "autiaz"),
+        (0xD503_23BF, Opcode::Autiasp, "autiasp"),
+        (0xD503_23DF, Opcode::Autibz, "autibz"),
+        (0xD503_23FF, Opcode::Autibsp, "autibsp"),
+        (0xD503_20FF, Opcode::Xpaclri, "xpaclri"),
+    ]
 }

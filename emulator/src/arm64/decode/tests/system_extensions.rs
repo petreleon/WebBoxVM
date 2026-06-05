@@ -58,3 +58,27 @@ fn decode_128_bit_system_instruction_classes() {
 
     assert_eq!(decode(0xD52B_7725).unwrap().op, Opcode::GcsPopM);
 }
+
+#[test]
+fn decode_pauth_hint_aliases_as_named_noops() {
+    let cases = [
+        (0xD503_211F, Opcode::Pacia1716, "pacia1716"),
+        (0xD503_215F, Opcode::Pacib1716, "pacib1716"),
+        (0xD503_219F, Opcode::Autia1716, "autia1716"),
+        (0xD503_21DF, Opcode::Autib1716, "autib1716"),
+        (0xD503_231F, Opcode::Paciaz, "paciaz"),
+        (0xD503_233F, Opcode::Paciasp, "paciasp"),
+        (0xD503_235F, Opcode::Pacibz, "pacibz"),
+        (0xD503_237F, Opcode::Pacibsp, "pacibsp"),
+        (0xD503_239F, Opcode::Autiaz, "autiaz"),
+        (0xD503_23BF, Opcode::Autiasp, "autiasp"),
+        (0xD503_23DF, Opcode::Autibz, "autibz"),
+        (0xD503_23FF, Opcode::Autibsp, "autibsp"),
+        (0xD503_20FF, Opcode::Xpaclri, "xpaclri"),
+    ];
+    for (raw, expected, display) in cases {
+        let decoded = disarm64::decoder::decode(raw).unwrap();
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+}

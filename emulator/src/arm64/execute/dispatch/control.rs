@@ -44,7 +44,20 @@ pub(super) fn execute(
         | Opcode::GcsPopCx
         | Opcode::GcsSs1
         | Opcode::GcsSs2
-        | Opcode::Smstop => exec_nop_like(cpu, instr),
+        | Opcode::Smstop
+        | Opcode::Pacia1716
+        | Opcode::Pacib1716
+        | Opcode::Autia1716
+        | Opcode::Autib1716
+        | Opcode::Paciaz
+        | Opcode::Paciasp
+        | Opcode::Pacibz
+        | Opcode::Pacibsp
+        | Opcode::Autiaz
+        | Opcode::Autiasp
+        | Opcode::Autibz
+        | Opcode::Autibsp
+        | Opcode::Xpaclri => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }

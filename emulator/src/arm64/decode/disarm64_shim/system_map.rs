@@ -5,7 +5,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     Some(match m {
         M::r#hint if raw == 0xD503_205F => Opcode::Wfe,
         M::r#hint if raw == 0xD503_207F => Opcode::Wfi,
-        M::r#hint => Opcode::Nop,
+        M::r#hint => pauth_hint(raw).unwrap_or(Opcode::Nop),
         M::r#cfinv if raw == 0xD500_401F => Opcode::Cfinv,
         M::r#chkfeat if raw == 0xD503_251F => Opcode::Chkfeat,
         M::r#clrex if raw == 0xD503_305F => Opcode::NopBarrier,
@@ -66,4 +66,23 @@ fn legacy_tlbi(raw: u32) -> bool {
 
 fn smstop(raw: u32) -> bool {
     matches!(raw, 0xD503_427F | 0xD503_447F | 0xD503_467F)
+}
+
+fn pauth_hint(raw: u32) -> Option<Opcode> {
+    Some(match raw {
+        0xD503_211F => Opcode::Pacia1716,
+        0xD503_215F => Opcode::Pacib1716,
+        0xD503_219F => Opcode::Autia1716,
+        0xD503_21DF => Opcode::Autib1716,
+        0xD503_231F => Opcode::Paciaz,
+        0xD503_233F => Opcode::Paciasp,
+        0xD503_235F => Opcode::Pacibz,
+        0xD503_237F => Opcode::Pacibsp,
+        0xD503_239F => Opcode::Autiaz,
+        0xD503_23BF => Opcode::Autiasp,
+        0xD503_23DF => Opcode::Autibz,
+        0xD503_23FF => Opcode::Autibsp,
+        0xD503_20FF => Opcode::Xpaclri,
+        _ => return None,
+    })
 }

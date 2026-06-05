@@ -4,6 +4,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if raw == 0xD503_251F {
         return DecodeStep::from_option(system::decode_extension_nop(Opcode::Chkfeat, 16));
     }
+    if let Some(op) = decode_pauth_hint(raw) {
+        return DecodeStep::from_option(system::decode_extension_nop(op, 0));
+    }
     if let Some(op) = decode_gcs_alias(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, (raw & 0x1F) as u8));
     }
@@ -33,6 +36,25 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         )),
         _ => DecodeStep::Miss,
     }
+}
+
+fn decode_pauth_hint(raw: u32) -> Option<Opcode> {
+    Some(match raw {
+        0xD503_211F => Opcode::Pacia1716,
+        0xD503_215F => Opcode::Pacib1716,
+        0xD503_219F => Opcode::Autia1716,
+        0xD503_21DF => Opcode::Autib1716,
+        0xD503_231F => Opcode::Paciaz,
+        0xD503_233F => Opcode::Paciasp,
+        0xD503_235F => Opcode::Pacibz,
+        0xD503_237F => Opcode::Pacibsp,
+        0xD503_239F => Opcode::Autiaz,
+        0xD503_23BF => Opcode::Autiasp,
+        0xD503_23DF => Opcode::Autibz,
+        0xD503_23FF => Opcode::Autibsp,
+        0xD503_20FF => Opcode::Xpaclri,
+        _ => return None,
+    })
 }
 
 fn system_instr(raw: u32, op: Opcode) -> Instr {
