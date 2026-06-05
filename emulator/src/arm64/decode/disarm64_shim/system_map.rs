@@ -5,7 +5,10 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     Some(match m {
         M::r#hint if raw == 0xD503_205F => Opcode::Wfe,
         M::r#hint if raw == 0xD503_207F => Opcode::Wfi,
-        M::r#hint => bti_hint(raw).or_else(|| pauth_hint(raw)).unwrap_or(Opcode::Nop),
+        M::r#hint => event_hint(raw)
+            .or_else(|| bti_hint(raw))
+            .or_else(|| pauth_hint(raw))
+            .unwrap_or(Opcode::Nop),
         M::r#cfinv if raw == 0xD500_401F => Opcode::Cfinv,
         M::r#chkfeat if raw == 0xD503_251F => Opcode::Chkfeat,
         M::r#clrex if raw == 0xD503_305F => Opcode::NopBarrier,
@@ -66,6 +69,14 @@ fn legacy_tlbi(raw: u32) -> bool {
 
 fn smstop(raw: u32) -> bool {
     matches!(raw, 0xD503_427F | 0xD503_447F | 0xD503_467F)
+}
+
+fn event_hint(raw: u32) -> Option<Opcode> {
+    Some(match raw {
+        0xD503_209F => Opcode::Sev,
+        0xD503_20BF => Opcode::Sevl,
+        _ => return None,
+    })
 }
 
 fn bti_hint(raw: u32) -> Option<Opcode> {

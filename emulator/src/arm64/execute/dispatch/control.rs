@@ -61,7 +61,9 @@ pub(super) fn execute(
         | Opcode::Bti
         | Opcode::BtiC
         | Opcode::BtiJ
-        | Opcode::BtiJc => exec_nop_like(cpu, instr),
+        | Opcode::BtiJc
+        | Opcode::Sev
+        | Opcode::Sevl => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }

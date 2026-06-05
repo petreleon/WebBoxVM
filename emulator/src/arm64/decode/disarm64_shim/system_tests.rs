@@ -47,6 +47,8 @@ fn maps_hint_aliases_by_encoding() {
         (0xD503_203F, Opcode::Nop, "yield"),
         (0xD503_205F, Opcode::Wfe, "wfe"),
         (0xD503_207F, Opcode::Wfi, "wfi"),
+        (0xD503_209F, Opcode::Sev, "sev"),
+        (0xD503_20BF, Opcode::Sevl, "sevl"),
     ];
 
     for (raw, expected, display) in cases {

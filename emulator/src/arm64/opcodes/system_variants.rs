@@ -96,4 +96,6 @@ impl super::Opcode {
     pub const BtiC: Self = Self(557);
     pub const BtiJ: Self = Self(558);
     pub const BtiJc: Self = Self(559);
+    pub const Sev: Self = Self(560);
+    pub const Sevl: Self = Self(561);
 }

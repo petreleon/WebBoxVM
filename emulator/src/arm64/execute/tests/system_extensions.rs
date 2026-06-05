@@ -74,6 +74,19 @@ fn bti_hint_aliases_advance_without_mutation() {
 }
 
 #[test]
+fn event_hint_aliases_advance_without_mutation() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.pc = RAM_BASE;
+    cpu.regs.set_x(2, 0x5E7);
+
+    execute(&mut cpu, &mut bus, decode(0xD503_209F).unwrap()).unwrap(); // sev
+    execute(&mut cpu, &mut bus, decode(0xD503_20BF).unwrap()).unwrap(); // sevl
+
+    assert_eq!(cpu.regs.x(2), 0x5E7);
+    assert_eq!(cpu.regs.pc, RAM_BASE + 8);
+}
+
+#[test]
 fn unsupported_128_bit_system_classes_trap() {
     for raw in [0xD548_0000, 0xD570_0000, 0xD550_0000] {
         let (mut cpu, mut bus) = setup();

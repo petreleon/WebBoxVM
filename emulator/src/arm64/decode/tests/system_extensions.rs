@@ -97,3 +97,16 @@ fn decode_bti_hint_aliases_as_named_noops() {
         assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_event_hint_aliases_as_named_noops() {
+    let cases = [
+        (0xD503_209F, Opcode::Sev, "sev"),
+        (0xD503_20BF, Opcode::Sevl, "sevl"),
+    ];
+    for (raw, expected, display) in cases {
+        let decoded = disarm64::decoder::decode(raw).unwrap();
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+}
