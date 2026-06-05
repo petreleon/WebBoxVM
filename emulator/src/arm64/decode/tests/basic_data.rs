@@ -64,6 +64,20 @@ fn decode_crc32_scalar_forms() {
 }
 
 #[test]
+fn decode_pointer_subtract_forms_cross_checked_with_disarm64() {
+    let cases = [
+        (0x9AC0_0041, Opcode::Subp, "subp", 1, 2, 0),
+        (0xBAC3_0062, Opcode::Subps, "subps", 2, 3, 3),
+    ];
+    for (raw, expected, mnemonic, rd, rn, rm) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!((instr.rd, instr.rn, instr.rm, instr.sf), (rd, rn, rm, true));
+    }
+}
+
+#[test]
 fn decode_cls_scalar_forms() {
     let cases = [
         (0x5AC0_1420, false, "cls"),

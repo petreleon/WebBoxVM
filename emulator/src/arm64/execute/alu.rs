@@ -16,6 +16,7 @@ mod fp_rounding;
 mod fp_scalar;
 mod fp_unary;
 mod multiply;
+mod pointer_subtract;
 mod scalar_cssc;
 mod scalar_extend;
 mod scalar_logical;
@@ -56,7 +57,7 @@ mod simd_widen_mul;
 
 use super::{Instr, Opcode};
 use crate::arm64::Armv8Cpu;
-use crate::arm64::helpers::{cond_taken, read_reg, write_reg};
+use crate::arm64::helpers::{cond_taken, read_base, read_reg, write_reg};
 use crate::constants::*;
 
 pub(super) use bitfield::*;
@@ -75,6 +76,7 @@ pub(super) use fp_rounding::*;
 pub(super) use fp_scalar::*;
 pub(super) use fp_unary::*;
 pub(super) use multiply::*;
+pub(super) use pointer_subtract::*;
 pub(super) use scalar_cssc::*;
 pub(super) use scalar_extend::*;
 pub(super) use scalar_logical::*;

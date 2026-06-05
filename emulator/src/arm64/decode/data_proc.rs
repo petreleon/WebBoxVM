@@ -6,6 +6,7 @@ mod condition_mul;
 mod cssc;
 mod logical;
 mod moves;
+mod pointer_subtract;
 mod register;
 mod sources;
 

@@ -130,6 +130,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#smsubl | M::r#umsubl => Opcode::Msub,
         M::r#smulh => Opcode::Smulh,
         M::r#umulh => Opcode::Umulh,
+        M::r#subp if (raw & 0xFFE0_FC00) == 0x9AC0_0000 => Opcode::Subp,
+        M::r#subps if (raw & 0xFFE0_FC00) == 0xBAC0_0000 => Opcode::Subps,
         M::r#udiv => Opcode::Udiv,
         M::r#sdiv => Opcode::Sdiv,
         M::r#lsl | M::r#lslv => Opcode::Lslv,

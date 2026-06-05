@@ -64,6 +64,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) -> Result<Option<Flow>, 
                 true,
             );
         }
+        Opcode::Subp | Opcode::Subps => exec_pointer_subtract(cpu, instr),
         Opcode::Udiv => exec_div(cpu, instr, false),
         Opcode::Sdiv => exec_div(cpu, instr, true),
         Opcode::Lslv => exec_variable_shift(cpu, instr, ShiftDir::Left),

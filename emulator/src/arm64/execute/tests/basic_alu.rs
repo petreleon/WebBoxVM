@@ -19,6 +19,33 @@ fn sub_x0_x1_x2() {
 }
 
 #[test]
+fn pointer_subtract_ignores_top_byte_and_sign_extends_56_bits() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.set_x(1, 0xAA00_0000_0000_0010);
+    cpu.regs.set_x(2, 0xBB00_0000_0000_0003);
+    execute(&mut cpu, &mut bus, decode(0x9AC2_0020).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 13);
+
+    cpu.regs.set_x(1, 0x0080_0000_0000_0000);
+    cpu.regs.set_x(2, 0);
+    execute(&mut cpu, &mut bus, decode(0x9AC2_0020).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), 0xFF80_0000_0000_0000);
+}
+
+#[test]
+fn pointer_subtract_setting_flags_updates_nzcv() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.set_x(1, 0);
+    cpu.regs.set_x(2, 1);
+    execute(&mut cpu, &mut bus, decode(0xBAC2_0020).unwrap()).unwrap();
+    assert_eq!(cpu.regs.x(0), u64::MAX);
+    assert!(cpu.pstate.n());
+    assert!(!cpu.pstate.z());
+    assert!(!cpu.pstate.c());
+    assert!(!cpu.pstate.v());
+}
+
+#[test]
 fn sbc_xzr_xzr_builds_unsigned_borrow_mask() {
     let (mut cpu, mut bus) = setup();
 

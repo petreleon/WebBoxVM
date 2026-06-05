@@ -28,6 +28,10 @@ pub(in crate::arm64::decode) fn decode_dp_1src(raw: u32) -> Option<Instr> {
 }
 
 pub(in crate::arm64::decode) fn decode_dp_2src(raw: u32) -> Option<Instr> {
+    if let Some(instr) = super::pointer_subtract::decode(raw) {
+        return Some(instr);
+    }
+
     let sf = ((raw >> 31) & 1) != 0;
     let rm = ((raw >> 16) & 0x1F) as u8;
     let opcode = ((raw >> 10) & 0x3F) as u8;

@@ -131,4 +131,6 @@ impl super::Opcode {
     pub const Autdzb: Self = Self(593);
     pub const Xpaci: Self = Self(594);
     pub const Xpacd: Self = Self(595);
+    pub const Subp: Self = Self(596);
+    pub const Subps: Self = Self(597);
 }
