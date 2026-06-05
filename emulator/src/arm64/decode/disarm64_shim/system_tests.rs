@@ -68,6 +68,16 @@ fn maps_pauth_hint_aliases_by_encoding() {
 }
 
 #[test]
+fn maps_bti_hint_aliases_by_encoding() {
+    for (raw, expected, display) in bti_hint_cases() {
+        let decoded = decoder::decode(raw).expect("disarm64 should decode BTI hint");
+        assert_eq!(format!("{:?}", decoded.mnemonic), "hint");
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), Some(expected));
+    }
+}
+
+#[test]
 fn maps_all_barrier_aliases_by_encoding() {
     let raw = 0xD503_3FBF;
     let decoded = decoder::decode(raw).expect("disarm64 should decode dmb sy");
@@ -94,5 +104,14 @@ fn pauth_hint_cases() -> [(u32, Opcode, &'static str); 13] {
         (0xD503_23DF, Opcode::Autibz, "autibz"),
         (0xD503_23FF, Opcode::Autibsp, "autibsp"),
         (0xD503_20FF, Opcode::Xpaclri, "xpaclri"),
+    ]
+}
+
+fn bti_hint_cases() -> [(u32, Opcode, &'static str); 4] {
+    [
+        (0xD503_241F, Opcode::Bti, "bti"),
+        (0xD503_245F, Opcode::BtiC, "bti\t\tc"),
+        (0xD503_249F, Opcode::BtiJ, "bti\t\tj"),
+        (0xD503_24DF, Opcode::BtiJc, "bti\t\tjc"),
     ]
 }

@@ -92,4 +92,8 @@ impl super::Opcode {
     pub const Autibz: Self = Self(553);
     pub const Autibsp: Self = Self(554);
     pub const Xpaclri: Self = Self(555);
+    pub const Bti: Self = Self(556);
+    pub const BtiC: Self = Self(557);
+    pub const BtiJ: Self = Self(558);
+    pub const BtiJc: Self = Self(559);
 }

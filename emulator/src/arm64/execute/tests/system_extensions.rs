@@ -60,6 +60,20 @@ fn pauth_hint_aliases_advance_without_mutation() {
 }
 
 #[test]
+fn bti_hint_aliases_advance_without_mutation() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.pc = RAM_BASE;
+    cpu.regs.set_x(1, 0xB71);
+
+    for raw in [0xD503_241F, 0xD503_245F, 0xD503_249F, 0xD503_24DF] {
+        execute(&mut cpu, &mut bus, decode(raw).unwrap()).unwrap();
+    }
+
+    assert_eq!(cpu.regs.x(1), 0xB71);
+    assert_eq!(cpu.regs.pc, RAM_BASE + 16);
+}
+
+#[test]
 fn unsupported_128_bit_system_classes_trap() {
     for raw in [0xD548_0000, 0xD570_0000, 0xD550_0000] {
         let (mut cpu, mut bus) = setup();

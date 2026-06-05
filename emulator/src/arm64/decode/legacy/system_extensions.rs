@@ -4,6 +4,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if raw == 0xD503_251F {
         return DecodeStep::from_option(system::decode_extension_nop(Opcode::Chkfeat, 16));
     }
+    if let Some(op) = decode_bti_hint(raw) {
+        return DecodeStep::from_option(system::decode_extension_nop(op, 0));
+    }
     if let Some(op) = decode_pauth_hint(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, 0));
     }
@@ -36,6 +39,16 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         )),
         _ => DecodeStep::Miss,
     }
+}
+
+fn decode_bti_hint(raw: u32) -> Option<Opcode> {
+    Some(match raw {
+        0xD503_241F => Opcode::Bti,
+        0xD503_245F => Opcode::BtiC,
+        0xD503_249F => Opcode::BtiJ,
+        0xD503_24DF => Opcode::BtiJc,
+        _ => return None,
+    })
 }
 
 fn decode_pauth_hint(raw: u32) -> Option<Opcode> {

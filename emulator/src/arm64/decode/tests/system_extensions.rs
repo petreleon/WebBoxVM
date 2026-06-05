@@ -82,3 +82,18 @@ fn decode_pauth_hint_aliases_as_named_noops() {
         assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_bti_hint_aliases_as_named_noops() {
+    let cases = [
+        (0xD503_241F, Opcode::Bti, "bti"),
+        (0xD503_245F, Opcode::BtiC, "bti\t\tc"),
+        (0xD503_249F, Opcode::BtiJ, "bti\t\tj"),
+        (0xD503_24DF, Opcode::BtiJc, "bti\t\tjc"),
+    ];
+    for (raw, expected, display) in cases {
+        let decoded = disarm64::decoder::decode(raw).unwrap();
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+}

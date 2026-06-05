@@ -57,7 +57,11 @@ pub(super) fn execute(
         | Opcode::Autiasp
         | Opcode::Autibz
         | Opcode::Autibsp
-        | Opcode::Xpaclri => exec_nop_like(cpu, instr),
+        | Opcode::Xpaclri
+        | Opcode::Bti
+        | Opcode::BtiC
+        | Opcode::BtiJ
+        | Opcode::BtiJc => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }
