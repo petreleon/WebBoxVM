@@ -11,7 +11,7 @@ impl Machine {
         num_cores: usize,
     ) -> bool {
         let cpu = &mut self.cpus[core];
-        if !is_fp_simd_access(instr) || !fp_simd_access_traps(cpu) {
+        if !fp_simd_access_traps(cpu) || !is_fp_simd_access(instr) {
             return false;
         }
 

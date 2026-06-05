@@ -44,3 +44,19 @@ fn load_store_translation_fault_enters_data_abort_vector() {
     assert_eq!(cpu.sys.esr_el1 >> 26, ESR_EC_DATA_ABORT_CURRENT_EL);
     assert_ne!(cpu.sys.esr_el1 & ESR_DATA_ABORT_WNR, 0);
 }
+
+#[test]
+fn fp_simd_trap_predicate_respects_el_and_fpen() {
+    let mut cpu = Armv8Cpu::new();
+
+    cpu.pstate = cpu.pstate.with_el(1);
+    cpu.sys.cpacr_el1 = CPACR_FPEN_TRAP_NONE << CPACR_FPEN_SHIFT;
+    assert!(!fp_simd_access_traps(&cpu));
+
+    cpu.sys.cpacr_el1 = CPACR_FPEN_TRAP_EL0_EL1 << CPACR_FPEN_SHIFT;
+    assert!(fp_simd_access_traps(&cpu));
+
+    cpu.pstate = cpu.pstate.with_el(0);
+    cpu.sys.cpacr_el1 = CPACR_FPEN_TRAP_EL1_EL0 << CPACR_FPEN_SHIFT;
+    assert!(fp_simd_access_traps(&cpu));
+}
