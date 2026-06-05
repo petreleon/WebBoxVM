@@ -40,6 +40,23 @@ fn simd_umov_and_smov_extend_elements_to_gpr() {
 }
 
 #[test]
+fn simd_ins_general_replaces_only_selected_element() {
+    let (mut cpu, mut bus) = setup();
+    cpu.simd[31] = 0xaaaa_bbbb_cccc_dddd_eeee_ffff_1111_2222;
+    cpu.regs.set_x(9, 0x1234_5678_9abc_def0);
+
+    execute(&mut cpu, &mut bus, decode(0x4E0E_1D3F).unwrap()).unwrap();
+
+    assert_eq!(cpu.simd[31], 0xaaaa_bbbb_cccc_dddd_def0_ffff_1111_2222);
+
+    cpu.simd[30] = 0xaaaa_bbbb_cccc_dddd_eeee_ffff_1111_2222;
+    cpu.regs.set_x(1, 0x0123_4567_89ab_cdef);
+    execute(&mut cpu, &mut bus, decode(0x4E18_1C3E).unwrap()).unwrap();
+
+    assert_eq!(cpu.simd[30], 0x0123_4567_89ab_cdef_eeee_ffff_1111_2222);
+}
+
+#[test]
 fn simd_ext_extracts_concatenated_bytes() {
     let (mut cpu, mut bus) = setup();
     cpu.simd[1] = 0x0f0e_0d0c_0b0a_0908_0706_0504_0302_0100;

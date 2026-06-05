@@ -68,9 +68,11 @@ pub(in crate::arm64::execute) fn exec_simd_moves(cpu: &mut Armv8Cpu, instr: Inst
             }
         }
         Opcode::SimdInsGprLane => {
-            let shift = (instr.imm as u32) * 64;
-            let mask = (u64::MAX as u128) << shift;
-            let value = (read_reg(cpu, instr.rn, true) as u128) << shift;
+            let element_size = instr.cond.max(1) as usize;
+            let shift = (instr.imm as usize) * element_size * 8;
+            let mask = simd_element_mask(element_size) << shift;
+            let source_is_64_bit = element_size == 8;
+            let value = (read_reg(cpu, instr.rn, source_is_64_bit) as u128) << shift;
             cpu.simd[rd] = (cpu.simd[rd] & !mask) | (value & mask);
         }
         _ => unreachable!(),

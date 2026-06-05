@@ -33,8 +33,8 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             rm: 0,
             imm: 1,
             sf: true,
-            cond: 0,
-            size: 8,
+            cond: 8,
+            size: 16,
         });
     }
     if let Some(instr) = decode_fp_scalar(raw) {
@@ -79,16 +79,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         }
     }
     if (raw & 0xFFE0_FC00) == 0x4E00_1C00 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::SimdInsGprLane,
-            rd: (raw & 0x1F) as u8,
-            rn: ((raw >> 5) & 0x1F) as u8,
-            rm: 0,
-            imm: 1,
-            sf: true,
-            cond: 0,
-            size: 8,
-        });
+        let imm5 = ((raw >> 16) & 0x1F) as u8;
+        if let Some((element_size, lane)) = decode_umov_element(imm5) {
+            return DecodeStep::Hit(Instr {
+                op: Opcode::SimdInsGprLane,
+                rd: (raw & 0x1F) as u8,
+                rn: ((raw >> 5) & 0x1F) as u8,
+                rm: 0,
+                imm: lane as u64,
+                sf: true,
+                cond: element_size,
+                size: 16,
+            });
+        }
     }
     if (raw & 0xBFBF_FC00) == 0x2EA0_F800 {
         let q = ((raw >> 30) & 1) != 0;
