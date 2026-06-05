@@ -1,5 +1,6 @@
 mod debug;
 mod kernel;
+mod prompt_script;
 mod util;
 
 use emulator::boot::BootContext;

@@ -12,13 +12,12 @@ pub(super) fn run_kernel_chunks(
     let mut last_uart = ctx.uart_output().len();
     let chunks = util::env_usize("BOOT_TEST_CHUNKS", 10);
     let per_chunk = util::env_usize("BOOT_TEST_STEPS", 2_000_000);
-    let command_script = command_script();
-    let stop_uart_default = if command_script.is_some() { 0 } else { 500 };
+    let mut input = super::prompt_script::BootTestInput::from_env();
+    let stop_uart_default = if input.disables_uart_stop() { 0 } else { 500 };
     let stop_uart = util::env_usize("BOOT_TEST_STOP_UART", stop_uart_default);
     let stop_text = env::var("BOOT_TEST_STOP_TEXT")
         .ok()
         .filter(|text| !text.is_empty());
-    let mut commands_sent = false;
 
     for i in 0..chunks {
         ctx.run_kernel_phase(per_chunk);
@@ -29,18 +28,11 @@ pub(super) fn run_kernel_chunks(
         report_uart_delta(ctx, &uart, last_uart, new_bytes, i, t0);
         last_uart = uart.len();
 
-        maybe_feed_commands(ctx, &uart, command_script.as_deref(), &mut commands_sent);
+        input.maybe_feed(ctx, &uart);
         if should_stop(&uart, stop_text.as_deref(), stop_uart) {
             break;
         }
     }
-}
-
-fn command_script() -> Option<String> {
-    env::var("BOOT_TEST_COMMANDS")
-        .ok()
-        .filter(|script| !script.is_empty())
-        .map(|script| util::normalize_boot_test_commands(&script))
 }
 
 fn maybe_report_initrd(ctx: &BootContext, expected_initrd: Option<&[u8]>) {
@@ -116,25 +108,6 @@ fn print_uart_preview(preview: &str) {
         println!("{clean}");
     } else {
         println!("  {:?}", clean.chars().take(200).collect::<String>());
-    }
-}
-
-fn maybe_feed_commands(
-    ctx: &mut BootContext,
-    uart: &str,
-    script: Option<&str>,
-    commands_sent: &mut bool,
-) {
-    if !*commands_sent
-        && let Some(script) = script
-        && uart.contains("webboxvm# ")
-    {
-        ctx.feed_uart_input(script);
-        *commands_sent = true;
-        println!(
-            "Fed {} bytes of UART input from BOOT_TEST_COMMANDS",
-            script.len()
-        );
     }
 }
 
