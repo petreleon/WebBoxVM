@@ -14,7 +14,15 @@ pub(in crate::arm64::execute) fn exec_sve_ld1h_family(
         Opcode::SveLd1h if instr.rm == 0xFF => {
             let base = read_base(cpu, instr.rn, true);
             let offset = (instr.imm as i64).wrapping_mul((elements * 2) as i64) as u64;
-            load_scalar_base(cpu, bus, base.wrapping_add(offset), &mask, &mut result, elements, element_size)?;
+            load_scalar_base(
+                cpu,
+                bus,
+                base.wrapping_add(offset),
+                &mask,
+                &mut result,
+                elements,
+                element_size,
+            )?;
         }
         Opcode::SveLd1h => {
             let base = read_base(cpu, instr.rn, true);
@@ -22,8 +30,13 @@ pub(in crate::arm64::execute) fn exec_sve_ld1h_family(
             for element in 0..elements {
                 if predicate_element(&mask, element, element_size) {
                     let offset = sve_element(&offsets, element, element_size);
-                    let offset = if instr.sf { offset.wrapping_shl(1) } else { offset };
-                    let value = load_half(cpu, bus, base.wrapping_add(offset), false, element_size)?;
+                    let offset = if instr.sf {
+                        offset.wrapping_shl(1)
+                    } else {
+                        offset
+                    };
+                    let value =
+                        load_half(cpu, bus, base.wrapping_add(offset), false, element_size)?;
                     sve_set_element(&mut result, element, element_size, value);
                 }
             }
@@ -46,6 +59,42 @@ pub(in crate::arm64::execute) fn exec_sve_ld1h_family(
     Ok(())
 }
 
+pub(in crate::arm64::execute) fn exec_sve_st1h(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    instr: Instr,
+) -> Result<(), &'static str> {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let mask = cpu.sve_pred[instr.cond as usize];
+    let source = sve_read_z(cpu, instr.rd as usize);
+    let base = st1h_base(cpu, instr, (elements * 2) as i64);
+
+    for element in 0..elements {
+        if predicate_element(&mask, element, element_size) {
+            let source_offset = element * element_size;
+            write_sve_bytes(
+                cpu,
+                bus,
+                base.wrapping_add((element * 2) as u64),
+                &source[source_offset..source_offset + 2],
+                "SVE store fault",
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn st1h_base(cpu: &Armv8Cpu, instr: Instr, in_memory_bytes: i64) -> u64 {
+    if instr.rm == 0xFF {
+        let offset = (instr.imm as i64).wrapping_mul(in_memory_bytes) as u64;
+        read_base(cpu, instr.rn, true).wrapping_add(offset)
+    } else {
+        let offset = read_reg(cpu, instr.rm, true).wrapping_shl(1);
+        read_base(cpu, instr.rn, true).wrapping_add(offset)
+    }
+}
+
 fn load_scalar_base(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,
@@ -57,7 +106,13 @@ fn load_scalar_base(
 ) -> Result<(), &'static str> {
     for element in 0..elements {
         if predicate_element(mask, element, element_size) {
-            let value = load_half(cpu, bus, va.wrapping_add((element * 2) as u64), false, element_size)?;
+            let value = load_half(
+                cpu,
+                bus,
+                va.wrapping_add((element * 2) as u64),
+                false,
+                element_size,
+            )?;
             sve_set_element(result, element, element_size, value);
         }
     }

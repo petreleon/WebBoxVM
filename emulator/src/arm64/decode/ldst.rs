@@ -7,6 +7,7 @@ mod literal_pair;
 mod rcpc;
 mod rcpc_simd;
 mod scalar;
+mod scalar_prfm;
 mod simd;
 
 use super::{Instr, Opcode};

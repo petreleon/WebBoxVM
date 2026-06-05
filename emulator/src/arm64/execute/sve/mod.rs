@@ -67,7 +67,7 @@ pub(super) use logical_pred::exec_sve_logical_pred;
 pub(super) use memory_b::exec_sve_st1b;
 pub(super) use memory_contiguous::exec_sve_contiguous_load;
 pub(super) use memory_d::exec_sve_ld1_st1_d;
-pub(super) use memory_h::exec_sve_ld1h_family;
+pub(super) use memory_h::{exec_sve_ld1h_family, exec_sve_st1h};
 pub(super) use memory_register::exec_sve_ldr_str;
 pub(super) use memory_w::exec_sve_ld1_st1_w;
 pub(super) use permute::{exec_sve_tbl, exec_sve_uzp, exec_sve_zip};

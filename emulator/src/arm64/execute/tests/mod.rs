@@ -5,7 +5,8 @@ use crate::constants::{
     ESR_IL, PAGE_SIZE, PHYSICAL_TIMER_IRQ_ID, PSTATE_DAIF_MASK, PSTATE_EL_MASK, PSTATE_I_BIT,
     PT_L1_SHIFT, PT_L2_SHIFT, PT_L3_SHIFT, RAM_BASE, SCTLR_MMU_ENABLE, SYSREG_CNTKCTL_EL1,
     SYSREG_CNTP_TVAL_EL0, SYSREG_CNTV_CTL_EL0, SYSREG_CNTV_TVAL_EL0, TCR_T1SZ_SHIFT,
-    TIMER_CTL_ENABLE, TIMER_CTL_IMASK, VBAR_IRQ_CURRENT_EL, VBAR_IRQ_LOWER_EL_AARCH64, VBAR_SYNC_LOWER_EL_AARCH64, VIRTUAL_TIMER_IRQ_ID,
+    TIMER_CTL_ENABLE, TIMER_CTL_IMASK, VBAR_IRQ_CURRENT_EL, VBAR_IRQ_LOWER_EL_AARCH64,
+    VBAR_SYNC_LOWER_EL_AARCH64, VIRTUAL_TIMER_IRQ_ID,
 };
 fn setup() -> (Armv8Cpu, SystemBus) {
     (Armv8Cpu::new(), SystemBus::new())
@@ -13,14 +14,12 @@ fn setup() -> (Armv8Cpu, SystemBus) {
 fn pred_bit(cpu: &Armv8Cpu, pred: usize, bit: usize) -> bool {
     (cpu.sve_pred[pred][bit / 64] & (1 << (bit % 64))) != 0
 }
-
 fn z_elem(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u64 {
     let offset = lane * 8;
     let mut bytes = [0; 8];
     bytes.copy_from_slice(&cpu.sve_z[reg][offset..offset + 8]);
     u64::from_le_bytes(bytes)
 }
-
 fn z_word(cpu: &Armv8Cpu, reg: usize, lane: usize) -> u32 {
     let offset = lane * 4;
     let mut bytes = [0; 4];
@@ -140,6 +139,7 @@ mod sve_fp_scale;
 mod sve_fp_trig;
 mod sve_fp_unary;
 mod sve_fp_unpredicated;
+mod sve_halfword_store;
 mod sve_index;
 mod sve_logical_imm;
 mod sve_logical_pred;
