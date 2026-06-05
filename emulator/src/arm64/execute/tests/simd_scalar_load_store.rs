@@ -105,3 +105,26 @@ fn simd_rcpc_unscaled_load_store_forms_transfer_values() {
     assert_eq!(bus.read(base + 0x34, 8), Some(q_low));
     assert_eq!(bus.read(base + 0x3c, 8), Some(q_high));
 }
+
+#[test]
+fn simd_rcpc_single_lane_forms_transfer_doubleword_lanes() {
+    let (mut cpu, mut bus) = setup();
+    let base = RAM_BASE + 0x5a00;
+
+    cpu.regs.set_x(1, base);
+    cpu.simd[0] = 0xaaaa_bbbb_cccc_dddd_1111_2222_3333_4444;
+    bus.write(base, 8, 0x0123_4567_89ab_cdef);
+    execute(&mut cpu, &mut bus, decode(0x0D41_8420).unwrap()).unwrap(); // ldap1 {v0.d}[0], [x1]
+    assert_eq!(cpu.simd[0], 0xaaaa_bbbb_cccc_dddd_0123_4567_89ab_cdef);
+
+    bus.write(base, 8, 0xfedc_ba98_7654_3210);
+    execute(&mut cpu, &mut bus, decode(0x4D41_8420).unwrap()).unwrap(); // ldap1 {v0.d}[1], [x1]
+    assert_eq!(cpu.simd[0], 0xfedc_ba98_7654_3210_0123_4567_89ab_cdef);
+
+    cpu.regs.set_x(3, base + 0x20);
+    cpu.simd[2] = 0x8877_6655_4433_2211_0102_0304_0506_0708;
+    execute(&mut cpu, &mut bus, decode(0x0D01_8462).unwrap()).unwrap(); // stl1 {v2.d}[0], [x3]
+    assert_eq!(bus.read(base + 0x20, 8), Some(0x0102_0304_0506_0708));
+    execute(&mut cpu, &mut bus, decode(0x4D01_8462).unwrap()).unwrap(); // stl1 {v2.d}[1], [x3]
+    assert_eq!(bus.read(base + 0x20, 8), Some(0x8877_6655_4433_2211));
+}

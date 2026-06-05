@@ -26,26 +26,6 @@ pub(in crate::arm64::decode) fn decode_ldapur(raw: u32) -> Option<Instr> {
     })
 }
 
-pub(in crate::arm64::decode) fn decode_simd_rcpc(raw: u32) -> Option<Instr> {
-    let op = match raw & 0x3F60_0C00 {
-        0x1D40_0800 => Opcode::SimdLdr,
-        0x1D00_0800 => Opcode::SimdStr,
-        _ => return None,
-    };
-    let size = rcpc3_size(raw)?;
-
-    Some(Instr {
-        op,
-        rd: (raw & 0x1F) as u8,
-        rn: ((raw >> 5) & 0x1F) as u8,
-        rm: 0xFF,
-        imm: simm9(raw) as u64,
-        sf: size >= 8,
-        cond: 0,
-        size,
-    })
-}
-
 pub(in crate::arm64::decode) fn decode_rcpc3_gpr_writeback(raw: u32) -> Option<Instr> {
     let (op, cond, imm_sign) = match raw & 0x3FFF_FC00 {
         0x19C0_0800 => (Opcode::Ldar, 2, 1),
@@ -121,14 +101,6 @@ pub(in crate::arm64::decode) fn decode_stlur(raw: u32) -> Option<Instr> {
         cond: 0,
         size,
     })
-}
-
-fn rcpc3_size(raw: u32) -> Option<u8> {
-    match ((raw >> 23) & 1, (raw >> 30) & 3) {
-        (0, size) => Some(1u8 << size),
-        (1, 0) => Some(16),
-        _ => None,
-    }
 }
 
 fn simm9(raw: u32) -> i64 {

@@ -35,3 +35,21 @@ fn decode_simd_rcpc_unscaled_load_store_forms() {
         );
     }
 }
+
+#[test]
+fn decode_simd_rcpc_single_lane_forms() {
+    let cases = [
+        (0x0D41_8420, Opcode::SimdLd1Lane, "ldap1", 0, 1, 0),
+        (0x4D41_8420, Opcode::SimdLd1Lane, "ldap1", 0, 1, 1),
+        (0x0D01_8462, Opcode::SimdSt1Lane, "stl1", 2, 3, 0),
+        (0x4D01_8462, Opcode::SimdSt1Lane, "stl1", 2, 3, 1),
+    ];
+
+    for (raw, expected, mnemonic, rd, rn, lane) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!((instr.rd, instr.rn, instr.imm), (rd, rn, lane));
+        assert_eq!((instr.cond, instr.size, instr.rm), (8, 8, 0xFF));
+    }
+}

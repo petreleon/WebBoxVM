@@ -67,6 +67,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = ldst::decode_simd_rcpc(raw) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = ldst::decode_simd_rcpc_lane(raw) {
+        return DecodeStep::Hit(instr);
+    }
     if let Some(instr) = ldst::decode_rcpc3_gpr_writeback(raw) {
         return DecodeStep::Hit(instr);
     }

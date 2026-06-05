@@ -108,6 +108,10 @@ fn maps_simd_rcpc_unscaled_mnemonics_by_encoding() {
         (0x1DC0_4884, Opcode::SimdLdr, "ldapur"),
         (0x1D00_0820, Opcode::SimdStr, "stlur"),
         (0x1D80_4884, Opcode::SimdStr, "stlur"),
+        (0x0D41_8420, Opcode::SimdLd1Lane, "ldap1"),
+        (0x4D41_8420, Opcode::SimdLd1Lane, "ldap1"),
+        (0x0D01_8462, Opcode::SimdSt1Lane, "stl1"),
+        (0x4D01_8462, Opcode::SimdSt1Lane, "stl1"),
     ];
 
     for (raw, expected, mnemonic) in cases {
