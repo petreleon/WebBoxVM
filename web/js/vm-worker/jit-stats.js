@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=20260606-jitprobe";
+import { state } from "./state.js";
 
 const MAX_REJECT_LOG = 16;
 

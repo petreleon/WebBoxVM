@@ -1,5 +1,5 @@
-import { metrics } from "./lifecycle.js?v=20260606-jitprobe";
-import { AUTOSAVE_INTERVAL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260606-jitprobe";
+import { metrics } from "./lifecycle.js";
+import { AUTOSAVE_INTERVAL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
 
 export function maybePostMetrics() {
   const now = performance.now();

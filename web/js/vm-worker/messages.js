@@ -4,12 +4,12 @@ import {
   installDiskSnapshot,
   restoreInstallDisk,
   setStepSlice,
-} from "./lifecycle.js?v=20260606-jitprobe";
-import { compileJitBlock } from "./jit-compile.js?v=20260606-jitprobe";
+} from "./lifecycle.js";
+import { compileJitBlock } from "./jit-compile.js";
 import { errorMessage } from "./errors.js";
-import { runJitBlock } from "./jit-run.js?v=20260606-jitprobe";
-import { schedulePump } from "./pump.js?v=20260606-jitprobe";
-import { state } from "./state.js?v=20260606-jitprobe";
+import { runJitBlock } from "./jit-run.js";
+import { schedulePump } from "./pump.js";
+import { state } from "./state.js";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;

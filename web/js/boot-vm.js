@@ -1,6 +1,6 @@
 import { GIB, clamp, nextFrame } from "./utils.js";
 import { assertWasm64Supported } from "./wasm64.js";
-import { WorkerVm } from "./worker-vm.js?v=20260606-jitprobe";
+import { WorkerVm } from "./worker-vm.js";
 
 export class VmBooter {
   #els;

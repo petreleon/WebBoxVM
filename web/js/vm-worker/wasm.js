@@ -1,6 +1,6 @@
 import init, { Emulator } from "../../pkg/emulator.js";
 import { assertWasm64Supported } from "../wasm64.js";
-import { state } from "./state.js?v=20260606-jitprobe";
+import { state } from "./state.js";
 
 export { Emulator };
 

@@ -1,7 +1,7 @@
-import { compileJitBlock, jitBlockKey } from "./jit-compile.js?v=20260606-jitprobe";
-import { postMetrics } from "./metrics-events.js?v=20260606-jitprobe";
-import { state } from "./state.js?v=20260606-jitprobe";
-import { requireEmulator } from "./lifecycle.js?v=20260606-jitprobe";
+import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
+import { postMetrics } from "./metrics-events.js";
+import { state } from "./state.js";
+import { requireEmulator } from "./lifecycle.js";
 
 export async function runJitBlock({ coreId = 0 } = {}) {
   requireEmulator();
