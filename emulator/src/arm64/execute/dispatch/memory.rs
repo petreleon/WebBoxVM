@@ -13,6 +13,7 @@ pub(super) fn execute(
         | Opcode::Ldraa
         | Opcode::Ldrab
         | Opcode::Str
+        | Opcode::Stlur
         | Opcode::SimdLdr
         | Opcode::SimdStr
         | Opcode::SimdLd1

@@ -26,6 +26,27 @@ pub(in crate::arm64::decode) fn decode_ldapur(raw: u32) -> Option<Instr> {
     })
 }
 
+pub(in crate::arm64::decode) fn decode_stlur(raw: u32) -> Option<Instr> {
+    let (size, sf) = match raw & 0xFFE0_0C00 {
+        0x1900_0000 => (1, false),
+        0x5900_0000 => (2, false),
+        0x9900_0000 => (4, false),
+        0xD900_0000 => (8, true),
+        _ => return None,
+    };
+
+    Some(Instr {
+        op: Opcode::Stlur,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0xFF,
+        imm: simm9(raw) as u64,
+        sf,
+        cond: 0,
+        size,
+    })
+}
+
 fn simm9(raw: u32) -> i64 {
     let imm = ((raw >> 12) & 0x1FF) as i64;
     if imm & 0x100 != 0 {

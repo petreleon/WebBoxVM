@@ -50,6 +50,24 @@ fn decode_rcpc_unscaled_loads_cross_checked_with_disarm64() {
 }
 
 #[test]
+fn decode_rcpc_unscaled_stores_cross_checked_with_disarm64() {
+    let cases = [
+        (0x1900_1022, "stlurb", 1, false, 2, 1, 1),
+        (0x5900_2023, "stlurh", 2, false, 3, 1, 2),
+        (0x9900_3024, "stlur", 4, false, 4, 1, 3),
+        (0xD900_4025, "stlur", 8, true, 5, 1, 4),
+        (0x591F_F020, "stlurh", 2, false, 0, 1, (-1i64) as u64),
+    ];
+
+    for (raw, mnemonic, size, sf, rd, rn, imm) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::Stlur, "raw=0x{raw:08x}");
+        assert_eq!((instr.size, instr.sf, instr.rd, instr.rn, instr.imm), (size, sf, rd, rn, imm));
+    }
+}
+
+#[test]
 fn decode_authenticated_loads_cross_checked_with_disarm64() {
     let cases = [
         (0xF87F_060D, Opcode::Ldraa, "ldraa", 13, 16, (-128i64) as u64, 0),

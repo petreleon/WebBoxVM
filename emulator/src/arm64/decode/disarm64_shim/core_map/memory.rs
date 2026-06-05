@@ -33,6 +33,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#str if matches!(raw & 0xFFC0_E000, 0xE580_0000 | 0xE580_4000) => Opcode::SveStr,
         M::r#str | M::r#stur if ((raw >> 26) & 1) != 0 => Opcode::SimdStr,
+        M::r#stlur | M::r#stlurb | M::r#stlurh => Opcode::Stlur,
         M::r#str | M::r#stur | M::r#strb | M::r#sturb | M::r#strh | M::r#sturh => Opcode::Str,
         M::r#ldp if ((raw >> 26) & 1) != 0 => Opcode::SimdLdp,
         M::r#ldp => Opcode::Ldp,

@@ -107,6 +107,33 @@ fn rcpc_unscaled_loads_read_and_extend_like_scalar_loads() {
 }
 
 #[test]
+fn rcpc_unscaled_stores_write_scalar_widths() {
+    let (mut cpu, mut bus) = setup();
+    let base = 0x4000_0400;
+    cpu.regs.set_x(1, base);
+
+    cpu.regs.set_x(2, 0x1122_3344_5566_7788);
+    execute(&mut cpu, &mut bus, decode(0x1900_1022).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(base + 1, 1), Some(0x88));
+
+    cpu.regs.set_x(3, 0x1122_3344_5566_AABB);
+    execute(&mut cpu, &mut bus, decode(0x5900_2023).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(base + 2, 2), Some(0xAABB));
+
+    cpu.regs.set_x(4, 0xAABB_CCDD_EEFF_0011);
+    execute(&mut cpu, &mut bus, decode(0x9900_3024).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(base + 3, 4), Some(0xEEFF_0011));
+
+    cpu.regs.set_x(5, 0x8877_6655_4433_2211);
+    execute(&mut cpu, &mut bus, decode(0xD900_4025).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(base + 4, 8), Some(0x8877_6655_4433_2211));
+
+    cpu.regs.set_x(0, 0xCAFE);
+    execute(&mut cpu, &mut bus, decode(0x591F_F020).unwrap()).unwrap();
+    assert_eq!(bus.mem.read(base - 1, 2), Some(0xCAFE));
+}
+
+#[test]
 fn simd_pair_store_then_load_roundtrips_vectors() {
     let (mut cpu, mut bus) = setup();
     let base = 0x4000_0100;
