@@ -29,6 +29,36 @@ pub(super) fn decode_clrex() -> Option<Instr> {
     Some(simple(Opcode::NopBarrier, 3))
 }
 
+pub(super) fn decode_cfinv() -> Option<Instr> {
+    Some(simple(Opcode::Cfinv, 0))
+}
+
+pub(super) fn decode_rmif(raw: u32) -> Option<Instr> {
+    Some(Instr {
+        op: Opcode::Rmif,
+        rd: 0,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: ((raw >> 15) & 0x3F) as u64,
+        sf: true,
+        cond: (raw & 0xF) as u8,
+        size: 0,
+    })
+}
+
+pub(super) fn decode_setf(raw: u32, op: Opcode) -> Option<Instr> {
+    Some(Instr {
+        op,
+        rd: 0,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: 0,
+        sf: false,
+        cond: 0,
+        size: 0,
+    })
+}
+
 pub(super) fn decode_tlbi(raw: u32) -> Option<Instr> {
     let op1 = ((raw >> 16) & 0x7) as u8;
     let crm = ((raw >> 8) & 0xF) as u8;

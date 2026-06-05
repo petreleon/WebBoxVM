@@ -71,4 +71,8 @@ impl super::Opcode {
     pub const Smstop: Self = Self(421);
     pub const DcGva: Self = Self(422);
     pub const DcGzva: Self = Self(423);
+    pub const Cfinv: Self = Self(535);
+    pub const Rmif: Self = Self(536);
+    pub const Setf8: Self = Self(537);
+    pub const Setf16: Self = Self(538);
 }

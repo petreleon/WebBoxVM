@@ -1,4 +1,5 @@
 mod early_sve_vector;
+mod flag_system;
 mod fp_scalar;
 mod load_store_helpers;
 mod mops;
@@ -93,6 +94,7 @@ macro_rules! try_stage {
 
 pub(super) fn decode(raw: u32) -> Option<Instr> {
     try_stage!(early_sve_vector::decode(raw));
+    try_stage!(flag_system::decode(raw));
     try_stage!(sme_memory::decode(raw));
     try_stage!(sme_matrix::decode(raw));
     try_stage!(sve_word_load_store::decode(raw));

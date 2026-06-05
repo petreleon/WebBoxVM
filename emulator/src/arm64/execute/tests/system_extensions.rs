@@ -34,3 +34,29 @@ fn mte_dc_tag_cache_ops_use_tagless_data_behavior() {
     assert_eq!(bus.mem.read(RAM_BASE, 8), Some(0));
     assert_eq!(bus.mem.read(RAM_BASE + 8, 8), Some(0));
 }
+
+#[test]
+fn flag_system_instructions_update_nzcv() {
+    let (mut cpu, mut bus) = setup();
+    cpu.pstate.set_nzcv(false, true, true, false);
+
+    execute(&mut cpu, &mut bus, decode(0xD500_401F).unwrap()).unwrap(); // cfinv
+    assert!(!cpu.pstate.c());
+
+    cpu.regs.set_x(1, 0b1110);
+    execute(&mut cpu, &mut bus, decode(0xBA00_042F).unwrap()).unwrap(); // rmif x1, #0, #15
+    assert!(cpu.pstate.n() && cpu.pstate.z() && cpu.pstate.c());
+    assert!(!cpu.pstate.v());
+
+    cpu.regs.set_w(1, 0x80);
+    execute(&mut cpu, &mut bus, decode(0x3A00_082D).unwrap()).unwrap(); // setf8 w1
+    assert!(cpu.pstate.n() && cpu.pstate.v());
+    assert!(!cpu.pstate.z());
+    assert!(cpu.pstate.c());
+
+    cpu.regs.set_w(1, 0);
+    execute(&mut cpu, &mut bus, decode(0x3A00_482D).unwrap()).unwrap(); // setf16 w1
+    assert!(cpu.pstate.z());
+    assert!(!cpu.pstate.n() && !cpu.pstate.v());
+    assert!(cpu.pstate.c());
+}
