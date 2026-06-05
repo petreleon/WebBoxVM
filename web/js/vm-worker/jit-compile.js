@@ -1,5 +1,5 @@
-import { requireEmulator } from "./lifecycle.js";
-import { JIT_MAX_BLOCKS, state } from "./state.js";
+import { requireEmulator } from "./lifecycle.js?v=20260606-jitprobe";
+import { JIT_MAX_BLOCKS, state } from "./state.js?v=20260606-jitprobe";
 
 export async function compileJitBlock({ coreId = 0 } = {}) {
   requireEmulator();

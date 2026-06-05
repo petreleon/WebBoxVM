@@ -1,6 +1,6 @@
-import { Emulator, ensureWasm } from "./wasm.js";
-import { jitStats } from "./jit-stats.js";
-import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
+import { Emulator, ensureWasm } from "./wasm.js?v=20260606-jitprobe";
+import { jitStats } from "./jit-stats.js?v=20260606-jitprobe";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260606-jitprobe";
 
 export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   await ensureWasm();

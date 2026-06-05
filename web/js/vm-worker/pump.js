@@ -1,7 +1,7 @@
-import { tryRunOrCompileJitBlock } from "./jit-hot.js";
+import { tryRunOrCompileJitBlock } from "./jit-hot.js?v=20260606-jitprobe";
 import { errorMessage } from "./errors.js";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
-import { MAX_FRAME_BATCHES, MAX_FRAME_MS, state } from "./state.js";
+import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260606-jitprobe";
+import { MAX_FRAME_BATCHES, MAX_FRAME_MS, state } from "./state.js?v=20260606-jitprobe";
 
 export function schedulePump() {
   if (!state.running || state.pumpScheduled || !state.emulator) {

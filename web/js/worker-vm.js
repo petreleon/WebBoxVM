@@ -1,5 +1,5 @@
 import { transferableBytes } from "./worker-vm/bytes.js";
-import { WorkerChannel } from "./worker-vm/channel.js";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260606-jitprobe";
 
 export class WorkerVm {
   onAutosave = () => {};
@@ -10,7 +10,7 @@ export class WorkerVm {
   #channel;
 
   constructor() {
-    this.#channel = new WorkerChannel(new URL("./vm-worker.js", import.meta.url), {
+    this.#channel = new WorkerChannel(new URL("./vm-worker.js?v=20260606-jitprobe", import.meta.url), {
       onAutosave: () => this.onAutosave(),
       onError: (error) => this.onError(error),
       onMetrics: () => this.onMetrics(),

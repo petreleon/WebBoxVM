@@ -1,7 +1,7 @@
-import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
-import { recordJitReject } from "./jit-stats.js";
-import { runCachedJitBlock } from "./jit-run.js";
-import { JIT_HOT_THRESHOLD, state } from "./state.js";
+import { compileJitBlock, jitBlockKey } from "./jit-compile.js?v=20260606-jitprobe";
+import { recordJitReject } from "./jit-stats.js?v=20260606-jitprobe";
+import { runCachedJitBlock } from "./jit-run.js?v=20260606-jitprobe";
+import { JIT_HOT_THRESHOLD, state } from "./state.js?v=20260606-jitprobe";
 
 export async function tryRunOrCompileJitBlock(coreId = 0) {
   if (!state.jitEnabled || !state.emulator) {
