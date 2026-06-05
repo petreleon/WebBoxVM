@@ -21,13 +21,13 @@ pub(super) fn execute(
             let count = sve_pred_count(instr.cond, elements).wrapping_mul(instr.imm);
             write_reg(cpu, instr.rd, count, true);
         }
-        Opcode::SveAddvl | Opcode::SveAddsvl => {
-            let vl_bytes = if instr.op == Opcode::SveAddvl {
-                cpu.sve_vl_bytes as i64
-            } else {
-                cpu.sme_svl_bytes as i64
+        Opcode::SveAddvl | Opcode::SveAddsvl | Opcode::SveAddpl => {
+            let scale_bytes = match instr.op {
+                Opcode::SveAddvl => cpu.sve_vl_bytes as i64,
+                Opcode::SveAddsvl => cpu.sme_svl_bytes as i64,
+                _ => sve_pl_bytes(cpu) as i64,
             };
-            let offset = (instr.imm as i64).wrapping_mul(vl_bytes) as u64;
+            let offset = (instr.imm as i64).wrapping_mul(scale_bytes) as u64;
             let result = read_base(cpu, instr.rn, true).wrapping_add(offset);
             write_reg_sp(cpu, instr.rd, result, true);
         }

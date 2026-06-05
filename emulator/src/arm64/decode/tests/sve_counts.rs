@@ -9,6 +9,7 @@ fn decode_sve_scalar_vector_length_forms() {
         (0x04E0_E3E0, Opcode::SveCnt, "cntd"),
         (0x043F_57FF, Opcode::SveAddvl, "addvl"),
         (0x0430_5A10, Opcode::SveAddsvl, "addsvl"),
+        (0x047F_57FF, Opcode::SveAddpl, "addpl"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -34,4 +35,9 @@ fn decode_sve_scalar_vector_length_forms() {
     assert_eq!(addsvl.rd, 16);
     assert_eq!(addsvl.rn, 16);
     assert_eq!(addsvl.imm as i64, 16);
+
+    let addpl = decode(0x047F_57FF).unwrap(); // addpl sp, sp, #-1
+    assert_eq!(addpl.rd, 31);
+    assert_eq!(addpl.rn, 31);
+    assert_eq!(addpl.imm as i64, -1);
 }

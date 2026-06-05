@@ -3,6 +3,7 @@ impl super::Opcode {
     pub const SveCnt: Self = Self(65);
     pub const SveAddvl: Self = Self(66);
     pub const SveAddsvl: Self = Self(67);
+    pub const SveAddpl: Self = Self(515);
     pub const SvePtrue: Self = Self(68);
     pub const SvePtrues: Self = Self(489);
     pub const SvePtest: Self = Self(69);

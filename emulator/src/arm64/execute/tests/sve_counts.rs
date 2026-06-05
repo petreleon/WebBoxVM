@@ -23,6 +23,11 @@ fn sve_scalar_vector_length_forms_use_configured_lengths() {
     execute(&mut cpu, &mut bus, decode(0x043F_57FF).unwrap()).unwrap(); // addvl sp, sp, #-1
     assert_eq!(cpu.regs.sp, 0x0ff0);
 
+    cpu.sve_vl_bytes = 32;
+    cpu.regs.sp = 0x1000;
+    execute(&mut cpu, &mut bus, decode(0x047F_57FF).unwrap()).unwrap(); // addpl sp, sp, #-1
+    assert_eq!(cpu.regs.sp, 0x0ffc);
+
     cpu.sme_svl_bytes = 32;
     cpu.regs.set_x(16, 0x2000);
     execute(&mut cpu, &mut bus, decode(0x0430_5A10).unwrap()).unwrap(); // addsvl x16, x16, #16
