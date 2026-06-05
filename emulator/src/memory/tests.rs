@@ -47,6 +47,7 @@ fn bulk_access_crosses_sparse_pages() {
 
     assert_eq!(out, bytes);
     assert_eq!(m.read(addr, 4), Some(0x0403_0201));
+    assert_eq!(m.allocated_pages(), 2);
 }
 
 #[test]

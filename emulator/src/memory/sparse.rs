@@ -1,5 +1,4 @@
 use crate::constants::*;
-use std::collections::HashMap;
 
 const MEMORY_PAGE_SIZE: usize = PAGE_SIZE as usize;
 type Page = Box<[u8; MEMORY_PAGE_SIZE]>;
@@ -8,7 +7,7 @@ type Page = Box<[u8; MEMORY_PAGE_SIZE]>;
 pub(super) struct SparseRegion {
     base: u64,
     size: u64,
-    pages: HashMap<u64, Page>,
+    pages: Vec<Option<Page>>,
 }
 
 impl SparseRegion {
@@ -16,7 +15,7 @@ impl SparseRegion {
         Self {
             base,
             size,
-            pages: HashMap::new(),
+            pages: vec![None; (size / PAGE_SIZE) as usize],
         }
     }
 
@@ -36,10 +35,10 @@ impl SparseRegion {
         while done < dst.len() {
             let current = addr + done as u64;
             let offset = current - self.base;
-            let page_index = offset / PAGE_SIZE;
+            let page_index = (offset / PAGE_SIZE) as usize;
             let page_offset = (offset % PAGE_SIZE) as usize;
             let chunk = (dst.len() - done).min(MEMORY_PAGE_SIZE - page_offset);
-            if let Some(page) = self.pages.get(&page_index) {
+            if let Some(page) = &self.pages[page_index] {
                 dst[done..done + chunk].copy_from_slice(&page[page_offset..page_offset + chunk]);
             } else {
                 dst[done..done + chunk].fill(0);
@@ -59,13 +58,11 @@ impl SparseRegion {
         while done < src.len() {
             let current = addr + done as u64;
             let offset = current - self.base;
-            let page_index = offset / PAGE_SIZE;
+            let page_index = (offset / PAGE_SIZE) as usize;
             let page_offset = (offset % PAGE_SIZE) as usize;
             let chunk = (src.len() - done).min(MEMORY_PAGE_SIZE - page_offset);
-            let page = self
-                .pages
-                .entry(page_index)
-                .or_insert_with(|| Box::new([0; MEMORY_PAGE_SIZE]));
+            let page =
+                self.pages[page_index].get_or_insert_with(|| Box::new([0; MEMORY_PAGE_SIZE]));
             page[page_offset..page_offset + chunk].copy_from_slice(&src[done..done + chunk]);
             done += chunk;
         }
@@ -74,6 +71,6 @@ impl SparseRegion {
     }
 
     pub(super) fn allocated_pages(&self) -> usize {
-        self.pages.len()
+        self.pages.iter().filter(|page| page.is_some()).count()
     }
 }
