@@ -23,5 +23,15 @@ export function delay(ms) {
 }
 
 export function nextFrame() {
-  return new Promise((resolve) => requestAnimationFrame(resolve));
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+    requestAnimationFrame(finish);
+    setTimeout(finish, 0);
+  });
 }
