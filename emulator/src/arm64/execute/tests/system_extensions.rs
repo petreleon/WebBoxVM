@@ -36,6 +36,16 @@ fn mte_dc_tag_cache_ops_use_tagless_data_behavior() {
 }
 
 #[test]
+fn sysl_writes_zero_result() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.set_x(3, 0xFFFF);
+
+    execute(&mut cpu, &mut bus, decode(0xD528_7423).unwrap()).unwrap();
+
+    assert_eq!(cpu.regs.x(3), 0);
+}
+
+#[test]
 fn flag_system_instructions_update_nzcv() {
     let (mut cpu, mut bus) = setup();
     cpu.pstate.set_nzcv(false, true, true, false);

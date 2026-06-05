@@ -7,6 +7,18 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(op) = decode_gcs_alias(raw) {
         return DecodeStep::from_option(system::decode_extension_nop(op, (raw & 0x1F) as u8));
     }
+    if (raw & 0xFFF8_0000) == 0xD528_0000 {
+        return DecodeStep::Hit(Instr {
+            op: Opcode::Sysl,
+            rd: (raw & 0x1F) as u8,
+            rn: 0,
+            rm: 0,
+            imm: ((raw >> 5) & 0x7FFF) as u64,
+            sf: true,
+            cond: 0,
+            size: 0,
+        });
+    }
     if matches!(raw, 0xD503_427F | 0xD503_447F | 0xD503_467F) {
         return DecodeStep::from_option(system::decode_extension_nop(Opcode::Smstop, 0));
     }

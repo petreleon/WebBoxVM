@@ -28,6 +28,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#mrs if ((raw >> 20) & 0xFFF) == 0xD53 => Opcode::Mrs,
         M::r#msr if ((raw >> 20) & 0xFFF) == 0xD51 => Opcode::Msr,
         M::r#msr if legacy_daif_alias(raw) => Opcode::Nop,
+        M::r#sysl if (raw & 0xFFF8_0000) == 0xD528_0000 => Opcode::Sysl,
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7420 => Opcode::DcZva,
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7460 => Opcode::DcGva,
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7480 => Opcode::DcGzva,

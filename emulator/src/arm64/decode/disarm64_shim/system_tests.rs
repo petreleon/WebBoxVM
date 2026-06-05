@@ -22,6 +22,7 @@ fn maps_system_mnemonics() {
         (0xD508_871F, Opcode::Tlbi, "sys"),
         (0xD518_4102, Opcode::Msr, "msr"),
         (0xD538_4103, Opcode::Mrs, "mrs"),
+        (0xD528_7423, Opcode::Sysl, "sysl"),
         (0xD503_42DF, Opcode::Nop, "msr"),
         (0xD400_0001, Opcode::Svc, "svc"),
         (0xD420_0000, Opcode::Brk, "brk"),

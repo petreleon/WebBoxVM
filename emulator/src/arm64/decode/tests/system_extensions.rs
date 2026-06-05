@@ -31,3 +31,13 @@ fn decode_chk_gcs_and_sme_stop_aliases() {
     assert_eq!(decode(0xD50B_7462).unwrap().rd, 2);
     assert_eq!(decode(0xD50B_7482).unwrap().rd, 2);
 }
+
+#[test]
+fn decode_sysl_system_instruction() {
+    assert_disarm64_mnemonic(0xD528_7423, "sysl");
+
+    let instr = decode(0xD528_7423).unwrap();
+    assert_eq!(instr.op, Opcode::Sysl);
+    assert_eq!(instr.rd, 3);
+    assert_eq!(instr.imm, 0x43A1);
+}
