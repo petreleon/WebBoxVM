@@ -42,4 +42,17 @@ fn sve_scalar_vector_length_forms_use_configured_lengths() {
     cpu.regs.set_x(16, 0x2000);
     execute(&mut cpu, &mut bus, decode(0x0470_5A10).unwrap()).unwrap(); // addspl x16, x16, #16
     assert_eq!(cpu.regs.x(16), 0x2040);
+
+    cpu.sve_vl_bytes = 32;
+    cpu.regs.set_x(17, 100);
+    execute(&mut cpu, &mut bus, decode(0x0431_E3F1).unwrap()).unwrap(); // incb x17, all, mul #2
+    assert_eq!(cpu.regs.x(17), 164);
+
+    cpu.regs.set_x(18, 100);
+    execute(&mut cpu, &mut bus, decode(0x04F1_E7F2).unwrap()).unwrap(); // decd x18, all, mul #2
+    assert_eq!(cpu.regs.x(18), 92);
+
+    cpu.regs.sp = 0x4000;
+    execute(&mut cpu, &mut bus, decode(0x0431_E3FF).unwrap()).unwrap(); // incb xzr, all, mul #2
+    assert_eq!(cpu.regs.sp, 0x4000);
 }

@@ -1,5 +1,7 @@
 use super::*;
 
+mod scalar_count;
+
 pub(super) fn execute(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,
@@ -16,31 +18,7 @@ pub(super) fn execute(
             write_reg(cpu, instr.rd, val, true);
         }
         Opcode::Msr => exec_msr(cpu, instr),
-        Opcode::SveCnt => {
-            let elements = (cpu.sve_vl_bytes as u64) / instr.size as u64;
-            let count = sve_pred_count(instr.cond, elements).wrapping_mul(instr.imm);
-            write_reg(cpu, instr.rd, count, true);
-        }
-        Opcode::SveRdvl | Opcode::SveRdsvl => {
-            let scale_bytes = if instr.op == Opcode::SveRdvl {
-                cpu.sve_vl_bytes as i64
-            } else {
-                cpu.sme_svl_bytes as i64
-            };
-            let result = (instr.imm as i64).wrapping_mul(scale_bytes) as u64;
-            write_reg(cpu, instr.rd, result, true);
-        }
-        Opcode::SveAddvl | Opcode::SveAddsvl | Opcode::SveAddpl | Opcode::SveAddspl => {
-            let scale_bytes = match instr.op {
-                Opcode::SveAddvl => cpu.sve_vl_bytes as i64,
-                Opcode::SveAddsvl => cpu.sme_svl_bytes as i64,
-                Opcode::SveAddpl => sve_pl_bytes(cpu) as i64,
-                _ => cpu.sme_svl_bytes as i64 / 8,
-            };
-            let offset = (instr.imm as i64).wrapping_mul(scale_bytes) as u64;
-            let result = read_base(cpu, instr.rn, true).wrapping_add(offset);
-            write_reg_sp(cpu, instr.rd, result, true);
-        }
+        op if scalar_count::is_opcode(op) => scalar_count::execute(cpu, instr),
         Opcode::SvePtrue | Opcode::SvePtrues => exec_sve_ptrue(cpu, instr),
         Opcode::SvePtest => exec_sve_ptest(cpu, instr),
         Opcode::SvePredAnd

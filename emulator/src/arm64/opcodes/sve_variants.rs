@@ -7,6 +7,8 @@ impl super::Opcode {
     pub const SveAddspl: Self = Self(516);
     pub const SveRdvl: Self = Self(517);
     pub const SveRdsvl: Self = Self(518);
+    pub const SveIncScalar: Self = Self(519);
+    pub const SveDecScalar: Self = Self(520);
     pub const SvePtrue: Self = Self(68);
     pub const SvePtrues: Self = Self(489);
     pub const SvePtest: Self = Self(69);

@@ -1,9 +1,13 @@
 use super::*;
 
 mod memory;
+mod sve_scalar_count;
 
 pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     if let Some(opcode) = memory::map(raw, m) {
+        return Some(opcode);
+    }
+    if let Some(opcode) = sve_scalar_count::map(raw, m) {
         return Some(opcode);
     }
 
