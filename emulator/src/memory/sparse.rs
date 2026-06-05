@@ -49,6 +49,25 @@ impl SparseRegion {
         Some(())
     }
 
+    pub(super) fn read_array<const N: usize>(&self, addr: u64) -> [u8; N] {
+        debug_assert!(self.contains_range(addr, N));
+
+        let offset = addr - self.base;
+        let page_index = (offset / PAGE_SIZE) as usize;
+        let page_offset = (offset % PAGE_SIZE) as usize;
+        let mut bytes = [0; N];
+
+        if page_offset + N > MEMORY_PAGE_SIZE {
+            let _ = self.read_bytes(addr, &mut bytes);
+            return bytes;
+        }
+
+        if let Some(page) = &self.pages[page_index] {
+            bytes.copy_from_slice(&page[page_offset..page_offset + N]);
+        }
+        bytes
+    }
+
     pub(super) fn write_bytes(&mut self, addr: u64, src: &[u8]) -> Option<()> {
         if !self.contains_range(addr, src.len()) {
             return None;

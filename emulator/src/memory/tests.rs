@@ -47,7 +47,19 @@ fn bulk_access_crosses_sparse_pages() {
 
     assert_eq!(out, bytes);
     assert_eq!(m.read(addr, 4), Some(0x0403_0201));
+    assert_eq!(m.read_u32(addr), Some(0x0403_0201));
     assert_eq!(m.allocated_pages(), 2);
+}
+
+#[test]
+fn fixed_read_crosses_sparse_pages() {
+    let mut m = PhysicalMemory::new();
+    let addr = RAM_BASE + PAGE_SIZE - 4;
+    let bytes = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88];
+
+    m.write_bytes(addr, &bytes).unwrap();
+
+    assert_eq!(m.read_u64(addr), Some(0x8877_6655_4433_2211));
 }
 
 #[test]

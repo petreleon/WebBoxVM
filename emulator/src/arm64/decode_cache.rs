@@ -88,7 +88,7 @@ fn decode_page(mem: &PhysicalMemory, page_base: u64) -> Option<DecodedPage> {
 }
 
 fn read_raw_word(mem: &PhysicalMemory, pa: u64) -> Option<u32> {
-    mem.read(pa, 4).map(|raw| raw as u32)
+    mem.read_u32(pa)
 }
 
 fn cache_slot(page_base: u64) -> usize {

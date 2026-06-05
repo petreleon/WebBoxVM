@@ -30,16 +30,25 @@ impl PhysicalMemory {
     }
 
     pub fn read(&self, addr: u64, size: u8) -> Option<u64> {
-        let mut bytes = [0u8; 8];
-        let len = access_len(size)?;
-        self.read_bytes(addr, &mut bytes[..len])?;
         Some(match size {
-            1 => bytes[0] as u64,
-            2 => u16::from_le_bytes([bytes[0], bytes[1]]) as u64,
-            4 => u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as u64,
-            8 => u64::from_le_bytes(bytes),
+            1 => self.read_array::<1>(addr)?[0] as u64,
+            2 => self.read_u16(addr)? as u64,
+            4 => self.read_u32(addr)? as u64,
+            8 => self.read_u64(addr)?,
             _ => return None,
         })
+    }
+
+    pub fn read_u16(&self, addr: u64) -> Option<u16> {
+        Some(u16::from_le_bytes(self.read_array(addr)?))
+    }
+
+    pub fn read_u32(&self, addr: u64) -> Option<u32> {
+        Some(u32::from_le_bytes(self.read_array(addr)?))
+    }
+
+    pub fn read_u64(&self, addr: u64) -> Option<u64> {
+        Some(u64::from_le_bytes(self.read_array(addr)?))
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) -> Option<()> {
@@ -93,6 +102,11 @@ impl PhysicalMemory {
         } else {
             None
         }
+    }
+
+    fn read_array<const N: usize>(&self, addr: u64) -> Option<[u8; N]> {
+        self.select_region(addr, N)
+            .map(|region| region.read_array(addr))
     }
 }
 

@@ -136,7 +136,7 @@ fn determine_start_level(tnsz: u8) -> u8 {
 }
 
 fn read_descriptor(mem: &PhysicalMemory, addr: u64) -> Result<u64, Fault> {
-    mem.read(addr, 8).ok_or(Fault::TranslationFault)
+    mem.read_u64(addr).ok_or(Fault::TranslationFault)
 }
 
 fn decode_descriptor_type(desc: u64, level: u8) -> Result<bool, Fault> {
