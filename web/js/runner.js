@@ -12,6 +12,8 @@ export class VmRunner {
   #handleError;
   #running = false;
   #boundEmulator;
+  #uartTail = "";
+  #uartProbe;
 
   constructor({ els, term, ui, disk, getEmulator, saveDisk, handleError }) {
     this.#els = els;
@@ -24,6 +26,7 @@ export class VmRunner {
     this.#els.stepSlice.addEventListener("input", () => {
       this.#getEmulator()?.set_step_slice(this.#stepSlice());
     });
+    this.#uartProbe = installUartProbe();
   }
 
   start() {
@@ -70,12 +73,33 @@ export class VmRunner {
       return;
     }
     this.#term.write(output);
+    this.#recordUart(output);
     if (this.#els.autoScroll.checked) {
       this.#term.scrollToBottom();
     }
   }
 
+  #recordUart(output) {
+    this.#uartTail = (this.#uartTail + output).slice(-32768);
+    this.#uartProbe.textContent = this.#uartTail;
+  }
+
   #stepSlice() {
     return clamp(Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE, 1000, 1000000);
   }
+}
+
+function installUartProbe() {
+  const probe = document.createElement("pre");
+  probe.dataset.testid = "webboxvm-uart-tail";
+  probe.style.cssText = [
+    "position:fixed",
+    "left:-10000px",
+    "top:0",
+    "width:1px",
+    "height:1px",
+    "overflow:hidden",
+  ].join(";");
+  document.body.append(probe);
+  return probe;
 }
