@@ -56,7 +56,9 @@ pub(super) use fp_immediate::exec_sve_fp_dup_imm;
 pub(super) use fp_indexed::exec_sve_fp_indexed;
 pub(super) use fp_trig_pair::exec_sve_fp_trig_pair;
 pub(super) use fp_unary::exec_sve_fp_unary;
-pub(super) use helpers::{sve_pl_bytes, sve_vl_bytes};
+pub(super) use helpers::{
+    sve_element, sve_pl_bytes, sve_read_z, sve_set_element, sve_vl_bytes, sve_write_z,
+};
 use helpers::*;
 pub(super) use index::exec_sve_index;
 pub(super) use int_compare::{exec_sve_int_compare, exec_sve_whilelo};

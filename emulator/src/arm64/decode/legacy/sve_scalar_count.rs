@@ -1,6 +1,28 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    if matches!(raw & 0xFF3F_FE00, 0x252C_8000 | 0x252D_8000) {
+        let size_bits = ((raw >> 22) & 0x3) as u8;
+        if size_bits == 0 {
+            return DecodeStep::Reject;
+        }
+        let rd = (raw & 0x1F) as u8;
+        return DecodeStep::Hit(Instr {
+            op: if (raw & 0xFF3F_FE00) == 0x252C_8000 {
+                Opcode::SveIncpVector
+            } else {
+                Opcode::SveDecpVector
+            },
+            rd,
+            rn: rd,
+            rm: 0,
+            imm: 0,
+            sf: true,
+            cond: ((raw >> 5) & 0xF) as u8,
+            size: 1 << size_bits,
+        });
+    }
+
     if matches!(raw & 0xFF3F_FE00, 0x252C_8800 | 0x252D_8800) {
         let rd = (raw & 0x1F) as u8;
         return DecodeStep::Hit(Instr {

@@ -63,4 +63,34 @@ fn sve_scalar_vector_length_forms_use_configured_lengths() {
 
     execute(&mut cpu, &mut bus, decode(0x25ED_88E1).unwrap()).unwrap(); // decp x1, p7.d
     assert_eq!(cpu.regs.x(1), 20);
+
+    let mut z = [0; 256];
+    z[..8].copy_from_slice(&10u64.to_le_bytes());
+    z[8..16].copy_from_slice(&u64::MAX.to_le_bytes());
+    z[16..24].copy_from_slice(&40u64.to_le_bytes());
+    cpu.sve_z[2] = z;
+    cpu.simd[2] = u128::from_le_bytes(z[..16].try_into().unwrap());
+    execute(&mut cpu, &mut bus, decode(0x25EC_80E2).unwrap()).unwrap(); // incp z2.d, p7.d
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[2][..8].try_into().unwrap()),
+        12
+    );
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[2][8..16].try_into().unwrap()),
+        1
+    );
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[2][16..24].try_into().unwrap()),
+        42
+    );
+
+    execute(&mut cpu, &mut bus, decode(0x25ED_80E2).unwrap()).unwrap(); // decp z2.d, p7.d
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[2][..8].try_into().unwrap()),
+        10
+    );
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[2][8..16].try_into().unwrap()),
+        u64::MAX
+    );
 }

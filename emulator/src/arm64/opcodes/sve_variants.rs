@@ -11,6 +11,8 @@ impl super::Opcode {
     pub const SveDecScalar: Self = Self(520);
     pub const SveIncpScalar: Self = Self(521);
     pub const SveDecpScalar: Self = Self(522);
+    pub const SveIncpVector: Self = Self(523);
+    pub const SveDecpVector: Self = Self(524);
     pub const SvePtrue: Self = Self(68);
     pub const SvePtrues: Self = Self(489);
     pub const SvePtest: Self = Self(69);
