@@ -60,3 +60,29 @@ fn fp_simd_trap_predicate_respects_el_and_fpen() {
     cpu.sys.cpacr_el1 = CPACR_FPEN_TRAP_EL1_EL0 << CPACR_FPEN_SHIFT;
     assert!(fp_simd_access_traps(&cpu));
 }
+
+#[test]
+fn finish_core_preserves_single_core_round_robin_without_modulo() {
+    let mut machine = Machine::new(1);
+
+    machine.finish_core(0, 1);
+    machine.finish_core(0, 1);
+
+    assert_eq!(machine.total_steps, 2);
+    assert_eq!(machine.active_core, 0);
+}
+
+#[test]
+fn finish_core_wraps_multi_core_round_robin() {
+    let mut machine = Machine::new(3);
+
+    machine.finish_core(0, 3);
+    assert_eq!(machine.active_core, 1);
+
+    machine.finish_core(1, 3);
+    assert_eq!(machine.active_core, 2);
+
+    machine.finish_core(2, 3);
+    assert_eq!(machine.total_steps, 3);
+    assert_eq!(machine.active_core, 0);
+}

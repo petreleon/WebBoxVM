@@ -5,16 +5,17 @@ impl Machine {
     /// Each core executes one instruction per turn.
     pub fn run(&mut self, max_total_steps: usize) -> usize {
         let start_steps = self.total_steps;
+        let end_steps = start_steps.saturating_add(max_total_steps as u64);
         let num_cores = self.cpus.len();
-        let mut report_interval = 1_000_000u64;
+        let mut next_report = 1_000_000u64;
         let trace_options = self.trace.options;
         let trace_fetch_hooks = trace_options.has_fetch_hooks();
         let trace_instruction_hooks = trace_options.has_instruction_hooks();
         let trace_syscall_returns = trace_options.has_syscall_return_hooks();
 
-        while (self.total_steps - start_steps) < max_total_steps as u64 {
+        while self.total_steps < end_steps {
             let core = self.active_core;
-            self.report_progress(start_steps, &mut report_interval, core);
+            self.report_progress(start_steps, &mut next_report, core);
 
             let pc = self.cpus[core].regs.pc;
             let Some(pa) = self.translate_fetch(core, pc, num_cores) else {

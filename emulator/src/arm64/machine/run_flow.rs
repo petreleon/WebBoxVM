@@ -3,12 +3,13 @@ use super::*;
 impl Machine {
     pub(super) fn finish_core(&mut self, core: usize, num_cores: usize) {
         self.total_steps += 1;
-        self.active_core = (core + 1) % num_cores;
+        let next = core + 1;
+        self.active_core = if next == num_cores { 0 } else { next };
     }
 
-    pub(super) fn report_progress(&self, start_steps: u64, report_interval: &mut u64, core: usize) {
+    pub(super) fn report_progress(&self, start_steps: u64, next_report: &mut u64, core: usize) {
         let elapsed = self.total_steps - start_steps;
-        if elapsed == 0 || !elapsed.is_multiple_of(*report_interval) {
+        if elapsed < *next_report {
             return;
         }
 
@@ -19,9 +20,15 @@ impl Machine {
             self.exec_faults,
             self.cpus[core].regs.pc
         );
-        if elapsed >= 10_000_000 {
-            *report_interval = 100_000_000;
-        }
+        *next_report = if elapsed >= 10_000_000 {
+            if elapsed < 100_000_000 {
+                100_000_000
+            } else {
+                elapsed.saturating_add(100_000_000)
+            }
+        } else {
+            elapsed.saturating_add(1_000_000)
+        };
     }
 
     pub(super) fn translate_fetch(
