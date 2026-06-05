@@ -93,4 +93,30 @@ fn sve_scalar_vector_length_forms_use_configured_lengths() {
         u64::from_le_bytes(cpu.sve_z[2][8..16].try_into().unwrap()),
         u64::MAX
     );
+
+    cpu.sve_z[3] = z;
+    cpu.simd[3] = u128::from_le_bytes(z[..16].try_into().unwrap());
+    execute(&mut cpu, &mut bus, decode(0x04F1_C3E3).unwrap()).unwrap(); // incd z3.d, all, mul #2
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[3][..8].try_into().unwrap()),
+        18
+    );
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[3][8..16].try_into().unwrap()),
+        7
+    );
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[3][16..24].try_into().unwrap()),
+        48
+    );
+
+    execute(&mut cpu, &mut bus, decode(0x04F1_C7E3).unwrap()).unwrap(); // decd z3.d, all, mul #2
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[3][..8].try_into().unwrap()),
+        10
+    );
+    assert_eq!(
+        u64::from_le_bytes(cpu.sve_z[3][8..16].try_into().unwrap()),
+        u64::MAX
+    );
 }

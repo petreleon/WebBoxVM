@@ -1,6 +1,19 @@
 use super::*;
 
 pub(super) fn decode(raw: u32) -> DecodeStep {
+    let (op, size) = match raw & 0xFFF0_FC00 {
+        0x0470_C000 => (Opcode::SveIncPatternVector, 2),
+        0x04B0_C000 => (Opcode::SveIncPatternVector, 4),
+        0x04F0_C000 => (Opcode::SveIncPatternVector, 8),
+        0x0470_C400 => (Opcode::SveDecPatternVector, 2),
+        0x04B0_C400 => (Opcode::SveDecPatternVector, 4),
+        0x04F0_C400 => (Opcode::SveDecPatternVector, 8),
+        _ => (Opcode::Nop, 0),
+    };
+    if size != 0 {
+        return pattern_count_instr(raw, op, size);
+    }
+
     if matches!(raw & 0xFF3F_FE00, 0x252C_8000 | 0x252D_8000) {
         let size_bits = ((raw >> 22) & 0x3) as u8;
         if size_bits == 0 {
@@ -52,7 +65,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         0x04F0_E400 => (Opcode::SveDecScalar, 8),
         _ => return DecodeStep::Miss,
     };
+    pattern_count_instr(raw, op, size)
+}
 
+fn pattern_count_instr(raw: u32, op: Opcode, size: u8) -> DecodeStep {
     let rd = (raw & 0x1F) as u8;
     DecodeStep::Hit(Instr {
         op,

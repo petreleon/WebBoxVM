@@ -35,6 +35,12 @@ fn decode_sve_scalar_vector_length_forms() {
         (0x256D_80E1, Opcode::SveDecpVector, "decp"),
         (0x25AD_80E1, Opcode::SveDecpVector, "decp"),
         (0x25ED_80E1, Opcode::SveDecpVector, "decp"),
+        (0x0471_C3F1, Opcode::SveIncPatternVector, "inch"),
+        (0x04B1_C3F1, Opcode::SveIncPatternVector, "incw"),
+        (0x04F1_C3F1, Opcode::SveIncPatternVector, "incd"),
+        (0x0471_C7F1, Opcode::SveDecPatternVector, "dech"),
+        (0x04B1_C7F1, Opcode::SveDecPatternVector, "decw"),
+        (0x04F1_C7F1, Opcode::SveDecPatternVector, "decd"),
     ];
     for (raw, expected, mnemonic) in cases {
         assert_disarm64_mnemonic(raw, mnemonic);
@@ -102,4 +108,11 @@ fn decode_sve_scalar_vector_length_forms() {
     assert_eq!(incp_vec.cond, 7);
     assert_eq!(incp_vec.size, 8);
     assert!(decode(0x252C_80E1).is_none()); // vector .b form is reserved
+
+    let incd_vec = decode(0x04F1_C3F1).unwrap(); // incd z17.d, all, mul #2
+    assert_eq!(incd_vec.op, Opcode::SveIncPatternVector);
+    assert_eq!(incd_vec.rd, 17);
+    assert_eq!(incd_vec.cond, 31);
+    assert_eq!(incd_vec.imm, 2);
+    assert_eq!(incd_vec.size, 8);
 }

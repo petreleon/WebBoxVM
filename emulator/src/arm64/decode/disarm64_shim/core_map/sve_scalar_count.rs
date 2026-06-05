@@ -3,6 +3,12 @@ use super::*;
 pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic as M;
     match m {
+        M::r#inch | M::r#incw | M::r#incd if is_vector_inc(raw) => {
+            Some(Opcode::SveIncPatternVector)
+        }
+        M::r#dech | M::r#decw | M::r#decd if is_vector_dec(raw) => {
+            Some(Opcode::SveDecPatternVector)
+        }
         M::r#incb | M::r#inch | M::r#incw | M::r#incd if is_scalar_inc(raw) => {
             Some(Opcode::SveIncScalar)
         }
@@ -29,6 +35,14 @@ fn is_scalar_dec(raw: u32) -> bool {
         raw & 0xFFF0_FC00,
         0x0430_E400 | 0x0470_E400 | 0x04B0_E400 | 0x04F0_E400
     )
+}
+
+fn is_vector_inc(raw: u32) -> bool {
+    matches!(raw & 0xFFF0_FC00, 0x0470_C000 | 0x04B0_C000 | 0x04F0_C000)
+}
+
+fn is_vector_dec(raw: u32) -> bool {
+    matches!(raw & 0xFFF0_FC00, 0x0470_C400 | 0x04B0_C400 | 0x04F0_C400)
 }
 
 #[cfg(test)]
@@ -60,6 +74,12 @@ mod tests {
             (0x256D_80E1, Opcode::SveDecpVector),
             (0x25AD_80E1, Opcode::SveDecpVector),
             (0x25ED_80E1, Opcode::SveDecpVector),
+            (0x0471_C3F1, Opcode::SveIncPatternVector),
+            (0x04B1_C3F1, Opcode::SveIncPatternVector),
+            (0x04F1_C3F1, Opcode::SveIncPatternVector),
+            (0x0471_C7F1, Opcode::SveDecPatternVector),
+            (0x04B1_C7F1, Opcode::SveDecPatternVector),
+            (0x04F1_C7F1, Opcode::SveDecPatternVector),
         ];
 
         for (raw, expected) in cases {

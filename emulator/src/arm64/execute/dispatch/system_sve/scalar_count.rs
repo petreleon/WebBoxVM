@@ -16,6 +16,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveDecpScalar
             | Opcode::SveIncpVector
             | Opcode::SveDecpVector
+            | Opcode::SveIncPatternVector
+            | Opcode::SveDecPatternVector
     )
 }
 
@@ -29,6 +31,9 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) {
         Opcode::SveIncScalar | Opcode::SveDecScalar => exec_inc_dec_scalar(cpu, instr),
         Opcode::SveIncpScalar | Opcode::SveDecpScalar => exec_incp_decp_scalar(cpu, instr),
         Opcode::SveIncpVector | Opcode::SveDecpVector => exec_incp_decp_vector(cpu, instr),
+        Opcode::SveIncPatternVector | Opcode::SveDecPatternVector => {
+            exec_pattern_count_vector(cpu, instr)
+        }
         _ => unreachable!("not an SVE scalar count opcode"),
     }
 }
@@ -104,6 +109,23 @@ fn exec_incp_decp_vector(cpu: &mut Armv8Cpu, instr: Instr) {
     for element in 0..elements {
         let old = sve_element(&vector, element, element_size);
         let result = if instr.op == Opcode::SveIncpVector {
+            old.wrapping_add(count)
+        } else {
+            old.wrapping_sub(count)
+        };
+        sve_set_element(&mut vector, element, element_size, result);
+    }
+    sve_write_z(cpu, instr.rd as usize, vector);
+}
+
+fn exec_pattern_count_vector(cpu: &mut Armv8Cpu, instr: Instr) {
+    let element_size = instr.size as usize;
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let count = sve_pred_count(instr.cond, elements as u64).wrapping_mul(instr.imm);
+    let mut vector = sve_read_z(cpu, instr.rd as usize);
+    for element in 0..elements {
+        let old = sve_element(&vector, element, element_size);
+        let result = if instr.op == Opcode::SveIncPatternVector {
             old.wrapping_add(count)
         } else {
             old.wrapping_sub(count)
