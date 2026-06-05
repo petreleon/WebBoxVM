@@ -3,6 +3,7 @@ use crate::arm64::opcodes::Opcode;
 pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     use disarm64::decoder::Mnemonic as M;
     Some(match m {
+        M::r#prfm | M::r#prfum => Opcode::Prfm,
         M::r#ldr if matches!(raw & 0xFFC0_E000, 0x8580_0000 | 0x8580_4000) => Opcode::SveLdr,
         M::r#ldr if (raw & 0x3B00_0000) == 0x1800_0000 => Opcode::LdrLit,
         M::r#ldr | M::r#ldur if ((raw >> 26) & 1) != 0 => Opcode::SimdLdr,

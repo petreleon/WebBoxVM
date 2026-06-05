@@ -74,7 +74,8 @@ pub(super) fn execute(
         | Opcode::Dgh
         | Opcode::Sb
         | Opcode::DaifSet
-        | Opcode::DaifClr => exec_nop_like(cpu, instr),
+        | Opcode::DaifClr
+        | Opcode::Prfm => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }

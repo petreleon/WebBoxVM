@@ -70,9 +70,6 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         if let Some(instr) = ldst::decode_ldrauth(raw) {
             return DecodeStep::Hit(instr);
         }
-        if ((raw >> 22) & 0x3FF) == 0b1111100110 {
-            return DecodeStep::from_option(system::decode_nop());
-        }
         return DecodeStep::from_option(ldst::decode_ldst(raw));
     }
 

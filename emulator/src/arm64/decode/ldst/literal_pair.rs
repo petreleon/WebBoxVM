@@ -12,11 +12,11 @@ pub(in crate::arm64::decode) fn decode_ldr_lit(raw: u32) -> Option<Instr> {
         }
         return Some(Instr {
             size: 0,
-            op: Opcode::Nop,
-            rd: 0,
+            op: Opcode::Prfm,
+            rd: rt,
             rn: 0,
             rm: 0,
-            imm: 0,
+            imm: offset as u64,
             sf: true,
             cond: 0,
         });

@@ -67,4 +67,5 @@ impl super::Opcode {
     pub const Smulh: Self = Self(64);
     pub const Ldraa: Self = Self(487);
     pub const Ldrab: Self = Self(488);
+    pub const Prfm: Self = Self(573);
 }

@@ -76,7 +76,7 @@ fn decode_register_offset_str_not_lse_atomic() {
 #[test]
 fn decode_prfm_register_offset_as_hint() {
     let instr = decode(0xF8A0_6AB0).unwrap(); // prfm pldl1keep, [x21, x0]
-    assert_eq!(instr.op, Opcode::Nop);
+    assert_eq!(instr.op, Opcode::Prfm);
 }
 
 #[test]

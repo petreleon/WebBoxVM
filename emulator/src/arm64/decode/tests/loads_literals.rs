@@ -46,5 +46,5 @@ fn decode_literal_loads_cross_checked_with_disarm64() {
 
     assert!(decode(0x5EA0_D400).is_none());
     assert!(decode(0xDC00_0000).is_none());
-    assert_eq!(decode(0xD800_0000).unwrap().op, Opcode::Nop);
+    assert_eq!(decode(0xD800_0000).unwrap().op, Opcode::Prfm);
 }

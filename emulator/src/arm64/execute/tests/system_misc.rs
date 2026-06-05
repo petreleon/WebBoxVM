@@ -115,14 +115,15 @@ fn daifset_and_daifclr_update_irq_mask() {
 }
 
 #[test]
-fn cache_maintenance_sys_advances_without_mutation() {
+fn cache_maintenance_and_prfm_advance_without_mutation() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.pc = RAM_BASE;
     cpu.regs.set_x(2, RAM_BASE + 0x1000);
 
-    execute(&mut cpu, &mut bus, decode(0xD50B_7B22).unwrap()).unwrap(); // dc cvau, x2
+    execute(&mut cpu, &mut bus, decode(0xD50B_7B22).unwrap()).unwrap();
+    execute(&mut cpu, &mut bus, decode(0xF8A0_6AB0).unwrap()).unwrap();
 
-    assert_eq!(cpu.regs.pc, RAM_BASE + 4);
+    assert_eq!(cpu.regs.pc, RAM_BASE + 8);
     assert_eq!(cpu.regs.x(2), RAM_BASE + 0x1000);
 }
 

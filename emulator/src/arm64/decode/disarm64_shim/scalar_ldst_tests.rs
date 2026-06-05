@@ -15,6 +15,10 @@ fn maps_scalar_byte_halfword_load_store_mnemonics() {
         (0x7900_160F, Opcode::Str, "strh"),
         (0x381F_D251, Opcode::Str, "sturb"),
         (0x781F_C293, Opcode::Str, "sturh"),
+        (0xD800_0000, Opcode::Prfm, "prfm"),
+        (0xF8A0_6AB0, Opcode::Prfm, "prfm"),
+        (0xF880_02A0, Opcode::Prfm, "prfum"),
+        (0xF980_16A0, Opcode::Prfm, "prfm"),
         (0xF87F_060D, Opcode::Ldraa, "ldraa"),
         (0xF8FF_060D, Opcode::Ldrab, "ldrab"),
     ];
