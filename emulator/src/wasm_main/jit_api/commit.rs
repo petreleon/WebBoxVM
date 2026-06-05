@@ -49,7 +49,7 @@ impl Emulator {
     }
 }
 
-fn commit_jit_state(
+pub(super) fn commit_jit_state(
     state: &WasmJitCpuState,
     machine: &mut Machine,
     core_id: usize,
@@ -90,6 +90,7 @@ fn commit_jit_state(
             }
         }
 
+        machine.bus.refresh_interrupts();
         let external_irq = machine.bus.gic.next_pending_enabled();
         let cpu_irq = cpu.sys.irq_pending && cpu.sys.last_irq_id != GIC_SPURIOUS_INTERRUPT as u32;
         if !cpu.pstate.irq_masked() && (cpu_irq || external_irq.is_some()) {

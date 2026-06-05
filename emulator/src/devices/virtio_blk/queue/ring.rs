@@ -30,14 +30,3 @@ impl VirtioBlk {
         let _ = mem.write(self.queue_device + 2, 2, used_idx.wrapping_add(1) as u64);
     }
 }
-
-pub(super) fn write_bytes(mem: &mut PhysicalMemory, addr: u64, len: u32, src: &[u8]) -> (u8, u32) {
-    let count = (len as usize).min(src.len());
-    if count == 0 {
-        return (VIRTIO_BLK_S_OK, 0);
-    }
-    if mem.write_bytes(addr, &src[..count]).is_none() {
-        return (VIRTIO_BLK_S_IOERR, 0);
-    }
-    (VIRTIO_BLK_S_OK, count as u32)
-}

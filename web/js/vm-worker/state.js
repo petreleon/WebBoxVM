@@ -1,5 +1,6 @@
 export const AUTOSAVE_INTERVAL_MS = 5000;
 export const DEFAULT_STEP_SLICE = 1_000_000;
+export const MAX_STEP_SLICE = 50_000_000;
 export const MAX_FRAME_MS = 24;
 export const MAX_FRAME_BATCHES = 8;
 export const METRICS_INTERVAL_MS = 100;

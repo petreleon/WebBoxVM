@@ -7,6 +7,7 @@ const QUEUE_DRIVER: u64 = RAM_BASE + 0x2000;
 const QUEUE_DEVICE: u64 = RAM_BASE + 0x3000;
 const REQ_ADDR: u64 = RAM_BASE + 0x4000;
 const DATA_ADDR: u64 = RAM_BASE + 0x5000;
+const DATA2_ADDR: u64 = RAM_BASE + 0x5800;
 const STATUS_ADDR: u64 = RAM_BASE + 0x6000;
 
 fn configure_queue(device: &mut VirtioBlk, mem: &mut PhysicalMemory) {
@@ -96,4 +97,50 @@ fn virtqueue_writes_to_sparse_disk_and_reads_back() {
     let mut out = [0u8; 5];
     mem.read_bytes(DATA_ADDR, &mut out).unwrap();
     assert_eq!(&out, b"hello");
+}
+
+#[test]
+fn read_request_supports_multiple_data_descriptors() {
+    let mut mem = PhysicalMemory::new();
+    let image: Vec<u8> = (0..SECTOR_SIZE * 2).map(|i| (i & 0xff) as u8).collect();
+    let mut device = VirtioBlk::read_only_image(image, b"iso\0");
+    configure_queue(&mut device, &mut mem);
+
+    mem.write(REQ_ADDR, 4, VIRTIO_BLK_T_IN as u64).unwrap();
+    mem.write(REQ_ADDR + 4, 4, 0).unwrap();
+    mem.write(REQ_ADDR + 8, 8, 0).unwrap();
+    mem.write(STATUS_ADDR, 1, 0xff).unwrap();
+    write_desc(&mut mem, 0, REQ_ADDR, 16, VIRTQ_DESC_F_NEXT, 1);
+    write_desc(
+        &mut mem,
+        1,
+        DATA_ADDR,
+        SECTOR_SIZE as u32,
+        VIRTQ_DESC_F_WRITE | VIRTQ_DESC_F_NEXT,
+        2,
+    );
+    write_desc(
+        &mut mem,
+        2,
+        DATA2_ADDR,
+        SECTOR_SIZE as u32,
+        VIRTQ_DESC_F_WRITE | VIRTQ_DESC_F_NEXT,
+        3,
+    );
+    write_desc(&mut mem, 3, STATUS_ADDR, 1, VIRTQ_DESC_F_WRITE, 0);
+    mem.write(QUEUE_DRIVER + 4, 2, 0).unwrap();
+    mem.write(QUEUE_DRIVER + 2, 2, 1).unwrap();
+
+    assert!(device.write(&mut mem, 0x050, 0, 4));
+    assert_eq!(mem.read(STATUS_ADDR, 1).unwrap() as u8, VIRTIO_BLK_S_OK);
+    assert_eq!(mem.read(QUEUE_DEVICE + 4 + 4, 4).unwrap() as u32, 1025);
+
+    let mut first = [0u8; SECTOR_SIZE];
+    let mut second = [0u8; SECTOR_SIZE];
+    mem.read_bytes(DATA_ADDR, &mut first).unwrap();
+    mem.read_bytes(DATA2_ADDR, &mut second).unwrap();
+    assert_eq!(first[0], 0);
+    assert_eq!(first[255], 255);
+    assert_eq!(second[0], 0);
+    assert_eq!(second[255], 255);
 }

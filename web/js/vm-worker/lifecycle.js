@@ -1,5 +1,5 @@
 import { Emulator, ensureWasm } from "./wasm.js";
-import { DEFAULT_STEP_SLICE, state, resetJitState } from "./state.js";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
 
 export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   await ensureWasm();
@@ -56,7 +56,7 @@ export function metrics() {
 }
 
 export function setStepSlice(value) {
-  state.stepSlice = Math.max(1000, Math.min(1_000_000, Number(value) || DEFAULT_STEP_SLICE));
+  state.stepSlice = Math.max(1000, Math.min(MAX_STEP_SLICE, Number(value) || DEFAULT_STEP_SLICE));
 }
 
 export function requireEmulator() {

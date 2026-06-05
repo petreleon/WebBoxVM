@@ -1,6 +1,7 @@
 import { clamp } from "./utils.js";
 
 const DEFAULT_STEP_SLICE = 1_000_000;
+const MAX_STEP_SLICE = 50_000_000;
 
 export class VmRunner {
   #els;
@@ -85,7 +86,7 @@ export class VmRunner {
   }
 
   #stepSlice() {
-    return clamp(Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE, 1000, 1000000);
+    return clamp(Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE, 1000, MAX_STEP_SLICE);
   }
 }
 
