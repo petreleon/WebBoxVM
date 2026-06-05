@@ -12,6 +12,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveRdsvl
             | Opcode::SveIncScalar
             | Opcode::SveDecScalar
+            | Opcode::SveIncpScalar
+            | Opcode::SveDecpScalar
             | Opcode::SvePtrue
             | Opcode::SvePtrues
             | Opcode::SvePtest

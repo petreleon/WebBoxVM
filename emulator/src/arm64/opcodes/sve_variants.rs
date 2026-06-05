@@ -9,6 +9,8 @@ impl super::Opcode {
     pub const SveRdsvl: Self = Self(518);
     pub const SveIncScalar: Self = Self(519);
     pub const SveDecScalar: Self = Self(520);
+    pub const SveIncpScalar: Self = Self(521);
+    pub const SveDecpScalar: Self = Self(522);
     pub const SvePtrue: Self = Self(68);
     pub const SvePtrues: Self = Self(489);
     pub const SvePtest: Self = Self(69);

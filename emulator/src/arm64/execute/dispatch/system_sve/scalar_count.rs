@@ -12,6 +12,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SveAddspl
             | Opcode::SveIncScalar
             | Opcode::SveDecScalar
+            | Opcode::SveIncpScalar
+            | Opcode::SveDecpScalar
     )
 }
 
@@ -23,6 +25,7 @@ pub(super) fn execute(cpu: &mut Armv8Cpu, instr: Instr) {
             exec_add_len(cpu, instr)
         }
         Opcode::SveIncScalar | Opcode::SveDecScalar => exec_inc_dec_scalar(cpu, instr),
+        Opcode::SveIncpScalar | Opcode::SveDecpScalar => exec_incp_decp_scalar(cpu, instr),
         _ => unreachable!("not an SVE scalar count opcode"),
     }
 }
@@ -65,4 +68,27 @@ fn exec_inc_dec_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
         old.wrapping_sub(count)
     };
     write_reg(cpu, instr.rd, result, true);
+}
+
+fn exec_incp_decp_scalar(cpu: &mut Armv8Cpu, instr: Instr) {
+    let count = true_predicate_elements(cpu, instr.cond, instr.size as usize);
+    let old = read_reg(cpu, instr.rd, true);
+    let result = if instr.op == Opcode::SveIncpScalar {
+        old.wrapping_add(count)
+    } else {
+        old.wrapping_sub(count)
+    };
+    write_reg(cpu, instr.rd, result, true);
+}
+
+fn true_predicate_elements(cpu: &Armv8Cpu, pred: u8, element_size: usize) -> u64 {
+    let elements = sve_vl_bytes(cpu) / element_size;
+    let pred = cpu.sve_pred[pred as usize];
+    (0..elements)
+        .filter(|element| predicate_bit(&pred, element * element_size))
+        .count() as u64
+}
+
+fn predicate_bit(pred: &[u64; 4], bit: usize) -> bool {
+    bit < 256 && (pred[bit / 64] & (1 << (bit % 64))) != 0
 }
