@@ -97,6 +97,10 @@ export class WorkerVm {
     return this.#channel.metrics.installDiskSizeBytes;
   }
 
+  jit_stats() {
+    return this.#channel.metrics.jitStats;
+  }
+
   pc() {
     return this.#channel.metrics.pc;
   }

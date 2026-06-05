@@ -13,6 +13,7 @@ export const state = {
   jitEnabled: DEFAULT_JIT_ENABLED,
   jitBlockHits: new Map(),
   jitBlocks: new Map(),
+  jitRejectLog: [],
   jitRejectedBlocks: new Set(),
   lastAutosaveAt: 0,
   lastAutosaveGeneration: 0n,
@@ -28,5 +29,6 @@ export const state = {
 export function resetJitState() {
   state.jitBlocks = new Map();
   state.jitBlockHits = new Map();
+  state.jitRejectLog = [];
   state.jitRejectedBlocks = new Set();
 }

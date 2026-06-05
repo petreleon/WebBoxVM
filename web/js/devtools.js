@@ -7,6 +7,7 @@ export function installWebboxVmDevtools(getEmulator, getRunner) {
         return undefined;
       }
       return {
+        jit: emulator.jit_stats?.(),
         pages: emulator.allocated_pages(),
         pc: emulator.pc(),
         steps: emulator.total_steps(),

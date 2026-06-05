@@ -1,4 +1,5 @@
 import { Emulator, ensureWasm } from "./wasm.js";
+import { jitStats } from "./jit-stats.js";
 import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
 
 export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
@@ -49,6 +50,7 @@ export function metrics() {
     installDiskAllocatedBytes: state.emulator.install_disk_allocated_bytes(),
     installDiskGeneration: state.emulator.install_disk_generation(),
     installDiskSizeBytes: state.emulator.install_disk_size_bytes(),
+    jitStats: jitStats(),
     pc: state.emulator.pc(),
     totalSteps: state.emulator.total_steps(),
     uartOutputLen: state.emulator.uart_output_len(),
