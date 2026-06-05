@@ -12,7 +12,7 @@ const DECODE_CACHE_LINES: usize = 16 * 1024;
 
 #[derive(Debug, Clone)]
 struct DecodedPage {
-    raw_words: Vec<u32>,
+    generation: u64,
     instrs: Vec<Instr>,
 }
 
@@ -49,19 +49,19 @@ impl DecodeCache {
     pub fn fetch(&mut self, mem: &PhysicalMemory, pa: u64) -> Option<Instr> {
         let page_base = pa & !PAGE_OFFSET_MASK;
         let word_offset = ((pa & PAGE_OFFSET_MASK) / INSTRUCTION_SIZE) as usize;
-        let raw = read_raw_word(mem, pa)?;
+        let generation = mem.page_generation(page_base)?;
         let slot = cache_slot(page_base);
 
         if let Some(line) = &self.pages[slot]
             && line.page_base == page_base
-            && line.page.raw_words.get(word_offset).copied() == Some(raw)
+            && line.page.generation == generation
         {
             self.hits += 1;
             return line.page.instrs.get(word_offset).copied();
         }
 
         self.misses += 1;
-        let page = decode_page(mem, page_base)?;
+        let page = decode_page(mem, page_base, generation)?;
         let result = page.instrs.get(word_offset).copied();
         self.pages[slot] = Some(CacheLine { page_base, page });
         result
@@ -74,17 +74,15 @@ impl Default for DecodeCache {
     }
 }
 
-fn decode_page(mem: &PhysicalMemory, page_base: u64) -> Option<DecodedPage> {
-    let mut raw_words = Vec::with_capacity(INSTRUCTIONS_PER_PAGE);
+fn decode_page(mem: &PhysicalMemory, page_base: u64, generation: u64) -> Option<DecodedPage> {
     let mut instrs = Vec::with_capacity(INSTRUCTIONS_PER_PAGE);
 
     for i in 0..INSTRUCTIONS_PER_PAGE as u64 {
         let raw = read_raw_word(mem, page_base + i * INSTRUCTION_SIZE)?;
-        raw_words.push(raw);
         instrs.push(decode(raw).unwrap_or_else(Instr::nop));
     }
 
-    Some(DecodedPage { raw_words, instrs })
+    Some(DecodedPage { generation, instrs })
 }
 
 fn read_raw_word(mem: &PhysicalMemory, pa: u64) -> Option<u32> {

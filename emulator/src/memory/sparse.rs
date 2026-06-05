@@ -1,7 +1,25 @@
 use crate::constants::*;
 
 const MEMORY_PAGE_SIZE: usize = PAGE_SIZE as usize;
-type Page = Box<[u8; MEMORY_PAGE_SIZE]>;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Page {
+    bytes: Box<[u8; MEMORY_PAGE_SIZE]>,
+    generation: u64,
+}
+
+impl Page {
+    fn new() -> Self {
+        Self {
+            bytes: Box::new([0; MEMORY_PAGE_SIZE]),
+            generation: 0,
+        }
+    }
+
+    fn bump_generation(&mut self) {
+        self.generation = self.generation.wrapping_add(1);
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct SparseRegion {
@@ -39,7 +57,8 @@ impl SparseRegion {
             let page_offset = (offset % PAGE_SIZE) as usize;
             let chunk = (dst.len() - done).min(MEMORY_PAGE_SIZE - page_offset);
             if let Some(page) = &self.pages[page_index] {
-                dst[done..done + chunk].copy_from_slice(&page[page_offset..page_offset + chunk]);
+                dst[done..done + chunk]
+                    .copy_from_slice(&page.bytes[page_offset..page_offset + chunk]);
             } else {
                 dst[done..done + chunk].fill(0);
             }
@@ -63,9 +82,22 @@ impl SparseRegion {
         }
 
         if let Some(page) = &self.pages[page_index] {
-            bytes.copy_from_slice(&page[page_offset..page_offset + N]);
+            bytes.copy_from_slice(&page.bytes[page_offset..page_offset + N]);
         }
         bytes
+    }
+
+    pub(super) fn page_generation(&self, addr: u64) -> Option<u64> {
+        if !self.contains_range(addr, 1) {
+            return None;
+        }
+
+        let page_index = ((addr - self.base) / PAGE_SIZE) as usize;
+        Some(
+            self.pages[page_index]
+                .as_ref()
+                .map_or(0, |page| page.generation),
+        )
     }
 
     pub(super) fn write_bytes(&mut self, addr: u64, src: &[u8]) -> Option<()> {
@@ -80,9 +112,9 @@ impl SparseRegion {
             let page_index = (offset / PAGE_SIZE) as usize;
             let page_offset = (offset % PAGE_SIZE) as usize;
             let chunk = (src.len() - done).min(MEMORY_PAGE_SIZE - page_offset);
-            let page =
-                self.pages[page_index].get_or_insert_with(|| Box::new([0; MEMORY_PAGE_SIZE]));
-            page[page_offset..page_offset + chunk].copy_from_slice(&src[done..done + chunk]);
+            let page = self.pages[page_index].get_or_insert_with(Page::new);
+            page.bytes[page_offset..page_offset + chunk].copy_from_slice(&src[done..done + chunk]);
+            page.bump_generation();
             done += chunk;
         }
 

@@ -76,6 +76,11 @@ impl PhysicalMemory {
             .and_then(|region| region.write_bytes(addr, src))
     }
 
+    pub fn page_generation(&self, addr: u64) -> Option<u64> {
+        self.select_region(addr, 1)
+            .and_then(|region| region.page_generation(addr))
+    }
+
     pub fn allocated_pages(&self) -> usize {
         self.low.allocated_pages() + self.ram.allocated_pages() + self.efi.allocated_pages()
     }

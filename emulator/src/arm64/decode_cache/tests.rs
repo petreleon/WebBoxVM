@@ -1,6 +1,6 @@
 use super::*;
 use crate::arm64::Opcode;
-use crate::constants::RAM_BASE;
+use crate::constants::{INSTRUCTION_SIZE, RAM_BASE};
 
 #[test]
 fn cached_fetch_reuses_unchanged_page() {
@@ -26,6 +26,20 @@ fn cached_fetch_redecodes_changed_word() {
     mem.write(RAM_BASE, 4, 0x1400_0000).unwrap();
 
     assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::B);
+    assert_eq!(cache.misses, 2);
+}
+
+#[test]
+fn same_page_write_invalidates_cached_page() {
+    let mut mem = PhysicalMemory::new();
+    let mut cache = DecodeCache::new();
+
+    mem.write(RAM_BASE, 4, 0xd503_201f).unwrap();
+    assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
+
+    mem.write(RAM_BASE + INSTRUCTION_SIZE, 4, 0xd503_201f)
+        .unwrap();
+    assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
     assert_eq!(cache.misses, 2);
 }
 

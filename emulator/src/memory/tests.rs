@@ -63,6 +63,18 @@ fn fixed_read_crosses_sparse_pages() {
 }
 
 #[test]
+fn page_generation_tracks_writes() {
+    let mut m = PhysicalMemory::new();
+    let addr = RAM_BASE + 0x100;
+
+    assert_eq!(m.page_generation(addr), Some(0));
+    m.write(addr, 4, 0x1234).unwrap();
+    assert_eq!(m.page_generation(addr), Some(1));
+    m.write(addr, 4, 0x1234).unwrap();
+    assert_eq!(m.page_generation(addr), Some(2));
+}
+
+#[test]
 fn range_must_stay_inside_one_region() {
     let mut m = PhysicalMemory::new();
     assert_eq!(m.write_bytes(LOW_REGION_END - 2, &[1, 2, 3]), None);
