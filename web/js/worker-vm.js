@@ -73,6 +73,10 @@ export class WorkerVm {
     this.#channel.post("setStepSlice", { stepSlice });
   }
 
+  set_jit_enabled(enabled) {
+    this.#channel.post("setJitEnabled", { enabled });
+  }
+
   free() {
     this.#channel.free();
   }

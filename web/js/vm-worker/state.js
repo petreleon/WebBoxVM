@@ -3,12 +3,13 @@ export const DEFAULT_STEP_SLICE = 1_000_000;
 export const MAX_FRAME_MS = 24;
 export const MAX_FRAME_BATCHES = 8;
 export const METRICS_INTERVAL_MS = 100;
-export const JIT_ENABLED = true;
+export const DEFAULT_JIT_ENABLED = true;
 export const JIT_HOT_THRESHOLD = 2;
 export const JIT_MAX_BLOCKS = 4096;
 
 export const state = {
   emulator: undefined,
+  jitEnabled: DEFAULT_JIT_ENABLED,
   jitBlockHits: new Map(),
   jitBlocks: new Map(),
   jitRejectedBlocks: new Set(),

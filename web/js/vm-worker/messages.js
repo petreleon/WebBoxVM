@@ -66,6 +66,12 @@ async function handleRequest(type, payload) {
     case "setStepSlice":
       setStepSlice(payload.stepSlice);
       return {};
+    case "setJitEnabled":
+      state.jitEnabled = Boolean(payload.enabled);
+      state.jitBlockHits.clear();
+      state.jitBlocks.clear();
+      state.jitRejectedBlocks.clear();
+      return {};
     case "stop":
       state.running = false;
       return {};

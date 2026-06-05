@@ -1,9 +1,9 @@
 import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
 import { runCachedJitBlock } from "./jit-run.js";
-import { JIT_ENABLED, JIT_HOT_THRESHOLD, state } from "./state.js";
+import { JIT_HOT_THRESHOLD, state } from "./state.js";
 
 export async function tryRunOrCompileJitBlock(coreId = 0) {
-  if (!JIT_ENABLED || !state.emulator) {
+  if (!state.jitEnabled || !state.emulator) {
     return false;
   }
 

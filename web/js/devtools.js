@@ -19,6 +19,9 @@ export function installWebboxVmDevtools(getEmulator, getRunner) {
     resume(stepSlice) {
       getRunner()?.resume(stepSlice);
     },
+    setJitEnabled(enabled) {
+      getEmulator()?.set_jit_enabled?.(enabled);
+    },
     send(input) {
       getEmulator()?.send_uart_input(input);
     },
@@ -46,6 +49,8 @@ function installDomBridge(getEmulator) {
   const sendText = makeButton("webboxvm-devtools-send");
   const bytesInput = makeTextarea("webboxvm-devtools-bytes");
   const sendBytes = makeButton("webboxvm-devtools-send-bytes");
+  const jitEnabled = makeCheckbox("webboxvm-devtools-jit-enabled");
+  const applyJit = makeButton("webboxvm-devtools-apply-jit");
 
   sendText.addEventListener("click", () => {
     getEmulator()?.send_uart_input(textInput.value);
@@ -56,9 +61,12 @@ function installDomBridge(getEmulator) {
       getEmulator()?.send_uart_bytes(bytes);
     }
   });
+  applyJit.addEventListener("click", () => {
+    getEmulator()?.set_jit_enabled?.(jitEnabled.checked);
+  });
 
   root.addEventListener("submit", (event) => event.preventDefault());
-  root.append(textInput, sendText, bytesInput, sendBytes);
+  root.append(textInput, sendText, bytesInput, sendBytes, jitEnabled, applyJit);
   document.body.append(root);
 }
 
@@ -76,6 +84,15 @@ function makeButton(testId) {
   button.tabIndex = -1;
   button.textContent = testId;
   return button;
+}
+
+function makeCheckbox(testId) {
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = true;
+  checkbox.dataset.testid = testId;
+  checkbox.tabIndex = -1;
+  return checkbox;
 }
 
 function parseBytes(input) {
