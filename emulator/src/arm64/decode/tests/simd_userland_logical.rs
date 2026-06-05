@@ -27,6 +27,10 @@ fn decode_simd_userland_logical_and_reduce_ops() {
     assert_eq!(decode(0x2EBF_1DE0).unwrap().op, Opcode::SimdBit);
     assert_eq!(decode(0x2EFE_1FE0).unwrap().op, Opcode::SimdBif);
     assert_eq!(decode(0x0E20_5BFF).unwrap().op, Opcode::SimdCnt);
+    assert_eq!(decode(0x0E20_4820).unwrap().op, Opcode::SimdCls);
+    assert_eq!(decode(0x6EA0_4820).unwrap().op, Opcode::SimdClz);
+    assert!(decode(0x0EE0_4820).is_none());
+    assert!(decode(0x6EE0_4820).is_none());
     assert_eq!(decode(0x0E31_BBFF).unwrap().op, Opcode::SimdAddv);
     let umaxv = decode(0x6EB0_ABBF).unwrap();
     assert_eq!(umaxv.op, Opcode::SimdUmaxv);

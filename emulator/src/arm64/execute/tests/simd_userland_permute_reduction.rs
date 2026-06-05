@@ -74,6 +74,14 @@ fn simd_userland_vector_permute_and_reduction_ops() {
     execute(&mut cpu, &mut bus, decode(0x0E31_BBFF).unwrap()).unwrap(); // addv b31, v31.8b
     assert_eq!(cpu.simd[31], 29);
 
+    cpu.simd[1] = 0xffff_ffff_ffff_ffff_aa55_fe80_7f01_ff00;
+    execute(&mut cpu, &mut bus, decode(0x0E20_4820).unwrap()).unwrap(); // cls v0.8b, v1.8b
+    assert_eq!(cpu.simd[0], 0x0000_0600_0006_0707);
+
+    cpu.simd[1] = (0x00ff_0000u128 << 96) | (0x8000_0000u128 << 64) | (1u128 << 32);
+    execute(&mut cpu, &mut bus, decode(0x6EA0_4820).unwrap()).unwrap(); // clz v0.4s, v1.4s
+    assert_eq!(cpu.simd[0], (8u128 << 96) | (31u128 << 32) | 32);
+
     cpu.simd[29] = 0x0000_00fe_0000_1000_ffff_fffe_0000_0007;
     execute(&mut cpu, &mut bus, decode(0x6EB0_ABBF).unwrap()).unwrap(); // umaxv s31, v29.4s
     assert_eq!(cpu.simd[31], 0xffff_fffe);

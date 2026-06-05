@@ -89,6 +89,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#neg if (raw & 0xFF3F_FC00) == 0x7E20_B800 => Opcode::SimdNeg,
         M::r#neg if (raw & 0xBF3F_FC00) == 0x2E20_B800 => Opcode::SimdNeg,
+        M::r#cls if simd_count_elements(raw, 0x0E20_4800) => Opcode::SimdCls,
+        M::r#clz if simd_count_elements(raw, 0x2E20_4800) => Opcode::SimdClz,
         M::r#ext => Opcode::SimdExt,
         M::r#cnt => Opcode::SimdCnt,
         M::r#cmtst => Opcode::SimdCmtst,
@@ -148,4 +150,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#uminp if simd_minmax(raw, 0x2E20_AC00) => Opcode::SimdUminp,
         _ => return None,
     })
+}
+
+fn simd_count_elements(raw: u32, base: u32) -> bool {
+    (raw & 0xBF3F_FC00) == base && ((raw >> 22) & 0x3) != 0x3
 }

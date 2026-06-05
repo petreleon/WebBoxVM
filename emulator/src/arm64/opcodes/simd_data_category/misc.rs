@@ -62,6 +62,8 @@ pub(super) fn is_opcode(op: Opcode) -> bool {
             | Opcode::SimdAbs
             | Opcode::SimdNeg
             | Opcode::SimdCnt
+            | Opcode::SimdCls
+            | Opcode::SimdClz
             | Opcode::SimdCmtst
     )
 }

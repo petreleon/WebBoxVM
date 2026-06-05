@@ -47,13 +47,8 @@ pub(in crate::arm64::execute) fn exec_simd_unary_compare(cpu: &mut Armv8Cpu, ins
             }
             cpu.simd[rd] = out & simd_vector_mask(instr.size as usize);
         }
-        Opcode::SimdCnt => {
-            let vector_size = instr.size as usize;
-            let mut out = 0u128;
-            for lane in 0..vector_size {
-                out |= (simd_byte(cpu.simd[rn], lane).count_ones() as u128) << (lane * 8);
-            }
-            cpu.simd[rd] = out;
+        Opcode::SimdCnt | Opcode::SimdCls | Opcode::SimdClz => {
+            cpu.simd[rd] = simd_count(cpu.simd[rn], instr);
         }
         Opcode::SimdCmtst => {
             cpu.simd[rd] = simd_elementwise_binary(
@@ -89,6 +84,43 @@ fn simd_compare_zero(cpu: &Armv8Cpu, instr: Instr) -> u128 {
         }
     }
     out & simd_vector_mask(instr.size as usize)
+}
+
+fn simd_count(value: u128, instr: Instr) -> u128 {
+    if instr.op == Opcode::SimdCnt {
+        let mut out = 0u128;
+        for lane in 0..instr.size as usize {
+            out |= (simd_byte(value, lane).count_ones() as u128) << (lane * 8);
+        }
+        return out;
+    }
+    let element_size = instr.imm.max(1) as usize;
+    let bits = element_size * 8;
+    let mut out = 0u128;
+    for lane in 0..instr.size as usize / element_size {
+        let element = simd_element(value, lane, element_size);
+        let count = if instr.op == Opcode::SimdClz {
+            leading_zero_bits(element, bits)
+        } else {
+            leading_sign_bits(element, bits)
+        };
+        out |= (count as u128) << (lane * bits);
+    }
+    out & simd_vector_mask(instr.size as usize)
+}
+
+fn leading_zero_bits(value: u128, bits: usize) -> u32 {
+    (value << (128 - bits)).leading_zeros().min(bits as u32)
+}
+
+fn leading_sign_bits(value: u128, bits: usize) -> u32 {
+    let sign_bit = 1u128 << (bits - 1);
+    let count = if (value & sign_bit) == 0 {
+        leading_zero_bits(value, bits)
+    } else {
+        leading_zero_bits(!value & simd_element_mask(bits / 8), bits)
+    };
+    count - 1
 }
 
 fn simd_compare_register(cpu: &Armv8Cpu, instr: Instr) -> u128 {

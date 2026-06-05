@@ -64,6 +64,8 @@ impl super::Opcode {
     pub const SimdUmaxp: Self = Self(144);
     pub const SimdUminp: Self = Self(145);
     pub const SimdCnt: Self = Self(146);
+    pub const SimdCls: Self = Self(513);
+    pub const SimdClz: Self = Self(514);
     pub const SimdCmtst: Self = Self(147);
     pub const SimdShlImm: Self = Self(148);
     pub const SimdSli: Self = Self(149);

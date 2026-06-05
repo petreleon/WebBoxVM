@@ -28,6 +28,8 @@ pub(in crate::arm64::execute) fn exec_simd_data(cpu: &mut Armv8Cpu, instr: Instr
         | Opcode::SimdAbs
         | Opcode::SimdNeg
         | Opcode::SimdCnt
+        | Opcode::SimdCls
+        | Opcode::SimdClz
         | Opcode::SimdCmtst => exec_simd_unary_compare(cpu, instr),
         Opcode::SimdUqsub | Opcode::SimdUqadd => exec_simd_saturating(cpu, instr),
         Opcode::SimdScvtf

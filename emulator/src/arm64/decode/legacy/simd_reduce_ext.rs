@@ -39,6 +39,14 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             size: if (raw >> 30) != 0 { 16 } else { 8 },
         });
     }
+    for (base, op) in [
+        (0x0E20_4800, Opcode::SimdCls),
+        (0x2E20_4800, Opcode::SimdClz),
+    ] {
+        if let Some(step) = decode_count_elements(raw, base, op) {
+            return step;
+        }
+    }
     if (raw & 0xBF3F_FC00) == 0x2E20_0800 {
         let element_size = 1u64 << ((raw >> 22) & 0x3);
         return DecodeStep::Hit(Instr {
@@ -68,6 +76,26 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         }
     }
     DecodeStep::Miss
+}
+
+fn decode_count_elements(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {
+    if (raw & 0xBF3F_FC00) != base {
+        return None;
+    }
+    let element_size = 1u64 << ((raw >> 22) & 0x3);
+    if element_size == 8 {
+        return Some(DecodeStep::Reject);
+    }
+    Some(DecodeStep::Hit(Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: ((raw >> 5) & 0x1F) as u8,
+        rm: 0,
+        imm: element_size,
+        sf: true,
+        cond: 0,
+        size: if (raw >> 30) != 0 { 16 } else { 8 },
+    }))
 }
 
 fn decode_minmax(raw: u32, base: u32, op: Opcode) -> Option<DecodeStep> {

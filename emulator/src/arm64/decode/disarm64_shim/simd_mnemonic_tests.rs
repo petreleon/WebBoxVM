@@ -75,6 +75,8 @@ fn maps_shared_simd_mnemonics_by_encoding() {
         (0x5EA0_D9AC, Opcode::SimdFpFcmeqZero, "fcmeq"),
         (0x7EA0_D9EE, Opcode::SimdFpFcmleZero, "fcmle"),
         (0x5EA0_EA30, Opcode::SimdFpFcmltZero, "fcmlt"),
+        (0x0E20_4820, Opcode::SimdCls, "cls"),
+        (0x6EA0_4820, Opcode::SimdClz, "clz"),
         (0x4E9C_5BDE, Opcode::SimdUzp2, "uzp2"),
         (0x4E0C_690B, Opcode::SimdTrn2, "trn2"),
         (0x4EA1_2BEF, Opcode::SimdXtn2, "xtn2"),
