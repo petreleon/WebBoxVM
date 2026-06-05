@@ -20,3 +20,27 @@ fn second_virtio_disk_has_own_mmio_window() {
     assert_eq!(bus.read(VIRTIO_BLK_BASE, 4), Some(0x7472_6976));
     assert_eq!(bus.read(VIRTIO_DISK_BASE, 4), Some(0x7472_6976));
 }
+
+#[test]
+fn refresh_interrupts_reasserts_uart_rx_while_input_remains() {
+    let mut bus = SystemBus::new();
+    let irq_bit = 1 << (PL011_UART_IRQ_ID % 32);
+    let irq_word = (PL011_UART_IRQ_ID / 32) as usize;
+
+    bus.write(UART_BASE + 0x38, 4, 0x50);
+    bus.uart.feed_input("ab");
+
+    bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    bus.refresh_interrupts();
+    assert_ne!(bus.gic.pending[irq_word] & irq_bit, 0);
+
+    assert_eq!(bus.read(UART_BASE, 1), Some(b'a' as u64));
+    bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    bus.refresh_interrupts();
+    assert_ne!(bus.gic.pending[irq_word] & irq_bit, 0);
+
+    assert_eq!(bus.read(UART_BASE, 1), Some(b'b' as u64));
+    bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    bus.refresh_interrupts();
+    assert_eq!(bus.gic.pending[irq_word] & irq_bit, 0);
+}

@@ -62,6 +62,7 @@ impl Machine {
     }
 
     pub(super) fn deliver_irq(&mut self, core: usize) {
+        self.bus.refresh_interrupts();
         deliver_external_irq(&mut self.cpus[core], &mut self.bus);
     }
 }

@@ -67,6 +67,12 @@ impl SystemBus {
         self.mem.read(addr, size)
     }
 
+    pub fn refresh_interrupts(&mut self) {
+        if self.uart.masked_rx_interrupt_pending() {
+            self.gic.set_pending(PL011_UART_IRQ_ID);
+        }
+    }
+
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
         // Redirect fixmap kernel VA UART writes to the correct device.
         // Only applies to kernel VAs (>= 0xffff000000000000), not physical addresses.

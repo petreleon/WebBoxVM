@@ -59,6 +59,10 @@ impl Pl011Uart {
             INT_RX | INT_RT
         }
     }
+
+    pub fn masked_rx_interrupt_pending(&self) -> bool {
+        self.raw_interrupt_status() & self.imsc & (INT_RX | INT_RT) != 0
+    }
 }
 
 pub(in crate::devices::pl011) fn is_uart_addr(addr: u64) -> bool {
