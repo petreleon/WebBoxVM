@@ -13,12 +13,27 @@ fn decode_dc_zva() {
 fn decode_dmb_ish_as_barrier() {
     assert_disarm64_mnemonic(0xD503_3BBF, "dmb");
     assert_disarm64_mnemonic(0xD503_39BF, "dmb");
+    assert_disarm64_mnemonic(0xD503_3B9F, "dsb");
 
     let instr = decode(0xD503_3BBF).unwrap(); // dmb ish
     assert_eq!(instr.op, Opcode::NopBarrier);
 
     let load_barrier = decode(0xD503_39BF).unwrap(); // dmb ishld
     assert_eq!(load_barrier.op, Opcode::NopBarrier);
+
+    assert_eq!(decode(0xD503_3B9F).unwrap().op, Opcode::NopBarrier); // dsb ish
+}
+
+#[test]
+fn decode_cache_maintenance_sys_as_barrier() {
+    let cases = [(0xD50B_7520, 0), (0xD50B_7B22, 2)];
+
+    for (raw, rd) in cases {
+        assert_disarm64_mnemonic(raw, "sys");
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::NopBarrier, "raw=0x{raw:08x}");
+        assert_eq!(instr.rd, rd, "raw=0x{raw:08x}");
+    }
 }
 
 #[test]

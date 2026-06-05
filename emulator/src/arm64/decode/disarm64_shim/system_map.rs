@@ -8,7 +8,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#hint => Opcode::Nop,
         M::r#chkfeat if raw == 0xD503_251F => Opcode::Chkfeat,
         M::r#clrex if raw == 0xD503_305F => Opcode::NopBarrier,
-        M::r#dmb | M::r#dsb | M::r#isb if legacy_barrier(raw) => Opcode::NopBarrier,
+        M::r#dmb | M::r#dsb | M::r#isb if barrier(raw) => Opcode::NopBarrier,
         M::r#gcspushm if (raw & 0xFFFF_FFE0) == 0xD50B_7700 => Opcode::GcsPushM,
         M::r#gcspushx if raw == 0xD508_779F => Opcode::GcsPushX,
         M::r#gcspopm if (raw & 0xFFFF_FFE0) == 0xD52B_7720 => Opcode::GcsPopM,
@@ -23,6 +23,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7420 => Opcode::DcZva,
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7460 => Opcode::DcGva,
         M::r#sys if (raw & 0xFFFF_FFE0) == 0xD50B_7480 => Opcode::DcGzva,
+        M::r#sys if cache_maintenance(raw) => Opcode::NopBarrier,
         M::r#sys if legacy_tlbi(raw) => Opcode::Tlbi,
         M::r#svc => Opcode::Svc,
         M::r#brk => Opcode::Brk,
@@ -32,17 +33,12 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
     })
 }
 
-fn legacy_barrier(raw: u32) -> bool {
-    matches!(
-        raw,
-        0xD503_309F
-            | 0xD503_30BF
-            | 0xD503_30DF
-            | 0xD503_39BF
-            | 0xD503_3BBF
-            | 0xD503_3F9F
-            | 0xD503_3FDF
-    )
+fn barrier(raw: u32) -> bool {
+    matches!(raw & 0xFFFF_F0FF, 0xD503_309F | 0xD503_30BF | 0xD503_30DF)
+}
+
+fn cache_maintenance(raw: u32) -> bool {
+    matches!(raw & 0xFFFF_FFE0, 0xD50B_7520 | 0xD50B_7B20)
 }
 
 fn legacy_daif_alias(raw: u32) -> bool {

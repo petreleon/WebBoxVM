@@ -88,14 +88,18 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         });
     }
     if (raw >> 24) == 0xD5 {
+        if is_barrier(raw) {
+            return DecodeStep::from_option(system::decode_barrier());
+        }
         match raw {
             0xD503_203F => return DecodeStep::from_option(system::decode_yield()),
             0xD503_205F => return DecodeStep::from_option(system::decode_wfe()),
             0xD503_207F => return DecodeStep::from_option(system::decode_wfi()),
             0xD503_305F => return DecodeStep::from_option(system::decode_clrex()),
-            0xD503_309F | 0xD503_30BF | 0xD503_30DF | 0xD503_39BF | 0xD503_3BBF | 0xD503_3F9F
-            | 0xD503_3FDF => return DecodeStep::from_option(system::decode_barrier()),
             _ => {}
+        }
+        if is_cache_maintenance(raw) {
+            return DecodeStep::from_option(system::decode_cache_maintenance(raw));
         }
         let op0 = (raw >> 19) & 0x3;
         let l = (raw >> 21) & 1;
@@ -134,4 +138,12 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return DecodeStep::from_option(data_proc::decode_adr(raw));
     }
     DecodeStep::Miss
+}
+
+fn is_barrier(raw: u32) -> bool {
+    matches!(raw & 0xFFFF_F0FF, 0xD503_309F | 0xD503_30BF | 0xD503_30DF)
+}
+
+fn is_cache_maintenance(raw: u32) -> bool {
+    matches!(raw & 0xFFFF_FFE0, 0xD50B_7520 | 0xD50B_7B20)
 }

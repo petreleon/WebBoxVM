@@ -111,6 +111,19 @@ pub(super) fn decode_barrier() -> Option<Instr> {
     })
 }
 
+pub(super) fn decode_cache_maintenance(raw: u32) -> Option<Instr> {
+    Some(Instr {
+        op: Opcode::NopBarrier,
+        rd: (raw & 0x1F) as u8,
+        rn: 0,
+        rm: 0,
+        imm: (((raw >> 5) & 0x7FFF) as u64),
+        sf: true,
+        cond: 0,
+        size: 0,
+    })
+}
+
 pub(super) fn decode_udf(raw: u32) -> Option<Instr> {
     Some(Instr {
         op: Opcode::Udf,

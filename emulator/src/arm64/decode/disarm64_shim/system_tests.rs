@@ -5,9 +5,12 @@ fn maps_system_mnemonics() {
     let cases = [
         (0xD503_305F, Opcode::NopBarrier, "clrex"),
         (0xD503_3BBF, Opcode::NopBarrier, "dmb"),
+        (0xD503_3B9F, Opcode::NopBarrier, "dsb"),
         (0xD50B_7423, Opcode::DcZva, "sys"),
         (0xD50B_7462, Opcode::DcGva, "sys"),
         (0xD50B_7482, Opcode::DcGzva, "sys"),
+        (0xD50B_7520, Opcode::NopBarrier, "sys"),
+        (0xD50B_7B22, Opcode::NopBarrier, "sys"),
         (0xD508_871F, Opcode::Tlbi, "sys"),
         (0xD518_4102, Opcode::Msr, "msr"),
         (0xD538_4103, Opcode::Mrs, "mrs"),
@@ -43,10 +46,13 @@ fn maps_hint_aliases_by_encoding() {
 }
 
 #[test]
-fn leaves_unimplemented_barrier_alias_unmapped() {
+fn maps_all_barrier_aliases_by_encoding() {
     let raw = 0xD503_3FBF;
     let decoded = decoder::decode(raw).expect("disarm64 should decode dmb sy");
 
     assert_eq!(format!("{:?}", decoded.mnemonic), "dmb");
-    assert_eq!(mnemonic_to_opcode(raw, decoded.mnemonic), None);
+    assert_eq!(
+        mnemonic_to_opcode(raw, decoded.mnemonic),
+        Some(Opcode::NopBarrier)
+    );
 }
