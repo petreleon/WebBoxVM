@@ -49,7 +49,10 @@ impl WasmExpr {
                 });
                 true
             }
-            Opcode::Add | Opcode::Sub if instr.cond == 0 && instr.imm == 0 => {
+            Opcode::Add | Opcode::Sub => {
+                if !can_emit_shift(instr.cond, instr.imm, instr.sf) {
+                    return false;
+                }
                 let op = if instr.op == Opcode::Add {
                     OP_I64_ADD
                 } else {
@@ -57,7 +60,7 @@ impl WasmExpr {
                 };
                 self.emit_write_reg_with(instr.rd, instr.sf, |this| {
                     this.emit_read_reg(instr.rn, instr.sf);
-                    this.emit_read_reg(instr.rm, instr.sf);
+                    this.emit_read_shifted_reg(instr.rm, instr.cond, instr.imm, instr.sf);
                     this.op(op);
                 });
                 true
@@ -71,13 +74,20 @@ impl WasmExpr {
                 });
                 true
             }
-            Opcode::AndReg | Opcode::OrrReg | Opcode::EorReg
-                if instr.cond == 0 && instr.imm == 0 =>
-            {
+            Opcode::AndReg | Opcode::OrrReg | Opcode::EorReg => {
+                let shift_type = instr.cond & 3;
+                if !can_emit_shift(shift_type, instr.imm, instr.sf) {
+                    return false;
+                }
+                let invert = (instr.cond & 4) != 0;
                 let op = logical_opcode(instr.op);
                 self.emit_write_reg_with(instr.rd, instr.sf, |this| {
                     this.emit_read_reg(instr.rn, instr.sf);
-                    this.emit_read_reg(instr.rm, instr.sf);
+                    this.emit_read_shifted_reg(instr.rm, shift_type, instr.imm, instr.sf);
+                    if invert {
+                        this.i64_const(if instr.sf { u64::MAX } else { u32::MAX as u64 });
+                        this.op(OP_I64_XOR);
+                    }
                     this.op(op);
                 });
                 true

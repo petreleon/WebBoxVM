@@ -33,7 +33,7 @@ mod tests;
 use expr::WasmExpr;
 pub use hash::hash_raw_words;
 use hash::{hash_raw_word, hash_seed};
-use helpers::{logical_opcode, reg_offset};
+use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
     JIT_STATE_PC_OFFSET, JIT_STATE_SIZE, JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET, WasmJitCpuState,

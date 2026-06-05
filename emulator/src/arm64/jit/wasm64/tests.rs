@@ -26,6 +26,14 @@ fn instr(op: Opcode, rd: u8, rn: u8, rm: u8, imm: u64, sf: bool) -> Instr {
     }
 }
 
+fn instr_cond(op: Opcode, cond: u8, imm: u64, sf: bool) -> Instr {
+    Instr {
+        cond,
+        imm,
+        ..instr(op, 2, 0, 1, 0, sf)
+    }
+}
+
 #[test]
 fn jit_state_roundtrips_cpu_registers() {
     let mut cpu = Armv8Cpu::default();
@@ -89,6 +97,37 @@ fn unsupported_opcode_ends_compiled_prefix() {
     let block = block(vec![
         instr(Opcode::Movz, 0, 0, 0, 5, true),
         instr(Opcode::Ldr, 1, 0, 0, 0, true),
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile prefix");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert_eq!(module.exit_pc, 0x1004);
+}
+
+#[test]
+fn compiles_shifted_register_prefix() {
+    let block = block(vec![
+        instr_cond(Opcode::Add, 0, 4, true),
+        instr_cond(Opcode::Sub, 1, 5, true),
+        instr_cond(Opcode::AndReg, 2, 6, false),
+        instr_cond(Opcode::OrrReg, 4, 0, true),
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile shifted prefix");
+
+    assert_eq!(module.guest_instr_count, 4);
+    assert!(module.bytes.contains(&opcodes::OP_I64_SHL));
+    assert!(module.bytes.contains(&opcodes::OP_I64_SHR_U));
+    assert!(module.bytes.contains(&opcodes::OP_I64_SHR_S));
+    assert!(module.bytes.contains(&opcodes::OP_I64_XOR));
+}
+
+#[test]
+fn unsupported_32_bit_rotate_right_ends_compiled_prefix() {
+    let block = block(vec![
+        instr(Opcode::Movz, 0, 0, 0, 5, true),
+        instr_cond(Opcode::EorReg, 3, 5, false),
     ]);
 
     let module = Wasm64Compiler::compile(&block).expect("compile prefix");

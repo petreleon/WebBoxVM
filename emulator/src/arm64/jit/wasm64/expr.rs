@@ -34,6 +34,27 @@ impl WasmExpr {
         self.mask_32_if_needed(sf);
     }
 
+    pub(super) fn emit_read_shifted_reg(&mut self, reg: u8, shift_type: u8, amount: u64, sf: bool) {
+        self.emit_read_reg(reg, sf);
+        if amount == 0 {
+            return;
+        }
+
+        if !sf && shift_type == 2 {
+            self.op(OP_I32_WRAP_I64);
+            self.op(OP_I64_EXTEND_I32_S);
+        }
+
+        self.i64_const(amount);
+        self.op(match shift_type {
+            0 => OP_I64_SHL,
+            1 => OP_I64_SHR_U,
+            2 => OP_I64_SHR_S,
+            3 => OP_I64_ROTR,
+            _ => unreachable!(),
+        });
+    }
+
     pub(super) fn emit_write_reg_with(&mut self, reg: u8, sf: bool, value: impl FnOnce(&mut Self)) {
         if reg >= ZERO_REGISTER_INDEX {
             return;
