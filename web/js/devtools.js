@@ -57,7 +57,7 @@ function installDomBridge(getEmulator) {
   const applyJit = makeButton("webboxvm-devtools-apply-jit");
 
   sendText.addEventListener("click", () => {
-    getEmulator()?.send_uart_input(textInput.value);
+    getEmulator()?.send_uart_input(terminalInput(textInput.value));
   });
   sendBytes.addEventListener("click", () => {
     const bytes = parseBytes(bytesInput.value);
@@ -75,6 +75,10 @@ function installDomBridge(getEmulator) {
   return {
     jitEnabled: () => jitEnabled.checked,
   };
+}
+
+function terminalInput(input) {
+  return input.replace(/\r?\n/g, "\r");
 }
 
 function makeTextarea(testId) {
