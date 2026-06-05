@@ -133,6 +133,7 @@ pub(super) fn execute(
         Opcode::SveLd1h | Opcode::SveLdnt1sh => exec_sve_ld1h_family(cpu, bus, instr)?,
         Opcode::SveSt1b => exec_sve_st1b(cpu, bus, instr)?,
         Opcode::SveSt1h => exec_sve_st1h(cpu, bus, instr)?,
+        Opcode::SveSt1hScatter => exec_sve_st1h_scatter(cpu, bus, instr)?,
         Opcode::SveLd1rd | Opcode::SveLd1rqd | Opcode::SveLd1d | Opcode::SveSt1d => {
             exec_sve_ld1_st1_d(cpu, bus, instr)?
         }

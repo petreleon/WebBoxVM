@@ -57,6 +57,7 @@ impl super::Opcode {
     pub const SveSt1b: Self = Self(260);
     pub const SveLd1b: Self = Self(261);
     pub const SveSt1h: Self = Self(603);
+    pub const SveSt1hScatter: Self = Self(604);
     pub const SveLd1h: Self = Self(498);
     pub const SveLdnt1sh: Self = Self(499);
     pub const SveLd1rw: Self = Self(262);

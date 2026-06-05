@@ -20,7 +20,28 @@ fn decode_sve_halfword_store_forms_cross_checked_with_disarm64() {
 }
 
 #[test]
-fn decode_sve_halfword_store_leaves_vector_offset_form_unmapped() {
-    assert_disarm64_mnemonic(0xE4BF_CAB2, "st1h");
-    assert!(decode(0xE4BF_CAB2).is_none());
+fn decode_sve_halfword_scatter_store_forms_cross_checked_with_disarm64() {
+    let cases = [
+        (0xE4FF_8AB2, 18, 21, 31, 3, false, 2, 4),
+        (0xE4FF_CAB2, 18, 21, 31, 3, true, 2, 4),
+        (0xE4DF_8AB2, 18, 21, 31, 2, false, 2, 4),
+        (0xE4DF_CAB2, 18, 21, 31, 2, true, 2, 4),
+        (0xE4BF_8AB2, 18, 21, 31, 3, false, 2, 8),
+        (0xE4BF_CAB2, 18, 21, 31, 3, true, 2, 8),
+        (0xE49F_8AB2, 18, 21, 31, 2, false, 2, 8),
+        (0xE49F_CAB2, 18, 21, 31, 2, true, 2, 8),
+        (0xE4BF_AAA7, 7, 21, 31, 1, false, 2, 8),
+        (0xE49F_AAA7, 7, 21, 31, 0, false, 2, 8),
+    ];
+
+    for &(raw, rd, rn, rm, imm, signed, pred, size) in &cases {
+        assert_disarm64_mnemonic(raw, "st1h");
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, Opcode::SveSt1hScatter, "raw=0x{raw:08x}");
+        assert_eq!((instr.rd, instr.rn, instr.rm), (rd, rn, rm));
+        assert_eq!(
+            (instr.imm, instr.sf, instr.cond, instr.size),
+            (imm, signed, pred, size)
+        );
+    }
 }
