@@ -46,6 +46,20 @@ fn sysl_writes_zero_result() {
 }
 
 #[test]
+fn unsupported_128_bit_system_classes_trap() {
+    for raw in [0xD548_0000, 0xD570_0000, 0xD550_0000] {
+        let (mut cpu, mut bus) = setup();
+        cpu.pstate = cpu.pstate.with_el(1);
+        cpu.sys.vbar_el1 = RAM_BASE + 0x1000;
+
+        execute(&mut cpu, &mut bus, decode(raw).unwrap()).unwrap();
+
+        assert_eq!(cpu.sys.esr_el1, (ESR_EC_UNKNOWN << 26) | ESR_IL);
+        assert_eq!(cpu.regs.pc, cpu.sys.vbar_el1 + 0x200);
+    }
+}
+
+#[test]
 fn flag_system_instructions_update_nzcv() {
     let (mut cpu, mut bus) = setup();
     cpu.pstate.set_nzcv(false, true, true, false);

@@ -41,3 +41,20 @@ fn decode_sysl_system_instruction() {
     assert_eq!(instr.rd, 3);
     assert_eq!(instr.imm, 0x43A1);
 }
+
+#[test]
+fn decode_128_bit_system_instruction_classes() {
+    let cases = [
+        (0xD548_0000, Opcode::Sysp, "sysp"),
+        (0xD570_0000, Opcode::Mrrs, "mrrs"),
+        (0xD550_0000, Opcode::Msrr, "msrr"),
+    ];
+    assert_decode_cases(&cases);
+
+    let sysp = decode(0xD548_0020).unwrap();
+    assert_eq!(sysp.op, Opcode::Sysp);
+    assert_eq!(sysp.rd, 0);
+    assert_eq!(sysp.imm, 0x4001);
+
+    assert_eq!(decode(0xD52B_7725).unwrap().op, Opcode::GcsPopM);
+}

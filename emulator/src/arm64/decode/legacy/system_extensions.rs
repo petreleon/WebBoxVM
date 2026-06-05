@@ -8,16 +8,16 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return DecodeStep::from_option(system::decode_extension_nop(op, (raw & 0x1F) as u8));
     }
     if (raw & 0xFFF8_0000) == 0xD528_0000 {
-        return DecodeStep::Hit(Instr {
-            op: Opcode::Sysl,
-            rd: (raw & 0x1F) as u8,
-            rn: 0,
-            rm: 0,
-            imm: ((raw >> 5) & 0x7FFF) as u64,
-            sf: true,
-            cond: 0,
-            size: 0,
-        });
+        return DecodeStep::Hit(system_instr(raw, Opcode::Sysl));
+    }
+    if (raw & 0xFFF8_0000) == 0xD548_0000 {
+        return DecodeStep::Hit(system_instr(raw, Opcode::Sysp));
+    }
+    if (raw & 0xFFF0_0000) == 0xD570_0000 {
+        return DecodeStep::Hit(system_instr(raw, Opcode::Mrrs));
+    }
+    if (raw & 0xFFF0_0000) == 0xD550_0000 {
+        return DecodeStep::Hit(system_instr(raw, Opcode::Msrr));
     }
     if matches!(raw, 0xD503_427F | 0xD503_447F | 0xD503_467F) {
         return DecodeStep::from_option(system::decode_extension_nop(Opcode::Smstop, 0));
@@ -32,6 +32,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             (raw & 0x1F) as u8,
         )),
         _ => DecodeStep::Miss,
+    }
+}
+
+fn system_instr(raw: u32, op: Opcode) -> Instr {
+    Instr {
+        op,
+        rd: (raw & 0x1F) as u8,
+        rn: 0,
+        rm: 0,
+        imm: ((raw >> 5) & 0x7FFF) as u64,
+        sf: true,
+        cond: 0,
+        size: 0,
     }
 }
 

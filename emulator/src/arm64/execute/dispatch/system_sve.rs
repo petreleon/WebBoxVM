@@ -18,6 +18,10 @@ pub(super) fn execute(
             write_reg(cpu, instr.rd, val, true);
         }
         Opcode::Sysl => write_reg(cpu, instr.rd, 0, true),
+        Opcode::Sysp | Opcode::Mrrs | Opcode::Msrr => {
+            exec_udf(cpu)?;
+            return Ok(Some(Flow::Return));
+        }
         Opcode::Msr => exec_msr(cpu, instr),
         op if scalar_count::is_opcode(op) => scalar_count::execute(cpu, instr),
         Opcode::SvePtrue | Opcode::SvePtrues => exec_sve_ptrue(cpu, instr),

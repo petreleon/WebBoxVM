@@ -76,4 +76,7 @@ impl super::Opcode {
     pub const Setf8: Self = Self(537);
     pub const Setf16: Self = Self(538);
     pub const Sysl: Self = Self(539);
+    pub const Sysp: Self = Self(540);
+    pub const Mrrs: Self = Self(541);
+    pub const Msrr: Self = Self(542);
 }
