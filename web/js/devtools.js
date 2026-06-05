@@ -79,9 +79,9 @@ function makeButton(testId) {
 }
 
 function parseBytes(input) {
-  return input
+  return new Uint8Array(input
     .split(/[\s,]+/)
     .filter(Boolean)
     .map((token) => Number.parseInt(token, token.startsWith("0x") ? 16 : 10))
-    .filter((value) => Number.isInteger(value) && value >= 0 && value <= 255);
+    .filter((value) => Number.isInteger(value) && value >= 0 && value <= 255));
 }
