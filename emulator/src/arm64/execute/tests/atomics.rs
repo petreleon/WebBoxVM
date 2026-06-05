@@ -124,3 +124,33 @@ fn ldxp_stlxp_pair_roundtrip() {
     assert_eq!(cpu.regs.x(0), 0xAAAA);
     assert_eq!(cpu.regs.x(1), 0xBBBB);
 }
+
+#[test]
+fn rcpc3_gpr_writeback_load_store_forms() {
+    let (mut cpu, mut bus) = setup();
+    let base = RAM_BASE + 0x5c00;
+
+    cpu.regs.set_x(1, base);
+    bus.mem.write(base, 4, 0xaabb_ccdd);
+    execute(&mut cpu, &mut bus, decode(0x99C0_0820).unwrap()).unwrap(); // ldapr w0, [x1], #4
+    assert_eq!(cpu.regs.x(0), 0xaabb_ccdd);
+    assert_eq!(cpu.regs.x(1), base + 4);
+
+    cpu.regs.set_x(3, base + 0x20);
+    bus.mem.write(base + 0x20, 8, 0x1122_3344_5566_7788);
+    execute(&mut cpu, &mut bus, decode(0xD9C0_0862).unwrap()).unwrap(); // ldapr x2, [x3], #8
+    assert_eq!(cpu.regs.x(2), 0x1122_3344_5566_7788);
+    assert_eq!(cpu.regs.x(3), base + 0x28);
+
+    cpu.regs.set_x(5, base + 0x44);
+    cpu.regs.set_w(4, 0x1357_9bdf);
+    execute(&mut cpu, &mut bus, decode(0x9980_08A4).unwrap()).unwrap(); // stlr w4, [x5, #-4]!
+    assert_eq!(cpu.regs.x(5), base + 0x40);
+    assert_eq!(bus.mem.read(base + 0x40, 4), Some(0x1357_9bdf));
+
+    cpu.regs.set_x(7, base + 0x70);
+    cpu.regs.set_x(6, 0x8877_6655_4433_2211);
+    execute(&mut cpu, &mut bus, decode(0xD980_08E6).unwrap()).unwrap(); // stlr x6, [x7, #-8]!
+    assert_eq!(cpu.regs.x(7), base + 0x68);
+    assert_eq!(bus.mem.read(base + 0x68, 8), Some(0x8877_6655_4433_2211));
+}

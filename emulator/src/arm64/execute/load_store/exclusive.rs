@@ -15,10 +15,14 @@ pub(in crate::arm64::execute) fn exec_exclusive(
             write_reg(cpu, instr.rd, val, instr.sf);
         }
         Opcode::Ldar => {
+            let va = base;
             let pa =
-                translate_or_data_fault(cpu, &mut bus.mem, base, false, "LDAR translation fault")?;
+                translate_or_data_fault(cpu, &mut bus.mem, va, false, "LDAR translation fault")?;
             let val = bus.read(pa, instr.size).ok_or("LDAR bus fault")?;
             write_reg(cpu, instr.rd, val, instr.sf);
+            if instr.cond == 2 {
+                write_reg_sp(cpu, instr.rn, base.wrapping_add(instr.imm), true);
+            }
         }
         Opcode::Stxr => {
             let pa =
@@ -33,12 +37,20 @@ pub(in crate::arm64::execute) fn exec_exclusive(
             write_reg(cpu, instr.imm as u8, if success { 0 } else { 1 }, false);
         }
         Opcode::Stlr => {
+            let va = if instr.cond == 3 {
+                base.wrapping_add(instr.imm)
+            } else {
+                base
+            };
             let pa =
-                translate_or_data_fault(cpu, &mut bus.mem, base, true, "STLR translation fault")?;
+                translate_or_data_fault(cpu, &mut bus.mem, va, true, "STLR translation fault")?;
             let val = read_reg(cpu, instr.rd, instr.sf);
-            trace_text_store(cpu, bus, &instr, "STLR", base, pa, instr.size, val);
+            trace_text_store(cpu, bus, &instr, "STLR", va, pa, instr.size, val);
             bus.write(pa, instr.size, val);
             cpu.clear_exclusive_if_overlaps(pa, instr.size);
+            if instr.cond == 3 {
+                write_reg_sp(cpu, instr.rn, va, true);
+            }
         }
         Opcode::Ldxp => {
             let size = if instr.sf { 8 } else { 4 };

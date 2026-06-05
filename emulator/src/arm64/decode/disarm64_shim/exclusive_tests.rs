@@ -13,7 +13,11 @@ fn maps_exclusive_mnemonics() {
         (0x080D_FDEE, Opcode::Stxr, "stlxrb"),
         (0xC8DF_FC40, Opcode::Ldar, "ldar"),
         (0x48DF_FE30, Opcode::Ldar, "ldarh"),
+        (0x99C0_0820, Opcode::Ldar, "ldapr"),
+        (0xD9C0_0862, Opcode::Ldar, "ldapr"),
         (0x089F_FE72, Opcode::Stlr, "stlrb"),
+        (0x9980_08A4, Opcode::Stlr, "stlr"),
+        (0xD980_08E6, Opcode::Stlr, "stlr"),
         (0xC87F_8440, Opcode::Ldxp, "ldaxp"),
         (0xC823_8440, Opcode::Stxp, "stlxp"),
     ];

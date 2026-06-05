@@ -6,7 +6,7 @@ pub(super) fn map(m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ldxr | M::r#ldxrb | M::r#ldxrh | M::r#ldaxr | M::r#ldaxrb | M::r#ldaxrh => {
             Opcode::Ldxr
         }
-        M::r#ldar | M::r#ldarb | M::r#ldarh => Opcode::Ldar,
+        M::r#ldar | M::r#ldarb | M::r#ldarh | M::r#ldapr => Opcode::Ldar,
         M::r#stxr | M::r#stxrb | M::r#stxrh | M::r#stlxr | M::r#stlxrb | M::r#stlxrh => {
             Opcode::Stxr
         }

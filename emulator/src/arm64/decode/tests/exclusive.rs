@@ -43,3 +43,42 @@ fn decode_exclusive_pair_acquire_release_forms() {
         assert_eq!(instr.cond, cond, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_rcpc3_gpr_writeback_forms_cross_checked_with_disarm64() {
+    let cases = [
+        (0x99C0_0820, Opcode::Ldar, "ldapr", 0, 1, 4, false, 2),
+        (0xD9C0_0862, Opcode::Ldar, "ldapr", 2, 3, 8, true, 2),
+        (
+            0x9980_08A4,
+            Opcode::Stlr,
+            "stlr",
+            4,
+            5,
+            (-4i64) as u64,
+            false,
+            3,
+        ),
+        (
+            0xD980_08E6,
+            Opcode::Stlr,
+            "stlr",
+            6,
+            7,
+            (-8i64) as u64,
+            true,
+            3,
+        ),
+    ];
+
+    for (raw, expected, mnemonic, rd, rn, imm, sf, cond) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!((instr.rd, instr.rn, instr.imm), (rd, rn, imm));
+        assert_eq!(
+            (instr.sf, instr.cond, instr.size),
+            (sf, cond, if sf { 8 } else { 4 })
+        );
+    }
+}
