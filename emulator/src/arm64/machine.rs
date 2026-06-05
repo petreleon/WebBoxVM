@@ -9,7 +9,7 @@ use crate::arm64::{Armv8Cpu, DecodeCache, Instr, Opcode, cond_taken, decode, exe
 use crate::bus::SystemBus;
 use crate::constants::*;
 
-mod exceptions;
+pub(crate) mod exceptions;
 mod run;
 mod run_faults;
 mod run_flow;

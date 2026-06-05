@@ -35,7 +35,7 @@ pub(in crate::arm64::machine) fn take_instruction_abort(cpu: &mut Armv8Cpu, faul
     take_sync_exception(cpu, fault_pc, ec, ESR_FSC_TRANSLATION_LEVEL3, from_lower_el);
 }
 
-pub(in crate::arm64::machine) fn take_data_abort(
+pub(crate) fn take_data_abort(
     cpu: &mut Armv8Cpu,
     fault_pc: u64,
     instr: Instr,
@@ -72,7 +72,7 @@ pub(in crate::arm64::machine) fn take_fp_simd_trap(cpu: &mut Armv8Cpu, fault_pc:
     );
 }
 
-pub(in crate::arm64::machine) fn is_data_abort_fault(err: &str) -> bool {
+pub(crate) fn is_data_abort_fault(err: &str) -> bool {
     err.contains("translation fault")
         || err.contains("permission fault")
         || err.contains("access flag fault")

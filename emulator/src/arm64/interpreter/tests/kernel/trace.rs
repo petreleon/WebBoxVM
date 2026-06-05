@@ -1,4 +1,5 @@
 use super::*;
+use crate::arm64::machine::exceptions::{is_data_abort_fault, take_data_abort};
 
 #[test]
 #[ignore = "slow: loads 37 MB kernel"]
@@ -71,7 +72,17 @@ fn real_kernel_runs_past_prologue_trace() {
         if let Some(instr) = decode(raw) {
             trace.observe_call_and_return(steps, &cpu, &bus, &instr);
             trace.record_instruction(steps, &cpu, &instr);
+            let fault_pc = cpu.regs.pc;
             if let Err(e) = execute(&mut cpu, &mut bus, instr) {
+                if is_data_abort_fault(e) {
+                    if std::env::var_os("WEBBOXVM_TRACE_DATA_ABORTS").is_some() {
+                        println!("DATA ABORT step={} PC={:#016x}: {:?}", steps, fault_pc, e);
+                    }
+                    take_data_abort(&mut cpu, fault_pc, instr, e, false);
+                    steps += 1;
+                    last_pc = cpu.regs.pc;
+                    continue;
+                }
                 println!(
                     "EXECUTE ERROR step={} PC={:#016x}: {:?}",
                     steps, cpu.regs.pc, e
