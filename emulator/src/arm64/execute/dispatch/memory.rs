@@ -8,6 +8,8 @@ pub(super) fn execute(
     match instr.op {
         Opcode::Ldr
         | Opcode::LdrSign
+        | Opcode::Ldapur
+        | Opcode::Ldapurs
         | Opcode::Ldraa
         | Opcode::Ldrab
         | Opcode::Str

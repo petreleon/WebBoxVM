@@ -8,6 +8,8 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ldr if (raw & 0x3B00_0000) == 0x1800_0000 => Opcode::LdrLit,
         M::r#ldr | M::r#ldur if ((raw >> 26) & 1) != 0 => Opcode::SimdLdr,
         M::r#ldr | M::r#ldur | M::r#ldrb | M::r#ldurb | M::r#ldrh | M::r#ldurh => Opcode::Ldr,
+        M::r#ldapur | M::r#ldapurb | M::r#ldapurh => Opcode::Ldapur,
+        M::r#ldapursb | M::r#ldapursh | M::r#ldapursw => Opcode::Ldapurs,
         M::r#ldraa | M::r#ldrab => {
             if (raw & 0xFFA0_0400) == 0xF820_0400 {
                 Opcode::Ldraa

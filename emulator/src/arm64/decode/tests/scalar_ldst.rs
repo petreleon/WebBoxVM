@@ -27,6 +27,29 @@ fn decode_scalar_byte_halfword_load_store_cross_checked_with_disarm64() {
 }
 
 #[test]
+fn decode_rcpc_unscaled_loads_cross_checked_with_disarm64() {
+    let cases = [
+        (0x1940_1022, Opcode::Ldapur, "ldapurb", 1, false, 2, 1, 1),
+        (0x5940_2023, Opcode::Ldapur, "ldapurh", 2, false, 3, 1, 2),
+        (0x9940_3024, Opcode::Ldapur, "ldapur", 4, false, 4, 1, 3),
+        (0xD940_4025, Opcode::Ldapur, "ldapur", 8, true, 5, 1, 4),
+        (0x19C0_5026, Opcode::Ldapurs, "ldapursb", 1, false, 6, 1, 5),
+        (0x1980_5027, Opcode::Ldapurs, "ldapursb", 1, true, 7, 1, 5),
+        (0x5980_6028, Opcode::Ldapurs, "ldapursh", 2, true, 8, 1, 6),
+        (0x59C0_6029, Opcode::Ldapurs, "ldapursh", 2, false, 9, 1, 6),
+        (0x9980_702A, Opcode::Ldapurs, "ldapursw", 4, true, 10, 1, 7),
+        (0x595F_F020, Opcode::Ldapur, "ldapurh", 2, false, 0, 1, (-1i64) as u64),
+    ];
+
+    for (raw, expected, mnemonic, size, sf, rd, rn, imm) in cases {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        let instr = decode(raw).unwrap();
+        assert_eq!(instr.op, expected, "raw=0x{raw:08x}");
+        assert_eq!((instr.size, instr.sf, instr.rd, instr.rn, instr.imm), (size, sf, rd, rn, imm));
+    }
+}
+
+#[test]
 fn decode_authenticated_loads_cross_checked_with_disarm64() {
     let cases = [
         (0xF87F_060D, Opcode::Ldraa, "ldraa", 13, 16, (-128i64) as u64, 0),

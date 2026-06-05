@@ -11,6 +11,8 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
         instr.op,
         Opcode::Ldr
             | Opcode::LdrSign
+            | Opcode::Ldapur
+            | Opcode::Ldapurs
             | Opcode::Ldraa
             | Opcode::Ldrab
             | Opcode::SimdLdr
@@ -103,7 +105,7 @@ pub(in crate::arm64::execute) fn exec_ldr_str(
     } else if is_load {
         let mut val = read_guest(cpu, bus, va, size, "LDR bus fault")?;
         trace_syscall_frame_access(cpu, &instr, "LDR", va, pa, size, Some(val));
-        if instr.op == Opcode::LdrSign {
+        if matches!(instr.op, Opcode::LdrSign | Opcode::Ldapurs) {
             val = sign_extend_load(val, size, instr.sf);
         }
         write_reg(cpu, instr.rd, val, instr.sf);

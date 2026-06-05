@@ -64,6 +64,9 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if let Some(instr) = ldst::decode_lse_atomic(raw) {
         return DecodeStep::Hit(instr);
     }
+    if let Some(instr) = ldst::decode_ldapur(raw) {
+        return DecodeStep::Hit(instr);
+    }
 
     let ldst_family = (raw >> 24) & 0xF8;
     if ldst_family == 0x38 || ldst_family == 0x78 || ldst_family == 0xB8 || ldst_family == 0xF8 {

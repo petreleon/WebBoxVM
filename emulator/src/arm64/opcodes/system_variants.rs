@@ -133,4 +133,6 @@ impl super::Opcode {
     pub const Xpacd: Self = Self(595);
     pub const Subp: Self = Self(596);
     pub const Subps: Self = Self(597);
+    pub const Ldapur: Self = Self(598);
+    pub const Ldapurs: Self = Self(599);
 }
