@@ -77,52 +77,41 @@ pub(super) fn decode_tbz(raw: u32) -> Option<Instr> {
 }
 
 pub(super) fn decode_branch_reg(raw: u32) -> Option<Instr> {
-    if raw == 0xD69F03E0 {
-        return Some(Instr {
-            size: 0,
-            op: Opcode::Eret,
-            rd: 0,
-            rn: 0,
-            rm: 0,
-            imm: 0,
-            sf: true,
-            cond: 0,
-        });
+    if matches!(raw, 0xD69F_03E0 | 0xD69F_0BFF | 0xD69F_0FFF) {
+        return Some(branch_reg_instr(Opcode::Eret, 0));
+    }
+    if let Some(op) = decode_pac_branch_reg(raw) {
+        return Some(branch_reg_instr(op, ((raw >> 5) & 0x1F) as u8));
     }
     let opc = ((raw >> 21) & 0xF) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
-    match opc {
-        0b0000 => Some(Instr {
-            size: 0,
-            op: Opcode::Br,
-            rd: 0,
-            rn,
-            rm: 0,
-            imm: 0,
-            sf: true,
-            cond: 0,
-        }),
-        0b0001 => Some(Instr {
-            size: 0,
-            op: Opcode::Blr,
-            rd: 0,
-            rn,
-            rm: 0,
-            imm: 0,
-            sf: true,
-            cond: 0,
-        }),
-        0b0010 => Some(Instr {
-            size: 0,
-            op: Opcode::Ret,
-            rd: 0,
-            rn: if rn == 31 { 30 } else { rn },
-            rm: 0,
-            imm: 0,
-            sf: true,
-            cond: 0,
-        }),
+    let (op, rn) = match opc {
+        0b0000 => (Opcode::Br, rn),
+        0b0001 => (Opcode::Blr, rn),
+        0b0010 => (Opcode::Ret, if rn == 31 { 30 } else { rn }),
+        _ => return None,
+    };
+    Some(branch_reg_instr(op, rn))
+}
+
+fn decode_pac_branch_reg(raw: u32) -> Option<Opcode> {
+    match raw & 0xFFFF_FC00 {
+        0xD71F_0800 | 0xD71F_0C00 => Some(Opcode::Br),
+        0xD73F_0800 | 0xD73F_0C00 => Some(Opcode::Blr),
         _ => None,
+    }
+}
+
+fn branch_reg_instr(op: Opcode, rn: u8) -> Instr {
+    Instr {
+        size: 0,
+        op,
+        rd: 0,
+        rn,
+        rm: 0,
+        imm: 0,
+        sf: true,
+        cond: 0,
     }
 }
 

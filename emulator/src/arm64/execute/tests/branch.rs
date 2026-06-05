@@ -18,6 +18,28 @@ fn bl_sets_lr_and_jumps() {
 }
 
 #[test]
+fn pac_branch_uses_target_register() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.set_x(1, 0x4000_0100);
+
+    execute(&mut cpu, &mut bus, decode(0xD71F_0821).unwrap()).unwrap();
+
+    assert_eq!(cpu.regs.pc, 0x4000_0100);
+}
+
+#[test]
+fn pac_branch_link_sets_lr_and_jumps() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.pc = 0x4000_0000;
+    cpu.regs.set_x(2, 0x4000_0200);
+
+    execute(&mut cpu, &mut bus, decode(0xD73F_0843).unwrap()).unwrap();
+
+    assert_eq!(cpu.regs.x(30), 0x4000_0004);
+    assert_eq!(cpu.regs.pc, 0x4000_0200);
+}
+
+#[test]
 fn ret_returns_to_lr() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.set_x(30, 0x4000_0100);

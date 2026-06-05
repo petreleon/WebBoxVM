@@ -105,7 +105,7 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
     if bits31_24_masked_7e == 0b00110110 {
         return DecodeStep::from_option(branch::decode_tbz(raw));
     }
-    if bits31_24 == 0xD6 {
+    if matches!(bits31_24, 0xD6 | 0xD7) {
         return DecodeStep::from_option(branch::decode_branch_reg(raw));
     }
     if bits28_24 == 0b11011 {
