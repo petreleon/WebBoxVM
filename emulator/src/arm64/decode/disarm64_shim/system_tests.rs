@@ -49,6 +49,12 @@ fn maps_hint_aliases_by_encoding() {
         (0xD503_207F, Opcode::Wfi, "wfi"),
         (0xD503_209F, Opcode::Sev, "sev"),
         (0xD503_20BF, Opcode::Sevl, "sevl"),
+        (0xD503_221F, Opcode::Esb, "esb"),
+        (0xD503_223F, Opcode::PsbCsync, "psb\t\tcsync"),
+        (0xD503_225F, Opcode::TsbCsync, "tsb\t\tcsync"),
+        (0xD503_227F, Opcode::GcsbDsync, "gcsb\t\tdsync"),
+        (0xD503_229F, Opcode::Csdb, "csdb"),
+        (0xD503_22DF, Opcode::Clrbhb, "clrbhb"),
     ];
 
     for (raw, expected, display) in cases {

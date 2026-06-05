@@ -98,4 +98,10 @@ impl super::Opcode {
     pub const BtiJc: Self = Self(559);
     pub const Sev: Self = Self(560);
     pub const Sevl: Self = Self(561);
+    pub const Esb: Self = Self(562);
+    pub const PsbCsync: Self = Self(563);
+    pub const TsbCsync: Self = Self(564);
+    pub const GcsbDsync: Self = Self(565);
+    pub const Csdb: Self = Self(566);
+    pub const Clrbhb: Self = Self(567);
 }

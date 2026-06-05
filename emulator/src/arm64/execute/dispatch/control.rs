@@ -63,7 +63,13 @@ pub(super) fn execute(
         | Opcode::BtiJ
         | Opcode::BtiJc
         | Opcode::Sev
-        | Opcode::Sevl => exec_nop_like(cpu, instr),
+        | Opcode::Sevl
+        | Opcode::Esb
+        | Opcode::PsbCsync
+        | Opcode::TsbCsync
+        | Opcode::GcsbDsync
+        | Opcode::Csdb
+        | Opcode::Clrbhb => exec_nop_like(cpu, instr),
         Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
         _ => return Ok(None),
     }

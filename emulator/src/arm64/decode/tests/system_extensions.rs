@@ -110,3 +110,20 @@ fn decode_event_hint_aliases_as_named_noops() {
         assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
     }
 }
+
+#[test]
+fn decode_sync_hint_aliases_as_named_noops() {
+    let cases = [
+        (0xD503_221F, Opcode::Esb, "esb"),
+        (0xD503_223F, Opcode::PsbCsync, "psb\t\tcsync"),
+        (0xD503_225F, Opcode::TsbCsync, "tsb\t\tcsync"),
+        (0xD503_227F, Opcode::GcsbDsync, "gcsb\t\tdsync"),
+        (0xD503_229F, Opcode::Csdb, "csdb"),
+        (0xD503_22DF, Opcode::Clrbhb, "clrbhb"),
+    ];
+    for (raw, expected, display) in cases {
+        let decoded = disarm64::decoder::decode(raw).unwrap();
+        assert_eq!(decoded.to_string(), display);
+        assert_eq!(decode(raw).unwrap().op, expected, "raw=0x{raw:08x}");
+    }
+}

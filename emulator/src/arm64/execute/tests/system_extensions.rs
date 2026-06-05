@@ -87,6 +87,27 @@ fn event_hint_aliases_advance_without_mutation() {
 }
 
 #[test]
+fn sync_hint_aliases_advance_without_mutation() {
+    let (mut cpu, mut bus) = setup();
+    cpu.regs.pc = RAM_BASE;
+    cpu.regs.set_x(3, 0xC5DB);
+
+    for raw in [
+        0xD503_221F,
+        0xD503_223F,
+        0xD503_225F,
+        0xD503_227F,
+        0xD503_229F,
+        0xD503_22DF,
+    ] {
+        execute(&mut cpu, &mut bus, decode(raw).unwrap()).unwrap();
+    }
+
+    assert_eq!(cpu.regs.x(3), 0xC5DB);
+    assert_eq!(cpu.regs.pc, RAM_BASE + 24);
+}
+
+#[test]
 fn unsupported_128_bit_system_classes_trap() {
     for raw in [0xD548_0000, 0xD570_0000, 0xD550_0000] {
         let (mut cpu, mut bus) = setup();
