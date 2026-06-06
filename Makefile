@@ -38,12 +38,12 @@ web-pkg:
 	wasm-bindgen target/$(WEB_TARGET)/release/emulator.wasm --out-dir web/pkg --target web
 
 web: web-pkg
-	python3 -m http.server $(WEB_PORT) --directory web
+	python3 scripts/serve_web.py --port $(WEB_PORT) --directory web
 
 web-debian-arm64: iso-debian-arm64 web-pkg
 	mkdir -p web/media
 	ln -sf "$(abspath $(DEBIAN_ARM64_ISO))" web/media/debian-arm64-netinst.iso
-	python3 -m http.server $(WEB_PORT) --directory web
+	python3 scripts/serve_web.py --port $(WEB_PORT) --directory web
 
 test:
 	cargo test -p emulator

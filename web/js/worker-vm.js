@@ -1,6 +1,14 @@
 import { transferableBytes } from "./worker-vm/bytes.js";
 import { WorkerChannel } from "./worker-vm/channel.js";
 
+const WORKER_MODULE_VERSION = "20260606-fallbackstats";
+
+function versionedWorkerUrl() {
+  const url = new URL("./vm-worker.js", import.meta.url);
+  url.searchParams.set("v", WORKER_MODULE_VERSION);
+  return url;
+}
+
 export class WorkerVm {
   onAutosave = () => {};
   onError = () => {};
@@ -10,7 +18,7 @@ export class WorkerVm {
   #channel;
 
   constructor() {
-    this.#channel = new WorkerChannel(new URL("./vm-worker.js", import.meta.url), {
+    this.#channel = new WorkerChannel(versionedWorkerUrl(), {
       onAutosave: () => this.onAutosave(),
       onError: (error) => this.onError(error),
       onMetrics: () => this.onMetrics(),

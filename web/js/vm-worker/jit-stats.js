@@ -6,9 +6,20 @@ export function jitStats() {
   return {
     cacheBlocks: state.jitBlocks.size,
     enabled: state.jitEnabled,
+    fallbackCount: state.jitFallbackCount,
     hitSites: state.jitBlockHits.size,
+    lastFallback: state.jitLastFallback,
     recentRejects: state.jitRejectLog.slice(-MAX_REJECT_LOG),
     rejectedBlocks: state.jitRejectedBlocks.size,
+  };
+}
+
+export function recordJitFallback(key, pc, error) {
+  state.jitFallbackCount += 1;
+  state.jitLastFallback = {
+    error: error || "unknown JIT fallback",
+    key,
+    pc: pc.toString(16),
   };
 }
 
