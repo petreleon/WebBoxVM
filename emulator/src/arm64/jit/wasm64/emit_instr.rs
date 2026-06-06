@@ -41,6 +41,11 @@ impl WasmExpr {
                 self.emit_cmp_imm(instr);
                 true
             }
+            Opcode::AddsImm => {
+                self.emit_adds_imm(instr);
+                true
+            }
+            Opcode::Adds => self.emit_adds_reg(instr),
             Opcode::SubsImm => {
                 self.emit_subs_imm(instr);
                 true

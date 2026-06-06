@@ -1,6 +1,7 @@
 use super::*;
 use crate::arm64::{Instr, Opcode};
 mod add_carry;
+mod add_flags;
 mod add_sub;
 mod bit_count;
 mod bitfield;

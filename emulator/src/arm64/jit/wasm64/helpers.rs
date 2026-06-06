@@ -90,6 +90,7 @@ pub(super) fn is_wasm_noop_alias(op: Opcode) -> bool {
             | Opcode::Csdb
             | Opcode::Clrbhb
             | Opcode::Yield
+            | Opcode::Prfm
             | Opcode::Dgh
             | Opcode::Sb
             | Opcode::Dmb

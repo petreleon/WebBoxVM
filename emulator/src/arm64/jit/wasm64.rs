@@ -18,6 +18,7 @@ use crate::arm64::Opcode;
 use crate::constants::{SP_REGISTER_INDEX, ZERO_REGISTER_INDEX};
 
 mod add_carry;
+mod add_flags;
 mod add_sub;
 mod bit_count;
 mod bitfield;
