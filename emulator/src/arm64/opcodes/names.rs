@@ -124,6 +124,7 @@ impl Opcode {
             Self::SimdShrn2 => "SimdShrn2",
             Self::SimdRshrn => "SimdRshrn",
             Self::SimdRshrn2 => "SimdRshrn2",
+            Self::Paciasp => "Paciasp",
             Self::BtiC => "BtiC",
             _ => "Unknown",
         }
