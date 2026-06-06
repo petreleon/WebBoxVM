@@ -83,6 +83,7 @@ impl WasmExpr {
                 self.emit_udiv(instr);
                 true
             }
+            Opcode::Umulh => self.emit_umulh(instr),
             Opcode::Madd | Opcode::Msub => self.emit_madd_msub(instr),
             Opcode::AndImm | Opcode::OrrImm | Opcode::EorImm => {
                 let op = logical_opcode(instr.op);

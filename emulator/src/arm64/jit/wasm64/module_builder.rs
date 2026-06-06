@@ -1,7 +1,7 @@
 use super::encoding::{encode_name, encode_u32, encode_u64};
 use super::opcodes::*;
 
-const SCRATCH_I64_LOCALS: u32 = 4;
+const SCRATCH_I64_LOCALS: u32 = 7;
 const LOAD_HELPER_TYPE_INDEX: u32 = 0;
 const STORE_HELPER_TYPE_INDEX: u32 = 1;
 const SYSREG_HELPER_TYPE_INDEX: u32 = 2;

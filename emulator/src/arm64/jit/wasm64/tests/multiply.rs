@@ -64,3 +64,22 @@ fn compiles_observed_udiv_with_zero_divisor_guard() {
     assert!(module.bytes.contains(&opcodes::OP_SELECT));
     assert!(module.bytes.contains(&opcodes::OP_I64_NE));
 }
+
+#[test]
+fn compiles_observed_umulh_high_half_product() {
+    for raw in [0x9bc4_7cc6, 0x9bd8_7ef7, 0x9bc3_7c84] {
+        let decoded = disarm64::decoder::decode(raw).expect("disarm64 decodes umulh");
+        assert_eq!(format!("{:?}", decoded.mnemonic), "umulh");
+        let instr = crate::arm64::decode(raw).expect("decode observed umulh");
+
+        assert_eq!(instr.op, Opcode::Umulh);
+        assert!(instr.sf);
+
+        let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile umulh");
+
+        assert_eq!(module.guest_instr_count, 1);
+        assert!(module.bytes.contains(&opcodes::OP_I64_MUL));
+        assert!(module.bytes.contains(&opcodes::OP_I64_SHR_U));
+        assert!(module.bytes.contains(&opcodes::OP_I64_AND));
+    }
+}
