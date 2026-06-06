@@ -44,6 +44,7 @@ mod multiply;
 mod opcodes;
 mod rev;
 mod simd_compare;
+mod simd_pairwise;
 mod state;
 mod system_reg;
 mod terminal_branch;
