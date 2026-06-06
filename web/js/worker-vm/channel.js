@@ -1,5 +1,6 @@
 const INITIAL_METRICS = {
   allocatedPages: 0,
+  currentInstruction: undefined,
   installDiskAllocatedBytes: 0n,
   installDiskGeneration: 0n,
   installDiskSizeBytes: 0n,
@@ -94,6 +95,7 @@ export class WorkerChannel {
   #updateMetrics(metrics) {
     this.#metrics = {
       allocatedPages: metrics.allocatedPages,
+      currentInstruction: metrics.currentInstruction,
       installDiskAllocatedBytes: metrics.installDiskAllocatedBytes,
       installDiskGeneration: metrics.installDiskGeneration,
       installDiskSizeBytes: metrics.installDiskSizeBytes,
@@ -105,6 +107,10 @@ export class WorkerChannel {
     const jitProbe = document.querySelector("[data-testid='webboxvm-jit-stats']");
     if (jitProbe) {
       jitProbe.textContent = JSON.stringify(this.#metrics.jitStats ?? null);
+    }
+    const instructionProbe = document.querySelector("[data-testid='webboxvm-current-instruction']");
+    if (instructionProbe) {
+      instructionProbe.textContent = this.#metrics.currentInstruction ?? "";
     }
   }
 

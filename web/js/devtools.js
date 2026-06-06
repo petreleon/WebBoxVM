@@ -20,6 +20,9 @@ export function installWebboxVmDevtools(getEmulator, getRunner) {
     resume(stepSlice) {
       getRunner()?.resume(stepSlice);
     },
+    currentInstruction() {
+      return getEmulator()?.current_instruction?.();
+    },
     setJitEnabled(enabled) {
       getEmulator()?.set_jit_enabled?.(enabled);
     },

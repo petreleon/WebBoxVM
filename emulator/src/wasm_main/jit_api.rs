@@ -63,9 +63,19 @@ impl Emulator {
         self.jit_last_block_dynamic_exit
     }
 
+    /// Guest exception level for the last successfully compiled JIT block.
+    pub fn jit_last_block_el(&self) -> u8 {
+        self.jit_last_block_el
+    }
+
     /// Raw-code fingerprint of the last successfully compiled JIT block.
     pub fn jit_last_block_raw_hash(&self) -> u64 {
         self.jit_last_block_raw_hash
+    }
+
+    /// Whether the last compiled block uses JS guest-memory helpers.
+    pub fn jit_last_block_uses_guest_helpers(&self) -> bool {
+        self.jit_last_block_uses_guest_helpers
     }
 
     /// Whether a generated JIT block helper rejected during the last run.

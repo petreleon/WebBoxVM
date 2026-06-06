@@ -16,6 +16,7 @@ fn compiles_scalar_store_with_helper_import() {
     let module = Wasm64Compiler::compile(&block).expect("compile str");
 
     assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
     assert!(
         module
             .bytes
@@ -36,5 +37,6 @@ fn scalar_store_stops_block_after_store_boundary() {
     let module = Wasm64Compiler::compile(&block).expect("compile store prefix");
 
     assert_eq!(module.guest_instr_count, 2);
+    assert!(module.uses_guest_helpers);
     assert_eq!(module.exit_pc, 0x1008);
 }

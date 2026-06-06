@@ -1,7 +1,7 @@
 import { transferableBytes } from "./worker-vm/bytes.js";
 import { WorkerChannel } from "./worker-vm/channel.js";
 
-const WORKER_MODULE_VERSION = "20260606-fallbackstats";
+const WORKER_MODULE_VERSION = "20260606-skipuserjit";
 
 function versionedWorkerUrl() {
   const url = new URL("./vm-worker.js", import.meta.url);
@@ -50,6 +50,10 @@ export class WorkerVm {
 
   run_jit_block(coreId = 0) {
     return this.#channel.request("runJitBlock", { coreId });
+  }
+
+  current_instruction(coreId = 0) {
+    return this.#channel.request("currentInstruction", { coreId });
   }
 
   send_uart_input(input) {

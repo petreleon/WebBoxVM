@@ -50,6 +50,7 @@ export function metrics() {
     installDiskAllocatedBytes: state.emulator.install_disk_allocated_bytes(),
     installDiskGeneration: state.emulator.install_disk_generation(),
     installDiskSizeBytes: state.emulator.install_disk_size_bytes(),
+    currentInstruction: state.emulator.current_instruction(0),
     jitStats: jitStats(),
     pc: state.emulator.pc(),
     totalSteps: state.emulator.total_steps(),

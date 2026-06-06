@@ -31,6 +31,7 @@ mod expr;
 mod expr_ops;
 mod extract;
 mod hash;
+mod helper_blocks;
 mod helpers;
 mod logical_flags;
 mod memory_address;
@@ -63,6 +64,7 @@ mod tests;
 use expr::WasmExpr;
 pub use hash::hash_raw_words;
 use hash::{hash_raw_word, hash_seed};
+use helper_blocks::uses_guest_memory_helper;
 use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
@@ -86,6 +88,7 @@ impl Wasm64Compiler {
         let mut exit_pc = block.start_pc;
         let mut alternate_exit_pc = block.start_pc;
         let mut raw_hash = hash_seed(block.start_pa);
+        let mut uses_guest_helpers = false;
 
         for (index, &(instr, raw)) in block.instructions.iter().enumerate() {
             let expected_pa = block.start_pa + index as u64 * 4;
@@ -112,6 +115,7 @@ impl Wasm64Compiler {
                     return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
                 }
                 if emitted {
+                    uses_guest_helpers |= uses_guest_memory_helper(instr.op);
                     raw_hash = hash_raw_word(raw_hash, raw);
                     compiled += 1;
                 }
@@ -123,6 +127,7 @@ impl Wasm64Compiler {
                 }
                 break;
             }
+            uses_guest_helpers |= uses_guest_memory_helper(instr.op);
             raw_hash = hash_raw_word(raw_hash, raw);
             compiled += 1;
         }
@@ -143,6 +148,7 @@ impl Wasm64Compiler {
             dynamic_exit,
             guest_instr_count: compiled,
             raw_hash,
+            uses_guest_helpers,
             bytes: build_module(body.into_bytes()),
         })
     }

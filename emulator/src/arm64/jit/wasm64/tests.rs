@@ -75,6 +75,7 @@ fn compiles_register_only_prefix_to_memory64_module() {
     assert_eq!(module.start_pa, 0x4000_1000);
     assert_eq!(module.exit_pc, 0x100c);
     assert_eq!(module.guest_instr_count, 3);
+    assert!(!module.uses_guest_helpers);
     assert_eq!(module.raw_hash, hash_raw_words(0x4000_1000, [0, 0, 0]));
     assert_eq!(&module.bytes[..8], b"\0asm\x01\0\0\0");
     assert!(module.bytes.windows(b"env".len()).any(|w| w == b"env"));

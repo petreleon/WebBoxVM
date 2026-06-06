@@ -3,6 +3,7 @@
 //! Bind: wasm-bindgen target/wasm64-unknown-unknown/debug/emulator.wasm --target nodejs
 
 mod boot_api;
+mod debug_api;
 mod io_api;
 mod jit_api;
 mod run_api;
@@ -26,7 +27,9 @@ pub struct Emulator {
     jit_last_block_exit_pc: u64,
     jit_last_block_alternate_exit_pc: u64,
     jit_last_block_dynamic_exit: bool,
+    jit_last_block_el: u8,
     jit_last_block_raw_hash: u64,
+    jit_last_block_uses_guest_helpers: bool,
     jit_helper_failed: bool,
     jit_pending_stores: Vec<JitPendingStore>,
 }
@@ -52,7 +55,9 @@ impl Emulator {
             jit_last_block_exit_pc: 0,
             jit_last_block_alternate_exit_pc: 0,
             jit_last_block_dynamic_exit: false,
+            jit_last_block_el: 0,
             jit_last_block_raw_hash: 0,
+            jit_last_block_uses_guest_helpers: false,
             jit_helper_failed: false,
             jit_pending_stores: Vec::new(),
         }

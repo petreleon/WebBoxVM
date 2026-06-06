@@ -16,6 +16,7 @@ fn compiles_unsigned_scalar_load_with_helper_import() {
     let module = Wasm64Compiler::compile(&block).expect("compile ldr");
 
     assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
     assert!(module
         .bytes
         .windows(b"jitLoadGuest".len())
@@ -30,6 +31,7 @@ fn compiles_signed_load_sign_extension() {
     let module = Wasm64Compiler::compile(&block).expect("compile ldrsb");
 
     assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
     assert!(module.bytes.contains(&opcodes::OP_I64_SHL));
     assert!(module.bytes.contains(&opcodes::OP_I64_SHR_S));
 }
@@ -41,5 +43,6 @@ fn compiles_post_index_load_writeback() {
     let module = Wasm64Compiler::compile(&block).expect("compile post-index ldr");
 
     assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
     assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
 }

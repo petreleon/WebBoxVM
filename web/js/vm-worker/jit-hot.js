@@ -1,5 +1,5 @@
 import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
-import { recordJitFallback, recordJitReject } from "./jit-stats.js";
+import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js";
 import { runCachedJitBlock } from "./jit-run.js";
 import { JIT_HOT_THRESHOLD, state } from "./state.js";
 
@@ -28,7 +28,7 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
     }
   }
 
-  if (state.jitRejectedBlocks.has(key)) {
+  if (state.jitRejectedBlocks.has(key) || state.jitSkippedBlocks.has(key)) {
     return false;
   }
 
@@ -41,8 +41,13 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
   const compiled = await compileJitBlock({ coreId });
   if (!state.running || !compiled.compiled) {
     if (!compiled.compiled) {
-      state.jitRejectedBlocks.add(key);
-      recordJitReject(key, pc, compiled.error);
+      if (compiled.skipped) {
+        state.jitSkippedBlocks.add(key);
+        recordJitSkip(key, pc, compiled.error);
+      } else {
+        state.jitRejectedBlocks.add(key);
+        recordJitReject(key, pc, compiled.error);
+      }
     }
     return false;
   }

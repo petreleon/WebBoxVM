@@ -39,6 +39,8 @@ async function handleRequest(type, payload) {
       return bootIsoWithDisk(payload);
     case "compileJitBlock":
       return compileJitBlock(payload);
+    case "currentInstruction":
+      return state.emulator?.current_instruction(payload.coreId);
     case "free":
       freeEmulator();
       return {};

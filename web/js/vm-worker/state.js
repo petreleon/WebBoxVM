@@ -18,6 +18,8 @@ export const state = {
   jitLastFallback: undefined,
   jitRejectLog: [],
   jitRejectedBlocks: new Set(),
+  jitSkipLog: [],
+  jitSkippedBlocks: new Set(),
   lastAutosaveAt: 0,
   lastAutosaveGeneration: 0n,
   lastMetricsAt: 0,
@@ -36,4 +38,6 @@ export function resetJitState() {
   state.jitBlockHits = new Map();
   state.jitRejectLog = [];
   state.jitRejectedBlocks = new Set();
+  state.jitSkipLog = [];
+  state.jitSkippedBlocks = new Set();
 }

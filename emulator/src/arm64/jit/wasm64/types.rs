@@ -10,6 +10,7 @@ pub struct WasmBlockModule {
     pub dynamic_exit: bool,
     pub guest_instr_count: usize,
     pub raw_hash: u64,
+    pub uses_guest_helpers: bool,
     pub bytes: Vec<u8>,
 }
 
