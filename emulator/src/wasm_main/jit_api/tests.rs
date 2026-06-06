@@ -1,12 +1,13 @@
 use super::load::jit_load_guest_from_machine;
 use super::store::{apply_jit_pending_stores, stage_jit_store_from_machine};
+use super::sysreg::jit_read_sysreg_from_machine;
 use super::validate::validate_jit_block;
-use crate::arm64::jit::WasmJitCpuState;
 use crate::arm64::jit::hash_raw_words;
+use crate::arm64::jit::WasmJitCpuState;
 use crate::arm64::machine::Machine;
 use crate::constants::{
     DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, PL011_UART_IRQ_ID, RAM_BASE, SCTLR_MMU_ENABLE,
-    TCR_T1SZ_SHIFT, UART_BASE, UART_IMSC_OFFSET,
+    SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, TCR_T1SZ_SHIFT, UART_BASE, UART_IMSC_OFFSET,
 };
 
 use super::commit::commit_jit_state;
@@ -98,6 +99,27 @@ fn jit_load_guest_rejects_device_reads() {
         .expect_err("JIT load helper must reject MMIO");
 
     assert!(err.contains("device PA"), "{err}");
+}
+
+#[test]
+fn jit_read_sysreg_reads_sp_el0() {
+    let mut machine = Machine::new(1);
+    machine.cpus[0].sys.sp_el0 = 0x1234_5678_9abc_def0;
+
+    let value = jit_read_sysreg_from_machine(&mut machine, 0, SYSREG_SP_EL0)
+        .expect("JIT sysreg helper should read SP_EL0");
+
+    assert_eq!(value, 0x1234_5678_9abc_def0);
+}
+
+#[test]
+fn jit_read_sysreg_rejects_interrupt_acknowledge() {
+    let mut machine = Machine::new(1);
+
+    let err = jit_read_sysreg_from_machine(&mut machine, 0, SYSREG_ICC_IAR1_EL1)
+        .expect_err("JIT sysreg helper must reject side-effectful reads");
+
+    assert!(err.contains("0x4660"), "{err}");
 }
 
 #[test]

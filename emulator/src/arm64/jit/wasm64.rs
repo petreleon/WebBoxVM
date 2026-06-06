@@ -9,8 +9,8 @@
 //! ```
 //!
 //! This backend is intentionally conservative. It only compiles straight-line,
-//! register-only instructions whose semantics are independent of memory, MMIO,
-//! exceptions, timers, and system registers. Unsupported instructions are hard
+//! register-only instructions and helper-guarded reads whose side effects are
+//! either absent or deferred until commit. Unsupported instructions are hard
 //! fallback boundaries.
 
 use super::block::Block;
@@ -44,6 +44,7 @@ mod multiply;
 mod opcodes;
 mod rev;
 mod state;
+mod system_reg;
 mod terminal_branch;
 mod types;
 mod variable_shift;
@@ -57,8 +58,8 @@ use hash::{hash_raw_word, hash_seed};
 use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
-    JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE, JIT_STATE_SP_OFFSET,
-    JIT_STATE_X_OFFSET, WasmJitCpuState,
+    WasmJitCpuState, JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE,
+    JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET,
 };
 pub use types::{WasmBlockModule, WasmJitError};
 

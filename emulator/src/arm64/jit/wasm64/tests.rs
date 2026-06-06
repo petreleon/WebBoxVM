@@ -17,9 +17,9 @@ mod memory_store;
 mod memory_zero;
 mod multiply;
 mod rev;
+mod system_reg;
 mod terminal_branch;
 mod variable_shift;
-
 fn block(instructions: Vec<Instr>) -> Block {
     let instruction_pas = (0..instructions.len())
         .map(|idx| 0x4000_1000 + idx as u64 * 4)
@@ -92,12 +92,10 @@ fn compiles_register_only_prefix_to_memory64_module() {
     assert_eq!(module.raw_hash, hash_raw_words(0x4000_1000, [0, 0, 0]));
     assert_eq!(&module.bytes[..8], b"\0asm\x01\0\0\0");
     assert!(module.bytes.windows(b"env".len()).any(|w| w == b"env"));
-    assert!(
-        module
-            .bytes
-            .windows(b"memory".len())
-            .any(|w| w == b"memory")
-    );
+    assert!(module
+        .bytes
+        .windows(b"memory".len())
+        .any(|w| w == b"memory"));
     assert!(module.bytes.windows(b"run".len()).any(|w| w == b"run"));
 }
 

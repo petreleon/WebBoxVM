@@ -3,6 +3,7 @@ mod compile;
 mod load;
 mod state;
 mod store;
+mod sysreg;
 mod validate;
 
 use super::Emulator;
