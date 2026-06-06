@@ -3,8 +3,9 @@ use super::opcodes::*;
 
 const SCRATCH_I64_LOCALS: u32 = 4;
 const LOAD_HELPER_TYPE_INDEX: u32 = 0;
-const RUN_TYPE_INDEX: u32 = 1;
-const RUN_FUNC_INDEX: u32 = 1;
+const STORE_HELPER_TYPE_INDEX: u32 = 1;
+const RUN_TYPE_INDEX: u32 = 2;
+const RUN_FUNC_INDEX: u32 = 2;
 
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
     let mut module = Vec::new();
@@ -20,8 +21,9 @@ pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
 
 fn type_section() -> Vec<u8> {
     let mut section = Vec::new();
-    encode_u32(&mut section, 2);
+    encode_u32(&mut section, 3);
     append_func_type(&mut section, &[TYPE_I64, TYPE_I32], &[TYPE_I64]);
+    append_func_type(&mut section, &[TYPE_I64, TYPE_I32, TYPE_I64], &[]);
     append_func_type(&mut section, &[TYPE_I64], &[TYPE_I64]);
     section
 }
@@ -36,7 +38,7 @@ fn append_func_type(section: &mut Vec<u8>, params: &[u8], results: &[u8]) {
 
 fn import_section() -> Vec<u8> {
     let mut section = Vec::new();
-    encode_u32(&mut section, 2);
+    encode_u32(&mut section, 3);
     encode_name(&mut section, "env");
     encode_name(&mut section, "memory");
     section.push(IMPORT_MEMORY);
@@ -46,6 +48,10 @@ fn import_section() -> Vec<u8> {
     encode_name(&mut section, "jitLoadGuest");
     section.push(IMPORT_FUNC);
     encode_u32(&mut section, LOAD_HELPER_TYPE_INDEX);
+    encode_name(&mut section, "env");
+    encode_name(&mut section, "jitStoreGuest");
+    section.push(IMPORT_FUNC);
+    encode_u32(&mut section, STORE_HELPER_TYPE_INDEX);
     section
 }
 

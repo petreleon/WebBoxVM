@@ -2,17 +2,16 @@ use super::opcodes::*;
 use super::*;
 use crate::arm64::{Instr, Opcode};
 
+use super::memory_address::{ADDR_LOCAL, VALUE_LOCAL, WRITEBACK_LOCAL};
+
 const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
-const ADDR_LOCAL: u32 = 1;
-const WRITEBACK_LOCAL: u32 = 2;
-const VALUE_LOCAL: u32 = 3;
 
 impl WasmExpr {
     pub(super) fn emit_memory_load(&mut self, instr: Instr) -> bool {
         if !matches!(instr.size, 1 | 2 | 4 | 8) {
             return false;
         }
-        let Some(writeback) = self.emit_load_address(instr) else {
+        let Some(writeback) = self.emit_memory_address(instr) else {
             return false;
         };
 
@@ -30,69 +29,6 @@ impl WasmExpr {
             });
         }
         true
-    }
-
-    fn emit_load_address(&mut self, instr: Instr) -> Option<bool> {
-        if instr.rm == 0xFF {
-            return Some(self.emit_immediate_address(instr));
-        }
-        self.emit_read_base(instr.rn, true);
-        self.emit_register_offset(instr)?;
-        self.op(OP_I64_ADD);
-        self.local_set(ADDR_LOCAL);
-        Some(false)
-    }
-
-    fn emit_immediate_address(&mut self, instr: Instr) -> bool {
-        self.emit_read_base(instr.rn, true);
-        match instr.cond {
-            1 => {
-                self.local_set(ADDR_LOCAL);
-                self.local_get(ADDR_LOCAL);
-                self.i64_const(instr.imm);
-                self.op(OP_I64_ADD);
-                self.local_set(WRITEBACK_LOCAL);
-                true
-            }
-            3 => {
-                self.i64_const(instr.imm);
-                self.op(OP_I64_ADD);
-                self.local_set(ADDR_LOCAL);
-                self.local_get(ADDR_LOCAL);
-                self.local_set(WRITEBACK_LOCAL);
-                true
-            }
-            _ => {
-                self.i64_const(instr.imm);
-                self.op(OP_I64_ADD);
-                self.local_set(ADDR_LOCAL);
-                false
-            }
-        }
-    }
-
-    fn emit_register_offset(&mut self, instr: Instr) -> Option<()> {
-        match instr.cond {
-            0b010 => self.emit_read_reg(instr.rm, false),
-            0b110 => {
-                self.emit_read_reg(instr.rm, false);
-                self.op(OP_I32_WRAP_I64);
-                self.op(OP_I64_EXTEND_I32_S);
-            }
-            0b011 | 0b111 => self.emit_read_reg(instr.rm, true),
-            _ => return None,
-        }
-        if instr.imm > 1 {
-            return None;
-        }
-        if instr.imm == 1 {
-            let shift = instr.size.trailing_zeros() as u64;
-            if shift != 0 {
-                self.i64_const(shift);
-                self.op(OP_I64_SHL);
-            }
-        }
-        Some(())
     }
 
     fn emit_load_sign_extend(&mut self, size: u8) {

@@ -1,7 +1,8 @@
 use super::load::jit_load_guest_from_machine;
+use super::store::{apply_jit_pending_stores, stage_jit_store_from_machine};
 use super::validate::validate_jit_block;
-use crate::arm64::jit::hash_raw_words;
 use crate::arm64::jit::WasmJitCpuState;
+use crate::arm64::jit::hash_raw_words;
 use crate::arm64::machine::Machine;
 use crate::constants::{
     DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, PL011_UART_IRQ_ID, RAM_BASE, SCTLR_MMU_ENABLE,
@@ -97,4 +98,37 @@ fn jit_load_guest_rejects_device_reads() {
         .expect_err("JIT load helper must reject MMIO");
 
     assert!(err.contains("device PA"), "{err}");
+}
+
+#[test]
+fn jit_store_guest_stages_until_applied() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    machine.bus.mem.write(RAM_BASE + 0x40, 4, 0);
+
+    stage_jit_store_from_machine(
+        &mut machine,
+        0,
+        RAM_BASE + 0x40,
+        4,
+        0x4433_2211,
+        &mut stores,
+    )
+    .expect("JIT store helper should stage RAM write");
+
+    assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0));
+    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+    assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0x4433_2211));
+}
+
+#[test]
+fn jit_store_guest_rejects_device_writes() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+
+    let err = stage_jit_store_from_machine(&mut machine, 0, UART_BASE, 4, 1, &mut stores)
+        .expect_err("JIT store helper must reject MMIO");
+
+    assert!(err.contains("rejected PA"), "{err}");
+    assert!(stores.is_empty());
 }

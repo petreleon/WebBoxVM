@@ -32,7 +32,9 @@ mod extract;
 mod hash;
 mod helpers;
 mod logical_flags;
+mod memory_address;
 mod memory_load;
+mod memory_store;
 mod module_builder;
 mod multiply;
 mod opcodes;
@@ -51,8 +53,8 @@ use hash::{hash_raw_word, hash_seed};
 use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
-    WasmJitCpuState, JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE,
-    JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET,
+    JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE, JIT_STATE_SP_OFFSET,
+    JIT_STATE_X_OFFSET, WasmJitCpuState,
 };
 pub use types::{WasmBlockModule, WasmJitError};
 
@@ -88,6 +90,17 @@ impl Wasm64Compiler {
                 dynamic_exit = exits.dynamic;
                 exit_pc = exits.exit_pc;
                 alternate_exit_pc = exits.alternate_exit_pc;
+                raw_hash = hash_raw_word(raw_hash, raw);
+                compiled += 1;
+                break;
+            }
+            if instr.op == Opcode::Str {
+                if !body.emit_memory_store(instr) {
+                    if compiled == 0 {
+                        return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
+                    }
+                    break;
+                }
                 raw_hash = hash_raw_word(raw_hash, raw);
                 compiled += 1;
                 break;

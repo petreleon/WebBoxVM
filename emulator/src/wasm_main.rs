@@ -8,8 +8,8 @@ mod jit_api;
 mod run_api;
 mod storage_api;
 
-use crate::arm64::jit::WasmJitCpuState;
 use crate::arm64::Machine;
+use crate::arm64::jit::WasmJitCpuState;
 use crate::boot::BootContext;
 use wasm_bindgen::prelude::*;
 
@@ -28,6 +28,13 @@ pub struct Emulator {
     jit_last_block_dynamic_exit: bool,
     jit_last_block_raw_hash: u64,
     jit_helper_failed: bool,
+    jit_pending_stores: Vec<JitPendingStore>,
+}
+
+pub(in crate::wasm_main) struct JitPendingStore {
+    pub pa: u64,
+    pub bytes: [u8; 8],
+    pub len: u8,
 }
 
 #[wasm_bindgen]
@@ -47,6 +54,7 @@ impl Emulator {
             jit_last_block_dynamic_exit: false,
             jit_last_block_raw_hash: 0,
             jit_helper_failed: false,
+            jit_pending_stores: Vec::new(),
         }
     }
 }

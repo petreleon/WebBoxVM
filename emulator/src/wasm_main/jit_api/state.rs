@@ -7,6 +7,7 @@ impl Emulator {
     pub fn jit_sync_state_from_core(&mut self, core_id: Option<usize>) -> bool {
         let core_id = core_id.unwrap_or(0);
         self.jit_helper_failed = false;
+        self.jit_pending_stores.clear();
         let cpu = if let Some(ref boot) = self.boot {
             boot.machine.cpus.get(core_id)
         } else {

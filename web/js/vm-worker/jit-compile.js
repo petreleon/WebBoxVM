@@ -30,6 +30,7 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
     env: {
       memory: state.wasmExports.memory,
       jitLoadGuest: (va, size) => owner.jit_load_guest(coreId, va, size),
+      jitStoreGuest: (va, size, value) => owner.jit_store_guest(coreId, va, size, value),
     },
   });
   if (state.emulator !== owner) {

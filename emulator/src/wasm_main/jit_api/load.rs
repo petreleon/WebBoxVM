@@ -1,5 +1,5 @@
 use crate::arm64::machine::Machine;
-use crate::arm64::{translate, Armv8Cpu};
+use crate::arm64::{Armv8Cpu, translate};
 use crate::constants::{PAGE_OFFSET_MASK, PAGE_SIZE};
 use crate::memory::PhysicalMemory;
 use crate::wasm_main::Emulator;

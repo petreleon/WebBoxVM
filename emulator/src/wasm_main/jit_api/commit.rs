@@ -4,6 +4,8 @@ use crate::constants::GIC_SPURIOUS_INTERRUPT;
 use crate::wasm_main::Emulator;
 use wasm_bindgen::prelude::*;
 
+use super::store::apply_jit_pending_stores;
+
 #[wasm_bindgen]
 impl Emulator {
     /// Commit the JIT state buffer back to a core after a generated block runs.
@@ -18,6 +20,7 @@ impl Emulator {
         expected_exit_pc: u64,
     ) -> bool {
         let core_id = core_id.unwrap_or(0);
+        let pending_stores = std::mem::take(&mut self.jit_pending_stores);
         let result = if let Some(ref mut boot) = self.boot {
             commit_jit_state(
                 &self.jit_state,
@@ -26,6 +29,7 @@ impl Emulator {
                 steps,
                 expected_exit_pc,
             )
+            .and_then(|()| apply_jit_pending_stores(&mut boot.machine, &pending_stores))
         } else {
             commit_jit_state(
                 &self.jit_state,
@@ -34,6 +38,7 @@ impl Emulator {
                 steps,
                 expected_exit_pc,
             )
+            .and_then(|()| apply_jit_pending_stores(&mut self.machine, &pending_stores))
         };
 
         match result {

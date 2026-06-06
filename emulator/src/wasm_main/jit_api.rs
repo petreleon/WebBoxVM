@@ -2,6 +2,7 @@ mod commit;
 mod compile;
 mod load;
 mod state;
+mod store;
 mod validate;
 
 use super::Emulator;
