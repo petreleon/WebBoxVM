@@ -72,6 +72,7 @@ impl Opcode {
             Self::Rev32 => "Rev32",
             Self::Rev16 => "Rev16",
             Self::Rbit => "Rbit",
+            Self::Extr => "Extr",
             Self::Clz => "Clz",
             Self::Cls => "Cls",
             Self::Ctz => "Ctz",

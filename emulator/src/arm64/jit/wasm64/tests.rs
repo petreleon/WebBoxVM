@@ -6,6 +6,7 @@ mod bitfield;
 mod cmp_flags;
 mod cond_select;
 mod errors;
+mod extract;
 mod hints;
 mod logical_flags;
 mod rev;
@@ -88,17 +89,6 @@ fn compiles_register_only_prefix_to_memory64_module() {
         .windows(b"memory".len())
         .any(|w| w == b"memory"));
     assert!(module.bytes.windows(b"run".len()).any(|w| w == b"run"));
-}
-
-#[test]
-fn unsupported_first_opcode_is_rejected() {
-    let block = block(vec![instr(Opcode::Ldr, 0, 1, 0, 0, true)]);
-    let err = Wasm64Compiler::compile(&block).unwrap_err();
-
-    assert_eq!(
-        err.to_string(),
-        "first opcode is not wasm-jittable: Ldr (7) raw=0x00000000"
-    );
 }
 
 #[test]

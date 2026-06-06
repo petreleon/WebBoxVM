@@ -25,6 +25,7 @@ mod condition;
 mod emit_instr;
 mod encoding;
 mod expr;
+mod extract;
 mod hash;
 mod helpers;
 mod logical_flags;

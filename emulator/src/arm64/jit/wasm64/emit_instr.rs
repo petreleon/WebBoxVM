@@ -58,6 +58,10 @@ impl WasmExpr {
                 self.emit_clz(instr);
                 true
             }
+            Opcode::Extr => {
+                self.emit_extract(instr);
+                true
+            }
             Opcode::AddImm | Opcode::SubImm => {
                 let op = if instr.op == Opcode::AddImm {
                     OP_I64_ADD
