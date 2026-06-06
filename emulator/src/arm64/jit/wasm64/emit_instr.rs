@@ -120,6 +120,7 @@ impl WasmExpr {
             op if super::simd_logic::is_logic_reg(op) => self.emit_simd_logic_reg(instr),
             Opcode::SimdDupByte => self.emit_simd_dup_gpr(instr),
             Opcode::SimdCmeqZero => self.emit_simd_cmeq_zero(instr),
+            Opcode::SimdAddp => self.emit_simd_addp(instr),
             Opcode::SimdUmaxp => self.emit_simd_umaxp(instr),
             Opcode::SimdUminp => self.emit_simd_uminp(instr),
             Opcode::Adr => {

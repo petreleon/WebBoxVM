@@ -14,6 +14,15 @@ impl WasmExpr {
         self.emit_simd_unsigned_pairwise(instr, false)
     }
 
+    pub(super) fn emit_simd_addp(&mut self, instr: crate::arm64::Instr) -> bool {
+        if instr.imm != 1 || instr.size != 16 || instr.rm == 0xff {
+            return false;
+        }
+        self.emit_pairwise_byte_add(instr.rd, instr.rn, false);
+        self.emit_pairwise_byte_add(instr.rd, instr.rm, true);
+        true
+    }
+
     fn emit_simd_unsigned_pairwise(&mut self, instr: crate::arm64::Instr, max: bool) -> bool {
         if instr.imm != 1 || instr.size != 16 {
             return false;
@@ -27,6 +36,34 @@ impl WasmExpr {
         self.emit_write_simd_half_with(rd, high, |this| {
             this.emit_pairwise_byte_select(src, max);
         });
+    }
+
+    fn emit_pairwise_byte_add(&mut self, rd: u8, src: u8, high: bool) {
+        self.emit_write_simd_half_with(rd, high, |this| {
+            this.emit_pairwise_byte_sum(src);
+        });
+    }
+
+    fn emit_pairwise_byte_sum(&mut self, src: u8) {
+        self.i64_const(0);
+        self.local_set(LOCAL_ACC);
+
+        for pair in 0..8 {
+            self.local_get(LOCAL_ACC);
+            self.emit_simd_byte(src, pair * 2);
+            self.emit_simd_byte(src, pair * 2 + 1);
+            self.op(OP_I64_ADD);
+            self.i64_const(0xff);
+            self.op(OP_I64_AND);
+            if pair != 0 {
+                self.i64_const(pair as u64 * 8);
+                self.op(OP_I64_SHL);
+            }
+            self.op(OP_I64_OR);
+            self.local_set(LOCAL_ACC);
+        }
+
+        self.local_get(LOCAL_ACC);
     }
 
     fn emit_pairwise_byte_select(&mut self, src: u8, max: bool) {
