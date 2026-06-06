@@ -58,3 +58,51 @@
 - Implemented WFI/WFE, DAIFSet/DAIFClr, timer IRQ status, masking, and current-EL vector delivery behavior.
 
 **Result:** Linux reaches early PL011 UART output through the standard ARM64 Image boot path.
+
+## Sprint 7 — Serial Linux Userspace and ISO Installer
+- Replaced the placeholder initrd payload with static ARM64 BusyBox.
+- Booted into initramfs userspace and spawned `/init`.
+- Wired PL011 UART RX so the serial console accepts interactive input.
+- Added ISO9660 extraction for ARM64 Linux installer media.
+- Attached ISO media as a read-only VirtIO block device.
+- Added a second writable sparse VirtIO block device for installer storage.
+- Added sparse install-disk snapshot/restore support.
+- Validated Debian ARM64 netinst through `/lib/debian-installer/menu` and `/usr/bin/main-menu`.
+
+**Result:** Native CLI boots Linux to BusyBox `ash`; Debian ARM64 netinst reaches the real serial text installer language prompt.
+
+## Sprint 8 — Browser Terminal Delivery
+- Added the `web/` application shell with xterm.js terminal output.
+- Added ISO picker, Debian boot target, pause/resume/reset, step-slice, and live metrics.
+- Routed browser keyboard input to PL011 UART RX.
+- Added browser install-disk size controls and sparse allocation metrics.
+- Persisted install disk snapshots through OPFS.
+- Verified browser interaction at the Debian installer prompt.
+
+**Result:** The browser app can boot Debian ARM64 netinst to the serial installer prompt with persistent sparse disk support.
+
+## Sprint 9 — Wasm64 Browser Target
+- Switched browser builds to `wasm64-unknown-unknown`.
+- Built the package with nightly `build-std` and `wasm-bindgen`.
+- Added Memory64 capability detection before VM boot.
+- Verified wasm64 package instantiation and byte-array boot input.
+
+**Result:** WebBoxVM is wasm64-first for browser builds and requires WebAssembly Memory64 support.
+
+## Sprint 10 — Browser Worker Execution
+- Moved the wasm64 `Emulator` instance into a module Web Worker.
+- Added a main-thread VM proxy with cached metrics.
+- Moved the run pump into the worker.
+- Routed UART, live metrics, errors, and disk snapshot operations across the worker boundary.
+
+**Result:** Browser execution no longer runs guest steps on the UI thread.
+
+## Sprint 11 — Debian Installer Component Loading
+- Diagnosed a browser Wasm64 JIT slowdown/stall from EL0 guest-memory helper blocks.
+- Restored conservative skipping for EL0 helper blocks while keeping pending-store forwarding for helper correctness.
+- Used `disarm64`-backed decoding to classify `0x6e20ac00` as `uminp`, already decoded as `Opcode::SimdUminp`.
+- Split SIMD opcode display names into `emulator/src/arm64/opcodes/names_simd.rs`.
+- Verified Debian ARM64 netinst loads installer components from ISO media to 100% in the browser.
+- Verified the installer advances to `Detecting network hardware`.
+
+**Result:** The previous "Load installer components from installation media" failure is fixed; the next concrete area is network/device behavior and performance.

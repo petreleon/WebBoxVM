@@ -1,6 +1,8 @@
 # WebBoxVM — Future Work
 
-These are aspirational targets, not committed sprints. Most depend on the Linux shell and installer milestone completing first.
+These are aspirational targets, not committed sprints. The current verified
+baseline is Debian ARM64 netinst in the browser through installer-component
+loading and into network hardware detection.
 
 ## ISA Completeness
 - [ ] NEON / SIMD load, store, and vector arithmetic
@@ -9,6 +11,7 @@ These are aspirational targets, not committed sprints. Most depend on the Linux 
 - [ ] Remaining system instructions
 
 ## Devices and Firmware
+- [ ] VirtIO Net or a deliberate "no network device" installer path
 - [ ] ACPI tables: RSDP, DSDT, MADT, GTDT, FADT
 - [ ] NVMe or a more complete VirtIO storage controller
 - [ ] TPM 2.0 MMIO stub
@@ -29,9 +32,12 @@ These are aspirational targets, not committed sprints. Most depend on the Linux 
 - [x] OPFS persistent disk for browser storage
 - [x] Move to wasm64 when browser and toolchain support is practical
 - [x] Web Worker execution so long boot runs do not block the UI thread
+- [x] Conservative Wasm64 JIT with browser-side fallback for EL0 guest-memory helper blocks
+- [ ] Profile installer userland hot paths without weakening correctness boundaries
+- [ ] Add targeted JIT support for safe memory-heavy EL0 patterns only after measurement
 
 ## Backlog
 - Multi-core SMP
-- JIT compilation from ARM64 to native code
+- Native ARM64 JIT and broader Wasm64 JIT coverage
 - x86_64 interpreter for broader OS compatibility
 - Commercial licensing / dual-license

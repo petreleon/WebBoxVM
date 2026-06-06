@@ -11,7 +11,7 @@ Running an OS in the browser means instant access from any device, zero server c
 The emulator boots ARM64 Linux through the standard ARM64 Image protocol:
 X0 points at the device tree, X1-X3 are zero, the CPU enters at EL1 with the MMU off, and Linux enables its own virtual address space.
 
-The native CLI path now boots a standard Debian ARM64 netinst ISO far enough to start the real serial text installer. The validated run reaches `/lib/debian-installer/menu`, executes `/usr/bin/main-menu`, and prints the installer language prompt:
+The native CLI path boots a standard Debian ARM64 netinst ISO far enough to start the real serial text installer. The validated run reaches `/lib/debian-installer/menu`, executes `/usr/bin/main-menu`, and prints the installer language prompt:
 
 ```text
 Choose the language to be used for the installation process.
@@ -20,7 +20,9 @@ Language:
 
 The browser path now has a concrete application shell: a WASM build, xterm.js serial console, ISO picker, Debian boot target, UART keyboard input, pause/resume/reset controls, persistent disk controls, and live VM metrics. Sparse guest memory keeps browser builds from reserving the full guest memory layout up front. Storage is split into two VirtIO block devices: read-only ISO media and a writable sparse install disk whose unwritten sectors read as zero. Browser builds persist that install disk as compact OPFS snapshots.
 
-The next milestone is proving the same Debian installer prompt inside the browser app with responsive input, then tightening performance enough that the experience feels like an interactive terminal rather than a long-running trace.
+The browser validation now goes beyond the prompt: Debian ARM64 netinst accepts language, location, and keymap input, scans the installation media, loads installer components to 100%, and advances to network hardware detection.
+
+The next milestone is network/device behavior and installer continuation after network detection. Performance still needs careful work: Wasm64 JIT is deliberately conservative, and EL0 guest-memory helper blocks fall back when helper-call overhead would make the browser slower or riskier than the interpreter.
 
 ## Principles
 
@@ -36,8 +38,9 @@ The next milestone is proving the same Debian installer prompt inside the browse
 2. **Standard ISO terminal** — boot a normal ARM64 Linux ISO to a real terminal installer environment
 3. **Browser terminal** — run the ISO path through WebAssembly with xterm.js input/output
 4. **Linux shell/install workflow** — interact with BusyBox or Debian installer screens reliably
-5. **Windows PE loader** — parse Windows boot structures, load `ntoskrnl.exe`
-6. **Windows desktop** — boot Windows 11 ARM64 to a usable desktop in the browser
+5. **Network and install target** — provide enough network/disk behavior for later Debian installer phases
+6. **Windows PE loader** — parse Windows boot structures, load `ntoskrnl.exe`
+7. **Windows desktop** — boot Windows 11 ARM64 to a usable desktop in the browser
 
 ## License
 

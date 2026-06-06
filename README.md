@@ -18,9 +18,10 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 - **BusyBox initrd + serial input** — embedded static ARM64 BusyBox, `/init`, `/dev/console`, applet symlinks, and UART RX wiring for shell input
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
 - **Persistent install storage** — exposes a second VirtIO block device backed by a sparse writable disk, with browser OPFS save/restore
-- **Debian installer milestone** — Debian ARM64 netinst reaches the real text installer language prompt in native CLI validation
+- **Debian installer milestone** — Debian ARM64 netinst reaches the text installer in browser validation, loads installer components from ISO media to 100%, and advances to network hardware detection
 - **Browser terminal app** — wasm64 worker build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
+- **Conservative browser JIT** — Wasm64 basic-block JIT for safe paths, with EL0 guest-memory helper blocks skipped when helper-call overhead or speculative memory effects would hurt progress
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
 - **Linux early UART boot** — standard ARM64 Image protocol → `primary_entry` → MMU enable → kernel VA space → early PL011 console output
 - **Regression coverage** — focused tests for Linux boot-sensitive instruction semantics, timer IRQ behavior, UART, MMU, loader, and device paths
@@ -31,7 +32,7 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 emulator/src/
 ├── arm64/           # CPU decode/execute, system registers, MMU, TLB
 │   ├── interpreter/ # Classic fetch-decode-execute loop
-│   └── jit/         # ARM64→ARM64 verbatim compiler (skeleton)
+│   └── jit/         # Native experiments and conservative ARM64→Wasm64 blocks
 ├── efi/             # UEFI tables, trampolines, protocol stubs
 ├── devices/         # PL011 UART, GICv3 interrupt controller, VirtIO block storage
 ├── loader/          # PE/COFF parser, relocation fixup
@@ -89,16 +90,18 @@ WebAssembly Memory64.
 
 ISO mode supports ARM64 Linux ISOs whose kernel/initrd can be discovered from
 GRUB config or common live/installer paths. It does not run x86 PC ISOs. Debian
-ARM64 netinst has been validated to reach the text installer language prompt.
-The ISO is exposed to the guest as read-only media, and WebBoxVM also provides a
-second writable sparse VirtIO disk for installer storage. Browser disk contents
-are saved to Origin Private File System storage as compact sparse-disk snapshots
-and restored on the next boot from the same origin.
+ARM64 netinst has been validated in the browser through language, location, and
+keymap selection, installation-media scan, installer-component loading to 100%,
+and the next "Detecting network hardware" step. The ISO is exposed to the guest
+as read-only media, and WebBoxVM also provides a second writable sparse VirtIO
+disk for installer storage. Browser disk contents are saved to Origin Private
+File System storage as compact sparse-disk snapshots and restored on the next
+boot from the same origin.
 
 The browser app loads as wasm64, runs the VM in a module Web Worker, renders the
 xterm.js terminal on the main page, exposes ISO boot and install-disk controls,
 wires UART keyboard input, persists the install disk through OPFS, and has been
-validated to reach the Debian text installer prompt.
+validated past Debian installer component loading.
 
 Successful early boot prints lines like:
 
@@ -111,8 +114,8 @@ Successful early boot prints lines like:
 The longer Debian ISO validation reaches:
 
 ```text
-Choose the language to be used for the installation process.
-Language:
+Loading additional components ... 100%
+Detecting network hardware ... 100%
 ```
 
 ## Roadmap
@@ -129,6 +132,8 @@ Language:
 | Browser xterm.js terminal | ✅ |
 | Wasm64 browser target | ✅ |
 | Browser worker execution | ✅ |
+| Debian component loading in browser | ✅ |
+| Network device path | 🔎 investigating |
 | Exception model + NEON | 📅 planned |
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |

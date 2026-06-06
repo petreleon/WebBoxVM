@@ -1,6 +1,32 @@
 # WebBoxVM — Active Todo
 
-Completed sprint history moved to [sprint-history.md](sprint-history.md). Aspirational backlog moved to [future.md](future.md).
+Completed sprint history is mirrored in [sprint-history.md](sprint-history.md). Recent completed sprints stay here as working context; aspirational backlog lives in [future.md](future.md).
+
+## Current Focus — Pause, Learn, Then Continue
+- [ ] Read and explain the browser JIT policy in `web/js/vm-worker/jit-compile.js`
+  - Why EL0 guest-memory helper blocks are skipped
+  - Why a JIT block can be semantically safe but slower than interpreter fallback
+- [ ] Trace the opcode telemetry path for `0x6e20ac00`
+  - `disarm64` mnemonic: `uminp`
+  - WebBoxVM opcode: `Opcode::SimdUminp`
+  - Display name source: `emulator/src/arm64/opcodes/names_simd.rs`
+- [ ] Continue Debian installer validation from the next real blocker after network hardware detection
+- [ ] Investigate network-device support and expected Debian installer behavior with no NIC
+- [ ] Profile the userland-heavy component loading path without relaxing correctness guards
+
+## Sprint 11 — Debian Installer Component Loading
+- [x] Reproduce the browser-side installer path through language, location, and keymap selection
+- [x] Identify the browser Wasm64 JIT regression from EL0 guest-memory helper blocks
+- [x] Restore conservative EL0 helper-block skipping while keeping helper correctness fixes
+- [x] Use `disarm64`-backed decoding to classify observed raw opcode `0x6e20ac00`
+- [x] Split SIMD opcode display names into `names_simd.rs`
+- [x] Verify Debian ARM64 netinst loads installer components to 100% in the browser
+- [x] Verify the installer advances to `Detecting network hardware`
+
+**Result:** The previous Debian installer failure at "Load installer components
+from installation media" is no longer the active blocker. Browser validation
+loaded components to 100% and advanced to network hardware detection. The next
+work is network/device behavior and performance, not blind opcode expansion.
 
 ## Sprint 7 — Serial Linux Userspace and ISO Installer
 - [x] Kernel boots to BusyBox `ash` shell
