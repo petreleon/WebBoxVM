@@ -111,6 +111,8 @@ impl Opcode {
             Self::SimdLd1Multi => "SimdLd1Multi",
             Self::SimdCmeqZero => "SimdCmeqZero",
             Self::SimdCmeqReg => "SimdCmeqReg",
+            Self::SimdCmhsReg => "SimdCmhsReg",
+            Self::SimdCmhiReg => "SimdCmhiReg",
             Self::SimdShrn => "SimdShrn",
             Self::SimdShrn2 => "SimdShrn2",
             Self::SimdRshrn => "SimdRshrn",

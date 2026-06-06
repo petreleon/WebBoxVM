@@ -12,6 +12,7 @@ impl WasmExpr {
             Opcode::SimdFmovDToGpr => self.emit_simd_fmov_d_to_gpr(instr),
             Opcode::SimdCmeqZero => self.emit_simd_cmeq_zero(instr),
             Opcode::SimdCmeqReg => self.emit_simd_cmeq_reg(instr),
+            Opcode::SimdCmhsReg | Opcode::SimdCmhiReg => self.emit_simd_unsigned_cmp_reg(instr),
             Opcode::SimdShrn | Opcode::SimdShrn2 | Opcode::SimdRshrn | Opcode::SimdRshrn2 => {
                 self.emit_simd_shrn(instr)
             }
