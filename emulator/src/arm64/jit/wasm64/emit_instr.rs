@@ -88,6 +88,10 @@ impl WasmExpr {
                 });
                 true
             }
+            Opcode::AndsImm => {
+                self.emit_ands_imm(instr);
+                true
+            }
             Opcode::AndReg | Opcode::OrrReg | Opcode::EorReg => {
                 let shift_type = instr.cond & 3;
                 if !can_emit_shift(shift_type, instr.imm, instr.sf) {

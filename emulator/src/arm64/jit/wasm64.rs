@@ -26,6 +26,7 @@ mod encoding;
 mod expr;
 mod hash;
 mod helpers;
+mod logical_flags;
 mod module_builder;
 mod opcodes;
 mod rev;
@@ -42,8 +43,8 @@ use hash::{hash_raw_word, hash_seed};
 use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
-    JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE, JIT_STATE_SP_OFFSET,
-    JIT_STATE_X_OFFSET, WasmJitCpuState,
+    WasmJitCpuState, JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE,
+    JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET,
 };
 pub use types::{WasmBlockModule, WasmJitError};
 
