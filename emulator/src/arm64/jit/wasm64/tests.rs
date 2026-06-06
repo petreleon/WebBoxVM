@@ -1,6 +1,6 @@
 use super::*;
 use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
-
+mod add_carry;
 mod add_sub;
 mod bit_count;
 mod bitfield;
