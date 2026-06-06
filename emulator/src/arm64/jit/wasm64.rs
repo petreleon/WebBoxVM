@@ -60,6 +60,7 @@ impl Wasm64Compiler {
 
         let mut body = WasmExpr::new();
         let mut compiled = 0usize;
+        let mut terminal_exit = false;
         let mut dynamic_exit = false;
         let mut exit_pc = block.start_pc;
         let mut alternate_exit_pc = block.start_pc;
@@ -77,9 +78,10 @@ impl Wasm64Compiler {
                 break;
             }
             if let Some(exits) = body.emit_terminal_branch(instr, pc) {
-                dynamic_exit = true;
-                exit_pc = exits.fallthrough;
-                alternate_exit_pc = exits.target;
+                terminal_exit = true;
+                dynamic_exit = exits.dynamic;
+                exit_pc = exits.exit_pc;
+                alternate_exit_pc = exits.alternate_exit_pc;
                 raw_hash = hash_raw_word(raw_hash, raw);
                 compiled += 1;
                 break;
@@ -94,7 +96,7 @@ impl Wasm64Compiler {
             compiled += 1;
         }
 
-        if !dynamic_exit {
+        if !terminal_exit {
             exit_pc = block.start_pc + compiled as u64 * 4;
             alternate_exit_pc = exit_pc;
             body.emit_store_const(JIT_STATE_PC_OFFSET, exit_pc);

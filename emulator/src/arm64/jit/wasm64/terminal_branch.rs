@@ -4,8 +4,9 @@ use super::*;
 const LOCAL_EXIT_PC: u32 = 4;
 
 pub(super) struct TerminalBranchExits {
-    pub fallthrough: u64,
-    pub target: u64,
+    pub exit_pc: u64,
+    pub alternate_exit_pc: u64,
+    pub dynamic: bool,
 }
 
 impl WasmExpr {
@@ -14,14 +15,17 @@ impl WasmExpr {
         instr: crate::arm64::Instr,
         pc: u64,
     ) -> Option<TerminalBranchExits> {
-        if !matches!(
-            instr.op,
-            Opcode::BCond | Opcode::Cbz | Opcode::Cbnz | Opcode::Tbz | Opcode::Tbnz
-        ) {
-            return None;
-        }
         let fallthrough = pc.wrapping_add(4);
         let target = (pc as i64 + instr.imm as i64) as u64;
+        match instr.op {
+            Opcode::B => return Some(self.emit_static_branch(target)),
+            Opcode::Bl => {
+                self.emit_store_const(reg_offset(30), fallthrough);
+                return Some(self.emit_static_branch(target));
+            }
+            Opcode::BCond | Opcode::Cbz | Opcode::Cbnz | Opcode::Tbz | Opcode::Tbnz => {}
+            _ => return None,
+        }
 
         self.i64_const(target);
         self.i64_const(fallthrough);
@@ -32,9 +36,20 @@ impl WasmExpr {
         self.local_get(LOCAL_EXIT_PC);
 
         Some(TerminalBranchExits {
-            fallthrough,
-            target,
+            exit_pc: fallthrough,
+            alternate_exit_pc: target,
+            dynamic: true,
         })
+    }
+
+    fn emit_static_branch(&mut self, target: u64) -> TerminalBranchExits {
+        self.emit_store_const(JIT_STATE_PC_OFFSET, target);
+        self.i64_const(target);
+        TerminalBranchExits {
+            exit_pc: target,
+            alternate_exit_pc: target,
+            dynamic: false,
+        }
     }
 
     fn emit_branch_condition(&mut self, instr: crate::arm64::Instr) {
