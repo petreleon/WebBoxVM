@@ -6,6 +6,7 @@ fn names_installer_trace_system_and_atomic_opcodes() {
     assert_eq!(Opcode::Ldxr.name(), "Ldxr");
     assert_eq!(Opcode::Stxp.name(), "Stxp");
     assert_eq!(Opcode::AtomicPair.name(), "AtomicPair");
+    assert_eq!(Opcode::Eret.name(), "Eret");
     assert_eq!(Opcode::Prfm.name(), "Prfm");
     assert_eq!(Opcode::SimdLdp.name(), "SimdLdp");
     assert_eq!(Opcode::SimdStp.name(), "SimdStp");
