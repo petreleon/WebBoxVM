@@ -18,6 +18,7 @@ mod memory_zero;
 mod multiply;
 mod rev;
 mod simd_compare;
+mod simd_memory;
 mod simd_pairwise;
 mod state;
 mod system_reg;
