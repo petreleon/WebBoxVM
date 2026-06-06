@@ -3,9 +3,11 @@ use super::*;
 impl WasmExpr {
     pub(super) fn emit_simd_instr(&mut self, instr: crate::arm64::Instr) -> bool {
         match instr.op {
-            Opcode::SimdLd1 | Opcode::SimdLd1Multi | Opcode::SimdLdp | Opcode::SimdLdr => {
-                self.emit_simd_memory_load(instr)
-            }
+            Opcode::SimdLd1
+            | Opcode::SimdLd1Multi
+            | Opcode::SimdLdp
+            | Opcode::SimdLdr
+            | Opcode::SimdStr => self.emit_simd_memory_load(instr),
             Opcode::SimdMovi => self.emit_simd_movi(instr),
             op if super::simd_logic::is_logic_reg(op) => self.emit_simd_logic_reg(instr),
             Opcode::SimdDupByte => self.emit_simd_dup_gpr(instr),

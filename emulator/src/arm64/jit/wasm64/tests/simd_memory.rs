@@ -75,6 +75,26 @@ fn compiles_observed_simd_ldr_q_preindex() {
 }
 
 #[test]
+fn compiles_observed_simd_str_q_immediate() {
+    let decoded = disarm64::decoder::decode(0x3d80_03fe).expect("disarm64 decodes str q");
+    assert_eq!(format!("{:?}", decoded.mnemonic), "str");
+    let instr = decode(0x3d80_03fe).expect("decode str q30, [sp]");
+
+    assert_eq!(instr.op, Opcode::SimdStr);
+    assert_eq!((instr.rd, instr.rn, instr.rm), (30, 31, 0xff));
+    assert_eq!((instr.imm, instr.size), (0, 16));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile str q");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_CALL));
+    assert!(module
+        .bytes
+        .windows(b"jitStoreGuest".len())
+        .any(|w| w == b"jitStoreGuest"));
+}
+
+#[test]
 fn compiles_observed_simd_ldp_q_pair_forms() {
     let cases = [
         (0xadc1_0821, (1, 1, 2), (32, 3)),

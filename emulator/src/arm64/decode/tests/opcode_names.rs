@@ -9,6 +9,7 @@ fn names_installer_trace_system_and_atomic_opcodes() {
     assert_eq!(Opcode::Prfm.name(), "Prfm");
     assert_eq!(Opcode::SimdLdp.name(), "SimdLdp");
     assert_eq!(Opcode::SimdStp.name(), "SimdStp");
+    assert_eq!(Opcode::SimdStr.name(), "SimdStr");
     assert_eq!(Opcode::SimdCmeqReg.name(), "SimdCmeqReg");
     assert_eq!(Opcode::SimdCmhsReg.name(), "SimdCmhsReg");
     assert_eq!(Opcode::SimdAddhn.name(), "SimdAddhn");

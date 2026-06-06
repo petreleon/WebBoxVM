@@ -13,6 +13,7 @@ impl WasmExpr {
             Opcode::SimdLd1Multi => self.emit_simd_ld1_multi(instr),
             Opcode::SimdLdp => self.emit_simd_ldp(instr),
             Opcode::SimdLdr => self.emit_simd_ldr(instr),
+            Opcode::SimdStr => self.emit_simd_str(instr),
             _ => false,
         }
     }
@@ -78,21 +79,6 @@ impl WasmExpr {
         true
     }
 
-    pub(super) fn emit_simd_stp(&mut self, instr: Instr) -> bool {
-        if instr.size != 16 || instr.cond != 2 {
-            return false;
-        }
-        self.emit_read_base(instr.rn, true);
-        self.i64_const(instr.imm);
-        self.op(OP_I64_ADD);
-        self.local_set(ADDR_LOCAL);
-        self.emit_store_simd_half(instr.rd, false, 0);
-        self.emit_store_simd_half(instr.rd, true, 8);
-        self.emit_store_simd_half(instr.rm, false, 16);
-        self.emit_store_simd_half(instr.rm, true, 24);
-        true
-    }
-
     fn emit_simd_pair_address(&mut self, instr: Instr) -> bool {
         self.emit_read_base(instr.rn, true);
         match instr.cond {
@@ -129,7 +115,7 @@ impl WasmExpr {
         });
     }
 
-    fn emit_store_simd_half(&mut self, reg: u8, high: bool, offset: u64) {
+    pub(super) fn emit_store_simd_half(&mut self, reg: u8, high: bool, offset: u64) {
         self.emit_guest_addr(offset);
         self.i32_const(8);
         self.emit_read_simd_half(reg, high);

@@ -109,6 +109,7 @@ impl Opcode {
             Self::SimdLdp => "SimdLdp",
             Self::SimdStp => "SimdStp",
             Self::SimdLdr => "SimdLdr",
+            Self::SimdStr => "SimdStr",
             Self::SimdMovi => "SimdMovi",
             Self::SimdLd1 => "SimdLd1",
             Self::SimdLd1Multi => "SimdLd1Multi",
