@@ -48,17 +48,17 @@ export function runCachedJitBlock(coreId, key, entry) {
   }
 
   const exitPc = entry.instance.exports.run(state.emulator.jit_state_ptr());
-  if (exitPc !== entry.exitPc) {
+  if (!isAllowedExit(exitPc, entry)) {
     state.jitBlocks.delete(key);
     return {
       committed: false,
-      error: `JIT block returned 0x${exitPc.toString(16)} instead of 0x${entry.exitPc.toString(16)}`,
+      error: exitMismatchMessage(exitPc, entry),
       invalidated: true,
       pc,
     };
   }
 
-  const committed = state.emulator.jit_commit_state_to_core(coreId, entry.steps, entry.exitPc);
+  const committed = state.emulator.jit_commit_state_to_core(coreId, entry.steps, exitPc);
   return {
     committed,
     error: committed ? "" : state.emulator.jit_last_error(),
@@ -66,4 +66,20 @@ export function runCachedJitBlock(coreId, key, entry) {
     pc,
     steps: entry.steps,
   };
+}
+
+function isAllowedExit(exitPc, entry) {
+  if (exitPc === entry.exitPc) {
+    return true;
+  }
+  return entry.dynamicExit && exitPc === entry.alternateExitPc;
+}
+
+function exitMismatchMessage(exitPc, entry) {
+  const actual = `0x${exitPc.toString(16)}`;
+  const expected = `0x${entry.exitPc.toString(16)}`;
+  if (!entry.dynamicExit) {
+    return `JIT block returned ${actual} instead of ${expected}`;
+  }
+  return `JIT block returned ${actual} outside ${expected}/0x${entry.alternateExitPc.toString(16)}`;
 }

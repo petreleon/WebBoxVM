@@ -6,6 +6,8 @@ pub struct WasmBlockModule {
     pub start_pc: u64,
     pub start_pa: u64,
     pub exit_pc: u64,
+    pub alternate_exit_pc: u64,
+    pub dynamic_exit: bool,
     pub guest_instr_count: usize,
     pub raw_hash: u64,
     pub bytes: Vec<u8>,

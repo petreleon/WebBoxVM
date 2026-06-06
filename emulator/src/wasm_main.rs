@@ -24,6 +24,8 @@ pub struct Emulator {
     jit_last_block_start_pc: u64,
     jit_last_block_start_pa: u64,
     jit_last_block_exit_pc: u64,
+    jit_last_block_alternate_exit_pc: u64,
+    jit_last_block_dynamic_exit: bool,
     jit_last_block_raw_hash: u64,
 }
 
@@ -40,6 +42,8 @@ impl Emulator {
             jit_last_block_start_pc: 0,
             jit_last_block_start_pa: 0,
             jit_last_block_exit_pc: 0,
+            jit_last_block_alternate_exit_pc: 0,
+            jit_last_block_dynamic_exit: false,
             jit_last_block_raw_hash: 0,
         }
     }

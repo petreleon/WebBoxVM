@@ -23,6 +23,8 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
   const startPc = owner.jit_last_block_start_pc();
   const startPa = owner.jit_last_block_start_pa();
   const exitPc = owner.jit_last_block_exit_pc();
+  const alternateExitPc = owner.jit_last_block_alternate_exit_pc();
+  const dynamicExit = owner.jit_last_block_dynamic_exit();
   const rawHash = owner.jit_last_block_raw_hash();
   const { instance, module } = await WebAssembly.instantiate(bytes, {
     env: { memory: state.wasmExports.memory },
@@ -35,12 +37,24 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
     };
   }
   evictOldestJitBlockIfNeeded();
-  state.jitBlocks.set(key, { exitPc, instance, module, rawHash, startPa, startPc, steps });
+  state.jitBlocks.set(key, {
+    alternateExitPc,
+    dynamicExit,
+    exitPc,
+    instance,
+    module,
+    rawHash,
+    startPa,
+    startPc,
+    steps,
+  });
   state.jitRejectedBlocks.delete(key);
 
   return {
     compiled: true,
     bytes: bytes.length,
+    alternateExitPc,
+    dynamicExit,
     exitPc,
     pc,
     rawHash,

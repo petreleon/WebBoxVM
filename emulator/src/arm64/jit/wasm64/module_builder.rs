@@ -1,7 +1,7 @@
 use super::encoding::{encode_name, encode_u32, encode_u64};
 use super::opcodes::*;
 
-const SCRATCH_I64_LOCALS: u32 = 3;
+const SCRATCH_I64_LOCALS: u32 = 4;
 
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
     let mut module = Vec::new();

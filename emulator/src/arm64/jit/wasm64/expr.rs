@@ -88,6 +88,10 @@ impl WasmExpr {
         self.emit_store_with(JIT_STATE_PSTATE_OFFSET, true, value);
     }
 
+    pub(super) fn emit_write_pc_with(&mut self, value: impl FnOnce(&mut Self)) {
+        self.emit_store_with(JIT_STATE_PC_OFFSET, true, value);
+    }
+
     pub(super) fn local_get(&mut self, index: u32) {
         self.op(OP_LOCAL_GET);
         encode_u32(&mut self.code, index);

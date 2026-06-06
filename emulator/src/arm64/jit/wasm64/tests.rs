@@ -7,6 +7,7 @@ mod cond_select;
 mod errors;
 mod hints;
 mod rev;
+mod terminal_branch;
 
 fn block(instructions: Vec<Instr>) -> Block {
     let instruction_pas = (0..instructions.len())

@@ -30,6 +30,7 @@ mod module_builder;
 mod opcodes;
 mod rev;
 mod state;
+mod terminal_branch;
 mod types;
 
 #[cfg(test)]
@@ -56,10 +57,14 @@ impl Wasm64Compiler {
 
         let mut body = WasmExpr::new();
         let mut compiled = 0usize;
+        let mut dynamic_exit = false;
+        let mut exit_pc = block.start_pc;
+        let mut alternate_exit_pc = block.start_pc;
         let mut raw_hash = hash_seed(block.start_pa);
 
         for (index, &(instr, raw)) in block.instructions.iter().enumerate() {
             let expected_pa = block.start_pa + index as u64 * 4;
+            let pc = block.start_pc + index as u64 * 4;
             if block.instruction_pas.get(index).copied() != Some(expected_pa) {
                 if compiled == 0 {
                     return Err(WasmJitError::BlockDiscovery(
@@ -68,7 +73,15 @@ impl Wasm64Compiler {
                 }
                 break;
             }
-            if !body.emit_instr(instr, block.start_pc + index as u64 * 4) {
+            if let Some(exits) = body.emit_terminal_branch(instr, pc) {
+                dynamic_exit = true;
+                exit_pc = exits.fallthrough;
+                alternate_exit_pc = exits.target;
+                raw_hash = hash_raw_word(raw_hash, raw);
+                compiled += 1;
+                break;
+            }
+            if !body.emit_instr(instr, pc) {
                 if compiled == 0 {
                     return Err(WasmJitError::UnsupportedFirstOpcode(instr.op));
                 }
@@ -78,15 +91,20 @@ impl Wasm64Compiler {
             compiled += 1;
         }
 
-        let exit_pc = block.start_pc + compiled as u64 * 4;
-        body.emit_store_const(JIT_STATE_PC_OFFSET, exit_pc);
-        body.i64_const(exit_pc);
+        if !dynamic_exit {
+            exit_pc = block.start_pc + compiled as u64 * 4;
+            alternate_exit_pc = exit_pc;
+            body.emit_store_const(JIT_STATE_PC_OFFSET, exit_pc);
+            body.i64_const(exit_pc);
+        }
         body.end();
 
         Ok(WasmBlockModule {
             start_pc: block.start_pc,
             start_pa: block.start_pa,
             exit_pc,
+            alternate_exit_pc,
+            dynamic_exit,
             guest_instr_count: compiled,
             raw_hash,
             bytes: build_module(body.into_bytes()),

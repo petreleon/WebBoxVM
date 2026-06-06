@@ -50,6 +50,16 @@ impl Emulator {
         self.jit_last_block_exit_pc
     }
 
+    /// Alternate exit PC for dynamic-exit JIT blocks.
+    pub fn jit_last_block_alternate_exit_pc(&self) -> u64 {
+        self.jit_last_block_alternate_exit_pc
+    }
+
+    /// Whether the last compiled block may return one of two legal exits.
+    pub fn jit_last_block_dynamic_exit(&self) -> bool {
+        self.jit_last_block_dynamic_exit
+    }
+
     /// Raw-code fingerprint of the last successfully compiled JIT block.
     pub fn jit_last_block_raw_hash(&self) -> u64 {
         self.jit_last_block_raw_hash

@@ -31,6 +31,8 @@ impl Emulator {
                 self.jit_last_block_start_pc = module.start_pc;
                 self.jit_last_block_start_pa = module.start_pa;
                 self.jit_last_block_exit_pc = module.exit_pc;
+                self.jit_last_block_alternate_exit_pc = module.alternate_exit_pc;
+                self.jit_last_block_dynamic_exit = module.dynamic_exit;
                 self.jit_last_block_raw_hash = module.raw_hash;
                 module.bytes
             }
@@ -40,6 +42,8 @@ impl Emulator {
                 self.jit_last_block_start_pc = 0;
                 self.jit_last_block_start_pa = 0;
                 self.jit_last_block_exit_pc = 0;
+                self.jit_last_block_alternate_exit_pc = 0;
+                self.jit_last_block_dynamic_exit = false;
                 self.jit_last_block_raw_hash = 0;
                 Vec::new()
             }
