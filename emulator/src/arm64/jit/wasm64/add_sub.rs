@@ -49,7 +49,7 @@ impl WasmExpr {
         true
     }
 
-    fn emit_extended_reg(&mut self, rm: u8, option: u8, shift: u64, sf: bool) {
+    pub(super) fn emit_extended_reg(&mut self, rm: u8, option: u8, shift: u64, sf: bool) {
         let read_sf = if option == 3 || option == 7 {
             sf
         } else {

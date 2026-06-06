@@ -31,17 +31,15 @@ fn compiles_subs_immediate_result_and_flags() {
 }
 
 #[test]
-fn unsupported_extended_cmp_ends_prefix() {
-    let block = block(vec![
-        instr(Opcode::CmpImm, 0, 1, 0, 7, true),
-        Instr {
-            cond: 0x8,
-            ..instr(Opcode::Cmp, 31, 2, 3, 0, true)
-        },
-    ]);
+fn compiles_observed_cmp_extended_register() {
+    let instr = crate::arm64::decode(0x6b21_02df).expect("decode observed cmp");
+    assert_eq!(instr.op, Opcode::Cmp);
+    assert_eq!((instr.rn, instr.rm, instr.cond, instr.imm, instr.sf), (22, 1, 8, 0, false));
 
-    let module = Wasm64Compiler::compile(&block).expect("compile cmp prefix");
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile cmp extended");
 
     assert_eq!(module.guest_instr_count, 1);
-    assert_eq!(module.exit_pc, 0x1004);
+    assert!(module.bytes.contains(&opcodes::OP_I64_AND));
+    assert!(module.bytes.contains(&opcodes::OP_I64_SUB));
+    assert!(module.bytes.contains(&opcodes::OP_I64_GE_U));
 }
