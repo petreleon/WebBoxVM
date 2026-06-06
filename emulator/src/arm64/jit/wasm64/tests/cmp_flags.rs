@@ -43,3 +43,17 @@ fn compiles_observed_cmp_extended_register() {
     assert!(module.bytes.contains(&opcodes::OP_I64_SUB));
     assert!(module.bytes.contains(&opcodes::OP_I64_GE_U));
 }
+
+#[test]
+fn compiles_observed_subs_register_result_and_flags() {
+    let instr = crate::arm64::decode(0x6b04_0040).expect("decode subs w0, w2, w4");
+    assert_eq!(instr.op, Opcode::Subs);
+    assert_eq!((instr.rd, instr.rn, instr.rm, instr.sf), (0, 2, 4, false));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile subs register");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_I64_SUB));
+    assert!(module.bytes.contains(&opcodes::OP_I64_GE_U));
+    assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
+}

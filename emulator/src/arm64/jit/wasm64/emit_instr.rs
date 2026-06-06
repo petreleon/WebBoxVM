@@ -45,6 +45,7 @@ impl WasmExpr {
                 self.emit_subs_imm(instr);
                 true
             }
+            Opcode::Subs => self.emit_subs_reg(instr),
             Opcode::Cmp => self.emit_cmp_reg(instr),
             Opcode::Ccmp | Opcode::Ccmn => {
                 self.emit_cond_compare(instr);
@@ -116,6 +117,7 @@ impl WasmExpr {
             Opcode::Ldr | Opcode::LdrSign => self.emit_memory_load(instr),
             Opcode::Mrs => self.emit_mrs(instr),
             Opcode::SimdLd1Multi => self.emit_simd_ld1_multi(instr),
+            Opcode::SimdDupByte => self.emit_simd_dup_gpr(instr),
             Opcode::SimdCmeqZero => self.emit_simd_cmeq_zero(instr),
             Opcode::SimdUmaxp => self.emit_simd_umaxp(instr),
             Opcode::SimdUminp => self.emit_simd_uminp(instr),

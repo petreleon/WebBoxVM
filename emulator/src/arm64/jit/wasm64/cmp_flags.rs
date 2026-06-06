@@ -44,6 +44,20 @@ impl WasmExpr {
         true
     }
 
+    pub(super) fn emit_subs_reg(&mut self, instr: crate::arm64::Instr) -> bool {
+        if (instr.cond & 0x8) != 0 || !can_emit_shift(instr.cond, instr.imm, instr.sf) {
+            return false;
+        }
+        self.emit_read_reg(instr.rn, instr.sf);
+        self.local_set(LOCAL_LHS);
+        self.emit_read_shifted_reg(instr.rm, instr.cond, instr.imm, instr.sf);
+        self.mask_32_if_needed(instr.sf);
+        self.local_set(LOCAL_RHS);
+        self.emit_sub_flags(instr.sf);
+        self.emit_write_reg_with(instr.rd, instr.sf, |this| this.local_get(LOCAL_RES));
+        true
+    }
+
     fn emit_cmp_ext(&mut self, instr: crate::arm64::Instr) -> bool {
         let option = instr.cond & 0x7;
         if instr.imm > 4 {

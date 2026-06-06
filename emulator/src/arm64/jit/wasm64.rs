@@ -45,6 +45,7 @@ mod opcodes;
 mod rev;
 mod simd_compare;
 mod simd_memory;
+mod simd_moves;
 mod simd_pairwise;
 mod state;
 mod system_reg;
