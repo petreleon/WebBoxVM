@@ -6,6 +6,7 @@ mod bit_count;
 mod bitfield;
 mod cmp_flags;
 mod cond_select;
+mod conditional_compare;
 mod errors;
 mod extract;
 mod hints;

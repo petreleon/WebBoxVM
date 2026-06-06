@@ -46,6 +46,10 @@ impl WasmExpr {
                 true
             }
             Opcode::Cmp => self.emit_cmp_reg(instr),
+            Opcode::Ccmp | Opcode::Ccmn => {
+                self.emit_cond_compare(instr);
+                true
+            }
             Opcode::Csel | Opcode::Csinc | Opcode::Csinv | Opcode::Csneg => {
                 self.emit_cond_select(instr);
                 true

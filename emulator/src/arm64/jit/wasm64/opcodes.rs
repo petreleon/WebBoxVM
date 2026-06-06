@@ -21,6 +21,7 @@ pub(super) const OP_I32_EQ: u8 = 0x46;
 pub(super) const OP_I32_NE: u8 = 0x47;
 pub(super) const OP_I64_EQZ: u8 = 0x50;
 pub(super) const OP_I64_NE: u8 = 0x52;
+pub(super) const OP_I64_LT_U: u8 = 0x54;
 pub(super) const OP_I64_GE_U: u8 = 0x5a;
 pub(super) const OP_I32_CLZ: u8 = 0x67;
 pub(super) const OP_I32_AND: u8 = 0x71;

@@ -23,6 +23,7 @@ mod bitfield;
 mod cmp_flags;
 mod cond_select;
 mod condition;
+mod conditional_compare;
 mod emit_instr;
 mod encoding;
 mod expr;
