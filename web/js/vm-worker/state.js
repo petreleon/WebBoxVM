@@ -7,6 +7,7 @@ export const METRICS_INTERVAL_MS = 100;
 export const DEFAULT_JIT_ENABLED = true;
 export const JIT_HOT_THRESHOLD = 2;
 export const JIT_MAX_BLOCKS = 4096;
+export const JIT_PROBE_STEP_SLICE = 1_000_000;
 
 export const state = {
   emulator: undefined,

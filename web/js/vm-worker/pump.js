@@ -1,7 +1,7 @@
 import { tryRunOrCompileJitBlock } from "./jit-hot.js";
 import { errorMessage } from "./errors.js";
 import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
-import { MAX_FRAME_BATCHES, MAX_FRAME_MS, state } from "./state.js";
+import { JIT_PROBE_STEP_SLICE, MAX_FRAME_BATCHES, MAX_FRAME_MS, state } from "./state.js";
 
 export function schedulePump() {
   if (!state.running || state.pumpScheduled || !state.emulator) {
@@ -27,7 +27,7 @@ async function runPump() {
         return;
       }
       if (!usedJit) {
-        state.emulator.run_kernel(state.stepSlice);
+        state.emulator.run_kernel(interpreterStepSlice());
       }
       drainUart();
       batches += 1;
@@ -44,6 +44,13 @@ async function runPump() {
     state.running = false;
     postMessage({ error: errorMessage(error), event: "error" });
   }
+}
+
+function interpreterStepSlice() {
+  if (!state.jitEnabled) {
+    return state.stepSlice;
+  }
+  return Math.min(state.stepSlice, JIT_PROBE_STEP_SLICE);
 }
 
 function drainUart() {
