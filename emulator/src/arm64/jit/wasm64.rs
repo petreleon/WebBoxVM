@@ -117,6 +117,17 @@ impl Wasm64Compiler {
                 compiled += 1;
                 break;
             }
+            if matches!(instr.op, Opcode::Ldp | Opcode::Ldpsw) {
+                if !body.emit_memory_pair_load(instr) {
+                    if compiled == 0 {
+                        return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
+                    }
+                    break;
+                }
+                raw_hash = hash_raw_word(raw_hash, raw);
+                compiled += 1;
+                break;
+            }
             if !body.emit_instr(instr, pc) {
                 if compiled == 0 {
                     return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
