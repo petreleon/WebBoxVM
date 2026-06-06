@@ -81,3 +81,19 @@ fn compiles_branch_with_link_and_sets_lr() {
     assert_eq!(module.exit_pc, 0x1020);
     assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
 }
+
+#[test]
+fn compiles_register_branches_as_arbitrary_dynamic_terminals() {
+    for op in [Opcode::Br, Opcode::Ret] {
+        let block = block(vec![instr(op, 0, 17, 0, 0, true)]);
+
+        let module = Wasm64Compiler::compile(&block).expect("compile br/ret");
+
+        assert_eq!(module.guest_instr_count, 1);
+        assert!(module.dynamic_exit);
+        assert_eq!(module.exit_pc, 0);
+        assert_eq!(module.alternate_exit_pc, u64::MAX);
+        assert!(module.bytes.contains(&opcodes::OP_I64_LOAD));
+        assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
+    }
+}

@@ -3,6 +3,8 @@ import { postMetrics } from "./metrics-events.js";
 import { state } from "./state.js";
 import { requireEmulator } from "./lifecycle.js";
 
+const ANY_DYNAMIC_EXIT_PC = 0xffffffffffffffffn;
+
 export async function runJitBlock({ coreId = 0 } = {}) {
   requireEmulator();
   const pc = state.emulator.pc();
@@ -72,6 +74,9 @@ function isAllowedExit(exitPc, entry) {
   if (exitPc === entry.exitPc) {
     return true;
   }
+  if (entry.dynamicExit && entry.alternateExitPc === ANY_DYNAMIC_EXIT_PC) {
+    return true;
+  }
   return entry.dynamicExit && exitPc === entry.alternateExitPc;
 }
 
@@ -80,6 +85,9 @@ function exitMismatchMessage(exitPc, entry) {
   const expected = `0x${entry.exitPc.toString(16)}`;
   if (!entry.dynamicExit) {
     return `JIT block returned ${actual} instead of ${expected}`;
+  }
+  if (entry.alternateExitPc === ANY_DYNAMIC_EXIT_PC) {
+    return `JIT block returned ${actual} outside arbitrary dynamic exit`;
   }
   return `JIT block returned ${actual} outside ${expected}/0x${entry.alternateExitPc.toString(16)}`;
 }

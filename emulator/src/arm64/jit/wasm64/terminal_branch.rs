@@ -2,6 +2,7 @@ use super::opcodes::*;
 use super::*;
 
 const LOCAL_EXIT_PC: u32 = 4;
+pub(super) const ANY_DYNAMIC_EXIT_PC: u64 = u64::MAX;
 
 pub(super) struct TerminalBranchExits {
     pub exit_pc: u64,
@@ -18,6 +19,7 @@ impl WasmExpr {
         let fallthrough = pc.wrapping_add(4);
         let target = (pc as i64 + instr.imm as i64) as u64;
         match instr.op {
+            Opcode::Br | Opcode::Ret => return Some(self.emit_reg_branch(instr.rn)),
             Opcode::B => return Some(self.emit_static_branch(target)),
             Opcode::Bl => {
                 self.emit_store_const(reg_offset(30), fallthrough);
@@ -40,6 +42,19 @@ impl WasmExpr {
             alternate_exit_pc: target,
             dynamic: true,
         })
+    }
+
+    fn emit_reg_branch(&mut self, rn: u8) -> TerminalBranchExits {
+        self.emit_read_reg(rn, true);
+        self.local_set(LOCAL_EXIT_PC);
+        self.emit_write_pc_with(|this| this.local_get(LOCAL_EXIT_PC));
+        self.local_get(LOCAL_EXIT_PC);
+
+        TerminalBranchExits {
+            exit_pc: 0,
+            alternate_exit_pc: ANY_DYNAMIC_EXIT_PC,
+            dynamic: true,
+        }
     }
 
     fn emit_static_branch(&mut self, target: u64) -> TerminalBranchExits {
