@@ -1,5 +1,5 @@
 use super::*;
-use crate::constants::{SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TPIDR_EL0};
+use crate::constants::{SYSREG_CNTVCT_EL0, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TPIDR_EL0};
 
 #[test]
 fn compiles_mrs_with_sysreg_helper_import() {
@@ -25,6 +25,18 @@ fn compiles_observed_mrs_tpidr_el0() {
     assert_eq!((instr.rd, instr.imm as u16), (2, SYSREG_TPIDR_EL0));
 
     let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MRS TPIDR_EL0");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_CALL));
+}
+
+#[test]
+fn compiles_observed_mrs_cntvct_el0() {
+    let instr = crate::arm64::decode(0xd53b_e040).expect("decode mrs x0, cntvct_el0");
+    assert_eq!(instr.op, Opcode::Mrs);
+    assert_eq!((instr.rd, instr.imm as u16), (0, SYSREG_CNTVCT_EL0));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MRS CNTVCT_EL0");
 
     assert_eq!(module.guest_instr_count, 1);
     assert!(module.bytes.contains(&opcodes::OP_CALL));

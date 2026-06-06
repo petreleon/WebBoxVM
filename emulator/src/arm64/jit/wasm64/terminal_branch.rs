@@ -20,6 +20,12 @@ impl WasmExpr {
         let target = (pc as i64 + instr.imm as i64) as u64;
         match instr.op {
             Opcode::Br | Opcode::Ret => return Some(self.emit_reg_branch(instr.rn)),
+            Opcode::Blr => {
+                self.emit_read_reg(instr.rn, true);
+                self.local_set(LOCAL_EXIT_PC);
+                self.emit_store_const(reg_offset(30), fallthrough);
+                return Some(self.emit_reg_branch_from_local());
+            }
             Opcode::B => return Some(self.emit_static_branch(target)),
             Opcode::Bl => {
                 self.emit_store_const(reg_offset(30), fallthrough);
@@ -47,6 +53,10 @@ impl WasmExpr {
     fn emit_reg_branch(&mut self, rn: u8) -> TerminalBranchExits {
         self.emit_read_reg(rn, true);
         self.local_set(LOCAL_EXIT_PC);
+        self.emit_reg_branch_from_local()
+    }
+
+    fn emit_reg_branch_from_local(&mut self) -> TerminalBranchExits {
         self.emit_write_pc_with(|this| this.local_get(LOCAL_EXIT_PC));
         self.local_get(LOCAL_EXIT_PC);
 

@@ -83,6 +83,39 @@ fn compiles_branch_with_link_and_sets_lr() {
 }
 
 #[test]
+fn compiles_register_branch_with_link_and_sets_lr() {
+    let block = block(vec![instr(Opcode::Blr, 0, 25, 0, 0, true)]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile blr");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.dynamic_exit);
+    assert_eq!(module.exit_pc, 0);
+    assert_eq!(module.alternate_exit_pc, u64::MAX);
+    assert!(module.bytes.contains(&opcodes::OP_I64_LOAD));
+    assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
+}
+
+#[test]
+fn blr_x30_reads_target_before_link_write() {
+    let block = block(vec![instr(Opcode::Blr, 0, 30, 0, 0, true)]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile blr x30");
+
+    let first_load = module
+        .bytes
+        .iter()
+        .position(|op| *op == opcodes::OP_I64_LOAD)
+        .expect("load target register");
+    let first_store = module
+        .bytes
+        .iter()
+        .position(|op| *op == opcodes::OP_I64_STORE)
+        .expect("store link register");
+    assert!(first_load < first_store);
+}
+
+#[test]
 fn compiles_register_branches_as_arbitrary_dynamic_terminals() {
     for op in [Opcode::Br, Opcode::Ret] {
         let block = block(vec![instr(op, 0, 17, 0, 0, true)]);
