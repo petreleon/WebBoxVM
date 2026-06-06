@@ -12,6 +12,7 @@ mod extract;
 mod hints;
 mod logical_flags;
 mod memory_load;
+mod memory_pair;
 mod memory_store;
 mod multiply;
 mod rev;

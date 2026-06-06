@@ -34,6 +34,7 @@ mod helpers;
 mod logical_flags;
 mod memory_address;
 mod memory_load;
+mod memory_pair;
 mod memory_store;
 mod module_builder;
 mod multiply;
@@ -96,6 +97,17 @@ impl Wasm64Compiler {
             }
             if instr.op == Opcode::Str {
                 if !body.emit_memory_store(instr) {
+                    if compiled == 0 {
+                        return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
+                    }
+                    break;
+                }
+                raw_hash = hash_raw_word(raw_hash, raw);
+                compiled += 1;
+                break;
+            }
+            if instr.op == Opcode::Stp {
+                if !body.emit_memory_pair_store(instr) {
                     if compiled == 0 {
                         return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
                     }
