@@ -42,6 +42,10 @@ impl WasmExpr {
                 true
             }
             Opcode::Cmp => self.emit_cmp_reg(instr),
+            Opcode::Csel | Opcode::Csinc | Opcode::Csinv | Opcode::Csneg => {
+                self.emit_cond_select(instr);
+                true
+            }
             Opcode::Rev => {
                 self.emit_rev(instr);
                 true

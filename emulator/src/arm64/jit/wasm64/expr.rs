@@ -135,6 +135,11 @@ impl WasmExpr {
         encode_i64(&mut self.code, value as i64);
     }
 
+    pub(super) fn i32_const(&mut self, value: i32) {
+        self.op(OP_I32_CONST);
+        encode_i64(&mut self.code, value as i64);
+    }
+
     pub(super) fn op(&mut self, opcode: u8) {
         self.code.push(opcode);
     }

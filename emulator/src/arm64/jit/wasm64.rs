@@ -19,6 +19,8 @@ use crate::constants::{SP_REGISTER_INDEX, ZERO_REGISTER_INDEX};
 
 mod bitfield;
 mod cmp_flags;
+mod cond_select;
+mod condition;
 mod emit_instr;
 mod encoding;
 mod expr;
