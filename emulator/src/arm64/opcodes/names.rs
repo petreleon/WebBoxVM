@@ -1,3 +1,4 @@
+use super::names_simd;
 use super::Opcode;
 
 impl Opcode {
@@ -128,7 +129,7 @@ impl Opcode {
             Self::SimdRshrn2 => "SimdRshrn2",
             Self::Paciasp => "Paciasp",
             Self::BtiC => "BtiC",
-            _ => "Unknown",
+            _ => names_simd::name(self).unwrap_or("Unknown"),
         }
     }
 
