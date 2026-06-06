@@ -14,6 +14,10 @@ pub(super) fn reg_offset(reg: u8) -> u64 {
     JIT_STATE_X_OFFSET + reg as u64 * 8
 }
 
+pub(super) fn simd_half_offset(reg: u8, high: bool) -> u64 {
+    JIT_STATE_SIMD_OFFSET + reg as u64 * 16 + u64::from(high) * 8
+}
+
 pub(super) fn can_emit_shift(shift_type: u8, amount: u64, sf: bool) -> bool {
     let width = if sf { 64 } else { 32 };
     if amount >= width {

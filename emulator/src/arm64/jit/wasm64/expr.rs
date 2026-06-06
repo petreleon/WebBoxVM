@@ -1,4 +1,5 @@
 use super::encoding::{encode_u32, encode_u64};
+use super::helpers::simd_half_offset;
 use super::opcodes::*;
 use super::*;
 
@@ -74,6 +75,19 @@ impl WasmExpr {
             reg_offset(reg)
         };
         self.emit_store_with(offset, sf, value);
+    }
+
+    pub(super) fn emit_read_simd_half(&mut self, reg: u8, high: bool) {
+        self.emit_load(simd_half_offset(reg, high));
+    }
+
+    pub(super) fn emit_write_simd_half_with(
+        &mut self,
+        reg: u8,
+        high: bool,
+        value: impl FnOnce(&mut Self),
+    ) {
+        self.emit_store_with(simd_half_offset(reg, high), true, value);
     }
 
     pub(super) fn emit_store_const(&mut self, offset: u64, value: u64) {

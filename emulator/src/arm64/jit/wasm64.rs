@@ -43,6 +43,7 @@ mod module_builder;
 mod multiply;
 mod opcodes;
 mod rev;
+mod simd_compare;
 mod state;
 mod system_reg;
 mod terminal_branch;
@@ -59,7 +60,7 @@ use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
     WasmJitCpuState, JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE,
-    JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET,
+    JIT_STATE_SIMD_OFFSET, JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET,
 };
 pub use types::{WasmBlockModule, WasmJitError};
 

@@ -1,5 +1,5 @@
 use super::*;
-use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
+use crate::arm64::{Instr, Opcode};
 mod add_carry;
 mod add_sub;
 mod bit_count;
@@ -17,6 +17,8 @@ mod memory_store;
 mod memory_zero;
 mod multiply;
 mod rev;
+mod simd_compare;
+mod state;
 mod system_reg;
 mod terminal_branch;
 mod variable_shift;
@@ -51,28 +53,6 @@ fn instr_cond(op: Opcode, cond: u8, imm: u64, sf: bool) -> Instr {
         imm,
         ..instr(op, 2, 0, 1, 0, sf)
     }
-}
-
-#[test]
-fn jit_state_roundtrips_cpu_registers() {
-    let mut cpu = Armv8Cpu::default();
-    cpu.regs.set_x(0, 0x1234);
-    cpu.regs.set_x(30, 0xabcd);
-    cpu.regs.sp = 0x8000;
-    cpu.regs.pc = 0x4000;
-    cpu.pstate = ProcessorState::from_u64(0xa000_0000);
-
-    let mut state = WasmJitCpuState::default();
-    state.copy_from_cpu(&cpu);
-
-    let mut restored = Armv8Cpu::default();
-    state.copy_to_cpu(&mut restored);
-
-    assert_eq!(restored.regs.x(0), 0x1234);
-    assert_eq!(restored.regs.x(30), 0xabcd);
-    assert_eq!(restored.regs.sp, 0x8000);
-    assert_eq!(restored.regs.pc, 0x4000);
-    assert_eq!(restored.pstate.to_u64(), 0xa000_0000);
 }
 
 #[test]
