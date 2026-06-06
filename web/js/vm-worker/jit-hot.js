@@ -18,6 +18,10 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
     }
     if (result.invalidated) {
       state.jitBlocks.delete(key);
+      if (result.rejected) {
+        state.jitRejectedBlocks.add(key);
+        recordJitReject(key, pc, result.error);
+      }
     } else {
       return false;
     }
