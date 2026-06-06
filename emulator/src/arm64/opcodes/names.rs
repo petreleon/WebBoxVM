@@ -105,6 +105,10 @@ impl Opcode {
             Self::Casp => "Casp",
             Self::Sysl => "Sysl",
             Self::Sysp => "Sysp",
+            Self::SimdLdr => "SimdLdr",
+            Self::SimdMovi => "SimdMovi",
+            Self::SimdLd1 => "SimdLd1",
+            Self::SimdLd1Multi => "SimdLd1Multi",
             _ => "Unknown",
         }
     }
