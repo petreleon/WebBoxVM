@@ -86,7 +86,7 @@ fn jit_load_guest_reads_mapped_ram() {
     map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);
     machine.bus.mem.write(RAM_BASE + 0x3010, 4, 0x4433_2211);
 
-    let value = jit_load_guest_from_machine(&mut machine, 0, 0x10, 4)
+    let value = jit_load_guest_from_machine(&mut machine, 0, 0x10, 4, &[])
         .expect("JIT load helper should read RAM");
 
     assert_eq!(value, 0x4433_2211);
@@ -96,7 +96,7 @@ fn jit_load_guest_reads_mapped_ram() {
 fn jit_load_guest_rejects_device_reads() {
     let mut machine = Machine::new(1);
 
-    let err = jit_load_guest_from_machine(&mut machine, 0, UART_BASE, 4)
+    let err = jit_load_guest_from_machine(&mut machine, 0, UART_BASE, 4, &[])
         .expect_err("JIT load helper must reject MMIO");
 
     assert!(err.contains("device PA"), "{err}");
@@ -120,6 +120,25 @@ fn jit_store_guest_stages_until_applied() {
 
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0));
     apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+    assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0x4433_2211));
+}
+
+#[test]
+fn jit_load_guest_forwards_pending_store_bytes() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    machine
+        .bus
+        .mem
+        .write(RAM_BASE + 0x40, 8, 0x8877_6655_4433_2211);
+
+    stage_jit_store_from_machine(&mut machine, 0, RAM_BASE + 0x42, 2, 0xaabb, &mut stores)
+        .expect("stage overlapping store");
+
+    let value = jit_load_guest_from_machine(&mut machine, 0, RAM_BASE + 0x40, 4, &stores)
+        .expect("JIT load helper should forward staged bytes");
+
+    assert_eq!(value, 0xaabb_2211);
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0x4433_2211));
 }
 
