@@ -1,6 +1,6 @@
 use super::opcodes::*;
 use super::*;
-use crate::constants::{PSTATE_C_BIT, PSTATE_N_BIT, PSTATE_NZCV_MASK, PSTATE_V_BIT, PSTATE_Z_BIT};
+use crate::constants::{PSTATE_C_BIT, PSTATE_NZCV_MASK, PSTATE_N_BIT, PSTATE_V_BIT, PSTATE_Z_BIT};
 
 const LOCAL_LHS: u32 = 1;
 const LOCAL_RHS: u32 = 2;
@@ -14,6 +14,18 @@ impl WasmExpr {
         self.mask_32_if_needed(instr.sf);
         self.local_set(LOCAL_RHS);
         self.emit_sub_flags(instr.sf);
+    }
+
+    pub(super) fn emit_subs_imm(&mut self, instr: crate::arm64::Instr) {
+        self.emit_read_base(instr.rn, instr.sf);
+        self.local_set(LOCAL_LHS);
+        self.i64_const(instr.imm);
+        self.mask_32_if_needed(instr.sf);
+        self.local_set(LOCAL_RHS);
+        self.emit_sub_flags(instr.sf);
+        if instr.rd != ZERO_REGISTER_INDEX {
+            self.emit_write_reg_sp_with(instr.rd, instr.sf, |this| this.local_get(LOCAL_RES));
+        }
     }
 
     pub(super) fn emit_cmp_reg(&mut self, instr: crate::arm64::Instr) -> bool {

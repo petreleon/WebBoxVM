@@ -1,6 +1,7 @@
 use super::*;
 use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
 
+mod bit_count;
 mod bitfield;
 mod cmp_flags;
 mod cond_select;
@@ -92,10 +93,11 @@ fn compiles_register_only_prefix_to_memory64_module() {
 #[test]
 fn unsupported_first_opcode_is_rejected() {
     let block = block(vec![instr(Opcode::Ldr, 0, 1, 0, 0, true)]);
+    let err = Wasm64Compiler::compile(&block).unwrap_err();
 
     assert_eq!(
-        Wasm64Compiler::compile(&block),
-        Err(WasmJitError::UnsupportedFirstOpcode(Opcode::Ldr))
+        err.to_string(),
+        "first opcode is not wasm-jittable: Ldr (7) raw=0x00000000"
     );
 }
 

@@ -17,7 +17,7 @@ pub struct WasmBlockModule {
 pub enum WasmJitError {
     BlockDiscovery(&'static str),
     EmptyBlock,
-    UnsupportedFirstOpcode(Opcode),
+    UnsupportedFirstOpcode { op: Opcode, raw: u32 },
 }
 
 impl fmt::Display for WasmJitError {
@@ -25,10 +25,10 @@ impl fmt::Display for WasmJitError {
         match self {
             Self::BlockDiscovery(err) => write!(f, "block discovery failed: {err}"),
             Self::EmptyBlock => write!(f, "block has no instructions"),
-            Self::UnsupportedFirstOpcode(op) => {
+            Self::UnsupportedFirstOpcode { op, raw } => {
                 write!(
                     f,
-                    "first opcode is not wasm-jittable: {} ({})",
+                    "first opcode is not wasm-jittable: {} ({}) raw=0x{raw:08x}",
                     op.name(),
                     op.id()
                 )

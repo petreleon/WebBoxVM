@@ -17,6 +17,7 @@ use super::block::Block;
 use crate::arm64::Opcode;
 use crate::constants::{SP_REGISTER_INDEX, ZERO_REGISTER_INDEX};
 
+mod bit_count;
 mod bitfield;
 mod cmp_flags;
 mod cond_select;
@@ -84,7 +85,7 @@ impl Wasm64Compiler {
             }
             if !body.emit_instr(instr, pc) {
                 if compiled == 0 {
-                    return Err(WasmJitError::UnsupportedFirstOpcode(instr.op));
+                    return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
                 }
                 break;
             }
