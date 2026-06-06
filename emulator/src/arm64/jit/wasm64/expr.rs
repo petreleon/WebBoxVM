@@ -3,6 +3,7 @@ use super::helpers::simd_half_offset;
 use super::opcodes::*;
 use super::*;
 
+const LOCAL_SHIFTED_REG: u32 = 4;
 pub(super) struct WasmExpr {
     code: Vec<u8>,
 }
@@ -45,6 +46,10 @@ impl WasmExpr {
             self.op(OP_I32_WRAP_I64);
             self.op(OP_I64_EXTEND_I32_S);
         }
+        if !sf && shift_type == 3 {
+            self.emit_rotr32_const(amount);
+            return;
+        }
 
         self.i64_const(amount);
         self.op(match shift_type {
@@ -54,6 +59,17 @@ impl WasmExpr {
             3 => OP_I64_ROTR,
             _ => unreachable!(),
         });
+    }
+
+    fn emit_rotr32_const(&mut self, amount: u64) {
+        self.local_set(LOCAL_SHIFTED_REG);
+        self.local_get(LOCAL_SHIFTED_REG);
+        self.i64_const(amount);
+        self.op(OP_I64_SHR_U);
+        self.local_get(LOCAL_SHIFTED_REG);
+        self.i64_const((32 - amount) & 31);
+        self.op(OP_I64_SHL);
+        self.op(OP_I64_OR);
     }
 
     pub(super) fn emit_write_reg_with(&mut self, reg: u8, sf: bool, value: impl FnOnce(&mut Self)) {

@@ -1,4 +1,5 @@
 use super::*;
+use crate::arm64::decode;
 
 #[test]
 fn compiles_ands_immediate_and_updates_pstate() {
@@ -68,4 +69,19 @@ fn compiles_ands_register_and_bics_alias() {
     assert!(module.bytes.contains(&opcodes::OP_I64_AND));
     assert!(module.bytes.contains(&opcodes::OP_I64_XOR));
     assert!(module.bytes.contains(&opcodes::OP_I64_EQZ));
+}
+
+#[test]
+fn compiles_observed_32_bit_eor_ror_form() {
+    let instr = decode(0x4ac9_0949).expect("decode eor w9, w10, w9, ror #2");
+    assert_eq!(instr.op, Opcode::EorReg);
+    assert_eq!((instr.rd, instr.rn, instr.rm), (9, 10, 9));
+    assert_eq!((instr.cond, instr.imm, instr.sf), (3, 2, false));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile eor ror");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_I64_SHR_U));
+    assert!(module.bytes.contains(&opcodes::OP_I64_SHL));
+    assert!(module.bytes.contains(&opcodes::OP_I64_XOR));
 }

@@ -119,7 +119,7 @@ fn compiles_shifted_register_prefix() {
 }
 
 #[test]
-fn unsupported_32_bit_rotate_right_ends_compiled_prefix() {
+fn compiles_32_bit_rotate_right_register_prefix() {
     let block = block(vec![
         instr(Opcode::Movz, 0, 0, 0, 5, true),
         instr_cond(Opcode::EorReg, 3, 5, false),
@@ -127,8 +127,8 @@ fn unsupported_32_bit_rotate_right_ends_compiled_prefix() {
 
     let module = Wasm64Compiler::compile(&block).expect("compile prefix");
 
-    assert_eq!(module.guest_instr_count, 1);
-    assert_eq!(module.exit_pc, 0x1004);
+    assert_eq!(module.guest_instr_count, 2);
+    assert_eq!(module.exit_pc, 0x1008);
 }
 
 #[test]

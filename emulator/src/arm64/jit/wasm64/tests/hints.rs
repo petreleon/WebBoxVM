@@ -1,4 +1,5 @@
 use super::*;
+use crate::arm64::decode;
 
 #[test]
 fn compiles_noop_hint_aliases() {
@@ -12,4 +13,15 @@ fn compiles_noop_hint_aliases() {
 
     assert_eq!(module.guest_instr_count, 3);
     assert_eq!(module.exit_pc, 0x100c);
+}
+
+#[test]
+fn compiles_observed_dmb_as_noop() {
+    let instr = decode(0xd503_39bf).expect("decode dmb ishld");
+    assert_eq!(instr.op, Opcode::Dmb);
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile dmb");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert_eq!(module.exit_pc, 0x1004);
 }

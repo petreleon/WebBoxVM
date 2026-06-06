@@ -23,7 +23,7 @@ pub(super) fn can_emit_shift(shift_type: u8, amount: u64, sf: bool) -> bool {
     if amount >= width {
         return false;
     }
-    amount == 0 || shift_type != 3 || sf
+    amount == 0 || shift_type != 3 || amount < width
 }
 
 pub(super) fn can_emit_bitfield(instr: crate::arm64::Instr) -> bool {
@@ -92,5 +92,8 @@ pub(super) fn is_wasm_noop_alias(op: Opcode) -> bool {
             | Opcode::Yield
             | Opcode::Dgh
             | Opcode::Sb
+            | Opcode::Dmb
+            | Opcode::Dsb
+            | Opcode::Isb
     )
 }

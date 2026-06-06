@@ -1,4 +1,4 @@
-use super::memory_address::ADDR_LOCAL;
+use super::memory_address::{ADDR_LOCAL, WRITEBACK_LOCAL};
 use super::opcodes::*;
 use super::*;
 use crate::arm64::{Instr, Opcode};
@@ -44,11 +44,19 @@ impl WasmExpr {
     }
 
     fn emit_simd_ldr(&mut self, instr: Instr) -> bool {
-        if instr.size != 16 || self.emit_memory_address(instr) != Some(false) {
+        if instr.size != 16 {
             return false;
         }
+        let Some(writeback) = self.emit_memory_address(instr) else {
+            return false;
+        };
         self.emit_load_simd_half(instr.rd, false, 0);
         self.emit_load_simd_half(instr.rd, true, 8);
+        if writeback {
+            self.emit_write_reg_sp_with(instr.rn, true, |this| {
+                this.local_get(WRITEBACK_LOCAL);
+            });
+        }
         true
     }
 
