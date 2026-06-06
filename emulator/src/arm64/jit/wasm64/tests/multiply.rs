@@ -50,3 +50,17 @@ fn compiles_signed_and_unsigned_long_madd_forms() {
     assert_eq!(module.guest_instr_count, 2);
     assert!(module.bytes.contains(&opcodes::OP_I64_EXTEND_I32_S));
 }
+
+#[test]
+fn compiles_observed_udiv_with_zero_divisor_guard() {
+    let instr = crate::arm64::decode(0x1ac1_0841).expect("decode udiv w1, w2, w1");
+    assert_eq!(instr.op, Opcode::Udiv);
+    assert!(!instr.sf);
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile udiv");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_I64_DIV_U));
+    assert!(module.bytes.contains(&opcodes::OP_SELECT));
+    assert!(module.bytes.contains(&opcodes::OP_I64_NE));
+}

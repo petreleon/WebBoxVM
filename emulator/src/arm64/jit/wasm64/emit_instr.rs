@@ -79,6 +79,10 @@ impl WasmExpr {
                 self.emit_addsub_carry(instr);
                 true
             }
+            Opcode::Udiv => {
+                self.emit_udiv(instr);
+                true
+            }
             Opcode::Madd | Opcode::Msub => self.emit_madd_msub(instr),
             Opcode::AndImm | Opcode::OrrImm | Opcode::EorImm => {
                 let op = logical_opcode(instr.op);
