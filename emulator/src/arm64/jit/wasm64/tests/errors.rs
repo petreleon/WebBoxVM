@@ -15,11 +15,11 @@ fn unsupported_opcode_error_names_opcode() {
 
 #[test]
 fn unsupported_first_opcode_is_rejected() {
-    let block = block(vec![instr(Opcode::Ldr, 0, 1, 0, 0, true)]);
+    let block = block(vec![instr(Opcode::Str, 0, 1, 0, 0, true)]);
     let err = Wasm64Compiler::compile(&block).unwrap_err();
 
     assert_eq!(
         err.to_string(),
-        "first opcode is not wasm-jittable: Ldr (7) raw=0x00000000"
+        "first opcode is not wasm-jittable: Str (10) raw=0x00000000"
     );
 }

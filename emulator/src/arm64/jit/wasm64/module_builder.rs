@@ -2,6 +2,9 @@ use super::encoding::{encode_name, encode_u32, encode_u64};
 use super::opcodes::*;
 
 const SCRATCH_I64_LOCALS: u32 = 4;
+const LOAD_HELPER_TYPE_INDEX: u32 = 0;
+const RUN_TYPE_INDEX: u32 = 1;
+const RUN_FUNC_INDEX: u32 = 1;
 
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
     let mut module = Vec::new();
@@ -17,30 +20,39 @@ pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
 
 fn type_section() -> Vec<u8> {
     let mut section = Vec::new();
-    encode_u32(&mut section, 1);
-    section.push(0x60);
-    encode_u32(&mut section, 1);
-    section.push(TYPE_I64);
-    encode_u32(&mut section, 1);
-    section.push(TYPE_I64);
+    encode_u32(&mut section, 2);
+    append_func_type(&mut section, &[TYPE_I64, TYPE_I32], &[TYPE_I64]);
+    append_func_type(&mut section, &[TYPE_I64], &[TYPE_I64]);
     section
+}
+
+fn append_func_type(section: &mut Vec<u8>, params: &[u8], results: &[u8]) {
+    section.push(0x60);
+    encode_u32(section, params.len() as u32);
+    section.extend_from_slice(params);
+    encode_u32(section, results.len() as u32);
+    section.extend_from_slice(results);
 }
 
 fn import_section() -> Vec<u8> {
     let mut section = Vec::new();
-    encode_u32(&mut section, 1);
+    encode_u32(&mut section, 2);
     encode_name(&mut section, "env");
     encode_name(&mut section, "memory");
     section.push(IMPORT_MEMORY);
     encode_u32(&mut section, LIMITS_MEMORY64);
     encode_u64(&mut section, 0);
+    encode_name(&mut section, "env");
+    encode_name(&mut section, "jitLoadGuest");
+    section.push(IMPORT_FUNC);
+    encode_u32(&mut section, LOAD_HELPER_TYPE_INDEX);
     section
 }
 
 fn function_section() -> Vec<u8> {
     let mut section = Vec::new();
     encode_u32(&mut section, 1);
-    encode_u32(&mut section, 0);
+    encode_u32(&mut section, RUN_TYPE_INDEX);
     section
 }
 
@@ -49,7 +61,7 @@ fn export_section() -> Vec<u8> {
     encode_u32(&mut section, 1);
     encode_name(&mut section, "run");
     section.push(EXPORT_FUNC);
-    encode_u32(&mut section, 0);
+    encode_u32(&mut section, RUN_FUNC_INDEX);
     section
 }
 

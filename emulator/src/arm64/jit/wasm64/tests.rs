@@ -11,6 +11,7 @@ mod errors;
 mod extract;
 mod hints;
 mod logical_flags;
+mod memory_load;
 mod multiply;
 mod rev;
 mod terminal_branch;
@@ -99,7 +100,7 @@ fn compiles_register_only_prefix_to_memory64_module() {
 fn unsupported_opcode_ends_compiled_prefix() {
     let block = block(vec![
         instr(Opcode::Movz, 0, 0, 0, 5, true),
-        instr(Opcode::Ldr, 1, 0, 0, 0, true),
+        instr(Opcode::Str, 1, 0, 0, 0, true),
     ]);
 
     let module = Wasm64Compiler::compile(&block).expect("compile prefix");

@@ -6,6 +6,7 @@ impl Emulator {
     /// Copy one emulated core's architectural register state into the JIT state buffer.
     pub fn jit_sync_state_from_core(&mut self, core_id: Option<usize>) -> bool {
         let core_id = core_id.unwrap_or(0);
+        self.jit_helper_failed = false;
         let cpu = if let Some(ref boot) = self.boot {
             boot.machine.cpus.get(core_id)
         } else {

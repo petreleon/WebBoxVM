@@ -8,8 +8,8 @@ mod jit_api;
 mod run_api;
 mod storage_api;
 
-use crate::arm64::Machine;
 use crate::arm64::jit::WasmJitCpuState;
+use crate::arm64::Machine;
 use crate::boot::BootContext;
 use wasm_bindgen::prelude::*;
 
@@ -27,6 +27,7 @@ pub struct Emulator {
     jit_last_block_alternate_exit_pc: u64,
     jit_last_block_dynamic_exit: bool,
     jit_last_block_raw_hash: u64,
+    jit_helper_failed: bool,
 }
 
 #[wasm_bindgen]
@@ -45,6 +46,7 @@ impl Emulator {
             jit_last_block_alternate_exit_pc: 0,
             jit_last_block_dynamic_exit: false,
             jit_last_block_raw_hash: 0,
+            jit_helper_failed: false,
         }
     }
 }

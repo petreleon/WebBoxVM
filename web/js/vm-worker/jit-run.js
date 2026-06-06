@@ -50,6 +50,9 @@ export function runCachedJitBlock(coreId, key, entry) {
   }
 
   const exitPc = entry.instance.exports.run(state.emulator.jit_state_ptr());
+  if (state.emulator.jit_helper_failed()) {
+    return { committed: false, error: state.emulator.jit_last_error(), pc };
+  }
   if (!isAllowedExit(exitPc, entry)) {
     state.jitBlocks.delete(key);
     return {

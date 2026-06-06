@@ -1,4 +1,4 @@
-use super::encoding::{encode_i64, encode_u32, encode_u64};
+use super::encoding::{encode_u32, encode_u64};
 use super::opcodes::*;
 use super::*;
 
@@ -92,16 +92,6 @@ impl WasmExpr {
         self.emit_store_with(JIT_STATE_PC_OFFSET, true, value);
     }
 
-    pub(super) fn local_get(&mut self, index: u32) {
-        self.op(OP_LOCAL_GET);
-        encode_u32(&mut self.code, index);
-    }
-
-    pub(super) fn local_set(&mut self, index: u32) {
-        self.op(OP_LOCAL_SET);
-        encode_u32(&mut self.code, index);
-    }
-
     fn emit_store_with(&mut self, offset: u64, sf: bool, value: impl FnOnce(&mut Self)) {
         self.emit_addr(offset);
         value(self);
@@ -134,21 +124,7 @@ impl WasmExpr {
         }
     }
 
-    pub(super) fn i64_const(&mut self, value: u64) {
-        self.op(OP_I64_CONST);
-        encode_i64(&mut self.code, value as i64);
-    }
-
-    pub(super) fn i32_const(&mut self, value: i32) {
-        self.op(OP_I32_CONST);
-        encode_i64(&mut self.code, value as i64);
-    }
-
-    pub(super) fn op(&mut self, opcode: u8) {
-        self.code.push(opcode);
-    }
-
-    pub(super) fn end(&mut self) {
-        self.op(OP_END);
+    pub(super) fn raw(&mut self) -> &mut Vec<u8> {
+        &mut self.code
     }
 }

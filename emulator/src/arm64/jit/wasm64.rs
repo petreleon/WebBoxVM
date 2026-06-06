@@ -1,8 +1,8 @@
 //! ARM64-to-Wasm64 block compiler.
 //!
 //! The browser JIT path cannot rely on native executable memory. Instead it
-//! emits small WebAssembly modules that import the existing Memory64 instance
-//! and operate on a fixed CPU-state buffer:
+//! emits small WebAssembly modules that import the existing Memory64 instance,
+//! a read-only guest load helper, and a fixed CPU-state buffer:
 //!
 //! ```text
 //! export run(state_ptr: i64) -> i64
@@ -27,10 +27,12 @@ mod conditional_compare;
 mod emit_instr;
 mod encoding;
 mod expr;
+mod expr_ops;
 mod extract;
 mod hash;
 mod helpers;
 mod logical_flags;
+mod memory_load;
 mod module_builder;
 mod multiply;
 mod opcodes;

@@ -4,12 +4,15 @@ pub(super) const SECTION_FUNCTION: u8 = 3;
 pub(super) const SECTION_EXPORT: u8 = 7;
 pub(super) const SECTION_CODE: u8 = 10;
 
+pub(super) const TYPE_I32: u8 = 0x7f;
 pub(super) const TYPE_I64: u8 = 0x7e;
+pub(super) const IMPORT_FUNC: u8 = 0x00;
 pub(super) const IMPORT_MEMORY: u8 = 0x02;
 pub(super) const EXPORT_FUNC: u8 = 0x00;
 pub(super) const LIMITS_MEMORY64: u32 = 0x04;
 
 pub(super) const OP_END: u8 = 0x0b;
+pub(super) const OP_CALL: u8 = 0x10;
 pub(super) const OP_SELECT: u8 = 0x1b;
 pub(super) const OP_LOCAL_GET: u8 = 0x20;
 pub(super) const OP_LOCAL_SET: u8 = 0x21;

@@ -27,7 +27,10 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
   const dynamicExit = owner.jit_last_block_dynamic_exit();
   const rawHash = owner.jit_last_block_raw_hash();
   const { instance, module } = await WebAssembly.instantiate(bytes, {
-    env: { memory: state.wasmExports.memory },
+    env: {
+      memory: state.wasmExports.memory,
+      jitLoadGuest: (va, size) => owner.jit_load_guest(coreId, va, size),
+    },
   });
   if (state.emulator !== owner) {
     return {

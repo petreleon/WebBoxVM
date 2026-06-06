@@ -1,5 +1,6 @@
 mod commit;
 mod compile;
+mod load;
 mod state;
 mod validate;
 
@@ -63,5 +64,10 @@ impl Emulator {
     /// Raw-code fingerprint of the last successfully compiled JIT block.
     pub fn jit_last_block_raw_hash(&self) -> u64 {
         self.jit_last_block_raw_hash
+    }
+
+    /// Whether a generated JIT block helper rejected during the last run.
+    pub fn jit_helper_failed(&self) -> bool {
+        self.jit_helper_failed
     }
 }

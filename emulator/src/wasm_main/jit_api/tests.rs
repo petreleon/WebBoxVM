@@ -1,3 +1,4 @@
+use super::load::jit_load_guest_from_machine;
 use super::validate::validate_jit_block;
 use crate::arm64::jit::hash_raw_words;
 use crate::arm64::jit::WasmJitCpuState;
@@ -74,4 +75,26 @@ fn commit_rejects_jit_block_when_uart_input_still_asserts_irq() {
         err.contains("pending IRQ boundary"),
         "unexpected JIT commit error: {err}"
     );
+}
+
+#[test]
+fn jit_load_guest_reads_mapped_ram() {
+    let mut machine = Machine::new(1);
+    map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);
+    machine.bus.mem.write(RAM_BASE + 0x3010, 4, 0x4433_2211);
+
+    let value = jit_load_guest_from_machine(&mut machine, 0, 0x10, 4)
+        .expect("JIT load helper should read RAM");
+
+    assert_eq!(value, 0x4433_2211);
+}
+
+#[test]
+fn jit_load_guest_rejects_device_reads() {
+    let mut machine = Machine::new(1);
+
+    let err = jit_load_guest_from_machine(&mut machine, 0, UART_BASE, 4)
+        .expect_err("JIT load helper must reject MMIO");
+
+    assert!(err.contains("device PA"), "{err}");
 }
