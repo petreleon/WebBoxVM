@@ -18,6 +18,7 @@ use crate::arm64::Opcode;
 use crate::constants::{SP_REGISTER_INDEX, ZERO_REGISTER_INDEX};
 
 mod bitfield;
+mod cmp_flags;
 mod emit_instr;
 mod encoding;
 mod expr;
@@ -38,7 +39,8 @@ use hash::{hash_raw_word, hash_seed};
 use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
-    JIT_STATE_PC_OFFSET, JIT_STATE_SIZE, JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET, WasmJitCpuState,
+    JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIZE, JIT_STATE_SP_OFFSET,
+    JIT_STATE_X_OFFSET, WasmJitCpuState,
 };
 pub use types::{WasmBlockModule, WasmJitError};
 

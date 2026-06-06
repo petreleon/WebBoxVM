@@ -1,6 +1,8 @@
 use super::encoding::{encode_name, encode_u32, encode_u64};
 use super::opcodes::*;
 
+const SCRATCH_I64_LOCALS: u32 = 3;
+
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
     let mut module = Vec::new();
     module.extend_from_slice(b"\0asm");
@@ -53,7 +55,9 @@ fn export_section() -> Vec<u8> {
 
 fn code_section(expr: Vec<u8>) -> Vec<u8> {
     let mut body = Vec::new();
-    encode_u32(&mut body, 0);
+    encode_u32(&mut body, 1);
+    encode_u32(&mut body, SCRATCH_I64_LOCALS);
+    body.push(TYPE_I64);
     body.extend_from_slice(&expr);
 
     let mut section = Vec::new();

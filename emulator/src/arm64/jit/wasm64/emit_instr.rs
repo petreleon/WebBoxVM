@@ -37,6 +37,11 @@ impl WasmExpr {
                 });
                 true
             }
+            Opcode::CmpImm => {
+                self.emit_cmp_imm(instr);
+                true
+            }
+            Opcode::Cmp => self.emit_cmp_reg(instr),
             Opcode::Rev => {
                 self.emit_rev(instr);
                 true

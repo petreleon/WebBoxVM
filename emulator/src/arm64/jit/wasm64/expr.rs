@@ -80,6 +80,24 @@ impl WasmExpr {
         self.emit_store_with(offset, true, |this| this.i64_const(value));
     }
 
+    pub(super) fn emit_read_pstate(&mut self) {
+        self.emit_load(JIT_STATE_PSTATE_OFFSET);
+    }
+
+    pub(super) fn emit_write_pstate_with(&mut self, value: impl FnOnce(&mut Self)) {
+        self.emit_store_with(JIT_STATE_PSTATE_OFFSET, true, value);
+    }
+
+    pub(super) fn local_get(&mut self, index: u32) {
+        self.op(OP_LOCAL_GET);
+        encode_u32(&mut self.code, index);
+    }
+
+    pub(super) fn local_set(&mut self, index: u32) {
+        self.op(OP_LOCAL_SET);
+        encode_u32(&mut self.code, index);
+    }
+
     fn emit_store_with(&mut self, offset: u64, sf: bool, value: impl FnOnce(&mut Self)) {
         self.emit_addr(offset);
         value(self);
@@ -105,7 +123,7 @@ impl WasmExpr {
         }
     }
 
-    fn mask_32_if_needed(&mut self, sf: bool) {
+    pub(super) fn mask_32_if_needed(&mut self, sf: bool) {
         if !sf {
             self.i64_const(u32::MAX as u64);
             self.op(OP_I64_AND);

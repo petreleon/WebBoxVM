@@ -2,6 +2,7 @@ use super::*;
 use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
 
 mod bitfield;
+mod cmp_flags;
 mod errors;
 mod hints;
 mod rev;
