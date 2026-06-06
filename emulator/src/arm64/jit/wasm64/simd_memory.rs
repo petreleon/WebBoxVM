@@ -1,13 +1,21 @@
 use super::memory_address::ADDR_LOCAL;
 use super::opcodes::*;
 use super::*;
-use crate::arm64::Instr;
+use crate::arm64::{Instr, Opcode};
 
 const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
 const JIT_STORE_GUEST_FUNC_INDEX: u32 = 1;
 
 impl WasmExpr {
-    pub(super) fn emit_simd_ld1_multi(&mut self, instr: Instr) -> bool {
+    pub(super) fn emit_simd_memory_load(&mut self, instr: Instr) -> bool {
+        match instr.op {
+            Opcode::SimdLd1Multi => self.emit_simd_ld1_multi(instr),
+            Opcode::SimdLdr => self.emit_simd_ldr(instr),
+            _ => false,
+        }
+    }
+
+    fn emit_simd_ld1_multi(&mut self, instr: Instr) -> bool {
         if instr.size != 16 || instr.cond != 2 || instr.rm != 0xff {
             return false;
         }
@@ -20,6 +28,15 @@ impl WasmExpr {
             self.emit_load_simd_half(reg, false, offset);
             self.emit_load_simd_half(reg, true, offset + 8);
         }
+        true
+    }
+
+    fn emit_simd_ldr(&mut self, instr: Instr) -> bool {
+        if instr.size != 16 || self.emit_memory_address(instr) != Some(false) {
+            return false;
+        }
+        self.emit_load_simd_half(instr.rd, false, 0);
+        self.emit_load_simd_half(instr.rd, true, 8);
         true
     }
 

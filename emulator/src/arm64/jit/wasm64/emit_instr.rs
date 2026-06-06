@@ -116,7 +116,7 @@ impl WasmExpr {
             }
             Opcode::Ldr | Opcode::LdrSign => self.emit_memory_load(instr),
             Opcode::Mrs => self.emit_mrs(instr),
-            Opcode::SimdLd1Multi => self.emit_simd_ld1_multi(instr),
+            Opcode::SimdLd1Multi | Opcode::SimdLdr => self.emit_simd_memory_load(instr),
             op if super::simd_logic::is_logic_reg(op) => self.emit_simd_logic_reg(instr),
             Opcode::SimdDupByte => self.emit_simd_dup_gpr(instr),
             Opcode::SimdFmovDToGpr => self.emit_simd_fmov_d_to_gpr(instr),
