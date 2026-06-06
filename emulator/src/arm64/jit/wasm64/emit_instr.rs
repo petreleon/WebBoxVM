@@ -113,15 +113,6 @@ impl WasmExpr {
             }
             Opcode::Ldr | Opcode::LdrSign => self.emit_memory_load(instr),
             Opcode::Mrs => self.emit_mrs(instr),
-            Opcode::SimdLd1 | Opcode::SimdLd1Multi | Opcode::SimdLdr => self.emit_simd_memory_load(instr),
-            Opcode::SimdMovi => self.emit_simd_movi(instr),
-            op if super::simd_logic::is_logic_reg(op) => self.emit_simd_logic_reg(instr),
-            Opcode::SimdDupByte => self.emit_simd_dup_gpr(instr),
-            Opcode::SimdFmovDToGpr => self.emit_simd_fmov_d_to_gpr(instr),
-            Opcode::SimdCmeqZero => self.emit_simd_cmeq_zero(instr),
-            Opcode::SimdAddp => self.emit_simd_addp(instr),
-            Opcode::SimdUmaxp => self.emit_simd_umaxp(instr),
-            Opcode::SimdUminp => self.emit_simd_uminp(instr),
             Opcode::Adr => {
                 let target = (pc as i64 + instr.imm as i64) as u64;
                 self.emit_write_reg_with(instr.rd, true, |this| this.i64_const(target));
@@ -152,7 +143,7 @@ impl WasmExpr {
                 self.emit_write_reg_with(instr.rd, true, |this| this.i64_const(target));
                 true
             }
-            _ => false,
+            _ => self.emit_simd_instr(instr),
         }
     }
 }

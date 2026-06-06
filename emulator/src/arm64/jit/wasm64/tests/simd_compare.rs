@@ -14,6 +14,32 @@ fn compiles_observed_cmeq_zero_16b_form() {
 }
 
 #[test]
+fn compiles_observed_cmeq_zero_8b_form() {
+    let instr = decode(0x0e20_9800).expect("decode cmeq v0.8b, v0.8b, #0");
+    assert_eq!(instr.op, Opcode::SimdCmeqZero);
+    assert_eq!((instr.imm, instr.size), (1, 8));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile cmeq zero 8b");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_I64_MUL));
+}
+
+#[test]
+fn compiles_observed_cmeq_register_16b_form() {
+    let instr = decode(0x6e20_8c23).expect("decode cmeq v3.16b, v1.16b, v0.16b");
+    assert_eq!(instr.op, Opcode::SimdCmeqReg);
+    assert_eq!((instr.rd, instr.rn, instr.rm), (3, 1, 0));
+    assert_eq!((instr.imm, instr.size), (1, 16));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile cmeq reg 16b");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_I64_XOR));
+    assert!(module.bytes.contains(&opcodes::OP_I64_MUL));
+}
+
+#[test]
 fn cmeq_zero_rejects_unimplemented_lane_widths() {
     let block = block(vec![Instr {
         op: Opcode::SimdCmeqZero,

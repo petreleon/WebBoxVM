@@ -109,6 +109,12 @@ impl Opcode {
             Self::SimdMovi => "SimdMovi",
             Self::SimdLd1 => "SimdLd1",
             Self::SimdLd1Multi => "SimdLd1Multi",
+            Self::SimdCmeqZero => "SimdCmeqZero",
+            Self::SimdCmeqReg => "SimdCmeqReg",
+            Self::SimdShrn => "SimdShrn",
+            Self::SimdShrn2 => "SimdShrn2",
+            Self::SimdRshrn => "SimdRshrn",
+            Self::SimdRshrn2 => "SimdRshrn2",
             _ => "Unknown",
         }
     }
