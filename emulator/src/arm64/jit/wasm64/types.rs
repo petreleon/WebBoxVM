@@ -24,7 +24,12 @@ impl fmt::Display for WasmJitError {
             Self::BlockDiscovery(err) => write!(f, "block discovery failed: {err}"),
             Self::EmptyBlock => write!(f, "block has no instructions"),
             Self::UnsupportedFirstOpcode(op) => {
-                write!(f, "first opcode is not wasm-jittable: {op:?}")
+                write!(
+                    f,
+                    "first opcode is not wasm-jittable: {} ({})",
+                    op.name(),
+                    op.id()
+                )
             }
         }
     }

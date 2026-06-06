@@ -37,6 +37,10 @@ impl WasmExpr {
                 });
                 true
             }
+            Opcode::Rev => {
+                self.emit_rev(instr);
+                true
+            }
             Opcode::AddImm | Opcode::SubImm => {
                 let op = if instr.op == Opcode::AddImm {
                     OP_I64_ADD

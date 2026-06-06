@@ -25,6 +25,7 @@ mod hash;
 mod helpers;
 mod module_builder;
 mod opcodes;
+mod rev;
 mod state;
 mod types;
 
