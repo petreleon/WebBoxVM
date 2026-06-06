@@ -59,10 +59,7 @@ impl WasmExpr {
                 self.emit_rev(instr);
                 true
             }
-            Opcode::Clz => {
-                self.emit_clz(instr);
-                true
-            }
+            Opcode::Clz | Opcode::Rbit => self.emit_bit_count(instr),
             Opcode::Extr => {
                 self.emit_extract(instr);
                 true
