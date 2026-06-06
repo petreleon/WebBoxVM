@@ -1,5 +1,8 @@
 use super::*;
-use crate::constants::{SYSREG_CNTVCT_EL0, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TPIDR_EL0};
+use crate::constants::{
+    SYSREG_CNTVCT_EL0, SYSREG_DAIF, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TCR_EL1,
+    SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1,
+};
 
 #[test]
 fn compiles_mrs_with_sysreg_helper_import() {
@@ -40,6 +43,25 @@ fn compiles_observed_mrs_cntvct_el0() {
 
     assert_eq!(module.guest_instr_count, 1);
     assert!(module.bytes.contains(&opcodes::OP_CALL));
+}
+
+#[test]
+fn compiles_observed_mrs_kernel_sysregs() {
+    let cases = [
+        (0xd538_d082, SYSREG_TPIDR_EL1),
+        (0xd538_2040, SYSREG_TCR_EL1),
+        (0xd53b_4233, SYSREG_DAIF),
+    ];
+    for (raw, sysreg) in cases {
+        let instr = crate::arm64::decode(raw).expect("decode observed MRS");
+        assert_eq!(instr.op, Opcode::Mrs);
+        assert_eq!(instr.imm as u16, sysreg);
+
+        let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MRS");
+
+        assert_eq!(module.guest_instr_count, 1);
+        assert!(module.bytes.contains(&opcodes::OP_CALL));
+    }
 }
 
 #[test]

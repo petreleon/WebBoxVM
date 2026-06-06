@@ -1,5 +1,8 @@
 use crate::arm64::machine::Machine;
-use crate::constants::{SYSREG_CNTPCT_EL0, SYSREG_CNTVCT_EL0, SYSREG_SP_EL0, SYSREG_TPIDR_EL0};
+use crate::constants::{
+    SYSREG_CNTPCT_EL0, SYSREG_CNTVCT_EL0, SYSREG_DAIF, SYSREG_SP_EL0, SYSREG_TCR_EL1,
+    SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1,
+};
 use crate::wasm_main::Emulator;
 use wasm_bindgen::prelude::*;
 
@@ -40,9 +43,20 @@ pub(super) fn jit_read_sysreg_from_machine(
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     if !matches!(
         sysreg_id,
-        SYSREG_SP_EL0 | SYSREG_TPIDR_EL0 | SYSREG_CNTPCT_EL0 | SYSREG_CNTVCT_EL0
+        SYSREG_SP_EL0
+            | SYSREG_TCR_EL1
+            | SYSREG_TPIDR_EL0
+            | SYSREG_TPIDR_EL1
+            | SYSREG_CNTPCT_EL0
+            | SYSREG_CNTVCT_EL0
+            | SYSREG_DAIF
     ) {
-        return Err(format!("JIT sysreg helper rejected sysreg 0x{sysreg_id:04x}"));
+        return Err(format!(
+            "JIT sysreg helper rejected sysreg 0x{sysreg_id:04x}"
+        ));
+    }
+    if sysreg_id == SYSREG_DAIF {
+        return Ok(cpu.pstate.daif());
     }
     Ok(cpu.sys.read_sys_reg(sysreg_id, cpu.pstate.el()))
 }
