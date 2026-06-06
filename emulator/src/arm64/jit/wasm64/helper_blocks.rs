@@ -10,6 +10,7 @@ pub(super) fn uses_guest_memory_helper(op: Opcode) -> bool {
             | Opcode::LdrSign
             | Opcode::SimdLd1
             | Opcode::SimdLd1Multi
+            | Opcode::SimdLdp
             | Opcode::SimdLdr
             | Opcode::SimdStp
             | Opcode::Stp

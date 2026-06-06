@@ -75,6 +75,32 @@ fn compiles_observed_simd_ldr_q_preindex() {
 }
 
 #[test]
+fn compiles_observed_simd_ldp_q_pair_forms() {
+    let cases = [
+        (0xadc1_0821, (1, 1, 2), (32, 3)),
+        (0xad40_0420, (0, 1, 1), (0, 2)),
+    ];
+    for (raw, regs, addr) in cases {
+        let decoded = disarm64::decoder::decode(raw).expect("disarm64 decodes ldp");
+        assert_eq!(format!("{:?}", decoded.mnemonic), "ldp");
+        let instr = decode(raw).expect("decode observed ldp q pair");
+
+        assert_eq!(instr.op, Opcode::SimdLdp);
+        assert_eq!((instr.rd, instr.rn, instr.rm), regs);
+        assert_eq!((instr.imm, instr.cond, instr.size), (addr.0, addr.1, 16));
+
+        let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile simd ldp");
+
+        assert_eq!(module.guest_instr_count, 1);
+        assert!(module.bytes.contains(&opcodes::OP_CALL));
+        assert!(module
+            .bytes
+            .windows(b"jitLoadGuest".len())
+            .any(|w| w == b"jitLoadGuest"));
+    }
+}
+
+#[test]
 fn compiles_observed_simd_stp_q_registers_as_boundary() {
     let stp = decode(0xad03_07e0).expect("decode observed stp q0, q1");
     assert_eq!(stp.op, Opcode::SimdStp);

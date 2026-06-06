@@ -11,6 +11,7 @@ impl WasmExpr {
         match instr.op {
             Opcode::SimdLd1 => self.emit_simd_ld1(instr),
             Opcode::SimdLd1Multi => self.emit_simd_ld1_multi(instr),
+            Opcode::SimdLdp => self.emit_simd_ldp(instr),
             Opcode::SimdLdr => self.emit_simd_ldr(instr),
             _ => false,
         }
@@ -39,6 +40,23 @@ impl WasmExpr {
             let offset = register_index as u64 * 16;
             self.emit_load_simd_half(reg, false, offset);
             self.emit_load_simd_half(reg, true, offset + 8);
+        }
+        true
+    }
+
+    fn emit_simd_ldp(&mut self, instr: Instr) -> bool {
+        if instr.size != 16 {
+            return false;
+        }
+        let writeback = self.emit_simd_pair_address(instr);
+        self.emit_load_simd_half(instr.rd, false, 0);
+        self.emit_load_simd_half(instr.rd, true, 8);
+        self.emit_load_simd_half(instr.rm, false, 16);
+        self.emit_load_simd_half(instr.rm, true, 24);
+        if writeback {
+            self.emit_write_reg_sp_with(instr.rn, true, |this| {
+                this.local_get(WRITEBACK_LOCAL);
+            });
         }
         true
     }
@@ -73,6 +91,34 @@ impl WasmExpr {
         self.emit_store_simd_half(instr.rm, false, 16);
         self.emit_store_simd_half(instr.rm, true, 24);
         true
+    }
+
+    fn emit_simd_pair_address(&mut self, instr: Instr) -> bool {
+        self.emit_read_base(instr.rn, true);
+        match instr.cond {
+            1 => {
+                self.local_set(ADDR_LOCAL);
+                self.local_get(ADDR_LOCAL);
+                self.i64_const(instr.imm);
+                self.op(OP_I64_ADD);
+                self.local_set(WRITEBACK_LOCAL);
+                true
+            }
+            3 => {
+                self.i64_const(instr.imm);
+                self.op(OP_I64_ADD);
+                self.local_set(ADDR_LOCAL);
+                self.local_get(ADDR_LOCAL);
+                self.local_set(WRITEBACK_LOCAL);
+                true
+            }
+            _ => {
+                self.i64_const(instr.imm);
+                self.op(OP_I64_ADD);
+                self.local_set(ADDR_LOCAL);
+                false
+            }
+        }
     }
 
     fn emit_load_simd_half(&mut self, reg: u8, high: bool, offset: u64) {
