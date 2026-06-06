@@ -33,9 +33,11 @@ mod hash;
 mod helpers;
 mod logical_flags;
 mod memory_address;
+mod memory_boundary;
 mod memory_load;
 mod memory_pair;
 mod memory_store;
+mod memory_zero;
 mod module_builder;
 mod multiply;
 mod opcodes;
@@ -95,37 +97,14 @@ impl Wasm64Compiler {
                 compiled += 1;
                 break;
             }
-            if instr.op == Opcode::Str {
-                if !body.emit_memory_store(instr) {
-                    if compiled == 0 {
-                        return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
-                    }
-                    break;
+            if let Some(emitted) = body.emit_memory_boundary(instr) {
+                if !emitted && compiled == 0 {
+                    return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
                 }
-                raw_hash = hash_raw_word(raw_hash, raw);
-                compiled += 1;
-                break;
-            }
-            if instr.op == Opcode::Stp {
-                if !body.emit_memory_pair_store(instr) {
-                    if compiled == 0 {
-                        return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
-                    }
-                    break;
+                if emitted {
+                    raw_hash = hash_raw_word(raw_hash, raw);
+                    compiled += 1;
                 }
-                raw_hash = hash_raw_word(raw_hash, raw);
-                compiled += 1;
-                break;
-            }
-            if matches!(instr.op, Opcode::Ldp | Opcode::Ldpsw) {
-                if !body.emit_memory_pair_load(instr) {
-                    if compiled == 0 {
-                        return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
-                    }
-                    break;
-                }
-                raw_hash = hash_raw_word(raw_hash, raw);
-                compiled += 1;
                 break;
             }
             if !body.emit_instr(instr, pc) {

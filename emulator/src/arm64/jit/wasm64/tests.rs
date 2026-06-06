@@ -14,6 +14,7 @@ mod logical_flags;
 mod memory_load;
 mod memory_pair;
 mod memory_store;
+mod memory_zero;
 mod multiply;
 mod rev;
 mod terminal_branch;
