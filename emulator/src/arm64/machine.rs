@@ -20,24 +20,28 @@ mod simd_opcode_fp;
 mod simd_opcode_int;
 mod simd_opcode_sve_mem;
 mod simd_traps;
+mod trace_filters;
 mod trace_hotspots;
 mod trace_memory;
 mod trace_paths;
 mod trace_stack;
 mod trace_syscalls;
 mod trace_syscalls_exec;
+mod trace_syscalls_write;
 
 use exceptions::*;
 use simd_opcode_fp::*;
 use simd_opcode_int::*;
 use simd_opcode_sve_mem::*;
 use simd_traps::*;
+use trace_filters::*;
 use trace_hotspots::*;
 use trace_memory::*;
 use trace_paths::*;
 use trace_stack::*;
 use trace_syscalls::*;
 use trace_syscalls_exec::*;
+use trace_syscalls_write::*;
 
 /// Multi-core virtual machine with shared memory bus.
 pub struct Machine {
