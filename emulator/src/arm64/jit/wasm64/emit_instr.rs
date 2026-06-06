@@ -117,6 +117,7 @@ impl WasmExpr {
             Opcode::Mrs => self.emit_mrs(instr),
             Opcode::SimdCmeqZero => self.emit_simd_cmeq_zero(instr),
             Opcode::SimdUmaxp => self.emit_simd_umaxp(instr),
+            Opcode::SimdUminp => self.emit_simd_uminp(instr),
             Opcode::Adr => {
                 let target = (pc as i64 + instr.imm as i64) as u64;
                 self.emit_write_reg_with(instr.rd, true, |this| this.i64_const(target));
