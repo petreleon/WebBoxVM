@@ -1,5 +1,6 @@
 mod request;
 mod ring;
+mod trace;
 
 use super::*;
 

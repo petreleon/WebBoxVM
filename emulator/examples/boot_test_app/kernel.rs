@@ -15,9 +15,7 @@ pub(super) fn run_kernel_chunks(
     let mut input = super::prompt_script::BootTestInput::from_env();
     let stop_uart_default = if input.disables_uart_stop() { 0 } else { 500 };
     let stop_uart = util::env_usize("BOOT_TEST_STOP_UART", stop_uart_default);
-    let stop_text = env::var("BOOT_TEST_STOP_TEXT")
-        .ok()
-        .filter(|text| !text.is_empty());
+    let stop_texts = stop_texts_from_env();
 
     for i in 0..chunks {
         ctx.run_kernel_phase(per_chunk);
@@ -25,11 +23,11 @@ pub(super) fn run_kernel_chunks(
 
         let uart = ctx.uart_output();
         let new_bytes = uart.len().saturating_sub(last_uart);
-        report_uart_delta(ctx, &uart, last_uart, new_bytes, i, t0);
+        report_uart_delta(ctx, &uart, last_uart, new_bytes, i, per_chunk, t0);
         last_uart = uart.len();
 
         input.maybe_feed(ctx, &uart);
-        if should_stop(&uart, stop_text.as_deref(), stop_uart) {
+        if should_stop(&uart, &stop_texts, stop_uart) {
             break;
         }
     }
@@ -63,6 +61,7 @@ fn report_uart_delta(
     last_uart: usize,
     new_bytes: usize,
     i: usize,
+    per_chunk: usize,
     t0: &Instant,
 ) {
     let elapsed = t0.elapsed().as_secs_f32();
@@ -74,7 +73,8 @@ fn report_uart_delta(
             ctx.pc()
         );
         if i > 0 {
-            println!("  Warning: no new output for {}M steps", (i + 1) * 2);
+            let quiet_steps = ((i + 1) * per_chunk) / 1_000_000;
+            println!("  Warning: no new output for {quiet_steps}M steps");
         }
         return;
     }
@@ -111,12 +111,24 @@ fn print_uart_preview(preview: &str) {
     }
 }
 
-fn should_stop(uart: &str, stop_text: Option<&str>, stop_uart: usize) -> bool {
-    if let Some(text) = stop_text
-        && uart.contains(text)
-    {
-        println!("Stop text matched: {text:?}");
-        return true;
+fn stop_texts_from_env() -> Vec<String> {
+    env::var("BOOT_TEST_STOP_TEXT")
+        .ok()
+        .map(|text| {
+            text.split(';')
+                .filter(|part| !part.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn should_stop(uart: &str, stop_texts: &[String], stop_uart: usize) -> bool {
+    for text in stop_texts {
+        if uart.contains(text) {
+            println!("Stop text matched: {text:?}");
+            return true;
+        }
     }
 
     stop_uart > 0 && uart.len() > stop_uart

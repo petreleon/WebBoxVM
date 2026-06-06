@@ -1,4 +1,5 @@
 use super::super::*;
+use super::trace::trace_request;
 use crate::memory::PhysicalMemory;
 
 struct RequestChain {
@@ -28,6 +29,7 @@ impl VirtioBlk {
             VIRTIO_BLK_T_OUT => self.write_sector_data(mem, &chain.data, sector),
             _ => (VIRTIO_BLK_S_UNSUPP, 0),
         };
+        trace_request(self.storage.id(), req_type, sector, written, status);
 
         if chain.status.flags & VIRTQ_DESC_F_WRITE != 0 {
             let _ = mem.write(chain.status.addr, 1, status as u64);
