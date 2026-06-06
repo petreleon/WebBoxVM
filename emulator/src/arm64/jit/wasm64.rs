@@ -17,6 +17,7 @@ use super::block::Block;
 use crate::arm64::Opcode;
 use crate::constants::{SP_REGISTER_INDEX, ZERO_REGISTER_INDEX};
 
+mod add_sub;
 mod bit_count;
 mod bitfield;
 mod cmp_flags;
@@ -30,6 +31,7 @@ mod hash;
 mod helpers;
 mod logical_flags;
 mod module_builder;
+mod multiply;
 mod opcodes;
 mod rev;
 mod state;

@@ -1,6 +1,7 @@
 use super::*;
 use crate::arm64::{Armv8Cpu, Instr, Opcode, ProcessorState};
 
+mod add_sub;
 mod bit_count;
 mod bitfield;
 mod cmp_flags;
@@ -9,6 +10,7 @@ mod errors;
 mod extract;
 mod hints;
 mod logical_flags;
+mod multiply;
 mod rev;
 mod terminal_branch;
 

@@ -16,6 +16,7 @@ mod logical_aliases;
 mod mops;
 mod mte;
 mod multiply_long;
+mod opcode_names;
 mod pairs_and_initial_simd;
 mod scalar_aliases;
 mod scalar_fp_minmax;

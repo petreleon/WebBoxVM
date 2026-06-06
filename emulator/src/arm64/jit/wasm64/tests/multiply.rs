@@ -1,0 +1,52 @@
+use super::*;
+
+#[test]
+fn compiles_madd_and_msub_scalar_forms() {
+    let block = block(vec![
+        Instr {
+            op: Opcode::Madd,
+            cond: 2,
+            ..instr(Opcode::Nop, 0, 0, 3, 0, false)
+        },
+        Instr {
+            op: Opcode::Msub,
+            cond: 23,
+            ..instr(Opcode::Nop, 20, 22, 21, 0, true)
+        },
+        Instr {
+            op: Opcode::Madd,
+            cond: ZERO_REGISTER_INDEX,
+            ..instr(Opcode::Nop, 3, 4, 5, 0, true)
+        },
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile madd/msub");
+
+    assert_eq!(module.guest_instr_count, 3);
+    assert!(module.bytes.contains(&opcodes::OP_I64_MUL));
+    assert!(module.bytes.contains(&opcodes::OP_I64_ADD));
+    assert!(module.bytes.contains(&opcodes::OP_I64_SUB));
+}
+
+#[test]
+fn compiles_signed_and_unsigned_long_madd_forms() {
+    let block = block(vec![
+        Instr {
+            op: Opcode::Madd,
+            cond: 4,
+            size: 1,
+            ..instr(Opcode::Nop, 0, 2, 3, 0, true)
+        },
+        Instr {
+            op: Opcode::Madd,
+            cond: 7,
+            size: 2,
+            ..instr(Opcode::Nop, 4, 5, 6, 0, true)
+        },
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile long madd");
+
+    assert_eq!(module.guest_instr_count, 2);
+    assert!(module.bytes.contains(&opcodes::OP_I64_EXTEND_I32_S));
+}

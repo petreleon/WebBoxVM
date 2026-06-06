@@ -63,34 +63,12 @@ impl WasmExpr {
                 true
             }
             Opcode::AddImm | Opcode::SubImm => {
-                let op = if instr.op == Opcode::AddImm {
-                    OP_I64_ADD
-                } else {
-                    OP_I64_SUB
-                };
-                self.emit_write_reg_sp_with(instr.rd, instr.sf, |this| {
-                    this.emit_read_base(instr.rn, instr.sf);
-                    this.i64_const(instr.imm);
-                    this.op(op);
-                });
+                self.emit_add_sub_imm(instr);
                 true
             }
-            Opcode::Add | Opcode::Sub => {
-                if !can_emit_shift(instr.cond, instr.imm, instr.sf) {
-                    return false;
-                }
-                let op = if instr.op == Opcode::Add {
-                    OP_I64_ADD
-                } else {
-                    OP_I64_SUB
-                };
-                self.emit_write_reg_with(instr.rd, instr.sf, |this| {
-                    this.emit_read_reg(instr.rn, instr.sf);
-                    this.emit_read_shifted_reg(instr.rm, instr.cond, instr.imm, instr.sf);
-                    this.op(op);
-                });
-                true
-            }
+            Opcode::Add | Opcode::Sub => self.emit_add_sub_reg(instr),
+            Opcode::AddExt | Opcode::SubExt => self.emit_add_sub_ext(instr),
+            Opcode::Madd | Opcode::Msub => self.emit_madd_msub(instr),
             Opcode::AndImm | Opcode::OrrImm | Opcode::EorImm => {
                 let op = logical_opcode(instr.op);
                 self.emit_write_reg_with(instr.rd, instr.sf, |this| {

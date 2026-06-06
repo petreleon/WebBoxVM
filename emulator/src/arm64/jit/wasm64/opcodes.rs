@@ -28,6 +28,7 @@ pub(super) const OP_I32_OR: u8 = 0x72;
 pub(super) const OP_I64_CLZ: u8 = 0x79;
 pub(super) const OP_I64_ADD: u8 = 0x7c;
 pub(super) const OP_I64_SUB: u8 = 0x7d;
+pub(super) const OP_I64_MUL: u8 = 0x7e;
 pub(super) const OP_I64_AND: u8 = 0x83;
 pub(super) const OP_I64_OR: u8 = 0x84;
 pub(super) const OP_I64_XOR: u8 = 0x85;
