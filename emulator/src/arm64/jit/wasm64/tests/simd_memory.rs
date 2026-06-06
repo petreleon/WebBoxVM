@@ -20,6 +20,25 @@ fn compiles_observed_ld1_multi_two_q_registers() {
 }
 
 #[test]
+fn compiles_observed_ld1_single_q_register() {
+    let decoded = disarm64::decoder::decode(0x4c40_7041).expect("disarm64 decodes ld4");
+    assert_eq!(format!("{:?}", decoded.mnemonic), "ld4");
+    let instr = decode(0x4c40_7041).expect("decode observed ld1");
+    assert_eq!(instr.op, Opcode::SimdLd1);
+    assert_eq!((instr.rd, instr.rn, instr.rm), (1, 2, 0xff));
+    assert_eq!((instr.imm, instr.cond, instr.size), (0, 1, 16));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile ld1");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.bytes.contains(&opcodes::OP_CALL));
+    assert!(module
+        .bytes
+        .windows(b"jitLoadGuest".len())
+        .any(|w| w == b"jitLoadGuest"));
+}
+
+#[test]
 fn compiles_observed_simd_ldr_q_immediate() {
     let instr = decode(0x3dc0_0440).expect("decode ldr q0, [x2, #16]");
     assert_eq!(instr.op, Opcode::SimdLdr);

@@ -9,10 +9,22 @@ const JIT_STORE_GUEST_FUNC_INDEX: u32 = 1;
 impl WasmExpr {
     pub(super) fn emit_simd_memory_load(&mut self, instr: Instr) -> bool {
         match instr.op {
+            Opcode::SimdLd1 => self.emit_simd_ld1(instr),
             Opcode::SimdLd1Multi => self.emit_simd_ld1_multi(instr),
             Opcode::SimdLdr => self.emit_simd_ldr(instr),
             _ => false,
         }
+    }
+
+    fn emit_simd_ld1(&mut self, instr: Instr) -> bool {
+        if instr.size != 16 || instr.cond != 1 || instr.rm != 0xff || instr.imm != 0 {
+            return false;
+        }
+        self.emit_read_base(instr.rn, true);
+        self.local_set(ADDR_LOCAL);
+        self.emit_load_simd_half(instr.rd, false, 0);
+        self.emit_load_simd_half(instr.rd, true, 8);
+        true
     }
 
     fn emit_simd_ld1_multi(&mut self, instr: Instr) -> bool {
