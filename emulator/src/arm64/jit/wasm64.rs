@@ -37,6 +37,7 @@ mod rev;
 mod state;
 mod terminal_branch;
 mod types;
+mod variable_shift;
 
 #[cfg(test)]
 mod tests;

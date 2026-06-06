@@ -38,3 +38,34 @@ fn compiles_tst_alias_ands_immediate() {
     assert_eq!(module.exit_pc, 0x1004);
     assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
 }
+
+#[test]
+fn compiles_ands_register_and_bics_alias() {
+    let block = block(vec![
+        Instr {
+            op: Opcode::AndsReg,
+            rd: 4,
+            rn: 5,
+            rm: 6,
+            cond: 0,
+            sf: true,
+            ..instr(Opcode::Nop, 0, 0, 0, 0, true)
+        },
+        Instr {
+            op: Opcode::AndsReg,
+            rd: ZERO_REGISTER_INDEX,
+            rn: 1,
+            rm: 2,
+            cond: 4,
+            sf: false,
+            ..instr(Opcode::Nop, 0, 0, 0, 0, false)
+        },
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile ands register");
+
+    assert_eq!(module.guest_instr_count, 2);
+    assert!(module.bytes.contains(&opcodes::OP_I64_AND));
+    assert!(module.bytes.contains(&opcodes::OP_I64_XOR));
+    assert!(module.bytes.contains(&opcodes::OP_I64_EQZ));
+}

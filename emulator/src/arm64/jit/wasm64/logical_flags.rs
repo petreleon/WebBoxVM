@@ -16,6 +16,26 @@ impl WasmExpr {
         self.emit_write_logical_flags(instr.sf);
     }
 
+    pub(super) fn emit_ands_reg(&mut self, instr: crate::arm64::Instr) -> bool {
+        let shift_type = instr.cond & 3;
+        if !can_emit_shift(shift_type, instr.imm, instr.sf) {
+            return false;
+        }
+        self.emit_read_reg(instr.rn, instr.sf);
+        self.emit_read_shifted_reg(instr.rm, shift_type, instr.imm, instr.sf);
+        if (instr.cond & 4) != 0 {
+            self.i64_const(if instr.sf { u64::MAX } else { u32::MAX as u64 });
+            self.op(OP_I64_XOR);
+        }
+        self.op(OP_I64_AND);
+        self.mask_32_if_needed(instr.sf);
+        self.local_set(LOCAL_RESULT);
+
+        self.emit_write_reg_with(instr.rd, instr.sf, |this| this.local_get(LOCAL_RESULT));
+        self.emit_write_logical_flags(instr.sf);
+        true
+    }
+
     fn emit_write_logical_flags(&mut self, sf: bool) {
         self.emit_write_pstate_with(|this| {
             this.emit_read_pstate();
