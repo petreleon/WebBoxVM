@@ -7,7 +7,7 @@ def configure_linux_nat(tap, gateway_cidr, subnet, outbound=None, gateway_mac=No
     if gateway_mac:
         run(["ip", "link", "set", "dev", tap, "address", gateway_mac])
     run(["ip", "link", "set", tap, "up"])
-    run(["sysctl", "-w", "net.ipv4.ip_forward=1"])
+    enable_ipv4_forwarding()
     if shutil.which("iptables"):
         add_iptables_rules(tap, subnet, outbound or default_route_dev())
     else:
@@ -47,6 +47,15 @@ def default_route_dev():
     result = subprocess.run(["ip", "route", "show", "default"], text=True, capture_output=True)
     words = result.stdout.split()
     return words[words.index("dev") + 1] if "dev" in words else None
+
+
+def enable_ipv4_forwarding():
+    if shutil.which("sysctl"):
+        run(["sysctl", "-w", "net.ipv4.ip_forward=1"])
+        return
+    print("+ write /proc/sys/net/ipv4/ip_forward")
+    with open("/proc/sys/net/ipv4/ip_forward", "w", encoding="ascii") as handle:
+        handle.write("1\n")
 
 
 def run(cmd):

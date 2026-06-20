@@ -32,3 +32,19 @@ the host route/NAT rules yourself.
 This service is intentionally Linux-only. macOS should run the browser and web
 server, while a Linux machine or VM can connect as the NAT peer by passing
 `--hub ws://<web-host>:8080/webboxvm-net`.
+
+For local macOS validation through Docker Desktop:
+
+```sh
+docker run --rm --privileged \
+  -v "$PWD":/work -w /work python:3.14-slim sh -lc '
+    apt-get update &&
+    apt-get install -y --no-install-recommends iproute2 iptables &&
+    python -u scripts/webbox_nat.py \
+      --hub ws://host.docker.internal:8080/webboxvm-net \
+      --configure-host
+  '
+```
+
+The container needs `--privileged` so it can create TAP devices, enable IPv4
+forwarding, and install iptables NAT rules inside Docker's Linux VM.

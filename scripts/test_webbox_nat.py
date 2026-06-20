@@ -1,5 +1,6 @@
 import struct
 import unittest
+from unittest.mock import mock_open, patch
 
 from scripts.webboxnet.packets import (
     BROADCAST_IP,
@@ -85,6 +86,18 @@ class LinuxHostSetupTests(unittest.TestCase):
             host.shutil.which = old_which
 
         self.assertIn(["ip", "link", "set", "dev", "webbox0", "address", "aa:bb"], commands)
+
+    def test_ip_forwarding_falls_back_to_proc_file(self):
+        old_which = host.shutil.which
+        host.shutil.which = lambda _: None
+        try:
+            with patch("builtins.open", mock_open()) as opened, patch("builtins.print"):
+                host.enable_ipv4_forwarding()
+        finally:
+            host.shutil.which = old_which
+
+        opened.assert_called_once_with("/proc/sys/net/ipv4/ip_forward", "w", encoding="ascii")
+        opened().write.assert_called_once_with("1\n")
 
 
 class FakeSocket:
