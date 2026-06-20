@@ -18,6 +18,13 @@ Completed sprint history is mirrored in [sprint-history.md](sprint-history.md). 
 - [x] Back the public `api::VmHandle` facade with runtime-owned construction
 - [x] Audit legacy compatibility shims (`arm64`, `bus`, `loader`) for eventual removal
 
+## Current Focus — Browser Network Validation
+- [x] Add a Linux-visible VirtIO-net MMIO device to the virt board and DTB
+- [x] Bridge browser VM Ethernet frames through `/webboxvm-net`
+- [x] Add a Linux TAP-backed NAT peer with DHCP/ARP bootstrap
+- [ ] Validate Debian installer network detection and DHCP with the NAT peer
+- [ ] Continue the installer through mirror/package download over the routed path
+
 ## Current Focus — Pause, Learn, Then Continue
 - [ ] Read and explain the browser JIT policy in `web/js/vm-worker/jit-compile.js`
   - Why EL0 guest-memory helper blocks are skipped
@@ -26,8 +33,7 @@ Completed sprint history is mirrored in [sprint-history.md](sprint-history.md). 
   - `disarm64` mnemonic: `uminp`
   - WebBoxVM opcode: `Opcode::SimdUminp`
   - Display name source: `emulator/src/arch/arm64/opcodes/names_simd.rs`
-- [ ] Continue Debian installer validation from the next real blocker after network hardware detection
-- [ ] Investigate network-device support and expected Debian installer behavior with no NIC
+- [ ] Continue Debian installer validation from the next real blocker after NAT-backed DHCP
 - [ ] Profile the userland-heavy component loading path without relaxing correctness guards
 
 ## Sprint 11 — Debian Installer Component Loading

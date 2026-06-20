@@ -18,6 +18,7 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 - **BusyBox initrd + serial input** — embedded static ARM64 BusyBox, `/init`, `/dev/console`, applet symlinks, and UART RX wiring for shell input
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
 - **Persistent install storage** — exposes a second VirtIO block device backed by a sparse writable disk, with browser OPFS save/restore
+- **VirtIO network path** — exposes a VirtIO-net MMIO device, browser WebSocket Ethernet hub, and Linux TAP-backed NAT peer
 - **Debian installer milestone** — Debian ARM64 netinst reaches the text installer in browser validation, loads installer components from ISO media to 100%, and advances to network hardware detection
 - **Browser terminal app** — wasm64 worker build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
@@ -81,12 +82,18 @@ make web
 
 # Download Debian, expose it to the browser app, and serve WebBoxVM
 make web-debian-arm64
+
+# On a Linux NAT peer, route browser VM Ethernet through the host network
+sudo python3 scripts/webbox_nat.py --configure-host
 ```
 
 `make web` and `make web-debian-arm64` build `web/pkg/` on demand as
 `wasm64-unknown-unknown` with nightly `build-std` and `wasm-bindgen`; generated
 WASM output is not committed to the repository. The browser runtime must support
 WebAssembly Memory64.
+
+The browser network path uses `/webboxvm-net` for raw Ethernet frames. See
+[scripts/networking.md](scripts/networking.md) for the Linux TAP/NAT peer setup.
 
 ISO mode supports ARM64 Linux ISOs whose kernel/initrd can be discovered from
 GRUB config or common live/installer paths. It does not run x86 PC ISOs. Debian
@@ -133,7 +140,7 @@ Detecting network hardware ... 100%
 | Wasm64 browser target | ✅ |
 | Browser worker execution | ✅ |
 | Debian component loading in browser | ✅ |
-| Network device path | 🔎 investigating |
+| Browser network + NAT path | ✅ initial |
 | Exception model + NEON | 📅 planned |
 | Display + input | 📅 planned |
 | Windows 11 ARM64 | 📅 future |

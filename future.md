@@ -2,7 +2,8 @@
 
 These are aspirational targets, not committed sprints. The current verified
 baseline is Debian ARM64 netinst in the browser through installer-component
-loading and into network hardware detection.
+loading and into network hardware detection, with an initial VirtIO-net and
+Linux TAP NAT path ready for validation.
 
 ## ISA Completeness
 - [ ] NEON / SIMD load, store, and vector arithmetic
@@ -11,7 +12,7 @@ loading and into network hardware detection.
 - [ ] Remaining system instructions
 
 ## Devices and Firmware
-- [ ] VirtIO Net or a deliberate "no network device" installer path
+- [x] Initial VirtIO Net device and browser NAT peer
 - [ ] ACPI tables: RSDP, DSDT, MADT, GTDT, FADT
 - [ ] NVMe or a more complete VirtIO storage controller
 - [ ] TPM 2.0 MMIO stub
