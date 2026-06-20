@@ -5,6 +5,7 @@ import select
 import signal
 
 from webboxnet.host import configure_linux_nat
+from webboxnet.dns import DnsForwarder
 from webboxnet.packets import NatConfig, host_reply
 from webboxnet.tap import TapDevice
 from webboxnet.ws import WebSocketClient
@@ -17,6 +18,7 @@ class NatPeer:
     def __init__(self, args):
         self.args = args
         self.config = NatConfig(args.gateway_ip, args.guest_ip, args.dns_ip, args.gateway_mac)
+        self.dns = DnsForwarder(args.dns_upstream, args.dns_timeout)
         self.tap = TapDevice(args.tap)
         self.ws = WebSocketClient(args.hub)
         self.running = True
@@ -34,6 +36,7 @@ class NatPeer:
             print("Host NAT not configured; pass --configure-host when running as root.")
         self.ws.connect()
         print(f"NAT peer connected: {self.tap.name} <-> {self.args.hub}")
+        print(f"DNS proxy: {self.args.dns_ip} -> {self.dns.upstream}")
         while self.running:
             for fd in readable([self.tap, self.ws]):
                 if fd is self.tap:
@@ -58,7 +61,7 @@ class NatPeer:
         if frame is None:
             self.running = False
             return
-        reply = host_reply(frame, self.config)
+        reply = host_reply(frame, self.config) or self.dns.reply(frame, self.config)
         if reply:
             self.ws.send_binary(reply)
         else:
@@ -84,6 +87,8 @@ def parse_args():
     parser.add_argument("--gateway-ip", default="10.0.2.2")
     parser.add_argument("--guest-ip", default="10.0.2.15")
     parser.add_argument("--dns-ip", default="1.1.1.1")
+    parser.add_argument("--dns-upstream")
+    parser.add_argument("--dns-timeout", type=float, default=2.0)
     parser.add_argument("--prefix", type=int, default=24)
     parser.add_argument("--gateway-mac", default=DEFAULT_GATEWAY_MAC)
     parser.add_argument("--configure-host", action="store_true")

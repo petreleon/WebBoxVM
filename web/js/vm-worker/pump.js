@@ -30,9 +30,12 @@ async function runPump() {
       if (!usedJit) {
         state.emulator.run_kernel(interpreterStepSlice());
       }
-      drainNetworkTx();
+      const sentNetworkFrames = drainNetworkTx();
       drainUart();
       batches += 1;
+      if (sentNetworkFrames > 0) {
+        break;
+      }
     } while (
       state.running &&
       performance.now() - frameStart < MAX_FRAME_MS &&

@@ -51,6 +51,11 @@ class NatPacketTests(unittest.TestCase):
 
         self.assertEqual(dhcp_message_type(bootp_reply(reply)), 5)
 
+    def test_dhcp_ack_advertises_configured_dns_server(self):
+        reply = host_reply(dhcp_frame(3), self.config)
+
+        self.assertEqual(dhcp_option(bootp_reply(reply), 6), ip("1.1.1.1"))
+
 
 class WebSocketClientFrameTests(unittest.TestCase):
     def test_accept_value_matches_rfc_example(self):
@@ -128,6 +133,22 @@ def bootp_reply(frame):
     self_udp = parsed[3]
     length = struct.unpack("!H", self_udp[4:6])[0]
     return self_udp[8:length]
+
+
+def dhcp_option(bootp, target):
+    index = 240
+    while index < len(bootp):
+        code = bootp[index]
+        index += 1
+        if code == 255:
+            return None
+        size = bootp[index]
+        index += 1
+        value = bootp[index : index + size]
+        index += size
+        if code == target:
+            return value
+    return None
 
 
 def ip(addr):

@@ -23,14 +23,16 @@ export function stopNetworkProxy() {
 
 export function drainNetworkTx() {
   if (!state.emulator || !socket || socket.readyState !== WebSocket.OPEN) {
-    return;
+    return 0;
   }
+  let sent = 0;
   for (;;) {
     const frame = state.emulator.network_tx_frame();
     if (!frame || frame.length === 0) {
-      return;
+      return sent;
     }
     socket.send(frame);
+    sent += 1;
   }
 }
 
