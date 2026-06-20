@@ -18,4 +18,4 @@ Detailed completed history lives in [sprint-history.md](sprint-history.md). This
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done — Compressed
-- [x] Core platform: modular emulator, 180-line guardrail, native Linux shell, Debian ISO boot, browser Wasm64 + OPFS disk, and proven VirtIO-net/WebSocket NAT.
+- [x] Emulator core, Debian ISO boot, OPFS disk, and WebSocket NAT networking.
