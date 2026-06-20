@@ -18,4 +18,4 @@ Compressed completed history lives in [sprint-history.md](sprint-history.md). Th
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done — Compressed
-- [x] Boot, media/disk, OPFS, NAT: proven.
+- [x] ISO boot, persistent install disk, WebSocket NAT.
