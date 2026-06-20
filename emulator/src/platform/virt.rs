@@ -10,6 +10,7 @@ use crate::constants::*;
 use crate::devices::gicv3::Gicv3;
 use crate::devices::pl011::Pl011Uart;
 use crate::devices::virtio_blk::VirtioBlk;
+use crate::devices::virtio_net::VirtioNet;
 use crate::memory::PhysicalMemory;
 
 mod ranges;
@@ -22,6 +23,7 @@ pub struct SystemBus {
     pub gic: Gicv3,
     pub virtio_blk: VirtioBlk,
     pub virtio_disk: VirtioBlk,
+    pub virtio_net: VirtioNet,
 }
 
 impl SystemBus {
@@ -35,6 +37,7 @@ impl SystemBus {
                 crate::devices::virtio_blk::DEFAULT_SPARSE_DISK_SIZE,
                 b"webboxvm-disk\0",
             ),
+            virtio_net: VirtioNet::new(),
         }
     }
 
@@ -65,6 +68,9 @@ impl SystemBus {
         if in_virtio_disk_range(addr) {
             return self.virtio_disk.read(addr - VIRTIO_DISK_BASE, size);
         }
+        if in_virtio_net_range(addr) {
+            return self.virtio_net.read(addr - VIRTIO_NET_BASE, size);
+        }
         self.mem.read(addr, size)
     }
 
@@ -86,6 +92,12 @@ impl SystemBus {
     pub fn refresh_interrupts(&mut self) {
         if self.uart.masked_rx_interrupt_pending() {
             self.gic.set_pending(PL011_UART_IRQ_ID);
+        }
+    }
+
+    pub fn inject_network_frame(&mut self, frame: &[u8]) {
+        if self.virtio_net.inject_rx_frame(&mut self.mem, frame) {
+            self.gic.set_pending(VIRTIO_NET_IRQ_ID);
         }
     }
 
@@ -123,6 +135,13 @@ impl SystemBus {
                 .write(&mut self.mem, addr - VIRTIO_DISK_BASE, value, size)
             {
                 self.gic.set_pending(VIRTIO_DISK_IRQ_ID);
+            }
+        } else if in_virtio_net_range(addr) {
+            if self
+                .virtio_net
+                .write(&mut self.mem, addr - VIRTIO_NET_BASE, value, size)
+            {
+                self.gic.set_pending(VIRTIO_NET_IRQ_ID);
             }
         }
         self.mem.write(addr, size, value);

@@ -32,3 +32,12 @@ fn dtb_with_initrd() {
     ]);
     assert_eq!(magic, 0xd00dfeed);
 }
+
+#[test]
+fn dtb_advertises_virtio_network_mmio_device() {
+    let dtb = build_dtb(0x4000_0000, 0x4000_0000, None, None, None);
+    let text = String::from_utf8_lossy(&dtb);
+
+    assert!(text.contains("virtio_net@a002000"));
+    assert!(text.contains("virtio,mmio"));
+}

@@ -27,12 +27,17 @@ pub(super) fn in_virtio_disk_range(addr: u64) -> bool {
     addr >= VIRTIO_DISK_BASE && addr < VIRTIO_DISK_END
 }
 
+pub(super) fn in_virtio_net_range(addr: u64) -> bool {
+    addr >= VIRTIO_NET_BASE && addr < VIRTIO_NET_END
+}
+
 pub(super) fn overlaps_device_range(addr: u64, len: usize) -> bool {
     range_overlaps(addr, len, UART_BASE, UART_END)
         || range_overlaps(addr, len, GICD_BASE, GICD_BASE + GICD_SIZE)
         || range_overlaps(addr, len, GICR_BASE, GICR_BASE + GICR_SIZE)
         || range_overlaps(addr, len, VIRTIO_BLK_BASE, VIRTIO_BLK_END)
         || range_overlaps(addr, len, VIRTIO_DISK_BASE, VIRTIO_DISK_END)
+        || range_overlaps(addr, len, VIRTIO_NET_BASE, VIRTIO_NET_END)
 }
 
 pub(super) fn is_printable_or_control(b: u8) -> bool {

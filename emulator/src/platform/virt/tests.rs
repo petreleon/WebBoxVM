@@ -9,6 +9,7 @@ fn device_mmio_windows_are_disjoint() {
         ("uart", UART_BASE, UART_END),
         ("virtio_blk", VIRTIO_BLK_BASE, VIRTIO_BLK_END),
         ("virtio_disk", VIRTIO_DISK_BASE, VIRTIO_DISK_END),
+        ("virtio_net", VIRTIO_NET_BASE, VIRTIO_NET_END),
     ];
 
     for (i, (left_name, left_base, left_end)) in windows.iter().enumerate() {
@@ -51,6 +52,13 @@ fn second_virtio_disk_has_own_mmio_window() {
     let mut bus = SystemBus::new();
     assert_eq!(bus.read(VIRTIO_BLK_BASE, 4), Some(0x7472_6976));
     assert_eq!(bus.read(VIRTIO_DISK_BASE, 4), Some(0x7472_6976));
+}
+
+#[test]
+fn virtio_net_has_own_mmio_window() {
+    let mut bus = SystemBus::new();
+    assert_eq!(bus.read(VIRTIO_NET_BASE, 4), Some(0x7472_6976));
+    assert_eq!(bus.read(VIRTIO_NET_BASE + 0x008, 4), Some(1));
 }
 
 #[test]

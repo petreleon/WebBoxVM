@@ -4,6 +4,7 @@ pub const VIRTUAL_TIMER_IRQ_ID: u32 = 27;
 pub const PL011_UART_IRQ_ID: u32 = 33;
 pub const VIRTIO_BLK_IRQ_ID: u32 = 48;
 pub const VIRTIO_DISK_IRQ_ID: u32 = 49;
+pub const VIRTIO_NET_IRQ_ID: u32 = 50;
 pub const GIC_SPURIOUS_INTERRUPT: u64 = 1023;
 
 pub const TIMER_CTL_ENABLE: u64 = 1;
