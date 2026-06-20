@@ -9,11 +9,13 @@ mod bootargs;
 mod filesystem;
 mod grub;
 mod images;
+mod installer_overlay;
 
 use boot_spec::find_boot_spec;
 use bootargs::ensure_serial_bootargs;
 use filesystem::IsoFs;
 use images::{prepare_initrd_image, prepare_kernel_image};
+use installer_overlay::append_installer_network_overlay;
 
 #[derive(Debug, Clone)]
 pub struct IsoBootImage {
@@ -39,6 +41,7 @@ pub fn load_iso_boot_image(data: &[u8]) -> Result<IsoBootImage, String> {
     if initrd.is_empty() {
         return Err("ISO boot initrd is empty".to_string());
     }
+    append_installer_network_overlay(&mut initrd);
 
     Ok(IsoBootImage {
         kernel,
