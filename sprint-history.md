@@ -1,7 +1,5 @@
 # WebBoxVM — Sprint History
 
-## Done — Compressed
-- ISO boot, persistent install disk, WebSocket NAT.
+Done: ISO boot + OPFS disk + WS NAT.
 
-## Current Edge
-- Finish install; boot saved disk.
+Current: finish install; boot saved disk.

@@ -1,6 +1,6 @@
 # WebBoxVM — Active Todo
 
-Compressed completed history lives in [sprint-history.md](sprint-history.md). This file stays short and action-focused.
+History: [sprint-history.md](sprint-history.md).
 
 ## Now — Browser Install Path
 - [x] Prove browser networking end to end: VirtIO-net, DHCP, DNS, and Debian package download through WebSocket NAT
@@ -17,5 +17,5 @@ Compressed completed history lives in [sprint-history.md](sprint-history.md). Th
 - [ ] Explain `web/js/vm-worker/jit-compile.js` JIT policy
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
-## Done — Compressed
-- [x] ISO boot, persistent install disk, WebSocket NAT.
+## Done
+- [x] ISO boot + OPFS disk + WS NAT.
