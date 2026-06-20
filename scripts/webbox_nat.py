@@ -18,7 +18,8 @@ class NatPeer:
     def __init__(self, args):
         self.args = args
         self.config = NatConfig(args.gateway_ip, args.guest_ip, args.dns_ip, args.gateway_mac)
-        self.dns = DnsForwarder(args.dns_upstream, args.dns_timeout)
+        upstream = args.dns_upstream or args.dns_ip
+        self.dns = DnsForwarder(upstream, args.dns_timeout, args.trace_dns)
         self.tap = TapDevice(args.tap)
         self.ws = WebSocketClient(args.hub)
         self.running = True
@@ -36,7 +37,7 @@ class NatPeer:
             print("Host NAT not configured; pass --configure-host when running as root.")
         self.ws.connect()
         print(f"NAT peer connected: {self.tap.name} <-> {self.args.hub}")
-        print(f"DNS proxy: {self.args.dns_ip} -> {self.dns.upstream}")
+        print(f"DNS proxy: {self.args.dns_ip} -> {', '.join(self.dns.upstreams)}")
         while self.running:
             for fd in readable([self.tap, self.ws]):
                 if fd is self.tap:
@@ -89,6 +90,7 @@ def parse_args():
     parser.add_argument("--dns-ip", default="1.1.1.1")
     parser.add_argument("--dns-upstream")
     parser.add_argument("--dns-timeout", type=float, default=2.0)
+    parser.add_argument("--trace-dns", action="store_true")
     parser.add_argument("--prefix", type=int, default=24)
     parser.add_argument("--gateway-mac", default=DEFAULT_GATEWAY_MAC)
     parser.add_argument("--configure-host", action="store_true")

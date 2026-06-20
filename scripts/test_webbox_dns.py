@@ -2,7 +2,7 @@ import struct
 import unittest
 from unittest.mock import mock_open, patch
 
-from scripts.webboxnet.dns import DnsForwarder, default_dns_upstream
+from scripts.webboxnet.dns import DnsForwarder, default_dns_upstream, default_dns_upstreams
 from scripts.webboxnet.packets import ETH_IPV4, NatConfig, ethernet, ipv4_packet, ipv4_payload, udp_packet
 
 GUEST_MAC = bytes.fromhex("025742564d01")
@@ -52,11 +52,26 @@ class DnsForwarderTests(unittest.TestCase):
         with patch("builtins.open", mock_open(read_data=resolv)):
             self.assertEqual(default_dns_upstream(), "127.0.0.11")
 
+    def test_default_dns_upstreams_include_public_fallbacks(self):
+        resolv = "nameserver 192.168.5.1\n"
+
+        with patch("builtins.open", mock_open(read_data=resolv)):
+            self.assertEqual(default_dns_upstreams(), ["192.168.5.1", "1.1.1.1", "8.8.8.8"])
+
     def test_default_dns_upstream_skips_non_ipv4_nameservers(self):
         resolv = "nameserver fe80::1\nnameserver 9.9.9.9\n"
 
         with patch("builtins.open", mock_open(read_data=resolv)):
             self.assertEqual(default_dns_upstream(), "9.9.9.9")
+
+    def test_dns_forwarder_tries_fallback_after_empty_answer(self):
+        query = b"\x12\x34\x01\x00query"
+        forwarder = FallbackDnsForwarder(["192.168.5.1", "1.1.1.1"], b"\x12\x34\x81\x80answer")
+
+        reply = forwarder.reply(dns_frame("1.1.1.1", query), self.config)
+
+        self.assertEqual(forwarder.queries, ["192.168.5.1", "1.1.1.1"])
+        self.assertEqual(dns_payload(reply), b"\x12\x34\x81\x80answer")
 
 
 def dns_frame(dst_ip, payload):
@@ -76,6 +91,19 @@ class FakeDnsForwarder(DnsForwarder):
         self.query_payload = payload
         self.query_count += 1
         return self.answer
+
+
+class FallbackDnsForwarder(DnsForwarder):
+    def __init__(self, upstreams, answer):
+        self.upstreams = upstreams
+        self.upstream = upstreams[0]
+        self.answer = answer
+        self.queries = []
+        self.cache = {}
+
+    def query_upstream(self, payload, upstream):
+        self.queries.append(upstream)
+        return self.answer if upstream == self.upstreams[-1] else None
 
 
 def dns_payload(frame):

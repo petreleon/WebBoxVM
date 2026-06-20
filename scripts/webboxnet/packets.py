@@ -12,11 +12,12 @@ BROADCAST_IP = b"\xff" * 4
 
 
 class NatConfig:
-    def __init__(self, gateway_ip, guest_ip, dns_ip, gateway_mac):
+    def __init__(self, gateway_ip, guest_ip, dns_ip, gateway_mac, broadcast_ip="10.0.2.255"):
         self.gateway_ip = ipaddress.IPv4Address(gateway_ip).packed
         self.guest_ip = ipaddress.IPv4Address(guest_ip).packed
         self.dns_ip = ipaddress.IPv4Address(dns_ip).packed
         self.gateway_mac = bytes.fromhex(gateway_mac.replace(":", ""))
+        self.broadcast_ip = ipaddress.IPv4Address(broadcast_ip).packed
 
 
 def host_reply(frame, config):
@@ -122,6 +123,9 @@ def build_bootp(request, xid, client_mac, config, reply_type):
         opt(1, b"\xff\xff\xff\x00"),
         opt(3, config.gateway_ip),
         opt(6, config.dns_ip),
+        opt(28, config.broadcast_ip),
+        opt(58, struct.pack("!I", 1800)),
+        opt(59, struct.pack("!I", 3150)),
         b"\xff",
     ]
     return bytes(packet) + DHCP_MAGIC + b"".join(options)

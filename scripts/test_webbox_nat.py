@@ -56,6 +56,14 @@ class NatPacketTests(unittest.TestCase):
 
         self.assertEqual(dhcp_option(bootp_reply(reply), 6), ip("1.1.1.1"))
 
+    def test_dhcp_ack_advertises_broadcast_and_timers(self):
+        reply = host_reply(dhcp_frame(3), self.config)
+        bootp = bootp_reply(reply)
+
+        self.assertEqual(dhcp_option(bootp, 28), ip("10.0.2.255"))
+        self.assertEqual(dhcp_option(bootp, 58), (1800).to_bytes(4, "big"))
+        self.assertEqual(dhcp_option(bootp, 59), (3150).to_bytes(4, "big"))
+
 
 class WebSocketClientFrameTests(unittest.TestCase):
     def test_accept_value_matches_rfc_example(self):
