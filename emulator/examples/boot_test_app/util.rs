@@ -1,19 +1,11 @@
-use emulator::boot::BootContext;
 use emulator::constants::INITRD_BASE;
+use emulator::host::native::NativeVm;
 use std::env;
-use std::path::Path;
 
 pub(super) fn kernel_path() -> String {
     env::args().nth(1).unwrap_or_else(|| {
         env::var("WEBBOXVM_KERNEL").unwrap_or_else(|_| ".artifacts/Image".to_string())
     })
-}
-
-pub(super) fn is_iso_path(path: &str) -> bool {
-    Path::new(path)
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("iso"))
 }
 
 pub(super) fn env_usize(name: &str, default: usize) -> usize {
@@ -32,7 +24,7 @@ pub(super) fn normalize_boot_test_commands(script: &str) -> String {
     normalized
 }
 
-pub(super) fn first_initrd_mismatch(ctx: &BootContext, expected: &[u8]) -> Option<usize> {
+pub(super) fn first_initrd_mismatch(ctx: &NativeVm, expected: &[u8]) -> Option<usize> {
     let mut guest = vec![0; expected.len()];
     ctx.machine.bus.mem.read_bytes(INITRD_BASE, &mut guest)?;
     guest

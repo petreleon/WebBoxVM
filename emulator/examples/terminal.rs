@@ -4,13 +4,11 @@
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use emulator::boot::BootContext;
-use emulator::loader::iso::load_iso_boot_image;
+use emulator::host::native::{NativeBootSource, boot_from_image};
 use std::env;
 use std::error::Error;
 use std::fs;
 use std::io::{self, Write};
-use std::path::Path;
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -18,24 +16,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         .nth(1)
         .unwrap_or_else(|| ".artifacts/Image".to_string());
     let image = fs::read(&kernel_path)?;
-    let mut ctx = if is_iso_path(&kernel_path) {
-        let boot =
-            load_iso_boot_image(&image).map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
-        eprintln!("iso kernel: {}", boot.kernel_path);
-        eprintln!("iso initrd: {}", boot.initrd_paths.join(", "));
-        eprintln!("iso bootargs: {}", boot.bootargs);
-        let mut ctx = BootContext::new_with_initrd_and_bootargs(
-            &boot.kernel,
-            1,
-            &boot.initrd,
-            &boot.bootargs,
-        )
-        .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
-        ctx.attach_virtio_block(&image);
-        ctx
-    } else {
-        BootContext::new(&image, 1).map_err(|err| io::Error::new(io::ErrorKind::Other, err))?
-    };
+    let boot = boot_from_image(&kernel_path, &image, 1, None)?;
+    if let NativeBootSource::Iso(info) = &boot.source {
+        eprintln!("iso kernel: {}", info.kernel_path);
+        eprintln!("iso initrd: {}", info.initrd_paths.join(", "));
+        eprintln!("iso bootargs: {}", info.bootargs);
+    }
+    let mut ctx = boot.context;
 
     eprintln!("WebBoxVM terminal");
     eprintln!("image: {kernel_path}");
@@ -88,13 +75,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             last_status = Instant::now();
         }
     }
-}
-
-fn is_iso_path(path: &str) -> bool {
-    Path::new(path)
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("iso"))
 }
 
 fn key_to_uart_bytes(key: KeyEvent) -> Option<Vec<u8>> {

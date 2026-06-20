@@ -1,16 +1,14 @@
 //! Long-running boot test — prints progress and exits when UART output appears.
 //! Run: cargo run --example wait_uart --release
 
-use emulator::boot::BootContext;
+use emulator::host::native::boot_from_path;
 use std::env;
-use std::fs;
 use std::time::Instant;
 
 fn main() {
     let kernel_path =
         env::var("WEBBOXVM_KERNEL").unwrap_or_else(|_| ".artifacts/Image".to_string());
-    let kernel = fs::read(&kernel_path).expect("read kernel Image");
-    let mut ctx = BootContext::new(&kernel, 1).expect("boot");
+    let mut ctx = boot_from_path(&kernel_path, 1).expect("boot").context;
     println!("Boot context ready");
 
     ctx.run_efi_phase(50_000_000);

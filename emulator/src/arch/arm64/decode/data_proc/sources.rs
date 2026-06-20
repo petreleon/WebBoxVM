@@ -1,0 +1,159 @@
+use super::*;
+
+pub(in crate::arch::arm64::decode) fn decode_dp_1src(raw: u32) -> Option<Instr> {
+    let sf = ((raw >> 31) & 1) != 0;
+    let opcode2 = ((raw >> 16) & 0x1F) as u8;
+    let opcode = ((raw >> 10) & 0x3F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    if opcode2 != 0 {
+        return None;
+    }
+    let op = match opcode {
+        0b000000 => Opcode::Rbit,
+        0b000001 => Opcode::Rev16,
+        0b000010 => {
+            if sf {
+                Opcode::Rev32
+            } else {
+                Opcode::Rev
+            }
+        }
+        0b000011 => Opcode::Rev,
+        0b000100 => Opcode::Clz,
+        0b000101 => Opcode::Cls,
+        0b000110 => Opcode::Ctz,
+        0b000111 => Opcode::Cnt,
+        0b001000 => Opcode::Abs,
+        _ => return None,
+    };
+    Some(dp_1src_instr(op, rd, rn, sf))
+}
+
+pub(in crate::arch::arm64::decode) fn decode_dp_2src(raw: u32) -> Option<Instr> {
+    if let Some(instr) = super::pointer_subtract::decode(raw) {
+        return Some(instr);
+    }
+
+    let sf = ((raw >> 31) & 1) != 0;
+    let rm = ((raw >> 16) & 0x1F) as u8;
+    let opcode = ((raw >> 10) & 0x3F) as u8;
+    let rn = ((raw >> 5) & 0x1F) as u8;
+    let rd = (raw & 0x1F) as u8;
+
+    if (0b010000..=0b010111).contains(&opcode) {
+        let size = 1u8 << ((opcode - 0b010000) & 0b11);
+        if sf != (size == 8) {
+            return None;
+        }
+        return Some(Instr {
+            size,
+            op: if opcode >= 0b010100 {
+                Opcode::Crc32c
+            } else {
+                Opcode::Crc32
+            },
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf: false,
+            cond: 0,
+        });
+    }
+
+    match opcode {
+        0b000010 => Some(Instr {
+            size: 0,
+            op: Opcode::Udiv,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf,
+            cond: 0,
+        }),
+        0b000011 => Some(Instr {
+            size: 0,
+            op: Opcode::Sdiv,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf,
+            cond: 0,
+        }),
+        0b001000 => Some(Instr {
+            size: 0,
+            op: Opcode::Lslv,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf,
+            cond: 0,
+        }),
+        0b001001 => Some(Instr {
+            size: 0,
+            op: Opcode::Lsrv,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf,
+            cond: 0,
+        }),
+        0b001010 => Some(Instr {
+            size: 0,
+            op: Opcode::Asrv,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf,
+            cond: 0,
+        }),
+        0b001011 => Some(Instr {
+            size: 0,
+            op: Opcode::Rorv,
+            rd,
+            rn,
+            rm,
+            imm: 0,
+            sf,
+            cond: 0,
+        }),
+        0b011000 => dp_2src_instr(Opcode::Smax, rd, rn, rm, sf),
+        0b011001 => dp_2src_instr(Opcode::Umax, rd, rn, rm, sf),
+        0b011010 => dp_2src_instr(Opcode::Smin, rd, rn, rm, sf),
+        0b011011 => dp_2src_instr(Opcode::Umin, rd, rn, rm, sf),
+        _ => None,
+    }
+}
+
+fn dp_1src_instr(op: Opcode, rd: u8, rn: u8, sf: bool) -> Instr {
+    Instr {
+        size: 0,
+        op,
+        rd,
+        rn,
+        rm: 0,
+        imm: 0,
+        sf,
+        cond: 0,
+    }
+}
+
+fn dp_2src_instr(op: Opcode, rd: u8, rn: u8, rm: u8, sf: bool) -> Option<Instr> {
+    Some(Instr {
+        size: 0,
+        op,
+        rd,
+        rn,
+        rm,
+        imm: 0,
+        sf,
+        cond: 0,
+    })
+}

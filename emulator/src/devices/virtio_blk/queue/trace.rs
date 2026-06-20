@@ -1,6 +1,6 @@
 use std::env;
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 const DEFAULT_TRACE_LIMIT: u32 = 4096;
 

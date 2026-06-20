@@ -1,4 +1,5 @@
 use super::*;
+use crate::constants::*;
 
 fn synthetic_arm64_image(flags: u64) -> Vec<u8> {
     let mut image = vec![0u8; 64];
@@ -9,6 +10,32 @@ fn synthetic_arm64_image(flags: u64) -> Vec<u8> {
     image[24..32].copy_from_slice(&flags.to_le_bytes());
     image[56..60].copy_from_slice(&ARM64_KERNEL_MAGIC.to_le_bytes());
     image
+}
+
+#[test]
+fn boot_plan_builds_artifacts_without_live_machine() {
+    let image = synthetic_arm64_image(0);
+    let initrd = [0x41u8, 0x42, 0x43];
+    let plan =
+        BootPlan::new_with_initrd_and_bootargs(&image, 2, &initrd, "console=ttyAMA0").unwrap();
+
+    assert_eq!(plan.num_cores, 2);
+    assert_eq!(plan.kernel_image, image);
+    assert_eq!(plan.initrd_image, initrd);
+    assert_eq!(plan.entry, KERNEL_LOAD_ADDR);
+    assert_eq!(plan.dtb_addr, DTB_BASE);
+    assert_eq!(plan.initrd_addr, INITRD_BASE);
+    assert_eq!(plan.initrd_end, INITRD_BASE + initrd.len() as u64);
+    assert!(plan.dtb_image.starts_with(&FDT_MAGIC.to_be_bytes()));
+    assert!(plan.boot_media.is_none());
+}
+
+#[test]
+fn boot_plan_rejects_invalid_inputs_before_machine_creation() {
+    let image = synthetic_arm64_image(0);
+
+    assert!(BootPlan::new_with_initrd(&image, 0, &[1]).is_err());
+    assert!(BootPlan::new_with_initrd(&image, 1, &[]).is_err());
 }
 
 #[test]

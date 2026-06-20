@@ -2,8 +2,8 @@
 //!
 //! Walks the .reloc directory and adjusts absolute pointers by load delta.
 
-use crate::bus::SystemBus;
 use crate::constants::*;
+use crate::platform::virt::SystemBus;
 
 const IMAGE_REL_BASED_ABSOLUTE: u8 = 0;
 const IMAGE_REL_BASED_HIGHLOW: u8 = 3;

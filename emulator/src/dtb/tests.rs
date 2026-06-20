@@ -1,5 +1,5 @@
 use super::*;
-use crate::bus::SystemBus;
+use crate::platform::virt::SystemBus;
 
 #[test]
 fn dtb_magic_and_size() {

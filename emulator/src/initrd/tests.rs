@@ -26,7 +26,7 @@ fn roundtrip_multiple_files() {
 
 #[test]
 fn load_initrd_into_memory() {
-    use crate::bus::SystemBus;
+    use crate::platform::virt::SystemBus;
     let mut bus = SystemBus::new();
     let entries = vec![("hello.txt".to_string(), b"world".to_vec(), 0o644)];
     let archive = build_cpio(&entries);

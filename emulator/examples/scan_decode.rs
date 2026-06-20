@@ -1,4 +1,4 @@
-use emulator::arm64::{Opcode, decode};
+use emulator::arch::arm64::{Opcode, decode};
 use std::collections::BTreeMap;
 use std::fs;
 

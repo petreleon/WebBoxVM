@@ -2,6 +2,22 @@
 
 Completed sprint history is mirrored in [sprint-history.md](sprint-history.md). Recent completed sprints stay here as working context; aspirational backlog lives in [future.md](future.md).
 
+## Active Goal — Modular Architecture Boundary Refactor
+- [x] Capture the target module layout and hard boundary rules in [models/architecture.md](models/architecture.md)
+- [x] Enforce the 180-line source-file ceiling with an integration test
+- [x] Introduce typed boundary primitives for addresses, IRQs, and access widths
+- [x] Move VM runtime orchestration out of `arm64`
+- [x] Split platform routing from isolated device implementations
+- [x] Replace `BootContext` ownership with a pure boot plan
+- [x] Move the wasm host adapter behind `host::wasm`
+- [x] Keep completed migration slices covered by focused invariant and regression tests
+- [x] Move ARM64 implementation under `arch::arm64` with a compatibility re-export
+- [x] Move ISO/kernel loaders under `images`
+- [x] Add a `host::native` adapter for CLI/examples
+- [x] Extract trace sinks, counters, and debug snapshots into `observability`
+- [x] Back the public `api::VmHandle` facade with runtime-owned construction
+- [x] Audit legacy compatibility shims (`arm64`, `bus`, `loader`) for eventual removal
+
 ## Current Focus — Pause, Learn, Then Continue
 - [ ] Read and explain the browser JIT policy in `web/js/vm-worker/jit-compile.js`
   - Why EL0 guest-memory helper blocks are skipped
@@ -9,7 +25,7 @@ Completed sprint history is mirrored in [sprint-history.md](sprint-history.md). 
 - [ ] Trace the opcode telemetry path for `0x6e20ac00`
   - `disarm64` mnemonic: `uminp`
   - WebBoxVM opcode: `Opcode::SimdUminp`
-  - Display name source: `emulator/src/arm64/opcodes/names_simd.rs`
+  - Display name source: `emulator/src/arch/arm64/opcodes/names_simd.rs`
 - [ ] Continue Debian installer validation from the next real blocker after network hardware detection
 - [ ] Investigate network-device support and expected Debian installer behavior with no NIC
 - [ ] Profile the userland-heavy component loading path without relaxing correctness guards

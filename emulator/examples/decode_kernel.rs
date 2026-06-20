@@ -1,4 +1,4 @@
-use emulator::arm64::decode;
+use emulator::arch::arm64::decode;
 
 fn main() {
     let data = std::fs::read("/tmp/kernel_raw.bin").unwrap();

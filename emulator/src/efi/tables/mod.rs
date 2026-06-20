@@ -1,7 +1,7 @@
 use super::encode::{movk_x, movz_x, write32, write64};
 use super::protocols::loaded_image_protocol_addr;
-use crate::bus::SystemBus;
 use crate::constants::*;
+use crate::platform::virt::SystemBus;
 
 mod large_blocks;
 mod services;

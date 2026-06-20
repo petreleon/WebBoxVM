@@ -1,5 +1,5 @@
 use super::util;
-use emulator::boot::BootContext;
+use emulator::host::native::NativeVm;
 use std::env;
 
 pub(super) struct BootTestInput {
@@ -27,12 +27,12 @@ impl BootTestInput {
         self.shell_script.is_some() || !self.prompt_script.is_empty()
     }
 
-    pub(super) fn maybe_feed(&mut self, ctx: &mut BootContext, uart: &str) {
+    pub(super) fn maybe_feed(&mut self, ctx: &mut NativeVm, uart: &str) {
         self.maybe_feed_shell(ctx, uart);
         self.maybe_feed_prompt(ctx, uart);
     }
 
-    fn maybe_feed_shell(&mut self, ctx: &mut BootContext, uart: &str) {
+    fn maybe_feed_shell(&mut self, ctx: &mut NativeVm, uart: &str) {
         if self.shell_sent || !uart.contains("webboxvm# ") {
             return;
         }
@@ -47,7 +47,7 @@ impl BootTestInput {
         );
     }
 
-    fn maybe_feed_prompt(&mut self, ctx: &mut BootContext, uart: &str) {
+    fn maybe_feed_prompt(&mut self, ctx: &mut NativeVm, uart: &str) {
         if self.prompt_index >= self.prompt_script.len() {
             return;
         }

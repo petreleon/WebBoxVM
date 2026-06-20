@@ -1,5 +1,5 @@
 use super::*;
-use crate::bus::SystemBus;
+use crate::platform::virt::SystemBus;
 
 fn fake_pe32_plus(reloc_rva: u32, reloc_size: u32, preferred_base: u64) -> Vec<u8> {
     let mut data = vec![0u8; 0x200];

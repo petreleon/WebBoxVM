@@ -4,6 +4,7 @@ Minimal data structures for the ARM64 emulator, kept in sync with the implementa
 
 ## Model Notes
 
+- [Modular architecture goal](models/architecture.md)
 - [CPU and instruction state](models/cpu.md)
 - [Memory and translation](models/memory.md)
 - [Devices and interrupts](models/devices.md)

@@ -11,7 +11,7 @@ pub use tables::setup_efi_tables;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bus::SystemBus;
+    use crate::platform::virt::SystemBus;
 
     #[test]
     fn efi_tables_initialised() {

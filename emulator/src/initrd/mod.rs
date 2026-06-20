@@ -4,7 +4,7 @@
 //! fixed-width ASCII hexadecimal fields, which keeps the builder simple and
 //! makes generated archives easy to inspect.
 
-use crate::bus::SystemBus;
+use crate::platform::virt::SystemBus;
 
 mod builder;
 mod node;

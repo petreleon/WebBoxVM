@@ -1,7 +1,7 @@
 // ── EFI stub trap handlers ──
 
-use crate::arm64::Armv8Cpu;
-use crate::bus::SystemBus;
+use crate::arch::arm64::Armv8Cpu;
+use crate::platform::virt::SystemBus;
 use crate::constants::*;
 
 /// Returns true if PC matched an EFI trap address and was handled.

@@ -1,7 +1,7 @@
-use emulator::boot::BootContext;
+use emulator::host::native::NativeVm;
 use std::env;
 
-pub(super) fn print_debug_state(ctx: &BootContext) {
+pub(super) fn print_debug_state(ctx: &NativeVm) {
     if env::var_os("BOOT_TEST_DEBUG_STATE").is_none() {
         return;
     }

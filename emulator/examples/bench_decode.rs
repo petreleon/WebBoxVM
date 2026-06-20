@@ -1,7 +1,7 @@
 //! Benchmark: hand-rolled decoder vs disarm64.
 
 use disarm64::decoder;
-use emulator::arm64::decode as our_decode;
+use emulator::arch::arm64::decode as our_decode;
 use std::time::Instant;
 
 fn main() {

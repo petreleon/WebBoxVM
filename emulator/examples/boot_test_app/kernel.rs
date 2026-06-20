@@ -1,14 +1,10 @@
 use super::util;
-use emulator::boot::BootContext;
 use emulator::constants::INITRD_BASE;
+use emulator::host::native::NativeVm;
 use std::env;
 use std::time::Instant;
 
-pub(super) fn run_kernel_chunks(
-    ctx: &mut BootContext,
-    expected_initrd: Option<&[u8]>,
-    t0: &Instant,
-) {
+pub(super) fn run_kernel_chunks(ctx: &mut NativeVm, expected_initrd: Option<&[u8]>, t0: &Instant) {
     let mut last_uart = ctx.uart_output().len();
     let chunks = util::env_usize("BOOT_TEST_CHUNKS", 10);
     let per_chunk = util::env_usize("BOOT_TEST_STEPS", 2_000_000);
@@ -33,7 +29,7 @@ pub(super) fn run_kernel_chunks(
     }
 }
 
-fn maybe_report_initrd(ctx: &BootContext, expected_initrd: Option<&[u8]>) {
+fn maybe_report_initrd(ctx: &NativeVm, expected_initrd: Option<&[u8]>) {
     if env::var_os("BOOT_TEST_CHECK_INITRD").is_none() {
         return;
     }
@@ -56,7 +52,7 @@ fn maybe_report_initrd(ctx: &BootContext, expected_initrd: Option<&[u8]>) {
 }
 
 fn report_uart_delta(
-    ctx: &BootContext,
+    ctx: &NativeVm,
     uart: &str,
     last_uart: usize,
     new_bytes: usize,

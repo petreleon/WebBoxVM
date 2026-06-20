@@ -74,9 +74,5 @@ pub(in crate::devices::gicv3) fn gicd_word_index(offset: u64, base: u64) -> usiz
 }
 
 pub(in crate::devices::gicv3) fn read_bitmap_word(arr: &[u32; INT_WORDS], idx: usize) -> u64 {
-    if idx < INT_WORDS {
-        arr[idx] as u64
-    } else {
-        0
-    }
+    if idx < INT_WORDS { arr[idx] as u64 } else { 0 }
 }

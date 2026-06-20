@@ -1,5 +1,5 @@
-use crate::bus::SystemBus;
 use crate::constants::*;
+use crate::platform::virt::SystemBus;
 
 /// Encode ARM64 `MOVZ Xd, #imm16` (hw=0, LSL #0).
 pub fn movz_x(rd: u8, imm16: u16) -> u32 {

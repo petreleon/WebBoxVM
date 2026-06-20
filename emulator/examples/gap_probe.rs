@@ -1,4 +1,4 @@
-use emulator::arm64::decode;
+use emulator::arch::arm64::decode;
 use std::io::{self, Read};
 
 fn main() {

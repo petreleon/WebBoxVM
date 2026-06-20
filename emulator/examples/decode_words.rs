@@ -1,4 +1,4 @@
-use emulator::arm64::decode;
+use emulator::arch::arm64::decode;
 
 fn main() {
     for arg in std::env::args().skip(1) {

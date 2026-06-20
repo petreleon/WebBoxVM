@@ -2,8 +2,8 @@
 //!
 //! The DTB describes the virtual hardware that the bootloader passes to Linux.
 
-use crate::bus::SystemBus;
 use crate::constants::*;
+use crate::platform::virt::SystemBus;
 
 mod builder;
 mod header;

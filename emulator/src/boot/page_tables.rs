@@ -1,5 +1,5 @@
-use crate::arm64::Armv8Cpu;
-use crate::bus::SystemBus;
+use crate::arch::arm64::Armv8Cpu;
+use crate::platform::virt::SystemBus;
 use crate::constants::*;
 
 pub(super) fn setup_boot_page_tables(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {

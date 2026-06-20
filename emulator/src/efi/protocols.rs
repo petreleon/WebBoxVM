@@ -1,8 +1,8 @@
 //! EFI Protocol structures needed by the Linux boot stub.
 
 use super::encode::write64;
-use crate::bus::SystemBus;
 use crate::constants::*;
+use crate::platform::virt::SystemBus;
 
 // Re-export GUID constant (kept here for backward compat)
 pub const LOADED_IMAGE_GUID_LO: u64 = LIP_GUID_LO;
@@ -51,7 +51,7 @@ pub fn loaded_image_protocol_addr() -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bus::SystemBus;
+    use crate::platform::virt::SystemBus;
 
     #[test]
     fn lip_installed() {

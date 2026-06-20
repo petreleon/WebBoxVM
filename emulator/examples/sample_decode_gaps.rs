@@ -1,4 +1,4 @@
-use emulator::arm64::decode;
+use emulator::arch::arm64::decode;
 use std::collections::BTreeMap;
 
 #[derive(Default)]
