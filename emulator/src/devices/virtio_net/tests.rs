@@ -38,7 +38,8 @@ fn selected_queues_have_independent_registers() {
 fn transmit_queue_exports_ethernet_frame() {
     let mut bus = SystemBus::new();
     configure_queue(&mut bus, QUEUE_TX);
-    write_desc(&mut bus, 0, BUF, 14, 0, 0);
+    assert_eq!(VIRTIO_NET_HDR_LEN, 12);
+    write_desc(&mut bus, 0, BUF, (VIRTIO_NET_HDR_LEN + 4) as u32, 0, 0);
     bus.mem.write_bytes(BUF, &[0; VIRTIO_NET_HDR_LEN]).unwrap();
     bus.mem
         .write_bytes(BUF + VIRTIO_NET_HDR_LEN as u64, &[1, 2, 3, 4])
@@ -61,12 +62,15 @@ fn receive_queue_injects_frame_into_guest_buffer() {
 
     bus.inject_network_frame(&[0xde, 0xad, 0xbe, 0xef]);
 
-    let mut packet = [0u8; 14];
+    let mut packet = [0u8; VIRTIO_NET_HDR_LEN + 4];
     bus.mem.read_bytes(BUF, &mut packet).unwrap();
     assert_eq!(&packet[..VIRTIO_NET_HDR_LEN], &[0; VIRTIO_NET_HDR_LEN]);
     assert_eq!(&packet[VIRTIO_NET_HDR_LEN..], &[0xde, 0xad, 0xbe, 0xef]);
     assert!(bus.gic.is_pending(VIRTIO_NET_IRQ_ID));
-    assert_eq!(bus.mem.read(USED + 4 + 4, 4), Some(14));
+    assert_eq!(
+        bus.mem.read(USED + 4 + 4, 4),
+        Some((VIRTIO_NET_HDR_LEN + 4) as u64),
+    );
 }
 
 fn configure_queue(bus: &mut SystemBus, queue: usize) {

@@ -28,7 +28,7 @@ pub(super) const QUEUE_RX: usize = 0;
 pub(super) const QUEUE_TX: usize = 1;
 pub(super) const QUEUE_COUNT: usize = 2;
 pub(super) const QUEUE_NUM_MAX: u16 = 64;
-pub(super) const VIRTIO_NET_HDR_LEN: usize = 10;
+pub(super) const VIRTIO_NET_HDR_LEN: usize = 12;
 
 #[derive(Clone, Copy, Debug)]
 pub(super) struct Descriptor {
