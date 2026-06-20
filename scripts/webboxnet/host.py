@@ -2,8 +2,10 @@ import shutil
 import subprocess
 
 
-def configure_linux_nat(tap, gateway_cidr, subnet, outbound=None):
+def configure_linux_nat(tap, gateway_cidr, subnet, outbound=None, gateway_mac=None):
     run(["ip", "addr", "replace", gateway_cidr, "dev", tap])
+    if gateway_mac:
+        run(["ip", "link", "set", "dev", tap, "address", gateway_mac])
     run(["ip", "link", "set", tap, "up"])
     run(["sysctl", "-w", "net.ipv4.ip_forward=1"])
     if shutil.which("iptables"):

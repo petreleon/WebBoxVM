@@ -24,7 +24,12 @@ class NatPeer:
     def run(self):
         self.tap.open()
         if self.args.configure_host:
-            configure_linux_nat(self.tap.name, self.gateway_cidr(), self.subnet())
+            configure_linux_nat(
+                self.tap.name,
+                self.gateway_cidr(),
+                self.subnet(),
+                gateway_mac=self.args.gateway_mac,
+            )
         else:
             print("Host NAT not configured; pass --configure-host when running as root.")
         self.ws.connect()

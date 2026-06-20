@@ -17,6 +17,7 @@ from scripts.webboxnet.packets import (
     ipv4_payload,
     udp_packet,
 )
+from scripts.webboxnet import host
 from scripts.webboxnet.ws import accept_value, encode_frame, read_frame
 
 GUEST_MAC = bytes.fromhex("025742564d01")
@@ -59,6 +60,31 @@ class WebSocketClientFrameTests(unittest.TestCase):
 
         self.assertTrue(frame[1] & 0x80)
         self.assertEqual(read_frame(FakeSocket(frame)), (0x2, b"frame"))
+
+
+class LinuxHostSetupTests(unittest.TestCase):
+    def test_configure_sets_tap_gateway_mac(self):
+        commands = []
+        old_run = host.run
+        old_rules = host.add_iptables_rules
+        old_which = host.shutil.which
+        host.run = lambda cmd: commands.append(cmd)
+        host.add_iptables_rules = lambda *args: None
+        host.shutil.which = lambda _: True
+        try:
+            host.configure_linux_nat(
+                "webbox0",
+                "10.0.2.2/24",
+                "10.0.2.0/24",
+                outbound="eth0",
+                gateway_mac="aa:bb",
+            )
+        finally:
+            host.run = old_run
+            host.add_iptables_rules = old_rules
+            host.shutil.which = old_which
+
+        self.assertIn(["ip", "link", "set", "dev", "webbox0", "address", "aa:bb"], commands)
 
 
 class FakeSocket:
