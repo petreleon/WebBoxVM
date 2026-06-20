@@ -93,7 +93,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         }
         M::r#fcvtzs => Opcode::Fcvtzs,
         M::r#fcvtzu if (raw & 0xFFBF_FC00) == 0x7EA1_B800 => Opcode::SimdFcvtzu,
-        M::r#fcvtzu => Opcode::Fcvtzu,
+        M::r#fcvtzu if scalar_fcvtzu(raw) => Opcode::Fcvtzu,
         M::r#fcvtas if (raw & 0xBFBF_FC00) == 0x0E21_C800 => Opcode::SimdFcvtas,
         M::r#fcvtas => Opcode::Fcvtas,
         M::r#fcmp => Opcode::Fcmp,
@@ -123,4 +123,15 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#ins if (raw & 0xFFE0_FC00) == 0x4E00_1C00 => Opcode::SimdInsGprLane,
         _ => return None,
     })
+}
+
+fn scalar_fcvtzu(raw: u32) -> bool {
+    if (raw & 0x7FBF_FC00) == 0x1E39_0000 {
+        return true;
+    }
+    if (raw & 0x7FBF_0000) == 0x1E19_0000 {
+        let scale = (raw >> 10) & 0x3F;
+        return (raw >> 31) != 0 || (scale & 0x20) != 0;
+    }
+    false
 }

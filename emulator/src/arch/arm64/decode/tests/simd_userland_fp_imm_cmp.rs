@@ -27,6 +27,10 @@ fn decode_simd_userland_fp_immediate_and_compare_forms() {
     assert_eq!(simd_fcvtzs_vec.op, Opcode::SimdFcvtzs);
     assert_eq!(simd_fcvtzs_vec.imm, 4);
     assert_eq!(simd_fcvtzs_vec.size, 16);
+    assert_ne!(
+        decode(0x7F5B_FFB3).map(|instr| instr.op),
+        Some(Opcode::SimdLdr)
+    );
     assert!(decode(0x0E61_D800).is_none());
     assert!(decode(0x0EE1_B800).is_none());
     assert_eq!(decode(0x0F00_043F).unwrap().op, Opcode::SimdMovi);

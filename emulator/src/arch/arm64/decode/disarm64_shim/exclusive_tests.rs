@@ -20,6 +20,7 @@ fn maps_exclusive_mnemonics() {
         (0xD980_08E6, Opcode::Stlr, "stlr"),
         (0xC87F_8440, Opcode::Ldxp, "ldaxp"),
         (0xC823_8440, Opcode::Stxp, "stlxp"),
+        (0xC82E_7FAE, Opcode::Stxp, "stxp"),
     ];
 
     for (raw, expected, mnemonic) in cases {

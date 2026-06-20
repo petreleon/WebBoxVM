@@ -83,8 +83,10 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
         return DecodeStep::Hit(instr);
     }
 
-    let ldst_family = (raw >> 24) & 0xF8;
-    if ldst_family == 0x38 || ldst_family == 0x78 || ldst_family == 0xB8 || ldst_family == 0xF8 {
+    let ldst_top = (raw >> 24) & 0xFF;
+    let ldst_family = ldst_top & 0xF8;
+    let ldst_low = ldst_top & 0x7;
+    if matches!(ldst_family, 0x38 | 0x78 | 0xB8 | 0xF8) && matches!(ldst_low, 0 | 1 | 4 | 5) {
         if let Some(instr) = ldst::decode_ldrauth(raw) {
             return DecodeStep::Hit(instr);
         }

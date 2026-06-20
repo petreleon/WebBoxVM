@@ -30,6 +30,7 @@ fn decode_exclusive_pair_acquire_release_forms() {
     let cases = [
         (0xC87F_8440, Opcode::Ldxp, "ldaxp", 0, 2, 1, 0, 1),
         (0xC823_8440, Opcode::Stxp, "stlxp", 0, 2, 1, 3, 1),
+        (0xC82E_7FAE, Opcode::Stxp, "stxp", 14, 29, 31, 14, 0),
     ];
 
     for (raw, expected, mnemonic, rd, rn, rm, status, cond) in cases {

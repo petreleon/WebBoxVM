@@ -8,20 +8,21 @@ pub(in crate::arch::arm64::decode) fn decode_lse_atomic(raw: u32) -> Option<Inst
     let rt = (raw & 0x1F) as u8;
     let sf = size == 8;
 
-    if (raw & 0x3F20_7C00) == 0x0820_7C00 {
-        if size_field <= 1 {
-            let elem_size = if size_field == 0 { 4 } else { 8 };
-            return Some(Instr {
-                size: elem_size,
-                op: Opcode::Casp,
-                rd: rs,
-                rn,
-                rm: rt,
-                imm: 0,
-                sf: elem_size == 8,
-                cond: 0,
-            });
-        }
+    if (raw & 0x3F20_7C00) == 0x0820_7C00 && size_field <= 1 {
+        let elem_size = if size_field == 0 { 4 } else { 8 };
+        return Some(Instr {
+            size: elem_size,
+            op: Opcode::Casp,
+            rd: rs,
+            rn,
+            rm: rt,
+            imm: 0,
+            sf: elem_size == 8,
+            cond: 0,
+        });
+    }
+
+    if (raw & 0x3FA0_7C00) == 0x08A0_7C00 && size_field >= 2 {
         return Some(Instr {
             size,
             op: Opcode::Cas,

@@ -13,6 +13,19 @@ fn decode_lse_caspal() {
 }
 
 #[test]
+fn decode_lse_casp_ordering_variants() {
+    for (raw, mnemonic) in [
+        (0x4820_7C82, "casp"),
+        (0x4820_FC82, "caspl"),
+        (0x4860_7C82, "caspa"),
+        (0x4860_FC82, "caspal"),
+    ] {
+        assert_disarm64_mnemonic(raw, mnemonic);
+        assert_eq!(decode(raw).unwrap().op, Opcode::Casp, "raw=0x{raw:08x}");
+    }
+}
+
+#[test]
 fn decode_lse_ldaddal() {
     assert_disarm64_mnemonic(0xB8E1_0001, "ldaddal");
 
@@ -23,6 +36,18 @@ fn decode_lse_ldaddal() {
     assert_eq!(instr.rn, 0);
     assert_eq!(instr.imm, 0);
     assert_eq!(instr.size, 4);
+}
+
+#[test]
+fn decode_lse_single_cas_does_not_become_stxp() {
+    assert_disarm64_mnemonic(0xC8A3_FC33, "casl");
+
+    let instr = decode(0xC8A3_FC33).unwrap(); // casl x3, x19, [x1]
+    assert_eq!(instr.op, Opcode::Cas);
+    assert_eq!(instr.rd, 3);
+    assert_eq!(instr.rm, 19);
+    assert_eq!(instr.rn, 1);
+    assert_eq!(instr.size, 8);
 }
 
 #[test]

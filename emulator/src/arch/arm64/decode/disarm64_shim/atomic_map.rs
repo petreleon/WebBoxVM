@@ -22,7 +22,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
 }
 
 fn legacy_cas(raw: u32) -> bool {
-    (raw & 0x3F20_7C00) == 0x0820_7C00 && ((raw >> 30) & 3) >= 2
+    (raw & 0x3FA0_7C00) == 0x08A0_7C00 && ((raw >> 30) & 3) >= 2
 }
 
 fn legacy_casp(raw: u32) -> bool {
