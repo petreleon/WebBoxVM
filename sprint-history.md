@@ -1,7 +1,7 @@
 # WebBoxVM — Sprint History
 
 ## Done — Compressed
-- Browser Linux boot, Debian media/disk path, OPFS disk, and WebSocket NAT (VirtIO-net/DHCP/DNS/packages) are proven.
+- Boot, media/disk, OPFS, NAT: proven.
 
 ## Current Edge
-- Finish installer, then boot from persisted disk.
+- Finish installer; boot persisted disk.
