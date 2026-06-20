@@ -8,6 +8,7 @@ export const els = {
   eventLog: document.querySelector("#eventLog"),
   isoFile: document.querySelector("#isoFile"),
   jitStatsValue: document.querySelector("#jitStatsValue"),
+  netValue: document.querySelector("#netValue"),
   pagesValue: document.querySelector("#pagesValue"),
   pauseVm: document.querySelector("#pauseVm"),
   pcValue: document.querySelector("#pcValue"),

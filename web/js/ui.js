@@ -30,6 +30,7 @@ export class UiController {
       this.els.pcValue.textContent = "0x0";
       this.els.uartValue.textContent = "0 B";
       this.els.pagesValue.textContent = "0";
+      this.els.netValue.textContent = "Off";
       this.els.diskValue.textContent = "0 B";
       this.updateJitStats(undefined);
       this.updateStorageMetric(disk);
@@ -40,6 +41,7 @@ export class UiController {
     this.els.pcValue.textContent = `0x${emulator.pc().toString(16)}`;
     this.els.uartValue.textContent = formatBytes(emulator.uart_output_len());
     this.els.pagesValue.textContent = emulator.allocated_pages().toString();
+    this.updateNetworkMetric(emulator);
     this.els.diskValue.textContent = formatBytes(Number(emulator.install_disk_allocated_bytes()));
     this.updateJitStats(emulator);
     this.updateStorageMetric(disk);
@@ -47,6 +49,13 @@ export class UiController {
 
   updateJitStats(emulator) {
     this.els.jitStatsValue.textContent = JSON.stringify(emulator?.jit_stats?.() ?? null);
+  }
+
+  updateNetworkMetric(emulator) {
+    const net = emulator.network_stats();
+    const rx = Number(net.rxPackets);
+    const tx = Number(net.txPackets);
+    this.els.netValue.textContent = `${net.status} ${rx}/${tx}`;
   }
 
   updateStorageMetric(disk) {

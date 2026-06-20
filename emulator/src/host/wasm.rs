@@ -6,6 +6,7 @@ mod boot_api;
 mod debug_api;
 mod io_api;
 mod jit_api;
+mod network_api;
 mod run_api;
 mod storage_api;
 

@@ -64,6 +64,7 @@ export class VmRunner {
       this.#handleError(error);
     };
     emulator.onMetrics = () => this.#ui.updateMetrics(emulator, this.#disk);
+    emulator.onNetwork = (status) => this.#ui.log(`Network proxy ${status}`);
     emulator.onUart = (output) => this.#writeUart(output);
     this.#boundEmulator = emulator;
     return emulator;

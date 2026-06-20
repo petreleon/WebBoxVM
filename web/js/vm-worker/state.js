@@ -24,6 +24,7 @@ export const state = {
   lastAutosaveGeneration: 0n,
   lastMetricsAt: 0,
   lastUart: 0,
+  networkStatus: "offline",
   pumpScheduled: false,
   running: false,
   stepSlice: DEFAULT_STEP_SLICE,

@@ -5,6 +5,10 @@ const INITIAL_METRICS = {
   installDiskGeneration: 0n,
   installDiskSizeBytes: 0n,
   jitStats: { cacheBlocks: 0, enabled: true, hitSites: 0, recentRejects: [], rejectedBlocks: 0 },
+  networkRxPackets: 0n,
+  networkStatus: "offline",
+  networkTxPackets: 0n,
+  networkTxPending: 0,
   pc: 0n,
   totalSteps: 0n,
   uartOutputLen: 0,
@@ -86,6 +90,10 @@ export class WorkerChannel {
         this.#updateMetrics(message.metrics);
         this.#callbacks.onMetrics();
         break;
+      case "network":
+        this.#metrics.networkStatus = message.status;
+        this.#callbacks.onNetwork?.(message.status);
+        break;
       case "uart":
         this.#callbacks.onUart(message.output);
         break;
@@ -100,6 +108,10 @@ export class WorkerChannel {
       installDiskGeneration: metrics.installDiskGeneration,
       installDiskSizeBytes: metrics.installDiskSizeBytes,
       jitStats: metrics.jitStats ?? INITIAL_METRICS.jitStats,
+      networkRxPackets: metrics.networkRxPackets,
+      networkStatus: metrics.networkStatus,
+      networkTxPackets: metrics.networkTxPackets,
+      networkTxPending: metrics.networkTxPending,
       pc: metrics.pc,
       totalSteps: metrics.totalSteps,
       uartOutputLen: metrics.uartOutputLen,

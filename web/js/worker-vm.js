@@ -1,7 +1,7 @@
 import { transferableBytes } from "./worker-vm/bytes.js";
 import { WorkerChannel } from "./worker-vm/channel.js";
 
-const WORKER_MODULE_VERSION = "20260606-el0helperskip";
+const WORKER_MODULE_VERSION = "20260620-network";
 
 function versionedWorkerUrl() {
   const url = new URL("./vm-worker.js", import.meta.url);
@@ -13,6 +13,7 @@ export class WorkerVm {
   onAutosave = () => {};
   onError = () => {};
   onMetrics = () => {};
+  onNetwork = () => {};
   onUart = () => {};
 
   #channel;
@@ -22,6 +23,7 @@ export class WorkerVm {
       onAutosave: () => this.onAutosave(),
       onError: (error) => this.onError(error),
       onMetrics: () => this.onMetrics(),
+      onNetwork: (status) => this.onNetwork(status),
       onUart: (output) => this.onUart(output),
     });
   }
@@ -111,6 +113,15 @@ export class WorkerVm {
 
   jit_stats() {
     return this.#channel.metrics.jitStats;
+  }
+
+  network_stats() {
+    return {
+      rxPackets: this.#channel.metrics.networkRxPackets,
+      status: this.#channel.metrics.networkStatus,
+      txPackets: this.#channel.metrics.networkTxPackets,
+      txPending: this.#channel.metrics.networkTxPending,
+    };
   }
 
   pc() {

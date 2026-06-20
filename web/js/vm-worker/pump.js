@@ -1,6 +1,7 @@
 import { tryRunOrCompileJitBlock } from "./jit-hot.js";
 import { errorMessage } from "./errors.js";
 import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
+import { drainNetworkTx } from "./network.js";
 import { JIT_PROBE_STEP_SLICE, MAX_FRAME_BATCHES, MAX_FRAME_MS, state } from "./state.js";
 
 export function schedulePump() {
@@ -29,6 +30,7 @@ async function runPump() {
       if (!usedJit) {
         state.emulator.run_kernel(interpreterStepSlice());
       }
+      drainNetworkTx();
       drainUart();
       batches += 1;
     } while (

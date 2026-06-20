@@ -1,5 +1,6 @@
 import { Emulator, ensureWasm } from "./wasm.js";
 import { jitStats } from "./jit-stats.js";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js";
 import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
 
 export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
@@ -11,6 +12,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   state.lastAutosaveAt = performance.now();
   const result = state.emulator.boot_iso_with_disk(isoImage, numCores, diskSizeBytes);
   state.lastAutosaveGeneration = state.emulator.install_disk_generation();
+  startNetworkProxy();
   return { metrics: metrics(), result };
 }
 
@@ -37,6 +39,7 @@ export function freeEmulator() {
   state.pumpScheduled = false;
   state.lastUart = 0;
   resetJitState();
+  stopNetworkProxy();
   if (state.emulator) {
     state.emulator.free();
     state.emulator = undefined;
@@ -52,6 +55,10 @@ export function metrics() {
     installDiskSizeBytes: state.emulator.install_disk_size_bytes(),
     currentInstruction: state.emulator.current_instruction(0),
     jitStats: jitStats(),
+    networkRxPackets: state.emulator.network_rx_packets(),
+    networkStatus: state.networkStatus,
+    networkTxPackets: state.emulator.network_tx_packets(),
+    networkTxPending: state.emulator.network_tx_pending(),
     pc: state.emulator.pc(),
     totalSteps: state.emulator.total_steps(),
     uartOutputLen: state.emulator.uart_output_len(),
