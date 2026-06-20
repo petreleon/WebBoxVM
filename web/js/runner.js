@@ -58,7 +58,12 @@ export class VmRunner {
       return emulator;
     }
 
-    emulator.onAutosave = () => this.#saveDisk({ quiet: true }).catch(this.#handleError);
+    emulator.onAutosave = () => {
+      if (!this.#disk.shouldAutosave(emulator)) {
+        return;
+      }
+      this.#saveDisk({ quiet: true }).catch(this.#handleError);
+    };
     emulator.onError = (error) => {
       this.#running = false;
       this.#handleError(error);

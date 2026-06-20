@@ -1,17 +1,29 @@
 import { OpfsDiskStore } from "./persistence-store.js";
 import { formatBytes } from "./utils.js";
 
-const AUTOSAVE_INTERVAL_MS = 5000;
+const AUTOSAVE_INTERVAL_MS = 60_000;
 
 export class DiskPersistence {
   available = false;
   persistedBytes = 0;
   saving = false;
 
+  #autosaveIntervalMs;
   #lastSavedGeneration = 0n;
   #lastAutosaveAt = 0;
+  #now;
   #saveQueued = false;
-  #store = new OpfsDiskStore();
+  #store;
+
+  constructor({
+    autosaveIntervalMs = AUTOSAVE_INTERVAL_MS,
+    now = () => performance.now(),
+    store = new OpfsDiskStore(),
+  } = {}) {
+    this.#autosaveIntervalMs = autosaveIntervalMs;
+    this.#now = now;
+    this.#store = store;
+  }
 
   async init(log) {
     this.available = OpfsDiskStore.available();
@@ -47,11 +59,15 @@ export class DiskPersistence {
   }
 
   shouldAutosave(emulator) {
-    if (!this.available || emulator.install_disk_generation() === this.#lastSavedGeneration) {
+    if (
+      !this.available ||
+      this.saving ||
+      emulator.install_disk_generation() === this.#lastSavedGeneration
+    ) {
       return false;
     }
-    const now = performance.now();
-    if (now - this.#lastAutosaveAt < AUTOSAVE_INTERVAL_MS) {
+    const now = this.#now();
+    if (now - this.#lastAutosaveAt < this.#autosaveIntervalMs) {
       return false;
     }
     this.#lastAutosaveAt = now;
