@@ -86,3 +86,15 @@ fn finish_core_wraps_multi_core_round_robin() {
     assert_eq!(machine.total_steps, 3);
     assert_eq!(machine.active_core, 0);
 }
+
+#[test]
+fn clear_exclusive_overlaps_updates_all_cores() {
+    let mut machine = Machine::new(2);
+    machine.core_mut(0).reserve_exclusive(RAM_BASE + 0x40, 8);
+    machine.core_mut(1).reserve_exclusive(RAM_BASE + 0x80, 8);
+
+    machine.clear_exclusive_overlaps(RAM_BASE + 0x42, 4);
+
+    assert!(!machine.core(0).exclusive_matches(RAM_BASE + 0x40, 8));
+    assert!(machine.core(1).exclusive_matches(RAM_BASE + 0x80, 8));
+}

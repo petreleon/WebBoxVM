@@ -76,6 +76,13 @@ impl Machine {
     pub fn inject_irq(&mut self, int_id: u32) {
         self.bus.gic.set_pending(int_id);
     }
+
+    #[cfg(any(test, feature = "wasm"))]
+    pub(crate) fn clear_exclusive_overlaps(&mut self, pa: u64, size: u8) {
+        for cpu in &mut self.cpus {
+            cpu.clear_exclusive_if_overlaps(pa, size);
+        }
+    }
 }
 
 #[cfg(test)]
