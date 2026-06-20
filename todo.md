@@ -1,6 +1,6 @@
 # WebBoxVM — Active Todo
 
-Detailed completed history lives in [sprint-history.md](sprint-history.md). This file stays short and action-focused.
+Compressed completed history lives in [sprint-history.md](sprint-history.md). This file stays short and action-focused.
 
 ## Now — Browser Install Path
 - [x] Prove browser networking end to end: VirtIO-net, DHCP, DNS, and Debian package download through WebSocket NAT
@@ -18,4 +18,4 @@ Detailed completed history lives in [sprint-history.md](sprint-history.md). This
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done — Compressed
-- [x] Emulator core, Debian ISO boot, OPFS disk, and WebSocket NAT networking.
+- [x] Core emulator through Debian installer networking.
