@@ -19,6 +19,7 @@ mod multiply_long;
 mod opcode_names;
 mod pairs_and_initial_simd;
 mod scalar_aliases;
+mod scalar_bitfield_limits;
 mod scalar_fp_minmax;
 mod scalar_ldst;
 mod scalar_rcpc_pair;

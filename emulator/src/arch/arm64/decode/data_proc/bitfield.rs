@@ -11,6 +11,10 @@ pub(in crate::arch::arm64::decode) fn decode_bitfield(raw: u32) -> Option<Instr>
     let imms = ((raw >> 10) & 0x3F) as u8;
     let rn = ((raw >> 5) & 0x1F) as u8;
     let rd = (raw & 0x1F) as u8;
+    let width = if sf { 64 } else { 32 };
+    if immr >= width || imms >= width {
+        return None;
+    }
 
     if opc == 0 && immr == 0 && imms == 31 {
         return Some(Instr {
