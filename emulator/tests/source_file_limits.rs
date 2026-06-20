@@ -2,7 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 const MAX_LINES: usize = 180;
-const SOURCE_EXTENSIONS: &[&str] = &["css", "html", "js", "json", "md", "mjs", "rs", "sh", "toml"];
+const SOURCE_EXTENSIONS: &[&str] = &[
+    "css", "html", "js", "json", "md", "mjs", "py", "rs", "sh", "toml",
+];
 const ROOT_FILES: &[&str] = &[
     "Cargo.toml",
     "Makefile",
