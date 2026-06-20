@@ -18,4 +18,4 @@ Compressed completed history lives in [sprint-history.md](sprint-history.md). Th
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done — Compressed
-- [x] Core emulator through Debian installer networking.
+- [x] Browser Linux boot, Debian media/disk path, OPFS disk, and WebSocket NAT are proven.
