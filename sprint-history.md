@@ -1,11 +1,8 @@
 # WebBoxVM — Sprint History
 
 ## Done — Extremely Compressed
-- CPU/emulator foundation: ARM64 state, decode/execute, RAM/MMIO, PL011, tests.
-- Linux boot path: EFI stubs, PE relocations, decompressor entry, MMU/TLB, timer/IRQ/exception basics.
-- Userspace/install media: cpio initrd, BusyBox shell, ISO9660 Debian netinst extraction, VirtIO block ISO plus writable sparse disk.
-- Browser runtime: wasm64 Memory64 build, Worker execution, xterm terminal, metrics, OPFS sparse disk persistence.
-- Installer progress: Debian netinst reaches serial UI, loads ISO components, exposes disk/network devices, proves DHCP/DNS/package traffic through WebSocket NAT.
+- ARM64 emulator, Linux boot, Debian media/disk, browser wasm runtime, OPFS persistence, and WebSocket NAT are in place.
+- Debian installer has proven serial UI, ISO component loading, disk visibility, VirtIO-net, DHCP, DNS, and package traffic.
 
 ## Current Edge
-- Finish Debian install from the next real blocker, then add `Boot from disk` from the persisted OPFS disk.
+- Finish installer from the live blocker, then boot from the persisted OPFS disk.
