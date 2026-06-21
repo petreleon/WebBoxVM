@@ -17,4 +17,4 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done
-- [x] ISO boot -> OPFS disk -> WS NAT -> Debian partitioning sees VirtIO `vdb`.
+- [x] ISO -> OPFS disk -> WS NAT -> Debian sees/partitions `vdb`.
