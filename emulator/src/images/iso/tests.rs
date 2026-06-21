@@ -140,9 +140,13 @@ fn appends_ext4_partman_hook_to_iso_initrd() {
 #[test]
 fn installer_network_overlay_contains_executable_hooks() {
     let entries = parse_cpio(&build_installer_network_overlay()).unwrap();
-    assert_eq!(entries.len(), 2);
+    assert_eq!(entries.len(), 4);
     assert_eq!(entries[0].name, "sbin/depmod");
     assert_eq!(entries[0].mode & 0o777, 0o755);
-    assert_eq!(entries[1].name, "lib/partman/finish.d/05webboxvm_ext4");
+    assert_eq!(entries[1].name, "lib/partman");
     assert_eq!(entries[1].mode & 0o777, 0o755);
+    assert_eq!(entries[2].name, "lib/partman/finish.d");
+    assert_eq!(entries[2].mode & 0o777, 0o755);
+    assert_eq!(entries[3].name, "lib/partman/finish.d/05webboxvm_ext4");
+    assert_eq!(entries[3].mode & 0o777, 0o755);
 }

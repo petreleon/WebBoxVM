@@ -1,12 +1,9 @@
 import { transferableBytes } from "./worker-vm/bytes.js";
+import { versionedUrl } from "./asset-version.js";
 import { WorkerChannel } from "./worker-vm/channel.js";
 
-const WORKER_MODULE_VERSION = "20260620-network";
-
 function versionedWorkerUrl() {
-  const url = new URL("./vm-worker.js", import.meta.url);
-  url.searchParams.set("v", WORKER_MODULE_VERSION);
-  return url;
+  return versionedUrl("./vm-worker.js", import.meta.url);
 }
 
 export class WorkerVm {

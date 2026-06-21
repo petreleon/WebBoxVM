@@ -1,7 +1,5 @@
 //! Manual WASI fd_write binding for wasm64 — explicit u64 types for pointers.
 
-use core::ffi::c_void;
-
 #[link(wasm_import_module = "wasi_snapshot_preview1")]
 unsafe extern "C" {
     // On wasm64, pointers are i64 in the WASM ABI

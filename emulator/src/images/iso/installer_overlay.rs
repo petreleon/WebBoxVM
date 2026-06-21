@@ -48,6 +48,8 @@ pub(super) fn append_installer_network_overlay(initrd: &mut Vec<u8>) {
 pub(super) fn build_installer_network_overlay() -> Vec<u8> {
     build_cpio_nodes(&[
         CpioNode::file("sbin/depmod", DEPMOD_WRAPPER, 0o755),
+        CpioNode::dir("lib/partman", 0o755),
+        CpioNode::dir("lib/partman/finish.d", 0o755),
         CpioNode::file(
             "lib/partman/finish.d/05webboxvm_ext4",
             EXT4_PARTMAN_HOOK,
