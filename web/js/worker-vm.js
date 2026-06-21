@@ -55,6 +55,18 @@ export class WorkerVm {
     return this.#channel.request("currentInstruction", { coreId });
   }
 
+  debug_translate_va(va, coreId = 0) {
+    return this.#channel.request("debugTranslateVa", { coreId, va: BigInt(va) });
+  }
+
+  debug_read_va_u64(va, coreId = 0) {
+    return this.#channel.request("debugReadVaU64", { coreId, va: BigInt(va) });
+  }
+
+  debug_read_pa_u64(pa) {
+    return this.#channel.request("debugReadPaU64", { pa: BigInt(pa) });
+  }
+
   send_uart_input(input) {
     this.#channel.post("sendUartInput", { input });
   }

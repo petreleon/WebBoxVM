@@ -48,6 +48,22 @@ fn ldpsw_loads_and_sign_extends_pair() {
 }
 
 #[test]
+fn ldrsb_register_offset_x_form_sign_extends_to_64_bits() {
+    let (mut cpu, mut bus) = setup();
+    let base = 0x4000_0200;
+    cpu.regs.set_x(2, u64::MAX - 1);
+    cpu.regs.set_x(3, base);
+    cpu.regs.set_x(7, 4);
+    bus.mem.write(base + 4, 1, 0xfe);
+
+    execute(&mut cpu, &mut bus, decode(0x38A7_6863).unwrap()).unwrap(); // ldrsb x3, [x3, x7]
+    execute(&mut cpu, &mut bus, decode(0xAB02_0062).unwrap()).unwrap(); // adds x2, x3, x2
+
+    assert_eq!(cpu.regs.x(3), u64::MAX - 1);
+    assert_eq!(cpu.regs.x(2), u64::MAX - 3);
+}
+
+#[test]
 fn authenticated_loads_read_doubleword_and_preindex_writeback() {
     let (mut cpu, mut bus) = setup();
     let base = 0x4000_0200;

@@ -22,7 +22,7 @@ pub(in crate::arch::arm64::decode) fn decode_ldst(raw: u32) -> Option<Instr> {
     let sf = match op {
         Opcode::Str => size == 3,
         Opcode::Ldr => size == 3,
-        Opcode::LdrSign => size == 2 || opc == 3,
+        Opcode::LdrSign => size == 2 || opc == 2,
         _ => unreachable!(),
     };
 

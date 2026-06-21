@@ -99,6 +99,7 @@ impl Armv8Cpu {
     }
 
     pub fn eret_to(&mut self, target: ProcessorState) {
+        self.clear_exclusive();
         if target.el() == 0 {
             self.sys.sp_el1 = self.regs.sp;
             self.regs.sp = self.sys.sp_el0;

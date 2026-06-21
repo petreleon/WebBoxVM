@@ -73,3 +73,15 @@ impl SystemRegisters {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mmfr1_does_not_advertise_unimplemented_hafdbs() {
+        let mut sys = SystemRegisters::default();
+        let mmfr1 = sys.read_sys_reg(SYSREG_ID_AA64MMFR1_EL1, 1);
+        assert_eq!(mmfr1 & 0xF, 0);
+    }
+}

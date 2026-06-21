@@ -41,6 +41,12 @@ async function handleRequest(type, payload) {
       return compileJitBlock(payload);
     case "currentInstruction":
       return state.emulator?.current_instruction(payload.coreId);
+    case "debugReadPaU64":
+      return state.emulator?.debug_read_pa_u64(BigInt(payload.pa));
+    case "debugReadVaU64":
+      return state.emulator?.debug_read_va_u64(BigInt(payload.va), payload.coreId);
+    case "debugTranslateVa":
+      return state.emulator?.debug_translate_va(BigInt(payload.va), payload.coreId);
     case "free":
       freeEmulator();
       return {};

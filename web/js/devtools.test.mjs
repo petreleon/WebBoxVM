@@ -27,6 +27,30 @@ test("hidden devtools jit checkbox still allows manual enable", () => {
   });
 });
 
+test("devtools debug memory helpers pass bigint addresses", async () => {
+  await withFakeDocument(async () => {
+    const calls = [];
+    installWebboxVmDevtools(
+      () => ({
+        debug_read_pa_u64: async (pa) => calls.push(["pa", pa]),
+        debug_read_va_u64: async (va, coreId) => calls.push(["va", va, coreId]),
+        debug_translate_va: async (va, coreId) => calls.push(["translate", va, coreId]),
+      }),
+      () => undefined,
+    );
+
+    await window.__webboxvm.debugReadPa64("0x42039380");
+    await window.__webboxvm.debugReadVa64("0xffff800082039380", 1);
+    await window.__webboxvm.debugTranslateVa(0x1000, 2);
+
+    assert.deepEqual(calls, [
+      ["pa", 0x42039380n],
+      ["va", 0xffff800082039380n, 1],
+      ["translate", 0x1000n, 2],
+    ]);
+  });
+});
+
 function withFakeDocument(run) {
   const previousDocument = globalThis.document;
   const previousWindow = globalThis.window;
@@ -34,8 +58,18 @@ function withFakeDocument(run) {
   globalThis.document = document;
   globalThis.window = {};
   try {
-    run(document);
-  } finally {
+    const result = run(document);
+    if (result?.finally) {
+      return result.finally(restoreGlobals);
+    }
+    restoreGlobals();
+    return result;
+  } catch (error) {
+    restoreGlobals();
+    throw error;
+  }
+
+  function restoreGlobals() {
     globalThis.document = previousDocument;
     globalThis.window = previousWindow;
   }

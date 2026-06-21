@@ -83,3 +83,15 @@ fn eret_to_el0_restores_user_stack_and_saves_kernel_stack() {
     assert_eq!(cpu.regs.sp, 0x0000_ffff_ff00_7000);
     assert_eq!(cpu.sys.sp_el1, 0xffff_0000_0000_8000);
 }
+
+#[test]
+fn eret_clears_exclusive_monitor() {
+    let (mut cpu, mut bus) = setup();
+    cpu.sys.elr_el1 = 0x4000_1000;
+    cpu.sys.spsr_el1 = cpu.pstate.with_el(1).to_u64();
+    cpu.reserve_exclusive(RAM_BASE + 0x2000, 8);
+
+    execute(&mut cpu, &mut bus, decode(0xD69F_03E0).unwrap()).unwrap();
+
+    assert!(cpu.exclusive.is_none());
+}

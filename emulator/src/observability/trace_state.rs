@@ -20,6 +20,7 @@ pub(crate) struct TraceOptions {
     pub exec: bool,
     pub chase_assert: bool,
     pub path_extend: bool,
+    pub pc_range: bool,
 }
 
 impl TraceOptions {
@@ -41,6 +42,7 @@ impl TraceOptions {
             exec: env_flag("WEBBOXVM_TRACE_EXEC"),
             chase_assert: env_flag("WEBBOXVM_TRACE_CHASE_ASSERT"),
             path_extend: env_flag("WEBBOXVM_TRACE_PATH_EXTEND"),
+            pc_range: env_flag("WEBBOXVM_TRACE_PC_RANGE"),
         }
     }
 
@@ -57,6 +59,7 @@ impl TraceOptions {
             || self.rwsem
             || self.bpf
             || self.mprotect_loop
+            || self.pc_range
     }
 
     pub(crate) const fn has_syscall_return_hooks(self) -> bool {
@@ -82,6 +85,7 @@ pub(crate) struct TraceCounters {
     pub exec: u64,
     pub chase_assert: u64,
     pub path_extend: u64,
+    pub pc_range: u64,
 }
 
 #[derive(Debug)]
@@ -130,6 +134,13 @@ mod tests {
         assert!(
             TraceOptions {
                 bpf: true,
+                ..TraceOptions::default()
+            }
+            .has_instruction_hooks()
+        );
+        assert!(
+            TraceOptions {
+                pc_range: true,
                 ..TraceOptions::default()
             }
             .has_instruction_hooks()

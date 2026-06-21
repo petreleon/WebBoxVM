@@ -25,6 +25,15 @@ export function installWebboxVmDevtools(getEmulator, getRunner) {
     currentInstruction() {
       return getEmulator()?.current_instruction?.();
     },
+    debugTranslateVa(va, coreId = 0) {
+      return getEmulator()?.debug_translate_va?.(BigInt(va), coreId);
+    },
+    debugReadVa64(va, coreId = 0) {
+      return getEmulator()?.debug_read_va_u64?.(BigInt(va), coreId);
+    },
+    debugReadPa64(pa) {
+      return getEmulator()?.debug_read_pa_u64?.(BigInt(pa));
+    },
     setJitEnabled(enabled) {
       getEmulator()?.set_jit_enabled?.(enabled);
     },
