@@ -1,21 +1,28 @@
-# WebBoxVM — Active Todo
+# WebBoxVM - Active Todo
 
 History: [sprint-history.md](sprint-history.md).
 
-## Now — Browser Install Path
-- [ ] Continue Debian installer from base-system install / next real blocker
-- [ ] Profile installer/userland hot paths only when they block forward progress
-
-## Next Product Milestone — Boot from Disk
-- [ ] Add `Boot from disk` from the persisted OPFS virtual disk
-- [ ] Keep `Boot ISO` for installer/media boot
-- [ ] Make disk boot mean: no ISO kernel/initrd handoff, no installer restart
-- [ ] Test saved disk restore plus primary disk boot-source selection
+## Now
+- [ ] Fix the ARM64/JIT corruption blocking Debian base install.
+- [ ] Resume installer, finish install, then add `Boot from disk`.
+- [ ] Keep `Boot ISO` only for installer/media boot.
 
 ## Learn / Debug Queue
 - [ ] Explain `web/js/vm-worker/jit-compile.js` JIT policy
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
-## Done
-- [x] ISO -> OPFS disk -> WS NAT -> Debian sees/partitions `vdb`.
-- [x] Partman writes ext4 root and reaches `bootstrap-base`.
+## Current Blocker
+- Debian reaches base install `73%`, then `localedef` sleeps in
+  `balance_dirty_pages`.
+- Guest `/proc/meminfo` is corrupt: plausible 32-bit counters appear shifted
+  into high 32 bits.
+- Suspect ARM64/JIT register-width or wide-immediate bug; fix, test, restart.
+
+## Done, Compressed
+- [x] Modular emulator architecture drafted with clear subsystem boundaries.
+- [x] Source-file size limit enforced by test: max 180 lines.
+- [x] Browser ISO boot writes persistent OPFS disk state.
+- [x] WebSocket hub plus Linux Docker NAT peer routes installer traffic.
+- [x] Debian installer sees VirtIO-net; DHCP, DNS, and mirror fetch work.
+- [x] Debian installer sees, partitions, and writes VirtIO disk `vdb`.
+- [x] Ext4 installer module hook loads required crypto/checksum deps.
