@@ -5,7 +5,7 @@ History: [sprint-history.md](sprint-history.md).
 ## Now
 - [ ] Add and verify `Boot from disk`.
 - [ ] Continue installer from the `20260621-ldrsb-fix` browser build.
-- [ ] Verify DHCP, mirror/package fetch, and base install after the VM-stat fix.
+- [ ] Verify mirror/package fetch and base install after the VM-stat fix.
 - [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
 
@@ -19,7 +19,9 @@ History: [sprint-history.md](sprint-history.md).
   W-register forms, zero-extending values before 64-bit kernel accounting adds.
 - Browser proof on `20260621-ldrsb-fix`: language prompt reached, `/proc/vmstat`
   counters and raw `vm_zone_stat` memory are sane.
-- Next installer proof: DHCP, mirror/package fetch, and base install complete.
+- Fresh browser proof after `20260621-ldrsb-fix`: VirtIO-net appears as `eth0`,
+  DHCP completes, and `partman` formats the writable VirtIO disk.
+- Next installer proof: mirror/package fetch and base install complete.
 - Final proof: installed system boots from the writable disk.
 
 ## Done
@@ -34,3 +36,5 @@ History: [sprint-history.md](sprint-history.md).
 - [x] Diagnosed the post-73% installer stall as corrupted Linux VM dirty/writeback stats.
 - [x] Added raw browser debug reads for VA/PA counter verification.
 - [x] Fixed ARM64 scalar signed-load X/W decode and verified clean VM stats.
+- [x] Verified fresh browser DHCP after the VM-stat fix.
+- [x] Verified fresh browser writable-disk partitioning/formatting starts base install.
