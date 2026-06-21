@@ -18,11 +18,9 @@ History: [sprint-history.md](sprint-history.md).
 - Local `web/pkg` is rebuilt and contains the ext4 hook; rerun clean install.
 - Continue isolating the exact ARM64/JIT semantics bug after installer proof.
 
-## Done, Compressed
-- [x] Modular emulator architecture drafted with clear subsystem boundaries.
-- [x] Source-file size limit enforced by test: max 180 lines.
-- [x] Browser ISO boot writes persistent OPFS disk state.
-- [x] WebSocket hub plus Linux Docker NAT peer routes installer traffic.
-- [x] Debian installer sees VirtIO-net; DHCP, DNS, and mirror fetch work.
-- [x] Debian installer sees, partitions, and writes VirtIO disk `vdb`.
-- [x] Ext4 installer module hook loads required crypto/checksum deps.
+## Done
+- [x] Architecture modularized; 180-line source guard added.
+- [x] Browser ISO boot persists disk state in OPFS.
+- [x] WebSocket hub + Docker NAT route installer networking end to end.
+- [x] Debian installer reaches disk partitioning with VirtIO-net/disk working.
+- [x] Ext4 module hook added; rerun needed to prove it in fresh wasm.
