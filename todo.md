@@ -17,4 +17,4 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done
-- [x] ISO boot, OPFS disk, WS NAT: VirtIO-net/DHCP/DNS/package fetch.
+- [x] ISO boot; OPFS disk; WS NAT; installer reached account setup.
