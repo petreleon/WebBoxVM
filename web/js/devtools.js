@@ -1,3 +1,5 @@
+import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js";
+
 export function installWebboxVmDevtools(getEmulator, getRunner) {
   const bridge = installDomBridge(getEmulator);
   window.__webboxvm = {
@@ -106,7 +108,7 @@ function makeButton(testId) {
 function makeCheckbox(testId) {
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
-  checkbox.checked = true;
+  checkbox.checked = DEFAULT_JIT_ENABLED;
   checkbox.dataset.testid = testId;
   checkbox.tabIndex = -1;
   styleControl(checkbox);

@@ -16,7 +16,8 @@ History: [sprint-history.md](sprint-history.md).
   `balance_dirty_pages`.
 - Guest `/proc/meminfo` is corrupt: plausible 32-bit counters appear shifted
   into high 32 bits.
-- Suspect ARM64/JIT register-width or wide-immediate bug; fix, test, restart.
+- Browser boots now default to interpreter-only to contain the unsafe JIT path.
+- Continue isolating the exact ARM64/JIT semantics bug; test, restart.
 
 ## Done, Compressed
 - [x] Modular emulator architecture drafted with clear subsystem boundaries.
