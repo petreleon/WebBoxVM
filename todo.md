@@ -3,7 +3,7 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now — Browser Install Path
-- [ ] Continue Debian installer from the next real blocker after routed networking
+- [ ] Continue Debian installer from partition write / next real blocker
 - [ ] Profile installer/userland hot paths only when they block forward progress
 
 ## Next Product Milestone — Boot from Disk
@@ -17,4 +17,4 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Done
-- [x] ISO boot; OPFS disk; WS NAT; installer reached account setup.
+- [x] ISO boot -> OPFS disk -> WS NAT -> Debian partitioning sees VirtIO `vdb`.
