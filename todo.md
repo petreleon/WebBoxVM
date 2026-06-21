@@ -21,7 +21,11 @@ History: [sprint-history.md](sprint-history.md).
   counters and raw `vm_zone_stat` memory are sane.
 - Fresh browser proof after `20260621-ldrsb-fix`: VirtIO-net appears as `eth0`,
   DHCP completes, and `partman` formats the writable VirtIO disk.
-- Next installer proof: mirror/package fetch and base install complete.
+- Fresh browser proof passes the old 73% base-install stall, installs the target
+  kernel/initramfs, and reaches base install 98%.
+- Current blocker candidate: `ckbcomp` under `setupcon --save-only` during
+  `console-setup.postinst`.
+- Next installer proof: base install completes and reaches package-manager work.
 - Final proof: installed system boots from the writable disk.
 
 ## Done
@@ -30,3 +34,5 @@ History: [sprint-history.md](sprint-history.md).
 - [x] WebSocket hub plus Docker NAT prove installer VirtIO-net/DHCP.
 - [x] VirtIO disk partitioning/formatting reaches base install in browser.
 - [x] ARM64 signed-load bug fixed; VM stats verified clean.
+- [x] Base install passes old 73% VM-stat stall and reaches 98%.
+- [x] Target kernel and initramfs install on the writable browser disk.
