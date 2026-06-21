@@ -3,8 +3,9 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now
-- [ ] Fix the ARM64/JIT corruption blocking Debian base install.
-- [ ] Resume installer, finish install, then add `Boot from disk`.
+- [ ] Finish the live Debian base install from the browser run.
+- [ ] Add and verify `Boot from disk`.
+- [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
 
 ## Learn / Debug Queue
@@ -12,9 +13,9 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- Clean cache-busted boot proves `05webboxvm_ext4` exists in the guest.
-- Rerun installer through partition write/base install; verify ext4 loads.
-- Continue isolating the exact ARM64/JIT semantics bug after installer proof.
+- Base install is running from `file:///cdrom/`; last verified screen reached 26%.
+- Next proof: base install completes and reaches package-manager/mirror setup.
+- Final proof: installed system boots from the writable disk.
 
 ## Done
 - [x] Architecture modularized; 180-line source guard added.
@@ -22,3 +23,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] WebSocket hub + Docker NAT route installer networking end to end.
 - [x] Debian installer reaches disk partitioning with VirtIO-net/disk working.
 - [x] Ext4 hook reaches fresh browser guest; parent cpio dirs fixed.
+- [x] Ext4 loads in the installer; `/target` and `/target/boot` mount as ext4.
