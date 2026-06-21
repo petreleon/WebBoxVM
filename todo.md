@@ -13,8 +13,7 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- Old live run reached 47% base install, then OPFS autosave hit browser quota.
-- Compressed snapshots + zero-chunk sparse disk are built; rerun must pass 47%.
+- Compressed-disk rerun passed the old 47% OPFS quota failure point.
 - Next proof: base install completes and reaches package-manager/mirror setup.
 - Final proof: installed system boots from the writable disk.
 
@@ -26,3 +25,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] Ext4 hook reaches fresh browser guest; parent cpio dirs fixed.
 - [x] Ext4 loads in the installer; `/target` and `/target/boot` mount as ext4.
 - [x] Browser disk persistence no longer treats autosave quota as fatal.
+- [x] Base install passed 47% on compressed OPFS storage without quota failure.
