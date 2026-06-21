@@ -25,16 +25,8 @@ History: [sprint-history.md](sprint-history.md).
 - Final proof: installed system boots from the writable disk.
 
 ## Done
-- [x] Architecture modularized; 180-line source guard added.
-- [x] Browser ISO boot persists disk state in OPFS.
-- [x] WebSocket hub + Docker NAT route installer networking end to end.
-- [x] Debian installer reaches disk partitioning with VirtIO-net/disk working.
-- [x] Ext4 hook reaches fresh browser guest; parent cpio dirs fixed.
-- [x] Ext4 loads in the installer; `/target` and `/target/boot` mount as ext4.
-- [x] Browser disk persistence no longer treats autosave quota as fatal.
-- [x] Base install passed 47% on compressed OPFS storage without quota failure.
-- [x] Diagnosed the post-73% installer stall as corrupted Linux VM dirty/writeback stats.
-- [x] Added raw browser debug reads for VA/PA counter verification.
-- [x] Fixed ARM64 scalar signed-load X/W decode and verified clean VM stats.
-- [x] Verified fresh browser DHCP after the VM-stat fix.
-- [x] Verified fresh browser writable-disk partitioning/formatting starts base install.
+- [x] Modular emulator architecture with 180-line source guard.
+- [x] Browser disk persistence, ext4 install path, and OPFS quota handling.
+- [x] WebSocket hub plus Docker NAT prove installer VirtIO-net/DHCP.
+- [x] VirtIO disk partitioning/formatting reaches base install in browser.
+- [x] ARM64 signed-load bug fixed; VM stats verified clean.
