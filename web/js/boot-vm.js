@@ -55,6 +55,43 @@ export class VmBooter {
     this.#ui.updateMetrics(emulator, this.#disk);
   }
 
+  async bootSavedDisk(persistenceReady) {
+    await this.#ensureWasm();
+    await persistenceReady;
+    const snapshot = await this.#disk.load();
+    if (!snapshot) {
+      throw new Error("No saved disk snapshot is available");
+    }
+
+    const name = "saved disk";
+    this.#resetEmulator();
+    this.#term.clear();
+    this.#term.write(`Booting ${name}\r\n`);
+    this.#ui.setControls("booting", this.#disk, undefined);
+    this.#ui.setStatus(`Booting ${name}`);
+    await nextFrame();
+
+    const emulator = new WorkerVm();
+    emulator.set_jit_enabled(this.#getJitEnabled());
+    this.#setEmulator(emulator);
+    const result = await emulator.boot_installed_disk(snapshot, 1);
+    this.#ui.log(result);
+    if (result.startsWith("ERR:")) {
+      this.#ui.setStatus(result, "error");
+      this.#ui.setControls("idle", this.#disk, emulator);
+      return;
+    }
+
+    this.#disk.markClean(emulator);
+    this.#syncDiskSizeInput(emulator);
+    this.#onBooted(name);
+    this.#runner.start();
+    this.#ui.setControls("running", this.#disk, emulator);
+    this.#ui.setStatus(`Running ${name}`);
+    this.#term.focus();
+    this.#ui.updateMetrics(emulator, this.#disk);
+  }
+
   async #ensureWasm() {
     if (this.#wasmReady) {
       return;

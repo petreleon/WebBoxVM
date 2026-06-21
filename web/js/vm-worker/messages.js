@@ -1,4 +1,5 @@
 import {
+  bootInstalledDisk,
   bootIsoWithDisk,
   freeEmulator,
   installDiskSnapshot,
@@ -37,6 +38,8 @@ async function handleRequest(type, payload) {
   switch (type) {
     case "bootIsoWithDisk":
       return bootIsoWithDisk(payload);
+    case "bootInstalledDisk":
+      return bootInstalledDisk(payload);
     case "compileJitBlock":
       return compileJitBlock(payload);
     case "currentInstruction":

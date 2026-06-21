@@ -47,11 +47,13 @@ wireEvents();
 ui.setControls("idle", disk, emulator);
 ui.updateStorageMetric(disk);
 const persistenceReady = disk.init((message) => ui.log(message)).catch(handlePersistenceError);
+persistenceReady.then(() => ui.setControls(ui.controlState, disk, emulator));
 ui.log("Ready");
 
 function wireEvents() {
   els.bootIso.addEventListener("click", () => bootFrom(readSelectedIso(els, ui)).catch(handleError));
   els.bootDebian.addEventListener("click", () => bootFrom(fetchBundledDebian(ui)).catch(handleError));
+  els.bootDisk.addEventListener("click", () => bootDisk().catch(handleError));
   els.pauseVm.addEventListener("click", () => pauseVm());
   els.resumeVm.addEventListener("click", resumeVm);
   els.resetVm.addEventListener("click", () => resetVm().catch(handleError));
@@ -84,6 +86,10 @@ async function bootFrom(sourcePromise) {
     return;
   }
   await booter.bootBytes(source.bytes, source.name, persistenceReady);
+}
+
+async function bootDisk() {
+  await booter.bootSavedDisk(persistenceReady);
 }
 
 function pauseVm() {

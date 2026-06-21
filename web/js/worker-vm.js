@@ -32,6 +32,13 @@ export class WorkerVm {
       .then(({ result }) => result);
   }
 
+  boot_installed_disk(snapshot, numCores) {
+    const bytes = transferableBytes(snapshot);
+    return this.#channel
+      .request("bootInstalledDisk", { diskSnapshot: bytes, numCores }, [bytes.buffer])
+      .then(({ result }) => result);
+  }
+
   restore_install_disk(snapshot) {
     const bytes = transferableBytes(snapshot);
     return this.#channel

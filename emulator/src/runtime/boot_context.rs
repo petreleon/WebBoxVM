@@ -5,6 +5,8 @@ use crate::dtb::load_dtb;
 use crate::initrd::load_initrd;
 use crate::runtime::Machine;
 
+mod install_disk;
+
 /// Live runtime context created by applying a pure boot plan to a machine.
 pub struct BootContext {
     pub machine: Machine,

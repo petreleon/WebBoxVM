@@ -89,4 +89,19 @@ impl Emulator {
             Err(e) => format!("ERR: {}", e),
         }
     }
+
+    /// Boot the installed Linux system from a persisted sparse disk snapshot.
+    pub fn boot_installed_disk(&mut self, disk_snapshot: Vec<u8>, num_cores: usize) -> String {
+        match BootContext::new_from_install_disk_snapshot(disk_snapshot, num_cores) {
+            Ok(ctx) => {
+                let cores = ctx.machine.cpus.len();
+                self.boot = Some(ctx);
+                format!(
+                    "OK: installed disk kernel/initrd loaded, {} cores ready",
+                    cores
+                )
+            }
+            Err(e) => format!("ERR: {}", e),
+        }
+    }
 }

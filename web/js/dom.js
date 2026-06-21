@@ -1,6 +1,7 @@
 export const els = {
   autoScroll: document.querySelector("#autoScroll"),
   bootDebian: document.querySelector("#bootDebian"),
+  bootDisk: document.querySelector("#bootDisk"),
   bootIso: document.querySelector("#bootIso"),
   clearDisk: document.querySelector("#clearDisk"),
   diskSize: document.querySelector("#diskSize"),

@@ -6,6 +6,7 @@
 
 mod mmio;
 mod queue;
+pub mod sparse_snapshot;
 mod storage;
 #[cfg(test)]
 mod tests;

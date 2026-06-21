@@ -15,6 +15,7 @@ export class UiController {
 
     this.els.bootIso.disabled = busy || active;
     this.els.bootDebian.disabled = busy || active;
+    this.els.bootDisk.disabled = busy || active || !disk.available || disk.persistedBytes === 0;
     this.els.diskSize.disabled = busy || active;
     this.els.isoFile.disabled = busy || active;
     this.els.pauseVm.disabled = !active;
