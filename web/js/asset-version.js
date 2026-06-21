@@ -1,4 +1,4 @@
-export const WEBBOXVM_ASSET_VERSION = "20260621-ext4-hook-dirs";
+export const WEBBOXVM_ASSET_VERSION = "20260621-compressed-disk";
 
 export function versionedUrl(path, baseUrl = import.meta.url) {
   const url = new URL(path, baseUrl);

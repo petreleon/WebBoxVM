@@ -116,10 +116,6 @@ fn validate_chunk(size_bytes: u64, chunk_index: u64) -> Result<(), String> {
     Ok(())
 }
 
-pub(super) fn chunk_has_data(chunk: &[u8; SPARSE_DISK_CHUNK_SIZE]) -> bool {
-    chunk.iter().any(|byte| *byte != 0)
-}
-
 fn read_le_u32(bytes: &[u8], offset: usize) -> Result<u32, String> {
     let data = bytes
         .get(offset..offset + 4)

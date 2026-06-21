@@ -3,7 +3,7 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now
-- [ ] Finish the live Debian base install from the browser run.
+- [ ] Restart from the cache-busted compressed-disk build and finish Debian base install.
 - [ ] Add and verify `Boot from disk`.
 - [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
@@ -13,7 +13,8 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- Base install is running from `file:///cdrom/`; last verified screen reached 26%.
+- Old live run reached 47% base install, then OPFS autosave hit browser quota.
+- Compressed snapshots + zero-chunk sparse disk are built; rerun must pass 47%.
 - Next proof: base install completes and reaches package-manager/mirror setup.
 - Final proof: installed system boots from the writable disk.
 
@@ -24,3 +25,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] Debian installer reaches disk partitioning with VirtIO-net/disk working.
 - [x] Ext4 hook reaches fresh browser guest; parent cpio dirs fixed.
 - [x] Ext4 loads in the installer; `/target` and `/target/boot` mount as ext4.
+- [x] Browser disk persistence no longer treats autosave quota as fatal.

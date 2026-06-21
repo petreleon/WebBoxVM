@@ -13,6 +13,7 @@ export class DiskPersistence {
   #lastAutosaveAt = 0;
   #now;
   #saveQueued = false;
+  #autosaveSuspended = false;
   #store;
 
   constructor({
@@ -62,6 +63,7 @@ export class DiskPersistence {
     if (
       !this.available ||
       this.saving ||
+      this.#autosaveSuspended ||
       emulator.install_disk_generation() === this.#lastSavedGeneration
     ) {
       return false;
@@ -92,6 +94,15 @@ export class DiskPersistence {
     after();
     try {
       await this.#writeSnapshot(emulator, generation, quiet, log);
+    } catch (error) {
+      if (!force && isQuotaExceededError(error)) {
+        this.#autosaveSuspended = true;
+        this.#saveQueued = false;
+        await this.refreshInfo().catch(() => {});
+        log(`Autosave paused: storage quota reached (${formatBytes(this.persistedBytes)} saved)`);
+        return;
+      }
+      throw error;
     } finally {
       this.saving = false;
       after();
@@ -105,6 +116,7 @@ export class DiskPersistence {
     }
     await this.#store.clear();
     this.persistedBytes = 0;
+    this.#autosaveSuspended = false;
     this.#lastSavedGeneration = emulator ? emulator.install_disk_generation() : 0n;
     log("Cleared saved disk");
   }
@@ -133,10 +145,14 @@ export class DiskPersistence {
   }
 
   async #drainQueued(emulator, log, after) {
-    if (!this.#saveQueued) {
+    if (!this.#saveQueued || this.#autosaveSuspended) {
       return;
     }
     this.#saveQueued = false;
     await this.save(emulator, { quiet: true, log, after });
   }
+}
+
+function isQuotaExceededError(error) {
+  return error?.name === "QuotaExceededError";
 }

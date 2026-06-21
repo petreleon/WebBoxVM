@@ -136,3 +136,11 @@ impl SparseDiskStorage {
             .is_some_and(|end| end <= self.size_bytes)
     }
 }
+
+pub(super) fn chunk_has_data(chunk: &[u8; SPARSE_DISK_CHUNK_SIZE]) -> bool {
+    bytes_have_data(chunk)
+}
+
+pub(super) fn bytes_have_data(bytes: &[u8]) -> bool {
+    bytes.iter().any(|byte| *byte != 0)
+}

@@ -20,12 +20,20 @@ impl SparseDiskStorage {
             let chunk_index = current / SPARSE_DISK_CHUNK_SIZE as u64;
             let chunk_offset = (current % SPARSE_DISK_CHUNK_SIZE as u64) as usize;
             let count = (src.len() - done).min(SPARSE_DISK_CHUNK_SIZE - chunk_offset);
+            let src_range = &src[done..done + count];
+            if !bytes_have_data(src_range) && !self.chunks.contains_key(&chunk_index) {
+                done += count;
+                continue;
+            }
+
             let chunk = self
                 .chunks
                 .entry(chunk_index)
                 .or_insert_with(|| Box::new([0; SPARSE_DISK_CHUNK_SIZE]));
-
-            chunk[chunk_offset..chunk_offset + count].copy_from_slice(&src[done..done + count]);
+            chunk[chunk_offset..chunk_offset + count].copy_from_slice(src_range);
+            if !chunk_has_data(chunk) {
+                self.chunks.remove(&chunk_index);
+            }
             done += count;
         }
     }

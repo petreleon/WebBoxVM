@@ -21,6 +21,35 @@ fn sparse_disk_reads_zero_then_persists_writes() {
 }
 
 #[test]
+fn sparse_disk_zero_writes_do_not_allocate_chunks() {
+    let mut storage = BlockStorage::SparseDisk(SparseDiskStorage::new(
+        SPARSE_DISK_CHUNK_SIZE as u64,
+        b"disk\0",
+    ));
+
+    assert_eq!(storage.write(0, &[0; SECTOR_SIZE]), VIRTIO_BLK_S_OK);
+
+    assert_eq!(storage.allocated_bytes(), 0);
+}
+
+#[test]
+fn sparse_disk_zeroing_existing_data_releases_chunk() {
+    let mut storage = BlockStorage::SparseDisk(SparseDiskStorage::new(
+        SPARSE_DISK_CHUNK_SIZE as u64,
+        b"disk\0",
+    ));
+    let mut out = [0xff; 3];
+
+    assert_eq!(storage.write(7, &[1, 2, 3]), VIRTIO_BLK_S_OK);
+    assert_eq!(storage.allocated_bytes(), SPARSE_DISK_CHUNK_SIZE as u64);
+    assert_eq!(storage.write(7, &[0, 0, 0]), VIRTIO_BLK_S_OK);
+
+    assert_eq!(storage.allocated_bytes(), 0);
+    assert_eq!(storage.read(7, &mut out), VIRTIO_BLK_S_OK);
+    assert_eq!(out, [0; 3]);
+}
+
+#[test]
 fn read_only_image_rejects_writes_and_pads_last_sector() {
     let mut storage = BlockStorage::ReadOnlyImage {
         image: vec![1, 2, 3],

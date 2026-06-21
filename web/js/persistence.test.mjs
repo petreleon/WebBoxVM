@@ -65,6 +65,49 @@ test("forced saves still write even inside the autosave interval", async () => {
   assert.equal(writes, 1);
 });
 
+test("autosave quota errors suspend later background saves", async () => {
+  const quotaError = new Error("quota");
+  quotaError.name = "QuotaExceededError";
+  const logs = [];
+  const disk = new DiskPersistence({
+    autosaveIntervalMs: 1000,
+    now: () => 1000,
+    store: fakeStore({
+      size: async () => 512,
+      write: async () => {
+        throw quotaError;
+      },
+    }),
+  });
+  const emulator = fakeEmulator();
+  disk.available = true;
+  emulator.generation = 1n;
+
+  await disk.save(emulator, { quiet: true, log: (message) => logs.push(message) });
+
+  assert.equal(disk.persistedBytes, 512);
+  assert.match(logs[0], /Autosave paused/);
+  emulator.generation = 2n;
+  assert.equal(disk.shouldAutosave(emulator), false);
+});
+
+test("forced save quota errors still propagate", async () => {
+  const quotaError = new Error("quota");
+  quotaError.name = "QuotaExceededError";
+  const disk = new DiskPersistence({
+    store: fakeStore({
+      write: async () => {
+        throw quotaError;
+      },
+    }),
+  });
+  const emulator = fakeEmulator();
+  disk.available = true;
+  emulator.generation = 1n;
+
+  await assert.rejects(() => disk.save(emulator, { force: true }), /quota/);
+});
+
 function fakeEmulator() {
   return {
     generation: 0n,
