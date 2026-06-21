@@ -5,7 +5,7 @@ History: [sprint-history.md](sprint-history.md).
 ## Now
 - [ ] Add and verify `Boot from disk`.
 - [ ] Continue installer from the `20260621-ldrsb-fix` browser build.
-- [ ] Verify mirror/package fetch and base install after the VM-stat fix.
+- [ ] Verify mirror/package fetch and base-install completion.
 - [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
 
@@ -14,25 +14,14 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- Fixed the early VM-stat corruption visible at the first language prompt.
-- Root cause was scalar signed-load decode: `ldrsb xN`/`ldrsh xN` were decoded as
-  W-register forms, zero-extending values before 64-bit kernel accounting adds.
-- Browser proof on `20260621-ldrsb-fix`: language prompt reached, `/proc/vmstat`
-  counters and raw `vm_zone_stat` memory are sane.
-- Fresh browser proof after `20260621-ldrsb-fix`: VirtIO-net appears as `eth0`,
-  DHCP completes, and `partman` formats the writable VirtIO disk.
-- Fresh browser proof passes the old 73% base-install stall, installs the target
-  kernel/initramfs, and reaches base install 98%.
-- Current blocker candidate: `ckbcomp` under `setupcon --save-only` during
-  `console-setup.postinst`.
-- Next installer proof: base install completes and reaches package-manager work.
+- At base install 98%, `console-setup.postinst` is waiting on long-running
+  `ckbcomp` via `setupcon --save-only`.
+- Next proof: package-manager work starts.
 - Final proof: installed system boots from the writable disk.
 
 ## Done
-- [x] Modular emulator architecture with 180-line source guard.
-- [x] Browser disk persistence, ext4 install path, and OPFS quota handling.
-- [x] WebSocket hub plus Docker NAT prove installer VirtIO-net/DHCP.
-- [x] VirtIO disk partitioning/formatting reaches base install in browser.
-- [x] ARM64 signed-load bug fixed; VM stats verified clean.
-- [x] Base install passes old 73% VM-stat stall and reaches 98%.
-- [x] Target kernel and initramfs install on the writable browser disk.
+- [x] Architecture guard: modular emulator layout plus 180-line source limit.
+- [x] Browser install path: persistent OPFS disk, ext4, and writable VirtIO disk.
+- [x] Network path: WebSocket hub plus Docker NAT; installer sees `eth0` and DHCP.
+- [x] ARM64 signed-load fix removed early VM-stat corruption.
+- [x] Base install passed the old 73% stall, installed kernel/initramfs, and hit 98%.
