@@ -128,6 +128,9 @@ fn appends_ext4_partman_hook_to_iso_initrd() {
 
     assert_eq!(hook.mode & 0o777, 0o755);
     let script = String::from_utf8(hook.data.clone()).unwrap();
+    assert!(script.contains("kernel/lib/crc16.ko*"));
+    assert!(script.contains("kernel/crypto/crc32c_generic.ko*"));
+    assert!(script.contains("kernel/lib/libcrc32c.ko*"));
     assert!(script.contains("anna-install ext4-modules"));
     assert!(script.contains("kernel/fs/ext4/ext4.ko*"));
     assert!(script.contains("kernel/fs/jbd2/jbd2.ko*"));

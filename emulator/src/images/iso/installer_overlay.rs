@@ -26,6 +26,7 @@ for dir in /lib/modules/*; do
     [ -d \"$dir\" ] || continue
     for mod in \\
         kernel/lib/crc16.ko* \\
+        kernel/crypto/crc32c_generic.ko* \\
         kernel/lib/libcrc32c.ko* \\
         kernel/fs/mbcache.ko* \\
         kernel/fs/jbd2/jbd2.ko* \\

@@ -3,7 +3,7 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now — Browser Install Path
-- [ ] Continue Debian installer from partition write / next real blocker
+- [ ] Continue Debian installer from base-system install / next real blocker
 - [ ] Profile installer/userland hot paths only when they block forward progress
 
 ## Next Product Milestone — Boot from Disk
@@ -18,3 +18,4 @@ History: [sprint-history.md](sprint-history.md).
 
 ## Done
 - [x] ISO -> OPFS disk -> WS NAT -> Debian sees/partitions `vdb`.
+- [x] Partman writes ext4 root and reaches `bootstrap-base`.
