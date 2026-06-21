@@ -17,7 +17,8 @@ pub use debug::page_table_debug;
 use permissions::{check_write_permission, trace_write_permission};
 #[allow(unused_imports)]
 pub use tlb::{Tlb, TlbEntry};
-use walk::{is_mmio_device_range, page_table_walk, page_table_walk_with_desc};
+use tlb::{TlbContext, TlbInsert, descriptor_generation};
+use walk::{is_mmio_device_range, page_table_walk_with_desc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Fault {
@@ -40,25 +41,32 @@ pub fn translate(
     if va >= KERNEL_VA_BASE {
         let low = va & VA_LOW32_MASK;
         if is_mmio_device_range(low) {
-            tlb.insert(va, low);
             return Ok(low);
         }
     }
 
-    if let Some(pa) = tlb.lookup(va) {
+    let context = translation_context(sys, va);
+    if let Some(pa) = tlb.lookup(mem, va, context) {
         return Ok(pa);
     }
 
-    let result = match page_table_walk(sys, mem, va) {
-        Ok(pa) => Ok(pa),
-        Err(Fault::TranslationFault) if va == 0 => {
-            tlb.insert(va, 0);
-            Ok(0)
+    let result = match page_table_walk_with_desc(sys, mem, va) {
+        Ok(walk) => {
+            if let Some(meta) = tlb_insert(sys, mem, va, walk.desc_addr) {
+                tlb.insert(
+                    va,
+                    walk.pa,
+                    meta.context,
+                    meta.desc_addr,
+                    meta.desc_generation,
+                );
+            }
+            Ok(walk.pa)
         }
+        Err(Fault::TranslationFault) if va == 0 => Ok(0),
         Err(Fault::TranslationFault) if va >= KERNEL_VA_BASE => {
             let pa = va & VA_LOW32_MASK;
             if is_mmio_device_range(pa) {
-                tlb.insert(va, pa);
                 Ok(pa)
             } else {
                 Err(Fault::TranslationFault)
@@ -67,9 +75,6 @@ pub fn translate(
         Err(e) => Err(e),
     };
 
-    if let Ok(pa) = result {
-        tlb.insert(va, pa);
-    }
     result
 }
 
@@ -91,15 +96,46 @@ pub fn translate_write(
         }
     }
 
-    if let Some(pa) = tlb.lookup_write(va, current_el) {
+    let context = translation_context(sys, va);
+    if let Some(pa) = tlb.lookup_write(mem, va, current_el, context) {
         return Ok(pa);
     }
 
     let walk = page_table_walk_with_desc(sys, mem, va)?;
     trace_write_permission(sys, walk, va, current_el);
     check_write_permission(sys, mem, walk.desc_addr, walk.desc, current_el)?;
-    tlb.insert_write(va, walk.pa, (walk.desc & DESC_AP_EL0) != 0);
+    if let Some(meta) = tlb_insert(sys, mem, va, walk.desc_addr) {
+        tlb.insert_write(va, walk.pa, meta, (walk.desc & DESC_AP_EL0) != 0);
+    }
     Ok(walk.pa)
+}
+
+fn tlb_insert(
+    sys: &SystemRegisters,
+    mem: &PhysicalMemory,
+    va: u64,
+    desc_addr: u64,
+) -> Option<TlbInsert> {
+    Some(TlbInsert {
+        context: translation_context(sys, va),
+        desc_addr,
+        desc_generation: descriptor_generation(mem, desc_addr)?,
+    })
+}
+
+fn translation_context(sys: &SystemRegisters, va: u64) -> TlbContext {
+    let t1sz = ((sys.tcr_el1 >> TCR_T1SZ_SHIFT) & TCR_T1SZ_MASK) as u8;
+    let va_bits = 64u8.saturating_sub(t1sz);
+    let threshold = if va_bits >= 64 { 0 } else { (!0u64) << va_bits };
+    let root = if va >= threshold {
+        sys.ttbr1_el1
+    } else {
+        sys.ttbr0_el1
+    };
+    TlbContext {
+        root,
+        tcr: sys.tcr_el1,
+    }
 }
 
 #[cfg(test)]

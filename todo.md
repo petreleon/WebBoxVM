@@ -3,7 +3,8 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now
-- [ ] Restart from the cache-busted compressed-disk build and finish Debian base install.
+- [ ] Restart from the `20260621-tlb-guard` build and re-run Debian base install.
+- [ ] Verify `localedef` completes without corrupt `Dirty` / `Writeback` VM stats.
 - [ ] Add and verify `Boot from disk`.
 - [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
@@ -14,7 +15,12 @@ History: [sprint-history.md](sprint-history.md).
 
 ## Current Blocker
 - Compressed-disk rerun passed the old 47% OPFS quota failure point.
-- Next proof: base install completes and reaches package-manager/mirror setup.
+- Base install reached `localedef`, then Linux slept in `balance_dirty_pages`.
+- Guest `MemTotal` stayed sane, but `MemFree`, `Dirty`, `Writeback`, and `Cached`
+  became impossible VM-stat values.
+- Added a guarded TLB cache keyed by translation context and page-table descriptor
+  generation; next proof is a clean rerun through `localedef`.
+- Next installer proof: base install completes and reaches package-manager/mirror setup.
 - Final proof: installed system boots from the writable disk.
 
 ## Done
@@ -26,3 +32,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] Ext4 loads in the installer; `/target` and `/target/boot` mount as ext4.
 - [x] Browser disk persistence no longer treats autosave quota as fatal.
 - [x] Base install passed 47% on compressed OPFS storage without quota failure.
+- [x] Diagnosed the post-73% installer stall as corrupted Linux VM dirty/writeback stats.

@@ -13,20 +13,16 @@ fn mmu_off_passes_through() {
 
 #[test]
 fn tlb_hit_caches_translation() {
+    let (bus, sys) = mapped_page_fixture(0x4000_3000);
     let mut tlb = Tlb::new();
-    tlb.insert(0xFFFF_FF80_0000_0000, 0x4000_0000);
-    let sys = SystemRegisters {
-        sctlr_el1: 1,
-        ..SystemRegisters::default()
-    };
-    let mem = PhysicalMemory::new();
+
     assert_eq!(
-        translate(&sys, &mut tlb, &mem, 0xFFFF_FF80_0000_0000).unwrap(),
-        0x4000_0000
+        translate(&sys, &mut tlb, &bus.mem, 0xFFFF_FF80_0000_0000).unwrap(),
+        0x4000_3000
     );
     assert_eq!(
-        translate(&sys, &mut tlb, &mem, 0xFFFF_FF80_0000_0001).unwrap(),
-        0x4000_0001
+        translate(&sys, &mut tlb, &bus.mem, 0xFFFF_FF80_0000_0001).unwrap(),
+        0x4000_3001
     );
 }
 
@@ -104,9 +100,72 @@ fn invalid_descriptor_faults() {
 
 #[test]
 fn tlbi_invalidates_tlb() {
+    let (bus, sys) = mapped_page_fixture(0x4000_3000);
     let mut tlb = Tlb::new();
-    tlb.insert(0xFFFF_FF80_0000_0000, 0x4000_0000);
-    assert!(tlb.lookup(0xFFFF_FF80_0000_0000).is_some());
+
+    let _ = translate(&sys, &mut tlb, &bus.mem, 0xFFFF_FF80_0000_0000).unwrap();
+    assert!(tlb.entries.iter().any(|entry| entry.valid));
+
     tlb.invalidate_all();
-    assert!(tlb.lookup(0xFFFF_FF80_0000_0000).is_none());
+    assert!(tlb.entries.iter().all(|entry| !entry.valid));
+}
+
+#[test]
+fn descriptor_generation_change_invalidates_translation() {
+    let (mut bus, sys) = mapped_page_fixture(0x4000_3000);
+    let mut tlb = Tlb::new();
+    let va = 0xFFFF_FF80_0000_0000;
+
+    assert_eq!(
+        translate(&sys, &mut tlb, &bus.mem, va).unwrap(),
+        0x4000_3000
+    );
+    bus.mem.write(0x4000_2000, 8, 0x4000_5000u64 | 0b01);
+
+    assert_eq!(
+        translate(&sys, &mut tlb, &bus.mem, va).unwrap(),
+        0x4000_5000
+    );
+}
+
+#[test]
+fn context_change_invalidates_translation() {
+    let (mut bus, mut sys) = mapped_page_fixture(0x4000_3000);
+    let alt_l1 = 0x4000_6000;
+    let alt_l2 = 0x4000_7000;
+    let alt_l3 = 0x4000_8000;
+    let va = 0xFFFF_FF80_0000_0000;
+    let mut tlb = Tlb::new();
+
+    bus.mem.write(alt_l1, 8, alt_l2 | 0b11);
+    bus.mem.write(alt_l2, 8, alt_l3 | 0b11);
+    bus.mem.write(alt_l3, 8, 0x4000_9000u64 | 0b01);
+
+    assert_eq!(
+        translate(&sys, &mut tlb, &bus.mem, va).unwrap(),
+        0x4000_3000
+    );
+    sys.ttbr1_el1 = alt_l1;
+
+    assert_eq!(
+        translate(&sys, &mut tlb, &bus.mem, va).unwrap(),
+        0x4000_9000
+    );
+}
+
+fn mapped_page_fixture(pa: u64) -> (SystemBus, SystemRegisters) {
+    let mut bus = SystemBus::new();
+    let mut sys = SystemRegisters::default();
+    let l1_table = 0x4000_0000;
+    let l2_table = 0x4000_1000;
+    let l3_table = 0x4000_2000;
+
+    bus.mem.write(l1_table, 8, l2_table | 0b11);
+    bus.mem.write(l2_table, 8, l3_table | 0b11);
+    bus.mem.write(l3_table, 8, pa | 0b01);
+
+    sys.ttbr1_el1 = l1_table;
+    sys.tcr_el1 = (25 << TCR_T1SZ_SHIFT) | 25;
+    sys.sctlr_el1 = SCTLR_MMU_ENABLE;
+    (bus, sys)
 }

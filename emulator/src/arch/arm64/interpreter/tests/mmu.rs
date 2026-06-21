@@ -63,7 +63,7 @@ fn mmu_tlb_hit_after_first_miss() {
     assert_eq!(steps1, 1);
 
     // TLB should now have an entry
-    assert!(cpu.tlb.lookup(va).is_some());
+    assert!(cpu.tlb.entries.iter().any(|entry| entry.valid));
 
     // Second run should TLB hit
     let steps2 = run(&mut cpu, &mut bus, va, 1).unwrap();
@@ -91,13 +91,13 @@ fn mmu_msr_to_ttbr_invalidates_tlb() {
 
     // Prime TLB
     let _ = run(&mut cpu, &mut bus, va, 1);
-    assert!(cpu.tlb.lookup(va).is_some());
+    assert!(cpu.tlb.entries.iter().any(|entry| entry.valid));
 
     // MSR to TTBR1_EL1 should invalidate TLB
     cpu.regs.set_x(0, l1_table);
     let instr = decode(0xd5182020).unwrap(); // MSR TTBR1_EL1, X0
     execute(&mut cpu, &mut bus, instr).unwrap();
-    assert!(cpu.tlb.lookup(va).is_none());
+    assert!(cpu.tlb.entries.iter().all(|entry| !entry.valid));
 }
 
 #[test]
@@ -121,10 +121,10 @@ fn mmu_tlbi_instruction_invalidates_tlb() {
 
     // Prime TLB
     let _ = run(&mut cpu, &mut bus, va, 1);
-    assert!(cpu.tlb.lookup(va).is_some());
+    assert!(cpu.tlb.entries.iter().any(|entry| entry.valid));
 
     // TLBI VMALLE1
     let tlbi = decode(0xd508871f).unwrap();
     execute(&mut cpu, &mut bus, tlbi).unwrap();
-    assert!(cpu.tlb.lookup(va).is_none());
+    assert!(cpu.tlb.entries.iter().all(|entry| !entry.valid));
 }

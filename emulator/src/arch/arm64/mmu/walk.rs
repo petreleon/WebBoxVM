@@ -21,14 +21,6 @@ pub(super) fn is_mmio_device_range(pa: u64) -> bool {
     (pa >= GICD_BASE && pa < GICD_BASE + GICD_SIZE) || (pa >= UART_BASE && pa < UART_END)
 }
 
-pub(super) fn page_table_walk(
-    sys: &SystemRegisters,
-    mem: &PhysicalMemory,
-    va: u64,
-) -> Result<u64, Fault> {
-    page_table_walk_with_desc(sys, mem, va).map(|walk| walk.pa)
-}
-
 pub(super) fn page_table_walk_with_desc(
     sys: &SystemRegisters,
     mem: &PhysicalMemory,

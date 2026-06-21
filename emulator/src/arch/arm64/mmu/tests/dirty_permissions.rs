@@ -60,7 +60,7 @@ fn linux_dirty_user_pte_still_faults_without_dbm() {
 }
 
 #[test]
-fn write_tlb_reuses_checked_translation_until_invalidation() {
+fn write_tlb_rechecks_when_descriptor_page_changes() {
     let (mut bus, mut sys, desc_addr, _) = dirty_page_fixture();
     sys.tcr_el1 = TCR_HA_BIT | TCR_HD_BIT | (25 << TCR_T1SZ_SHIFT) | 25;
     sys.sctlr_el1 = SCTLR_MMU_ENABLE;
@@ -72,11 +72,6 @@ fn write_tlb_reuses_checked_translation_until_invalidation() {
     );
     bus.mem.write(desc_addr, 8, 0);
 
-    assert_eq!(
-        translate_write(&sys, &mut tlb, &mut bus.mem, 0x1235, 0).unwrap(),
-        0x4000_3000 + (0x1235 & PAGE_OFFSET_MASK)
-    );
-    tlb.invalidate_all();
     assert_eq!(
         translate_write(&sys, &mut tlb, &mut bus.mem, 0x1235, 0),
         Err(Fault::TranslationFault)
