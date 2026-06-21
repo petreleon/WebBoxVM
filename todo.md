@@ -12,12 +12,11 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- Debian reaches base install `73%`, then `localedef` sleeps in
-  `balance_dirty_pages`.
-- Guest `/proc/meminfo` is corrupt: plausible 32-bit counters appear shifted
-  into high 32 bits.
-- Browser boots now default to interpreter-only to contain the unsafe JIT path.
-- Continue isolating the exact ARM64/JIT semantics bug; test, restart.
+- Fresh interpreter-only boot reaches partitioning, DHCP succeeds after retry,
+  and `vdb` is partitioned.
+- Live run used stale wasm without `05webboxvm_ext4`, so ext4 mount failed.
+- Local `web/pkg` is rebuilt and contains the ext4 hook; rerun clean install.
+- Continue isolating the exact ARM64/JIT semantics bug after installer proof.
 
 ## Done, Compressed
 - [x] Modular emulator architecture drafted with clear subsystem boundaries.
