@@ -7,12 +7,13 @@ impl Machine {
         self.active_core = if next == num_cores { 0 } else { next };
     }
 
-    pub(super) fn report_progress(&self, start_steps: u64, next_report: &mut u64, core: usize) {
-        let elapsed = self.total_steps - start_steps;
-        if elapsed < *next_report {
+    pub(super) fn report_progress(&self, start_steps: u64, next_report_at: &mut u64, core: usize) {
+        let total_steps = self.total_steps;
+        if total_steps < *next_report_at {
             return;
         }
 
+        let elapsed = total_steps.saturating_sub(start_steps);
         eprintln!(
             "DIAG {:>9}M steps | fetch_faults={:>7} exec_faults={:>7} | PC=0x{:016x}",
             elapsed / 1_000_000,
@@ -20,7 +21,7 @@ impl Machine {
             self.exec_faults,
             self.cpus[core].regs.pc
         );
-        *next_report = if elapsed >= 10_000_000 {
+        let next_elapsed = if elapsed >= 10_000_000 {
             if elapsed < 100_000_000 {
                 100_000_000
             } else {
@@ -29,6 +30,7 @@ impl Machine {
         } else {
             elapsed.saturating_add(1_000_000)
         };
+        *next_report_at = start_steps.saturating_add(next_elapsed);
     }
 
     pub(super) fn translate_fetch(

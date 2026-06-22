@@ -7,7 +7,7 @@ impl Machine {
         let start_steps = self.total_steps;
         let end_steps = start_steps.saturating_add(max_total_steps as u64);
         let num_cores = self.cpus.len();
-        let mut next_report = 1_000_000u64;
+        let mut next_report_at = start_steps.saturating_add(1_000_000);
         let trace_options = self.trace.options;
         let trace_fetch_hooks = trace_options.has_fetch_hooks();
         let trace_instruction_hooks = trace_options.has_instruction_hooks();
@@ -15,8 +15,8 @@ impl Machine {
 
         while self.total_steps < end_steps {
             let core = self.active_core;
-            if self.total_steps - start_steps >= next_report {
-                self.report_progress(start_steps, &mut next_report, core);
+            if self.total_steps >= next_report_at {
+                self.report_progress(start_steps, &mut next_report_at, core);
             }
 
             let pc = self.cpus[core].regs.pc;

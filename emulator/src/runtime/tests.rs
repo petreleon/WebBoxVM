@@ -90,23 +90,35 @@ fn finish_core_wraps_multi_core_round_robin() {
 #[test]
 fn report_progress_keeps_threshold_before_due() {
     let mut machine = Machine::new(1);
-    let mut next_report = 1_000_000;
+    let mut next_report_at = 1_000_000;
     machine.total_steps = 999_999;
 
-    machine.report_progress(0, &mut next_report, 0);
+    machine.report_progress(0, &mut next_report_at, 0);
 
-    assert_eq!(next_report, 1_000_000);
+    assert_eq!(next_report_at, 1_000_000);
 }
 
 #[test]
 fn report_progress_advances_threshold_when_due() {
     let mut machine = Machine::new(1);
-    let mut next_report = 1_000_000;
+    let mut next_report_at = 1_000_000;
     machine.total_steps = 1_000_000;
 
-    machine.report_progress(0, &mut next_report, 0);
+    machine.report_progress(0, &mut next_report_at, 0);
 
-    assert_eq!(next_report, 2_000_000);
+    assert_eq!(next_report_at, 2_000_000);
+}
+
+#[test]
+fn report_progress_threshold_is_absolute_for_resumed_runs() {
+    let mut machine = Machine::new(1);
+    let start_steps = 100_000_000;
+    let mut next_report_at = start_steps + 1_000_000;
+    machine.total_steps = next_report_at;
+
+    machine.report_progress(start_steps, &mut next_report_at, 0);
+
+    assert_eq!(next_report_at, start_steps + 2_000_000);
 }
 
 #[test]
