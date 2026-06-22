@@ -46,6 +46,27 @@ test("connected network caps interpreter step slices for TCP responsiveness", ()
   state.stepSlice = DEFAULT_STEP_SLICE;
 });
 
+test("recent network activity skips pending tx polling", () => {
+  let pendingPolls = 0;
+  state.jitEnabled = false;
+  state.networkStatus = "connected";
+  state.stepSlice = 50_000_000;
+  state.lastNetworkActivityAt = performance.now();
+  state.emulator = {
+    network_tx_pending: () => {
+      pendingPolls += 1;
+      return 0;
+    },
+  };
+
+  assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
+  assert.equal(pendingPolls, 0);
+
+  state.emulator = undefined;
+  state.networkStatus = "offline";
+  state.stepSlice = DEFAULT_STEP_SLICE;
+});
+
 test("idle connected network allows fast interpreter step slices", () => {
   state.jitEnabled = false;
   state.networkStatus = "connected";

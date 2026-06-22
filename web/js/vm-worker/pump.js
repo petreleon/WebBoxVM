@@ -81,10 +81,10 @@ function networkNeedsResponsiveSlices() {
   if (state.networkStatus !== "connected") {
     return false;
   }
-  if (state.emulator?.network_tx_pending?.() > 0) {
+  if (performance.now() - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS) {
     return true;
   }
-  return performance.now() - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS;
+  return (state.emulator?.network_tx_pending?.() ?? 0) > 0;
 }
 
 function drainUart(now) {
