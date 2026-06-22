@@ -43,6 +43,27 @@ fn compiles_observed_ld1_single_q_register() {
 }
 
 #[test]
+fn compiles_observed_ld1_single_post_index_forms() {
+    for (raw, regs, addr) in [
+        (0x4cdf_7041, (1, 2, 0xfe), (16, 16)),
+        (0x4cc8_7000, (0, 0, 8), (0, 16)),
+        (0x0cdf_7004, (4, 0, 0xfe), (8, 8)),
+    ] {
+        let instr = decode(raw).expect("decode ld1 post-index");
+        assert_eq!(instr.op, Opcode::SimdLd1);
+        assert_eq!((instr.rd, instr.rn, instr.rm), regs);
+        assert_eq!((instr.imm, instr.size), addr);
+
+        let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile ld1 post");
+
+        assert_eq!(module.guest_instr_count, 1);
+        assert_eq!(module.exit_pc, 0x1004);
+        assert!(module.bytes.contains(&opcodes::OP_CALL));
+        assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
+    }
+}
+
+#[test]
 fn compiles_observed_simd_ldr_q_immediate() {
     let instr = decode(0x3dc0_0440).expect("decode ldr q0, [x2, #16]");
     assert_eq!(instr.op, Opcode::SimdLdr);

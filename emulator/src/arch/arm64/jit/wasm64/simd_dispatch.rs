@@ -9,6 +9,7 @@ impl WasmExpr {
             | Opcode::SimdLdr
             | Opcode::SimdStr => self.emit_simd_memory_load(instr),
             Opcode::SimdMovi => self.emit_simd_movi(instr),
+            Opcode::SimdBicImm => self.emit_simd_bic_imm(instr),
             op if super::simd_logic::is_logic_reg(op) => self.emit_simd_logic_reg(instr),
             Opcode::SimdDupByte => self.emit_simd_dup_gpr(instr),
             Opcode::SimdFmovDToGpr => self.emit_simd_fmov_d_to_gpr(instr),

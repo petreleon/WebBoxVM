@@ -5,6 +5,7 @@ use crate::arch::arm64::{Instr, Opcode};
 
 const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
 const JIT_STORE_GUEST_FUNC_INDEX: u32 = 1;
+const SIMD_POST_INDEX_IMM: u8 = 0xfe;
 
 impl WasmExpr {
     pub(super) fn emit_simd_memory_load(&mut self, instr: Instr) -> bool {
@@ -19,13 +20,21 @@ impl WasmExpr {
     }
 
     fn emit_simd_ld1(&mut self, instr: Instr) -> bool {
-        if instr.size != 16 || instr.cond != 1 || instr.rm != 0xff || instr.imm != 0 {
+        if !matches!(instr.size, 8 | 16) || instr.cond != 1 {
             return false;
         }
-        self.emit_read_base(instr.rn, true);
-        self.local_set(ADDR_LOCAL);
+        let writeback = self.emit_simd_structure_address(instr);
         self.emit_load_simd_half(instr.rd, false, 0);
-        self.emit_load_simd_half(instr.rd, true, 8);
+        if instr.size == 16 {
+            self.emit_load_simd_half(instr.rd, true, 8);
+        } else {
+            self.emit_write_simd_half_with(instr.rd, true, |this| this.i64_const(0));
+        }
+        if writeback {
+            self.emit_write_reg_sp_with(instr.rn, true, |this| {
+                this.local_get(WRITEBACK_LOCAL);
+            });
+        }
         true
     }
 
@@ -127,6 +136,28 @@ impl WasmExpr {
         if offset != 0 {
             self.i64_const(offset);
             self.op(OP_I64_ADD);
+        }
+    }
+
+    fn emit_simd_structure_address(&mut self, instr: Instr) -> bool {
+        self.emit_read_base(instr.rn, true);
+        self.local_set(ADDR_LOCAL);
+        match instr.rm {
+            0xff => false,
+            SIMD_POST_INDEX_IMM => {
+                self.local_get(ADDR_LOCAL);
+                self.i64_const(instr.imm);
+                self.op(OP_I64_ADD);
+                self.local_set(WRITEBACK_LOCAL);
+                true
+            }
+            rm => {
+                self.local_get(ADDR_LOCAL);
+                self.emit_read_reg(rm, true);
+                self.op(OP_I64_ADD);
+                self.local_set(WRITEBACK_LOCAL);
+                true
+            }
         }
     }
 }

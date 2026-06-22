@@ -1,18 +1,40 @@
+use super::opcodes::OP_I64_AND;
 use super::*;
 use crate::arch::arm64::Instr;
 
 impl WasmExpr {
     pub(super) fn emit_simd_movi(&mut self, instr: Instr) -> bool {
-        let Some(value) = simd_movi_value(instr) else {
+        let Some(value) = simd_replicated_value(instr) else {
             return false;
         };
         self.emit_write_simd_half_with(instr.rd, false, |this| this.i64_const(value as u64));
         self.emit_write_simd_half_with(instr.rd, true, |this| this.i64_const((value >> 64) as u64));
         true
     }
+
+    pub(super) fn emit_simd_bic_imm(&mut self, instr: Instr) -> bool {
+        let Some(mask) = simd_replicated_value(instr) else {
+            return false;
+        };
+        self.emit_bic_imm_half(instr.rd, false, mask as u64);
+        if instr.size == 16 {
+            self.emit_bic_imm_half(instr.rd, true, (mask >> 64) as u64);
+        } else {
+            self.emit_write_simd_half_with(instr.rd, true, |this| this.i64_const(0));
+        }
+        true
+    }
+
+    fn emit_bic_imm_half(&mut self, rd: u8, high: bool, mask: u64) {
+        self.emit_write_simd_half_with(rd, high, |this| {
+            this.emit_read_simd_half(rd, high);
+            this.i64_const(!mask);
+            this.op(OP_I64_AND);
+        });
+    }
 }
 
-fn simd_movi_value(instr: Instr) -> Option<u128> {
+fn simd_replicated_value(instr: Instr) -> Option<u128> {
     let element_size = if instr.cond == 0 {
         1
     } else {
