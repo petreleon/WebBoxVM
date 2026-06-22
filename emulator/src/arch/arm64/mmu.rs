@@ -47,7 +47,7 @@ pub(crate) fn translate_read_only(
         && (sys.sctlr_el1 & SCTLR_MMU_ENABLE) != 0
     {
         let context = translation_context(sys, va);
-        if let Some(pa) = tlb.lookup(mem, va, context) {
+        if let Some(pa) = tlb.lookup_read_only(mem, va, context) {
             return Ok(pa);
         }
     }
@@ -72,7 +72,7 @@ fn translate_read(
     }
 
     let context = translation_context(sys, va);
-    if let Some(tlb) = tlb.as_ref()
+    if let Some(tlb) = tlb.as_mut()
         && let Some(pa) = tlb.lookup(mem, va, context)
     {
         return Ok(pa);
@@ -80,16 +80,10 @@ fn translate_read(
 
     let result = match page_table_walk_with_desc(sys, mem, va) {
         Ok(walk) => {
-            if let Some(tlb) = tlb.as_mut()
-                && let Some(meta) = tlb_insert(sys, mem, va, walk.desc_addr)
-            {
-                tlb.insert(
-                    va,
-                    walk.pa,
-                    meta.context,
-                    meta.desc_addr,
-                    meta.desc_generation,
-                );
+            if let Some(tlb) = tlb.as_mut() {
+                if let Some(meta) = tlb_insert(context, mem, walk.desc_addr) {
+                    tlb.insert(va, walk.pa, meta);
+                }
             }
             Ok(walk.pa)
         }
@@ -134,22 +128,18 @@ pub fn translate_write(
     let walk = page_table_walk_with_desc(sys, mem, va)?;
     trace_write_permission(sys, walk, va, current_el);
     check_write_permission(sys, mem, walk.desc_addr, walk.desc, current_el)?;
-    if let Some(meta) = tlb_insert(sys, mem, va, walk.desc_addr) {
+    if let Some(meta) = tlb_insert(context, mem, walk.desc_addr) {
         tlb.insert_write(va, walk.pa, meta, (walk.desc & DESC_AP_EL0) != 0);
     }
     Ok(walk.pa)
 }
 
-fn tlb_insert(
-    sys: &SystemRegisters,
-    mem: &PhysicalMemory,
-    va: u64,
-    desc_addr: u64,
-) -> Option<TlbInsert> {
+fn tlb_insert(context: TlbContext, mem: &PhysicalMemory, desc_addr: u64) -> Option<TlbInsert> {
     Some(TlbInsert {
-        context: translation_context(sys, va),
+        context,
         desc_addr,
         desc_generation: descriptor_generation(mem, desc_addr)?,
+        memory_generation: mem.generation(),
     })
 }
 

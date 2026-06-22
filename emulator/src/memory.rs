@@ -18,6 +18,7 @@ pub struct PhysicalMemory {
     low: SparseRegion, // Low region: MMIO devices + reserved   (0x0         -> 0x3FFF_FFFF)
     ram: SparseRegion, // RAM region: kernel, stack, heap        (0x4000_0000 -> 0x7FFF_FFFF)
     efi: SparseRegion, // EFI region: firmware tables, services  (0x8000_0000 -> 0x8FFF_FFFF)
+    generation: u64,
 }
 
 impl PhysicalMemory {
@@ -26,6 +27,7 @@ impl PhysicalMemory {
             low: SparseRegion::new(LOW_REGION_BASE, LOW_REGION_SIZE),
             ram: SparseRegion::new(RAM_BASE, RAM_SIZE),
             efi: SparseRegion::new(EFI_REGION_BASE, EFI_REGION_SIZE),
+            generation: 0,
         }
     }
 
@@ -80,6 +82,9 @@ impl PhysicalMemory {
     pub fn write_bytes(&mut self, addr: u64, src: &[u8]) -> Option<()> {
         let region = self.select_region_mut(addr, src.len())?;
         region.write_bytes_in_region(addr, src);
+        if !src.is_empty() {
+            self.bump_generation();
+        }
         Some(())
     }
 
@@ -90,6 +95,10 @@ impl PhysicalMemory {
 
     pub fn allocated_pages(&self) -> usize {
         self.low.allocated_pages() + self.ram.allocated_pages() + self.efi.allocated_pages()
+    }
+
+    pub fn generation(&self) -> u64 {
+        self.generation
     }
 
     fn select_region(&self, addr: u64, len: usize) -> Option<&SparseRegion> {
@@ -134,8 +143,14 @@ impl PhysicalMemory {
     }
 
     fn write_array<const N: usize>(&mut self, addr: u64, bytes: [u8; N]) -> Option<()> {
-        self.select_region_mut(addr, N)
-            .map(|region| region.write_array(addr, bytes))
+        let region = self.select_region_mut(addr, N)?;
+        region.write_array(addr, bytes);
+        self.bump_generation();
+        Some(())
+    }
+
+    fn bump_generation(&mut self) {
+        self.generation = self.generation.wrapping_add(1);
     }
 }
 

@@ -1,5 +1,8 @@
 use super::*;
 
+mod validate;
+use validate::*;
+
 /// A single TLB entry at page granularity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TlbEntry {
@@ -9,6 +12,7 @@ pub struct TlbEntry {
     context: TlbContext,
     desc_addr: u64,
     desc_generation: u64,
+    memory_generation: u64,
     epoch: u64,
 }
 
@@ -20,6 +24,7 @@ struct WriteTlbEntry {
     context: TlbContext,
     desc_addr: u64,
     desc_generation: u64,
+    memory_generation: u64,
     el0_accessible: bool,
     epoch: u64,
 }
@@ -47,11 +52,32 @@ impl Tlb {
         }
     }
 
-    pub(super) fn lookup(&self, mem: &PhysicalMemory, va: u64, context: TlbContext) -> Option<u64> {
+    pub(super) fn lookup(
+        &mut self,
+        mem: &PhysicalMemory,
+        va: u64,
+        context: TlbContext,
+    ) -> Option<u64> {
+        let page = va >> PAGE_SHIFT;
+        let idx = (page & TLB_INDEX_MASK) as usize;
+        let entry = &mut self.entries[idx];
+        if read_entry_valid(entry, mem, page, context, self.epoch) {
+            Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
+        } else {
+            None
+        }
+    }
+
+    pub(super) fn lookup_read_only(
+        &self,
+        mem: &PhysicalMemory,
+        va: u64,
+        context: TlbContext,
+    ) -> Option<u64> {
         let page = va >> PAGE_SHIFT;
         let idx = (page & TLB_INDEX_MASK) as usize;
         let entry = &self.entries[idx];
-        if self.entry_valid(entry, mem, page, context) {
+        if read_entry_valid_read_only(entry, mem, page, context, self.epoch) {
             Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
         } else {
             None
@@ -59,7 +85,7 @@ impl Tlb {
     }
 
     pub(super) fn lookup_write(
-        &self,
+        &mut self,
         mem: &PhysicalMemory,
         va: u64,
         current_el: u8,
@@ -67,32 +93,26 @@ impl Tlb {
     ) -> Option<u64> {
         let page = va >> PAGE_SHIFT;
         let idx = (page & TLB_INDEX_MASK) as usize;
-        let entry = &self.write_entries[idx];
+        let entry = &mut self.write_entries[idx];
         let el_allowed = current_el != 0 || entry.el0_accessible;
-        if self.write_entry_valid(entry, mem, page, context) && el_allowed {
+        if write_entry_valid(entry, mem, page, context, self.epoch) && el_allowed {
             Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
         } else {
             None
         }
     }
 
-    pub(super) fn insert(
-        &mut self,
-        va: u64,
-        pa: u64,
-        context: TlbContext,
-        desc_addr: u64,
-        desc_generation: u64,
-    ) {
+    pub(super) fn insert(&mut self, va: u64, pa: u64, meta: TlbInsert) {
         let page = va >> PAGE_SHIFT;
         let idx = (page & TLB_INDEX_MASK) as usize;
         self.entries[idx] = TlbEntry {
             valid: true,
             va_page: page,
             pa_page: pa >> PAGE_SHIFT,
-            context,
-            desc_addr,
-            desc_generation,
+            context: meta.context,
+            desc_addr: meta.desc_addr,
+            desc_generation: meta.desc_generation,
+            memory_generation: meta.memory_generation,
             epoch: self.epoch,
         };
     }
@@ -107,6 +127,7 @@ impl Tlb {
             context: meta.context,
             desc_addr: meta.desc_addr,
             desc_generation: meta.desc_generation,
+            memory_generation: meta.memory_generation,
             el0_accessible,
             epoch: self.epoch,
         };
@@ -125,34 +146,6 @@ impl Tlb {
             entry.valid = false;
         }
     }
-
-    fn entry_valid(
-        &self,
-        entry: &TlbEntry,
-        mem: &PhysicalMemory,
-        page: u64,
-        context: TlbContext,
-    ) -> bool {
-        entry.valid
-            && entry.epoch == self.epoch
-            && entry.va_page == page
-            && entry.context == context
-            && descriptor_generation(mem, entry.desc_addr) == Some(entry.desc_generation)
-    }
-
-    fn write_entry_valid(
-        &self,
-        entry: &WriteTlbEntry,
-        mem: &PhysicalMemory,
-        page: u64,
-        context: TlbContext,
-    ) -> bool {
-        entry.valid
-            && entry.epoch == self.epoch
-            && entry.va_page == page
-            && entry.context == context
-            && descriptor_generation(mem, entry.desc_addr) == Some(entry.desc_generation)
-    }
 }
 
 impl Default for Tlb {
@@ -166,6 +159,7 @@ pub(super) struct TlbInsert {
     pub(super) context: TlbContext,
     pub(super) desc_addr: u64,
     pub(super) desc_generation: u64,
+    pub(super) memory_generation: u64,
 }
 
 pub(super) fn descriptor_generation(mem: &PhysicalMemory, desc_addr: u64) -> Option<u64> {

@@ -88,6 +88,21 @@ fn page_generation_tracks_writes() {
 }
 
 #[test]
+fn memory_generation_tracks_successful_non_empty_writes() {
+    let mut m = PhysicalMemory::new();
+
+    assert_eq!(m.generation(), 0);
+    assert_eq!(m.read(RAM_BASE, 8), Some(0));
+    assert_eq!(m.generation(), 0);
+    assert_eq!(m.write_bytes(RAM_BASE, &[]), Some(()));
+    assert_eq!(m.generation(), 0);
+    m.write(RAM_BASE, 4, 0x1234).unwrap();
+    assert_eq!(m.generation(), 1);
+    assert_eq!(m.write(EFI_REGION_END, 4, 0x5678), None);
+    assert_eq!(m.generation(), 1);
+}
+
+#[test]
 fn page_generation_uses_single_address_region_bounds() {
     let m = PhysicalMemory::new();
 
