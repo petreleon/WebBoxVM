@@ -2,6 +2,7 @@ import { clamp } from "./utils.js";
 
 const DEFAULT_STEP_SLICE = 1_000_000;
 const MAX_STEP_SLICE = 50_000_000;
+const UART_TAIL_LIMIT = 32768;
 
 export class VmRunner {
   #els;
@@ -14,7 +15,7 @@ export class VmRunner {
   #running = false;
   #boundEmulator;
   #uartTail = "";
-  #uartProbe;
+  #uartProbeText;
 
   constructor({ els, term, ui, disk, getEmulator, saveDisk, handleError }) {
     this.#els = els;
@@ -27,7 +28,8 @@ export class VmRunner {
     this.#els.stepSlice.addEventListener("input", () => {
       this.#getEmulator()?.set_step_slice(this.#stepSlice());
     });
-    this.#uartProbe = installUartProbe();
+    const { text } = installUartProbe();
+    this.#uartProbeText = text;
   }
 
   start() {
@@ -87,8 +89,18 @@ export class VmRunner {
   }
 
   #recordUart(output) {
-    this.#uartTail = (this.#uartTail + output).slice(-32768);
-    this.#uartProbe.textContent = this.#uartTail;
+    if (output.length >= UART_TAIL_LIMIT) {
+      this.#uartTail = output.slice(-UART_TAIL_LIMIT);
+      this.#uartProbeText.data = this.#uartTail;
+      return;
+    }
+    const overflow = Math.max(0, this.#uartTail.length + output.length - UART_TAIL_LIMIT);
+    if (overflow > 0) {
+      this.#uartTail = this.#uartTail.slice(overflow);
+      this.#uartProbeText.deleteData(0, overflow);
+    }
+    this.#uartTail += output;
+    this.#uartProbeText.appendData(output);
   }
 
   #stepSlice() {
@@ -98,6 +110,8 @@ export class VmRunner {
 
 function installUartProbe() {
   const probe = document.createElement("pre");
+  const text = document.createTextNode("");
+  probe.append(text);
   probe.dataset.testid = "webboxvm-uart-tail";
   probe.style.cssText = [
     "position:fixed",
@@ -108,5 +122,5 @@ function installUartProbe() {
     "overflow:hidden",
   ].join(";");
   document.body.append(probe);
-  return probe;
+  return { probe, text };
 }
