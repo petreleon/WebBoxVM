@@ -19,16 +19,12 @@ History: [sprint-history.md](sprint-history.md).
 - Main work now: speed; current login proof is about 642 seconds of browser wall time.
 
 ## Recent Proofs
-- Browser install path works: NAT/DHCP/DNS/HTTP, installer reboot, compacted final disk snapshot, OPFS `Boot disk`.
-- Systemd hang was isolated after root handoff in the BPF/ftrace path; `init=/bin/sh` worked, ftrace/emergency probes still hung.
-- Current default avoids that path, masks slow/unneeded services, uses serial-only getty, batches UART, and reaches login in about 642s.
-- JIT-enabled disk probe no longer rejects observed `MRS DCZID_EL0` (`0xd53b00e3`); next reject is `Stxp` (`0xc8270c82`).
-- JIT-enabled disk probe no longer rejects `Stxp`; 175s proof ended with zero rejects and one intentional EL0 helper skip.
+- Install: browser NAT/DHCP/DNS/HTTP -> Debian install -> reboot -> compact OPFS disk.
+- Boot: default `Boot disk` reaches Debian 13 `ttyAMA0` login in about 642s.
+- Hang: BPF/ftrace root-handoff path isolated; default avoids it via bootargs/service/getty/UART changes.
+- JIT: telemetry plus observed `MRS DCZID_EL0`/`TPIDRRO_EL0`/`Stxp`; 175s probe had 0 rejects, 1 intentional EL0 helper skip.
 
 ## Done
-- [x] Browser installer networking and OPFS disk persistence.
-- [x] Default persisted-disk boot to Debian 13 serial login.
-- [x] Bootarg probes, BPF/LSM workaround, service masks, serial-only getty, and UART batching.
-- [x] JIT skip/reject/fallback stats include current instruction snapshots.
-- [x] JIT can compile observed side-effect-free `MRS DCZID_EL0` and `TPIDRRO_EL0` reads.
-- [x] JIT can stage and commit observed exclusive pair store `Stxp` (`0xc8270c82`).
+- [x] Browser install/network/disk persistence; default disk boot to serial login.
+- [x] BPF/ftrace workaround path; service masks, serial getty, UART batching.
+- [x] JIT stats snapshots; safe sysreg reads; observed exclusive pair store.
