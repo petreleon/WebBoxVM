@@ -47,6 +47,9 @@ fn ram_read_write() {
     let mut bus = SystemBus::new();
     bus.write(RAM_BASE, 8, 0xDEADBEEF);
     assert_eq!(bus.read(RAM_BASE, 8), Some(0xDEADBEEF));
+
+    bus.write(EFI_REGION_BASE + 0x200, 4, 0xAABB_CCDD);
+    assert_eq!(bus.read(EFI_REGION_BASE + 0x200, 4), Some(0xAABB_CCDD));
 }
 
 #[test]

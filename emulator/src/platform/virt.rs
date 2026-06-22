@@ -116,6 +116,11 @@ impl SystemBus {
             }
         }
 
+        if addr >= LOW_REGION_END && addr < KERNEL_VA_BASE {
+            self.mem.write(addr, size, value);
+            return;
+        }
+
         // Standard MMIO dispatch
         if in_uart_range(addr) {
             self.uart.write(addr, size, value);
