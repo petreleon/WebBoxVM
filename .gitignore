@@ -16,11 +16,17 @@ Image
 Image.gz
 rela.dyn
 .artifacts/
+.playwright-cli/
+output/
+__pycache__/
+*.pyc
 vmlinuz
 *.vmlinuz
 *.img
 *.iso
 *.iso.part
+*.wbdisk
+*.wbdz
 assets/busybox-aarch64
 pkg/
 *.wasm

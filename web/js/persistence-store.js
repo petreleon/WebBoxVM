@@ -1,5 +1,6 @@
 const DISK_FILE_NAME = "webboxvm-install-disk.wbdisk";
 const COMPRESSED_DISK_MAGIC = new Uint8Array([0x57, 0x42, 0x44, 0x5a, 0x30, 0x30, 0x30, 0x31]);
+const STORAGE_STREAM_CHUNK_BYTES = 1024 * 1024;
 
 export class OpfsDiskStore {
   #root;
@@ -43,11 +44,10 @@ export class OpfsDiskStore {
   }
 
   async write(snapshot) {
-    const stored = await encodeDiskSnapshotForStorage(snapshot);
     const handle = await (await this.#getRoot()).getFileHandle(DISK_FILE_NAME, { create: true });
     const writable = await handle.createWritable();
     try {
-      await writable.write(stored);
+      await writeDiskSnapshotToStorage(snapshot, writable);
       await writable.close();
     } catch (error) {
       await writable.abort?.().catch(() => {});
@@ -69,6 +69,18 @@ export class OpfsDiskStore {
     this.#root ??= await navigator.storage.getDirectory();
     return this.#root;
   }
+}
+
+export async function writeDiskSnapshotToStorage(snapshot, writable) {
+  if (typeof CompressionStream !== "function") {
+    await writeStreamChunk(writable, snapshot);
+    return;
+  }
+
+  await writeStreamChunk(writable, COMPRESSED_DISK_MAGIC);
+  await bytesStream(snapshot)
+    .pipeThrough(new CompressionStream("gzip"))
+    .pipeTo(writable, { preventClose: true });
 }
 
 export async function encodeDiskSnapshotForStorage(snapshot) {
@@ -111,6 +123,30 @@ async function transformBytes(bytes, stream) {
   await writer.write(bytes);
   await writer.close();
   return new Uint8Array(await output);
+}
+
+function bytesStream(bytes) {
+  let offset = 0;
+  return new ReadableStream({
+    pull(controller) {
+      if (offset >= bytes.byteLength) {
+        controller.close();
+        return;
+      }
+      const end = Math.min(offset + STORAGE_STREAM_CHUNK_BYTES, bytes.byteLength);
+      controller.enqueue(bytes.subarray(offset, end));
+      offset = end;
+    },
+  });
+}
+
+async function writeStreamChunk(writable, chunk) {
+  const writer = writable.getWriter();
+  try {
+    await writer.write(chunk);
+  } finally {
+    writer.releaseLock();
+  }
 }
 
 function startsWith(bytes, prefix) {
