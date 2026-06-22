@@ -1,5 +1,6 @@
 use super::super::exclusive::{
-    apply_jit_pending_exclusive_clear, jit_store_exclusive_pair_from_machine,
+    apply_jit_pending_exclusive_clear, jit_store_exclusive_from_machine,
+    jit_store_exclusive_pair_from_machine,
 };
 use super::super::exclusive_load::{
     apply_jit_pending_exclusive_reservation, jit_load_exclusive_from_machine,
@@ -40,6 +41,42 @@ fn jit_store_exclusive_pair_stages_successful_pair() {
         Some(0x99aa_bbcc_ddee_ff00)
     );
     assert!(machine.cpus[0].exclusive.is_none());
+}
+
+#[test]
+fn jit_store_exclusive_stages_successful_store() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    let addr = RAM_BASE + 0x180;
+    machine.bus.mem.write(addr, 4, 0);
+    machine.cpus[0].reserve_exclusive(addr, 4);
+
+    let status =
+        jit_store_exclusive_from_machine(&mut machine, 0, addr, 4, 0x1122_3344, &mut stores)
+            .expect("exclusive store helper should succeed");
+
+    assert_eq!(status, 0);
+    assert_eq!(machine.bus.mem.read(addr, 4), Some(0));
+    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+    apply_jit_pending_exclusive_clear(&mut machine, Some(0));
+    assert_eq!(machine.bus.mem.read(addr, 4), Some(0x1122_3344));
+    assert!(machine.cpus[0].exclusive.is_none());
+}
+
+#[test]
+fn jit_store_exclusive_reports_failed_reservation_without_store() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    let addr = RAM_BASE + 0x1c0;
+    machine.bus.mem.write(addr, 4, 0);
+    machine.cpus[0].reserve_exclusive(addr + 4, 4);
+
+    let status = jit_store_exclusive_from_machine(&mut machine, 0, addr, 4, 1, &mut stores)
+        .expect("failed reservation should be a valid STXR result");
+
+    assert_eq!(status, 1);
+    assert!(stores.is_empty());
+    assert_eq!(machine.bus.mem.read(addr, 4), Some(0));
 }
 
 #[test]

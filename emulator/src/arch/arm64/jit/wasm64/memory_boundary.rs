@@ -6,6 +6,7 @@ impl WasmExpr {
         match instr.op {
             Opcode::Ldxr => Some(self.emit_exclusive_load(instr)),
             Opcode::Str => Some(self.emit_memory_store(instr)),
+            Opcode::Stxr => Some(self.emit_exclusive_store(instr)),
             Opcode::Stp => Some(self.emit_memory_pair_store(instr)),
             Opcode::Stxp => Some(self.emit_exclusive_pair_store(instr)),
             Opcode::SimdStp => Some(self.emit_simd_stp(instr)),

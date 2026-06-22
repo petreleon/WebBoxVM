@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::*;
 use super::exclusive::apply_jit_pending_exclusive_clear;
 use super::exclusive_load::apply_jit_pending_exclusive_reservation;
 use super::store::apply_jit_pending_stores;
+use super::timer::deliver_jit_timer_boundary;
 
 #[wasm_bindgen]
 impl Emulator {
@@ -106,9 +107,9 @@ pub(super) fn commit_jit_state(
 
         if let Some(deadline) = cpu.sys.next_timer_deadline() {
             let end_cycle = cpu.sys.cycle_count.saturating_add(steps);
-            if deadline <= end_cycle {
+            if deadline < end_cycle {
                 return Err(format!(
-                    "JIT block crosses timer deadline at cycle {deadline}"
+                    "JIT block crosses timer deadline at cycle {deadline} end={end_cycle}"
                 ));
             }
         }
@@ -125,6 +126,7 @@ pub(super) fn commit_jit_state(
     let cycle_count = cpu.sys.cycle_count;
     state.copy_to_cpu(cpu);
     cpu.sys.cycle_count = cycle_count.wrapping_add(steps);
+    deliver_jit_timer_boundary(cpu);
     machine.total_steps = machine.total_steps.wrapping_add(steps);
     machine.active_core = (core_id + 1) % machine.cpus.len();
     Ok(())

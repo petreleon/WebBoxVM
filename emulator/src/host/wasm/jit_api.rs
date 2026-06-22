@@ -6,6 +6,7 @@ mod load;
 mod state;
 mod store;
 mod sysreg;
+mod timer;
 mod validate;
 
 use super::Emulator;
