@@ -9,6 +9,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   state.emulator = new Emulator(numCores);
   state.lastUart = 0;
   state.lastUartFlushAt = 0;
+  state.lastUartPollAt = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
   state.lastAutosavePollAt = state.lastAutosaveAt;
@@ -24,6 +25,7 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
   state.emulator = new Emulator(numCores);
   state.lastUart = 0;
   state.lastUartFlushAt = 0;
+  state.lastUartPollAt = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
   state.lastAutosavePollAt = state.lastAutosaveAt;
@@ -59,6 +61,7 @@ export function freeEmulator() {
   state.running = false;
   state.pumpScheduled = false;
   state.lastUart = 0;
+  state.lastUartPollAt = 0;
   state.lastAutosavePollAt = 0;
   resetJitState();
   stopNetworkProxy();

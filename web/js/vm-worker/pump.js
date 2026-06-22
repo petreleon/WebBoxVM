@@ -10,6 +10,7 @@ import {
   NETWORK_STEP_SLICE,
   UART_FLUSH_BYTES,
   UART_FLUSH_INTERVAL_MS,
+  UART_POLL_INTERVAL_MS,
   state,
 } from "./state.js";
 
@@ -90,7 +91,11 @@ function networkNeedsResponsiveSlices(now) {
   return (state.emulator?.network_tx_pending?.() ?? 0) > 0;
 }
 
-function drainUart(now) {
+export function drainUart(now) {
+  if (!shouldPollUart(now, state.lastUartPollAt)) {
+    return;
+  }
+  state.lastUartPollAt = now;
   const uartLen = state.emulator.uart_output_len();
   const pendingBytes = uartLen - state.lastUart;
   if (!shouldFlushUart(pendingBytes, now, state.lastUartFlushAt)) {
@@ -107,4 +112,8 @@ export function shouldFlushUart(pendingBytes, now, lastFlushAt) {
     return false;
   }
   return pendingBytes >= UART_FLUSH_BYTES || now - lastFlushAt >= UART_FLUSH_INTERVAL_MS;
+}
+
+export function shouldPollUart(now, lastPollAt) {
+  return lastPollAt === 0 || now - lastPollAt >= UART_POLL_INTERVAL_MS;
 }

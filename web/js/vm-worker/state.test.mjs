@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { interpreterStepSlice, shouldContinuePumpFrame, shouldFlushUart } from "./pump.js";
+import { drainUart, interpreterStepSlice, shouldContinuePumpFrame, shouldFlushUart, shouldPollUart } from "./pump.js";
 import {
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
@@ -8,6 +8,7 @@ import {
   MAX_FRAME_MS,
   NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
+  UART_POLL_INTERVAL_MS,
   resetJitState,
   state,
 } from "./state.js";
@@ -132,4 +133,30 @@ test("uart flushing batches small bursts for terminal throughput", () => {
 
 test("uart flushing sends large chunks immediately", () => {
   assert.equal(shouldFlushUart(8192, 1, 0), true);
+});
+
+test("uart polling runs immediately then respects poll cadence", () => {
+  assert.equal(shouldPollUart(5, 0), true);
+  assert.equal(shouldPollUart(1000 + UART_POLL_INTERVAL_MS - 1, 1000), false);
+  assert.equal(shouldPollUart(1000 + UART_POLL_INTERVAL_MS, 1000), true);
+});
+
+test("uart drain skips emulator length calls inside poll window", () => {
+  let lenCalls = 0;
+  state.lastUart = 0;
+  state.lastUartPollAt = 1000;
+  state.emulator = {
+    uart_output_len: () => {
+      lenCalls += 1;
+      return 0;
+    },
+  };
+
+  drainUart(1000 + UART_POLL_INTERVAL_MS - 1);
+
+  assert.equal(lenCalls, 0);
+  assert.equal(state.lastUartPollAt, 1000);
+
+  state.emulator = undefined;
+  state.lastUartPollAt = 0;
 });
