@@ -1,7 +1,7 @@
 use super::*;
 use crate::constants::{
-    SYSREG_CNTVCT_EL0, SYSREG_DAIF, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TCR_EL1,
-    SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1,
+    SYSREG_CNTVCT_EL0, SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0,
+    SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
 };
 
 #[test]
@@ -25,11 +25,31 @@ fn compiles_mrs_with_sysreg_helper_import() {
 
 #[test]
 fn compiles_observed_mrs_tpidr_el0() {
-    let instr = crate::arch::arm64::decode(0xd53b_d042).expect("decode mrs x2, tpidr_el0");
-    assert_eq!(instr.op, Opcode::Mrs);
-    assert_eq!((instr.rd, instr.imm as u16), (2, SYSREG_TPIDR_EL0));
+    let cases = [
+        (0xd53b_d042, 2, SYSREG_TPIDR_EL0),
+        (0xd53b_00e3, 3, SYSREG_DCZID_EL0),
+    ];
+    for (raw, rd, sysreg) in cases {
+        let instr = crate::arch::arm64::decode(raw).expect("decode observed thread-pointer MRS");
+        assert_eq!(instr.op, Opcode::Mrs);
+        assert_eq!((instr.rd, instr.imm as u16), (rd, sysreg));
 
-    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MRS TPIDR_EL0");
+        let module =
+            Wasm64Compiler::compile(&block(vec![instr])).expect("compile thread-pointer MRS");
+
+        assert_eq!(module.guest_instr_count, 1);
+        assert!(module.bytes.contains(&opcodes::OP_CALL));
+    }
+}
+
+#[test]
+fn compiles_mrs_tpidrro_el0() {
+    let block = block(vec![Instr {
+        imm: SYSREG_TPIDRRO_EL0 as u64,
+        ..instr(Opcode::Mrs, 5, 0, 0, 0, true)
+    }]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile MRS TPIDRRO_EL0");
 
     assert_eq!(module.guest_instr_count, 1);
     assert!(module.bytes.contains(&opcodes::OP_CALL));
