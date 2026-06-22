@@ -1,6 +1,8 @@
 use super::*;
 use crate::arch::arm64::jit::{MAX_BLOCK_INSTRUCTIONS, hash_raw_words};
-use crate::host::wasm::jit_api::validate::{code_page_generations, validate_jit_block};
+use crate::host::wasm::jit_api::validate::{
+    code_page_generations, crosses_translation_page, validate_jit_block,
+};
 
 #[test]
 fn validate_jit_block_rejects_changed_second_instruction_translation() {
@@ -83,6 +85,22 @@ fn validate_jit_block_skips_raw_hash_for_unchanged_code_pages() {
         1,
     )
     .expect("matching page generations skip raw hash validation");
+}
+
+#[test]
+fn translation_page_check_only_triggers_across_pages() {
+    assert!(!crosses_translation_page(
+        RAM_BASE,
+        RAM_BASE + 0x100,
+        RAM_BASE + 4,
+        RAM_BASE + 0x104
+    ));
+    assert!(crosses_translation_page(
+        0xffc,
+        RAM_BASE + 0x3ffc,
+        0x1000,
+        RAM_BASE + 0x4000
+    ));
 }
 
 #[test]

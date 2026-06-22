@@ -1,6 +1,6 @@
 use crate::arch::arm64::jit::{MAX_BLOCK_INSTRUCTIONS, hash_raw_word, hash_seed};
 use crate::arch::arm64::translate;
-use crate::constants::INSTRUCTION_SIZE;
+use crate::constants::{INSTRUCTION_SIZE, PAGE_SHIFT};
 use crate::host::wasm::Emulator;
 use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
@@ -102,12 +102,14 @@ pub(super) fn validate_jit_block(
         let end_pa = start_pa
             .checked_add(end_offset)
             .ok_or_else(|| "cached JIT block PA range overflows".to_string())?;
-        let current_pa = translate(&cpu.sys, &mut tlb, &machine.bus.mem, end_pc)
-            .map_err(|_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"))?;
-        if current_pa != end_pa {
-            return Err(format!(
-                "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
-            ));
+        if crosses_translation_page(start_pc, start_pa, end_pc, end_pa) {
+            let current_pa = translate(&cpu.sys, &mut tlb, &machine.bus.mem, end_pc)
+                .map_err(|_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"))?;
+            if current_pa != end_pa {
+                return Err(format!(
+                    "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
+                ));
+            }
         }
     }
 
@@ -164,4 +166,14 @@ fn block_end_offset(steps: usize) -> Result<u64, String> {
     (steps as u64 - 1)
         .checked_mul(INSTRUCTION_SIZE)
         .ok_or_else(|| "cached JIT block code range overflows".to_string())
+}
+
+pub(super) fn crosses_translation_page(
+    start_pc: u64,
+    start_pa: u64,
+    end_pc: u64,
+    end_pa: u64,
+) -> bool {
+    (start_pc >> PAGE_SHIFT) != (end_pc >> PAGE_SHIFT)
+        || (start_pa >> PAGE_SHIFT) != (end_pa >> PAGE_SHIFT)
 }
