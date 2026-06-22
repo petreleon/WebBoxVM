@@ -75,6 +75,20 @@ fn page_generation_tracks_writes() {
 }
 
 #[test]
+fn page_generation_uses_single_address_region_bounds() {
+    let m = PhysicalMemory::new();
+
+    assert_eq!(m.page_generation(LOW_REGION_BASE), Some(0));
+    assert_eq!(m.page_generation(LOW_REGION_END - 1), Some(0));
+    assert_eq!(m.page_generation(RAM_BASE), Some(0));
+    assert_eq!(m.page_generation(RAM_END - 1), Some(0));
+    assert_eq!(m.page_generation(EFI_REGION_BASE), Some(0));
+    assert_eq!(m.page_generation(EFI_REGION_END - 1), Some(0));
+    assert_eq!(m.page_generation(EFI_REGION_END), None);
+    assert_eq!(m.page_generation(u64::MAX), None);
+}
+
+#[test]
 fn range_must_stay_inside_one_region() {
     let mut m = PhysicalMemory::new();
     assert_eq!(m.write_bytes(LOW_REGION_END - 2, &[1, 2, 3]), None);

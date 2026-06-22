@@ -77,8 +77,8 @@ impl PhysicalMemory {
     }
 
     pub fn page_generation(&self, addr: u64) -> Option<u64> {
-        self.select_region(addr, 1)
-            .and_then(|region| region.page_generation(addr))
+        self.select_region_for_addr(addr)
+            .map(|region| region.page_generation(addr))
     }
 
     pub fn allocated_pages(&self) -> usize {
@@ -91,6 +91,18 @@ impl PhysicalMemory {
         } else if self.efi.contains_range(addr, len) {
             Some(&self.efi)
         } else if self.low.contains_range(addr, len) {
+            Some(&self.low)
+        } else {
+            None
+        }
+    }
+
+    fn select_region_for_addr(&self, addr: u64) -> Option<&SparseRegion> {
+        if self.ram.contains_addr(addr) {
+            Some(&self.ram)
+        } else if self.efi.contains_addr(addr) {
+            Some(&self.efi)
+        } else if self.low.contains_addr(addr) {
             Some(&self.low)
         } else {
             None

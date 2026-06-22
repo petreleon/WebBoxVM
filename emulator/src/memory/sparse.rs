@@ -44,6 +44,10 @@ impl SparseRegion {
         addr >= self.base && end <= self.base + self.size
     }
 
+    pub(super) fn contains_addr(&self, addr: u64) -> bool {
+        addr.wrapping_sub(self.base) < self.size
+    }
+
     pub(super) fn read_bytes(&self, addr: u64, dst: &mut [u8]) -> Option<()> {
         if !self.contains_range(addr, dst.len()) {
             return None;
@@ -87,17 +91,12 @@ impl SparseRegion {
         bytes
     }
 
-    pub(super) fn page_generation(&self, addr: u64) -> Option<u64> {
-        if !self.contains_range(addr, 1) {
-            return None;
-        }
-
+    pub(super) fn page_generation(&self, addr: u64) -> u64 {
+        debug_assert!(self.contains_addr(addr));
         let page_index = ((addr - self.base) / PAGE_SIZE) as usize;
-        Some(
-            self.pages[page_index]
-                .as_ref()
-                .map_or(0, |page| page.generation),
-        )
+        self.pages[page_index]
+            .as_ref()
+            .map_or(0, |page| page.generation)
     }
 
     pub(super) fn write_bytes(&mut self, addr: u64, src: &[u8]) -> Option<()> {
