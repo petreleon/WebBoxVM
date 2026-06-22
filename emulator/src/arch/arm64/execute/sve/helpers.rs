@@ -29,65 +29,6 @@ pub(in crate::arch::arm64::execute) fn predicate_bit(pred: &[u64; 4], bit: usize
     bit < 256 && (pred[bit / 64] & (1 << (bit % 64))) != 0
 }
 
-pub(in crate::arch::arm64::execute) fn read_sve_bytes(
-    cpu: &mut Armv8Cpu,
-    bus: &mut SystemBus,
-    va: u64,
-    len: usize,
-    err: &'static str,
-) -> Result<[u8; 256], &'static str> {
-    let mut bytes = [0; 256];
-    for (offset, byte) in bytes.iter_mut().take(len).enumerate() {
-        let byte_va = va.wrapping_add(offset as u64);
-        let pa = translate_sve_byte(cpu, bus, byte_va, false, err)?;
-        *byte = bus.read(pa, 1).ok_or(err)? as u8;
-    }
-    Ok(bytes)
-}
-
-pub(in crate::arch::arm64::execute) fn write_sve_bytes(
-    cpu: &mut Armv8Cpu,
-    bus: &mut SystemBus,
-    va: u64,
-    bytes: &[u8],
-    err: &'static str,
-) -> Result<(), &'static str> {
-    for (offset, byte) in bytes.iter().enumerate() {
-        let byte_va = va.wrapping_add(offset as u64);
-        let pa = translate_sve_byte(cpu, bus, byte_va, true, err)?;
-        bus.write(pa, 1, *byte as u64);
-    }
-    Ok(())
-}
-
-pub(in crate::arch::arm64::execute) fn translate_sve_byte(
-    cpu: &mut Armv8Cpu,
-    bus: &mut SystemBus,
-    va: u64,
-    write: bool,
-    _err: &'static str,
-) -> Result<u64, &'static str> {
-    let result = if write {
-        translate_write(&cpu.sys, &mut cpu.tlb, &mut bus.mem, va, cpu.pstate.el())
-    } else {
-        translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va)
-    };
-
-    match result {
-        Ok(pa) => Ok(pa),
-        Err(
-            fault @ (Fault::TranslationFault | Fault::AccessFlagFault | Fault::PermissionFault),
-        ) => {
-            cpu.sys.far_el1 = va;
-            Err(match fault {
-                Fault::TranslationFault => "translation fault",
-                Fault::AccessFlagFault => "access flag fault",
-                Fault::PermissionFault => "permission fault",
-            })
-        }
-    }
-}
-
 pub(in crate::arch::arm64::execute) fn sve_read_z(cpu: &mut Armv8Cpu, reg: usize) -> [u8; 256] {
     sync_z_from_simd(cpu, reg);
     cpu.sve_z[reg]
