@@ -57,6 +57,28 @@ test("metrics can reuse known install disk generation", () => {
   assert.equal(generationPolls, 0);
 });
 
+test("metrics samples through one checked emulator reference", () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  const emulator = metricsEmulator();
+  let emulatorReads = 0;
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return emulator;
+    },
+  });
+
+  try {
+    const snapshot = metrics();
+
+    assert.equal(snapshot.totalSteps, 9n);
+    assert.equal(emulatorReads, 1);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
+});
+
 test("restore install disk reuses one metrics snapshot", () => {
   const messages = [];
   const snapshot = new Uint8Array([1, 2]);
