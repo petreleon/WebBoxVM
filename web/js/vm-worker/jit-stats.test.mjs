@@ -68,6 +68,26 @@ test("jit skip and fallback logs tolerate missing or text instruction snapshots"
   resetTelemetry();
 });
 
+test("repeated identical jit fallback reuses last instruction snapshot", () => {
+  resetTelemetry();
+  let instructionReads = 0;
+  state.emulator = {
+    current_instruction() {
+      instructionReads += 1;
+      return "timer wait";
+    },
+  };
+
+  recordJitFallback("0:2000", 0x2000n, "JIT block crosses timer deadline", 0);
+  const firstFallback = state.jitLastFallback;
+  recordJitFallback("0:2000", 0x2000n, "JIT block crosses timer deadline", 0);
+
+  assert.equal(state.jitFallbackCount, 2);
+  assert.equal(state.jitLastFallback, firstFallback);
+  assert.equal(instructionReads, 1);
+  resetTelemetry();
+});
+
 test("current jit instruction is omitted when the emulator has no snapshot", () => {
   resetTelemetry();
 

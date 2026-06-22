@@ -41,7 +41,12 @@ export function recordJitSkip(key, pc, error, coreId = 0) {
 export function recordJitFallback(key, pc, error, coreId = 0) {
   state.jitStatsVersion += 1;
   state.jitFallbackCount += 1;
-  state.jitLastFallback = jitEvent(key, pc, error, "unknown JIT fallback", coreId);
+  const errorText = error || "unknown JIT fallback";
+  const pcHex = pc.toString(16);
+  if (isSameFallbackEvent(state.jitLastFallback, key, pcHex, errorText)) {
+    return;
+  }
+  state.jitLastFallback = jitEvent(key, pc, errorText, "unknown JIT fallback", coreId);
 }
 
 export function recordJitReject(key, pc, error, coreId = 0) {
@@ -75,6 +80,10 @@ function jitEvent(key, pc, error, fallbackError, coreId) {
     event.instruction = instruction;
   }
   return event;
+}
+
+function isSameFallbackEvent(event, key, pc, error) {
+  return event?.key === key && event.pc === pc && event.error === error;
 }
 
 function jitStatsFingerprint() {
