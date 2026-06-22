@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { interpreterStepSlice, shouldFlushUart } from "./pump.js";
+import { interpreterStepSlice, shouldContinuePumpFrame, shouldFlushUart } from "./pump.js";
 import {
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
+  MAX_FRAME_BATCHES,
+  MAX_FRAME_MS,
   NETWORK_STEP_SLICE,
   resetJitState,
   state,
@@ -68,6 +70,16 @@ test("pending network transmit keeps responsive interpreter slices", () => {
   state.emulator = undefined;
   state.networkStatus = "offline";
   state.stepSlice = DEFAULT_STEP_SLICE;
+});
+
+test("pump allows more cached jit batches inside the frame budget", () => {
+  assert.equal(MAX_FRAME_BATCHES, 32);
+  assert.equal(shouldContinuePumpFrame(100, 100 + MAX_FRAME_MS - 1, 31), true);
+});
+
+test("pump yields on frame time or batch cap", () => {
+  assert.equal(shouldContinuePumpFrame(100, 100 + MAX_FRAME_MS, 0), false);
+  assert.equal(shouldContinuePumpFrame(100, 100, MAX_FRAME_BATCHES), false);
 });
 
 test("uart flushing batches small bursts for terminal throughput", () => {

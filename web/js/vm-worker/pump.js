@@ -47,8 +47,7 @@ async function runPump() {
       }
     } while (
       state.running &&
-      performance.now() - frameStart < MAX_FRAME_MS &&
-      batches < MAX_FRAME_BATCHES
+      shouldContinuePumpFrame(frameStart, performance.now(), batches)
     );
 
     maybePostMetrics();
@@ -65,6 +64,10 @@ export function interpreterStepSlice() {
     return networkResponsiveStepSlice();
   }
   return Math.min(networkResponsiveStepSlice(), JIT_PROBE_STEP_SLICE);
+}
+
+export function shouldContinuePumpFrame(frameStart, now, batches) {
+  return now - frameStart < MAX_FRAME_MS && batches < MAX_FRAME_BATCHES;
 }
 
 function networkResponsiveStepSlice() {
