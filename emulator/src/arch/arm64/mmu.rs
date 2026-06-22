@@ -39,9 +39,18 @@ pub fn translate(
 
 pub(crate) fn translate_read_only(
     sys: &SystemRegisters,
+    tlb: Option<&Tlb>,
     mem: &PhysicalMemory,
     va: u64,
 ) -> Result<u64, Fault> {
+    if let Some(tlb) = tlb
+        && (sys.sctlr_el1 & SCTLR_MMU_ENABLE) != 0
+    {
+        let context = translation_context(sys, va);
+        if let Some(pa) = tlb.lookup(mem, va, context) {
+            return Ok(pa);
+        }
+    }
     translate_read(sys, None, mem, va)
 }
 

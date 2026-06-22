@@ -32,7 +32,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
         if instructions.len() >= MAX_BLOCK_INSTRUCTIONS {
             break;
         }
-        let pa = match translate_fetch_pc(&cpu.sys, &bus.mem, pc, &mut translated_page) {
+        let pa = match translate_fetch_pc(&cpu.sys, &cpu.tlb, &bus.mem, pc, &mut translated_page) {
             Ok(pa) => pa,
             Err(_) => {
                 if instructions.is_empty() {
@@ -100,6 +100,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
 
 fn translate_fetch_pc(
     sys: &SystemRegisters,
+    tlb: &crate::arch::arm64::Tlb,
     mem: &PhysicalMemory,
     pc: u64,
     translated_page: &mut Option<(u64, u64)>,
@@ -110,7 +111,7 @@ fn translate_fetch_pc(
             return Ok((cached_pa_page << PAGE_SHIFT) | (pc & PAGE_OFFSET_MASK));
         }
     }
-    let pa = translate_read_only(sys, mem, pc).map_err(|_| ())?;
+    let pa = translate_read_only(sys, Some(tlb), mem, pc).map_err(|_| ())?;
     if va_page != 0 {
         *translated_page = Some((va_page, pa >> PAGE_SHIFT));
     }

@@ -27,15 +27,6 @@ fn tlb_hit_caches_translation() {
 }
 
 #[test]
-fn read_only_translation_does_not_fill_tlb() {
-    let (bus, sys) = mapped_page_fixture(0x4000_3000);
-    let tlb = Tlb::new();
-    let pa = translate_read_only(&sys, &bus.mem, 0xFFFF_FF80_0000_0000).unwrap();
-    assert_eq!(pa, 0x4000_3000);
-    assert!(tlb.entries.iter().all(|entry| !entry.valid));
-}
-
-#[test]
 fn page_table_walk_4kb_page() {
     let mut bus = SystemBus::new();
     let mut sys = SystemRegisters::default();

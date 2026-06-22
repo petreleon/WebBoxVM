@@ -48,7 +48,7 @@ pub(crate) fn trace_stack_chk_call(
     step: u64,
 ) {
     let target = (pc as i64).wrapping_add(instr.imm as i64) as u64;
-    let Some(pa) = translate_read_only(&cpu.sys, &bus.mem, target).ok() else {
+    let Some(pa) = translate_read_only(&cpu.sys, Some(&cpu.tlb), &bus.mem, target).ok() else {
         return;
     };
     if !is_stack_chk_signature(bus, pa) {

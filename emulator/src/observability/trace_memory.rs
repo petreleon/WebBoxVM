@@ -1,13 +1,13 @@
 use super::*;
 
 pub(crate) fn trace_read_u64(cpu: &mut Armv8Cpu, bus: &SystemBus, va: u64) -> Option<u64> {
-    translate_read_only(&cpu.sys, &bus.mem, va)
+    translate_read_only(&cpu.sys, Some(&cpu.tlb), &bus.mem, va)
         .ok()
         .and_then(|pa| bus.mem.read(pa, 8))
 }
 
 pub(crate) fn trace_read_u32(cpu: &mut Armv8Cpu, bus: &SystemBus, va: u64) -> Option<u64> {
-    translate_read_only(&cpu.sys, &bus.mem, va)
+    translate_read_only(&cpu.sys, Some(&cpu.tlb), &bus.mem, va)
         .ok()
         .and_then(|pa| bus.mem.read(pa, 4))
 }
@@ -92,5 +92,5 @@ pub(crate) fn trace_read_u8(cpu: &mut Armv8Cpu, bus: &SystemBus, va: u64) -> Opt
 }
 
 pub(crate) fn trace_translate(cpu: &Armv8Cpu, bus: &SystemBus, va: u64) -> Option<u64> {
-    translate_read_only(&cpu.sys, &bus.mem, va).ok()
+    translate_read_only(&cpu.sys, Some(&cpu.tlb), &bus.mem, va).ok()
 }

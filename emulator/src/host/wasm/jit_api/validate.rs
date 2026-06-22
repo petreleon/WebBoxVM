@@ -83,7 +83,7 @@ pub(super) fn validate_jit_block(
         ));
     }
 
-    let current_pa = translate_read_only(&cpu.sys, &machine.bus.mem, start_pc)
+    let current_pa = translate_read_only(&cpu.sys, Some(&cpu.tlb), &machine.bus.mem, start_pc)
         .map_err(|_| "JIT block start translation fault".to_string())?;
     if current_pa != start_pa {
         return Err(format!(
@@ -99,8 +99,10 @@ pub(super) fn validate_jit_block(
             .checked_add(end_offset)
             .ok_or_else(|| "cached JIT block PA range overflows".to_string())?;
         if crosses_translation_page(start_pc, start_pa, end_pc, end_pa) {
-            let current_pa = translate_read_only(&cpu.sys, &machine.bus.mem, end_pc)
-                .map_err(|_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"))?;
+            let current_pa =
+                translate_read_only(&cpu.sys, Some(&cpu.tlb), &machine.bus.mem, end_pc).map_err(
+                    |_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"),
+                )?;
             if current_pa != end_pa {
                 return Err(format!(
                     "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
