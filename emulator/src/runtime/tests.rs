@@ -132,3 +132,12 @@ fn clear_exclusive_overlaps_updates_all_cores() {
     assert!(!machine.core(0).exclusive_matches(RAM_BASE + 0x40, 8));
     assert!(machine.core(1).exclusive_matches(RAM_BASE + 0x80, 8));
 }
+
+#[test]
+fn gic_access_fast_path_ignores_non_sysreg_instruction() {
+    let mut machine = Machine::new(1);
+
+    assert!(!machine.handle_gic_access(0, Instr::nop(), 1));
+    assert_eq!(machine.total_steps, 0);
+    assert_eq!(machine.active_core, 0);
+}

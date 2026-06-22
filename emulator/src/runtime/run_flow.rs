@@ -62,6 +62,9 @@ impl Machine {
         instr: Instr,
         num_cores: usize,
     ) -> bool {
+        if !matches!(instr.op, Opcode::Mrs | Opcode::Msr) {
+            return false;
+        }
         let cpu = &mut self.cpus[core];
         if !handle_gic_sysreg_access(cpu, &mut self.bus, instr) {
             return false;
