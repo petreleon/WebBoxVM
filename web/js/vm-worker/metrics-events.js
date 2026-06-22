@@ -1,8 +1,7 @@
 import { metrics } from "./lifecycle.js";
 import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
 
-export function maybePostMetrics() {
-  const now = performance.now();
+export function maybePostMetrics(now = performance.now()) {
   if (now - state.lastMetricsAt < METRICS_INTERVAL_MS) {
     return;
   }
@@ -10,18 +9,17 @@ export function maybePostMetrics() {
   postMetrics();
 }
 
-export function postMetrics({ force = false } = {}) {
+export function postMetrics({ force = false, now } = {}) {
   if (!state.emulator) {
     return;
   }
   if (force) {
-    state.lastMetricsAt = performance.now();
+    state.lastMetricsAt = now ?? performance.now();
   }
   postMessage({ event: "metrics", metrics: metrics() });
 }
 
-export function maybeRequestAutosave() {
-  const now = performance.now();
+export function maybeRequestAutosave(now = performance.now()) {
   if (now - state.lastAutosavePollAt < AUTOSAVE_POLL_MS) {
     return;
   }

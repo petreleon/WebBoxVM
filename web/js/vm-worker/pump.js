@@ -28,6 +28,7 @@ async function runPump() {
   }
 
   const frameStart = performance.now();
+  let now = frameStart;
   let batches = 0;
 
   try {
@@ -37,21 +38,20 @@ async function runPump() {
         return;
       }
       if (!usedJit) {
-        state.emulator.run_kernel(interpreterStepSlice());
+        now = performance.now();
+        state.emulator.run_kernel(interpreterStepSlice(now));
       }
       const sentNetworkFrames = drainNetworkTx();
-      drainUart(performance.now());
+      now = performance.now();
+      drainUart(now);
       batches += 1;
       if (sentNetworkFrames > 0) {
         break;
       }
-    } while (
-      state.running &&
-      shouldContinuePumpFrame(frameStart, performance.now(), batches)
-    );
+    } while (state.running && shouldContinuePumpFrame(frameStart, now, batches));
 
-    maybePostMetrics();
-    maybeRequestAutosave();
+    maybePostMetrics(now);
+    maybeRequestAutosave(now);
     schedulePump();
   } catch (error) {
     state.running = false;
@@ -59,29 +59,29 @@ async function runPump() {
   }
 }
 
-export function interpreterStepSlice() {
+export function interpreterStepSlice(now = performance.now()) {
   if (!state.jitEnabled) {
-    return networkResponsiveStepSlice();
+    return networkResponsiveStepSlice(now);
   }
-  return Math.min(networkResponsiveStepSlice(), JIT_PROBE_STEP_SLICE);
+  return Math.min(networkResponsiveStepSlice(now), JIT_PROBE_STEP_SLICE);
 }
 
 export function shouldContinuePumpFrame(frameStart, now, batches) {
   return now - frameStart < MAX_FRAME_MS && batches < MAX_FRAME_BATCHES;
 }
 
-function networkResponsiveStepSlice() {
-  if (networkNeedsResponsiveSlices()) {
+function networkResponsiveStepSlice(now) {
+  if (networkNeedsResponsiveSlices(now)) {
     return Math.min(state.stepSlice, NETWORK_STEP_SLICE);
   }
   return state.stepSlice;
 }
 
-function networkNeedsResponsiveSlices() {
+function networkNeedsResponsiveSlices(now) {
   if (state.networkStatus !== "connected") {
     return false;
   }
-  if (performance.now() - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS) {
+  if (now - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS) {
     return true;
   }
   return (state.emulator?.network_tx_pending?.() ?? 0) > 0;

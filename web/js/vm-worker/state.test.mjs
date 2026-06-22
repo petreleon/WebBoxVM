@@ -6,6 +6,7 @@ import {
   DEFAULT_STEP_SLICE,
   MAX_FRAME_BATCHES,
   MAX_FRAME_MS,
+  NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
   resetJitState,
   state,
@@ -60,6 +61,27 @@ test("recent network activity skips pending tx polling", () => {
   };
 
   assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
+  assert.equal(pendingPolls, 0);
+
+  state.emulator = undefined;
+  state.networkStatus = "offline";
+  state.stepSlice = DEFAULT_STEP_SLICE;
+});
+
+test("network responsiveness can reuse a caller timestamp", () => {
+  let pendingPolls = 0;
+  state.jitEnabled = false;
+  state.networkStatus = "connected";
+  state.stepSlice = 50_000_000;
+  state.lastNetworkActivityAt = 1000;
+  state.emulator = {
+    network_tx_pending: () => {
+      pendingPolls += 1;
+      return 0;
+    },
+  };
+
+  assert.equal(interpreterStepSlice(1000 + NETWORK_IDLE_FAST_MS - 1), NETWORK_STEP_SLICE);
   assert.equal(pendingPolls, 0);
 
   state.emulator = undefined;
