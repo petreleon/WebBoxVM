@@ -107,8 +107,11 @@ export class WorkerChannel {
 
   #updateMetrics(metrics) {
     const hasJitStats = metrics.jitStats !== undefined;
+    const hasInstruction = Object.hasOwn(metrics, "currentInstruction");
     this.#metrics.allocatedPages = metrics.allocatedPages;
-    this.#metrics.currentInstruction = metrics.currentInstruction;
+    if (hasInstruction) {
+      this.#metrics.currentInstruction = metrics.currentInstruction;
+    }
     this.#metrics.installDiskAllocatedBytes = metrics.installDiskAllocatedBytes;
     this.#metrics.installDiskGeneration = metrics.installDiskGeneration;
     this.#metrics.installDiskSizeBytes = metrics.installDiskSizeBytes;
@@ -120,21 +123,23 @@ export class WorkerChannel {
     this.#metrics.pc = metrics.pc;
     this.#metrics.totalSteps = metrics.totalSteps;
     this.#metrics.uartOutputLen = metrics.uartOutputLen;
-    this.#updateMetricProbes(hasJitStats);
+    this.#updateMetricProbes(hasJitStats, hasInstruction);
   }
 
-  #updateMetricProbes(hasJitStats) {
+  #updateMetricProbes(hasJitStats, hasInstruction) {
     if (hasJitStats) {
       this.#jitProbe ||= document.querySelector("[data-testid='webboxvm-jit-stats']");
       if (this.#jitProbe) {
         this.#setProbeText(this.#jitProbe, JSON.stringify(this.#metrics.jitStats ?? null));
       }
     }
-    this.#instructionProbe ||= document.querySelector(
-      "[data-testid='webboxvm-current-instruction']",
-    );
-    if (this.#instructionProbe) {
-      this.#setProbeText(this.#instructionProbe, this.#metrics.currentInstruction ?? "");
+    if (hasInstruction) {
+      this.#instructionProbe ||= document.querySelector(
+        "[data-testid='webboxvm-current-instruction']",
+      );
+      if (this.#instructionProbe) {
+        this.#setProbeText(this.#instructionProbe, this.#metrics.currentInstruction ?? "");
+      }
     }
   }
 

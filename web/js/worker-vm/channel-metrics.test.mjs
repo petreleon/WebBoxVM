@@ -108,8 +108,42 @@ test("omitted jit stats skip probe stringify work", () => {
   assert.equal(stringifyCalls, 1);
 });
 
+test("omitted current instruction skips probe lookup", () => {
+  const instructionProbe = { textContent: "" };
+  let instructionQueryCalls = 0;
+  globalThis.document = {
+    querySelector(selector) {
+      if (selector.includes("current-instruction")) {
+        instructionQueryCalls += 1;
+        return instructionProbe;
+      }
+      return undefined;
+    },
+  };
+  const channel = new WorkerChannel("worker.js", callbacks());
+
+  FakeWorker.instances[0].emitMessage({
+    event: "metrics",
+    metrics: metrics({ currentInstruction: "one", jitStats: undefined }),
+  });
+  FakeWorker.instances[0].emitMessage({
+    event: "metrics",
+    metrics: metricsWithoutInstruction({ totalSteps: 13n }),
+  });
+
+  assert.equal(channel.metrics.currentInstruction, "one");
+  assert.equal(channel.metrics.totalSteps, 13n);
+  assert.equal(instructionQueryCalls, 1);
+});
+
 function callbacks() {
   return { onAutosave() {}, onError() {}, onMetrics() {}, onNetwork() {}, onUart() {} };
+}
+
+function metricsWithoutInstruction(overrides = {}) {
+  const snapshot = metrics(overrides);
+  delete snapshot.currentInstruction;
+  return snapshot;
 }
 
 function metrics(overrides = {}) {
