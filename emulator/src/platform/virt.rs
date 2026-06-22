@@ -83,7 +83,7 @@ impl SystemBus {
     }
 
     pub fn write_bytes(&mut self, addr: u64, bytes: &[u8]) -> Option<()> {
-        if overlaps_device_range(addr, bytes.len()) {
+        if addr < LOW_REGION_END && overlaps_device_range(addr, bytes.len()) {
             return None;
         }
         self.mem.write_bytes(addr, bytes)

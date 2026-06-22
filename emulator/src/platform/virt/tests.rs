@@ -83,6 +83,17 @@ fn bulk_write_rejects_device_ranges() {
 }
 
 #[test]
+fn bulk_write_fast_path_preserves_high_memory_regions() {
+    let mut bus = SystemBus::new();
+
+    assert_eq!(bus.write_bytes(RAM_BASE, &[1, 2, 3, 4]), Some(()));
+    assert_eq!(bus.write_bytes(EFI_REGION_BASE, &[5, 6, 7, 8]), Some(()));
+    assert_eq!(bus.write_bytes(u64::MAX - 1, &[9, 10]), None);
+    assert_eq!(bus.mem.read(RAM_BASE, 4), Some(0x0403_0201));
+    assert_eq!(bus.mem.read(EFI_REGION_BASE, 4), Some(0x0807_0605));
+}
+
+#[test]
 fn device_overlap_detection_handles_edges_and_overflow() {
     let bus = SystemBus::new();
 
