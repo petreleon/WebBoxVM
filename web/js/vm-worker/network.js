@@ -1,4 +1,4 @@
-import { state } from "./state.js";
+import { NETWORK_IDLE_FAST_MS, NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js";
 
 const RETRY_MS = 3000;
 let socket;
@@ -21,10 +21,14 @@ export function stopNetworkProxy() {
   setStatus("offline");
 }
 
-export function drainNetworkTx() {
+export function drainNetworkTx(now = performance.now()) {
   if (!state.emulator || !socket || socket.readyState !== WebSocket.OPEN) {
     return 0;
   }
+  if (!shouldPollNetworkTx(now)) {
+    return 0;
+  }
+  state.lastNetworkTxPollAt = now;
   const pending = state.emulator.network_tx_pending?.() ?? 0;
   if (pending <= 0) {
     return 0;
@@ -43,6 +47,16 @@ export function drainNetworkTx() {
   }
   markNetworkActivity();
   return sent;
+}
+
+function shouldPollNetworkTx(now) {
+  if (now - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS) {
+    return true;
+  }
+  return (
+    state.lastNetworkTxPollAt === 0 ||
+    now - state.lastNetworkTxPollAt >= NETWORK_TX_POLL_INTERVAL_MS
+  );
 }
 
 function connect() {

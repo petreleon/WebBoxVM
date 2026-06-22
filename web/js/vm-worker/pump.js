@@ -45,8 +45,8 @@ async function runPump() {
         now = performance.now();
         state.emulator.run_kernel(interpreterStepSlice(now));
       }
-      const sentNetworkFrames = drainNetworkTx();
       now = performance.now();
+      const sentNetworkFrames = drainNetworkTx(now);
       drainUart(now);
       batches += 1;
       if (sentNetworkFrames > 0) {

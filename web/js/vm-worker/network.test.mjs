@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
 import { drainNetworkTx, startNetworkProxy, stopNetworkProxy } from "./network.js";
-import { state } from "./state.js";
+import { NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js";
 
 const previousSelf = globalThis.self;
 const previousWebSocket = globalThis.WebSocket;
@@ -59,6 +59,40 @@ test("idle network drain skips empty tx frame allocation", () => {
   assert.equal(popped, 0);
 });
 
+test("idle network drain throttles pending polls", () => {
+  let pendingPolls = 0;
+  state.lastNetworkActivityAt = 0;
+  state.lastNetworkTxPollAt = 10_000;
+  state.emulator = {
+    network_tx_pending: () => {
+      pendingPolls += 1;
+      return 0;
+    },
+  };
+
+  startNetworkProxy();
+
+  assert.equal(drainNetworkTx(10_000 + NETWORK_TX_POLL_INTERVAL_MS - 1), 0);
+  assert.equal(pendingPolls, 0);
+  assert.equal(state.lastNetworkTxPollAt, 10_000);
+});
+
+test("recent network activity keeps tx pending polls responsive", () => {
+  let pendingPolls = 0;
+  state.lastNetworkActivityAt = 2000;
+  state.lastNetworkTxPollAt = 2000;
+  state.emulator = {
+    network_tx_pending: () => {
+      pendingPolls += 1;
+      return 0;
+    },
+  };
+
+  assert.equal(drainNetworkTx(2001), 0);
+  assert.equal(pendingPolls, 1);
+  assert.equal(state.lastNetworkTxPollAt, 2001);
+});
+
 test("network drain pops exactly pending frames", () => {
   const frames = [new Uint8Array([1]), new Uint8Array([2])];
   state.emulator = {
@@ -89,7 +123,7 @@ test("network drain marks activity once per transmitted burst", () => {
       network_tx_frame: () => frames.shift() ?? new Uint8Array(),
     };
 
-    assert.equal(drainNetworkTx(), 2);
+    assert.equal(drainNetworkTx(10_000), 2);
     assert.equal(nowCalls, 1);
     assert.equal(state.lastNetworkActivityAt, 101);
   } finally {

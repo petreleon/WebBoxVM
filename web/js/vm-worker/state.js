@@ -4,6 +4,7 @@ export const DEFAULT_STEP_SLICE = 1_000_000;
 export const MAX_STEP_SLICE = 50_000_000;
 export const NETWORK_STEP_SLICE = 1_000_000;
 export const NETWORK_IDLE_FAST_MS = 1500;
+export const NETWORK_TX_POLL_INTERVAL_MS = 16;
 export const UART_FLUSH_BYTES = 8192;
 export const UART_FLUSH_INTERVAL_MS = 50;
 export const UART_POLL_INTERVAL_MS = 16;
@@ -31,6 +32,7 @@ export const state = {
   lastAutosavePollAt: 0,
   lastMetricsAt: 0,
   lastNetworkActivityAt: 0,
+  lastNetworkTxPollAt: 0,
   lastUart: 0,
   lastUartFlushAt: 0,
   lastUartPollAt: 0,
