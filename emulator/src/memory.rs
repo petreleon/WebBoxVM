@@ -67,13 +67,15 @@ impl PhysicalMemory {
     }
 
     pub fn read_bytes(&self, addr: u64, dst: &mut [u8]) -> Option<()> {
-        self.select_region(addr, dst.len())
-            .and_then(|region| region.read_bytes(addr, dst))
+        let region = self.select_region(addr, dst.len())?;
+        region.read_bytes_in_region(addr, dst);
+        Some(())
     }
 
     pub fn write_bytes(&mut self, addr: u64, src: &[u8]) -> Option<()> {
-        self.select_region_mut(addr, src.len())
-            .and_then(|region| region.write_bytes(addr, src))
+        let region = self.select_region_mut(addr, src.len())?;
+        region.write_bytes_in_region(addr, src);
+        Some(())
     }
 
     pub fn page_generation(&self, addr: u64) -> Option<u64> {

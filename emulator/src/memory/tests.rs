@@ -91,6 +91,9 @@ fn page_generation_uses_single_address_region_bounds() {
 #[test]
 fn range_must_stay_inside_one_region() {
     let mut m = PhysicalMemory::new();
+    let mut out = [0u8; 3];
+
     assert_eq!(m.write_bytes(LOW_REGION_END - 2, &[1, 2, 3]), None);
+    assert_eq!(m.read_bytes(LOW_REGION_END - 2, &mut out), None);
     assert_eq!(m.read(EFI_REGION_END, 1), None);
 }

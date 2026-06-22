@@ -48,10 +48,8 @@ impl SparseRegion {
         addr.wrapping_sub(self.base) < self.size
     }
 
-    pub(super) fn read_bytes(&self, addr: u64, dst: &mut [u8]) -> Option<()> {
-        if !self.contains_range(addr, dst.len()) {
-            return None;
-        }
+    pub(super) fn read_bytes_in_region(&self, addr: u64, dst: &mut [u8]) {
+        debug_assert!(self.contains_range(addr, dst.len()));
 
         let mut done = 0usize;
         while done < dst.len() {
@@ -68,8 +66,6 @@ impl SparseRegion {
             }
             done += chunk;
         }
-
-        Some(())
     }
 
     pub(super) fn read_array<const N: usize>(&self, addr: u64) -> [u8; N] {
@@ -81,7 +77,7 @@ impl SparseRegion {
         let mut bytes = [0; N];
 
         if page_offset + N > MEMORY_PAGE_SIZE {
-            let _ = self.read_bytes(addr, &mut bytes);
+            self.read_bytes_in_region(addr, &mut bytes);
             return bytes;
         }
 
@@ -99,10 +95,8 @@ impl SparseRegion {
             .map_or(0, |page| page.generation)
     }
 
-    pub(super) fn write_bytes(&mut self, addr: u64, src: &[u8]) -> Option<()> {
-        if !self.contains_range(addr, src.len()) {
-            return None;
-        }
+    pub(super) fn write_bytes_in_region(&mut self, addr: u64, src: &[u8]) {
+        debug_assert!(self.contains_range(addr, src.len()));
 
         let mut done = 0usize;
         while done < src.len() {
@@ -116,8 +110,6 @@ impl SparseRegion {
             page.bump_generation();
             done += chunk;
         }
-
-        Some(())
     }
 
     pub(super) fn allocated_pages(&self) -> usize {
