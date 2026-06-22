@@ -41,17 +41,17 @@ async function runPump() {
       if (!state.running) {
         return;
       }
+      const emulator = state.emulator;
+      if (!emulator) {
+        return;
+      }
       if (!usedJit) {
         now = performance.now();
-        const emulator = state.emulator;
-        if (!emulator) {
-          return;
-        }
         emulator.run_kernel(interpreterStepSlice(now, emulator));
       }
       now = performance.now();
-      const sentNetworkFrames = drainNetworkTx(now);
-      drainUart(now);
+      const sentNetworkFrames = drainNetworkTx(now, emulator);
+      drainUart(now, emulator);
       batches += 1;
       if (sentNetworkFrames > 0) {
         break;
@@ -95,8 +95,7 @@ function networkNeedsResponsiveSlices(now, emulator) {
   return (emulator?.network_tx_pending?.() ?? 0) > 0;
 }
 
-export function drainUart(now) {
-  const emulator = state.emulator;
+export function drainUart(now, emulator = state.emulator) {
   if (!emulator || !shouldPollUart(now, state.lastUartPollAt)) {
     return;
   }

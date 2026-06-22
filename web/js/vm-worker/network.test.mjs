@@ -107,7 +107,7 @@ test("network drain pops exactly pending frames", () => {
   );
 });
 
-test("network drain samples through one checked emulator reference", () => {
+test("network drain can reuse checked emulator reference", () => {
   const frames = [new Uint8Array([9]), new Uint8Array([10])];
   const emulator = {
     network_tx_pending: () => frames.length,
@@ -124,8 +124,8 @@ test("network drain samples through one checked emulator reference", () => {
   });
 
   try {
-    assert.equal(drainNetworkTx(5000), 2);
-    assert.equal(emulatorReads, 1);
+    assert.equal(drainNetworkTx(5000, emulator), 2);
+    assert.equal(emulatorReads, 0);
   } finally {
     Object.defineProperty(state, "emulator", previousDescriptor);
   }

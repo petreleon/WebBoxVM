@@ -13,7 +13,7 @@ afterEach(() => {
   state.lastUartPollAt = 0;
 });
 
-test("uart drain samples through one checked emulator reference", () => {
+test("uart drain can reuse checked emulator reference", () => {
   const messages = [];
   const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
   let emulatorReads = 0;
@@ -31,9 +31,9 @@ test("uart drain samples through one checked emulator reference", () => {
   });
 
   try {
-    drainUart(10);
+    drainUart(10, emulator);
 
-    assert.equal(emulatorReads, 1);
+    assert.equal(emulatorReads, 0);
     assert.equal(messages.length, 1);
     assert.equal(messages[0].output.length, 8192);
   } finally {

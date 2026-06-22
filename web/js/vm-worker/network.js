@@ -21,8 +21,7 @@ export function stopNetworkProxy() {
   setStatus("offline");
 }
 
-export function drainNetworkTx(now = performance.now()) {
-  const emulator = state.emulator;
+export function drainNetworkTx(now = performance.now(), emulator = state.emulator) {
   if (!emulator || !socket || socket.readyState !== WebSocket.OPEN) {
     return 0;
   }
