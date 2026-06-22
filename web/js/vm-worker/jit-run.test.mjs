@@ -56,10 +56,13 @@ test("prepare failure falls back without running cached jit", () => {
 
 test("cached jit prepare receives metadata and run uses cached state pointer", () => {
   let prepareArgs;
+  let finishArgs;
   let runStatePtr;
   state.emulator = {
-    jit_commit_state_to_core: () => true,
-    jit_helper_failed: () => false,
+    jit_finish_cached_block: (...args) => {
+      finishArgs = args;
+      return 0;
+    },
     jit_last_error: () => "",
     jit_prepare_cached_block: (...args) => {
       prepareArgs = args;
@@ -78,4 +81,56 @@ test("cached jit prepare receives metadata and run uses cached state pointer", (
   assert.equal(result.committed, true);
   assert.equal(runStatePtr, 0x3000n);
   assert.deepEqual(prepareArgs, [0, 0x1000n, 0x2000n, 1n, 2n, 3n, 4]);
+  assert.deepEqual(finishArgs, [0, 4, 0x1010n, 0x1010n, 0n, false]);
+});
+
+test("finish helper rejection invalidates cached jit block", () => {
+  state.emulator = {
+    jit_finish_cached_block: () => 1,
+    jit_last_error: () => "JIT helper failed",
+    jit_prepare_cached_block: () => true,
+    pc: () => 0x1000n,
+  };
+
+  const result = runCachedJitBlock(0, "0:1000", cachedEntry());
+
+  assert.equal(result.committed, false);
+  assert.equal(result.error, "JIT helper failed");
+  assert.equal(result.invalidated, true);
+  assert.equal(result.rejected, true);
+});
+
+test("finish exit rejection deletes cached jit block", () => {
+  state.emulator = {
+    jit_finish_cached_block: () => 3,
+    jit_last_error: () => "JIT block returned 0x1020 instead of 0x1010",
+    jit_prepare_cached_block: () => true,
+    pc: () => 0x1000n,
+  };
+  const entry = cachedEntry();
+  state.jitBlocks.set("0:1000", entry);
+
+  const result = runCachedJitBlock(0, "0:1000", entry);
+
+  assert.equal(result.committed, false);
+  assert.equal(result.invalidated, true);
+  assert.equal(state.jitBlocks.has("0:1000"), false);
+});
+
+test("finish commit rejection keeps cached jit block", () => {
+  state.emulator = {
+    jit_finish_cached_block: () => 2,
+    jit_last_error: () => "JIT block crosses an unmasked pending IRQ boundary",
+    jit_prepare_cached_block: () => true,
+    pc: () => 0x1000n,
+  };
+  const entry = cachedEntry();
+  state.jitBlocks.set("0:1000", entry);
+
+  const result = runCachedJitBlock(0, "0:1000", entry);
+
+  assert.equal(result.committed, false);
+  assert.equal(result.invalidated, undefined);
+  assert.equal(result.steps, 4);
+  assert.equal(state.jitBlocks.has("0:1000"), true);
 });

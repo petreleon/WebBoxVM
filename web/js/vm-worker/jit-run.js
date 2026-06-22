@@ -3,7 +3,9 @@ import { postMetrics } from "./metrics-events.js";
 import { state } from "./state.js";
 import { requireEmulator } from "./lifecycle.js";
 
-const ANY_DYNAMIC_EXIT_PC = 0xffffffffffffffffn;
+const JIT_FINISH_COMMITTED = 0;
+const JIT_FINISH_HELPER_REJECTED = 1;
+const JIT_FINISH_EXIT_REJECTED = 3;
 
 export async function runJitBlock({ coreId = 0 } = {}) {
   requireEmulator();
@@ -48,7 +50,15 @@ export function runCachedJitBlock(coreId, key, entry) {
   }
 
   const exitPc = entry.instance.exports.run(entry.statePtr);
-  if (state.emulator.jit_helper_failed()) {
+  const finish = state.emulator.jit_finish_cached_block(
+    coreId,
+    entry.steps,
+    exitPc,
+    entry.exitPc,
+    entry.alternateExitPc,
+    entry.dynamicExit,
+  );
+  if (finish === JIT_FINISH_HELPER_REJECTED) {
     return {
       committed: false,
       error: state.emulator.jit_last_error(),
@@ -57,56 +67,32 @@ export function runCachedJitBlock(coreId, key, entry) {
       rejected: true,
     };
   }
-  if (!isAllowedExit(exitPc, entry)) {
+  if (finish === JIT_FINISH_EXIT_REJECTED) {
     state.jitBlocks.delete(key);
     return {
       committed: false,
-      error: exitMismatchMessage(exitPc, entry),
+      error: state.emulator.jit_last_error(),
       invalidated: true,
       pc,
     };
   }
+  if (finish !== JIT_FINISH_COMMITTED) {
+    return {
+      committed: false,
+      error: state.emulator.jit_last_error(),
+      exitPc,
+      pc,
+      steps: entry.steps,
+    };
+  }
 
-  const committed = state.emulator.jit_commit_state_to_core(coreId, entry.steps, exitPc);
   return {
-    committed,
-    error: committed ? "" : state.emulator.jit_last_error(),
+    committed: true,
+    error: "",
     exitPc,
     pc,
     steps: entry.steps,
   };
-}
-
-function canCommitNow(coreId, steps) {
-  if (!state.emulator.jit_can_commit_block_now) {
-    return "";
-  }
-  if (state.emulator.jit_can_commit_block_now(coreId, steps)) {
-    return "";
-  }
-  return state.emulator.jit_last_error();
-}
-
-function isAllowedExit(exitPc, entry) {
-  if (exitPc === entry.exitPc) {
-    return true;
-  }
-  if (entry.dynamicExit && entry.alternateExitPc === ANY_DYNAMIC_EXIT_PC) {
-    return true;
-  }
-  return entry.dynamicExit && exitPc === entry.alternateExitPc;
-}
-
-function exitMismatchMessage(exitPc, entry) {
-  const actual = `0x${exitPc.toString(16)}`;
-  const expected = `0x${entry.exitPc.toString(16)}`;
-  if (!entry.dynamicExit) {
-    return `JIT block returned ${actual} instead of ${expected}`;
-  }
-  if (entry.alternateExitPc === ANY_DYNAMIC_EXIT_PC) {
-    return `JIT block returned ${actual} outside arbitrary dynamic exit`;
-  }
-  return `JIT block returned ${actual} outside ${expected}/0x${entry.alternateExitPc.toString(16)}`;
 }
 
 function isCommitBoundaryError(error) {

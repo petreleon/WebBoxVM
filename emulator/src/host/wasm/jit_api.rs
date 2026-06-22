@@ -2,6 +2,7 @@ mod commit;
 mod compile;
 mod exclusive;
 mod exclusive_load;
+mod finish;
 mod load;
 mod prepare;
 mod state;

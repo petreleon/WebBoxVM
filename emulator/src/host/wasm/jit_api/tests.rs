@@ -10,6 +10,7 @@ use crate::runtime::Machine;
 use super::commit::commit_jit_state;
 
 mod exclusive;
+mod finish;
 mod prepare;
 mod side_effects;
 mod sysreg;
