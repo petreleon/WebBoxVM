@@ -76,6 +76,38 @@ test("metrics updates preserve cached jit stats when omitted", () => {
   assert.equal(channel.metrics.totalSteps, 13n);
 });
 
+test("omitted jit stats skip probe stringify work", () => {
+  const jitProbe = { textContent: "" };
+  let queryCalls = 0;
+  globalThis.document = {
+    querySelector(selector) {
+      queryCalls += 1;
+      return selector.includes("jit-stats") ? jitProbe : undefined;
+    },
+  };
+  const channel = new WorkerChannel("worker.js", callbacks());
+  const originalStringify = JSON.stringify;
+  let stringifyCalls = 0;
+  JSON.stringify = (...args) => {
+    stringifyCalls += 1;
+    return originalStringify(...args);
+  };
+
+  try {
+    FakeWorker.instances[0].emitMessage({ event: "metrics", metrics: metrics() });
+    FakeWorker.instances[0].emitMessage({
+      event: "metrics",
+      metrics: metrics({ jitStats: undefined, totalSteps: 13n }),
+    });
+  } finally {
+    JSON.stringify = originalStringify;
+  }
+
+  assert.equal(channel.metrics.totalSteps, 13n);
+  assert.equal(queryCalls, 3);
+  assert.equal(stringifyCalls, 1);
+});
+
 function callbacks() {
   return { onAutosave() {}, onError() {}, onMetrics() {}, onNetwork() {}, onUart() {} };
 }

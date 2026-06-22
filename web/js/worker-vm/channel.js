@@ -106,6 +106,7 @@ export class WorkerChannel {
   }
 
   #updateMetrics(metrics) {
+    const hasJitStats = metrics.jitStats !== undefined;
     this.#metrics.allocatedPages = metrics.allocatedPages;
     this.#metrics.currentInstruction = metrics.currentInstruction;
     this.#metrics.installDiskAllocatedBytes = metrics.installDiskAllocatedBytes;
@@ -119,13 +120,15 @@ export class WorkerChannel {
     this.#metrics.pc = metrics.pc;
     this.#metrics.totalSteps = metrics.totalSteps;
     this.#metrics.uartOutputLen = metrics.uartOutputLen;
-    this.#updateMetricProbes();
+    this.#updateMetricProbes(hasJitStats);
   }
 
-  #updateMetricProbes() {
-    this.#jitProbe ||= document.querySelector("[data-testid='webboxvm-jit-stats']");
-    if (this.#jitProbe) {
-      this.#setProbeText(this.#jitProbe, JSON.stringify(this.#metrics.jitStats ?? null));
+  #updateMetricProbes(hasJitStats) {
+    if (hasJitStats) {
+      this.#jitProbe ||= document.querySelector("[data-testid='webboxvm-jit-stats']");
+      if (this.#jitProbe) {
+        this.#setProbeText(this.#jitProbe, JSON.stringify(this.#metrics.jitStats ?? null));
+      }
     }
     this.#instructionProbe ||= document.querySelector(
       "[data-testid='webboxvm-current-instruction']",
