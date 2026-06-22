@@ -31,10 +31,11 @@ async function runPump() {
   const frameStart = performance.now();
   let now = frameStart;
   let batches = 0;
+  let emulator;
 
   try {
     do {
-      let emulator = state.emulator;
+      emulator = state.emulator;
       if (!emulator) {
         return;
       }
@@ -65,8 +66,8 @@ async function runPump() {
       }
     } while (state.running && shouldContinuePumpFrame(frameStart, now, batches));
 
-    maybePostMetrics(now);
-    maybeRequestAutosave(now);
+    maybePostMetrics(now, emulator);
+    maybeRequestAutosave(now, emulator);
     schedulePump();
   } catch (error) {
     state.running = false;

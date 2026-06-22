@@ -1,16 +1,15 @@
 import { metrics } from "./lifecycle.js";
 import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
 
-export function maybePostMetrics(now = performance.now()) {
+export function maybePostMetrics(now = performance.now(), emulator = state.emulator) {
   if (now - state.lastMetricsAt < METRICS_INTERVAL_MS) {
     return;
   }
   state.lastMetricsAt = now;
-  postMetrics();
+  postMetrics({ emulator });
 }
 
-export function postMetrics({ force = false, now } = {}) {
-  const emulator = state.emulator;
+export function postMetrics({ force = false, now, emulator = state.emulator } = {}) {
   if (!emulator) {
     return;
   }
@@ -23,13 +22,13 @@ export function postMetrics({ force = false, now } = {}) {
   });
 }
 
-export function maybeRequestAutosave(now = performance.now()) {
+export function maybeRequestAutosave(now = performance.now(), emulator = state.emulator) {
   if (now - state.lastAutosavePollAt < AUTOSAVE_POLL_MS) {
     return;
   }
   state.lastAutosavePollAt = now;
 
-  const generation = state.emulator.install_disk_generation();
+  const generation = emulator.install_disk_generation();
   if (generation === state.lastAutosaveGeneration) {
     return;
   }

@@ -36,16 +36,30 @@ function metricsEmulator() {
 }
 
 test("metrics posting can reuse a caller timestamp", () => {
-  state.emulator = metricsEmulator();
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  const emulator = metricsEmulator();
+  let emulatorReads = 0;
   state.lastMetricsAt = 1000;
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return undefined;
+    },
+  });
 
-  maybePostMetrics(1000 + METRICS_INTERVAL_MS - 1);
-  assert.deepEqual(messages, []);
+  try {
+    maybePostMetrics(1000 + METRICS_INTERVAL_MS - 1, emulator);
+    assert.deepEqual(messages, []);
 
-  maybePostMetrics(1000 + METRICS_INTERVAL_MS);
-  assert.equal(state.lastMetricsAt, 1000 + METRICS_INTERVAL_MS);
-  assert.equal(messages.length, 1);
-  assert.equal(messages[0].event, "metrics");
+    maybePostMetrics(1000 + METRICS_INTERVAL_MS, emulator);
+    assert.equal(state.lastMetricsAt, 1000 + METRICS_INTERVAL_MS);
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].event, "metrics");
+    assert.equal(emulatorReads, 0);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
 });
 
 test("routine metrics use a low-overhead ui cadence", () => {
@@ -105,21 +119,35 @@ test("autosave skips disk generation polling inside poll window", () => {
 });
 
 test("autosave polls generation and requests save after intervals", () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
   let generationPolls = 0;
   const now = 10_000;
   state.lastAutosaveAt = now - AUTOSAVE_INTERVAL_MS - 10;
   state.lastAutosaveGeneration = 0n;
   state.lastAutosavePollAt = now - AUTOSAVE_POLL_MS - 10;
-  state.emulator = {
+  const emulator = {
     install_disk_generation: () => {
       generationPolls += 1;
       return 1n;
     },
   };
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return undefined;
+    },
+  });
 
-  maybeRequestAutosave(now);
+  try {
+    maybeRequestAutosave(now, emulator);
 
-  assert.equal(generationPolls, 1);
-  assert.equal(state.lastAutosaveGeneration, 1n);
-  assert.deepEqual(messages, [{ event: "autosave", installDiskGeneration: 1n }]);
+    assert.equal(generationPolls, 1);
+    assert.equal(state.lastAutosaveGeneration, 1n);
+    assert.deepEqual(messages, [{ event: "autosave", installDiskGeneration: 1n }]);
+    assert.equal(emulatorReads, 0);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
 });
