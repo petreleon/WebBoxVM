@@ -36,5 +36,5 @@ export function maybeRequestAutosave(now = performance.now()) {
 
   state.lastAutosaveAt = now;
   state.lastAutosaveGeneration = generation;
-  postMessage({ event: "autosave" });
+  postMessage({ event: "autosave", installDiskGeneration: generation });
 }

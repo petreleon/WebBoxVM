@@ -81,6 +81,9 @@ export class WorkerChannel {
   #handleEvent(message) {
     switch (message.event) {
       case "autosave":
+        if (message.installDiskGeneration !== undefined) {
+          this.#metrics.installDiskGeneration = message.installDiskGeneration;
+        }
         this.#callbacks.onAutosave();
         break;
       case "error":

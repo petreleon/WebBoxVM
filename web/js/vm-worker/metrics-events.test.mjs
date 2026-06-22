@@ -48,6 +48,10 @@ test("metrics posting can reuse a caller timestamp", () => {
   assert.equal(messages[0].event, "metrics");
 });
 
+test("routine metrics use a low-overhead ui cadence", () => {
+  assert.equal(METRICS_INTERVAL_MS, 250);
+});
+
 test("autosave skips disk generation polling inside poll window", () => {
   let generationPolls = 0;
   const now = 10_000;
@@ -84,5 +88,5 @@ test("autosave polls generation and requests save after intervals", () => {
 
   assert.equal(generationPolls, 1);
   assert.equal(state.lastAutosaveGeneration, 1n);
-  assert.deepEqual(messages, [{ event: "autosave" }]);
+  assert.deepEqual(messages, [{ event: "autosave", installDiskGeneration: 1n }]);
 });
