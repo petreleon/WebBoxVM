@@ -92,16 +92,17 @@ function networkNeedsResponsiveSlices(now) {
 }
 
 export function drainUart(now) {
-  if (!shouldPollUart(now, state.lastUartPollAt)) {
+  const emulator = state.emulator;
+  if (!emulator || !shouldPollUart(now, state.lastUartPollAt)) {
     return;
   }
   state.lastUartPollAt = now;
-  const uartLen = state.emulator.uart_output_len();
+  const uartLen = emulator.uart_output_len();
   const pendingBytes = uartLen - state.lastUart;
   if (!shouldFlushUart(pendingBytes, now, state.lastUartFlushAt)) {
     return;
   }
-  const output = state.emulator.uart_output_since(state.lastUart);
+  const output = emulator.uart_output_since(state.lastUart);
   state.lastUart = uartLen;
   state.lastUartFlushAt = now;
   postMessage({ event: "uart", output });
