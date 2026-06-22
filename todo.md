@@ -26,6 +26,7 @@ History: [sprint-history.md](sprint-history.md).
 - Masking AppArmor reduced login proof time from about 800 seconds to about 660 seconds.
 - Default browser `Boot disk` with the AppArmor mask reaches serial login in about 661 seconds.
 - Serial-only getty defaults plus UART batching reach serial login in about 642 seconds.
+- Rejected speed probes: larger step slice, housekeeping masks, tmpfiles mask, user-sessions mask, and quiet/status-off bootargs did not beat the 642s default proof.
 
 ## Done
 - [x] Guardrails, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, installer reached reboot.
