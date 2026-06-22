@@ -44,7 +44,6 @@ export class UiController {
     this.els.pagesValue.textContent = emulator.allocated_pages().toString();
     this.updateNetworkMetric(emulator);
     this.els.diskValue.textContent = formatBytes(Number(emulator.install_disk_allocated_bytes()));
-    this.updateJitStats(emulator);
     this.updateStorageMetric(disk);
   }
 
