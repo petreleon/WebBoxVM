@@ -73,8 +73,8 @@ test("autosave event refreshes cached disk generation before callback", () => {
 });
 
 test("metrics probe elements are cached after first update", () => {
-  const jitProbe = { textContent: "" };
-  const instructionProbe = { textContent: "" };
+  const jitProbe = countedProbe();
+  const instructionProbe = countedProbe();
   let queryCalls = 0;
   globalThis.document = {
     querySelector(selector) {
@@ -98,11 +98,19 @@ test("metrics probe elements are cached after first update", () => {
     event: "metrics",
     metrics: metrics({ totalSteps: 2n, currentInstruction: "two" }),
   });
+  const jitWrites = jitProbe.writeCount;
+  const instructionWrites = instructionProbe.writeCount;
+  FakeWorker.instances[0].emitMessage({
+    event: "metrics",
+    metrics: metrics({ totalSteps: 3n, currentInstruction: "two" }),
+  });
 
   assert.equal(queryCalls, 2);
-  assert.equal(channel.metrics.totalSteps, 2n);
+  assert.equal(channel.metrics.totalSteps, 3n);
   assert.equal(jitProbe.textContent, JSON.stringify(channel.metrics.jitStats));
   assert.equal(instructionProbe.textContent, "two");
+  assert.equal(jitProbe.writeCount, jitWrites);
+  assert.equal(instructionProbe.writeCount, instructionWrites);
 });
 
 test("metrics updates keep the cache object stable", () => {
@@ -130,6 +138,23 @@ function callbacks() {
     onMetrics: () => {},
     onNetwork: () => {},
     onUart: () => {},
+  };
+}
+
+function countedProbe() {
+  let textContent = "";
+  let writeCount = 0;
+  return {
+    get textContent() {
+      return textContent;
+    },
+    set textContent(value) {
+      writeCount += 1;
+      textContent = value;
+    },
+    get writeCount() {
+      return writeCount;
+    },
   };
 }
 

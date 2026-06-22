@@ -127,13 +127,19 @@ export class WorkerChannel {
   #updateMetricProbes() {
     this.#jitProbe ||= document.querySelector("[data-testid='webboxvm-jit-stats']");
     if (this.#jitProbe) {
-      this.#jitProbe.textContent = JSON.stringify(this.#metrics.jitStats ?? null);
+      this.#setProbeText(this.#jitProbe, JSON.stringify(this.#metrics.jitStats ?? null));
     }
     this.#instructionProbe ||= document.querySelector(
       "[data-testid='webboxvm-current-instruction']",
     );
     if (this.#instructionProbe) {
-      this.#instructionProbe.textContent = this.#metrics.currentInstruction ?? "";
+      this.#setProbeText(this.#instructionProbe, this.#metrics.currentInstruction ?? "");
+    }
+  }
+
+  #setProbeText(probe, text) {
+    if (probe.textContent !== text) {
+      probe.textContent = text;
     }
   }
 
