@@ -3,6 +3,7 @@ mod compile;
 mod exclusive;
 mod exclusive_load;
 mod load;
+mod prepare;
 mod state;
 mod store;
 mod sysreg;

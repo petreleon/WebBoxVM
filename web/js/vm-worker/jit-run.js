@@ -28,13 +28,8 @@ export async function runJitBlock({ coreId = 0 } = {}) {
 
 export function runCachedJitBlock(coreId, key, entry) {
   const pc = state.emulator.pc();
-  const commitError = canCommitNow(coreId, entry.steps);
-  if (commitError) {
-    return { committed: false, error: commitError, pc };
-  }
-
   if (
-    !state.emulator.jit_validate_block(
+    !state.emulator.jit_prepare_cached_block(
       coreId,
       entry.startPc,
       entry.startPa,
@@ -44,19 +39,15 @@ export function runCachedJitBlock(coreId, key, entry) {
       entry.steps,
     )
   ) {
-    return {
-      committed: false,
-      error: state.emulator.jit_last_error(),
-      invalidated: true,
-      pc,
-    };
+    const error = state.emulator.jit_last_error();
+    const result = { committed: false, error, pc };
+    if (!isCommitBoundaryError(error)) {
+      result.invalidated = true;
+    }
+    return result;
   }
 
-  if (!state.emulator.jit_sync_state_from_core(coreId)) {
-    return { committed: false, error: state.emulator.jit_last_error(), pc };
-  }
-
-  const exitPc = entry.instance.exports.run(state.emulator.jit_state_ptr());
+  const exitPc = entry.instance.exports.run(entry.statePtr);
   if (state.emulator.jit_helper_failed()) {
     return {
       committed: false,
@@ -116,4 +107,13 @@ function exitMismatchMessage(exitPc, entry) {
     return `JIT block returned ${actual} outside arbitrary dynamic exit`;
   }
   return `JIT block returned ${actual} outside ${expected}/0x${entry.alternateExitPc.toString(16)}`;
+}
+
+function isCommitBoundaryError(error) {
+  return (
+    error.startsWith("JIT block crosses ") ||
+    error.startsWith("JIT commit is currently restricted") ||
+    error.startsWith("JIT core mismatch") ||
+    error === "cannot commit an empty JIT block"
+  );
 }
