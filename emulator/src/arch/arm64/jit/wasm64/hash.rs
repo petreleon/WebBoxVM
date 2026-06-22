@@ -4,7 +4,7 @@ pub fn hash_raw_words(start_pa: u64, raw_words: impl IntoIterator<Item = u32>) -
         .fold(hash_seed(start_pa), hash_raw_word)
 }
 
-pub(super) fn hash_seed(start_pa: u64) -> u64 {
+pub(crate) fn hash_seed(start_pa: u64) -> u64 {
     let mut hash = FNV_OFFSET_BASIS;
     for byte in start_pa.to_le_bytes() {
         hash ^= byte as u64;
@@ -13,7 +13,7 @@ pub(super) fn hash_seed(start_pa: u64) -> u64 {
     hash
 }
 
-pub(super) fn hash_raw_word(mut hash: u64, raw: u32) -> u64 {
+pub(crate) fn hash_raw_word(mut hash: u64, raw: u32) -> u64 {
     for byte in raw.to_le_bytes() {
         hash ^= byte as u64;
         hash = hash.wrapping_mul(FNV_PRIME);

@@ -13,6 +13,7 @@ pub use engine::JitEngine;
 pub use wasm64::{
     JIT_STATE_SIZE, Wasm64Compiler, WasmBlockModule, WasmJitCpuState, WasmJitError, hash_raw_words,
 };
+pub(crate) use wasm64::{hash_raw_word, hash_seed};
 
 pub fn compile_wasm64_block_at_pc(
     cpu: &Armv8Cpu,

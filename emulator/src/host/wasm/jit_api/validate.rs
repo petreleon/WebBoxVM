@@ -1,4 +1,4 @@
-use crate::arch::arm64::jit::hash_raw_words;
+use crate::arch::arm64::jit::{hash_raw_word, hash_seed};
 use crate::arch::arm64::translate;
 use crate::host::wasm::Emulator;
 use crate::runtime::Machine;
@@ -77,7 +77,7 @@ pub(super) fn validate_jit_block(
         }
     }
 
-    let mut raw_words = Vec::with_capacity(steps);
+    let mut current_hash = hash_seed(start_pa);
     for index in 0..steps {
         let addr = start_pa + index as u64 * 4;
         let raw = machine
@@ -85,10 +85,9 @@ pub(super) fn validate_jit_block(
             .mem
             .read(addr, 4)
             .ok_or_else(|| format!("cached JIT block word at 0x{addr:016x} is unreadable"))?;
-        raw_words.push(raw as u32);
+        current_hash = hash_raw_word(current_hash, raw as u32);
     }
 
-    let current_hash = hash_raw_words(start_pa, raw_words);
     if current_hash != raw_hash {
         return Err(format!(
             "cached JIT block raw hash changed: cached=0x{raw_hash:016x} current=0x{current_hash:016x}"

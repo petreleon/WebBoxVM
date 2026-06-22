@@ -90,6 +90,19 @@ fn compiles_register_only_prefix_to_memory64_module() {
 }
 
 #[test]
+fn streaming_raw_hash_matches_iterator_hash() {
+    let mut hash = hash_seed(0x4000_1000);
+    for raw in [0xd503_201f, 0xd503_201f, 0xd65f_03c0] {
+        hash = hash_raw_word(hash, raw);
+    }
+
+    assert_eq!(
+        hash,
+        hash_raw_words(0x4000_1000, [0xd503_201f, 0xd503_201f, 0xd65f_03c0])
+    );
+}
+
+#[test]
 fn unsupported_opcode_ends_compiled_prefix() {
     let block = block(vec![
         instr(Opcode::Movz, 0, 0, 0, 5, true),

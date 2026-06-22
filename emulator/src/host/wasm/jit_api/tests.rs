@@ -15,6 +15,7 @@ mod exclusive;
 mod side_effects;
 mod sysreg;
 mod timer;
+mod validate;
 
 const NOP: u32 = 0xd503_201f;
 const UART_RX_IRQ_MASK: u64 = (1 << 4) | (1 << 6);

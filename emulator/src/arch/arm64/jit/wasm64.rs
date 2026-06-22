@@ -67,7 +67,7 @@ mod tests;
 
 use expr::WasmExpr;
 pub use hash::hash_raw_words;
-use hash::{hash_raw_word, hash_seed};
+pub(crate) use hash::{hash_raw_word, hash_seed};
 use helper_blocks::uses_guest_memory_helper;
 use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
