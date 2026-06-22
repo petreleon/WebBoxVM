@@ -3,7 +3,7 @@
 //! Observability helpers may inspect architecture and platform state, but they
 //! must not own the run loop or depend on runtime internals.
 
-use crate::arch::arm64::{Armv8Cpu, Instr, Opcode, cond_taken, translate};
+use crate::arch::arm64::{Armv8Cpu, Instr, Opcode, cond_taken, translate_read_only};
 use crate::platform::virt::SystemBus;
 
 mod debug_dump;

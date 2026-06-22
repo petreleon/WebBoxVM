@@ -34,6 +34,23 @@ pub fn translate(
     mem: &PhysicalMemory,
     va: u64,
 ) -> Result<u64, Fault> {
+    translate_read(sys, Some(tlb), mem, va)
+}
+
+pub(crate) fn translate_read_only(
+    sys: &SystemRegisters,
+    mem: &PhysicalMemory,
+    va: u64,
+) -> Result<u64, Fault> {
+    translate_read(sys, None, mem, va)
+}
+
+fn translate_read(
+    sys: &SystemRegisters,
+    mut tlb: Option<&mut Tlb>,
+    mem: &PhysicalMemory,
+    va: u64,
+) -> Result<u64, Fault> {
     if (sys.sctlr_el1 & SCTLR_MMU_ENABLE) == 0 {
         return Ok(va);
     }
@@ -46,13 +63,17 @@ pub fn translate(
     }
 
     let context = translation_context(sys, va);
-    if let Some(pa) = tlb.lookup(mem, va, context) {
+    if let Some(tlb) = tlb.as_ref()
+        && let Some(pa) = tlb.lookup(mem, va, context)
+    {
         return Ok(pa);
     }
 
     let result = match page_table_walk_with_desc(sys, mem, va) {
         Ok(walk) => {
-            if let Some(meta) = tlb_insert(sys, mem, va, walk.desc_addr) {
+            if let Some(tlb) = tlb.as_mut()
+                && let Some(meta) = tlb_insert(sys, mem, va, walk.desc_addr)
+            {
                 tlb.insert(
                     va,
                     walk.pa,

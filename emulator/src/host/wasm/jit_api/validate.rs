@@ -1,5 +1,5 @@
 use crate::arch::arm64::jit::{MAX_BLOCK_INSTRUCTIONS, hash_raw_word, hash_seed};
-use crate::arch::arm64::translate;
+use crate::arch::arm64::translate_read_only;
 use crate::constants::{INSTRUCTION_SIZE, PAGE_SHIFT};
 use crate::host::wasm::Emulator;
 use crate::memory::PhysicalMemory;
@@ -83,8 +83,7 @@ pub(super) fn validate_jit_block(
         ));
     }
 
-    let mut tlb = cpu.tlb.clone();
-    let current_pa = translate(&cpu.sys, &mut tlb, &machine.bus.mem, start_pc)
+    let current_pa = translate_read_only(&cpu.sys, &machine.bus.mem, start_pc)
         .map_err(|_| "JIT block start translation fault".to_string())?;
     if current_pa != start_pa {
         return Err(format!(
@@ -100,7 +99,7 @@ pub(super) fn validate_jit_block(
             .checked_add(end_offset)
             .ok_or_else(|| "cached JIT block PA range overflows".to_string())?;
         if crosses_translation_page(start_pc, start_pa, end_pc, end_pa) {
-            let current_pa = translate(&cpu.sys, &mut tlb, &machine.bus.mem, end_pc)
+            let current_pa = translate_read_only(&cpu.sys, &machine.bus.mem, end_pc)
                 .map_err(|_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"))?;
             if current_pa != end_pa {
                 return Err(format!(

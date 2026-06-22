@@ -6,7 +6,7 @@ use super::super::{
     Armv8Cpu, decode,
     opcodes::{Instr, Opcode},
 };
-use crate::arch::arm64::mmu::{Tlb, translate};
+use crate::arch::arm64::mmu::translate_read_only;
 use crate::arch::arm64::system_regs::SystemRegisters;
 use crate::constants::{PAGE_OFFSET_MASK, PAGE_SHIFT};
 use crate::memory::PhysicalMemory;
@@ -27,13 +27,12 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
     let mut instructions = Vec::new();
     let mut instruction_pas = Vec::new();
     let mut pc = start_pc;
-    let mut tlb = cpu.tlb.clone();
     let mut translated_page = None;
     loop {
         if instructions.len() >= MAX_BLOCK_INSTRUCTIONS {
             break;
         }
-        let pa = match translate_fetch_pc(&cpu.sys, &mut tlb, &bus.mem, pc, &mut translated_page) {
+        let pa = match translate_fetch_pc(&cpu.sys, &bus.mem, pc, &mut translated_page) {
             Ok(pa) => pa,
             Err(_) => {
                 if instructions.is_empty() {
@@ -101,7 +100,6 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
 
 fn translate_fetch_pc(
     sys: &SystemRegisters,
-    tlb: &mut Tlb,
     mem: &PhysicalMemory,
     pc: u64,
     translated_page: &mut Option<(u64, u64)>,
@@ -112,7 +110,7 @@ fn translate_fetch_pc(
             return Ok((cached_pa_page << PAGE_SHIFT) | (pc & PAGE_OFFSET_MASK));
         }
     }
-    let pa = translate(sys, tlb, mem, pc).map_err(|_| ())?;
+    let pa = translate_read_only(sys, mem, pc).map_err(|_| ())?;
     if va_page != 0 {
         *translated_page = Some((va_page, pa >> PAGE_SHIFT));
     }

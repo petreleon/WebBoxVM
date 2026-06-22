@@ -23,6 +23,7 @@ pub use decode_cache::DecodeCache;
 pub use execute::execute;
 pub use helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};
 pub use interpreter::{RunError, run};
+pub(crate) use mmu::translate_read_only;
 #[cfg(feature = "wasm")]
 pub(crate) use mmu::translate_write;
 pub use mmu::{Tlb, translate};

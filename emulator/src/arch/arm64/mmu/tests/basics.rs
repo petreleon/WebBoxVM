@@ -27,6 +27,15 @@ fn tlb_hit_caches_translation() {
 }
 
 #[test]
+fn read_only_translation_does_not_fill_tlb() {
+    let (bus, sys) = mapped_page_fixture(0x4000_3000);
+    let tlb = Tlb::new();
+    let pa = translate_read_only(&sys, &bus.mem, 0xFFFF_FF80_0000_0000).unwrap();
+    assert_eq!(pa, 0x4000_3000);
+    assert!(tlb.entries.iter().all(|entry| !entry.valid));
+}
+
+#[test]
 fn page_table_walk_4kb_page() {
     let mut bus = SystemBus::new();
     let mut sys = SystemRegisters::default();
@@ -163,7 +172,6 @@ fn mapped_page_fixture(pa: u64) -> (SystemBus, SystemRegisters) {
     bus.mem.write(l1_table, 8, l2_table | 0b11);
     bus.mem.write(l2_table, 8, l3_table | 0b11);
     bus.mem.write(l3_table, 8, pa | 0b01);
-
     sys.ttbr1_el1 = l1_table;
     sys.tcr_el1 = (25 << TCR_T1SZ_SHIFT) | 25;
     sys.sctlr_el1 = SCTLR_MMU_ENABLE;
