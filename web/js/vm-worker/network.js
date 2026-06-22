@@ -38,14 +38,14 @@ export function drainNetworkTx(now = performance.now()) {
     const frame = state.emulator.network_tx_frame();
     if (!frame || frame.length === 0) {
       if (sent > 0) {
-        markNetworkActivity();
+        markNetworkActivity(now);
       }
       return sent;
     }
     socket.send(frame);
     sent += 1;
   }
-  markNetworkActivity();
+  markNetworkActivity(now);
   return sent;
 }
 
@@ -111,6 +111,6 @@ function setStatus(status) {
   postMessage({ event: "network", status });
 }
 
-function markNetworkActivity() {
-  state.lastNetworkActivityAt = performance.now();
+function markNetworkActivity(now = performance.now()) {
+  state.lastNetworkActivityAt = now;
 }

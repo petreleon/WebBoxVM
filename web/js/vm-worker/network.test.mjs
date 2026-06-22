@@ -107,7 +107,7 @@ test("network drain pops exactly pending frames", () => {
   );
 });
 
-test("network drain marks activity once per transmitted burst", () => {
+test("network drain reuses caller timestamp for transmitted burst", () => {
   let nowCalls = 0;
   try {
     globalThis.performance = {
@@ -124,8 +124,8 @@ test("network drain marks activity once per transmitted burst", () => {
     };
 
     assert.equal(drainNetworkTx(10_000), 2);
-    assert.equal(nowCalls, 1);
-    assert.equal(state.lastNetworkActivityAt, 101);
+    assert.equal(nowCalls, 0);
+    assert.equal(state.lastNetworkActivityAt, 10_000);
   } finally {
     globalThis.performance = previousPerformance;
   }
