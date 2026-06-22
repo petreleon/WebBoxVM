@@ -8,6 +8,7 @@ import {
   MAX_FRAME_MS,
   NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
+  NETWORK_TX_POLL_INTERVAL_MS,
   UART_FLUSH_BYTES,
   UART_FLUSH_INTERVAL_MS,
   UART_POLL_INTERVAL_MS,
@@ -124,6 +125,12 @@ function networkNeedsResponsiveSlices(now, emulator) {
   }
   if (now - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS) {
     return true;
+  }
+  if (
+    state.lastNetworkTxPollAt !== 0 &&
+    now - state.lastNetworkTxPollAt < NETWORK_TX_POLL_INTERVAL_MS
+  ) {
+    return false;
   }
   return (emulator?.network_tx_pending?.() ?? 0) > 0;
 }
