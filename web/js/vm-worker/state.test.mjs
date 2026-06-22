@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_JIT_ENABLED, resetJitState, state } from "./state.js";
+import { interpreterStepSlice } from "./pump.js";
+import { DEFAULT_JIT_ENABLED, NETWORK_STEP_SLICE, resetJitState, state } from "./state.js";
 
 test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(DEFAULT_JIT_ENABLED, false);
@@ -22,4 +23,15 @@ test("jit cache reset preserves an explicit manual jit toggle", () => {
   assert.equal(state.jitRejectedBlocks.size, 0);
   assert.equal(state.jitSkippedBlocks.size, 0);
   state.jitEnabled = DEFAULT_JIT_ENABLED;
+});
+
+test("connected network caps interpreter step slices for TCP responsiveness", () => {
+  state.jitEnabled = false;
+  state.networkStatus = "connected";
+  state.stepSlice = 50_000_000;
+
+  assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
+
+  state.networkStatus = "offline";
+  state.stepSlice = 1_000_000;
 });

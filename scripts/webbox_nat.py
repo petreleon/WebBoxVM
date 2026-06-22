@@ -11,6 +11,7 @@ from webboxnet.tap import TapDevice
 from webboxnet.ws import WebSocketClient
 
 DEFAULT_HUB = "ws://localhost:8080/webboxvm-net"
+DEFAULT_GUEST_MAC = "02:57:42:56:4d:01"
 DEFAULT_GATEWAY_MAC = "02:57:42:56:4d:02"
 
 
@@ -32,6 +33,8 @@ class NatPeer:
                 self.gateway_cidr(),
                 self.subnet(),
                 gateway_mac=self.args.gateway_mac,
+                guest_ip=self.args.guest_ip,
+                guest_mac=self.args.guest_mac,
             )
         else:
             print("Host NAT not configured; pass --configure-host when running as root.")
@@ -87,6 +90,7 @@ def parse_args():
     parser.add_argument("--tap", default="webbox0")
     parser.add_argument("--gateway-ip", default="10.0.2.2")
     parser.add_argument("--guest-ip", default="10.0.2.15")
+    parser.add_argument("--guest-mac", default=DEFAULT_GUEST_MAC)
     parser.add_argument("--dns-ip", default="1.1.1.1")
     parser.add_argument("--dns-upstream")
     parser.add_argument("--dns-timeout", type=float, default=2.0)

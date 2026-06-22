@@ -2,7 +2,13 @@ import { tryRunOrCompileJitBlock } from "./jit-hot.js";
 import { errorMessage } from "./errors.js";
 import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
 import { drainNetworkTx } from "./network.js";
-import { JIT_PROBE_STEP_SLICE, MAX_FRAME_BATCHES, MAX_FRAME_MS, state } from "./state.js";
+import {
+  JIT_PROBE_STEP_SLICE,
+  MAX_FRAME_BATCHES,
+  MAX_FRAME_MS,
+  NETWORK_STEP_SLICE,
+  state,
+} from "./state.js";
 
 export function schedulePump() {
   if (!state.running || state.pumpScheduled || !state.emulator) {
@@ -51,11 +57,18 @@ async function runPump() {
   }
 }
 
-function interpreterStepSlice() {
+export function interpreterStepSlice() {
   if (!state.jitEnabled) {
-    return state.stepSlice;
+    return networkResponsiveStepSlice();
   }
-  return Math.min(state.stepSlice, JIT_PROBE_STEP_SLICE);
+  return Math.min(networkResponsiveStepSlice(), JIT_PROBE_STEP_SLICE);
+}
+
+function networkResponsiveStepSlice() {
+  if (state.networkStatus === "connected") {
+    return Math.min(state.stepSlice, NETWORK_STEP_SLICE);
+  }
+  return state.stepSlice;
 }
 
 function drainUart() {

@@ -17,7 +17,4 @@ History: [sprint-history.md](sprint-history.md).
 - Final proof remains: installed system boots from the writable browser disk via the `Boot disk` path.
 
 ## Done
-- [x] Architecture guardrails: modular tree, 180-line source limit, tests.
-- [x] Browser disk: OPFS sparse disk, writable VirtIO-blk, GPT/ext4 boot extraction, `Boot disk`.
-- [x] Browser network: WebSocket hub, Docker NAT, DHCP, DNS, HTTP mirror fetch.
-- [x] Installer: cleared base/kernel/package stalls and reached finish-install once over NAT.
+- [x] Modular architecture guardrails, 180-line source limit, tests, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, and one installer finish-install path over NAT.

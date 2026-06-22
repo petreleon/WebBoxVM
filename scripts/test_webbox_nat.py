@@ -79,12 +79,15 @@ class WebSocketClientFrameTests(unittest.TestCase):
 class LinuxHostSetupTests(unittest.TestCase):
     def test_configure_sets_tap_gateway_mac(self):
         commands = []
+        offloads = []
         old_run = host.run
         old_rules = host.add_iptables_rules
         old_which = host.shutil.which
+        old_subprocess_run = host.subprocess.run
         host.run = lambda cmd: commands.append(cmd)
         host.add_iptables_rules = lambda *args: None
         host.shutil.which = lambda _: True
+        host.subprocess.run = lambda cmd, **_: offloads.append(cmd)
         try:
             host.configure_linux_nat(
                 "webbox0",
@@ -92,13 +95,21 @@ class LinuxHostSetupTests(unittest.TestCase):
                 "10.0.2.0/24",
                 outbound="eth0",
                 gateway_mac="aa:bb",
+                guest_ip="10.0.2.15",
+                guest_mac="cc:dd",
             )
         finally:
             host.run = old_run
             host.add_iptables_rules = old_rules
             host.shutil.which = old_which
+            host.subprocess.run = old_subprocess_run
 
         self.assertIn(["ip", "link", "set", "dev", "webbox0", "address", "aa:bb"], commands)
+        self.assertIn(
+            ["ip", "neigh", "replace", "10.0.2.15", "lladdr", "cc:dd", "dev", "webbox0", "nud", "permanent"],
+            commands,
+        )
+        self.assertIn(["ethtool", "-K", "webbox0", "tx", "off", "tso", "off", "gso", "off", "gro", "off"], offloads)
 
     def test_ip_forwarding_falls_back_to_proc_file(self):
         old_which = host.shutil.which

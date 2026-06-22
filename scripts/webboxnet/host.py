@@ -2,16 +2,37 @@ import shutil
 import subprocess
 
 
-def configure_linux_nat(tap, gateway_cidr, subnet, outbound=None, gateway_mac=None):
+def configure_linux_nat(
+    tap,
+    gateway_cidr,
+    subnet,
+    outbound=None,
+    gateway_mac=None,
+    guest_ip=None,
+    guest_mac=None,
+):
     run(["ip", "addr", "replace", gateway_cidr, "dev", tap])
     if gateway_mac:
         run(["ip", "link", "set", "dev", tap, "address", gateway_mac])
     run(["ip", "link", "set", tap, "up"])
+    if guest_ip and guest_mac:
+        add_static_guest_neighbor(tap, guest_ip, guest_mac)
+    disable_tap_offloads(tap)
     enable_ipv4_forwarding()
     if shutil.which("iptables"):
         add_iptables_rules(tap, subnet, outbound or default_route_dev())
     else:
         print("iptables not found; configure NAT manually for", subnet)
+
+
+def add_static_guest_neighbor(tap, guest_ip, guest_mac):
+    run(["ip", "neigh", "replace", guest_ip, "lladdr", guest_mac, "dev", tap, "nud", "permanent"])
+
+
+def disable_tap_offloads(tap):
+    if not shutil.which("ethtool"):
+        return
+    subprocess.run(["ethtool", "-K", tap, "tx", "off", "tso", "off", "gso", "off", "gro", "off"])
 
 
 def add_iptables_rules(tap, subnet, outbound):
