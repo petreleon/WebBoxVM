@@ -27,52 +27,58 @@ export class UiController {
 
   updateMetrics(emulator, disk) {
     if (!emulator) {
-      this.els.stepsValue.textContent = "0";
-      this.els.pcValue.textContent = "0x0";
-      this.els.uartValue.textContent = "0 B";
-      this.els.pagesValue.textContent = "0";
-      this.els.netValue.textContent = "Off";
-      this.els.diskValue.textContent = "0 B";
+      this.setText(this.els.stepsValue, "0");
+      this.setText(this.els.pcValue, "0x0");
+      this.setText(this.els.uartValue, "0 B");
+      this.setText(this.els.pagesValue, "0");
+      this.setText(this.els.netValue, "Off");
+      this.setText(this.els.diskValue, "0 B");
       this.updateJitStats(undefined);
       this.updateStorageMetric(disk);
       return;
     }
 
-    this.els.stepsValue.textContent = emulator.total_steps().toString();
-    this.els.pcValue.textContent = `0x${emulator.pc().toString(16)}`;
-    this.els.uartValue.textContent = formatBytes(emulator.uart_output_len());
-    this.els.pagesValue.textContent = emulator.allocated_pages().toString();
+    this.setText(this.els.stepsValue, emulator.total_steps().toString());
+    this.setText(this.els.pcValue, `0x${emulator.pc().toString(16)}`);
+    this.setText(this.els.uartValue, formatBytes(emulator.uart_output_len()));
+    this.setText(this.els.pagesValue, emulator.allocated_pages().toString());
     this.updateNetworkMetric(emulator);
-    this.els.diskValue.textContent = formatBytes(Number(emulator.install_disk_allocated_bytes()));
+    this.setText(this.els.diskValue, formatBytes(Number(emulator.install_disk_allocated_bytes())));
     this.updateStorageMetric(disk);
   }
 
   updateJitStats(emulator) {
-    this.els.jitStatsValue.textContent = JSON.stringify(emulator?.jit_stats?.() ?? null);
+    this.setText(this.els.jitStatsValue, JSON.stringify(emulator?.jit_stats?.() ?? null));
   }
 
   updateNetworkMetric(emulator) {
     const net = emulator.network_stats();
     const rx = Number(net.rxPackets);
     const tx = Number(net.txPackets);
-    this.els.netValue.textContent = `${net.status} ${rx}/${tx}`;
+    this.setText(this.els.netValue, `${net.status} ${rx}/${tx}`);
   }
 
   updateStorageMetric(disk) {
     if (!disk.available) {
-      this.els.savedValue.textContent = "Off";
+      this.setText(this.els.savedValue, "Off");
     } else if (disk.saving) {
-      this.els.savedValue.textContent = "Saving";
+      this.setText(this.els.savedValue, "Saving");
     } else if (disk.persistedBytes > 0) {
-      this.els.savedValue.textContent = formatBytes(disk.persistedBytes);
+      this.setText(this.els.savedValue, formatBytes(disk.persistedBytes));
     } else {
-      this.els.savedValue.textContent = "Ready";
+      this.setText(this.els.savedValue, "Ready");
     }
   }
 
   setStatus(message, tone = "normal") {
-    this.els.statusLine.textContent = message;
+    this.setText(this.els.statusLine, message);
     this.els.statusLine.dataset.tone = tone;
+  }
+
+  setText(element, text) {
+    if (element.textContent !== text) {
+      element.textContent = text;
+    }
   }
 
   log(message) {
