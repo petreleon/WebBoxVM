@@ -15,6 +15,9 @@ History: [sprint-history.md](sprint-history.md).
 - `Boot disk` reaches installed Debian root fsck/mount and systemd.
 - Serial login is blocked by a later hung-task path around BPF/ftrace teardown.
 - `?bootargs=sysctl.kernel.ftrace_enabled=0` still reproduces the same BPF/ftrace hang.
+- `?bootargs=systemd.unit=emergency.target` still reproduces the same BPF/ftrace hang.
+- `?bootargs=init=/bin/sh` reaches a shell and prints `/proc/cmdline` plus `uname`.
+- The blocker is now isolated after initramfs/root handoff, inside systemd's BPF/ftrace path.
 
 ## Done
 - [x] Guardrails, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, installer reached reboot.
