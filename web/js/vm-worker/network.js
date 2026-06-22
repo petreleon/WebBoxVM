@@ -31,6 +31,7 @@ export function drainNetworkTx() {
     if (!frame || frame.length === 0) {
       return sent;
     }
+    markNetworkActivity();
     socket.send(frame);
     sent += 1;
   }
@@ -57,6 +58,7 @@ function injectFrame(data) {
   }
   const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
   if (bytes?.length) {
+    markNetworkActivity();
     state.emulator.inject_network_frame(bytes);
   }
 }
@@ -81,5 +83,12 @@ function setStatus(status) {
     return;
   }
   state.networkStatus = status;
+  if (status === "connected") {
+    markNetworkActivity();
+  }
   postMessage({ event: "network", status });
+}
+
+function markNetworkActivity() {
+  state.lastNetworkActivityAt = performance.now();
 }

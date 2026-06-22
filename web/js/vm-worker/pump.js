@@ -6,6 +6,7 @@ import {
   JIT_PROBE_STEP_SLICE,
   MAX_FRAME_BATCHES,
   MAX_FRAME_MS,
+  NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
   state,
 } from "./state.js";
@@ -65,10 +66,20 @@ export function interpreterStepSlice() {
 }
 
 function networkResponsiveStepSlice() {
-  if (state.networkStatus === "connected") {
+  if (networkNeedsResponsiveSlices()) {
     return Math.min(state.stepSlice, NETWORK_STEP_SLICE);
   }
   return state.stepSlice;
+}
+
+function networkNeedsResponsiveSlices() {
+  if (state.networkStatus !== "connected") {
+    return false;
+  }
+  if (state.emulator?.network_tx_pending?.() > 0) {
+    return true;
+  }
+  return performance.now() - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS;
 }
 
 function drainUart() {
