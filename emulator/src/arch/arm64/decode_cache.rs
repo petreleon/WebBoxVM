@@ -24,9 +24,9 @@ struct CacheLine {
 
 /// Per-core instruction decode cache.
 ///
-/// A cached page stores both the decoded instructions and their original raw
-/// words. On fetch, the requested word is compared with memory before reusing
-/// the page so boot-time patching or self-modifying code gets re-decoded.
+/// A cached page stores decoded instructions for one physical page. On fetch,
+/// the page generation is compared with memory before reusing the page so
+/// boot-time patching or self-modifying code gets re-decoded.
 pub struct DecodeCache {
     pages: Vec<Option<CacheLine>>,
     pub hits: u64,
@@ -75,18 +75,22 @@ impl Default for DecodeCache {
 }
 
 fn decode_page(mem: &PhysicalMemory, page_base: u64, generation: u64) -> Option<DecodedPage> {
+    let mut page_bytes = [0u8; PAGE_SIZE as usize];
+    mem.read_bytes(page_base, &mut page_bytes)?;
     let mut instrs = Vec::with_capacity(INSTRUCTIONS_PER_PAGE);
 
-    for i in 0..INSTRUCTIONS_PER_PAGE as u64 {
-        let raw = read_raw_word(mem, page_base + i * INSTRUCTION_SIZE)?;
+    for i in 0..INSTRUCTIONS_PER_PAGE {
+        let offset = i * INSTRUCTION_SIZE as usize;
+        let raw = u32::from_le_bytes([
+            page_bytes[offset],
+            page_bytes[offset + 1],
+            page_bytes[offset + 2],
+            page_bytes[offset + 3],
+        ]);
         instrs.push(decode(raw).unwrap_or_else(Instr::nop));
     }
 
     Some(DecodedPage { generation, instrs })
-}
-
-fn read_raw_word(mem: &PhysicalMemory, pa: u64) -> Option<u32> {
-    mem.read_u32(pa)
 }
 
 fn cache_slot(page_base: u64) -> usize {

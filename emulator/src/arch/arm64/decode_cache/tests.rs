@@ -44,6 +44,20 @@ fn same_page_write_invalidates_cached_page() {
 }
 
 #[test]
+fn cache_miss_decodes_later_word_from_same_page() {
+    let mut mem = PhysicalMemory::new();
+    let mut cache = DecodeCache::new();
+    let later = RAM_BASE + 17 * INSTRUCTION_SIZE;
+
+    mem.write(later, 4, 0x1400_0000).unwrap();
+
+    assert_eq!(cache.fetch(&mem, later).unwrap().op, Opcode::B);
+    assert!(cache.fetch(&mem, RAM_BASE).is_some());
+    assert_eq!(cache.misses, 1);
+    assert_eq!(cache.hits, 1);
+}
+
+#[test]
 fn direct_slot_collision_evictions_are_safe() {
     let mut mem = PhysicalMemory::new();
     let mut cache = DecodeCache::new();
@@ -67,4 +81,14 @@ fn undecoded_words_are_tolerated_as_nops() {
     mem.write(RAM_BASE, 4, 0xffff_ffff).unwrap();
 
     assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
+}
+
+#[test]
+fn zero_filled_code_page_does_not_allocate_guest_memory() {
+    let mem = PhysicalMemory::new();
+    let mut cache = DecodeCache::new();
+
+    assert!(cache.fetch(&mem, RAM_BASE).is_some());
+    assert_eq!(mem.allocated_pages(), 0);
+    assert_eq!(cache.misses, 1);
 }
