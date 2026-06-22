@@ -16,4 +16,4 @@ History: [sprint-history.md](sprint-history.md).
 - Speed: latest browser disk-boot proof reached `debian login:` at 594.3s with 0 JIT rejects/skips and one safe timer-deadline fallback.
 
 ## Done
-- [x] NAT -> install -> disk -> login.
+- [x] NAT/install/disk/login proven.
