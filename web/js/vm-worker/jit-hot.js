@@ -12,7 +12,7 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
   const key = jitBlockKey(coreId, pc);
   const cached = state.jitBlocks.get(key);
   if (cached) {
-    const result = runCachedJitBlock(coreId, key, cached);
+    const result = runCachedJitBlock(coreId, key, cached, pc);
     if (result.committed) {
       return true;
     }
@@ -38,7 +38,7 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
     return false;
   }
 
-  const compiled = await compileJitBlock({ coreId });
+  const compiled = await compileJitBlock({ coreId, pc });
   if (!state.running || !compiled.compiled) {
     if (!compiled.compiled) {
       if (compiled.skipped) {
@@ -56,5 +56,5 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
   if (!entry) {
     return false;
   }
-  return runCachedJitBlock(coreId, key, entry).committed;
+  return runCachedJitBlock(coreId, key, entry, pc).committed;
 }

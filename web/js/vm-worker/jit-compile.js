@@ -1,14 +1,14 @@
 import { requireEmulator } from "./lifecycle.js";
 import { JIT_MAX_BLOCKS, state } from "./state.js";
 
-export async function compileJitBlock({ coreId = 0 } = {}) {
+export async function compileJitBlock({ coreId = 0, pc: knownPc } = {}) {
   requireEmulator();
   const owner = state.emulator;
   if (!state.wasmExports?.memory) {
     throw new Error("Wasm memory export is unavailable for JIT blocks");
   }
 
-  const pc = owner.pc();
+  const pc = knownPc ?? owner.pc();
   const bytes = owner.jit_compile_current_block(coreId);
   if (!bytes.length) {
     return {

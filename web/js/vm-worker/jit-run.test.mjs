@@ -84,6 +84,25 @@ test("cached jit prepare receives metadata and run uses cached state pointer", (
   assert.deepEqual(finishArgs, [0, 4, 0x1010n, 0x1010n, 0n, false]);
 });
 
+test("cached jit run can reuse caller pc without another wasm lookup", () => {
+  let pcCalls = 0;
+  state.emulator = {
+    jit_finish_cached_block: () => 0,
+    jit_last_error: () => "",
+    jit_prepare_cached_block: () => true,
+    pc: () => {
+      pcCalls += 1;
+      return 0x9999n;
+    },
+  };
+
+  const result = runCachedJitBlock(0, "0:1000", cachedEntry(), 0x1000n);
+
+  assert.equal(result.committed, true);
+  assert.equal(result.pc, 0x1000n);
+  assert.equal(pcCalls, 0);
+});
+
 test("finish helper rejection invalidates cached jit block", () => {
   state.emulator = {
     jit_finish_cached_block: () => 1,

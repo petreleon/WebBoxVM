@@ -14,22 +14,21 @@ export async function runJitBlock({ coreId = 0 } = {}) {
   let entry = state.jitBlocks.get(key);
 
   if (!entry) {
-    const compiled = await compileJitBlock({ coreId });
+    const compiled = await compileJitBlock({ coreId, pc });
     if (!compiled.compiled) {
       return compiled;
     }
     entry = state.jitBlocks.get(key);
   }
 
-  const result = runCachedJitBlock(coreId, key, entry);
+  const result = runCachedJitBlock(coreId, key, entry, pc);
   if (result.committed) {
     postMetrics({ force: true });
   }
   return { compiled: true, ...result };
 }
 
-export function runCachedJitBlock(coreId, key, entry) {
-  const pc = state.emulator.pc();
+export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) {
   if (
     !state.emulator.jit_prepare_cached_block(
       coreId,
