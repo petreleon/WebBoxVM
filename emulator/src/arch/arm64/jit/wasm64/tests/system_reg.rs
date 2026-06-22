@@ -1,7 +1,7 @@
 use super::*;
 use crate::constants::{
-    SYSREG_CNTVCT_EL0, SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0,
-    SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
+    SYSREG_CNTVCT_EL0, SYSREG_CURRENTEL, SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ICC_IAR1_EL1,
+    SYSREG_SP_EL0, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
 };
 
 #[test]
@@ -72,6 +72,7 @@ fn compiles_observed_mrs_kernel_sysregs() {
     let cases = [
         (0xd538_d082, SYSREG_TPIDR_EL1),
         (0xd538_2040, SYSREG_TCR_EL1),
+        (0xd538_4253, SYSREG_CURRENTEL),
         (0xd53b_4233, SYSREG_DAIF),
     ];
     for (raw, sysreg) in cases {

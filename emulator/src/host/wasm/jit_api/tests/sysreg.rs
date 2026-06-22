@@ -1,8 +1,8 @@
 use super::super::sysreg::jit_read_sysreg_from_machine;
 use crate::constants::{
-    DCZID_EL0_VAL, PSTATE_DAIF_MASK, SYSREG_CNTVCT_EL0, SYSREG_DAIF, SYSREG_DCZID_EL0,
-    SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1,
-    SYSREG_TPIDRRO_EL0,
+    DCZID_EL0_VAL, PSTATE_DAIF_MASK, PSTATE_EL_SHIFT, SYSREG_CNTVCT_EL0, SYSREG_CURRENTEL,
+    SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_TCR_EL1,
+    SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
 };
 use crate::runtime::Machine;
 
@@ -56,6 +56,17 @@ fn jit_read_sysreg_reads_daif_from_pstate() {
         .expect("JIT sysreg helper should read DAIF");
 
     assert_eq!(value, PSTATE_DAIF_MASK);
+}
+
+#[test]
+fn jit_read_sysreg_reads_current_el() {
+    let mut machine = Machine::new(1);
+    machine.cpus[0].pstate = machine.cpus[0].pstate.with_el(1);
+
+    let value = jit_read_sysreg_from_machine(&mut machine, 0, SYSREG_CURRENTEL)
+        .expect("JIT sysreg helper should read CurrentEL");
+
+    assert_eq!(value, 1 << PSTATE_EL_SHIFT);
 }
 
 #[test]
