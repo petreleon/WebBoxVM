@@ -3,7 +3,7 @@ import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.j
 import { runCachedJitBlock } from "./jit-run.js";
 import { JIT_HOT_THRESHOLD, state } from "./state.js";
 
-export async function tryRunOrCompileJitBlock(coreId = 0) {
+export function tryRunOrCompileJitBlock(coreId = 0) {
   if (!state.jitEnabled || !state.emulator) {
     return false;
   }
@@ -38,6 +38,10 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
     return false;
   }
 
+  return compileAndRunJitBlock({ coreId, key, pc });
+}
+
+async function compileAndRunJitBlock({ coreId, key, pc }) {
   const compiled = await compileJitBlock({ coreId, pc });
   if (!state.running || !compiled.compiled) {
     if (!compiled.compiled) {

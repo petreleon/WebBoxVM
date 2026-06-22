@@ -33,7 +33,10 @@ async function runPump() {
 
   try {
     do {
-      const usedJit = await tryRunOrCompileJitBlock();
+      let usedJit = tryRunOrCompileJitBlock();
+      if (usedJit?.then) {
+        usedJit = await usedJit;
+      }
       if (!state.running) {
         return;
       }
