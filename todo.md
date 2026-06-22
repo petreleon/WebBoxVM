@@ -3,8 +3,7 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now
-- [ ] Verify `Boot disk` against a real saved Debian install snapshot.
-- [ ] Finish the fresh Debian install and save the final browser OPFS disk snapshot.
+- [ ] Investigate the installed Debian systemd/BPF/ftrace hang before serial login.
 - [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
 
@@ -13,8 +12,9 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- A fresh installer run is recreating the browser OPFS disk snapshot.
-- Final proof remains: installed system boots from the writable browser disk via the `Boot disk` path.
+- `Boot disk` reaches installed Debian root fsck/mount and systemd.
+- Serial login is blocked by a later hung-task path around BPF/ftrace teardown.
 
 ## Done
 - [x] Guardrails, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, installer reached reboot.
+- [x] Final browser disk snapshot compacted, persisted in OPFS, and booted via `Boot disk`.
