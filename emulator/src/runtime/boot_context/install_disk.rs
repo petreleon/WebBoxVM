@@ -5,7 +5,8 @@ use crate::images::disk::installed_boot_from_snapshot;
 const INSTALLED_DISK_COMPAT_BOOTARGS: &str = concat!(
     "lsm=landlock,lockdown,yama,integrity,apparmor ",
     "systemd.mask=keyboard-setup.service ",
-    "systemd.mask=console-setup.service"
+    "systemd.mask=console-setup.service ",
+    "systemd.mask=apparmor.service"
 );
 
 impl BootContext {
@@ -49,6 +50,7 @@ mod tests {
         assert!(args.contains("lsm=landlock,lockdown,yama,integrity,apparmor"));
         assert!(args.contains("systemd.mask=keyboard-setup.service"));
         assert!(args.contains("systemd.mask=console-setup.service"));
+        assert!(args.contains("systemd.mask=apparmor.service"));
     }
 
     #[test]
