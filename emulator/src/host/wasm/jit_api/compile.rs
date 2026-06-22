@@ -2,6 +2,8 @@ use crate::arch::arm64::jit::compile_wasm64_block_at_pc;
 use crate::host::wasm::Emulator;
 use wasm_bindgen::prelude::*;
 
+use super::validate::code_page_generations;
+
 #[wasm_bindgen]
 impl Emulator {
     /// Compile the block at the selected core's current PC into a Wasm64 module.
@@ -32,6 +34,30 @@ impl Emulator {
 
         match result {
             Ok(module) => {
+                let generations = if let Some(ref boot) = self.boot {
+                    code_page_generations(
+                        &boot.machine.bus.mem,
+                        module.start_pa,
+                        module.guest_instr_count,
+                    )
+                } else {
+                    code_page_generations(
+                        &self.machine.bus.mem,
+                        module.start_pa,
+                        module.guest_instr_count,
+                    )
+                };
+                let Ok((start_generation, end_generation)) = generations else {
+                    self.jit_last_error = "compiled JIT block code page generation missing".into();
+                    self.jit_last_block_steps = 0;
+                    self.jit_last_block_start_pc = 0;
+                    self.jit_last_block_start_pa = 0;
+                    self.jit_last_block_raw_hash = 0;
+                    self.jit_last_block_start_page_generation = 0;
+                    self.jit_last_block_end_page_generation = 0;
+                    return Vec::new();
+                };
+
                 self.jit_last_error.clear();
                 self.jit_last_block_steps = module.guest_instr_count;
                 self.jit_last_block_start_pc = module.start_pc;
@@ -41,6 +67,8 @@ impl Emulator {
                 self.jit_last_block_dynamic_exit = module.dynamic_exit;
                 self.jit_last_block_el = current_el;
                 self.jit_last_block_raw_hash = module.raw_hash;
+                self.jit_last_block_start_page_generation = start_generation;
+                self.jit_last_block_end_page_generation = end_generation;
                 self.jit_last_block_uses_guest_helpers = module.uses_guest_helpers;
                 module.bytes
             }
@@ -54,6 +82,8 @@ impl Emulator {
                 self.jit_last_block_dynamic_exit = false;
                 self.jit_last_block_el = 0;
                 self.jit_last_block_raw_hash = 0;
+                self.jit_last_block_start_page_generation = 0;
+                self.jit_last_block_end_page_generation = 0;
                 self.jit_last_block_uses_guest_helpers = false;
                 Vec::new()
             }

@@ -76,6 +76,16 @@ impl Emulator {
         self.jit_last_block_raw_hash
     }
 
+    /// Memory generation for the first physical code page in the last block.
+    pub fn jit_last_block_start_page_generation(&self) -> u64 {
+        self.jit_last_block_start_page_generation
+    }
+
+    /// Memory generation for the final physical code page in the last block.
+    pub fn jit_last_block_end_page_generation(&self) -> u64 {
+        self.jit_last_block_end_page_generation
+    }
+
     /// Whether the last compiled block uses JS guest-memory helpers.
     pub fn jit_last_block_uses_guest_helpers(&self) -> bool {
         self.jit_last_block_uses_guest_helpers

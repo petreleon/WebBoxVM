@@ -1,6 +1,8 @@
 use crate::arch::arm64::jit::{hash_raw_word, hash_seed};
 use crate::arch::arm64::translate;
+use crate::constants::INSTRUCTION_SIZE;
 use crate::host::wasm::Emulator;
+use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
@@ -13,13 +15,33 @@ impl Emulator {
         start_pc: u64,
         start_pa: u64,
         raw_hash: u64,
+        start_page_generation: u64,
+        end_page_generation: u64,
         steps: usize,
     ) -> bool {
         let core_id = core_id.unwrap_or(0);
         let result = if let Some(ref boot) = self.boot {
-            validate_jit_block(&boot.machine, core_id, start_pc, start_pa, raw_hash, steps)
+            validate_jit_block(
+                &boot.machine,
+                core_id,
+                start_pc,
+                start_pa,
+                raw_hash,
+                start_page_generation,
+                end_page_generation,
+                steps,
+            )
         } else {
-            validate_jit_block(&self.machine, core_id, start_pc, start_pa, raw_hash, steps)
+            validate_jit_block(
+                &self.machine,
+                core_id,
+                start_pc,
+                start_pa,
+                raw_hash,
+                start_page_generation,
+                end_page_generation,
+                steps,
+            )
         };
 
         match result {
@@ -41,6 +63,8 @@ pub(super) fn validate_jit_block(
     start_pc: u64,
     start_pa: u64,
     raw_hash: u64,
+    start_page_generation: u64,
+    end_page_generation: u64,
     steps: usize,
 ) -> Result<(), String> {
     if steps == 0 {
@@ -77,6 +101,14 @@ pub(super) fn validate_jit_block(
         }
     }
 
+    let (current_start_generation, current_end_generation) =
+        code_page_generations(&machine.bus.mem, start_pa, steps)?;
+    if current_start_generation == start_page_generation
+        && current_end_generation == end_page_generation
+    {
+        return Ok(());
+    }
+
     let mut current_hash = hash_seed(start_pa);
     for index in 0..steps {
         let addr = start_pa + index as u64 * 4;
@@ -95,4 +127,27 @@ pub(super) fn validate_jit_block(
     }
 
     Ok(())
+}
+
+pub(super) fn code_page_generations(
+    mem: &PhysicalMemory,
+    start_pa: u64,
+    steps: usize,
+) -> Result<(u64, u64), String> {
+    if steps == 0 {
+        return Err("cannot inspect an empty JIT block".to_string());
+    }
+    let end_offset = (steps as u64 - 1)
+        .checked_mul(INSTRUCTION_SIZE)
+        .ok_or_else(|| "cached JIT block code range overflows".to_string())?;
+    let end_pa = start_pa
+        .checked_add(end_offset)
+        .ok_or_else(|| "cached JIT block code range overflows".to_string())?;
+    let start = mem
+        .page_generation(start_pa)
+        .ok_or_else(|| format!("cached JIT block start page 0x{start_pa:016x} is unreadable"))?;
+    let end = mem
+        .page_generation(end_pa)
+        .ok_or_else(|| format!("cached JIT block end page 0x{end_pa:016x} is unreadable"))?;
+    Ok((start, end))
 }

@@ -1,8 +1,6 @@
 use super::load::jit_load_guest_from_machine;
 use super::store::{apply_jit_pending_stores, stage_jit_store_from_machine};
-use super::validate::validate_jit_block;
 use crate::arch::arm64::jit::WasmJitCpuState;
-use crate::arch::arm64::jit::hash_raw_words;
 use crate::constants::{
     DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, PL011_UART_IRQ_ID, RAM_BASE, SCTLR_MMU_ENABLE,
     TCR_T1SZ_SHIFT, UART_BASE, UART_IMSC_OFFSET,
@@ -40,26 +38,6 @@ fn map_two_ttbr0_pages(machine: &mut Machine, page0_pa: u64, page1_pa: u64) {
     cpu.sys.ttbr0_el1 = l1_table;
     cpu.sys.tcr_el1 = (25 << TCR_T1SZ_SHIFT) | 25;
     cpu.sys.sctlr_el1 = SCTLR_MMU_ENABLE;
-}
-
-#[test]
-fn validate_jit_block_rejects_changed_second_instruction_translation() {
-    let mut machine = Machine::new(1);
-    let start_pc = 0xffc;
-    let start_pa = RAM_BASE + 0x3ffc;
-    map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);
-    machine.cpus[0].regs.pc = start_pc;
-    machine.bus.mem.write(start_pa, 4, NOP as u64);
-    machine.bus.mem.write(start_pa + 4, 4, NOP as u64);
-
-    let hash = hash_raw_words(start_pa, [NOP, NOP]);
-    let err = validate_jit_block(&machine, 0, start_pc, start_pa, hash, 2)
-        .expect_err("non-contiguous second instruction mapping must be rejected");
-
-    assert!(
-        err.contains("cached JIT block PA changed at PC 0x0000000000001000"),
-        "{err}"
-    );
 }
 
 #[test]

@@ -38,6 +38,8 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
     };
   }
   const rawHash = owner.jit_last_block_raw_hash();
+  const startPageGeneration = owner.jit_last_block_start_page_generation();
+  const endPageGeneration = owner.jit_last_block_end_page_generation();
   const { instance, module } = await WebAssembly.instantiate(bytes, {
     env: {
       memory: state.wasmExports.memory,
@@ -66,6 +68,8 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
     instance,
     module,
     rawHash,
+    startPageGeneration,
+    endPageGeneration,
     startPa,
     startPc,
     steps,
@@ -81,6 +85,8 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
     exitPc,
     pc,
     rawHash,
+    startPageGeneration,
+    endPageGeneration,
     startPa,
     statePtr: owner.jit_state_ptr(),
     stateSize: owner.jit_state_size(),

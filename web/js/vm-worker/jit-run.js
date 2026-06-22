@@ -34,6 +34,8 @@ export function runCachedJitBlock(coreId, key, entry) {
       entry.startPc,
       entry.startPa,
       entry.rawHash,
+      entry.startPageGeneration,
+      entry.endPageGeneration,
       entry.steps,
     )
   ) {

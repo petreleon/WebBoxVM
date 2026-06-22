@@ -11,6 +11,7 @@ afterEach(() => {
 test("commit preflight falls back without running cached jit", () => {
   let ran = false;
   let synced = false;
+  let validateArgs;
   state.emulator = {
     jit_can_commit_block_now: () => false,
     jit_last_error: () => "JIT block crosses timer deadline",
@@ -18,7 +19,10 @@ test("commit preflight falls back without running cached jit", () => {
       synced = true;
       return true;
     },
-    jit_validate_block: () => true,
+    jit_validate_block: (...args) => {
+      validateArgs = args;
+      return true;
+    },
     pc: () => 0x1000n,
   };
 
@@ -35,6 +39,8 @@ test("commit preflight falls back without running cached jit", () => {
       },
     },
     rawHash: 1n,
+    startPageGeneration: 2n,
+    endPageGeneration: 3n,
     startPa: 0x2000n,
     startPc: 0x1000n,
     steps: 4,
@@ -45,4 +51,5 @@ test("commit preflight falls back without running cached jit", () => {
   assert.equal(result.invalidated, undefined);
   assert.equal(ran, false);
   assert.equal(synced, false);
+  assert.deepEqual(validateArgs, [0, 0x1000n, 0x2000n, 1n, 2n, 3n, 4]);
 });
