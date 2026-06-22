@@ -88,6 +88,34 @@ test("repeated identical jit fallback reuses last instruction snapshot", () => {
   resetTelemetry();
 });
 
+test("jit telemetry can reuse checked emulator reference", () => {
+  resetTelemetry();
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
+  const emulator = {
+    current_instruction() {
+      return "cached snapshot";
+    },
+  };
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return undefined;
+    },
+  });
+
+  try {
+    recordJitReject("0:3000", 0x3000n, "bad block", 0, emulator);
+
+    assert.equal(state.jitRejectLog[0].instruction.text, "cached snapshot");
+    assert.equal(emulatorReads, 0);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+    resetTelemetry();
+  }
+});
+
 test("current jit instruction is omitted when the emulator has no snapshot", () => {
   resetTelemetry();
 

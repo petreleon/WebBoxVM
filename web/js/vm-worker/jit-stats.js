@@ -30,15 +30,15 @@ function buildJitStats() {
   };
 }
 
-export function recordJitSkip(key, pc, error, coreId = 0) {
+export function recordJitSkip(key, pc, error, coreId = 0, emulator = state.emulator) {
   state.jitStatsVersion += 1;
-  state.jitSkipLog.push(jitEvent(key, pc, error, "unknown JIT skip", coreId));
+  state.jitSkipLog.push(jitEvent(key, pc, error, "unknown JIT skip", coreId, emulator));
   if (state.jitSkipLog.length > MAX_REJECT_LOG) {
     state.jitSkipLog.splice(0, state.jitSkipLog.length - MAX_REJECT_LOG);
   }
 }
 
-export function recordJitFallback(key, pc, error, coreId = 0) {
+export function recordJitFallback(key, pc, error, coreId = 0, emulator = state.emulator) {
   state.jitStatsVersion += 1;
   state.jitFallbackCount += 1;
   const errorText = error || "unknown JIT fallback";
@@ -46,19 +46,19 @@ export function recordJitFallback(key, pc, error, coreId = 0) {
   if (isSameFallbackEvent(state.jitLastFallback, key, pcHex, errorText)) {
     return;
   }
-  state.jitLastFallback = jitEvent(key, pc, errorText, "unknown JIT fallback", coreId);
+  state.jitLastFallback = jitEvent(key, pc, errorText, "unknown JIT fallback", coreId, emulator);
 }
 
-export function recordJitReject(key, pc, error, coreId = 0) {
+export function recordJitReject(key, pc, error, coreId = 0, emulator = state.emulator) {
   state.jitStatsVersion += 1;
-  state.jitRejectLog.push(jitEvent(key, pc, error, "unknown JIT rejection", coreId));
+  state.jitRejectLog.push(jitEvent(key, pc, error, "unknown JIT rejection", coreId, emulator));
   if (state.jitRejectLog.length > MAX_REJECT_LOG) {
     state.jitRejectLog.splice(0, state.jitRejectLog.length - MAX_REJECT_LOG);
   }
 }
 
-export function currentJitInstruction(coreId = 0) {
-  const snapshot = state.emulator?.current_instruction?.(coreId);
+export function currentJitInstruction(coreId = 0, emulator = state.emulator) {
+  const snapshot = emulator?.current_instruction?.(coreId);
   if (typeof snapshot !== "string" || snapshot.length === 0) {
     return undefined;
   }
@@ -69,13 +69,13 @@ export function currentJitInstruction(coreId = 0) {
   }
 }
 
-function jitEvent(key, pc, error, fallbackError, coreId) {
+function jitEvent(key, pc, error, fallbackError, coreId, emulator) {
   const event = {
     error: error || fallbackError,
     key,
     pc: pc.toString(16),
   };
-  const instruction = currentJitInstruction(coreId);
+  const instruction = currentJitInstruction(coreId, emulator);
   if (instruction) {
     event.instruction = instruction;
   }

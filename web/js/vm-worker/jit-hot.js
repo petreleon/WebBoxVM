@@ -20,10 +20,10 @@ export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
       state.jitBlocks.delete(key);
       if (result.rejected) {
         state.jitRejectedBlocks.add(key);
-        recordJitReject(key, pc, result.error, coreId);
+        recordJitReject(key, pc, result.error, coreId, emulator);
       }
     } else {
-      recordJitFallback(key, pc, result.error, coreId);
+      recordJitFallback(key, pc, result.error, coreId, emulator);
       return false;
     }
   }
@@ -50,10 +50,10 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
     if (!compiled.compiled) {
       if (compiled.skipped) {
         state.jitSkippedBlocks.add(key);
-        recordJitSkip(key, pc, compiled.error, coreId);
+        recordJitSkip(key, pc, compiled.error, coreId, emulator);
       } else {
         state.jitRejectedBlocks.add(key);
-        recordJitReject(key, pc, compiled.error, coreId);
+        recordJitReject(key, pc, compiled.error, coreId, emulator);
       }
     }
     return false;
