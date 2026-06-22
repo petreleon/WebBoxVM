@@ -1,5 +1,7 @@
 use super::*;
 
+const MOPS_PAGE_BYTES: usize = PAGE_SIZE as usize;
+
 pub(in crate::arch::arm64::execute) fn exec_mops(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,
@@ -47,15 +49,17 @@ fn exec_set(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(),
     let size = set_size(cpu, instr);
     let byte = read_reg(cpu, instr.rm, true) & 0xFF;
 
-    for offset in 0..size {
-        write_guest(
-            cpu,
-            bus,
-            dst.wrapping_add(offset),
-            1,
-            byte,
-            "MOPS SET bus fault",
-        )?;
+    if !try_bulk_set_same_page(cpu, bus, dst, size, byte)? {
+        for offset in 0..size {
+            write_guest(
+                cpu,
+                bus,
+                dst.wrapping_add(offset),
+                1,
+                byte,
+                "MOPS SET bus fault",
+            )?;
+        }
     }
 
     write_reg(cpu, instr.rn, 0, true);
@@ -64,6 +68,29 @@ fn exec_set(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(),
         cpu.pstate.set_nzcv(false, false, true, false);
     }
     Ok(())
+}
+
+fn try_bulk_set_same_page(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    dst: u64,
+    size: u64,
+    byte: u64,
+) -> Result<bool, &'static str> {
+    if size == 0 || size > PAGE_SIZE - (dst & PAGE_OFFSET_MASK) {
+        return Ok(false);
+    }
+
+    let pa = translate_or_data_fault(cpu, &mut bus.mem, dst, true, "MOPS SET bus fault")?;
+    let bytes = [byte as u8; MOPS_PAGE_BYTES];
+    if bus.write_bytes(pa, &bytes[..size as usize]).is_none() {
+        return Ok(false);
+    }
+
+    for offset in 0..size {
+        cpu.clear_exclusive_if_overlaps(pa.wrapping_add(offset), 1);
+    }
+    Ok(true)
 }
 
 fn copy_forward_bytes(

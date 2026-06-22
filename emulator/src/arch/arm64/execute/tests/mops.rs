@@ -1,5 +1,10 @@
 use super::*;
 
+const SETP_X3_X2_X1: u32 = 0x19C1_0443;
+const MOPS_VA_PAGE: u64 = 0x1000;
+const MOPS_FIRST_PA: u64 = RAM_BASE + 0x0500_0000;
+const MOPS_SECOND_PA: u64 = RAM_BASE + 0x0600_0000;
+
 #[test]
 fn mops_forward_copy_triplet_copies_bytes_and_consumes_size() {
     let (mut cpu, mut bus) = setup();
@@ -44,6 +49,54 @@ fn mops_overlap_copy_uses_backward_direction() {
 }
 
 #[test]
+fn mops_set_same_page_bulk_clears_exclusive_across_full_range() {
+    let (mut cpu, mut bus) = setup();
+    let base = RAM_BASE + 0x6000;
+    cpu.regs.set_x(1, 0x5a);
+    cpu.regs.set_x(2, 300);
+    cpu.regs.set_x(3, base);
+    cpu.reserve_exclusive(base + 260, 8);
+
+    execute(&mut cpu, &mut bus, decode(SETP_X3_X2_X1).unwrap()).unwrap();
+
+    assert_eq!(bus.mem.read(base, 1), Some(0x5a));
+    assert_eq!(bus.mem.read(base + 260, 1), Some(0x5a));
+    assert_eq!(bus.mem.read(base + 299, 1), Some(0x5a));
+    assert_eq!(cpu.regs.x(2), 0);
+    assert_eq!(cpu.regs.x(3), base + 300);
+    assert!(cpu.exclusive.is_none());
+}
+
+#[test]
+fn mops_set_cross_page_fault_preserves_partial_write_order() {
+    let (mut cpu, mut bus) = setup();
+    let va = MOPS_VA_PAGE + PAGE_SIZE - 2;
+    map_two_user_pages(
+        &mut cpu,
+        &mut bus,
+        MOPS_VA_PAGE,
+        MOPS_FIRST_PA,
+        MOPS_SECOND_PA,
+    );
+    unmap_second_mops_page(&mut bus);
+    cpu.regs.set_x(1, 0xcd);
+    cpu.regs.set_x(2, 4);
+    cpu.regs.set_x(3, va);
+    for offset in 0..4u64 {
+        bus.mem.write(MOPS_SECOND_PA + offset, 1, 0xaa);
+    }
+
+    let err = execute(&mut cpu, &mut bus, decode(SETP_X3_X2_X1).unwrap()).unwrap_err();
+
+    assert_eq!(err, "translation fault");
+    assert_eq!(bus.mem.read(MOPS_FIRST_PA + PAGE_SIZE - 2, 1), Some(0xcd));
+    assert_eq!(bus.mem.read(MOPS_FIRST_PA + PAGE_SIZE - 1, 1), Some(0xcd));
+    assert_eq!(bus.mem.read(MOPS_SECOND_PA, 1), Some(0xaa));
+    assert_eq!(cpu.regs.x(2), 4);
+    assert_eq!(cpu.regs.x(3), va);
+}
+
+#[test]
 fn mops_set_triplet_writes_low_source_byte() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.set_x(1, 0xABCD);
@@ -60,4 +113,10 @@ fn mops_set_triplet_writes_low_source_byte() {
     assert_eq!(cpu.regs.x(2), 0);
     assert_eq!(cpu.regs.x(3), RAM_BASE + 0x306);
     assert!(cpu.pstate.c());
+}
+
+fn unmap_second_mops_page(bus: &mut SystemBus) {
+    let l3 = RAM_BASE + 2 * PAGE_SIZE;
+    let l3_idx = (MOPS_VA_PAGE >> PT_L3_SHIFT) & 0x1ff;
+    bus.mem.write(l3 + (l3_idx + 1) * 8, 8, 0);
 }
