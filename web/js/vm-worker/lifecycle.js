@@ -1,5 +1,5 @@
 import { Emulator, ensureWasm } from "./wasm.js";
-import { jitStats } from "./jit-stats.js";
+import { changedJitStats, jitStats } from "./jit-stats.js";
 import { startNetworkProxy, stopNetworkProxy } from "./network.js";
 import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
 
@@ -74,14 +74,13 @@ export function freeEmulator() {
   }
 }
 
-export function metrics() {
+export function metrics({ includeUnchangedJitStats = true } = {}) {
   requireEmulator();
-  return {
+  const snapshot = {
     allocatedPages: state.emulator.allocated_pages(),
     installDiskAllocatedBytes: state.emulator.install_disk_allocated_bytes(),
     installDiskGeneration: state.emulator.install_disk_generation(),
     installDiskSizeBytes: state.emulator.install_disk_size_bytes(),
-    jitStats: jitStats(),
     networkRxPackets: state.emulator.network_rx_packets(),
     networkStatus: state.networkStatus,
     networkTxPackets: state.emulator.network_tx_packets(),
@@ -90,6 +89,11 @@ export function metrics() {
     totalSteps: state.emulator.total_steps(),
     uartOutputLen: state.emulator.uart_output_len(),
   };
+  const stats = includeUnchangedJitStats ? jitStats() : changedJitStats();
+  if (stats) {
+    snapshot.jitStats = stats;
+  }
+  return snapshot;
 }
 
 export function setStepSlice(value) {

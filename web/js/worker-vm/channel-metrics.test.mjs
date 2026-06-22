@@ -62,6 +62,20 @@ test("metrics updates avoid Object.assign allocation", () => {
   assert.equal(channel.metrics.totalSteps, 12n);
 });
 
+test("metrics updates preserve cached jit stats when omitted", () => {
+  const channel = new WorkerChannel("worker.js", callbacks());
+
+  FakeWorker.instances[0].emitMessage({ event: "metrics", metrics: metrics() });
+  const initialStats = channel.metrics.jitStats;
+  FakeWorker.instances[0].emitMessage({
+    event: "metrics",
+    metrics: metrics({ jitStats: undefined, totalSteps: 13n }),
+  });
+
+  assert.equal(channel.metrics.jitStats, initialStats);
+  assert.equal(channel.metrics.totalSteps, 13n);
+});
+
 function callbacks() {
   return { onAutosave() {}, onError() {}, onMetrics() {}, onNetwork() {}, onUart() {} };
 }

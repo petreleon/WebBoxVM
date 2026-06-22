@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
+import { maybePostMetrics, maybeRequestAutosave, postMetrics } from "./metrics-events.js";
 import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
 
 const previousPostMessage = globalThis.postMessage;
@@ -50,6 +50,16 @@ test("metrics posting can reuse a caller timestamp", () => {
 
 test("routine metrics use a low-overhead ui cadence", () => {
   assert.equal(METRICS_INTERVAL_MS, 250);
+});
+
+test("routine metrics omit unchanged jit stats payloads", () => {
+  state.emulator = metricsEmulator();
+
+  postMetrics({ force: true, now: 1000 });
+  postMetrics();
+
+  assert.equal(messages[0].metrics.jitStats.enabled, false);
+  assert.equal(messages[1].metrics.jitStats, undefined);
 });
 
 test("autosave skips disk generation polling inside poll window", () => {

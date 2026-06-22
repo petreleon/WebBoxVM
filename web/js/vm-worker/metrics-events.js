@@ -16,7 +16,7 @@ export function postMetrics({ force = false, now } = {}) {
   if (force) {
     state.lastMetricsAt = now ?? performance.now();
   }
-  postMessage({ event: "metrics", metrics: metrics() });
+  postMessage({ event: "metrics", metrics: metrics({ includeUnchangedJitStats: force }) });
 }
 
 export function maybeRequestAutosave(now = performance.now()) {

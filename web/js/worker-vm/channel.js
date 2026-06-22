@@ -111,7 +111,7 @@ export class WorkerChannel {
     this.#metrics.installDiskAllocatedBytes = metrics.installDiskAllocatedBytes;
     this.#metrics.installDiskGeneration = metrics.installDiskGeneration;
     this.#metrics.installDiskSizeBytes = metrics.installDiskSizeBytes;
-    this.#metrics.jitStats = metrics.jitStats ?? INITIAL_METRICS.jitStats;
+    this.#metrics.jitStats = metrics.jitStats ?? this.#metrics.jitStats;
     this.#metrics.networkRxPackets = metrics.networkRxPackets;
     this.#metrics.networkStatus = metrics.networkStatus;
     this.#metrics.networkTxPackets = metrics.networkTxPackets;

@@ -27,6 +27,8 @@ export const state = {
   jitRejectedBlocks: new Set(),
   jitSkipLog: [],
   jitSkippedBlocks: new Set(),
+  jitStatsFingerprint: undefined,
+  jitStatsVersion: 0,
   lastAutosaveAt: 0,
   lastAutosaveGeneration: 0n,
   lastAutosavePollAt: 0,
@@ -53,4 +55,6 @@ export function resetJitState() {
   state.jitRejectedBlocks = new Set();
   state.jitSkipLog = [];
   state.jitSkippedBlocks = new Set();
+  state.jitStatsFingerprint = undefined;
+  state.jitStatsVersion = 0;
 }
