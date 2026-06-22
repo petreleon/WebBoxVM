@@ -55,7 +55,7 @@ export class VmBooter {
     this.#ui.updateMetrics(emulator, this.#disk);
   }
 
-  async bootSavedDisk(persistenceReady) {
+  async bootSavedDisk(persistenceReady, extraBootargs = "") {
     await this.#ensureWasm();
     await persistenceReady;
     const snapshot = await this.#disk.load();
@@ -74,7 +74,7 @@ export class VmBooter {
     const emulator = new WorkerVm();
     emulator.set_jit_enabled(this.#getJitEnabled());
     this.#setEmulator(emulator);
-    const result = await emulator.boot_installed_disk(snapshot, 1);
+    const result = await emulator.boot_installed_disk(snapshot, 1, extraBootargs);
     this.#ui.log(result);
     if (result.startsWith("ERR:")) {
       this.#ui.setStatus(result, "error");

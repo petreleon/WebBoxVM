@@ -1,4 +1,4 @@
-export const WEBBOXVM_ASSET_VERSION = "20260622-boot-disk";
+export const WEBBOXVM_ASSET_VERSION = "20260622-bootargs";
 
 export function versionedUrl(path, baseUrl = import.meta.url) {
   const url = new URL(path, baseUrl);

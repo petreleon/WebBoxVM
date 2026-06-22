@@ -92,7 +92,21 @@ impl Emulator {
 
     /// Boot the installed Linux system from a persisted sparse disk snapshot.
     pub fn boot_installed_disk(&mut self, disk_snapshot: Vec<u8>, num_cores: usize) -> String {
-        match BootContext::new_from_install_disk_snapshot(disk_snapshot, num_cores) {
+        self.boot_installed_disk_with_extra_bootargs(disk_snapshot, num_cores, String::new())
+    }
+
+    /// Boot the installed Linux system with extra kernel command-line args.
+    pub fn boot_installed_disk_with_extra_bootargs(
+        &mut self,
+        disk_snapshot: Vec<u8>,
+        num_cores: usize,
+        extra_bootargs: String,
+    ) -> String {
+        match BootContext::new_from_install_disk_snapshot_with_extra_bootargs(
+            disk_snapshot,
+            num_cores,
+            &extra_bootargs,
+        ) {
             Ok(ctx) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(ctx);

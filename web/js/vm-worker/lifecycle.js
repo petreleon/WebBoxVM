@@ -16,14 +16,18 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   return { metrics: metrics(), result };
 }
 
-export async function bootInstalledDisk({ diskSnapshot, numCores }) {
+export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numCores }) {
   await ensureWasm();
   freeEmulator();
   state.emulator = new Emulator(numCores);
   state.lastUart = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
-  const result = state.emulator.boot_installed_disk(diskSnapshot, numCores);
+  const result = state.emulator.boot_installed_disk_with_extra_bootargs(
+    diskSnapshot,
+    numCores,
+    extraBootargs,
+  );
   state.lastAutosaveGeneration = state.emulator.install_disk_generation();
   startNetworkProxy();
   return { metrics: metrics(), result };

@@ -32,10 +32,10 @@ export class WorkerVm {
       .then(({ result }) => result);
   }
 
-  boot_installed_disk(snapshot, numCores) {
+  boot_installed_disk(snapshot, numCores, extraBootargs = "") {
     const bytes = transferableBytes(snapshot);
     return this.#channel
-      .request("bootInstalledDisk", { diskSnapshot: bytes, numCores }, [bytes.buffer])
+      .request("bootInstalledDisk", { diskSnapshot: bytes, extraBootargs, numCores }, [bytes.buffer])
       .then(({ result }) => result);
   }
 

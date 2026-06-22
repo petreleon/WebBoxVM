@@ -1,4 +1,4 @@
-use crate::boot::BootContext;
+use crate::boot::{BootContext, merge_bootargs};
 use crate::images::iso::load_iso_boot_image;
 use std::fs;
 use std::io;
@@ -72,7 +72,7 @@ fn boot_from_iso_image(
     extra_bootargs: Option<&str>,
 ) -> io::Result<NativeBoot> {
     let boot = load_iso_boot_image(image).map_err(io_other)?;
-    let bootargs = merged_bootargs(&boot.bootargs, extra_bootargs);
+    let bootargs = merge_bootargs(&boot.bootargs, extra_bootargs.unwrap_or(""));
     let expected_initrd = boot.initrd.clone();
     let mut context =
         BootContext::new_with_initrd_and_bootargs(&boot.kernel, cores, &boot.initrd, &bootargs)
@@ -88,13 +88,6 @@ fn boot_from_iso_image(
         }),
         expected_initrd: Some(expected_initrd),
     })
-}
-
-fn merged_bootargs(base: &str, extra: Option<&str>) -> String {
-    match extra.map(str::trim) {
-        Some(extra) if !extra.is_empty() => format!("{base} {extra}"),
-        _ => base.to_string(),
-    }
 }
 
 fn io_other(err: impl Into<String>) -> io::Error {

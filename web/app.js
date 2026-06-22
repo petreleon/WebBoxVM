@@ -2,6 +2,7 @@ import { VmBooter } from "./js/boot-vm.js";
 import { els } from "./js/dom.js";
 import { DiskPersistence } from "./js/persistence.js";
 import { VmRunner } from "./js/runner.js";
+import { extraBootargsFromLocation } from "./js/boot-args.js";
 import { installWebboxVmDevtools } from "./js/devtools.js";
 import { fetchBundledDebian, readSelectedIso } from "./js/sources.js";
 import { mountTerminal, waitForTerminal } from "./js/terminal.js";
@@ -9,6 +10,7 @@ import { UiController } from "./js/ui.js";
 
 const ui = new UiController(els);
 const disk = new DiskPersistence();
+const diskBootExtraArgs = extraBootargsFromLocation();
 
 let term;
 let emulator;
@@ -89,7 +91,7 @@ async function bootFrom(sourcePromise) {
 }
 
 async function bootDisk() {
-  await booter.bootSavedDisk(persistenceReady);
+  await booter.bootSavedDisk(persistenceReady, diskBootExtraArgs);
 }
 
 function pauseVm() {
