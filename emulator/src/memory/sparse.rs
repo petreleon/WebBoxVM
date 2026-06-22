@@ -87,6 +87,23 @@ impl SparseRegion {
         bytes
     }
 
+    pub(super) fn write_array<const N: usize>(&mut self, addr: u64, bytes: [u8; N]) {
+        debug_assert!(self.contains_range(addr, N));
+
+        let offset = addr - self.base;
+        let page_index = (offset / PAGE_SIZE) as usize;
+        let page_offset = (offset % PAGE_SIZE) as usize;
+
+        if page_offset + N > MEMORY_PAGE_SIZE {
+            self.write_bytes_in_region(addr, &bytes);
+            return;
+        }
+
+        let page = self.pages[page_index].get_or_insert_with(Page::new);
+        page.bytes[page_offset..page_offset + N].copy_from_slice(&bytes);
+        page.bump_generation();
+    }
+
     pub(super) fn page_generation(&self, addr: u64) -> u64 {
         debug_assert!(self.contains_addr(addr));
         let page_index = ((addr - self.base) / PAGE_SIZE) as usize;

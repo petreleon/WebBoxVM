@@ -52,8 +52,13 @@ impl PhysicalMemory {
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) -> Option<()> {
-        let len = access_len(size)?;
-        self.write_bytes(addr, &value.to_le_bytes()[..len])
+        match size {
+            1 => self.write_array(addr, [value as u8]),
+            2 => self.write_array(addr, (value as u16).to_le_bytes()),
+            4 => self.write_array(addr, (value as u32).to_le_bytes()),
+            8 => self.write_array(addr, value.to_le_bytes()),
+            _ => None,
+        }
     }
 
     /// Returns a pointer to guest RAM for JIT direct memory access.
@@ -127,18 +132,16 @@ impl PhysicalMemory {
         self.select_region(addr, N)
             .map(|region| region.read_array(addr))
     }
+
+    fn write_array<const N: usize>(&mut self, addr: u64, bytes: [u8; N]) -> Option<()> {
+        self.select_region_mut(addr, N)
+            .map(|region| region.write_array(addr, bytes))
+    }
 }
 
 impl Default for PhysicalMemory {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-fn access_len(size: u8) -> Option<usize> {
-    match size {
-        1 | 2 | 4 | 8 => Some(size as usize),
-        _ => None,
     }
 }
 

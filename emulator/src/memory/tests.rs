@@ -63,6 +63,19 @@ fn fixed_read_crosses_sparse_pages() {
 }
 
 #[test]
+fn scalar_write_crosses_sparse_pages() {
+    let mut m = PhysicalMemory::new();
+    let addr = RAM_BASE + PAGE_SIZE - 2;
+
+    m.write(addr, 4, 0xAABB_CCDD).unwrap();
+
+    assert_eq!(m.read(addr, 4), Some(0xAABB_CCDD));
+    assert_eq!(m.allocated_pages(), 2);
+    assert_eq!(m.page_generation(addr), Some(1));
+    assert_eq!(m.page_generation(addr + 2), Some(1));
+}
+
+#[test]
 fn page_generation_tracks_writes() {
     let mut m = PhysicalMemory::new();
     let addr = RAM_BASE + 0x100;
