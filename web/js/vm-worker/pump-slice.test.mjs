@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
 import { interpreterStepSlice } from "./pump.js";
-import { DEFAULT_JIT_ENABLED, DEFAULT_STEP_SLICE, NETWORK_STEP_SLICE, state } from "./state.js";
+import {
+  DEFAULT_JIT_ENABLED,
+  DEFAULT_STEP_SLICE,
+  JIT_PROBE_STEP_SLICE,
+  NETWORK_STEP_SLICE,
+  state,
+} from "./state.js";
 
 afterEach(() => {
   state.emulator = undefined;
@@ -33,4 +39,12 @@ test("interpreter step slice can reuse checked emulator reference", () => {
   } finally {
     Object.defineProperty(state, "emulator", previousDescriptor);
   }
+});
+
+test("idle jit probe fallback uses faster default slice", () => {
+  state.jitEnabled = true;
+  state.networkStatus = "offline";
+
+  assert.equal(JIT_PROBE_STEP_SLICE, DEFAULT_STEP_SLICE);
+  assert.equal(interpreterStepSlice(10_000), DEFAULT_STEP_SLICE);
 });
