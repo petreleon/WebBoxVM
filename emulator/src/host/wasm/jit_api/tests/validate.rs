@@ -1,5 +1,5 @@
 use super::*;
-use crate::arch::arm64::jit::hash_raw_words;
+use crate::arch::arm64::jit::{MAX_BLOCK_INSTRUCTIONS, hash_raw_words};
 use crate::host::wasm::jit_api::validate::{code_page_generations, validate_jit_block};
 
 #[test]
@@ -83,4 +83,24 @@ fn validate_jit_block_skips_raw_hash_for_unchanged_code_pages() {
         1,
     )
     .expect("matching page generations skip raw hash validation");
+}
+
+#[test]
+fn validate_jit_block_rejects_oversized_span() {
+    let mut machine = Machine::new(1);
+    machine.cpus[0].regs.pc = RAM_BASE;
+
+    let err = validate_jit_block(
+        &machine,
+        0,
+        RAM_BASE,
+        RAM_BASE,
+        0,
+        0,
+        0,
+        MAX_BLOCK_INSTRUCTIONS + 1,
+    )
+    .expect_err("oversized cached block must not use endpoint validation");
+
+    assert!(err.contains("maximum validation span"), "{err}");
 }

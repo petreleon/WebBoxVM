@@ -1,4 +1,4 @@
-use crate::arch::arm64::jit::{hash_raw_word, hash_seed};
+use crate::arch::arm64::jit::{MAX_BLOCK_INSTRUCTIONS, hash_raw_word, hash_seed};
 use crate::arch::arm64::translate;
 use crate::constants::INSTRUCTION_SIZE;
 use crate::host::wasm::Emulator;
@@ -70,6 +70,9 @@ pub(super) fn validate_jit_block(
     if steps == 0 {
         return Err("cannot validate an empty JIT block".to_string());
     }
+    if steps > MAX_BLOCK_INSTRUCTIONS {
+        return Err("cached JIT block exceeds maximum validation span".to_string());
+    }
     let Some(cpu) = machine.cpus.get(core_id) else {
         return Err(format!("core {core_id} does not exist"));
     };
@@ -89,14 +92,21 @@ pub(super) fn validate_jit_block(
         ));
     }
 
-    for index in 1..steps {
-        let pc = start_pc + index as u64 * 4;
-        let addr = start_pa + index as u64 * 4;
-        let current_pa = translate(&cpu.sys, &mut tlb, &machine.bus.mem, pc)
-            .map_err(|_| format!("cached JIT block PC 0x{pc:016x} translation fault"))?;
-        if current_pa != addr {
+    // With 64 fixed-width instructions, checking start/end covers at most two
+    // 4 KiB translation pages; ARM64 page translation is offset-linear inside a page.
+    let end_offset = block_end_offset(steps)?;
+    if end_offset != 0 {
+        let end_pc = start_pc
+            .checked_add(end_offset)
+            .ok_or_else(|| "cached JIT block PC range overflows".to_string())?;
+        let end_pa = start_pa
+            .checked_add(end_offset)
+            .ok_or_else(|| "cached JIT block PA range overflows".to_string())?;
+        let current_pa = translate(&cpu.sys, &mut tlb, &machine.bus.mem, end_pc)
+            .map_err(|_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"))?;
+        if current_pa != end_pa {
             return Err(format!(
-                "cached JIT block PA changed at PC 0x{pc:016x}: cached=0x{addr:016x} current=0x{current_pa:016x}"
+                "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
             ));
         }
     }
@@ -137,9 +147,7 @@ pub(super) fn code_page_generations(
     if steps == 0 {
         return Err("cannot inspect an empty JIT block".to_string());
     }
-    let end_offset = (steps as u64 - 1)
-        .checked_mul(INSTRUCTION_SIZE)
-        .ok_or_else(|| "cached JIT block code range overflows".to_string())?;
+    let end_offset = block_end_offset(steps)?;
     let end_pa = start_pa
         .checked_add(end_offset)
         .ok_or_else(|| "cached JIT block code range overflows".to_string())?;
@@ -150,4 +158,10 @@ pub(super) fn code_page_generations(
         .page_generation(end_pa)
         .ok_or_else(|| format!("cached JIT block end page 0x{end_pa:016x} is unreadable"))?;
     Ok((start, end))
+}
+
+fn block_end_offset(steps: usize) -> Result<u64, String> {
+    (steps as u64 - 1)
+        .checked_mul(INSTRUCTION_SIZE)
+        .ok_or_else(|| "cached JIT block code range overflows".to_string())
 }

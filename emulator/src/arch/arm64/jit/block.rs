@@ -16,6 +16,8 @@ pub struct Block {
     pub instructions: Vec<(Instr, u32)>, // (decoded, raw)
 }
 
+pub(crate) const MAX_BLOCK_INSTRUCTIONS: usize = 64;
+
 /// Discover block at current PC. Returns partial block on fault.
 pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static str> {
     let start_pc = cpu.regs.pc;
@@ -29,7 +31,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
     let mut pc = start_pc;
     let mut tlb = cpu.tlb.clone();
     loop {
-        if instructions.len() >= 64 {
+        if instructions.len() >= MAX_BLOCK_INSTRUCTIONS {
             break;
         }
         // Translate PC → PA. On fault, end the block gracefully.
@@ -82,7 +84,7 @@ pub fn block_from_pc(cpu: &Armv8Cpu, bus: &SystemBus) -> Result<Block, &'static 
         instruction_pas.push(pa);
         pc += 4;
 
-        if is_terminator || instructions.len() >= 64 {
+        if is_terminator || instructions.len() >= MAX_BLOCK_INSTRUCTIONS {
             break;
         }
     }

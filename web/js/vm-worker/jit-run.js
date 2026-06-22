@@ -28,6 +28,11 @@ export async function runJitBlock({ coreId = 0 } = {}) {
 
 export function runCachedJitBlock(coreId, key, entry) {
   const pc = state.emulator.pc();
+  const commitError = canCommitNow(coreId, entry.steps);
+  if (commitError) {
+    return { committed: false, error: commitError, pc };
+  }
+
   if (
     !state.emulator.jit_validate_block(
       coreId,
@@ -45,10 +50,6 @@ export function runCachedJitBlock(coreId, key, entry) {
       invalidated: true,
       pc,
     };
-  }
-  const commitError = canCommitNow(coreId, entry.steps);
-  if (commitError) {
-    return { committed: false, error: commitError, pc };
   }
 
   if (!state.emulator.jit_sync_state_from_core(coreId)) {

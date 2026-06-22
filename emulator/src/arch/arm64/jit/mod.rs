@@ -9,6 +9,7 @@ mod emitter_a64;
 mod engine;
 mod wasm64;
 
+pub(crate) use block::MAX_BLOCK_INSTRUCTIONS;
 pub use engine::JitEngine;
 pub use wasm64::{
     JIT_STATE_SIZE, Wasm64Compiler, WasmBlockModule, WasmJitCpuState, WasmJitError, hash_raw_words,
