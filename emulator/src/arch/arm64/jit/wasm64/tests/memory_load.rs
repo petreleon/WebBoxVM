@@ -48,3 +48,37 @@ fn compiles_post_index_load_writeback() {
     assert!(module.uses_guest_helpers);
     assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
 }
+
+#[test]
+fn compiles_observed_ldar_as_guest_load() {
+    let instr = crate::arch::arm64::decode(0x88df_fe93).expect("decode observed ldar");
+    assert_eq!(instr.op, Opcode::Ldar);
+    assert_eq!(
+        (instr.rd, instr.rn, instr.size, instr.sf),
+        (19, 20, 4, false)
+    );
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile ldar");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
+    assert!(
+        module
+            .bytes
+            .windows(b"jitLoadGuest".len())
+            .any(|w| w == b"jitLoadGuest")
+    );
+}
+
+#[test]
+fn compiles_ldar_writeback_form() {
+    let instr = crate::arch::arm64::decode(0x99c0_0820).expect("decode ldapr writeback");
+    assert_eq!(instr.op, Opcode::Ldar);
+    assert_eq!((instr.rd, instr.rn, instr.cond, instr.imm), (0, 1, 2, 4));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile ldar writeback");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
+    assert!(module.bytes.contains(&opcodes::OP_I64_STORE));
+}

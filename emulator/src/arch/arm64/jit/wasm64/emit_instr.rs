@@ -125,7 +125,7 @@ impl WasmExpr {
                 self.emit_variable_shift(instr);
                 true
             }
-            Opcode::Ldr | Opcode::LdrSign => self.emit_memory_load(instr),
+            Opcode::Ldar | Opcode::Ldr | Opcode::LdrSign => self.emit_memory_load(instr),
             Opcode::Mrs => self.emit_mrs(instr),
             Opcode::Adr => {
                 let target = (pc as i64 + instr.imm as i64) as u64;

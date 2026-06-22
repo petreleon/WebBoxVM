@@ -11,8 +11,13 @@ impl WasmExpr {
         if !matches!(instr.size, 1 | 2 | 4 | 8) {
             return false;
         }
-        let Some(writeback) = self.emit_memory_address(instr) else {
-            return false;
+        let writeback = if instr.op == Opcode::Ldar {
+            self.emit_ldar_address(instr)
+        } else {
+            let Some(writeback) = self.emit_memory_address(instr) else {
+                return false;
+            };
+            writeback
         };
 
         self.local_get(ADDR_LOCAL);
@@ -28,6 +33,19 @@ impl WasmExpr {
                 this.local_get(WRITEBACK_LOCAL);
             });
         }
+        true
+    }
+
+    fn emit_ldar_address(&mut self, instr: Instr) -> bool {
+        self.emit_read_base(instr.rn, true);
+        self.local_set(ADDR_LOCAL);
+        if instr.cond != 2 {
+            return false;
+        }
+        self.local_get(ADDR_LOCAL);
+        self.i64_const(instr.imm);
+        self.op(OP_I64_ADD);
+        self.local_set(WRITEBACK_LOCAL);
         true
     }
 

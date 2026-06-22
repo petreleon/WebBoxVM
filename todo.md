@@ -13,9 +13,9 @@ History: [sprint-history.md](sprint-history.md).
 
 ## Current Blocker
 - Correctness: no disk-boot blocker observed; default `Boot disk` reaches Debian 13 `debian login:` on `ttyAMA0`.
-- Speed: latest browser disk-boot proof reached `debian login:` at about 610s with 0 JIT rejects/skips and one safe timer-deadline fallback.
+- Speed: latest browser disk-boot proof reached `debian login:` at 594.3s with 0 JIT rejects/skips and one safe timer-deadline fallback.
 
 ## Done - Tiny
 - [x] Install path: browser NAT/DHCP/DNS/HTTP Debian install, reboot, compact OPFS disk persistence.
 - [x] Boot/login path: default `Boot disk`; `Boot ISO` media-only; Debian 13 reaches `debian login:` on `ttyAMA0`.
-- [x] JIT path: saved-disk JIT, stats, rollback, EL0/sysreg helpers, observed-op coverage, timer-boundary tests.
+- [x] JIT path: saved-disk JIT, stats, rollback, EL0/sysreg helpers, observed `SPSR_EL1`/`LDAR` coverage, timer-boundary tests.
