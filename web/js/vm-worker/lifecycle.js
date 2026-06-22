@@ -15,9 +15,10 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   state.lastAutosaveAt = performance.now();
   state.lastAutosavePollAt = state.lastAutosaveAt;
   const result = state.emulator.boot_iso_with_disk(isoImage, numCores, diskSizeBytes);
-  state.lastAutosaveGeneration = state.emulator.install_disk_generation();
+  const installDiskGeneration = state.emulator.install_disk_generation();
+  state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
-  return { metrics: metrics(), result };
+  return { metrics: metrics({ installDiskGeneration }), result };
 }
 
 export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numCores }) {
@@ -36,18 +37,21 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
     numCores,
     extraBootargs,
   );
-  state.lastAutosaveGeneration = state.emulator.install_disk_generation();
+  const installDiskGeneration = state.emulator.install_disk_generation();
+  state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
-  return { metrics: metrics(), result };
+  return { metrics: metrics({ installDiskGeneration }), result };
 }
 
 export function restoreInstallDisk(snapshot) {
   requireEmulator();
   const result = state.emulator.restore_install_disk(snapshot);
-  state.lastAutosaveGeneration = state.emulator.install_disk_generation();
+  const installDiskGeneration = state.emulator.install_disk_generation();
+  state.lastAutosaveGeneration = installDiskGeneration;
   state.lastMetricsAt = performance.now();
-  postMessage({ event: "metrics", metrics: metrics() });
-  return { metrics: metrics(), result };
+  const metricsSnapshot = metrics({ installDiskGeneration });
+  postMessage({ event: "metrics", metrics: metricsSnapshot });
+  return { metrics: metricsSnapshot, result };
 }
 
 export function installDiskSnapshot() {
@@ -74,12 +78,12 @@ export function freeEmulator() {
   }
 }
 
-export function metrics({ includeUnchangedJitStats = true } = {}) {
+export function metrics({ includeUnchangedJitStats = true, installDiskGeneration } = {}) {
   requireEmulator();
   const snapshot = {
     allocatedPages: state.emulator.allocated_pages(),
     installDiskAllocatedBytes: state.emulator.install_disk_allocated_bytes(),
-    installDiskGeneration: state.emulator.install_disk_generation(),
+    installDiskGeneration: installDiskGeneration ?? state.emulator.install_disk_generation(),
     installDiskSizeBytes: state.emulator.install_disk_size_bytes(),
     networkRxPackets: state.emulator.network_rx_packets(),
     networkStatus: state.networkStatus,

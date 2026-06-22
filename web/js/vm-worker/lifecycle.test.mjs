@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { metrics } from "./lifecycle.js";
+import { metrics, restoreInstallDisk } from "./lifecycle.js";
 import { resetJitState, state } from "./state.js";
 
+const previousPostMessage = globalThis.postMessage;
+
 afterEach(() => {
+  globalThis.postMessage = previousPostMessage;
   state.emulator = undefined;
+  state.lastAutosaveGeneration = 0n;
+  state.lastMetricsAt = 0;
   resetJitState();
 });
 
@@ -35,6 +40,49 @@ test("routine metrics omit unchanged jit stats after a full snapshot", () => {
   assert.equal(first.jitStats.hitSites, 0);
   assert.equal(second.jitStats, undefined);
   assert.equal(third.jitStats.hitSites, 1);
+});
+
+test("metrics can reuse known install disk generation", () => {
+  let generationPolls = 0;
+  state.emulator = metricsEmulator({
+    install_disk_generation: () => {
+      generationPolls += 1;
+      return 3n;
+    },
+  });
+
+  const snapshot = metrics({ installDiskGeneration: 11n });
+
+  assert.equal(snapshot.installDiskGeneration, 11n);
+  assert.equal(generationPolls, 0);
+});
+
+test("restore install disk reuses one metrics snapshot", () => {
+  const messages = [];
+  const snapshot = new Uint8Array([1, 2]);
+  let generationPolls = 0;
+  let restoredSnapshot;
+  globalThis.postMessage = (message) => messages.push(message);
+  state.emulator = metricsEmulator({
+    install_disk_generation: () => {
+      generationPolls += 1;
+      return 12n;
+    },
+    restore_install_disk: (value) => {
+      restoredSnapshot = value;
+      return "restored";
+    },
+  });
+
+  const result = restoreInstallDisk(snapshot);
+
+  assert.equal(result.result, "restored");
+  assert.equal(restoredSnapshot, snapshot);
+  assert.equal(result.metrics.installDiskGeneration, 12n);
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].metrics, result.metrics);
+  assert.equal(generationPolls, 1);
+  assert.equal(state.lastAutosaveGeneration, 12n);
 });
 
 function metricsEmulator(overrides = {}) {
