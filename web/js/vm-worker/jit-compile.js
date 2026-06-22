@@ -25,17 +25,19 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
   const exitPc = owner.jit_last_block_exit_pc();
   const alternateExitPc = owner.jit_last_block_alternate_exit_pc();
   const dynamicExit = owner.jit_last_block_dynamic_exit();
-  const blockEl = owner.jit_last_block_el();
-  const rawHash = owner.jit_last_block_raw_hash();
-  const usesGuestHelpers = owner.jit_last_block_uses_guest_helpers();
-  if (usesGuestHelpers && blockEl === 0) {
+  const skipReason = compiledJitBlockSkipReason({
+    blockEl: owner.jit_last_block_el(),
+    usesGuestHelpers: owner.jit_last_block_uses_guest_helpers(),
+  });
+  if (skipReason) {
     return {
       compiled: false,
-      error: "Wasm64 JIT skips EL0 guest-memory helper block",
+      error: skipReason,
       pc,
       skipped: true,
     };
   }
+  const rawHash = owner.jit_last_block_raw_hash();
   const { instance, module } = await WebAssembly.instantiate(bytes, {
     env: {
       memory: state.wasmExports.memory,
@@ -85,6 +87,10 @@ export async function compileJitBlock({ coreId = 0 } = {}) {
 
 export function jitBlockKey(coreId, pc) {
   return `${coreId}:${pc.toString(16)}`;
+}
+
+export function compiledJitBlockSkipReason(_metadata) {
+  return undefined;
 }
 
 function evictOldestJitBlockIfNeeded() {

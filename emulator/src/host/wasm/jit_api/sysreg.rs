@@ -24,8 +24,7 @@ impl Emulator {
         match result {
             Ok(value) => value,
             Err(err) => {
-                self.jit_last_error = err;
-                self.jit_helper_failed = true;
+                self.fail_jit_helper(err);
                 0
             }
         }

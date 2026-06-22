@@ -42,6 +42,19 @@ pub(in crate::host::wasm) struct JitPendingStore {
     pub len: u8,
 }
 
+impl Emulator {
+    pub(in crate::host::wasm) fn clear_jit_side_effects(&mut self) {
+        self.jit_pending_exclusive_clear = None;
+        self.jit_pending_stores.clear();
+    }
+
+    pub(in crate::host::wasm) fn fail_jit_helper(&mut self, err: String) {
+        self.jit_last_error = err;
+        self.jit_helper_failed = true;
+        self.clear_jit_side_effects();
+    }
+}
+
 #[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen(constructor)]

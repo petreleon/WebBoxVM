@@ -10,7 +10,7 @@ History: [sprint-history.md](sprint-history.md).
 
 ## Learn / Debug Queue
 - [ ] Explain `web/js/vm-worker/jit-compile.js` JIT policy
-- [ ] Decide the EL0 guest-memory-helper JIT policy after the `Stxp` proof
+- [x] Decide the EL0 guest-memory-helper JIT policy after the `Stxp` proof
 - [x] Add or intentionally skip JIT support for observed `Stxp` hot block `0xc8270c82`
 - [x] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
@@ -22,9 +22,10 @@ History: [sprint-history.md](sprint-history.md).
 - Install: browser NAT/DHCP/DNS/HTTP -> Debian install -> reboot -> compact OPFS disk.
 - Boot: default `Boot disk` reaches Debian 13 `ttyAMA0` login in about 642s.
 - Hang: BPF/ftrace root-handoff path isolated; default avoids it via bootargs/service/getty/UART changes.
-- JIT: telemetry plus observed `MRS DCZID_EL0`/`TPIDRRO_EL0`/`Stxp`; 175s probe had 0 rejects, 1 intentional EL0 helper skip.
+- JIT: telemetry plus observed `MRS DCZID_EL0`/`TPIDRRO_EL0`/`Stxp`; 200s EL0 helper probe had 0 rejects, 0 skips.
 
 ## Done
 - [x] Browser install/network/disk persistence; default disk boot to serial login.
 - [x] BPF/ftrace workaround path; service masks, serial getty, UART batching.
 - [x] JIT stats snapshots; safe sysreg reads; observed exclusive pair store.
+- [x] JIT helper failures clear staged side effects; EL0 guest-helper blocks are runtime-gated, not compile-skipped.

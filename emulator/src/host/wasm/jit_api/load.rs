@@ -26,8 +26,7 @@ impl Emulator {
         match result {
             Ok(value) => value,
             Err(err) => {
-                self.jit_last_error = err;
-                self.jit_helper_failed = true;
+                self.fail_jit_helper(err);
                 0
             }
         }
@@ -114,10 +113,7 @@ fn pending_store_byte(pending_stores: &[JitPendingStore], pa: u64) -> Option<u64
 fn translate_load(cpu: &mut Armv8Cpu, mem: &PhysicalMemory, va: u64) -> Result<u64, String> {
     match translate(&cpu.sys, &mut cpu.tlb, mem, va) {
         Ok(pa) => Ok(pa),
-        Err(fault) => {
-            cpu.sys.far_el1 = va;
-            Err(format!("JIT load helper {fault:?}"))
-        }
+        Err(fault) => Err(format!("JIT load helper {fault:?}")),
     }
 }
 

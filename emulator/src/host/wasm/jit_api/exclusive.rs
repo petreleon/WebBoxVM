@@ -48,8 +48,7 @@ impl Emulator {
                 status as u64
             }
             Err(err) => {
-                self.jit_last_error = err;
-                self.jit_helper_failed = true;
+                self.fail_jit_helper(err);
                 1
             }
         }
@@ -102,10 +101,7 @@ pub(super) fn apply_jit_pending_exclusive_clear(machine: &mut Machine, core_id: 
 fn translate_store(cpu: &mut Armv8Cpu, mem: &mut PhysicalMemory, va: u64) -> Result<u64, String> {
     match translate_write(&cpu.sys, &mut cpu.tlb, mem, va, cpu.pstate.el()) {
         Ok(pa) => Ok(pa),
-        Err(fault) => {
-            cpu.sys.far_el1 = va;
-            Err(format!("JIT exclusive store helper {fault:?}"))
-        }
+        Err(fault) => Err(format!("JIT exclusive store helper {fault:?}")),
     }
 }
 
