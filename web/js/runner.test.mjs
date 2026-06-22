@@ -59,8 +59,16 @@ test("uart probe replaces once for oversized chunks", () => {
   assert.equal(fakeDocument.text.dataWrites, 1);
 });
 
-function setupRunner() {
-  const emulator = { start: () => {} };
+test("runner uses faster default step slice when input is blank", () => {
+  const { emulator, runner } = setupRunner({ stepSlice: "" });
+
+  runner.start();
+
+  assert.equal(emulator.startedWith, 2_000_000);
+});
+
+function setupRunner({ stepSlice = "1000000" } = {}) {
+  const emulator = { start: (value) => (emulator.startedWith = value) };
   const term = {
     output: "",
     scrollToBottom: () => {},
@@ -72,7 +80,7 @@ function setupRunner() {
     disk: { shouldAutosave: () => false },
     els: {
       autoScroll: { checked: false },
-      stepSlice: { addEventListener: () => {}, value: "1000000" },
+      stepSlice: { addEventListener: () => {}, value: stepSlice },
     },
     getEmulator: () => emulator,
     handleError: () => {},
