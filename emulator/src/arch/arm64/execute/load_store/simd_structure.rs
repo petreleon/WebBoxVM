@@ -58,21 +58,27 @@ pub(in crate::arch::arm64::execute) fn exec_ld_structure(
 ) -> Result<(), &'static str> {
     let lanes = simd_structure_lanes(instr)?;
     let element_size = 1usize << instr.cond;
+    let total_bytes = lanes * structure_count * element_size;
+    let mut bytes = [0u8; 64];
+    let Some(bytes) = bytes.get_mut(..total_bytes) else {
+        return Err("unsupported SIMD structure load size");
+    };
+    read_guest_bytes(
+        cpu,
+        bus,
+        va,
+        bytes,
+        "LD4 translation fault",
+        "LD4 bus fault",
+    )?;
+
     let mut regs = [0u128; 4];
     for lane in 0..lanes {
         for reg_index in 0..structure_count {
             let mut element = 0u128;
             for byte_index in 0..element_size {
-                let byte_offset =
-                    ((lane * structure_count + reg_index) * element_size + byte_index) as u64;
-                let pa = translate_or_data_fault(
-                    cpu,
-                    &mut bus.mem,
-                    va.wrapping_add(byte_offset),
-                    false,
-                    "LD4 translation fault",
-                )?;
-                let byte = bus.read(pa, 1).ok_or("LD4 bus fault")? as u128;
+                let byte_offset = (lane * structure_count + reg_index) * element_size + byte_index;
+                let byte = bytes[byte_offset] as u128;
                 element |= byte << (byte_index * 8);
             }
             regs[reg_index] |= element << (lane * element_size * 8);

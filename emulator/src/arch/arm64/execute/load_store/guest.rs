@@ -72,6 +72,48 @@ pub(in crate::arch::arm64::execute) fn write_guest(
     write_guest_bytes(cpu, bus, va, &bytes[..size as usize], err).map(|_| ())
 }
 
+pub(in crate::arch::arm64::execute) fn read_guest_bytes(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    va: u64,
+    bytes: &mut [u8],
+    translate_err: &'static str,
+    bus_err: &'static str,
+) -> Result<u64, &'static str> {
+    if bytes.is_empty() {
+        return Ok(0);
+    }
+
+    let first_pa = translate_or_data_fault(cpu, &mut bus.mem, va, false, translate_err)?;
+    read_guest_bytes_from_first_pa(cpu, bus, va, first_pa, bytes, translate_err, bus_err)
+}
+
+fn read_guest_bytes_from_first_pa(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    va: u64,
+    first_pa: u64,
+    bytes: &mut [u8],
+    translate_err: &'static str,
+    bus_err: &'static str,
+) -> Result<u64, &'static str> {
+    let same_page = !access_crosses_page(va, bytes.len() as u8);
+    if same_page
+        && !bus.overlaps_device_range(first_pa, bytes.len())
+        && bus.mem.read_bytes(first_pa, bytes).is_some()
+    {
+        return Ok(first_pa);
+    }
+
+    bytes[0] = bus.read(first_pa, 1).ok_or(bus_err)? as u8;
+    for (offset, byte) in bytes.iter_mut().enumerate().skip(1) {
+        let byte_va = va.wrapping_add(offset as u64);
+        let pa = translate_or_data_fault(cpu, &mut bus.mem, byte_va, false, translate_err)?;
+        *byte = bus.read(pa, 1).ok_or(bus_err)? as u8;
+    }
+    Ok(first_pa)
+}
+
 pub(in crate::arch::arm64::execute) fn write_guest_translated(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,
