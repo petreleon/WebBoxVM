@@ -1,5 +1,6 @@
 use super::*;
 
+const CPYFP_X3_X2_X1: u32 = 0x1901_0443;
 const SETP_X3_X2_X1: u32 = 0x19C1_0443;
 const MOPS_VA_PAGE: u64 = 0x1000;
 const MOPS_FIRST_PA: u64 = RAM_BASE + 0x0500_0000;
@@ -46,6 +47,63 @@ fn mops_overlap_copy_uses_backward_direction() {
     }
     assert!(cpu.pstate.n());
     assert!(cpu.pstate.c());
+}
+
+#[test]
+fn mops_copy_same_page_bulk_clears_exclusive_across_full_range() {
+    let (mut cpu, mut bus) = setup();
+    let src = RAM_BASE + 0x8000;
+    let dst = RAM_BASE + 0x9000;
+    for offset in 0..300u64 {
+        bus.mem.write(src + offset, 1, offset);
+    }
+    cpu.regs.set_x(1, src);
+    cpu.regs.set_x(2, 300);
+    cpu.regs.set_x(3, dst);
+    cpu.reserve_exclusive(dst + 260, 8);
+
+    execute(&mut cpu, &mut bus, decode(CPYFP_X3_X2_X1).unwrap()).unwrap();
+
+    assert_eq!(bus.mem.read(dst, 1), Some(0));
+    assert_eq!(bus.mem.read(dst + 260, 1), Some(260 & 0xff));
+    assert_eq!(bus.mem.read(dst + 299, 1), Some(299 & 0xff));
+    assert_eq!(cpu.regs.x(1), src + 300);
+    assert_eq!(cpu.regs.x(2), 0);
+    assert_eq!(cpu.regs.x(3), dst + 300);
+    assert!(cpu.exclusive.is_none());
+}
+
+#[test]
+fn mops_copy_cross_page_fault_preserves_partial_write_order() {
+    let (mut cpu, mut bus) = setup();
+    let src = MOPS_VA_PAGE + 0x100;
+    let dst = MOPS_VA_PAGE + PAGE_SIZE - 2;
+    map_two_user_pages(
+        &mut cpu,
+        &mut bus,
+        MOPS_VA_PAGE,
+        MOPS_FIRST_PA,
+        MOPS_SECOND_PA,
+    );
+    for offset in 0..4u64 {
+        bus.mem
+            .write(MOPS_FIRST_PA + 0x100 + offset, 1, 0xe0 + offset);
+        bus.mem.write(MOPS_SECOND_PA + offset, 1, 0xaa);
+    }
+    unmap_second_mops_page(&mut bus);
+    cpu.regs.set_x(1, src);
+    cpu.regs.set_x(2, 4);
+    cpu.regs.set_x(3, dst);
+
+    let err = execute(&mut cpu, &mut bus, decode(CPYFP_X3_X2_X1).unwrap()).unwrap_err();
+
+    assert_eq!(err, "translation fault");
+    assert_eq!(bus.mem.read(MOPS_FIRST_PA + PAGE_SIZE - 2, 1), Some(0xe0));
+    assert_eq!(bus.mem.read(MOPS_FIRST_PA + PAGE_SIZE - 1, 1), Some(0xe1));
+    assert_eq!(bus.mem.read(MOPS_SECOND_PA, 1), Some(0xaa));
+    assert_eq!(cpu.regs.x(1), src);
+    assert_eq!(cpu.regs.x(2), 4);
+    assert_eq!(cpu.regs.x(3), dst);
 }
 
 #[test]
