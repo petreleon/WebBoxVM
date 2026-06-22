@@ -100,14 +100,19 @@ fn invalid_descriptor_faults() {
 
 #[test]
 fn tlbi_invalidates_tlb() {
-    let (bus, sys) = mapped_page_fixture(0x4000_3000);
+    let (mut bus, sys) = mapped_page_fixture(0x4000_3000);
     let mut tlb = Tlb::new();
+    let va = 0xFFFF_FF80_0000_0000;
 
-    let _ = translate(&sys, &mut tlb, &bus.mem, 0xFFFF_FF80_0000_0000).unwrap();
+    let _ = translate(&sys, &mut tlb, &bus.mem, va).unwrap();
     assert!(tlb.entries.iter().any(|entry| entry.valid));
 
+    bus.mem.write(0x4000_2000, 8, 0x4000_5000u64 | 0b01);
     tlb.invalidate_all();
-    assert!(tlb.entries.iter().all(|entry| !entry.valid));
+    assert_eq!(
+        translate(&sys, &mut tlb, &bus.mem, va).unwrap(),
+        0x4000_5000
+    );
 }
 
 #[test]

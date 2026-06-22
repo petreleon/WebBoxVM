@@ -9,6 +9,7 @@ pub struct TlbEntry {
     context: TlbContext,
     desc_addr: u64,
     desc_generation: u64,
+    epoch: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -20,6 +21,7 @@ struct WriteTlbEntry {
     desc_addr: u64,
     desc_generation: u64,
     el0_accessible: bool,
+    epoch: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -33,6 +35,7 @@ pub(super) struct TlbContext {
 pub struct Tlb {
     pub entries: Vec<TlbEntry>,
     write_entries: Vec<WriteTlbEntry>,
+    epoch: u64,
 }
 
 impl Tlb {
@@ -40,6 +43,7 @@ impl Tlb {
         Self {
             entries: vec![TlbEntry::default(); TLB_ENTRIES],
             write_entries: vec![WriteTlbEntry::default(); TLB_ENTRIES],
+            epoch: 1,
         }
     }
 
@@ -89,6 +93,7 @@ impl Tlb {
             context,
             desc_addr,
             desc_generation,
+            epoch: self.epoch,
         };
     }
 
@@ -103,10 +108,16 @@ impl Tlb {
             desc_addr: meta.desc_addr,
             desc_generation: meta.desc_generation,
             el0_accessible,
+            epoch: self.epoch,
         };
     }
 
     pub fn invalidate_all(&mut self) {
+        if let Some(next) = self.epoch.checked_add(1) {
+            self.epoch = next;
+            return;
+        }
+        self.epoch = 1;
         for entry in &mut self.entries {
             entry.valid = false;
         }
@@ -123,6 +134,7 @@ impl Tlb {
         context: TlbContext,
     ) -> bool {
         entry.valid
+            && entry.epoch == self.epoch
             && entry.va_page == page
             && entry.context == context
             && descriptor_generation(mem, entry.desc_addr) == Some(entry.desc_generation)
@@ -136,6 +148,7 @@ impl Tlb {
         context: TlbContext,
     ) -> bool {
         entry.valid
+            && entry.epoch == self.epoch
             && entry.va_page == page
             && entry.context == context
             && descriptor_generation(mem, entry.desc_addr) == Some(entry.desc_generation)

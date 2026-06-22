@@ -1,5 +1,5 @@
 use super::*;
-use crate::arch::arm64::{Armv8Cpu, decode, execute};
+use crate::arch::arm64::{Armv8Cpu, decode, execute, translate};
 use crate::platform::virt::SystemBus;
 
 #[test]
@@ -94,10 +94,14 @@ fn mmu_msr_to_ttbr_invalidates_tlb() {
     assert!(cpu.tlb.entries.iter().any(|entry| entry.valid));
 
     // MSR to TTBR1_EL1 should invalidate TLB
+    bus.mem.write(l3_table, 8, 0x4000_5000u64 | 0b01);
     cpu.regs.set_x(0, l1_table);
     let instr = decode(0xd5182020).unwrap(); // MSR TTBR1_EL1, X0
     execute(&mut cpu, &mut bus, instr).unwrap();
-    assert!(cpu.tlb.entries.iter().all(|entry| !entry.valid));
+    assert_eq!(
+        translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).unwrap(),
+        0x4000_5000
+    );
 }
 
 #[test]
@@ -124,7 +128,11 @@ fn mmu_tlbi_instruction_invalidates_tlb() {
     assert!(cpu.tlb.entries.iter().any(|entry| entry.valid));
 
     // TLBI VMALLE1
+    bus.mem.write(l3_table, 8, 0x4000_5000u64 | 0b01);
     let tlbi = decode(0xd508871f).unwrap();
     execute(&mut cpu, &mut bus, tlbi).unwrap();
-    assert!(cpu.tlb.entries.iter().all(|entry| !entry.valid));
+    assert_eq!(
+        translate(&cpu.sys, &mut cpu.tlb, &bus.mem, va).unwrap(),
+        0x4000_5000
+    );
 }
