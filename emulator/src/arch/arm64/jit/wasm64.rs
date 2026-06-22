@@ -45,6 +45,7 @@ mod memory_zero;
 mod module_builder;
 mod multiply;
 mod opcodes;
+mod pstate_control;
 mod rev;
 mod simd_compare;
 mod simd_dispatch;

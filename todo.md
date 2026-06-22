@@ -17,7 +17,7 @@ History: [sprint-history.md](sprint-history.md).
 ## Current Blocker
 - No disk-boot correctness blocker observed: default browser `Boot disk` reaches Debian 13 `debian login:` on `ttyAMA0`.
 - Main work now: speed; pre-JIT default login proof was about 642 seconds of browser wall time.
-- Latest default-JIT single-disk proof reached `vda` at 198s, held 45s with no `vdb`, and had 0 JIT rejects/skips/fallbacks at 243s.
+- Latest default-JIT DAIF proof passed the old `DaifSet` reject at 255.5s; at 276s it had 0 rejects/skips/fallbacks, then observed one safe timer-deadline fallback at 296s.
 
 ## Recent Proofs
 - Install: browser NAT/DHCP/DNS/HTTP -> Debian install -> reboot -> compact OPFS disk.
@@ -28,6 +28,7 @@ History: [sprint-history.md](sprint-history.md).
 - JIT: observed `MRS CurrentEL` (`0xd5384253`) is safe; 200s default proof had 20 cached blocks, 0 rejects/skips.
 - JIT: observed `LDXR` (`0x885f7c60`) compiles through a staged exclusive-load helper; 243s browser proof had 24 cached blocks, 3180 hot sites, 0 rejects/skips/fallbacks.
 - Boot: installed-disk DTB omits the empty boot-media block device; browser serial saw only `vda` (`vda1`..`vda4`) before mounting `/dev/vda3`.
+- JIT: observed `MSR DAIFSet, #3` (`0xd50343df`) compiles as a PSTATE IRQ-mask update; browser proof passed the prior reject point.
 
 ## Done
 - [x] Browser install/network/disk persistence; default disk boot to serial login.
@@ -38,3 +39,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] JIT can compile observed side-effect-free `MRS CurrentEL`.
 - [x] Installed-disk boots advertise only the persisted disk device; ISO/media boots still advertise installer media.
 - [x] JIT can compile observed `LDXR` with exclusive reservation staged until commit.
+- [x] JIT can compile observed `DaifSet`/`DaifClr` immediate PSTATE updates.

@@ -108,6 +108,8 @@ impl Opcode {
             Self::Sysl => "Sysl",
             Self::Sysp => "Sysp",
             Self::Prfm => "Prfm",
+            Self::DaifSet => "DaifSet",
+            Self::DaifClr => "DaifClr",
             Self::SimdLdp => "SimdLdp",
             Self::SimdStp => "SimdStp",
             Self::SimdLdr => "SimdLdr",
