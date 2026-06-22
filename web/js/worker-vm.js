@@ -14,6 +14,12 @@ export class WorkerVm {
   onUart = () => {};
 
   #channel;
+  #networkStats = {
+    rxPackets: 0n,
+    status: "offline",
+    txPackets: 0n,
+    txPending: 0,
+  };
 
   constructor() {
     this.#channel = new WorkerChannel(versionedWorkerUrl(), {
@@ -132,12 +138,11 @@ export class WorkerVm {
   }
 
   network_stats() {
-    return {
-      rxPackets: this.#channel.metrics.networkRxPackets,
-      status: this.#channel.metrics.networkStatus,
-      txPackets: this.#channel.metrics.networkTxPackets,
-      txPending: this.#channel.metrics.networkTxPending,
-    };
+    this.#networkStats.rxPackets = this.#channel.metrics.networkRxPackets;
+    this.#networkStats.status = this.#channel.metrics.networkStatus;
+    this.#networkStats.txPackets = this.#channel.metrics.networkTxPackets;
+    this.#networkStats.txPending = this.#channel.metrics.networkTxPending;
+    return this.#networkStats;
   }
 
   pc() {
