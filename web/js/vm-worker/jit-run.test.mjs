@@ -86,7 +86,9 @@ test("cached jit prepare receives metadata and run uses cached state pointer", (
 
 test("cached jit run can reuse caller pc without another wasm lookup", () => {
   let pcCalls = 0;
-  state.emulator = {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
+  const emulator = {
     jit_finish_cached_block: () => 0,
     jit_last_error: () => "",
     jit_prepare_cached_block: () => true,
@@ -95,12 +97,24 @@ test("cached jit run can reuse caller pc without another wasm lookup", () => {
       return 0x9999n;
     },
   };
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return undefined;
+    },
+  });
 
-  const result = runCachedJitBlock(0, "0:1000", cachedEntry(), 0x1000n);
+  try {
+    const result = runCachedJitBlock(0, "0:1000", cachedEntry(), 0x1000n, emulator);
 
-  assert.equal(result.committed, true);
-  assert.equal(result.pc, 0x1000n);
-  assert.equal(pcCalls, 0);
+    assert.equal(result.committed, true);
+    assert.equal(result.pc, 0x1000n);
+    assert.equal(pcCalls, 0);
+    assert.equal(emulatorReads, 0);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
 });
 
 test("finish helper rejection invalidates cached jit block", () => {

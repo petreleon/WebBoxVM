@@ -9,7 +9,8 @@ const JIT_FINISH_EXIT_REJECTED = 3;
 
 export async function runJitBlock({ coreId = 0 } = {}) {
   requireEmulator();
-  const pc = state.emulator.pc();
+  const emulator = state.emulator;
+  const pc = emulator.pc();
   const key = jitBlockKey(coreId, pc);
   let entry = state.jitBlocks.get(key);
 
@@ -21,16 +22,17 @@ export async function runJitBlock({ coreId = 0 } = {}) {
     entry = state.jitBlocks.get(key);
   }
 
-  const result = runCachedJitBlock(coreId, key, entry, pc);
+  const result = runCachedJitBlock(coreId, key, entry, pc, emulator);
   if (result.committed) {
     postMetrics({ force: true });
   }
   return { compiled: true, ...result };
 }
 
-export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) {
+export function runCachedJitBlock(coreId, key, entry, pc, emulator = state.emulator) {
+  const knownPc = pc ?? emulator.pc();
   if (
-    !state.emulator.jit_prepare_cached_block(
+    !emulator.jit_prepare_cached_block(
       coreId,
       entry.startPc,
       entry.startPa,
@@ -40,8 +42,8 @@ export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) 
       entry.steps,
     )
   ) {
-    const error = state.emulator.jit_last_error();
-    const result = { committed: false, error, pc };
+    const error = emulator.jit_last_error();
+    const result = { committed: false, error, pc: knownPc };
     if (!isCommitBoundaryError(error)) {
       result.invalidated = true;
     }
@@ -49,7 +51,7 @@ export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) 
   }
 
   const exitPc = entry.instance.exports.run(entry.statePtr);
-  const finish = state.emulator.jit_finish_cached_block(
+  const finish = emulator.jit_finish_cached_block(
     coreId,
     entry.steps,
     exitPc,
@@ -60,9 +62,9 @@ export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) 
   if (finish === JIT_FINISH_HELPER_REJECTED) {
     return {
       committed: false,
-      error: state.emulator.jit_last_error(),
+      error: emulator.jit_last_error(),
       invalidated: true,
-      pc,
+      pc: knownPc,
       rejected: true,
     };
   }
@@ -70,17 +72,17 @@ export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) 
     state.jitBlocks.delete(key);
     return {
       committed: false,
-      error: state.emulator.jit_last_error(),
+      error: emulator.jit_last_error(),
       invalidated: true,
-      pc,
+      pc: knownPc,
     };
   }
   if (finish !== JIT_FINISH_COMMITTED) {
     return {
       committed: false,
-      error: state.emulator.jit_last_error(),
+      error: emulator.jit_last_error(),
       exitPc,
-      pc,
+      pc: knownPc,
       steps: entry.steps,
     };
   }
@@ -89,7 +91,7 @@ export function runCachedJitBlock(coreId, key, entry, pc = state.emulator.pc()) 
     committed: true,
     error: "",
     exitPc,
-    pc,
+    pc: knownPc,
     steps: entry.steps,
   };
 }

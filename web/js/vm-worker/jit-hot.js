@@ -3,16 +3,16 @@ import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.j
 import { runCachedJitBlock } from "./jit-run.js";
 import { JIT_HOT_THRESHOLD, state } from "./state.js";
 
-export function tryRunOrCompileJitBlock(coreId = 0) {
-  if (!state.jitEnabled || !state.emulator) {
+export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
+  if (!state.jitEnabled || !emulator) {
     return false;
   }
 
-  const pc = state.emulator.pc();
+  const pc = emulator.pc();
   const key = jitBlockKey(coreId, pc);
   const cached = state.jitBlocks.get(key);
   if (cached) {
-    const result = runCachedJitBlock(coreId, key, cached, pc);
+    const result = runCachedJitBlock(coreId, key, cached, pc, emulator);
     if (result.committed) {
       return true;
     }
@@ -38,12 +38,15 @@ export function tryRunOrCompileJitBlock(coreId = 0) {
     return false;
   }
 
-  return compileAndRunJitBlock({ coreId, key, pc });
+  return compileAndRunJitBlock({ coreId, key, pc, emulator });
 }
 
-async function compileAndRunJitBlock({ coreId, key, pc }) {
+async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
+  if (state.emulator !== emulator) {
+    return false;
+  }
   const compiled = await compileJitBlock({ coreId, pc });
-  if (!state.running || !compiled.compiled) {
+  if (!state.running || state.emulator !== emulator || !compiled.compiled) {
     if (!compiled.compiled) {
       if (compiled.skipped) {
         state.jitSkippedBlocks.add(key);
@@ -60,5 +63,5 @@ async function compileAndRunJitBlock({ coreId, key, pc }) {
   if (!entry) {
     return false;
   }
-  return runCachedJitBlock(coreId, key, entry, pc).committed;
+  return runCachedJitBlock(coreId, key, entry, pc, emulator).committed;
 }

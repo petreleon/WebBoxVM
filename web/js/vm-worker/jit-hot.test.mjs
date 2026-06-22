@@ -45,6 +45,33 @@ test("cached jit hot path reads pc once per hit", async () => {
   assert.equal(pcCalls, 1);
 });
 
+test("cached jit hot path can reuse checked emulator reference", () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
+  const emulator = {
+    jit_finish_cached_block: () => 0,
+    jit_last_error: () => "",
+    jit_prepare_cached_block: () => true,
+    pc: () => 0x1000n,
+  };
+  state.jitEnabled = true;
+  state.jitBlocks.set("0:1000", cachedEntry());
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return undefined;
+    },
+  });
+
+  try {
+    assert.equal(tryRunOrCompileJitBlock(0, emulator), true);
+    assert.equal(emulatorReads, 0);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
+});
+
 test("cached jit hot path returns synchronously", () => {
   state.jitEnabled = true;
   state.emulator = {

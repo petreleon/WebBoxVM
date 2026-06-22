@@ -34,15 +34,22 @@ async function runPump() {
 
   try {
     do {
-      let usedJit = tryRunOrCompileJitBlock();
-      if (usedJit?.then) {
-        usedJit = await usedJit;
-      }
-      if (!state.running) {
+      let emulator = state.emulator;
+      if (!emulator) {
         return;
       }
-      const emulator = state.emulator;
-      if (!emulator) {
+      let usedJit = tryRunOrCompileJitBlock(0, emulator);
+      if (usedJit?.then) {
+        usedJit = await usedJit;
+        if (!state.running) {
+          return;
+        }
+        emulator = state.emulator;
+        if (!emulator) {
+          return;
+        }
+      }
+      if (!state.running) {
         return;
       }
       if (!usedJit) {
