@@ -58,6 +58,18 @@ fn cache_miss_decodes_later_word_from_same_page() {
 }
 
 #[test]
+fn cache_miss_decodes_last_word_from_same_page() {
+    let mut mem = PhysicalMemory::new();
+    let mut cache = DecodeCache::new();
+    let last = RAM_BASE + PAGE_SIZE - INSTRUCTION_SIZE;
+
+    mem.write(last, 4, 0x1400_0000).unwrap();
+
+    assert_eq!(cache.fetch(&mem, last).unwrap().op, Opcode::B);
+    assert_eq!(cache.misses, 1);
+}
+
+#[test]
 fn direct_slot_collision_evictions_are_safe() {
     let mut mem = PhysicalMemory::new();
     let mut cache = DecodeCache::new();

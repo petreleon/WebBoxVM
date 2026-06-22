@@ -9,11 +9,12 @@ use crate::constants::*;
 use crate::memory::PhysicalMemory;
 
 const DECODE_CACHE_LINES: usize = 16 * 1024;
+type DecodedInstrs = Box<[Instr; INSTRUCTIONS_PER_PAGE]>;
 
 #[derive(Debug, Clone)]
 struct DecodedPage {
     generation: u64,
-    instrs: Vec<Instr>,
+    instrs: DecodedInstrs,
 }
 
 #[derive(Debug, Clone)]
@@ -57,14 +58,14 @@ impl DecodeCache {
             && line.page.generation == generation
         {
             self.hits += 1;
-            return line.page.instrs.get(word_offset).copied();
+            return Some(line.page.instrs[word_offset]);
         }
 
         self.misses += 1;
         let page = decode_page(mem, page_base, generation)?;
-        let result = page.instrs.get(word_offset).copied();
+        let result = page.instrs[word_offset];
         self.pages[slot] = Some(CacheLine { page_base, page });
-        result
+        Some(result)
     }
 }
 
@@ -77,20 +78,20 @@ impl Default for DecodeCache {
 fn decode_page(mem: &PhysicalMemory, page_base: u64, generation: u64) -> Option<DecodedPage> {
     let mut page_bytes = [0u8; PAGE_SIZE as usize];
     mem.read_bytes(page_base, &mut page_bytes)?;
-    let mut instrs = Vec::with_capacity(INSTRUCTIONS_PER_PAGE);
-
-    for i in 0..INSTRUCTIONS_PER_PAGE {
-        let offset = i * INSTRUCTION_SIZE as usize;
-        let raw = u32::from_le_bytes([
-            page_bytes[offset],
-            page_bytes[offset + 1],
-            page_bytes[offset + 2],
-            page_bytes[offset + 3],
-        ]);
-        instrs.push(decode(raw).unwrap_or_else(Instr::nop));
-    }
+    let instrs = Box::new(std::array::from_fn(|i| decode_page_word(&page_bytes, i)));
 
     Some(DecodedPage { generation, instrs })
+}
+
+fn decode_page_word(page_bytes: &[u8; PAGE_SIZE as usize], index: usize) -> Instr {
+    let offset = index * INSTRUCTION_SIZE as usize;
+    let raw = u32::from_le_bytes([
+        page_bytes[offset],
+        page_bytes[offset + 1],
+        page_bytes[offset + 2],
+        page_bytes[offset + 3],
+    ]);
+    decode(raw).unwrap_or_else(Instr::nop)
 }
 
 fn cache_slot(page_base: u64) -> usize {
