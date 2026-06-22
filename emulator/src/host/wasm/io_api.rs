@@ -36,8 +36,7 @@ impl Emulator {
         if let Some(ref mut boot) = self.boot {
             boot.feed_uart_input(input);
         } else {
-            self.machine.bus.uart.feed_input(input);
-            self.machine.inject_irq(crate::constants::PL011_UART_IRQ_ID);
+            self.machine.feed_uart_input(input);
         }
     }
 
@@ -46,8 +45,7 @@ impl Emulator {
         if let Some(ref mut boot) = self.boot {
             boot.feed_uart_bytes(&input);
         } else if !input.is_empty() {
-            self.machine.bus.uart.feed_input_bytes(&input);
-            self.machine.inject_irq(crate::constants::PL011_UART_IRQ_ID);
+            self.machine.feed_uart_bytes(&input);
         }
     }
 }

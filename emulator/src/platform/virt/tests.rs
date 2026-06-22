@@ -85,19 +85,46 @@ fn device_overlap_detection_handles_edges_and_overflow() {
 fn refresh_interrupts_reasserts_uart_rx_while_input_remains() {
     let mut bus = SystemBus::new();
     bus.write(UART_BASE + 0x38, 4, 0x50);
-    bus.uart.feed_input("ab");
+    bus.feed_uart_input("ab");
 
-    bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    bus.clear_irq_pending(PL011_UART_IRQ_ID);
     bus.refresh_interrupts();
     assert!(bus.gic.is_pending(PL011_UART_IRQ_ID));
 
     assert_eq!(bus.read(UART_BASE, 1), Some(b'a' as u64));
-    bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    bus.clear_irq_pending(PL011_UART_IRQ_ID);
     bus.refresh_interrupts();
     assert!(bus.gic.is_pending(PL011_UART_IRQ_ID));
 
     assert_eq!(bus.read(UART_BASE, 1), Some(b'b' as u64));
-    bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    bus.clear_irq_pending(PL011_UART_IRQ_ID);
     bus.refresh_interrupts();
     assert!(!bus.gic.is_pending(PL011_UART_IRQ_ID));
+}
+
+#[test]
+fn gicd_clear_pending_marks_uart_refresh_needed() {
+    let mut bus = SystemBus::new();
+    let clear_pending = GICD_BASE + 0x280 + ((PL011_UART_IRQ_ID / 32) as u64) * 4;
+    let bit = 1u64 << (PL011_UART_IRQ_ID % 32);
+
+    bus.write(UART_BASE + UART_IMSC_OFFSET, 4, 0x50);
+    bus.feed_uart_input("x");
+    bus.write(clear_pending, 4, bit);
+
+    assert!(!bus.gic.is_pending(PL011_UART_IRQ_ID));
+    bus.refresh_interrupts();
+    assert!(bus.gic.is_pending(PL011_UART_IRQ_ID));
+}
+
+#[test]
+fn uart_imsc_write_marks_rx_refresh_needed() {
+    let mut bus = SystemBus::new();
+    bus.uart.feed_input("x");
+
+    bus.write(UART_BASE + UART_IMSC_OFFSET, 4, 0x50);
+
+    assert!(!bus.gic.is_pending(PL011_UART_IRQ_ID));
+    bus.refresh_interrupts();
+    assert!(bus.gic.is_pending(PL011_UART_IRQ_ID));
 }

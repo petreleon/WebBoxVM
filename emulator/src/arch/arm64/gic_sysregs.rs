@@ -13,7 +13,7 @@ pub(crate) fn handle_gic_sysreg_access(
         Opcode::Mrs if instr.imm as u16 == SYSREG_ICC_IAR1_EL1 => {
             let int_id = acknowledge_interrupt(cpu);
             if int_id != GIC_SPURIOUS_INTERRUPT {
-                bus.gic.clear_pending(int_id as u32);
+                bus.clear_irq_pending(int_id as u32);
             }
             write_reg(cpu, instr.rd, int_id, true);
             cpu.regs.pc += INSTRUCTION_SIZE;
@@ -23,7 +23,7 @@ pub(crate) fn handle_gic_sysreg_access(
             let int_id = read_reg(cpu, instr.rd, true) as u32;
             cpu.sys.irq_pending = false;
             cpu.sys.last_irq_id = GIC_SPURIOUS_INTERRUPT as u32;
-            bus.gic.clear_pending(int_id);
+            bus.clear_irq_pending(int_id);
             cpu.regs.pc += INSTRUCTION_SIZE;
             true
         }

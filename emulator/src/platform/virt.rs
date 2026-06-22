@@ -13,8 +13,10 @@ use crate::devices::virtio_blk::VirtioBlk;
 use crate::devices::virtio_net::VirtioNet;
 use crate::memory::PhysicalMemory;
 
+mod interrupts;
 mod ranges;
 
+use interrupts::gicd_clear_pending_touches_uart;
 use ranges::*;
 
 pub struct SystemBus {
@@ -24,6 +26,7 @@ pub struct SystemBus {
     pub virtio_blk: VirtioBlk,
     pub virtio_disk: VirtioBlk,
     pub virtio_net: VirtioNet,
+    uart_rx_refresh_needed: bool,
 }
 
 impl SystemBus {
@@ -38,6 +41,7 @@ impl SystemBus {
                 b"webboxvm-disk\0",
             ),
             virtio_net: VirtioNet::new(),
+            uart_rx_refresh_needed: false,
         }
     }
 
@@ -89,12 +93,6 @@ impl SystemBus {
         overlaps_device_range(addr, len)
     }
 
-    pub fn refresh_interrupts(&mut self) {
-        if self.uart.masked_rx_interrupt_pending() {
-            self.gic.set_pending(PL011_UART_IRQ_ID);
-        }
-    }
-
     pub fn inject_network_frame(&mut self, frame: &[u8]) {
         if self.virtio_net.inject_rx_frame(&mut self.mem, frame) {
             self.gic.set_pending(VIRTIO_NET_IRQ_ID);
@@ -117,9 +115,16 @@ impl SystemBus {
         // Standard MMIO dispatch
         if in_uart_range(addr) {
             self.uart.write(addr, size, value);
+            if addr - UART_BASE == UART_IMSC_OFFSET {
+                self.mark_uart_rx_refresh_needed();
+            }
             // Trace: kernel wrote to the UART physical address
         } else if in_gicd_range(addr) {
+            let clears_uart = gicd_clear_pending_touches_uart(addr, value);
             self.gic.gicd_write(addr - GICD_BASE, value, size);
+            if clears_uart {
+                self.mark_uart_rx_refresh_needed();
+            }
         } else if in_gicr_range(addr) {
             self.gic.gicr_write(addr - GICR_BASE, value, size);
         } else if in_virtio_blk_range(addr) {

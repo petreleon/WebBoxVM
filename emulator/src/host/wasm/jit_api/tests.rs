@@ -50,8 +50,8 @@ fn commit_rejects_jit_block_when_uart_input_still_asserts_irq() {
         .bus
         .uart
         .write(UART_BASE + UART_IMSC_OFFSET, 4, UART_RX_IRQ_MASK);
-    machine.bus.uart.feed_input("ab");
-    machine.bus.gic.clear_pending(PL011_UART_IRQ_ID);
+    machine.bus.feed_uart_input("ab");
+    machine.bus.clear_irq_pending(PL011_UART_IRQ_ID);
     machine.cpus[0].pstate = machine.cpus[0].pstate.with_irq_masked(false);
     let state = WasmJitCpuState::from_cpu(&machine.cpus[0]);
 

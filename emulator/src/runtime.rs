@@ -74,7 +74,15 @@ impl Machine {
     }
 
     pub fn inject_irq(&mut self, int_id: u32) {
-        self.bus.gic.set_pending(int_id);
+        self.bus.set_irq_pending(int_id);
+    }
+
+    pub fn feed_uart_input(&mut self, input: &str) {
+        self.feed_uart_bytes(input.as_bytes());
+    }
+
+    pub fn feed_uart_bytes(&mut self, bytes: &[u8]) {
+        self.bus.feed_uart_bytes(bytes);
     }
 
     #[cfg(any(test, feature = "wasm"))]

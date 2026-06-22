@@ -1,6 +1,6 @@
 use crate::arch::arm64::Armv8Cpu;
 use crate::boot::{BootPlan, build_busybox_initrd, build_default_initrd};
-use crate::constants::{PL011_UART_IRQ_ID, SCTLR_MMU_ENABLE};
+use crate::constants::SCTLR_MMU_ENABLE;
 use crate::dtb::load_dtb;
 use crate::initrd::load_initrd;
 use crate::runtime::Machine;
@@ -111,8 +111,7 @@ impl BootContext {
         if bytes.is_empty() {
             return;
         }
-        self.machine.bus.uart.feed_input_bytes(bytes);
-        self.machine.inject_irq(PL011_UART_IRQ_ID);
+        self.machine.feed_uart_bytes(bytes);
     }
 
     pub fn uart_output(&self) -> String {
