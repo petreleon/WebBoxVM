@@ -14,6 +14,7 @@ mod address;
 mod atomic;
 mod exclusive;
 mod guest;
+mod guest_simd;
 mod guest_trace;
 mod guest_translate;
 mod mops;
@@ -32,6 +33,7 @@ pub(super) use scalar::{exec_ldr_lit, exec_ldr_str};
 
 use address::*;
 use guest::*;
+use guest_simd::*;
 use guest_trace::*;
 use guest_translate::*;
 use simd_structure::*;

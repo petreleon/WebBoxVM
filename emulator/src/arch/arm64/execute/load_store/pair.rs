@@ -82,29 +82,39 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
         }
         Opcode::SimdLdp => {
             let access_size = size as u8;
-            translate_or_data_fault(cpu, &mut bus.mem, va, false, "SIMD LDP bus fault")?;
-            translate_or_data_fault(cpu, &mut bus.mem, va + size, false, "SIMD LDP bus fault")?;
+            let pa1 = translate_or_data_fault(cpu, &mut bus.mem, va, false, "SIMD LDP bus fault")?;
+            let pa2 =
+                translate_or_data_fault(cpu, &mut bus.mem, va + size, false, "SIMD LDP bus fault")?;
             cpu.simd[instr.rd as usize] =
-                read_simd_guest(cpu, bus, va, access_size, "SIMD LDP bus fault")?;
-            cpu.simd[instr.rm as usize] =
-                read_simd_guest(cpu, bus, va + size, access_size, "SIMD LDP bus fault")?;
+                read_simd_guest_translated(cpu, bus, va, pa1, access_size, "SIMD LDP bus fault")?;
+            cpu.simd[instr.rm as usize] = read_simd_guest_translated(
+                cpu,
+                bus,
+                va + size,
+                pa2,
+                access_size,
+                "SIMD LDP bus fault",
+            )?;
         }
         Opcode::SimdStp => {
             let access_size = size as u8;
-            translate_or_data_fault(cpu, &mut bus.mem, va, true, "SIMD STP bus fault")?;
-            translate_or_data_fault(cpu, &mut bus.mem, va + size, true, "SIMD STP bus fault")?;
-            write_simd_guest(
+            let pa1 = translate_or_data_fault(cpu, &mut bus.mem, va, true, "SIMD STP bus fault")?;
+            let pa2 =
+                translate_or_data_fault(cpu, &mut bus.mem, va + size, true, "SIMD STP bus fault")?;
+            write_simd_guest_translated(
                 cpu,
                 bus,
                 va,
+                pa1,
                 access_size,
                 cpu.simd[instr.rd as usize],
                 "SIMD STP bus fault",
             )?;
-            write_simd_guest(
+            write_simd_guest_translated(
                 cpu,
                 bus,
                 va + size,
+                pa2,
                 access_size,
                 cpu.simd[instr.rm as usize],
                 "SIMD STP bus fault",
