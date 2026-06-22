@@ -27,6 +27,34 @@ test("compile jit block reuses caller pc on fallback", async () => {
   assert.equal(pcCalls, 0);
 });
 
+test("compile jit block can reuse checked emulator reference", async () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
+  const emulator = {
+    jit_compile_current_block: () => [],
+    jit_last_error: () => "no block",
+    pc: () => 0x9999n,
+  };
+  state.wasmExports = { memory: {} };
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return undefined;
+    },
+  });
+
+  try {
+    const result = await compileJitBlock({ coreId: 0, pc: 0x1000n, emulator });
+
+    assert.equal(result.compiled, false);
+    assert.equal(result.pc, 0x1000n);
+    assert.equal(emulatorReads, 0);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
+});
+
 test("EL0 guest-memory helper blocks are not compile-time skipped", () => {
   assert.equal(
     compiledJitBlockSkipReason({ blockEl: 0, usesGuestHelpers: true }),

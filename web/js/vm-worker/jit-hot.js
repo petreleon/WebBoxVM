@@ -45,7 +45,7 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
   if (state.emulator !== emulator) {
     return false;
   }
-  const compiled = await compileJitBlock({ coreId, pc });
+  const compiled = await compileJitBlock({ coreId, pc, emulator });
   if (!state.running || state.emulator !== emulator || !compiled.compiled) {
     if (!compiled.compiled) {
       if (compiled.skipped) {

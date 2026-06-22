@@ -15,7 +15,7 @@ export async function runJitBlock({ coreId = 0 } = {}) {
   let entry = state.jitBlocks.get(key);
 
   if (!entry) {
-    const compiled = await compileJitBlock({ coreId, pc });
+    const compiled = await compileJitBlock({ coreId, pc, emulator });
     if (!compiled.compiled) {
       return compiled;
     }
