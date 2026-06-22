@@ -15,5 +15,5 @@ History: [sprint-history.md](sprint-history.md).
 - Correctness: no disk-boot blocker observed; default `Boot disk` reaches Debian 13 `debian login:` on `ttyAMA0`.
 - Speed: latest browser disk-boot proof reached `debian login:` at 594.3s with 0 JIT rejects/skips and one safe timer-deadline fallback.
 
-## Done - Extremely Compressed
-- [x] NAT install -> disk boot -> Debian login.
+## Done
+- [x] NAT -> install -> disk -> login.

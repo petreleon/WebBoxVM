@@ -62,6 +62,16 @@ fn fp_simd_trap_predicate_respects_el_and_fpen() {
 }
 
 #[test]
+fn fp_simd_trap_fast_path_ignores_non_simd_instruction() {
+    let mut machine = Machine::new(1);
+    machine.core_mut(0).sys.cpacr_el1 = CPACR_FPEN_TRAP_EL0_EL1 << CPACR_FPEN_SHIFT;
+
+    assert!(!machine.handle_fp_simd_trap(0, 0, 0, Instr::nop(), machine.trace.options, 1));
+    assert_eq!(machine.total_steps, 0);
+    assert_eq!(machine.active_core, 0);
+}
+
+#[test]
 fn finish_core_preserves_single_core_round_robin_without_modulo() {
     let mut machine = Machine::new(1);
 

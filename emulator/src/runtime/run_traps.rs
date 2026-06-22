@@ -10,8 +10,11 @@ impl Machine {
         trace_options: TraceOptions,
         num_cores: usize,
     ) -> bool {
+        if !is_fp_simd_access(instr) {
+            return false;
+        }
         let cpu = &mut self.cpus[core];
-        if !fp_simd_access_traps(cpu) || !is_fp_simd_access(instr) {
+        if !fp_simd_access_traps(cpu) {
             return false;
         }
 
