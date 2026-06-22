@@ -15,7 +15,9 @@ impl Machine {
 
         while self.total_steps < end_steps {
             let core = self.active_core;
-            self.report_progress(start_steps, &mut next_report, core);
+            if self.total_steps - start_steps >= next_report {
+                self.report_progress(start_steps, &mut next_report, core);
+            }
 
             let pc = self.cpus[core].regs.pc;
             let Some(pa) = self.translate_fetch(core, pc, num_cores) else {

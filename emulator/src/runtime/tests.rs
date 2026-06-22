@@ -88,6 +88,28 @@ fn finish_core_wraps_multi_core_round_robin() {
 }
 
 #[test]
+fn report_progress_keeps_threshold_before_due() {
+    let mut machine = Machine::new(1);
+    let mut next_report = 1_000_000;
+    machine.total_steps = 999_999;
+
+    machine.report_progress(0, &mut next_report, 0);
+
+    assert_eq!(next_report, 1_000_000);
+}
+
+#[test]
+fn report_progress_advances_threshold_when_due() {
+    let mut machine = Machine::new(1);
+    let mut next_report = 1_000_000;
+    machine.total_steps = 1_000_000;
+
+    machine.report_progress(0, &mut next_report, 0);
+
+    assert_eq!(next_report, 2_000_000);
+}
+
+#[test]
 fn clear_exclusive_overlaps_updates_all_cores() {
     let mut machine = Machine::new(2);
     machine.core_mut(0).reserve_exclusive(RAM_BASE + 0x40, 8);
