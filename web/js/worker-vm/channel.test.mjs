@@ -105,6 +105,24 @@ test("metrics probe elements are cached after first update", () => {
   assert.equal(instructionProbe.textContent, "two");
 });
 
+test("metrics updates keep the cache object stable", () => {
+  globalThis.document = { querySelector: () => undefined };
+  const channel = new WorkerChannel("worker.js", callbacks());
+  const initialMetrics = channel.metrics;
+
+  FakeWorker.instances[0].emitMessage({
+    event: "metrics",
+    metrics: metrics({ totalSteps: 10n }),
+  });
+  FakeWorker.instances[0].emitMessage({
+    event: "metrics",
+    metrics: metrics({ totalSteps: 11n }),
+  });
+
+  assert.equal(channel.metrics, initialMetrics);
+  assert.equal(channel.metrics.totalSteps, 11n);
+});
+
 function callbacks() {
   return {
     onAutosave: () => {},

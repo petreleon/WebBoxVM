@@ -106,7 +106,7 @@ export class WorkerChannel {
   }
 
   #updateMetrics(metrics) {
-    this.#metrics = {
+    Object.assign(this.#metrics, {
       allocatedPages: metrics.allocatedPages,
       currentInstruction: metrics.currentInstruction,
       installDiskAllocatedBytes: metrics.installDiskAllocatedBytes,
@@ -120,7 +120,7 @@ export class WorkerChannel {
       pc: metrics.pc,
       totalSteps: metrics.totalSteps,
       uartOutputLen: metrics.uartOutputLen,
-    };
+    });
     this.#updateMetricProbes();
   }
 
