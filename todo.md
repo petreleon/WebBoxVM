@@ -3,7 +3,8 @@
 History: [sprint-history.md](sprint-history.md).
 
 ## Now
-- [ ] Investigate the installed Debian systemd/BPF/ftrace hang before serial login.
+- [x] Investigate the installed Debian systemd/BPF/ftrace hang before serial login.
+- [ ] Optimize default installed-disk boot speed after serial login proof.
 - [ ] Continue isolating the ARM64/JIT semantics bug after installer proof.
 - [ ] Keep `Boot ISO` only for installer/media boot.
 
@@ -12,14 +13,19 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- `Boot disk` reaches installed Debian root fsck/mount and systemd.
-- Serial login is blocked by a later hung-task path around BPF/ftrace teardown.
+- No installed-disk correctness blocker observed: default browser `Boot disk` reaches `debian login:` on `ttyAMA0`.
+- Remaining concern: boot speed; the login proof takes about 800 seconds of browser wall time.
+
+## Recent Proofs
+- Plain installed-disk systemd boot was blocked by a hung-task path around BPF/ftrace teardown.
 - `?bootargs=sysctl.kernel.ftrace_enabled=0` still reproduces the same BPF/ftrace hang.
 - `?bootargs=systemd.unit=emergency.target` still reproduces the same BPF/ftrace hang.
 - `?bootargs=init=/bin/sh` reaches a shell and prints `/proc/cmdline` plus `uname`.
-- The blocker is now isolated after initramfs/root handoff, inside systemd's BPF/ftrace path.
+- The old blocker was isolated after initramfs/root handoff, inside systemd's BPF/ftrace path.
+- Default installed-disk boot omits the BPF LSM and masks keyboard/console setup to reach serial login.
 
 ## Done
 - [x] Guardrails, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, installer reached reboot.
 - [x] Final browser disk snapshot compacted, persisted in OPFS, and booted via `Boot disk`.
 - [x] Added opt-in installed-disk bootargs for faster browser blocker probes.
+- [x] Default browser `Boot disk` reaches Debian 13 serial login from persisted disk.
