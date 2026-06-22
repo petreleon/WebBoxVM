@@ -13,25 +13,15 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
-- No installed-disk correctness blocker observed: default browser `Boot disk` reaches `debian login:` on `ttyAMA0`.
-- Remaining concern: boot speed; current login proof is about 642 seconds of browser wall time.
+- No disk-boot correctness blocker observed: default browser `Boot disk` reaches Debian 13 `debian login:` on `ttyAMA0`.
+- Main work now: speed; current login proof is about 642 seconds of browser wall time.
 
 ## Recent Proofs
-- Plain installed-disk systemd boot was blocked by a hung-task path around BPF/ftrace teardown.
-- `?bootargs=sysctl.kernel.ftrace_enabled=0` still reproduces the same BPF/ftrace hang.
-- `?bootargs=systemd.unit=emergency.target` still reproduces the same BPF/ftrace hang.
-- `?bootargs=init=/bin/sh` reaches a shell and prints `/proc/cmdline` plus `uname`.
-- The old blocker was isolated after initramfs/root handoff, inside systemd's BPF/ftrace path.
-- Default installed-disk boot omits the BPF LSM and masks keyboard/console setup to reach serial login.
-- Masking AppArmor reduced login proof time from about 800 seconds to about 660 seconds.
-- Default browser `Boot disk` with the AppArmor mask reaches serial login in about 661 seconds.
-- Serial-only getty defaults plus UART batching reach serial login in about 642 seconds.
-- Rejected speed probes: larger step slice, housekeeping masks, tmpfiles mask, user-sessions mask, and quiet/status-off bootargs did not beat the 642s default proof.
+- Browser install path works: NAT/DHCP/DNS/HTTP, installer reboot, compacted final disk snapshot, OPFS `Boot disk`.
+- Systemd hang was isolated after root handoff in the BPF/ftrace path; `init=/bin/sh` worked, ftrace/emergency probes still hung.
+- Current default avoids that path, masks slow/unneeded services, uses serial-only getty, batches UART, and reaches login in about 642s.
 
 ## Done
-- [x] Guardrails, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, installer reached reboot.
-- [x] Final browser disk snapshot compacted, persisted in OPFS, and booted via `Boot disk`.
-- [x] Added opt-in installed-disk bootargs for faster browser blocker probes.
-- [x] Default browser `Boot disk` reaches Debian 13 serial login from persisted disk.
-- [x] Masked AppArmor for default installed-disk boot to reduce time to serial login.
-- [x] Kept only serial getty by default and batched UART flushes to trim login proof time.
+- [x] Browser installer networking and OPFS disk persistence.
+- [x] Default persisted-disk boot to Debian 13 serial login.
+- [x] Bootarg probes, BPF/LSM workaround, service masks, serial-only getty, and UART batching.
