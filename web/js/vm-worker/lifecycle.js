@@ -11,6 +11,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   state.lastUartFlushAt = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
+  state.lastAutosavePollAt = state.lastAutosaveAt;
   const result = state.emulator.boot_iso_with_disk(isoImage, numCores, diskSizeBytes);
   state.lastAutosaveGeneration = state.emulator.install_disk_generation();
   startNetworkProxy();
@@ -25,6 +26,7 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
   state.lastUartFlushAt = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
+  state.lastAutosavePollAt = state.lastAutosaveAt;
   const result = state.emulator.boot_installed_disk_with_extra_bootargs(
     diskSnapshot,
     numCores,
@@ -57,6 +59,7 @@ export function freeEmulator() {
   state.running = false;
   state.pumpScheduled = false;
   state.lastUart = 0;
+  state.lastAutosavePollAt = 0;
   resetJitState();
   stopNetworkProxy();
   if (state.emulator) {

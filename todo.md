@@ -16,4 +16,4 @@ History: [sprint-history.md](sprint-history.md).
 - Speed: latest browser disk-boot proof reached `debian login:` at 594.3s with 0 JIT rejects/skips and one safe timer-deadline fallback.
 
 ## Done - Extremely Compressed
-- [x] Browser Debian install works end-to-end via NAT/DHCP/DNS/HTTP, reboots from persistent compact OPFS disk by default, reaches Debian 13 `ttyAMA0` login, and has JIT/pump/network speed proofs at ~2.56-2.74B steps in ~150-155s with 0 rejects/skips.
+- [x] Browser Debian install works end-to-end via NAT/DHCP/DNS/HTTP, reboots from persistent compact OPFS disk by default, reaches Debian 13 `ttyAMA0` login, and has JIT/pump/network/autosave speed proofs at ~2.56-2.74B steps in ~150-155s with 0 rejects/skips.

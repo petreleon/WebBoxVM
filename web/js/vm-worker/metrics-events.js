@@ -1,5 +1,5 @@
 import { metrics } from "./lifecycle.js";
-import { AUTOSAVE_INTERVAL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
+import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
 
 export function maybePostMetrics() {
   const now = performance.now();
@@ -21,12 +21,17 @@ export function postMetrics({ force = false } = {}) {
 }
 
 export function maybeRequestAutosave() {
+  const now = performance.now();
+  if (now - state.lastAutosavePollAt < AUTOSAVE_POLL_MS) {
+    return;
+  }
+  state.lastAutosavePollAt = now;
+
   const generation = state.emulator.install_disk_generation();
   if (generation === state.lastAutosaveGeneration) {
     return;
   }
 
-  const now = performance.now();
   if (now - state.lastAutosaveAt < AUTOSAVE_INTERVAL_MS) {
     return;
   }
