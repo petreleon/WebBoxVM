@@ -88,6 +88,17 @@ fn validate_jit_block_skips_raw_hash_for_unchanged_code_pages() {
 }
 
 #[test]
+fn code_page_generations_reuses_same_page_generation() {
+    let mut machine = Machine::new(1);
+    let start_pa = RAM_BASE + 0x100;
+    machine.bus.mem.write(start_pa, 4, NOP as u64);
+    let (start_generation, end_generation) =
+        code_page_generations(&machine.bus.mem, start_pa, 2).expect("code page generations");
+
+    assert_eq!(start_generation, end_generation);
+}
+
+#[test]
 fn translation_page_check_only_triggers_across_pages() {
     assert!(!crosses_translation_page(
         RAM_BASE,

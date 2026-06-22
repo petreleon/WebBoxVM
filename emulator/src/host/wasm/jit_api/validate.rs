@@ -91,9 +91,6 @@ pub(super) fn validate_jit_block(
             "cached JIT block PA changed: cached=0x{start_pa:016x} current=0x{current_pa:016x}"
         ));
     }
-
-    // With 64 fixed-width instructions, checking start/end covers at most two
-    // 4 KiB translation pages; ARM64 page translation is offset-linear inside a page.
     let end_offset = block_end_offset(steps)?;
     if end_offset != 0 {
         let end_pc = start_pc
@@ -156,6 +153,9 @@ pub(super) fn code_page_generations(
     let start = mem
         .page_generation(start_pa)
         .ok_or_else(|| format!("cached JIT block start page 0x{start_pa:016x} is unreadable"))?;
+    if (start_pa >> PAGE_SHIFT) == (end_pa >> PAGE_SHIFT) {
+        return Ok((start, start));
+    }
     let end = mem
         .page_generation(end_pa)
         .ok_or_else(|| format!("cached JIT block end page 0x{end_pa:016x} is unreadable"))?;
