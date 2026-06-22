@@ -10,7 +10,7 @@ History: [sprint-history.md](sprint-history.md).
 
 ## Learn / Debug Queue
 - [ ] Explain `web/js/vm-worker/jit-compile.js` JIT policy
-- [ ] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
+- [x] Trace opcode telemetry for `0x6e20ac00` / `Opcode::SimdUminp`
 
 ## Current Blocker
 - No disk-boot correctness blocker observed: default browser `Boot disk` reaches Debian 13 `debian login:` on `ttyAMA0`.
@@ -25,3 +25,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] Browser installer networking and OPFS disk persistence.
 - [x] Default persisted-disk boot to Debian 13 serial login.
 - [x] Bootarg probes, BPF/LSM workaround, service masks, serial-only getty, and UART batching.
+- [x] JIT skip/reject/fallback stats include current instruction snapshots.

@@ -20,10 +20,10 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
       state.jitBlocks.delete(key);
       if (result.rejected) {
         state.jitRejectedBlocks.add(key);
-        recordJitReject(key, pc, result.error);
+        recordJitReject(key, pc, result.error, coreId);
       }
     } else {
-      recordJitFallback(key, pc, result.error);
+      recordJitFallback(key, pc, result.error, coreId);
       return false;
     }
   }
@@ -43,10 +43,10 @@ export async function tryRunOrCompileJitBlock(coreId = 0) {
     if (!compiled.compiled) {
       if (compiled.skipped) {
         state.jitSkippedBlocks.add(key);
-        recordJitSkip(key, pc, compiled.error);
+        recordJitSkip(key, pc, compiled.error, coreId);
       } else {
         state.jitRejectedBlocks.add(key);
-        recordJitReject(key, pc, compiled.error);
+        recordJitReject(key, pc, compiled.error, coreId);
       }
     }
     return false;

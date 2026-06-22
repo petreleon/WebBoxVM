@@ -10,7 +10,7 @@ import { compileJitBlock } from "./jit-compile.js";
 import { errorMessage } from "./errors.js";
 import { runJitBlock } from "./jit-run.js";
 import { schedulePump } from "./pump.js";
-import { state } from "./state.js";
+import { resetJitState, state } from "./state.js";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;
@@ -79,9 +79,7 @@ async function handleRequest(type, payload) {
       return {};
     case "setJitEnabled":
       state.jitEnabled = Boolean(payload.enabled);
-      state.jitBlockHits.clear();
-      state.jitBlocks.clear();
-      state.jitRejectedBlocks.clear();
+      resetJitState();
       return {};
     case "stop":
       state.running = false;
