@@ -1,6 +1,6 @@
 use super::initrd::{DEFAULT_BOOTARGS, build_busybox_initrd, build_default_initrd};
 use crate::constants::*;
-use crate::dtb::build_dtb;
+use crate::dtb::build_dtb_with_boot_media_device;
 
 /// Pure boot artifact bundle. It owns bytes and addresses, never a live VM.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -45,13 +45,45 @@ impl BootPlan {
         initrd: &[u8],
         bootargs: &str,
     ) -> Result<Self, String> {
+        Self::new_with_initrd_bootargs_and_media_device(
+            kernel_image,
+            num_cores,
+            initrd,
+            bootargs,
+            true,
+        )
+    }
+
+    pub(crate) fn new_installed_disk(
+        kernel_image: &[u8],
+        num_cores: usize,
+        initrd: &[u8],
+        bootargs: &str,
+    ) -> Result<Self, String> {
+        Self::new_with_initrd_bootargs_and_media_device(
+            kernel_image,
+            num_cores,
+            initrd,
+            bootargs,
+            false,
+        )
+    }
+
+    fn new_with_initrd_bootargs_and_media_device(
+        kernel_image: &[u8],
+        num_cores: usize,
+        initrd: &[u8],
+        bootargs: &str,
+        advertise_boot_media: bool,
+    ) -> Result<Self, String> {
         let initrd_end = validate_inputs(num_cores, initrd)?;
-        let dtb_image = build_dtb(
+        let dtb_image = build_dtb_with_boot_media_device(
             RAM_BASE,
             RAM_SIZE,
             Some(INITRD_BASE),
             Some(initrd_end),
             Some(bootargs),
+            advertise_boot_media,
         );
 
         Ok(Self {

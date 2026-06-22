@@ -4,6 +4,7 @@ use crate::arch::arm64::{Instr, Opcode};
 impl WasmExpr {
     pub(super) fn emit_memory_boundary(&mut self, instr: Instr) -> Option<bool> {
         match instr.op {
+            Opcode::Ldxr => Some(self.emit_exclusive_load(instr)),
             Opcode::Str => Some(self.emit_memory_store(instr)),
             Opcode::Stp => Some(self.emit_memory_pair_store(instr)),
             Opcode::Stxp => Some(self.emit_exclusive_pair_store(instr)),

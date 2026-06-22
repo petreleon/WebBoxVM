@@ -13,6 +13,7 @@ pub(super) fn build_tree(
     initrd_start: Option<u64>,
     initrd_end: Option<u64>,
     bootargs: Option<&str>,
+    advertise_boot_media: bool,
 ) {
     root::build_tree(
         builder,
@@ -21,5 +22,6 @@ pub(super) fn build_tree(
         initrd_start,
         initrd_end,
         bootargs,
+        advertise_boot_media,
     );
 }

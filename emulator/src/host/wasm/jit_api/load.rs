@@ -68,7 +68,7 @@ pub(super) fn jit_load_guest_from_machine(
     Ok(value)
 }
 
-fn read_guest_bytes<F>(
+pub(super) fn read_guest_bytes<F>(
     mem: &PhysicalMemory,
     pending_stores: &[JitPendingStore],
     pa: u64,

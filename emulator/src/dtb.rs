@@ -18,6 +18,24 @@ pub fn build_dtb(
     initrd_end: Option<u64>,
     bootargs: Option<&str>,
 ) -> Vec<u8> {
+    build_dtb_with_boot_media_device(
+        mem_start,
+        mem_size,
+        initrd_start,
+        initrd_end,
+        bootargs,
+        true,
+    )
+}
+
+pub fn build_dtb_with_boot_media_device(
+    mem_start: u64,
+    mem_size: u64,
+    initrd_start: Option<u64>,
+    initrd_end: Option<u64>,
+    bootargs: Option<&str>,
+    advertise_boot_media: bool,
+) -> Vec<u8> {
     let mut builder = DtbBuilder::new();
     nodes::build_tree(
         &mut builder,
@@ -26,6 +44,7 @@ pub fn build_dtb(
         initrd_start,
         initrd_end,
         bootargs,
+        advertise_boot_media,
     );
     builder.finish()
 }

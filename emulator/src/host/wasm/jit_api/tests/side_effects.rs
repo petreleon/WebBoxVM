@@ -1,7 +1,7 @@
 use super::super::load::jit_load_guest_from_machine;
 use super::super::store::stage_jit_store_from_machine;
 use crate::constants::{RAM_BASE, SCTLR_MMU_ENABLE};
-use crate::host::wasm::{Emulator, JitPendingStore};
+use crate::host::wasm::{Emulator, JitPendingExclusiveReservation, JitPendingStore};
 use crate::runtime::Machine;
 
 #[test]
@@ -9,6 +9,11 @@ fn jit_sync_clears_staged_side_effects() {
     let mut emulator = Emulator::new(Some(1));
     emulator.jit_helper_failed = true;
     emulator.jit_pending_exclusive_clear = Some(0);
+    emulator.jit_pending_exclusive_reservation = Some(JitPendingExclusiveReservation {
+        core_id: 0,
+        pa: RAM_BASE,
+        size: 8,
+    });
     emulator
         .jit_pending_stores
         .push(JitPendingStore::new(RAM_BASE, &[1, 2, 3, 4]));
@@ -17,6 +22,7 @@ fn jit_sync_clears_staged_side_effects() {
 
     assert!(!emulator.jit_helper_failed);
     assert!(emulator.jit_pending_exclusive_clear.is_none());
+    assert!(emulator.jit_pending_exclusive_reservation.is_none());
     assert!(emulator.jit_pending_stores.is_empty());
 }
 
@@ -24,6 +30,11 @@ fn jit_sync_clears_staged_side_effects() {
 fn helper_failure_clears_staged_side_effects() {
     let mut emulator = Emulator::new(Some(1));
     emulator.jit_pending_exclusive_clear = Some(0);
+    emulator.jit_pending_exclusive_reservation = Some(JitPendingExclusiveReservation {
+        core_id: 0,
+        pa: RAM_BASE,
+        size: 8,
+    });
     emulator
         .jit_pending_stores
         .push(JitPendingStore::new(RAM_BASE, &[1, 2, 3, 4]));
@@ -37,6 +48,7 @@ fn helper_failure_clears_staged_side_effects() {
             .contains("unsupported JIT load size 3")
     );
     assert!(emulator.jit_pending_exclusive_clear.is_none());
+    assert!(emulator.jit_pending_exclusive_reservation.is_none());
     assert!(emulator.jit_pending_stores.is_empty());
 }
 

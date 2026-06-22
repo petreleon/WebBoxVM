@@ -1,8 +1,10 @@
 use super::super::builder::{DtbBuilder, append_two_cell_prop, be_u32_array};
 use super::super::*;
 
-pub(super) fn add_virtio_devices(builder: &mut DtbBuilder) {
-    add_virtio_mmio(builder, "virtio_blk@a000000", VIRTIO_BLK_BASE, 16);
+pub(super) fn add_virtio_devices(builder: &mut DtbBuilder, advertise_boot_media: bool) {
+    if advertise_boot_media {
+        add_virtio_mmio(builder, "virtio_blk@a000000", VIRTIO_BLK_BASE, 16);
+    }
     add_virtio_mmio(builder, "virtio_blk@a001000", VIRTIO_DISK_BASE, 17);
     add_virtio_mmio(builder, "virtio_net@a002000", VIRTIO_NET_BASE, 18);
 }

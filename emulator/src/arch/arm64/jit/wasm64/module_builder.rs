@@ -7,7 +7,7 @@ const STORE_HELPER_TYPE_INDEX: u32 = 1;
 const SYSREG_HELPER_TYPE_INDEX: u32 = 2;
 const EXCLUSIVE_PAIR_HELPER_TYPE_INDEX: u32 = 3;
 const RUN_TYPE_INDEX: u32 = 4;
-const RUN_FUNC_INDEX: u32 = 4;
+const RUN_FUNC_INDEX: u32 = 5;
 
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
     let mut module = Vec::new();
@@ -46,7 +46,7 @@ fn append_func_type(section: &mut Vec<u8>, params: &[u8], results: &[u8]) {
 
 fn import_section() -> Vec<u8> {
     let mut section = Vec::new();
-    encode_u32(&mut section, 5);
+    encode_u32(&mut section, 6);
     encode_name(&mut section, "env");
     encode_name(&mut section, "memory");
     section.push(IMPORT_MEMORY);
@@ -68,6 +68,10 @@ fn import_section() -> Vec<u8> {
     encode_name(&mut section, "jitStoreExclusivePair");
     section.push(IMPORT_FUNC);
     encode_u32(&mut section, EXCLUSIVE_PAIR_HELPER_TYPE_INDEX);
+    encode_name(&mut section, "env");
+    encode_name(&mut section, "jitLoadExclusive");
+    section.push(IMPORT_FUNC);
+    encode_u32(&mut section, LOAD_HELPER_TYPE_INDEX);
     section
 }
 

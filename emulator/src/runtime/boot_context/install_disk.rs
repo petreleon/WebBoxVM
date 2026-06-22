@@ -1,5 +1,5 @@
 use super::BootContext;
-use crate::boot::merge_bootargs;
+use crate::boot::{BootPlan, merge_bootargs};
 use crate::images::disk::installed_boot_from_snapshot;
 
 const INSTALLED_DISK_COMPAT_BOOTARGS: &str = concat!(
@@ -31,12 +31,12 @@ impl BootContext {
     ) -> Result<Self, String> {
         let mut installed = installed_boot_from_snapshot(snapshot)?;
         installed.bootargs = installed_disk_bootargs(&installed.bootargs, extra_bootargs);
-        let mut ctx = Self::new_with_initrd_and_bootargs(
+        let mut ctx = Self::from_plan(BootPlan::new_installed_disk(
             &installed.kernel,
             num_cores,
             &installed.initrd,
             &installed.bootargs,
-        )?;
+        )?)?;
         ctx.restore_install_disk(installed.disk.as_bytes())?;
         Ok(ctx)
     }

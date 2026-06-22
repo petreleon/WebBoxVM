@@ -116,7 +116,7 @@ fn join_path(dir: &str, name: &str) -> String {
 fn bootargs(root: Option<&(u32, String)>, boot_partition: u32) -> String {
     let root_arg = match root {
         Some((_, uuid)) => format!("root=UUID={uuid}"),
-        None => format!("root=/dev/vdb{}", boot_partition + 1),
+        None => format!("root=/dev/vda{}", boot_partition + 1),
     };
     format!("{root_arg} rw rootwait TERM=vt102 console=ttyAMA0,115200n8")
 }
@@ -149,5 +149,12 @@ mod tests {
 
         assert!(args.contains("root=UUID=abcd"));
         assert!(args.contains("console=ttyAMA0,115200n8"));
+    }
+
+    #[test]
+    fn bootargs_fallback_uses_single_installed_disk_name() {
+        let args = bootargs(None, 2);
+
+        assert!(args.contains("root=/dev/vda3"));
     }
 }

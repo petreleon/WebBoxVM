@@ -6,6 +6,7 @@ pub(super) fn uses_guest_memory_helper(op: Opcode) -> bool {
         Opcode::DcZva
             | Opcode::Ldp
             | Opcode::Ldpsw
+            | Opcode::Ldxr
             | Opcode::Ldr
             | Opcode::LdrSign
             | Opcode::SimdLd1

@@ -39,6 +39,18 @@ fn boot_plan_rejects_invalid_inputs_before_machine_creation() {
 }
 
 #[test]
+fn installed_disk_boot_plan_omits_empty_boot_media_device() {
+    let image = synthetic_arm64_image(0);
+    let initrd = [0x30u8; 4];
+    let plan = BootPlan::new_installed_disk(&image, 1, &initrd, "root=UUID=test").unwrap();
+    let text = String::from_utf8_lossy(&plan.dtb_image);
+
+    assert!(!text.contains("virtio_blk@a000000"));
+    assert!(text.contains("virtio_blk@a001000"));
+    assert!(text.contains("virtio_net@a002000"));
+}
+
+#[test]
 fn standard_boot_enters_non_relocatable_image_with_mmu_off() {
     let image = synthetic_arm64_image(0);
     let initrd = [0x30u8; 4];

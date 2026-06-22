@@ -38,6 +38,18 @@ fn dtb_advertises_virtio_network_mmio_device() {
     let dtb = build_dtb(0x4000_0000, 0x4000_0000, None, None, None);
     let text = String::from_utf8_lossy(&dtb);
 
+    assert!(text.contains("virtio_blk@a000000"));
+    assert!(text.contains("virtio_blk@a001000"));
     assert!(text.contains("virtio_net@a002000"));
     assert!(text.contains("virtio,mmio"));
+}
+
+#[test]
+fn dtb_can_omit_boot_media_block_device() {
+    let dtb = build_dtb_with_boot_media_device(0x4000_0000, 0x4000_0000, None, None, None, false);
+    let text = String::from_utf8_lossy(&dtb);
+
+    assert!(!text.contains("virtio_blk@a000000"));
+    assert!(text.contains("virtio_blk@a001000"));
+    assert!(text.contains("virtio_net@a002000"));
 }

@@ -94,6 +94,39 @@ fn compiles_observed_stxp_with_exclusive_pair_helper() {
 }
 
 #[test]
+fn compiles_observed_ldxr_with_exclusive_load_helper() {
+    let instr = crate::arch::arm64::decode(0x885f_7c60).expect("decode observed ldxr");
+    assert_eq!(instr.op, Opcode::Ldxr);
+    assert_eq!((instr.rd, instr.rn, instr.size, instr.sf), (0, 3, 4, false));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile ldxr");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(module.uses_guest_helpers);
+    assert!(
+        module
+            .bytes
+            .windows(b"jitLoadExclusive".len())
+            .any(|w| w == b"jitLoadExclusive")
+    );
+}
+
+#[test]
+fn exclusive_load_stops_block_after_boundary() {
+    let ldxr = crate::arch::arm64::decode(0x885f_7c60).expect("decode observed ldxr");
+    let block = block(vec![
+        instr(Opcode::Movz, 0, 0, 0, 5, true),
+        ldxr,
+        instr(Opcode::AddImm, 1, 0, 0, 7, true),
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile ldxr prefix");
+
+    assert_eq!(module.guest_instr_count, 2);
+    assert_eq!(module.exit_pc, 0x1008);
+}
+
+#[test]
 fn exclusive_pair_store_stops_block_after_boundary() {
     let stxp = crate::arch::arm64::decode(0xc827_0c82).expect("decode observed stxp");
     let block = block(vec![
