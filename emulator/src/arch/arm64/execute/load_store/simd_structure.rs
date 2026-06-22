@@ -99,6 +99,23 @@ pub(in crate::arch::arm64::execute) fn exec_st_structure(
 ) -> Result<(), &'static str> {
     let lanes = simd_structure_lanes(instr)?;
     let element_size = 1usize << instr.cond;
+    let total_bytes = lanes * structure_count * element_size;
+    if !access_crosses_page(va, total_bytes as u8) {
+        let mut bytes = [0u8; 64];
+        let Some(bytes) = bytes.get_mut(..total_bytes) else {
+            return Err("unsupported SIMD structure store size");
+        };
+        fill_structure_store_bytes(cpu, instr, structure_count, lanes, element_size, bytes);
+        write_guest_bytes(
+            cpu,
+            bus,
+            va,
+            bytes,
+            "SIMD structure store translation fault",
+        )?;
+        return Ok(());
+    }
+
     for lane in 0..lanes {
         for reg_index in 0..structure_count {
             let value = cpu.simd[((instr.rd as usize) + reg_index) & 31];
@@ -119,6 +136,26 @@ pub(in crate::arch::arm64::execute) fn exec_st_structure(
         }
     }
     Ok(())
+}
+
+fn fill_structure_store_bytes(
+    cpu: &Armv8Cpu,
+    instr: Instr,
+    structure_count: usize,
+    lanes: usize,
+    element_size: usize,
+    bytes: &mut [u8],
+) {
+    for lane in 0..lanes {
+        for reg_index in 0..structure_count {
+            let value = cpu.simd[((instr.rd as usize) + reg_index) & 31];
+            for byte_index in 0..element_size {
+                let offset = (lane * structure_count + reg_index) * element_size + byte_index;
+                let shift = lane * element_size * 8 + byte_index * 8;
+                bytes[offset] = ((value >> shift) & 0xff) as u8;
+            }
+        }
+    }
 }
 
 pub(in crate::arch::arm64::execute) fn simd_structure_lanes(
