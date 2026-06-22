@@ -19,7 +19,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   const installDiskGeneration = emulator.install_disk_generation();
   state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
-  return { metrics: metrics({ installDiskGeneration }), result };
+  return { metrics: metrics({ emulator, installDiskGeneration }), result };
 }
 
 export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numCores }) {
@@ -42,7 +42,7 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
   const installDiskGeneration = emulator.install_disk_generation();
   state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
-  return { metrics: metrics({ installDiskGeneration }), result };
+  return { metrics: metrics({ emulator, installDiskGeneration }), result };
 }
 
 export function restoreInstallDisk(snapshot) {
@@ -51,7 +51,7 @@ export function restoreInstallDisk(snapshot) {
   const installDiskGeneration = emulator.install_disk_generation();
   state.lastAutosaveGeneration = installDiskGeneration;
   state.lastMetricsAt = performance.now();
-  const metricsSnapshot = metrics({ installDiskGeneration });
+  const metricsSnapshot = metrics({ emulator, installDiskGeneration });
   postMessage({ event: "metrics", metrics: metricsSnapshot });
   return { metrics: metricsSnapshot, result };
 }
@@ -61,7 +61,7 @@ export function installDiskSnapshot() {
   const snapshot = emulator.install_disk_snapshot();
   return {
     transfer: [snapshot.buffer],
-    value: { metrics: metrics(), snapshot },
+    value: { metrics: metrics({ emulator }), snapshot },
   };
 }
 
@@ -80,8 +80,11 @@ export function freeEmulator() {
   }
 }
 
-export function metrics({ includeUnchangedJitStats = true, installDiskGeneration } = {}) {
-  const emulator = requireEmulator();
+export function metrics({
+  emulator = requireEmulator(),
+  includeUnchangedJitStats = true,
+  installDiskGeneration,
+} = {}) {
   const snapshot = {
     allocatedPages: emulator.allocated_pages(),
     installDiskAllocatedBytes: emulator.install_disk_allocated_bytes(),

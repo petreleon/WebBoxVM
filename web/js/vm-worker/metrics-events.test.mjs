@@ -62,6 +62,29 @@ test("routine metrics omit unchanged jit stats payloads", () => {
   assert.equal(messages[1].metrics.jitStats, undefined);
 });
 
+test("post metrics samples through one checked emulator reference", () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  const emulator = metricsEmulator();
+  let emulatorReads = 0;
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return emulator;
+    },
+  });
+
+  try {
+    postMetrics();
+
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].metrics.totalSteps, 8n);
+    assert.equal(emulatorReads, 1);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
+});
+
 test("autosave skips disk generation polling inside poll window", () => {
   let generationPolls = 0;
   const now = 10_000;

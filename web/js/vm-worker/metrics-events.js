@@ -10,13 +10,17 @@ export function maybePostMetrics(now = performance.now()) {
 }
 
 export function postMetrics({ force = false, now } = {}) {
-  if (!state.emulator) {
+  const emulator = state.emulator;
+  if (!emulator) {
     return;
   }
   if (force) {
     state.lastMetricsAt = now ?? performance.now();
   }
-  postMessage({ event: "metrics", metrics: metrics({ includeUnchangedJitStats: force }) });
+  postMessage({
+    event: "metrics",
+    metrics: metrics({ emulator, includeUnchangedJitStats: force }),
+  });
 }
 
 export function maybeRequestAutosave(now = performance.now()) {
