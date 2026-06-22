@@ -50,6 +50,23 @@ fn ram_read_write() {
 }
 
 #[test]
+fn high_physical_reads_skip_device_scan_without_bypassing_fixmap() {
+    let mut bus = SystemBus::new();
+    let fixmap_uart_dr = KERNEL_VA_BASE | 0x090000;
+    let efi_addr = EFI_REGION_BASE + 0x100;
+
+    bus.mem.write(RAM_BASE, 4, 0x4433_2211);
+    bus.mem.write(efi_addr, 4, 0x8877_6655);
+    bus.uart.feed_input("z");
+
+    assert_eq!(bus.read(RAM_BASE, 4), Some(0x4433_2211));
+    assert_eq!(bus.read(efi_addr, 4), Some(0x8877_6655));
+    assert_eq!(bus.read(RAM_END, 4), Some(0));
+    assert_eq!(bus.read(EFI_REGION_END, 4), None);
+    assert_eq!(bus.read(fixmap_uart_dr, 1), Some(b'z' as u64));
+}
+
+#[test]
 fn typed_physical_access_preserves_address_and_width() {
     let mut bus = SystemBus::new();
     let addr = PhysAddr::new(RAM_BASE + 0x200);

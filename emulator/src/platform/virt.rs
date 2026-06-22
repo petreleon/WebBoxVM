@@ -56,6 +56,10 @@ impl SystemBus {
             }
         }
 
+        if addr >= LOW_REGION_END && addr < KERNEL_VA_BASE {
+            return self.mem.read(addr, size);
+        }
+
         // Standard MMIO dispatch
         if in_uart_range(addr) {
             return self.uart.read(addr, size);
