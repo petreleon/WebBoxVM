@@ -107,6 +107,30 @@ test("network drain pops exactly pending frames", () => {
   );
 });
 
+test("network drain samples through one checked emulator reference", () => {
+  const frames = [new Uint8Array([9]), new Uint8Array([10])];
+  const emulator = {
+    network_tx_pending: () => frames.length,
+    network_tx_frame: () => frames.shift() ?? new Uint8Array(),
+  };
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return emulator;
+    },
+  });
+
+  try {
+    assert.equal(drainNetworkTx(5000), 2);
+    assert.equal(emulatorReads, 1);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
+});
+
 test("network drain reuses caller timestamp for transmitted burst", () => {
   let nowCalls = 0;
   try {

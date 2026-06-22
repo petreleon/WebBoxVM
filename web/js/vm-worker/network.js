@@ -22,20 +22,21 @@ export function stopNetworkProxy() {
 }
 
 export function drainNetworkTx(now = performance.now()) {
-  if (!state.emulator || !socket || socket.readyState !== WebSocket.OPEN) {
+  const emulator = state.emulator;
+  if (!emulator || !socket || socket.readyState !== WebSocket.OPEN) {
     return 0;
   }
   if (!shouldPollNetworkTx(now)) {
     return 0;
   }
   state.lastNetworkTxPollAt = now;
-  const pending = state.emulator.network_tx_pending?.() ?? 0;
+  const pending = emulator.network_tx_pending?.() ?? 0;
   if (pending <= 0) {
     return 0;
   }
   let sent = 0;
   while (sent < pending) {
-    const frame = state.emulator.network_tx_frame();
+    const frame = emulator.network_tx_frame();
     if (!frame || frame.length === 0) {
       if (sent > 0) {
         markNetworkActivity(now);
