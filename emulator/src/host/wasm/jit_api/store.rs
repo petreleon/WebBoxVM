@@ -6,7 +6,7 @@ use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
 impl JitPendingStore {
-    fn new(pa: u64, bytes: &[u8]) -> Self {
+    pub(in crate::host::wasm) fn new(pa: u64, bytes: &[u8]) -> Self {
         let mut store = Self {
             pa,
             bytes: [0; 8],

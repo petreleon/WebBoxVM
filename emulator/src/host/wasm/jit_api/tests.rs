@@ -11,6 +11,7 @@ use crate::runtime::Machine;
 
 use super::commit::commit_jit_state;
 
+mod exclusive;
 mod sysreg;
 
 const NOP: u32 = 0xd503_201f;

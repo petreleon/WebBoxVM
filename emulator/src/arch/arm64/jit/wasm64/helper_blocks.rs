@@ -15,6 +15,7 @@ pub(super) fn uses_guest_memory_helper(op: Opcode) -> bool {
             | Opcode::SimdStr
             | Opcode::SimdStp
             | Opcode::Stp
+            | Opcode::Stxp
             | Opcode::Str
     )
 }

@@ -75,3 +75,35 @@ fn pair_store_stops_block_after_boundary() {
     assert_eq!(module.guest_instr_count, 2);
     assert_eq!(module.exit_pc, 0x1008);
 }
+
+#[test]
+fn compiles_observed_stxp_with_exclusive_pair_helper() {
+    let instr = crate::arch::arm64::decode(0xc827_0c82).expect("decode observed stxp");
+    assert_eq!(instr.op, Opcode::Stxp);
+    assert_eq!((instr.imm, instr.rd, instr.rm, instr.rn), (7, 2, 3, 4));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile stxp");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(
+        module
+            .bytes
+            .windows(b"jitStoreExclusivePair".len())
+            .any(|w| w == b"jitStoreExclusivePair")
+    );
+}
+
+#[test]
+fn exclusive_pair_store_stops_block_after_boundary() {
+    let stxp = crate::arch::arm64::decode(0xc827_0c82).expect("decode observed stxp");
+    let block = block(vec![
+        instr(Opcode::Movz, 0, 0, 0, 5, true),
+        stxp,
+        instr(Opcode::AddImm, 1, 0, 0, 7, true),
+    ]);
+
+    let module = Wasm64Compiler::compile(&block).expect("compile stxp prefix");
+
+    assert_eq!(module.guest_instr_count, 2);
+    assert_eq!(module.exit_pc, 0x1008);
+}

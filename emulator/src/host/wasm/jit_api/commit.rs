@@ -4,6 +4,7 @@ use crate::host::wasm::Emulator;
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
+use super::exclusive::apply_jit_pending_exclusive_clear;
 use super::store::apply_jit_pending_stores;
 
 #[wasm_bindgen]
@@ -21,6 +22,7 @@ impl Emulator {
     ) -> bool {
         let core_id = core_id.unwrap_or(0);
         let pending_stores = std::mem::take(&mut self.jit_pending_stores);
+        let pending_exclusive_clear = self.jit_pending_exclusive_clear.take();
         let result = if let Some(ref mut boot) = self.boot {
             commit_jit_state(
                 &self.jit_state,
@@ -30,6 +32,7 @@ impl Emulator {
                 expected_exit_pc,
             )
             .and_then(|()| apply_jit_pending_stores(&mut boot.machine, &pending_stores))
+            .map(|()| apply_jit_pending_exclusive_clear(&mut boot.machine, pending_exclusive_clear))
         } else {
             commit_jit_state(
                 &self.jit_state,
@@ -39,6 +42,7 @@ impl Emulator {
                 expected_exit_pc,
             )
             .and_then(|()| apply_jit_pending_stores(&mut self.machine, &pending_stores))
+            .map(|()| apply_jit_pending_exclusive_clear(&mut self.machine, pending_exclusive_clear))
         };
 
         match result {

@@ -32,6 +32,7 @@ pub struct Emulator {
     jit_last_block_raw_hash: u64,
     jit_last_block_uses_guest_helpers: bool,
     jit_helper_failed: bool,
+    jit_pending_exclusive_clear: Option<usize>,
     jit_pending_stores: Vec<JitPendingStore>,
 }
 
@@ -60,6 +61,7 @@ impl Emulator {
             jit_last_block_raw_hash: 0,
             jit_last_block_uses_guest_helpers: false,
             jit_helper_failed: false,
+            jit_pending_exclusive_clear: None,
             jit_pending_stores: Vec::new(),
         }
     }

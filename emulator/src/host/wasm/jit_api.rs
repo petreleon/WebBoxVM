@@ -1,5 +1,6 @@
 mod commit;
 mod compile;
+mod exclusive;
 mod load;
 mod state;
 mod store;
