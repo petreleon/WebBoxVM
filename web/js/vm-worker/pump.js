@@ -14,12 +14,38 @@ import {
   state,
 } from "./state.js";
 
+const schedulePumpTask = createPumpTaskScheduler();
+
 export function schedulePump() {
   if (!state.running || state.pumpScheduled || !state.emulator) {
     return;
   }
   state.pumpScheduled = true;
-  setTimeout(runPump, 0);
+  schedulePumpTask(runPump);
+}
+
+export function createPumpTaskScheduler({
+  MessageChannelCtor = globalThis.MessageChannel,
+  timeout = setTimeout,
+} = {}) {
+  if (typeof MessageChannelCtor !== "function") {
+    return (callback) => timeout(callback, 0);
+  }
+  const queue = [];
+  const channel = new MessageChannelCtor();
+  const runNext = () => queue.shift()?.();
+  if (typeof channel.port1.addEventListener === "function") {
+    channel.port1.addEventListener("message", runNext);
+    channel.port1.start?.();
+  } else {
+    channel.port1.onmessage = runNext;
+  }
+  channel.port1.unref?.();
+  channel.port2.unref?.();
+  return (callback) => {
+    queue.push(callback);
+    channel.port2.postMessage(undefined);
+  };
 }
 
 async function runPump() {
