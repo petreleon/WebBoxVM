@@ -44,6 +44,10 @@ export function runCachedJitBlock(coreId, key, entry) {
       pc,
     };
   }
+  const commitError = canCommitNow(coreId, entry.steps);
+  if (commitError) {
+    return { committed: false, error: commitError, pc };
+  }
 
   if (!state.emulator.jit_sync_state_from_core(coreId)) {
     return { committed: false, error: state.emulator.jit_last_error(), pc };
@@ -77,6 +81,16 @@ export function runCachedJitBlock(coreId, key, entry) {
     pc,
     steps: entry.steps,
   };
+}
+
+function canCommitNow(coreId, steps) {
+  if (!state.emulator.jit_can_commit_block_now) {
+    return "";
+  }
+  if (state.emulator.jit_can_commit_block_now(coreId, steps)) {
+    return "";
+  }
+  return state.emulator.jit_last_error();
 }
 
 function isAllowedExit(exitPc, entry) {

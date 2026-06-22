@@ -18,4 +18,4 @@ History: [sprint-history.md](sprint-history.md).
 ## Done - Tiny
 - [x] Install path: browser NAT/DHCP/DNS/HTTP Debian install, reboot, compact OPFS disk persistence.
 - [x] Boot/login path: default `Boot disk`; `Boot ISO` media-only; Debian 13 reaches `debian login:` on `ttyAMA0`.
-- [x] JIT path: saved-disk JIT, stats, rollback, EL0/sysreg helpers, observed `SPSR_EL1`/`LDAR` coverage, timer-boundary tests.
+- [x] JIT path: saved-disk JIT, stats, rollback, EL0/sysreg helpers, observed `SPSR_EL1`/`LDAR` coverage, timer-boundary/preflight tests.

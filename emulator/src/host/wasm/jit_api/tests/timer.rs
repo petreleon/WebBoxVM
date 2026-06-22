@@ -1,4 +1,4 @@
-use super::super::commit::commit_jit_state;
+use super::super::commit::{can_commit_jit_block_now, commit_jit_state};
 use crate::arch::arm64::jit::WasmJitCpuState;
 use crate::constants::{
     RAM_BASE, TIMER_CTL_ENABLE, VBAR_IRQ_LOWER_EL_AARCH64, VIRTUAL_TIMER_IRQ_ID,
@@ -43,4 +43,31 @@ fn commit_still_rejects_block_crossing_timer_deadline() {
         .expect_err("mid-block timer deadline must stay in interpreter");
 
     assert!(err.contains("timer deadline"), "{err}");
+}
+
+#[test]
+fn preflight_rejects_block_crossing_timer_deadline() {
+    let mut machine = Machine::new(1);
+    let cpu = &mut machine.cpus[0];
+    cpu.sys.cycle_count = 100;
+    cpu.sys.cntv_ctl_el0 = TIMER_CTL_ENABLE;
+    cpu.sys.cntv_cval_el0 = 103;
+
+    let err = can_commit_jit_block_now(&mut machine, 0, 4)
+        .expect_err("preflight should catch mid-block timer deadlines");
+
+    assert!(err.contains("timer deadline"), "{err}");
+    assert_eq!(machine.cpus[0].sys.cycle_count, 100);
+}
+
+#[test]
+fn preflight_accepts_block_ending_on_timer_deadline() {
+    let mut machine = Machine::new(1);
+    let cpu = &mut machine.cpus[0];
+    cpu.sys.cycle_count = 100;
+    cpu.sys.cntv_ctl_el0 = TIMER_CTL_ENABLE;
+    cpu.sys.cntv_cval_el0 = 104;
+
+    can_commit_jit_block_now(&mut machine, 0, 4)
+        .expect("exact timer boundary is still committable");
 }
