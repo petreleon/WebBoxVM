@@ -16,6 +16,8 @@ const INITIAL_METRICS = {
 
 export class WorkerChannel {
   #callbacks;
+  #instructionProbe;
+  #jitProbe;
   #metrics = { ...INITIAL_METRICS };
   #nextRequestId = 1;
   #pending = new Map();
@@ -119,13 +121,19 @@ export class WorkerChannel {
       totalSteps: metrics.totalSteps,
       uartOutputLen: metrics.uartOutputLen,
     };
-    const jitProbe = document.querySelector("[data-testid='webboxvm-jit-stats']");
-    if (jitProbe) {
-      jitProbe.textContent = JSON.stringify(this.#metrics.jitStats ?? null);
+    this.#updateMetricProbes();
+  }
+
+  #updateMetricProbes() {
+    this.#jitProbe ||= document.querySelector("[data-testid='webboxvm-jit-stats']");
+    if (this.#jitProbe) {
+      this.#jitProbe.textContent = JSON.stringify(this.#metrics.jitStats ?? null);
     }
-    const instructionProbe = document.querySelector("[data-testid='webboxvm-current-instruction']");
-    if (instructionProbe) {
-      instructionProbe.textContent = this.#metrics.currentInstruction ?? "";
+    this.#instructionProbe ||= document.querySelector(
+      "[data-testid='webboxvm-current-instruction']",
+    );
+    if (this.#instructionProbe) {
+      this.#instructionProbe.textContent = this.#metrics.currentInstruction ?? "";
     }
   }
 
