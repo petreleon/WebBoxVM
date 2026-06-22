@@ -75,13 +75,14 @@ function connect() {
 }
 
 function injectFrame(data) {
-  if (!state.emulator) {
+  const emulator = state.emulator;
+  if (!emulator) {
     return;
   }
   const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
   if (bytes?.length) {
     markNetworkActivity();
-    state.emulator.inject_network_frame(bytes);
+    emulator.inject_network_frame(bytes);
   }
 }
 

@@ -131,6 +131,29 @@ test("network drain can reuse checked emulator reference", () => {
   }
 });
 
+test("incoming network frame reuses one checked emulator reference", () => {
+  const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
+  let emulatorReads = 0;
+  let injected;
+  const emulator = { inject_network_frame: (bytes) => (injected = bytes) };
+  Object.defineProperty(state, "emulator", {
+    configurable: true,
+    get() {
+      emulatorReads += 1;
+      return emulator;
+    },
+  });
+
+  try {
+    startNetworkProxy();
+    FakeWebSocket.last.onmessage?.({ data: new Uint8Array([11, 12]) });
+    assert.deepEqual([...injected], [11, 12]);
+    assert.equal(emulatorReads, 1);
+  } finally {
+    Object.defineProperty(state, "emulator", previousDescriptor);
+  }
+});
+
 test("network drain reuses caller timestamp for transmitted burst", () => {
   let nowCalls = 0;
   try {
