@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { interpreterStepSlice, shouldFlushUart } from "./pump.js";
-import { DEFAULT_JIT_ENABLED, NETWORK_STEP_SLICE, resetJitState, state } from "./state.js";
+import {
+  DEFAULT_JIT_ENABLED,
+  DEFAULT_STEP_SLICE,
+  NETWORK_STEP_SLICE,
+  resetJitState,
+  state,
+} from "./state.js";
 
 test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(DEFAULT_JIT_ENABLED, false);
   assert.equal(state.jitEnabled, false);
+  assert.equal(state.stepSlice, DEFAULT_STEP_SLICE);
 });
 
 test("jit cache reset preserves an explicit manual jit toggle", () => {
@@ -34,7 +41,7 @@ test("connected network caps interpreter step slices for TCP responsiveness", ()
   assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
 
   state.networkStatus = "offline";
-  state.stepSlice = 1_000_000;
+  state.stepSlice = DEFAULT_STEP_SLICE;
 });
 
 test("idle connected network allows fast interpreter step slices", () => {
@@ -46,7 +53,7 @@ test("idle connected network allows fast interpreter step slices", () => {
   assert.equal(interpreterStepSlice(), 50_000_000);
 
   state.networkStatus = "offline";
-  state.stepSlice = 1_000_000;
+  state.stepSlice = DEFAULT_STEP_SLICE;
 });
 
 test("pending network transmit keeps responsive interpreter slices", () => {
@@ -60,7 +67,7 @@ test("pending network transmit keeps responsive interpreter slices", () => {
 
   state.emulator = undefined;
   state.networkStatus = "offline";
-  state.stepSlice = 1_000_000;
+  state.stepSlice = DEFAULT_STEP_SLICE;
 });
 
 test("uart flushing batches small bursts for terminal throughput", () => {

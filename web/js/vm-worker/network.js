@@ -25,8 +25,12 @@ export function drainNetworkTx() {
   if (!state.emulator || !socket || socket.readyState !== WebSocket.OPEN) {
     return 0;
   }
+  const pending = state.emulator.network_tx_pending?.() ?? 0;
+  if (pending <= 0) {
+    return 0;
+  }
   let sent = 0;
-  for (;;) {
+  while (sent < pending) {
     const frame = state.emulator.network_tx_frame();
     if (!frame || frame.length === 0) {
       return sent;
@@ -35,6 +39,7 @@ export function drainNetworkTx() {
     socket.send(frame);
     sent += 1;
   }
+  return sent;
 }
 
 function connect() {
