@@ -9,8 +9,8 @@ export function jitStats() {
     fallbackCount: state.jitFallbackCount,
     hitSites: state.jitBlockHits.size,
     lastFallback: state.jitLastFallback,
-    recentRejects: state.jitRejectLog.slice(-MAX_REJECT_LOG),
-    recentSkips: state.jitSkipLog.slice(-MAX_REJECT_LOG),
+    recentRejects: state.jitRejectLog,
+    recentSkips: state.jitSkipLog,
     rejectedBlocks: state.jitRejectedBlocks.size,
     skippedBlocks: state.jitSkippedBlocks.size,
   };

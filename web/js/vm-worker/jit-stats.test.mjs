@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   currentJitInstruction,
+  jitStats,
   recordJitFallback,
   recordJitReject,
   recordJitSkip,
@@ -71,6 +72,24 @@ test("current jit instruction is omitted when the emulator has no snapshot", () 
   resetTelemetry();
 
   assert.equal(currentJitInstruction(), undefined);
+});
+
+test("jit stats reuse already bounded telemetry logs", () => {
+  resetTelemetry();
+  for (let index = 0; index < 20; index += 1) {
+    recordJitReject(`0:${index}`, BigInt(index), `reject ${index}`, 0);
+    recordJitSkip(`1:${index}`, BigInt(index), `skip ${index}`, 1);
+  }
+
+  const stats = jitStats();
+
+  assert.equal(state.jitRejectLog.length, 16);
+  assert.equal(state.jitSkipLog.length, 16);
+  assert.equal(stats.recentRejects, state.jitRejectLog);
+  assert.equal(stats.recentSkips, state.jitSkipLog);
+  assert.equal(stats.recentRejects[0].error, "reject 4");
+  assert.equal(stats.recentSkips[0].error, "skip 4");
+  resetTelemetry();
 });
 
 function resetTelemetry() {
