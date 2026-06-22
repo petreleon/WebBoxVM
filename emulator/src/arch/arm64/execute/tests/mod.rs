@@ -73,6 +73,7 @@ mod data_proc;
 mod exceptions;
 mod exclusive_pair_patterns;
 mod load_store;
+mod load_store_pair_faults;
 mod load_store_rcpc_pair;
 mod mops;
 mod mte;

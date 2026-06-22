@@ -26,7 +26,6 @@ pub(in crate::arch::arm64::execute) fn exec_ldr_str(
             | Opcode::SimdLd4Single
     );
 
-    let pa = translate_or_data_fault(cpu, &mut bus.mem, va, !is_load, "LDR/STR translation fault")?;
     if instr.op == Opcode::SimdLdr {
         cpu.simd[instr.rd as usize] = read_simd_guest(cpu, bus, va, size, "SIMD load fault")?;
     } else if instr.op == Opcode::SimdLd1 {
@@ -103,7 +102,7 @@ pub(in crate::arch::arm64::execute) fn exec_ldr_str(
         };
         exec_st_structure(cpu, bus, va, instr, structure_count)?;
     } else if is_load {
-        let mut val = read_guest(cpu, bus, va, size, "LDR bus fault")?;
+        let (pa, mut val) = read_guest_with_pa(cpu, bus, va, size, "LDR bus fault")?;
         trace_syscall_frame_access(cpu, &instr, "LDR", va, pa, size, Some(val));
         if matches!(instr.op, Opcode::LdrSign | Opcode::Ldapurs) {
             val = sign_extend_load(val, size, instr.sf);
@@ -111,9 +110,10 @@ pub(in crate::arch::arm64::execute) fn exec_ldr_str(
         write_reg(cpu, instr.rd, val, instr.sf);
     } else {
         let val = read_reg(cpu, instr.rd, instr.sf);
+        let pa = translate_or_data_fault(cpu, &mut bus.mem, va, true, "STR translation fault")?;
         trace_syscall_frame_access(cpu, &instr, "STR", va, pa, size, Some(val));
         trace_text_store(cpu, bus, &instr, "STR", va, pa, size, val);
-        write_guest(cpu, bus, va, size, val, "STR translation fault")?;
+        write_guest_translated(cpu, bus, va, pa, size, val, "STR translation fault")?;
     }
     if let Some(new_base) = writeback {
         write_reg_sp(cpu, instr.rn, new_base, true);

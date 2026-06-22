@@ -24,30 +24,26 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
     if instr.op == Opcode::MteStgp && va % 16 != 0 {
         return Err("MTE tag granule alignment fault");
     }
-    let is_store = matches!(instr.op, Opcode::Stp | Opcode::MteStgp | Opcode::SimdStp);
-    let pa1 =
-        translate_or_data_fault(cpu, &mut bus.mem, va, is_store, "LDP/STP translation fault")?;
-    let pa2 = translate_or_data_fault(
-        cpu,
-        &mut bus.mem,
-        va + size,
-        is_store,
-        "LDP/STP translation fault",
-    )?;
-
     match instr.op {
         Opcode::Ldp => {
-            let lo = read_guest(cpu, bus, va, size as u8, "LDP bus fault")?;
-            let hi = read_guest(cpu, bus, va + size, size as u8, "LDP bus fault")?;
+            let access_size = size as u8;
+            let pa1 = translate_or_data_fault(cpu, &mut bus.mem, va, false, "LDP bus fault")?;
+            let pa2 =
+                translate_or_data_fault(cpu, &mut bus.mem, va + size, false, "LDP bus fault")?;
+            let lo = read_guest_translated(cpu, bus, va, pa1, access_size, "LDP bus fault")?;
+            let hi = read_guest_translated(cpu, bus, va + size, pa2, access_size, "LDP bus fault")?;
             trace_syscall_frame_access(cpu, &instr, "LDP.0", va, pa1, size as u8, Some(lo));
             trace_syscall_frame_access(cpu, &instr, "LDP.1", va + size, pa2, size as u8, Some(hi));
             write_reg(cpu, instr.rd, lo, instr.sf);
             write_reg(cpu, instr.rm, hi, instr.sf);
         }
         Opcode::Ldpsw => {
-            let lo = read_guest(cpu, bus, va, 4, "LDPSW bus fault")? as u32 as i32 as i64 as u64;
-            let hi =
-                read_guest(cpu, bus, va + 4, 4, "LDPSW bus fault")? as u32 as i32 as i64 as u64;
+            let pa1 = translate_or_data_fault(cpu, &mut bus.mem, va, false, "LDPSW bus fault")?;
+            let pa2 = translate_or_data_fault(cpu, &mut bus.mem, va + 4, false, "LDPSW bus fault")?;
+            let lo = read_guest_translated(cpu, bus, va, pa1, 4, "LDPSW bus fault")? as u32 as i32
+                as i64 as u64;
+            let hi = read_guest_translated(cpu, bus, va + 4, pa2, 4, "LDPSW bus fault")? as u32
+                as i32 as i64 as u64;
             trace_syscall_frame_access(cpu, &instr, "LDPSW.0", va, pa1, 4, Some(lo));
             trace_syscall_frame_access(cpu, &instr, "LDPSW.1", va + 4, pa2, 4, Some(hi));
             write_reg(cpu, instr.rd, lo, true);
@@ -67,6 +63,8 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
             } else {
                 "STP bus fault"
             };
+            let pa1 = translate_or_data_fault(cpu, &mut bus.mem, va, true, fault_label)?;
+            let pa2 = translate_or_data_fault(cpu, &mut bus.mem, va + size, true, fault_label)?;
             trace_syscall_frame_access(cpu, &instr, label0, va, pa1, access_size, Some(val1));
             trace_syscall_frame_access(
                 cpu,
@@ -78,12 +76,14 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
                 Some(val2),
             );
             trace_text_store(cpu, bus, &instr, label0, va, pa1, access_size, val1);
-            write_guest(cpu, bus, va, access_size, val1, fault_label)?;
+            write_guest_translated(cpu, bus, va, pa1, access_size, val1, fault_label)?;
             trace_text_store(cpu, bus, &instr, label1, va + size, pa2, access_size, val2);
-            write_guest(cpu, bus, va + size, access_size, val2, fault_label)?;
+            write_guest_translated(cpu, bus, va + size, pa2, access_size, val2, fault_label)?;
         }
         Opcode::SimdLdp => {
             let access_size = size as u8;
+            translate_or_data_fault(cpu, &mut bus.mem, va, false, "SIMD LDP bus fault")?;
+            translate_or_data_fault(cpu, &mut bus.mem, va + size, false, "SIMD LDP bus fault")?;
             cpu.simd[instr.rd as usize] =
                 read_simd_guest(cpu, bus, va, access_size, "SIMD LDP bus fault")?;
             cpu.simd[instr.rm as usize] =
@@ -91,6 +91,8 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
         }
         Opcode::SimdStp => {
             let access_size = size as u8;
+            translate_or_data_fault(cpu, &mut bus.mem, va, true, "SIMD STP bus fault")?;
+            translate_or_data_fault(cpu, &mut bus.mem, va + size, true, "SIMD STP bus fault")?;
             write_simd_guest(
                 cpu,
                 bus,
