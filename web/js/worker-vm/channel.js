@@ -106,21 +106,19 @@ export class WorkerChannel {
   }
 
   #updateMetrics(metrics) {
-    Object.assign(this.#metrics, {
-      allocatedPages: metrics.allocatedPages,
-      currentInstruction: metrics.currentInstruction,
-      installDiskAllocatedBytes: metrics.installDiskAllocatedBytes,
-      installDiskGeneration: metrics.installDiskGeneration,
-      installDiskSizeBytes: metrics.installDiskSizeBytes,
-      jitStats: metrics.jitStats ?? INITIAL_METRICS.jitStats,
-      networkRxPackets: metrics.networkRxPackets,
-      networkStatus: metrics.networkStatus,
-      networkTxPackets: metrics.networkTxPackets,
-      networkTxPending: metrics.networkTxPending,
-      pc: metrics.pc,
-      totalSteps: metrics.totalSteps,
-      uartOutputLen: metrics.uartOutputLen,
-    });
+    this.#metrics.allocatedPages = metrics.allocatedPages;
+    this.#metrics.currentInstruction = metrics.currentInstruction;
+    this.#metrics.installDiskAllocatedBytes = metrics.installDiskAllocatedBytes;
+    this.#metrics.installDiskGeneration = metrics.installDiskGeneration;
+    this.#metrics.installDiskSizeBytes = metrics.installDiskSizeBytes;
+    this.#metrics.jitStats = metrics.jitStats ?? INITIAL_METRICS.jitStats;
+    this.#metrics.networkRxPackets = metrics.networkRxPackets;
+    this.#metrics.networkStatus = metrics.networkStatus;
+    this.#metrics.networkTxPackets = metrics.networkTxPackets;
+    this.#metrics.networkTxPending = metrics.networkTxPending;
+    this.#metrics.pc = metrics.pc;
+    this.#metrics.totalSteps = metrics.totalSteps;
+    this.#metrics.uartOutputLen = metrics.uartOutputLen;
     this.#updateMetricProbes();
   }
 
