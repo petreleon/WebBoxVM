@@ -54,7 +54,6 @@ async function runPump() {
         return;
       }
       if (!usedJit) {
-        now = performance.now();
         emulator.run_kernel(interpreterStepSlice(now, emulator));
       }
       now = performance.now();
