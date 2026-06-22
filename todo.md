@@ -14,7 +14,7 @@ History: [sprint-history.md](sprint-history.md).
 
 ## Current Blocker
 - No installed-disk correctness blocker observed: default browser `Boot disk` reaches `debian login:` on `ttyAMA0`.
-- Remaining concern: boot speed; current login proof is about 660 seconds of browser wall time.
+- Remaining concern: boot speed; current login proof is about 642 seconds of browser wall time.
 
 ## Recent Proofs
 - Plain installed-disk systemd boot was blocked by a hung-task path around BPF/ftrace teardown.
@@ -25,6 +25,7 @@ History: [sprint-history.md](sprint-history.md).
 - Default installed-disk boot omits the BPF LSM and masks keyboard/console setup to reach serial login.
 - Masking AppArmor reduced login proof time from about 800 seconds to about 660 seconds.
 - Default browser `Boot disk` with the AppArmor mask reaches serial login in about 661 seconds.
+- Serial-only getty defaults plus UART batching reach serial login in about 642 seconds.
 
 ## Done
 - [x] Guardrails, OPFS `Boot disk`, browser NAT/DHCP/DNS/HTTP, installer reached reboot.
@@ -32,3 +33,4 @@ History: [sprint-history.md](sprint-history.md).
 - [x] Added opt-in installed-disk bootargs for faster browser blocker probes.
 - [x] Default browser `Boot disk` reaches Debian 13 serial login from persisted disk.
 - [x] Masked AppArmor for default installed-disk boot to reduce time to serial login.
+- [x] Kept only serial getty by default and batched UART flushes to trim login proof time.

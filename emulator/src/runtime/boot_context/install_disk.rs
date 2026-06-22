@@ -6,7 +6,14 @@ const INSTALLED_DISK_COMPAT_BOOTARGS: &str = concat!(
     "lsm=landlock,lockdown,yama,integrity,apparmor ",
     "systemd.mask=keyboard-setup.service ",
     "systemd.mask=console-setup.service ",
-    "systemd.mask=apparmor.service"
+    "systemd.mask=apparmor.service ",
+    "systemd.mask=getty-static.service ",
+    "systemd.mask=getty@tty1.service ",
+    "systemd.mask=getty@tty2.service ",
+    "systemd.mask=getty@tty3.service ",
+    "systemd.mask=getty@tty4.service ",
+    "systemd.mask=getty@tty5.service ",
+    "systemd.mask=getty@tty6.service"
 );
 
 impl BootContext {
@@ -51,6 +58,8 @@ mod tests {
         assert!(args.contains("systemd.mask=keyboard-setup.service"));
         assert!(args.contains("systemd.mask=console-setup.service"));
         assert!(args.contains("systemd.mask=apparmor.service"));
+        assert!(args.contains("systemd.mask=getty-static.service"));
+        assert!(args.contains("systemd.mask=getty@tty6.service"));
     }
 
     #[test]

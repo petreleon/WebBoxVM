@@ -3,6 +3,8 @@ export const DEFAULT_STEP_SLICE = 1_000_000;
 export const MAX_STEP_SLICE = 50_000_000;
 export const NETWORK_STEP_SLICE = 1_000_000;
 export const NETWORK_IDLE_FAST_MS = 1500;
+export const UART_FLUSH_BYTES = 8192;
+export const UART_FLUSH_INTERVAL_MS = 50;
 export const MAX_FRAME_MS = 24;
 export const MAX_FRAME_BATCHES = 8;
 export const METRICS_INTERVAL_MS = 100;
@@ -27,6 +29,7 @@ export const state = {
   lastMetricsAt: 0,
   lastNetworkActivityAt: 0,
   lastUart: 0,
+  lastUartFlushAt: 0,
   networkStatus: "offline",
   pumpScheduled: false,
   running: false,

@@ -8,6 +8,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   freeEmulator();
   state.emulator = new Emulator(numCores);
   state.lastUart = 0;
+  state.lastUartFlushAt = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
   const result = state.emulator.boot_iso_with_disk(isoImage, numCores, diskSizeBytes);
@@ -21,6 +22,7 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
   freeEmulator();
   state.emulator = new Emulator(numCores);
   state.lastUart = 0;
+  state.lastUartFlushAt = 0;
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
   const result = state.emulator.boot_installed_disk_with_extra_bootargs(

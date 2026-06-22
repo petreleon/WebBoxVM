@@ -8,6 +8,8 @@ import {
   MAX_FRAME_MS,
   NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
+  UART_FLUSH_BYTES,
+  UART_FLUSH_INTERVAL_MS,
   state,
 } from "./state.js";
 
@@ -38,7 +40,7 @@ async function runPump() {
         state.emulator.run_kernel(interpreterStepSlice());
       }
       const sentNetworkFrames = drainNetworkTx();
-      drainUart();
+      drainUart(performance.now());
       batches += 1;
       if (sentNetworkFrames > 0) {
         break;
@@ -82,11 +84,21 @@ function networkNeedsResponsiveSlices() {
   return performance.now() - state.lastNetworkActivityAt < NETWORK_IDLE_FAST_MS;
 }
 
-function drainUart() {
-  const output = state.emulator.uart_output_since(state.lastUart);
-  if (!output) {
+function drainUart(now) {
+  const uartLen = state.emulator.uart_output_len();
+  const pendingBytes = uartLen - state.lastUart;
+  if (!shouldFlushUart(pendingBytes, now, state.lastUartFlushAt)) {
     return;
   }
-  state.lastUart = state.emulator.uart_output_len();
+  const output = state.emulator.uart_output_since(state.lastUart);
+  state.lastUart = uartLen;
+  state.lastUartFlushAt = now;
   postMessage({ event: "uart", output });
+}
+
+export function shouldFlushUart(pendingBytes, now, lastFlushAt) {
+  if (pendingBytes <= 0) {
+    return false;
+  }
+  return pendingBytes >= UART_FLUSH_BYTES || now - lastFlushAt >= UART_FLUSH_INTERVAL_MS;
 }

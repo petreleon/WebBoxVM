@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { interpreterStepSlice } from "./pump.js";
+import { interpreterStepSlice, shouldFlushUart } from "./pump.js";
 import { DEFAULT_JIT_ENABLED, NETWORK_STEP_SLICE, resetJitState, state } from "./state.js";
 
 test("browser worker starts with jit disabled for installer safety", () => {
@@ -61,4 +61,13 @@ test("pending network transmit keeps responsive interpreter slices", () => {
   state.emulator = undefined;
   state.networkStatus = "offline";
   state.stepSlice = 1_000_000;
+});
+
+test("uart flushing batches small bursts for terminal throughput", () => {
+  assert.equal(shouldFlushUart(16, 40, 0), false);
+  assert.equal(shouldFlushUart(16, 55, 0), true);
+});
+
+test("uart flushing sends large chunks immediately", () => {
+  assert.equal(shouldFlushUart(8192, 1, 0), true);
 });
