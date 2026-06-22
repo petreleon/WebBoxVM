@@ -2,6 +2,9 @@ import { GIB, clamp, nextFrame } from "./utils.js";
 import { assertWasm64Supported } from "./wasm64.js";
 import { WorkerVm } from "./worker-vm.js";
 
+const BOOT_KIND_MEDIA = "media";
+const BOOT_KIND_SAVED_DISK = "saved-disk";
+
 export class VmBooter {
   #els;
   #ui;
@@ -36,7 +39,7 @@ export class VmBooter {
     await nextFrame();
 
     const emulator = new WorkerVm();
-    emulator.set_jit_enabled(this.#getJitEnabled());
+    emulator.set_jit_enabled(jitEnabledForBoot(BOOT_KIND_MEDIA, this.#getJitEnabled()));
     this.#setEmulator(emulator);
     const result = await emulator.boot_iso_with_disk(bytes, 1, this.#diskSizeBytes());
     this.#ui.log(result);
@@ -72,7 +75,7 @@ export class VmBooter {
     await nextFrame();
 
     const emulator = new WorkerVm();
-    emulator.set_jit_enabled(this.#getJitEnabled());
+    emulator.set_jit_enabled(jitEnabledForBoot(BOOT_KIND_SAVED_DISK, this.#getJitEnabled()));
     this.#setEmulator(emulator);
     const result = await emulator.boot_installed_disk(snapshot, 1, extraBootargs);
     this.#ui.log(result);
@@ -122,4 +125,8 @@ export class VmBooter {
     const gib = Number((sizeBytes + GIB - 1n) / GIB);
     this.#els.diskSize.value = String(clamp(gib, 1, 64));
   }
+}
+
+export function jitEnabledForBoot(bootKind, manualEnabled) {
+  return bootKind === BOOT_KIND_SAVED_DISK || Boolean(manualEnabled);
 }
