@@ -30,6 +30,19 @@ fn uart_priority_over_ram() {
 }
 
 #[test]
+fn mmio_writes_do_not_shadow_sparse_memory() {
+    let mut bus = SystemBus::new();
+
+    bus.write(UART_BASE, 1, b'A' as u64);
+    bus.write(GICD_BASE, 4, 1);
+
+    assert_eq!(bus.uart.output_string(), "A");
+    assert_eq!(bus.mem.allocated_pages(), 0);
+    assert_eq!(bus.mem.page_generation(UART_BASE), Some(0));
+    assert_eq!(bus.mem.page_generation(GICD_BASE), Some(0));
+}
+
+#[test]
 fn ram_read_write() {
     let mut bus = SystemBus::new();
     bus.write(RAM_BASE, 8, 0xDEADBEEF);

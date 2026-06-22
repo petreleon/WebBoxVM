@@ -118,15 +118,17 @@ impl SystemBus {
             if addr - UART_BASE == UART_IMSC_OFFSET {
                 self.mark_uart_rx_refresh_needed();
             }
-            // Trace: kernel wrote to the UART physical address
+            return;
         } else if in_gicd_range(addr) {
             let clears_uart = gicd_clear_pending_touches_uart(addr, value);
             self.gic.gicd_write(addr - GICD_BASE, value, size);
             if clears_uart {
                 self.mark_uart_rx_refresh_needed();
             }
+            return;
         } else if in_gicr_range(addr) {
             self.gic.gicr_write(addr - GICR_BASE, value, size);
+            return;
         } else if in_virtio_blk_range(addr) {
             if self
                 .virtio_blk
@@ -134,6 +136,7 @@ impl SystemBus {
             {
                 self.gic.set_pending(VIRTIO_BLK_IRQ_ID);
             }
+            return;
         } else if in_virtio_disk_range(addr) {
             if self
                 .virtio_disk
@@ -141,6 +144,7 @@ impl SystemBus {
             {
                 self.gic.set_pending(VIRTIO_DISK_IRQ_ID);
             }
+            return;
         } else if in_virtio_net_range(addr) {
             if self
                 .virtio_net
@@ -148,6 +152,7 @@ impl SystemBus {
             {
                 self.gic.set_pending(VIRTIO_NET_IRQ_ID);
             }
+            return;
         }
         self.mem.write(addr, size, value);
     }
