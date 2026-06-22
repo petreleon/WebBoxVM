@@ -33,12 +33,15 @@ export function drainNetworkTx() {
   while (sent < pending) {
     const frame = state.emulator.network_tx_frame();
     if (!frame || frame.length === 0) {
+      if (sent > 0) {
+        markNetworkActivity();
+      }
       return sent;
     }
-    markNetworkActivity();
     socket.send(frame);
     sent += 1;
   }
+  markNetworkActivity();
   return sent;
 }
 

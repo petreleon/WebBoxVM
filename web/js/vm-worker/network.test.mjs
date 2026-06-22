@@ -5,6 +5,7 @@ import { state } from "./state.js";
 
 const previousSelf = globalThis.self;
 const previousWebSocket = globalThis.WebSocket;
+const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;
 
 globalThis.self = { location: { href: "http://localhost/web/js/vm-worker.js" } };
@@ -38,6 +39,7 @@ after(() => {
   state.emulator = undefined;
   globalThis.self = previousSelf;
   globalThis.WebSocket = previousWebSocket;
+  globalThis.performance = previousPerformance;
   globalThis.postMessage = previousPostMessage;
 });
 
@@ -69,4 +71,28 @@ test("network drain pops exactly pending frames", () => {
     FakeWebSocket.last.sent.map((frame) => [...frame]),
     [[1], [2]]
   );
+});
+
+test("network drain marks activity once per transmitted burst", () => {
+  let nowCalls = 0;
+  try {
+    globalThis.performance = {
+      now: () => {
+        nowCalls += 1;
+        return 100 + nowCalls;
+      },
+    };
+    const frames = [new Uint8Array([3]), new Uint8Array([4])];
+    state.lastNetworkActivityAt = 0;
+    state.emulator = {
+      network_tx_pending: () => frames.length,
+      network_tx_frame: () => frames.shift() ?? new Uint8Array(),
+    };
+
+    assert.equal(drainNetworkTx(), 2);
+    assert.equal(nowCalls, 1);
+    assert.equal(state.lastNetworkActivityAt, 101);
+  } finally {
+    globalThis.performance = previousPerformance;
+  }
 });
