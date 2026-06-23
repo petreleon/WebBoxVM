@@ -86,7 +86,12 @@ impl Wasm64Compiler {
             return Err(WasmJitError::EmptyBlock);
         }
 
-        let mut body = WasmExpr::new();
+        let expr_capacity = block
+            .instructions
+            .len()
+            .saturating_mul(64)
+            .saturating_add(16);
+        let mut body = WasmExpr::with_capacity(expr_capacity);
         let mut compiled = 0usize;
         let mut terminal_exit = false;
         let mut dynamic_exit = false;

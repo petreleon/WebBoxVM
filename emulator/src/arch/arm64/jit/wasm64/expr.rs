@@ -9,8 +9,10 @@ pub(super) struct WasmExpr {
 }
 
 impl WasmExpr {
-    pub(super) fn new() -> Self {
-        Self { code: Vec::new() }
+    pub(super) fn with_capacity(capacity: usize) -> Self {
+        Self {
+            code: Vec::with_capacity(capacity),
+        }
     }
 
     pub(super) fn into_bytes(self) -> Vec<u8> {
