@@ -158,7 +158,7 @@ pub(in crate::arch::arm64::execute) fn write_guest_bytes_from_first_pa(
     err: &'static str,
 ) -> Result<u64, &'static str> {
     if !access_crosses_page(va, bytes.len() as u8) && bus.write_bytes(first_pa, bytes).is_some() {
-        cpu.clear_exclusive_if_overlaps(first_pa, bytes.len() as u8);
+        cpu.clear_exclusive_range_if_overlaps(first_pa, bytes.len() as u64);
         return Ok(first_pa);
     }
 
