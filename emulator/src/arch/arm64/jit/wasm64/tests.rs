@@ -16,6 +16,7 @@ mod memory_load;
 mod memory_pair;
 mod memory_store;
 mod memory_zero;
+mod module_builder;
 mod multiply;
 mod rev;
 mod simd_compare;
