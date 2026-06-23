@@ -32,24 +32,50 @@ pub(super) fn in_virtio_net_range(addr: u64) -> bool {
 }
 
 pub(super) fn overlaps_device_range(addr: u64, len: usize) -> bool {
-    range_overlaps(addr, len, UART_BASE, UART_END)
-        || range_overlaps(addr, len, GICD_BASE, GICD_BASE + GICD_SIZE)
-        || range_overlaps(addr, len, GICR_BASE, GICR_BASE + GICR_SIZE)
-        || range_overlaps(addr, len, VIRTIO_BLK_BASE, VIRTIO_BLK_END)
-        || range_overlaps(addr, len, VIRTIO_DISK_BASE, VIRTIO_DISK_END)
-        || range_overlaps(addr, len, VIRTIO_NET_BASE, VIRTIO_NET_END)
-}
-
-pub(super) fn is_printable_or_control(b: u8) -> bool {
-    matches!(b, b' '..=b'~' | b'\n' | b'\r')
-}
-
-fn range_overlaps(addr: u64, len: usize, base: u64, end: u64) -> bool {
     if len == 0 {
         return false;
     }
     let Some(range_end) = addr.checked_add(len as u64) else {
         return true;
     };
+    if addr >= LOW_REGION_END {
+        return false;
+    }
+
+    range_overlaps(addr, range_end, UART_BASE, UART_END)
+        || range_overlaps(addr, range_end, GICD_BASE, GICD_BASE + GICD_SIZE)
+        || range_overlaps(addr, range_end, GICR_BASE, GICR_BASE + GICR_SIZE)
+        || range_overlaps(addr, range_end, VIRTIO_BLK_BASE, VIRTIO_BLK_END)
+        || range_overlaps(addr, range_end, VIRTIO_DISK_BASE, VIRTIO_DISK_END)
+        || range_overlaps(addr, range_end, VIRTIO_NET_BASE, VIRTIO_NET_END)
+}
+
+pub(super) fn is_printable_or_control(b: u8) -> bool {
+    matches!(b, b' '..=b'~' | b'\n' | b'\r')
+}
+
+fn range_overlaps(addr: u64, range_end: u64, base: u64, end: u64) -> bool {
     addr < end && base < range_end
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn high_memory_ranges_skip_device_overlap_scan() {
+        assert!(!overlaps_device_range(RAM_BASE, 8));
+        assert!(!overlaps_device_range(EFI_REGION_BASE, 0x1000));
+        assert!(!overlaps_device_range(RAM_END, 4));
+    }
+
+    #[test]
+    fn device_overlap_keeps_edges_and_overflow_conservative() {
+        assert!(!overlaps_device_range(UART_BASE, 0));
+        assert!(!overlaps_device_range(VIRTIO_BLK_BASE - 1, 1));
+        assert!(overlaps_device_range(VIRTIO_BLK_BASE - 1, 2));
+        assert!(overlaps_device_range(UART_END - 1, 1));
+        assert!(!overlaps_device_range(UART_END, 1));
+        assert!(overlaps_device_range(u64::MAX - 1, 8));
+    }
 }
