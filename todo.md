@@ -9,7 +9,7 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Explain `web/js/vm-worker/jit-compile.js` JIT policy
 
 ## Current Blocker
-- Speed only: disk boot works; Debian 13 login latest/best 483.5s.
+- Speed only: disk boot works; Debian 13 login latest/best 480.4s.
 
 ## Done
 - [x] NAT + Debian disk boot to login.

@@ -1,7 +1,7 @@
 import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js";
 import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js";
 import { tryRunCachedJitBlock } from "./jit-run.js";
-import { JIT_HOT_THRESHOLD, state } from "./state.js";
+import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js";
 
 export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
   if (!state.jitEnabled || !emulator) {
@@ -35,6 +35,7 @@ export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
   const hits = (state.jitBlockHits.get(key) ?? 0) + 1;
   if (hits < JIT_HOT_THRESHOLD) {
     state.jitBlockHits.set(key, hits);
+    evictOldestWarmupHitIfNeeded();
     return false;
   }
   state.jitBlockHits.delete(key);
@@ -64,4 +65,11 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
     return false;
   }
   return tryRunCachedJitBlock(coreId, key, entry, pc, emulator) === true;
+}
+
+function evictOldestWarmupHitIfNeeded() {
+  if (state.jitBlockHits.size <= JIT_MAX_HIT_SITES) {
+    return;
+  }
+  state.jitBlockHits.delete(state.jitBlockHits.keys().next().value);
 }

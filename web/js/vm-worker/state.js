@@ -13,6 +13,7 @@ export const MAX_FRAME_BATCHES = 128;
 export const METRICS_INTERVAL_MS = 250;
 export const DEFAULT_JIT_ENABLED = false;
 export const JIT_HOT_THRESHOLD = 2;
+export const JIT_MAX_HIT_SITES = 1024;
 export const JIT_MAX_BLOCKS = 4096;
 export const JIT_PROBE_STEP_SLICE = DEFAULT_STEP_SLICE;
 

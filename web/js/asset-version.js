@@ -1,4 +1,4 @@
-export const WEBBOXVM_ASSET_VERSION = "20260623-skip-jit-1";
+export const WEBBOXVM_ASSET_VERSION = "20260623-warmup-cap";
 
 export function versionedUrl(path, baseUrl = import.meta.url) {
   const url = new URL(path, baseUrl);
