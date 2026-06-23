@@ -13,6 +13,7 @@ fn cached_fetch_reuses_unchanged_page() {
     assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
     assert_eq!(cache.misses, 1);
     assert_eq!(cache.hits, 1);
+    assert_eq!(cache.word_decodes, 1);
 }
 
 #[test]
@@ -27,6 +28,7 @@ fn cached_fetch_redecodes_changed_word() {
 
     assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::B);
     assert_eq!(cache.misses, 2);
+    assert_eq!(cache.word_decodes, 2);
 }
 
 #[test]
@@ -41,6 +43,7 @@ fn same_page_write_invalidates_cached_page() {
         .unwrap();
     assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
     assert_eq!(cache.misses, 2);
+    assert_eq!(cache.word_decodes, 2);
 }
 
 #[test]
@@ -55,6 +58,26 @@ fn cache_miss_decodes_later_word_from_same_page() {
     assert!(cache.fetch(&mem, RAM_BASE).is_some());
     assert_eq!(cache.misses, 1);
     assert_eq!(cache.hits, 1);
+    assert_eq!(cache.word_decodes, 2);
+}
+
+#[test]
+fn same_page_refetch_reuses_decoded_word_without_full_page_decode() {
+    let mut mem = PhysicalMemory::new();
+    let mut cache = DecodeCache::new();
+    let later = RAM_BASE + 17 * INSTRUCTION_SIZE;
+
+    mem.write(RAM_BASE, 4, 0xd503_201f).unwrap();
+    mem.write(later, 4, 0x1400_0000).unwrap();
+
+    assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
+    assert_eq!(cache.word_decodes, 1);
+    assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
+    assert_eq!(cache.word_decodes, 1);
+    assert_eq!(cache.fetch(&mem, later).unwrap().op, Opcode::B);
+    assert_eq!(cache.word_decodes, 2);
+    assert_eq!(cache.misses, 1);
+    assert_eq!(cache.hits, 2);
 }
 
 #[test]
@@ -67,6 +90,7 @@ fn cache_miss_decodes_last_word_from_same_page() {
 
     assert_eq!(cache.fetch(&mem, last).unwrap().op, Opcode::B);
     assert_eq!(cache.misses, 1);
+    assert_eq!(cache.word_decodes, 1);
 }
 
 #[test]
@@ -83,6 +107,7 @@ fn direct_slot_collision_evictions_are_safe() {
     assert_eq!(cache.fetch(&mem, second).unwrap().op, Opcode::B);
     assert_eq!(cache.fetch(&mem, first).unwrap().op, Opcode::Nop);
     assert_eq!(cache.misses, 3);
+    assert_eq!(cache.word_decodes, 3);
 }
 
 #[test]
@@ -93,6 +118,7 @@ fn undecoded_words_are_tolerated_as_nops() {
     mem.write(RAM_BASE, 4, 0xffff_ffff).unwrap();
 
     assert_eq!(cache.fetch(&mem, RAM_BASE).unwrap().op, Opcode::Nop);
+    assert_eq!(cache.word_decodes, 1);
 }
 
 #[test]
@@ -103,4 +129,5 @@ fn zero_filled_code_page_does_not_allocate_guest_memory() {
     assert!(cache.fetch(&mem, RAM_BASE).is_some());
     assert_eq!(mem.allocated_pages(), 0);
     assert_eq!(cache.misses, 1);
+    assert_eq!(cache.word_decodes, 1);
 }
