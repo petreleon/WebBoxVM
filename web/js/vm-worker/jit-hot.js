@@ -48,6 +48,7 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
   const compiled = await compileJitBlock({ coreId, pc, emulator });
   if (!state.running || state.emulator !== emulator || !compiled.compiled) {
     if (!compiled.compiled) {
+      state.jitBlockHits.delete(key);
       if (compiled.skipped) {
         state.jitSkippedBlocks.add(key);
         recordJitSkip(key, pc, compiled.error, coreId, emulator);
@@ -58,6 +59,7 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
     }
     return false;
   }
+  state.jitBlockHits.delete(key);
 
   const entry = state.jitBlocks.get(key);
   if (!entry) {

@@ -106,6 +106,8 @@ test("jit compile fallback reuses hot-path pc", async () => {
   assert.equal(await tryRunOrCompileJitBlock(), false);
   assert.equal(await tryRunOrCompileJitBlock(), false);
   assert.equal(pcCalls, 2);
+  assert.equal(state.jitBlockHits.has(0x1000n), false);
+  assert.equal(state.jitRejectedBlocks.has(0x1000n), true);
 });
 
 test("jit compile path remains asynchronous", () => {
@@ -124,4 +126,35 @@ test("jit compile path remains asynchronous", () => {
 
   assert.equal(typeof result.then, "function");
   return result.then((usedJit) => assert.equal(usedJit, false));
+});
+
+test("jit compile success drops warmup hit counter", async () => {
+  const originalInstantiate = WebAssembly.instantiate;
+  state.jitEnabled = true;
+  state.running = true;
+  state.wasmExports = { memory: {} };
+  state.emulator = {
+    jit_compile_current_block: () => new Uint8Array([1]),
+    jit_finish_cached_block: () => 0,
+    jit_last_block_metadata: () => [1n, 0x1000n, 0x2000n, 0x1004n, 0n, 0n, 1n, 2n, 3n],
+    jit_last_error: () => "",
+    jit_prepare_cached_block: () => true,
+    jit_state_ptr: () => 0x3000n,
+    jit_state_size: () => 512,
+    pc: () => 0x1000n,
+  };
+  WebAssembly.instantiate = async () => ({
+    instance: { exports: { run: () => 0x1004n } },
+    module: {},
+  });
+
+  try {
+    assert.equal(tryRunOrCompileJitBlock(), false);
+    assert.equal(await tryRunOrCompileJitBlock(), true);
+
+    assert.equal(state.jitBlocks.has(0x1000n), true);
+    assert.equal(state.jitBlockHits.has(0x1000n), false);
+  } finally {
+    WebAssembly.instantiate = originalInstantiate;
+  }
 });
