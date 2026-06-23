@@ -1,6 +1,6 @@
-use super::super::load::jit_load_pair_guest_from_machine;
+use super::super::pair_load::jit_load_pair_guest_from_machine;
 use super::map_two_ttbr0_pages;
-use crate::constants::RAM_BASE;
+use crate::constants::{PAGE_SIZE, RAM_BASE};
 use crate::host::wasm::JitPendingStore;
 use crate::runtime::Machine;
 
@@ -39,6 +39,19 @@ fn jit_pair_load_forwards_pending_store_bytes() {
 
     assert_eq!(values, (0x4433_2211, 0xaabb_ccdd));
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x44, 4), Some(0x0102_0304));
+}
+
+#[test]
+fn jit_pair_load_falls_back_across_noncontiguous_pages() {
+    let mut machine = Machine::new(1);
+    map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);
+    machine.bus.mem.write(RAM_BASE + 0x3ffc, 4, 0x4433_2211);
+    machine.bus.mem.write(RAM_BASE + 0x8000, 4, 0x8877_6655);
+
+    let values = jit_load_pair_guest_from_machine(&mut machine, 0, PAGE_SIZE - 4, 4, &[])
+        .expect("cross-page pair load should translate both pages");
+
+    assert_eq!(values, (0x4433_2211, 0x8877_6655));
 }
 
 #[test]

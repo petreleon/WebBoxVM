@@ -4,6 +4,7 @@ mod exclusive;
 mod exclusive_load;
 mod finish;
 mod load;
+mod pair_load;
 mod prepare;
 mod state;
 mod store;
