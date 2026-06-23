@@ -43,12 +43,22 @@ test("interpreter step slice can reuse checked emulator reference", () => {
   }
 });
 
-test("idle jit probe fallback uses a tighter probe slice", () => {
+test("idle jit probe fallback uses the normal interpreter slice", () => {
   state.jitEnabled = true;
   state.networkStatus = "offline";
 
-  assert.equal(JIT_PROBE_STEP_SLICE, 2_500_000);
+  assert.equal(JIT_PROBE_STEP_SLICE, DEFAULT_STEP_SLICE);
   assert.equal(interpreterStepSlice(10_000), JIT_PROBE_STEP_SLICE);
+});
+
+test("jit probe fallback still yields to pending network transmit", () => {
+  state.jitEnabled = true;
+  state.networkStatus = "connected";
+  state.lastNetworkActivityAt = 0;
+  state.lastNetworkTxPollAt = 10_000;
+  state.emulator = { network_tx_pending: () => 1 };
+
+  assert.equal(interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS), NETWORK_STEP_SLICE);
 });
 
 test("idle network pending checks respect tx poll cadence", () => {

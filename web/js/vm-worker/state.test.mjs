@@ -19,7 +19,7 @@ test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(state.jitEnabled, false);
   assert.equal(state.stepSlice, DEFAULT_STEP_SLICE);
   assert.equal(DEFAULT_STEP_SLICE, 5_000_000);
-  assert.equal(JIT_PROBE_STEP_SLICE, 2_500_000);
+  assert.equal(JIT_PROBE_STEP_SLICE, DEFAULT_STEP_SLICE);
   assert.equal(NETWORK_STEP_SLICE, 1_000_000);
 });
 
