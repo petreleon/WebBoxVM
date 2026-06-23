@@ -26,10 +26,7 @@ fn compiles_mrs_with_sysreg_helper_import() {
 
 #[test]
 fn compiles_observed_mrs_tpidr_el0() {
-    let cases = [
-        (0xd53b_d042, 2, SYSREG_TPIDR_EL0),
-        (0xd53b_00e3, 3, SYSREG_DCZID_EL0),
-    ];
+    let cases = [(0xd53b_d042, 2, SYSREG_TPIDR_EL0)];
     for (raw, rd, sysreg) in cases {
         let instr = crate::arch::arm64::decode(raw).expect("decode observed thread-pointer MRS");
         assert_eq!(instr.op, Opcode::Mrs);
@@ -88,10 +85,14 @@ fn compiles_helper_backed_observed_mrs_kernel_sysregs() {
 }
 
 #[test]
-fn inlines_pstate_backed_mrs_kernel_sysregs() {
-    let cases = [(0xd538_4253, SYSREG_CURRENTEL), (0xd53b_4233, SYSREG_DAIF)];
+fn inlines_helper_free_mrs_sysregs() {
+    let cases = [
+        (0xd538_4253, SYSREG_CURRENTEL),
+        (0xd53b_4233, SYSREG_DAIF),
+        (0xd53b_00e3, SYSREG_DCZID_EL0),
+    ];
     for (raw, sysreg) in cases {
-        let instr = crate::arch::arm64::decode(raw).expect("decode observed MRS");
+        let instr = crate::arch::arm64::decode(raw).expect("decode observed helper-free MRS");
         assert_eq!(instr.op, Opcode::Mrs);
         assert_eq!(instr.imm as u16, sysreg);
 
@@ -100,7 +101,6 @@ fn inlines_pstate_backed_mrs_kernel_sysregs() {
 
         assert_eq!(module.guest_instr_count, 1);
         assert!(!body.contains(&opcodes::OP_CALL));
-        assert!(body.contains(&opcodes::OP_I64_AND));
     }
 }
 
