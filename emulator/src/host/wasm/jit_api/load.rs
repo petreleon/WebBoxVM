@@ -81,6 +81,11 @@ where
     if overlaps_device(pa, size as usize) {
         return Err(format!("JIT load helper rejected device PA 0x{pa:016x}"));
     }
+    if pending_stores.is_empty() {
+        return mem
+            .read(pa, size)
+            .ok_or_else(|| format!("JIT load helper unreadable PA 0x{pa:016x}"));
+    }
     let mut value = 0u64;
     for offset in 0..size {
         let byte = read_guest_byte(mem, pending_stores, pa.wrapping_add(offset as u64))?;

@@ -1,10 +1,11 @@
-use super::load::jit_load_guest_from_machine;
+use super::load::{jit_load_guest_from_machine, read_guest_bytes};
 use super::store::{apply_jit_pending_stores, stage_jit_store_from_machine};
 use crate::arch::arm64::jit::WasmJitCpuState;
 use crate::constants::{
     DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, PL011_UART_IRQ_ID, RAM_BASE, SCTLR_MMU_ENABLE,
     TCR_T1SZ_SHIFT, UART_BASE, UART_IMSC_OFFSET,
 };
+use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
 
 use super::commit::commit_jit_state;
@@ -143,6 +144,17 @@ fn jit_load_guest_forwards_pending_store_bytes() {
 
     assert_eq!(value, 0xaabb_2211);
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0x4433_2211));
+}
+
+#[test]
+fn jit_load_guest_reads_unstaged_width_directly() {
+    let mut mem = PhysicalMemory::new();
+    mem.write(RAM_BASE + 0x80, 8, 0x8877_6655_4433_2211);
+
+    let value = read_guest_bytes(&mem, &[], RAM_BASE + 0x80, 8, |_, _| false)
+        .expect("unstaged RAM load should read the requested width");
+
+    assert_eq!(value, 0x8877_6655_4433_2211);
 }
 
 #[test]
