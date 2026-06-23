@@ -1,12 +1,13 @@
 use super::super::exclusive::{
     apply_jit_pending_exclusive_clear, jit_store_exclusive_from_machine,
-    jit_store_exclusive_pair_from_machine,
 };
 use super::super::exclusive_load::{
     apply_jit_pending_exclusive_reservation, jit_load_exclusive_from_machine,
 };
+use super::super::exclusive_pair::jit_store_exclusive_pair_from_machine;
 use super::super::store::apply_jit_pending_stores;
-use crate::constants::{RAM_BASE, UART_BASE};
+use super::map_two_ttbr0_pages;
+use crate::constants::{PAGE_SIZE, RAM_BASE, UART_BASE};
 use crate::host::wasm::{Emulator, JitPendingExclusiveReservation};
 use crate::runtime::Machine;
 
@@ -96,6 +97,32 @@ fn jit_store_exclusive_pair_reports_failed_reservation_without_stores() {
     assert!(machine.cpus[0].exclusive_matches(addr + 0x40, 16));
     apply_jit_pending_exclusive_clear(&mut machine, Some(0));
     assert!(machine.cpus[0].exclusive.is_none());
+}
+
+#[test]
+fn jit_store_exclusive_pair_falls_back_across_noncontiguous_pages() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    let first_pa = RAM_BASE + 0x3000;
+    let second_pa = RAM_BASE + 0x8000;
+    map_two_ttbr0_pages(&mut machine, first_pa, second_pa);
+    machine.cpus[0].reserve_exclusive(first_pa + 0xffc, 8);
+
+    let status = jit_store_exclusive_pair_from_machine(
+        &mut machine,
+        0,
+        PAGE_SIZE - 4,
+        4,
+        0x1122_3344,
+        0x5566_7788,
+        &mut stores,
+    )
+    .expect("cross-page exclusive pair store should translate both pages");
+
+    assert_eq!(status, 0);
+    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
+    assert_eq!(machine.bus.mem.read(first_pa + 0xffc, 4), Some(0x1122_3344));
+    assert_eq!(machine.bus.mem.read(second_pa, 4), Some(0x5566_7788));
 }
 
 #[test]
