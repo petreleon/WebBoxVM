@@ -63,6 +63,8 @@ test("compile jit block wires pair memory helper imports", async () => {
   const originalInstantiate = WebAssembly.instantiate;
   let pairLoadArgs;
   let pairStoreArgs;
+  let quadLoadArgs;
+  let quadStoreArgs;
   const emulator = {
     jit_compile_current_block: () => new Uint8Array([1, 2, 3]),
     jit_last_block_alternate_exit_pc: () => 0x1004n,
@@ -85,6 +87,13 @@ test("compile jit block wires pair memory helper imports", async () => {
     jit_store_pair_guest: (...args) => {
       pairStoreArgs = args;
     },
+    jit_load_quad_guest: (...args) => {
+      quadLoadArgs = args;
+      return [1n, 2n, 3n, 4n];
+    },
+    jit_store_quad_guest: (...args) => {
+      quadStoreArgs = args;
+    },
     pc: () => 0x1000n,
   };
   state.emulator = emulator;
@@ -92,6 +101,8 @@ test("compile jit block wires pair memory helper imports", async () => {
   WebAssembly.instantiate = async (_bytes, imports) => {
     assert.deepEqual(imports.env.jitLoadPairGuest(0x20n, 8), [0xaabbn, 0xccddn]);
     imports.env.jitStorePairGuest(0x10n, 8, 0x1122n, 0x3344n);
+    assert.deepEqual(imports.env.jitLoadQuadGuest(0x30n, 8), [1n, 2n, 3n, 4n]);
+    imports.env.jitStoreQuadGuest(0x40n, 8, 1n, 2n, 3n, 4n);
     return { instance: {}, module: {} };
   };
 
@@ -101,6 +112,8 @@ test("compile jit block wires pair memory helper imports", async () => {
     assert.equal(result.compiled, true);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);
     assert.deepEqual(pairStoreArgs, [3, 0x10n, 8, 0x1122n, 0x3344n]);
+    assert.deepEqual(quadLoadArgs, [3, 0x30n, 8]);
+    assert.deepEqual(quadStoreArgs, [3, 0x40n, 8, 1n, 2n, 3n, 4n]);
   } finally {
     WebAssembly.instantiate = originalInstantiate;
   }

@@ -47,11 +47,7 @@ impl WasmExpr {
         if self.emit_memory_address(instr) != Some(false) {
             return false;
         }
-        for register_index in 0..2 {
-            let reg = instr.rd.wrapping_add(register_index) & 31;
-            let offset = register_index as u64 * 16;
-            self.emit_load_simd_q(reg, offset);
-        }
+        self.emit_load_simd_q_pair(instr.rd, instr.rd.wrapping_add(1) & 31);
         true
     }
 
@@ -60,8 +56,7 @@ impl WasmExpr {
             return false;
         }
         let writeback = self.emit_simd_pair_address(instr);
-        self.emit_load_simd_q(instr.rd, 0);
-        self.emit_load_simd_q(instr.rm, 16);
+        self.emit_load_simd_q_pair(instr.rd, instr.rm);
         if writeback {
             self.emit_write_reg_sp_with(instr.rn, true, |this| {
                 this.local_get(WRITEBACK_LOCAL);

@@ -20,7 +20,8 @@ fn compiles_observed_ld1_multi_two_q_registers() {
 
     assert_eq!(module.guest_instr_count, 1);
     assert_eq!(module.exit_pc, 0x1004);
-    assert_eq!(call_count(&module, 7), 2);
+    assert_eq!(call_count(&module, 7), 0);
+    assert_eq!(call_count(&module, 9), 1);
 }
 
 #[test]
@@ -121,7 +122,8 @@ fn compiles_observed_simd_ldp_q_pair_forms() {
         let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile simd ldp");
 
         assert_eq!(module.guest_instr_count, 1);
-        assert_eq!(call_count(&module, 7), 2);
+        assert_eq!(call_count(&module, 7), 0);
+        assert_eq!(call_count(&module, 9), 1);
     }
 }
 
@@ -137,5 +139,6 @@ fn compiles_observed_simd_stp_q_registers_as_boundary() {
 
     assert_eq!(module.guest_instr_count, 1);
     assert_eq!(module.exit_pc, 0x1004);
-    assert_eq!(call_count(&module, 6), 2);
+    assert_eq!(call_count(&module, 6), 0);
+    assert_eq!(call_count(&module, 8), 1);
 }

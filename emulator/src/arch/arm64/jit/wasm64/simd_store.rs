@@ -30,8 +30,7 @@ impl WasmExpr {
         self.i64_const(instr.imm);
         self.op(OP_I64_ADD);
         self.local_set(ADDR_LOCAL);
-        self.emit_store_simd_q(instr.rd, 0);
-        self.emit_store_simd_q(instr.rm, 16);
+        self.emit_store_simd_q_pair(instr.rd, instr.rm);
         true
     }
 

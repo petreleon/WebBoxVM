@@ -55,6 +55,7 @@ mod simd_memory;
 mod simd_moves;
 mod simd_narrow;
 mod simd_pairwise;
+mod simd_quad;
 mod simd_store;
 mod state;
 mod system_reg;

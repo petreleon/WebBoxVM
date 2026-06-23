@@ -48,6 +48,9 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
       jitStorePairGuest: (va, size, value1, value2) =>
         owner.jit_store_pair_guest(coreId, va, size, value1, value2),
       jitLoadPairGuest: (va, size) => owner.jit_load_pair_guest(coreId, va, size),
+      jitStoreQuadGuest: (va, size, value1, value2, value3, value4) =>
+        owner.jit_store_quad_guest(coreId, va, size, value1, value2, value3, value4),
+      jitLoadQuadGuest: (va, size) => owner.jit_load_quad_guest(coreId, va, size),
       jitReadSysReg: (sysregId) => owner.jit_read_sysreg(coreId, sysregId),
       jitStoreExclusivePair: (va, size, value1, value2) =>
         owner.jit_store_exclusive_pair(coreId, va, size, value1, value2),

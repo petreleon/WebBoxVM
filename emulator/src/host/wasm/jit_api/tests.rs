@@ -15,6 +15,8 @@ mod finish;
 mod pair_load;
 mod pair_store;
 mod prepare;
+mod quad_load;
+mod quad_store;
 mod side_effects;
 mod sysreg;
 mod timer;
