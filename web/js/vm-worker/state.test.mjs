@@ -125,6 +125,7 @@ test("pending network transmit keeps responsive interpreter slices", () => {
 });
 
 test("pump allows more cached jit batches inside the frame budget", () => {
+  assert.equal(MAX_FRAME_MS, 32);
   assert.equal(MAX_FRAME_BATCHES, 128);
   assert.equal(shouldContinuePumpFrame(100, 100 + MAX_FRAME_MS - 1, 127), true);
 });
