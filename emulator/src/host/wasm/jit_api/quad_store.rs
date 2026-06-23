@@ -71,18 +71,14 @@ pub(super) fn stage_jit_quad_store_from_machine(
         .get_mut(core_id)
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     let pa = translate_store(cpu, &mut bus.mem, va)?;
-    let mut pas = [0; 4];
-    for (index, lane_pa) in pas.iter_mut().enumerate() {
-        *lane_pa = pa.wrapping_add(index as u64 * size as u64);
-        validate_store_target(bus, *lane_pa, size)?;
-    }
+    validate_store_target(bus, pa, size as usize * values.len())?;
 
-    let mut staged = Vec::with_capacity(4);
-    for (value, lane_pa) in values.into_iter().zip(pas) {
+    stores.reserve(values.len());
+    for (index, value) in values.into_iter().enumerate() {
+        let lane_pa = pa.wrapping_add(index as u64 * size as u64);
         let bytes = value.to_le_bytes();
-        staged.push(JitPendingStore::new(lane_pa, &bytes[..size as usize]));
+        stores.push(JitPendingStore::new(lane_pa, &bytes[..size as usize]));
     }
-    stores.extend(staged);
     Ok(())
 }
 
@@ -117,8 +113,8 @@ fn stage_quad_fallback(
     Ok(())
 }
 
-fn validate_store_target(bus: &SystemBus, pa: u64, size: u8) -> Result<(), String> {
-    if bus.overlaps_device_range(pa, size as usize) || !bus.mem.contains_range(pa, size as usize) {
+fn validate_store_target(bus: &SystemBus, pa: u64, len: usize) -> Result<(), String> {
+    if bus.overlaps_device_range(pa, len) || !bus.mem.contains_range(pa, len) {
         return Err(format!("JIT quad store helper rejected PA 0x{pa:016x}"));
     }
     Ok(())

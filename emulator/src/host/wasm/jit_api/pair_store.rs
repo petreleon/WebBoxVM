@@ -71,20 +71,16 @@ pub(super) fn stage_jit_pair_store_from_machine(
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     let pa = translate_store(cpu, &mut bus.mem, va)?;
     let pa2 = pa.wrapping_add(size as u64);
-    if bus.overlaps_device_range(pa, size as usize)
-        || bus.overlaps_device_range(pa2, size as usize)
-        || !bus.mem.contains_range(pa, size as usize)
-        || !bus.mem.contains_range(pa2, size as usize)
-    {
+    let total_len = size as usize * 2;
+    if bus.overlaps_device_range(pa, total_len) || !bus.mem.contains_range(pa, total_len) {
         return Err(format!("JIT store helper rejected PA 0x{pa:016x}"));
     }
 
     let bytes1 = value1.to_le_bytes();
     let bytes2 = value2.to_le_bytes();
-    let mut staged = Vec::with_capacity(2);
-    staged.push(JitPendingStore::new(pa, &bytes1[..size as usize]));
-    staged.push(JitPendingStore::new(pa2, &bytes2[..size as usize]));
-    stores.extend(staged);
+    stores.reserve(2);
+    stores.push(JitPendingStore::new(pa, &bytes1[..size as usize]));
+    stores.push(JitPendingStore::new(pa2, &bytes2[..size as usize]));
     Ok(())
 }
 
