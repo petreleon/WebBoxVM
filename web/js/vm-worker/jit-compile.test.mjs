@@ -142,6 +142,7 @@ test("compile jit block wires pair memory helper imports", async () => {
     assert.equal(result.stateSize, 512);
     assert.equal(cachedResult.stateSize, 512);
     assert.equal(importObjects[0], importObjects[1]);
+    assert.equal(state.jitBlocks.get("3:1000").module, undefined);
     assert.equal(metadataCalls, 2);
     assert.equal(stateSizeCalls, 1);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);
