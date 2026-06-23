@@ -1,6 +1,69 @@
 use super::*;
 
 #[test]
+fn pair_load_same_page_near_boundary_ignores_unmapped_next_page() {
+    let (mut cpu, mut bus) = setup();
+    let first_pa = RAM_BASE + 0x0100_0000;
+    let second_pa = RAM_BASE + 0x0200_0000;
+    let l3 = RAM_BASE + 2 * PAGE_SIZE;
+    let va = 0x1fe8;
+
+    map_two_user_pages(&mut cpu, &mut bus, 0x1000, first_pa, second_pa);
+    bus.mem.write(l3 + 2 * 8, 8, 0);
+    bus.mem.write(first_pa + 0xfe8, 8, 0x1122_3344_5566_7788);
+    bus.mem.write(first_pa + 0xff0, 8, 0x99aa_bbcc_ddee_ff00);
+    cpu.regs.set_x(2, va);
+
+    execute(
+        &mut cpu,
+        &mut bus,
+        Instr {
+            op: Opcode::Ldp,
+            rd: 0,
+            rn: 2,
+            rm: 1,
+            sf: true,
+            ..Instr::nop()
+        },
+    )
+    .unwrap();
+
+    assert_eq!(cpu.regs.x(0), 0x1122_3344_5566_7788);
+    assert_eq!(cpu.regs.x(1), 0x99aa_bbcc_ddee_ff00);
+}
+
+#[test]
+fn ldpsw_same_page_near_boundary_sign_extends_without_next_page() {
+    let (mut cpu, mut bus) = setup();
+    let first_pa = RAM_BASE + 0x0100_0000;
+    let second_pa = RAM_BASE + 0x0200_0000;
+    let l3 = RAM_BASE + 2 * PAGE_SIZE;
+    let va = 0x1ff8;
+
+    map_two_user_pages(&mut cpu, &mut bus, 0x1000, first_pa, second_pa);
+    bus.mem.write(l3 + 2 * 8, 8, 0);
+    bus.mem.write(first_pa + 0xff8, 4, 0xffff_ff80);
+    bus.mem.write(first_pa + 0xffc, 4, 0x7fff_fffe);
+    cpu.regs.set_x(2, va);
+
+    execute(
+        &mut cpu,
+        &mut bus,
+        Instr {
+            op: Opcode::Ldpsw,
+            rd: 0,
+            rn: 2,
+            rm: 1,
+            ..Instr::nop()
+        },
+    )
+    .unwrap();
+
+    assert_eq!(cpu.regs.x(0), 0xffff_ffff_ffff_ff80);
+    assert_eq!(cpu.regs.x(1), 0x7fff_fffe);
+}
+
+#[test]
 fn pair_store_same_page_near_boundary_ignores_unmapped_next_page() {
     let (mut cpu, mut bus) = setup();
     let first_pa = RAM_BASE + 0x0100_0000;

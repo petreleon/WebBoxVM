@@ -1,3 +1,4 @@
+use super::pair_bulk::{read_pair_scalars, write_pair_scalars};
 use super::*;
 
 pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
@@ -28,8 +29,8 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
         Opcode::Ldp => {
             let access_size = size as u8;
             let (pa1, pa2) = translate_pair(cpu, bus, va, size, false, "LDP bus fault")?;
-            let lo = read_guest_translated(cpu, bus, va, pa1, access_size, "LDP bus fault")?;
-            let hi = read_guest_translated(cpu, bus, va + size, pa2, access_size, "LDP bus fault")?;
+            let (lo, hi) =
+                read_pair_scalars(cpu, bus, va, (pa1, pa2), access_size, "LDP bus fault")?;
             trace_syscall_frame_access(cpu, &instr, "LDP.0", va, pa1, size as u8, Some(lo));
             trace_syscall_frame_access(cpu, &instr, "LDP.1", va + size, pa2, size as u8, Some(hi));
             write_reg(cpu, instr.rd, lo, instr.sf);
@@ -37,10 +38,9 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
         }
         Opcode::Ldpsw => {
             let (pa1, pa2) = translate_pair(cpu, bus, va, 4, false, "LDPSW bus fault")?;
-            let lo = read_guest_translated(cpu, bus, va, pa1, 4, "LDPSW bus fault")? as u32 as i32
-                as i64 as u64;
-            let hi = read_guest_translated(cpu, bus, va + 4, pa2, 4, "LDPSW bus fault")? as u32
-                as i32 as i64 as u64;
+            let (lo, hi) = read_pair_scalars(cpu, bus, va, (pa1, pa2), 4, "LDPSW bus fault")?;
+            let lo = lo as u32 as i32 as i64 as u64;
+            let hi = hi as u32 as i32 as i64 as u64;
             trace_syscall_frame_access(cpu, &instr, "LDPSW.0", va, pa1, 4, Some(lo));
             trace_syscall_frame_access(cpu, &instr, "LDPSW.1", va + 4, pa2, 4, Some(hi));
             write_reg(cpu, instr.rd, lo, true);
@@ -72,9 +72,13 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
                 Some(val2),
             );
             trace_text_store(cpu, bus, &instr, label0, va, pa1, access_size, val1);
-            write_guest_translated(cpu, bus, va, pa1, access_size, val1, fault_label)?;
             trace_text_store(cpu, bus, &instr, label1, va + size, pa2, access_size, val2);
-            write_guest_translated(cpu, bus, va + size, pa2, access_size, val2, fault_label)?;
+            if !access_crosses_page(va, access_size * 2) {
+                write_pair_scalars(cpu, bus, va, pa1, access_size, val1, val2, fault_label)?;
+            } else {
+                write_guest_translated(cpu, bus, va, pa1, access_size, val1, fault_label)?;
+                write_guest_translated(cpu, bus, va + size, pa2, access_size, val2, fault_label)?;
+            }
         }
         Opcode::SimdLdp => {
             let access_size = size as u8;

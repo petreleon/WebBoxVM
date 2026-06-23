@@ -20,6 +20,7 @@ mod guest_translate;
 mod mops;
 mod mte;
 mod pair;
+mod pair_bulk;
 mod scalar;
 mod simd_structure;
 mod simd_structure_lane;
