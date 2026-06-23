@@ -101,6 +101,25 @@ fn masked_timers_do_not_wake_wfi_deadline() {
 }
 
 #[test]
+fn timer_irq_check_needed_tracks_pending_and_unmasked_timers() {
+    let (mut cpu, _) = setup();
+
+    assert!(!cpu.sys.timer_irq_check_needed());
+    cpu.sys.vbar_el1 = 0x8000;
+    assert!(!cpu.sys.timer_irq_check_needed());
+
+    cpu.sys.cntv_ctl_el0 = TIMER_CTL_ENABLE | TIMER_CTL_IMASK;
+    assert!(!cpu.sys.timer_irq_check_needed());
+
+    cpu.sys.cntv_ctl_el0 = TIMER_CTL_ENABLE;
+    assert!(cpu.sys.timer_irq_check_needed());
+
+    cpu.sys.cntv_ctl_el0 = 0;
+    cpu.sys.irq_pending = true;
+    assert!(cpu.sys.timer_irq_check_needed());
+}
+
+#[test]
 fn disabled_timer_does_not_deliver_irq() {
     let (mut cpu, mut bus) = setup();
     cpu.regs.pc = 0x4000_0000;

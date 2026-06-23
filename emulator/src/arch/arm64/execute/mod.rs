@@ -35,7 +35,9 @@ pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<
     match dispatch::execute_body(cpu, bus, instr)? {
         dispatch::Flow::Advance => {
             advance_pc(cpu);
-            check_timer_irq(cpu);
+            if cpu.sys.timer_irq_check_needed() {
+                check_timer_irq(cpu);
+            }
             Ok(())
         }
         dispatch::Flow::Return => Ok(()),
