@@ -19,6 +19,16 @@ fn repeated_modules_keep_same_invariant_sections() {
 }
 
 #[test]
+fn modules_with_different_bodies_share_prefix() {
+    let first = build_module(vec![opcodes::OP_END]);
+    let second = build_module(vec![opcodes::OP_I64_CONST, 0, opcodes::OP_END]);
+    let first_code = section_offset(&first, opcodes::SECTION_CODE).expect("first code");
+    let second_code = section_offset(&second, opcodes::SECTION_CODE).expect("second code");
+
+    assert_eq!(&first[..first_code], &second[..second_code]);
+}
+
+#[test]
 fn direct_code_section_length_tracks_large_expression() {
     let mut expr = Vec::with_capacity(20_001);
     for _ in 0..10_000 {
@@ -53,15 +63,26 @@ fn section_ids(module: &[u8]) -> Vec<u8> {
 }
 
 fn section_payload(module: &[u8], wanted: u8) -> Option<&[u8]> {
+    section_offset(module, wanted).map(|mut offset| {
+        offset += 1;
+        let len = read_u32(module, &mut offset) as usize;
+        let end = offset + len;
+        assert!(end <= module.len());
+        &module[offset..end]
+    })
+}
+
+fn section_offset(module: &[u8], wanted: u8) -> Option<usize> {
     let mut offset = 8usize;
     while offset < module.len() {
+        let section_start = offset;
         let id = module[offset];
         offset += 1;
         let len = read_u32(module, &mut offset) as usize;
         let end = offset + len;
         assert!(end <= module.len());
         if id == wanted {
-            return Some(&module[offset..end]);
+            return Some(section_start);
         }
         offset = end;
     }

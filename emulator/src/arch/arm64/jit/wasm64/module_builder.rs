@@ -15,24 +15,24 @@ const QUAD_STORE_HELPER_TYPE_INDEX: u32 = 8;
 const QUAD_LOAD_HELPER_TYPE_INDEX: u32 = 9;
 const RUN_FUNC_INDEX: u32 = 10;
 
-static TYPE_SECTION_BYTES: LazyLock<Vec<u8>> = LazyLock::new(type_section);
-static IMPORT_SECTION_BYTES: LazyLock<Vec<u8>> = LazyLock::new(import_section);
-static FUNCTION_SECTION_BYTES: LazyLock<Vec<u8>> = LazyLock::new(function_section);
-static EXPORT_SECTION_BYTES: LazyLock<Vec<u8>> = LazyLock::new(export_section);
+static MODULE_PREFIX_BYTES: LazyLock<Vec<u8>> = LazyLock::new(module_prefix);
 
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
-    let mut module = Vec::with_capacity(expr.len() + 320);
+    let prefix = MODULE_PREFIX_BYTES.as_slice();
+    let mut module = Vec::with_capacity(prefix.len() + expr.len() + 16);
+    module.extend_from_slice(prefix);
+    append_code_section(&mut module, expr);
+    module
+}
+
+fn module_prefix() -> Vec<u8> {
+    let mut module = Vec::with_capacity(320);
     module.extend_from_slice(b"\0asm");
     module.extend_from_slice(&[1, 0, 0, 0]);
-    append_section(&mut module, SECTION_TYPE, TYPE_SECTION_BYTES.as_slice());
-    append_section(&mut module, SECTION_IMPORT, IMPORT_SECTION_BYTES.as_slice());
-    append_section(
-        &mut module,
-        SECTION_FUNCTION,
-        FUNCTION_SECTION_BYTES.as_slice(),
-    );
-    append_section(&mut module, SECTION_EXPORT, EXPORT_SECTION_BYTES.as_slice());
-    append_code_section(&mut module, expr);
+    append_section(&mut module, SECTION_TYPE, &type_section());
+    append_section(&mut module, SECTION_IMPORT, &import_section());
+    append_section(&mut module, SECTION_FUNCTION, &function_section());
+    append_section(&mut module, SECTION_EXPORT, &export_section());
     module
 }
 
