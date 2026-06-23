@@ -14,6 +14,7 @@ impl WasmExpr {
     }
 
     pub(super) fn call_func(&mut self, index: u32) {
+        self.mark_import_helper();
         self.op(OP_CALL);
         encode_u32(self.raw(), index);
     }

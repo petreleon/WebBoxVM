@@ -87,6 +87,12 @@ fn compiles_register_only_prefix_to_memory64_module() {
             .windows(b"memory".len())
             .any(|w| w == b"memory")
     );
+    assert!(
+        !module
+            .bytes
+            .windows(b"jitLoadGuest".len())
+            .any(|w| w == b"jitLoadGuest")
+    );
     assert!(module.bytes.windows(b"run".len()).any(|w| w == b"run"));
 }
 

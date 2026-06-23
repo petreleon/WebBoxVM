@@ -6,17 +6,23 @@ use super::*;
 const LOCAL_SHIFTED_REG: u32 = 4;
 pub(super) struct WasmExpr {
     code: Vec<u8>,
+    imports_helpers: bool,
 }
 
 impl WasmExpr {
     pub(super) fn with_capacity(capacity: usize) -> Self {
         Self {
             code: Vec::with_capacity(capacity),
+            imports_helpers: false,
         }
     }
 
-    pub(super) fn into_bytes(self) -> Vec<u8> {
-        self.code
+    pub(super) fn into_parts(self) -> (Vec<u8>, bool) {
+        (self.code, self.imports_helpers)
+    }
+
+    pub(super) fn mark_import_helper(&mut self) {
+        self.imports_helpers = true;
     }
 
     pub(super) fn emit_read_reg(&mut self, reg: u8, sf: bool) {

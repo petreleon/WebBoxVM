@@ -2,8 +2,8 @@ use super::super::{module_builder::build_module, opcodes};
 
 #[test]
 fn repeated_modules_keep_same_invariant_sections() {
-    let first = build_module(vec![opcodes::OP_END]);
-    let second = build_module(vec![opcodes::OP_END]);
+    let first = build_module(vec![opcodes::OP_END], false);
+    let second = build_module(vec![opcodes::OP_END], false);
 
     assert_eq!(first, second);
     assert_eq!(
@@ -20,12 +20,36 @@ fn repeated_modules_keep_same_invariant_sections() {
 
 #[test]
 fn modules_with_different_bodies_share_prefix() {
-    let first = build_module(vec![opcodes::OP_END]);
-    let second = build_module(vec![opcodes::OP_I64_CONST, 0, opcodes::OP_END]);
+    let first = build_module(vec![opcodes::OP_END], false);
+    let second = build_module(vec![opcodes::OP_I64_CONST, 0, opcodes::OP_END], false);
     let first_code = section_offset(&first, opcodes::SECTION_CODE).expect("first code");
     let second_code = section_offset(&second, opcodes::SECTION_CODE).expect("second code");
 
     assert_eq!(&first[..first_code], &second[..second_code]);
+}
+
+#[test]
+fn helper_free_module_omits_helper_import_names() {
+    let module = build_module(vec![opcodes::OP_END], false);
+
+    assert!(
+        !module
+            .windows(b"jitLoadGuest".len())
+            .any(|w| w == b"jitLoadGuest")
+    );
+    assert!(module.windows(b"memory".len()).any(|w| w == b"memory"));
+    assert!(module.windows(b"run".len()).any(|w| w == b"run"));
+}
+
+#[test]
+fn helper_module_keeps_helper_import_names() {
+    let module = build_module(vec![opcodes::OP_CALL, 0, opcodes::OP_END], true);
+
+    assert!(
+        module
+            .windows(b"jitLoadGuest".len())
+            .any(|w| w == b"jitLoadGuest")
+    );
 }
 
 #[test]
@@ -37,7 +61,7 @@ fn direct_code_section_length_tracks_large_expression() {
     }
     expr.push(opcodes::OP_END);
 
-    let module = build_module(expr.clone());
+    let module = build_module(expr.clone(), false);
     let code = section_payload(&module, opcodes::SECTION_CODE).expect("code section");
     let mut offset = 0usize;
     assert_eq!(read_u32(code, &mut offset), 1);

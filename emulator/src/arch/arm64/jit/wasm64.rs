@@ -43,6 +43,7 @@ mod memory_pair;
 mod memory_store;
 mod memory_zero;
 mod module_builder;
+mod module_prefix;
 mod multiply;
 mod opcodes;
 mod pstate_control;
@@ -149,6 +150,7 @@ impl Wasm64Compiler {
             body.i64_const(exit_pc);
         }
         body.end();
+        let (body_bytes, imports_helpers) = body.into_parts();
 
         Ok(WasmBlockModule {
             start_pc: block.start_pc,
@@ -159,7 +161,7 @@ impl Wasm64Compiler {
             guest_instr_count: compiled,
             raw_hash,
             uses_guest_helpers,
-            bytes: build_module(body.into_bytes()),
+            bytes: build_module(body_bytes, imports_helpers),
         })
     }
 }
