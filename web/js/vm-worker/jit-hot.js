@@ -1,6 +1,6 @@
 import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
 import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js";
-import { runCachedJitBlock } from "./jit-run.js";
+import { tryRunCachedJitBlock } from "./jit-run.js";
 import { JIT_HOT_THRESHOLD, state } from "./state.js";
 
 export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
@@ -12,8 +12,8 @@ export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
   const key = jitBlockKey(coreId, pc);
   const cached = state.jitBlocks.get(key);
   if (cached) {
-    const result = runCachedJitBlock(coreId, key, cached, pc, emulator);
-    if (result.committed) {
+    const result = tryRunCachedJitBlock(coreId, key, cached, pc, emulator);
+    if (result === true) {
       return true;
     }
     if (result.invalidated) {
@@ -63,5 +63,5 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
   if (!entry) {
     return false;
   }
-  return runCachedJitBlock(coreId, key, entry, pc, emulator).committed;
+  return tryRunCachedJitBlock(coreId, key, entry, pc, emulator) === true;
 }

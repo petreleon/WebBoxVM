@@ -30,6 +30,14 @@ export async function runJitBlock({ coreId = 0 } = {}) {
 }
 
 export function runCachedJitBlock(coreId, key, entry, pc, emulator = state.emulator) {
+  return runCachedJitBlockCore(coreId, key, entry, pc, emulator, committedObjectResult);
+}
+
+export function tryRunCachedJitBlock(coreId, key, entry, pc, emulator = state.emulator) {
+  return runCachedJitBlockCore(coreId, key, entry, pc, emulator, committedFastResult);
+}
+
+function runCachedJitBlockCore(coreId, key, entry, pc, emulator, committedResult) {
   const knownPc = pc ?? emulator.pc();
   if (
     !emulator.jit_prepare_cached_block(
@@ -87,12 +95,20 @@ export function runCachedJitBlock(coreId, key, entry, pc, emulator = state.emula
     };
   }
 
+  return committedResult(knownPc, exitPc, entry.steps);
+}
+
+function committedFastResult() {
+  return true;
+}
+
+function committedObjectResult(knownPc, exitPc, steps) {
   return {
     committed: true,
     error: "",
     exitPc,
     pc: knownPc,
-    steps: entry.steps,
+    steps,
   };
 }
 
