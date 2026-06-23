@@ -38,25 +38,7 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
   const startPageGeneration = metadata[7];
   const endPageGeneration = metadata[8];
   const statePtr = jitStatePtr(owner);
-  const { instance, module } = await WebAssembly.instantiate(bytes, {
-    env: {
-      memory: state.wasmExports.memory,
-      jitLoadGuest: (va, size) => owner.jit_load_guest(coreId, va, size),
-      jitStoreGuest: (va, size, value) => owner.jit_store_guest(coreId, va, size, value),
-      jitStorePairGuest: (va, size, value1, value2) =>
-        owner.jit_store_pair_guest(coreId, va, size, value1, value2),
-      jitLoadPairGuest: (va, size) => owner.jit_load_pair_guest(coreId, va, size),
-      jitStoreQuadGuest: (va, size, value1, value2, value3, value4) =>
-        owner.jit_store_quad_guest(coreId, va, size, value1, value2, value3, value4),
-      jitLoadQuadGuest: (va, size) => owner.jit_load_quad_guest(coreId, va, size),
-      jitReadSysReg: (sysregId) => owner.jit_read_sysreg(coreId, sysregId),
-      jitStoreExclusivePair: (va, size, value1, value2) =>
-        owner.jit_store_exclusive_pair(coreId, va, size, value1, value2),
-      jitLoadExclusive: (va, size) => owner.jit_load_exclusive(coreId, va, size),
-      jitStoreExclusive: (va, size, value) =>
-        owner.jit_store_exclusive(coreId, va, size, value),
-    },
-  });
+  const { instance, module } = await WebAssembly.instantiate(bytes, jitImports(owner, coreId));
   if (state.emulator !== owner) {
     return {
       compiled: false,
@@ -97,6 +79,35 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
     stateSize: jitStateSize(owner),
     steps,
   };
+}
+
+function jitImports(owner, coreId) {
+  const memory = state.wasmExports.memory;
+  const cached = state.jitImports;
+  if (cached?.owner === owner && cached.coreId === coreId && cached.memory === memory) {
+    return cached.imports;
+  }
+  const imports = {
+    env: {
+      memory,
+      jitLoadGuest: (va, size) => owner.jit_load_guest(coreId, va, size),
+      jitStoreGuest: (va, size, value) => owner.jit_store_guest(coreId, va, size, value),
+      jitStorePairGuest: (va, size, value1, value2) =>
+        owner.jit_store_pair_guest(coreId, va, size, value1, value2),
+      jitLoadPairGuest: (va, size) => owner.jit_load_pair_guest(coreId, va, size),
+      jitStoreQuadGuest: (va, size, value1, value2, value3, value4) =>
+        owner.jit_store_quad_guest(coreId, va, size, value1, value2, value3, value4),
+      jitLoadQuadGuest: (va, size) => owner.jit_load_quad_guest(coreId, va, size),
+      jitReadSysReg: (sysregId) => owner.jit_read_sysreg(coreId, sysregId),
+      jitStoreExclusivePair: (va, size, value1, value2) =>
+        owner.jit_store_exclusive_pair(coreId, va, size, value1, value2),
+      jitLoadExclusive: (va, size) => owner.jit_load_exclusive(coreId, va, size),
+      jitStoreExclusive: (va, size, value) =>
+        owner.jit_store_exclusive(coreId, va, size, value),
+    },
+  };
+  state.jitImports = { coreId, imports, memory, owner };
+  return imports;
 }
 
 export function jitBlockKey(coreId, pc) {

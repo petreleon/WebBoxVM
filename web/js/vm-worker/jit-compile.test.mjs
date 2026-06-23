@@ -8,6 +8,7 @@ afterEach(() => {
   state.wasmExports = undefined;
   state.jitBlocks = new Map();
   state.jitBlockHits = new Map();
+  state.jitImports = undefined;
   state.jitRejectedBlocks = new Set();
   state.jitSkippedBlocks = new Set();
   state.jitStatePtr = undefined;
@@ -72,6 +73,7 @@ test("compile jit block wires pair memory helper imports", async () => {
   let pairStoreArgs;
   let quadLoadArgs;
   let quadStoreArgs;
+  const importObjects = [];
   let statePtrCalls = 0;
   let stateSizeCalls = 0;
   let metadataCalls = 0;
@@ -121,6 +123,7 @@ test("compile jit block wires pair memory helper imports", async () => {
   state.emulator = emulator;
   state.wasmExports = { memory: {} };
   WebAssembly.instantiate = async (_bytes, imports) => {
+    importObjects.push(imports);
     assert.deepEqual(imports.env.jitLoadPairGuest(0x20n, 8), [0xaabbn, 0xccddn]);
     imports.env.jitStorePairGuest(0x10n, 8, 0x1122n, 0x3344n);
     assert.deepEqual(imports.env.jitLoadQuadGuest(0x30n, 8), [1n, 2n, 3n, 4n]);
@@ -138,6 +141,7 @@ test("compile jit block wires pair memory helper imports", async () => {
     assert.equal(statePtrCalls, 1);
     assert.equal(result.stateSize, 512);
     assert.equal(cachedResult.stateSize, 512);
+    assert.equal(importObjects[0], importObjects[1]);
     assert.equal(metadataCalls, 2);
     assert.equal(stateSizeCalls, 1);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);

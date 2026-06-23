@@ -24,6 +24,7 @@ test("browser worker starts with jit disabled for installer safety", () => {
 test("jit cache reset preserves an explicit manual jit toggle", () => {
   state.jitBlocks.set("0:1000", {});
   state.jitBlockHits.set("0:1000", 3);
+  state.jitImports = {};
   state.jitRejectedBlocks.add("0:2000");
   state.jitSkippedBlocks.add("0:3000");
   state.jitStatePtr = 0x2000n;
@@ -35,6 +36,7 @@ test("jit cache reset preserves an explicit manual jit toggle", () => {
   assert.equal(state.jitEnabled, true);
   assert.equal(state.jitBlocks.size, 0);
   assert.equal(state.jitBlockHits.size, 0);
+  assert.equal(state.jitImports, undefined);
   assert.equal(state.jitRejectedBlocks.size, 0);
   assert.equal(state.jitSkippedBlocks.size, 0);
   assert.equal(state.jitStatePtr, undefined);

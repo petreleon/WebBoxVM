@@ -21,6 +21,7 @@ export const state = {
   jitEnabled: DEFAULT_JIT_ENABLED,
   jitBlockHits: new Map(),
   jitBlocks: new Map(),
+  jitImports: undefined,
   jitFallbackCount: 0,
   jitLastFallback: undefined,
   jitRejectLog: [],
@@ -50,6 +51,7 @@ export const state = {
 
 export function resetJitState() {
   state.jitBlocks = new Map();
+  state.jitImports = undefined;
   state.jitFallbackCount = 0;
   state.jitLastFallback = undefined;
   state.jitBlockHits = new Map();
