@@ -1,8 +1,7 @@
-use super::super::store::{
-    apply_jit_pending_stores, stage_jit_pair_store_from_machine, stage_jit_store_from_machine,
-};
+use super::super::pair_store::stage_jit_pair_store_from_machine;
+use super::super::store::{apply_jit_pending_stores, stage_jit_store_from_machine};
 use crate::constants::{
-    DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, RAM_BASE, SCTLR_MMU_ENABLE, TCR_T1SZ_SHIFT,
+    DESC_AF_BIT, DESC_BLOCK, DESC_TABLE, PAGE_SIZE, RAM_BASE, SCTLR_MMU_ENABLE, TCR_T1SZ_SHIFT,
 };
 use crate::runtime::Machine;
 
@@ -78,6 +77,35 @@ fn jit_pair_store_keeps_staging_atomic_when_second_value_faults() {
 
     assert!(err.contains("JIT store helper"), "{err}");
     assert!(stores.is_empty());
+}
+
+#[test]
+fn jit_pair_store_falls_back_across_noncontiguous_pages() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);
+
+    stage_jit_pair_store_from_machine(
+        &mut machine,
+        0,
+        PAGE_SIZE - 4,
+        4,
+        0x1122_3344,
+        0x5566_7788,
+        &mut stores,
+    )
+    .expect("cross-page pair store should translate both pages");
+
+    assert_eq!(stores.len(), 2);
+    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
+    assert_eq!(
+        machine.bus.mem.read(RAM_BASE + 0x3ffc, 4),
+        Some(0x1122_3344)
+    );
+    assert_eq!(
+        machine.bus.mem.read(RAM_BASE + 0x8000, 4),
+        Some(0x5566_7788)
+    );
 }
 
 #[test]

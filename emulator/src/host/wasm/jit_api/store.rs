@@ -40,47 +40,6 @@ impl Emulator {
             self.fail_jit_helper(err);
         }
     }
-
-    /// Stage a scalar guest pair store for a generated JIT block.
-    pub fn jit_store_pair_guest(
-        &mut self,
-        core_id: Option<usize>,
-        va: u64,
-        size: u8,
-        value1: u64,
-        value2: u64,
-    ) {
-        if self.jit_helper_failed {
-            return;
-        }
-        let core_id = core_id.unwrap_or(0);
-        let stores = &mut self.jit_pending_stores;
-        let result = if let Some(ref mut boot) = self.boot {
-            stage_jit_pair_store_from_machine(
-                &mut boot.machine,
-                core_id,
-                va,
-                size,
-                value1,
-                value2,
-                stores,
-            )
-        } else {
-            stage_jit_pair_store_from_machine(
-                &mut self.machine,
-                core_id,
-                va,
-                size,
-                value1,
-                value2,
-                stores,
-            )
-        };
-
-        if let Err(err) = result {
-            self.fail_jit_helper(err);
-        }
-    }
 }
 
 pub(super) fn stage_jit_store_from_machine(
@@ -122,33 +81,6 @@ pub(super) fn stage_jit_store_from_machine(
     Ok(())
 }
 
-pub(super) fn stage_jit_pair_store_from_machine(
-    machine: &mut Machine,
-    core_id: usize,
-    va: u64,
-    size: u8,
-    value1: u64,
-    value2: u64,
-    stores: &mut Vec<JitPendingStore>,
-) -> Result<(), String> {
-    if !matches!(size, 4 | 8) {
-        return Err(format!("unsupported JIT pair store size {size}"));
-    }
-
-    let mut staged = Vec::with_capacity(2);
-    stage_jit_store_from_machine(machine, core_id, va, size, value1, &mut staged)?;
-    stage_jit_store_from_machine(
-        machine,
-        core_id,
-        va.wrapping_add(size as u64),
-        size,
-        value2,
-        &mut staged,
-    )?;
-    stores.extend(staged);
-    Ok(())
-}
-
 pub(super) fn apply_jit_pending_stores(
     machine: &mut Machine,
     stores: &[JitPendingStore],
@@ -164,13 +96,17 @@ pub(super) fn apply_jit_pending_stores(
     Ok(())
 }
 
-fn translate_store(cpu: &mut Armv8Cpu, mem: &mut PhysicalMemory, va: u64) -> Result<u64, String> {
+pub(super) fn translate_store(
+    cpu: &mut Armv8Cpu,
+    mem: &mut PhysicalMemory,
+    va: u64,
+) -> Result<u64, String> {
     match translate_write(&cpu.sys, &mut cpu.tlb, mem, va, cpu.pstate.el()) {
         Ok(pa) => Ok(pa),
         Err(fault) => Err(format!("JIT store helper {fault:?}")),
     }
 }
 
-fn access_crosses_page(va: u64, size: u8) -> bool {
+pub(super) fn access_crosses_page(va: u64, size: u8) -> bool {
     (va & PAGE_OFFSET_MASK) + size as u64 > PAGE_SIZE
 }
