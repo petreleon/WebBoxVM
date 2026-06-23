@@ -111,7 +111,11 @@ fn timer_irq_check_needed_tracks_pending_and_unmasked_timers() {
     cpu.sys.cntv_ctl_el0 = TIMER_CTL_ENABLE | TIMER_CTL_IMASK;
     assert!(!cpu.sys.timer_irq_check_needed());
 
+    cpu.sys.cntv_cval_el0 = 10;
     cpu.sys.cntv_ctl_el0 = TIMER_CTL_ENABLE;
+    assert!(!cpu.sys.timer_irq_check_needed());
+
+    cpu.sys.cycle_count = 10;
     assert!(cpu.sys.timer_irq_check_needed());
 
     cpu.sys.cntv_ctl_el0 = 0;

@@ -104,8 +104,8 @@ impl SystemRegisters {
     pub fn timer_irq_check_needed(&self) -> bool {
         self.vbar_el1 != 0
             && (self.irq_pending
-                || self.cntp_ctl_el0 & (TIMER_CTL_ENABLE | TIMER_CTL_IMASK) == TIMER_CTL_ENABLE
-                || self.cntv_ctl_el0 & (TIMER_CTL_ENABLE | TIMER_CTL_IMASK) == TIMER_CTL_ENABLE)
+                || self.cntp_expired() && self.cntp_unmasked()
+                || self.cntv_expired() && self.cntv_unmasked())
     }
 
     pub fn next_timer_deadline(&self) -> Option<u64> {
