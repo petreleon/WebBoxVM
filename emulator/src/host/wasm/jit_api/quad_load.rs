@@ -4,7 +4,7 @@ use crate::runtime::Machine;
 use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
-use super::load::{read_guest_bytes, translate_load};
+use super::load::{read_guest_lanes, translate_load};
 use super::pair_load::jit_load_pair_guest_from_machine;
 
 #[wasm_bindgen]
@@ -51,14 +51,9 @@ pub(super) fn jit_load_quad_guest_from_machine(
         .get_mut(core_id)
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     let pa = translate_load(cpu, &bus.mem, va)?;
-    let mut values = [0; 4];
-    for (index, value) in values.iter_mut().enumerate() {
-        let lane_pa = pa.wrapping_add(index as u64 * size as u64);
-        *value = read_guest_bytes(&bus.mem, pending_stores, lane_pa, size, |pa, len| {
-            bus.overlaps_device_range(pa, len)
-        })?;
-    }
-    Ok(values)
+    read_guest_lanes(&bus.mem, pending_stores, pa, size, |pa, len| {
+        bus.overlaps_device_range(pa, len)
+    })
 }
 
 fn jit_load_quad_fallback(

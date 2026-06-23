@@ -94,6 +94,55 @@ where
     Ok(value)
 }
 
+pub(super) fn read_guest_lanes<const LANES: usize, F>(
+    mem: &PhysicalMemory,
+    pending_stores: &[JitPendingStore],
+    pa: u64,
+    size: u8,
+    overlaps_device: F,
+) -> Result<[u64; LANES], String>
+where
+    F: Fn(u64, usize) -> bool,
+{
+    let lane_size = size as usize;
+    let len = lane_size * LANES;
+    if len > 32 {
+        return Err(format!("unsupported JIT lane load span {len}"));
+    }
+    if overlaps_device(pa, len) {
+        return Err(format!("JIT load helper rejected device PA 0x{pa:016x}"));
+    }
+
+    let mut values = [0; LANES];
+    if pending_stores.is_empty() {
+        let mut bytes = [0u8; 32];
+        let window = &mut bytes[..len];
+        mem.read_bytes(pa, window)
+            .ok_or_else(|| format!("JIT load helper unreadable PA 0x{pa:016x}"))?;
+        for (index, value) in values.iter_mut().enumerate() {
+            *value = lane_from_bytes(&window[index * lane_size..][..lane_size]);
+        }
+        return Ok(values);
+    }
+
+    for (index, value) in values.iter_mut().enumerate() {
+        let lane_pa = pa.wrapping_add(index as u64 * size as u64);
+        for offset in 0..size {
+            let byte = read_guest_byte(mem, pending_stores, lane_pa.wrapping_add(offset as u64))?;
+            *value |= byte << (offset * 8);
+        }
+    }
+    Ok(values)
+}
+
+fn lane_from_bytes(bytes: &[u8]) -> u64 {
+    let mut value = 0;
+    for (offset, byte) in bytes.iter().enumerate() {
+        value |= (*byte as u64) << (offset * 8);
+    }
+    value
+}
+
 pub(super) fn read_guest_byte(
     mem: &PhysicalMemory,
     pending_stores: &[JitPendingStore],

@@ -4,7 +4,7 @@ use crate::runtime::Machine;
 use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
-use super::load::{jit_load_guest_from_machine, read_guest_bytes, translate_load};
+use super::load::{jit_load_guest_from_machine, read_guest_lanes, translate_load};
 
 #[wasm_bindgen]
 impl Emulator {
@@ -50,17 +50,10 @@ pub(super) fn jit_load_pair_guest_from_machine(
         .get_mut(core_id)
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     let pa = translate_load(cpu, &bus.mem, va)?;
-    let value1 = read_guest_bytes(&bus.mem, pending_stores, pa, size, |pa, len| {
+    let values: [u64; 2] = read_guest_lanes(&bus.mem, pending_stores, pa, size, |pa, len| {
         bus.overlaps_device_range(pa, len)
     })?;
-    let value2 = read_guest_bytes(
-        &bus.mem,
-        pending_stores,
-        pa.wrapping_add(size as u64),
-        size,
-        |pa, len| bus.overlaps_device_range(pa, len),
-    )?;
-    Ok((value1, value2))
+    Ok((values[0], values[1]))
 }
 
 fn jit_load_pair_fallback(
