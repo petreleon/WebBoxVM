@@ -1,6 +1,6 @@
 import { clamp } from "./utils.js";
 
-const DEFAULT_STEP_SLICE = 2_000_000;
+const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;
 const UART_TAIL_LIMIT = 32768;
 

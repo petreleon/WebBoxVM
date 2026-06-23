@@ -17,6 +17,8 @@ test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(DEFAULT_JIT_ENABLED, false);
   assert.equal(state.jitEnabled, false);
   assert.equal(state.stepSlice, DEFAULT_STEP_SLICE);
+  assert.equal(DEFAULT_STEP_SLICE, 5_000_000);
+  assert.equal(NETWORK_STEP_SLICE, 1_000_000);
 });
 
 test("jit cache reset preserves an explicit manual jit toggle", () => {

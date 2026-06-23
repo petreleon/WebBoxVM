@@ -1,6 +1,6 @@
 export const AUTOSAVE_INTERVAL_MS = 5000;
 export const AUTOSAVE_POLL_MS = 1000;
-export const DEFAULT_STEP_SLICE = 2_000_000;
+export const DEFAULT_STEP_SLICE = 5_000_000;
 export const MAX_STEP_SLICE = 50_000_000;
 export const NETWORK_STEP_SLICE = 1_000_000;
 export const NETWORK_IDLE_FAST_MS = 1500;
@@ -14,7 +14,7 @@ export const METRICS_INTERVAL_MS = 250;
 export const DEFAULT_JIT_ENABLED = false;
 export const JIT_HOT_THRESHOLD = 2;
 export const JIT_MAX_BLOCKS = 4096;
-export const JIT_PROBE_STEP_SLICE = 2_000_000;
+export const JIT_PROBE_STEP_SLICE = 5_000_000;
 
 export const state = {
   emulator: undefined,

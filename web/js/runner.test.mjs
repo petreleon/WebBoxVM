@@ -64,7 +64,7 @@ test("runner uses faster default step slice when input is blank", () => {
 
   runner.start();
 
-  assert.equal(emulator.startedWith, 2_000_000);
+  assert.equal(emulator.startedWith, 5_000_000);
 });
 
 function setupRunner({ stepSlice = "1000000" } = {}) {
