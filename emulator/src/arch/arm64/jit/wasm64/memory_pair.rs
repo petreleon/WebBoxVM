@@ -3,8 +3,8 @@ use super::opcodes::*;
 use super::*;
 use crate::arch::arm64::{Instr, Opcode};
 
-const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
 const JIT_STORE_PAIR_GUEST_FUNC_INDEX: u32 = 6;
+const JIT_LOAD_PAIR_GUEST_FUNC_INDEX: u32 = 7;
 const PAIR_VALUE2_LOCAL: u32 = 4;
 
 impl WasmExpr {
@@ -16,8 +16,7 @@ impl WasmExpr {
         let signed = instr.op == Opcode::Ldpsw;
         let dest_sf = signed || instr.sf;
         let writeback = self.emit_pair_address(instr);
-        self.emit_pair_load_call(size, VALUE_LOCAL, 0, signed);
-        self.emit_pair_load_call(size, PAIR_VALUE2_LOCAL, size as u64, signed);
+        self.emit_pair_load_call(size, signed);
         self.emit_write_reg_with(instr.rd, dest_sf, |this| {
             this.local_get(VALUE_LOCAL);
         });
@@ -83,21 +82,25 @@ impl WasmExpr {
         }
     }
 
-    fn emit_pair_load_call(&mut self, size: u8, target_local: u32, offset: u64, signed: bool) {
+    fn emit_pair_load_call(&mut self, size: u8, signed: bool) {
         self.local_get(ADDR_LOCAL);
-        if offset != 0 {
-            self.i64_const(offset);
-            self.op(OP_I64_ADD);
-        }
         self.i32_const(size as i32);
-        self.call_func(JIT_LOAD_GUEST_FUNC_INDEX);
+        self.call_func(JIT_LOAD_PAIR_GUEST_FUNC_INDEX);
         if signed {
-            self.i64_const(32);
-            self.op(OP_I64_SHL);
-            self.i64_const(32);
-            self.op(OP_I64_SHR_S);
+            self.emit_sign_extend_word();
         }
-        self.local_set(target_local);
+        self.local_set(PAIR_VALUE2_LOCAL);
+        if signed {
+            self.emit_sign_extend_word();
+        }
+        self.local_set(VALUE_LOCAL);
+    }
+
+    fn emit_sign_extend_word(&mut self) {
+        self.i64_const(32);
+        self.op(OP_I64_SHL);
+        self.i64_const(32);
+        self.op(OP_I64_SHR_S);
     }
 }
 

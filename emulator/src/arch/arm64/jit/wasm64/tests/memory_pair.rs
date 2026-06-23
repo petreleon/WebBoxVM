@@ -17,18 +17,24 @@ fn ldp_instr(op: Opcode, cond: u8, imm: u64) -> Instr {
 }
 
 #[test]
-fn compiles_pair_load_as_two_helper_calls() {
+fn compiles_pair_load_with_pair_helper_call() {
     let block = block(vec![ldp_instr(Opcode::Ldp, 2, 48)]);
 
     let module = Wasm64Compiler::compile(&block).expect("compile ldp");
-    let calls = module
+    let pair_helper_calls = module
         .bytes
-        .iter()
-        .filter(|&&byte| byte == opcodes::OP_CALL)
+        .windows([opcodes::OP_CALL, 7].len())
+        .filter(|&w| w == [opcodes::OP_CALL, 7])
         .count();
 
     assert_eq!(module.guest_instr_count, 1);
-    assert!(calls >= 2);
+    assert_eq!(pair_helper_calls, 1);
+    assert!(
+        module
+            .bytes
+            .windows(b"jitLoadPairGuest".len())
+            .any(|w| w == b"jitLoadPairGuest")
+    );
 }
 
 #[test]

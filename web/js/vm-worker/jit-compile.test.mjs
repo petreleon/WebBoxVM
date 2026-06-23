@@ -59,8 +59,9 @@ test("compile jit block can reuse checked emulator reference", async () => {
   }
 });
 
-test("compile jit block wires pair store helper import", async () => {
+test("compile jit block wires pair memory helper imports", async () => {
   const originalInstantiate = WebAssembly.instantiate;
+  let pairLoadArgs;
   let pairStoreArgs;
   const emulator = {
     jit_compile_current_block: () => new Uint8Array([1, 2, 3]),
@@ -77,6 +78,10 @@ test("compile jit block wires pair store helper import", async () => {
     jit_last_block_uses_guest_helpers: () => true,
     jit_state_ptr: () => 0x2000n,
     jit_state_size: () => 512,
+    jit_load_pair_guest: (...args) => {
+      pairLoadArgs = args;
+      return [0xaabbn, 0xccddn];
+    },
     jit_store_pair_guest: (...args) => {
       pairStoreArgs = args;
     },
@@ -85,6 +90,7 @@ test("compile jit block wires pair store helper import", async () => {
   state.emulator = emulator;
   state.wasmExports = { memory: {} };
   WebAssembly.instantiate = async (_bytes, imports) => {
+    assert.deepEqual(imports.env.jitLoadPairGuest(0x20n, 8), [0xaabbn, 0xccddn]);
     imports.env.jitStorePairGuest(0x10n, 8, 0x1122n, 0x3344n);
     return { instance: {}, module: {} };
   };
@@ -93,6 +99,7 @@ test("compile jit block wires pair store helper import", async () => {
     const result = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
 
     assert.equal(result.compiled, true);
+    assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);
     assert.deepEqual(pairStoreArgs, [3, 0x10n, 8, 0x1122n, 0x3344n]);
   } finally {
     WebAssembly.instantiate = originalInstantiate;

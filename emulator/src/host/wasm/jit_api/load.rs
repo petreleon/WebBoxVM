@@ -3,6 +3,7 @@ use crate::constants::{PAGE_OFFSET_MASK, PAGE_SIZE};
 use crate::host::wasm::{Emulator, JitPendingStore};
 use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
+use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -31,6 +32,49 @@ impl Emulator {
             }
         }
     }
+
+    /// Read adjacent guest RAM values for a generated JIT pair load.
+    pub fn jit_load_pair_guest(&mut self, core_id: Option<usize>, va: u64, size: u8) -> Array {
+        if self.jit_helper_failed {
+            return pair_values_to_js(0, 0);
+        }
+        let core_id = core_id.unwrap_or(0);
+        let pending_stores = &self.jit_pending_stores;
+        let result = if let Some(ref mut boot) = self.boot {
+            jit_load_pair_guest_from_machine(&mut boot.machine, core_id, va, size, pending_stores)
+        } else {
+            jit_load_pair_guest_from_machine(&mut self.machine, core_id, va, size, pending_stores)
+        };
+
+        match result {
+            Ok((value1, value2)) => pair_values_to_js(value1, value2),
+            Err(err) => {
+                self.fail_jit_helper(err);
+                pair_values_to_js(0, 0)
+            }
+        }
+    }
+}
+
+pub(super) fn jit_load_pair_guest_from_machine(
+    machine: &mut Machine,
+    core_id: usize,
+    va: u64,
+    size: u8,
+    pending_stores: &[JitPendingStore],
+) -> Result<(u64, u64), String> {
+    if !matches!(size, 4 | 8) {
+        return Err(format!("unsupported JIT pair load size {size}"));
+    }
+    let value1 = jit_load_guest_from_machine(machine, core_id, va, size, pending_stores)?;
+    let value2 = jit_load_guest_from_machine(
+        machine,
+        core_id,
+        va.wrapping_add(size as u64),
+        size,
+        pending_stores,
+    )?;
+    Ok((value1, value2))
 }
 
 pub(super) fn jit_load_guest_from_machine(
@@ -66,6 +110,13 @@ pub(super) fn jit_load_guest_from_machine(
         value |= byte << (offset * 8);
     }
     Ok(value)
+}
+
+fn pair_values_to_js(value1: u64, value2: u64) -> Array {
+    let values = Array::new();
+    values.push(&JsValue::from(value1));
+    values.push(&JsValue::from(value2));
+    values
 }
 
 pub(super) fn read_guest_bytes<F>(
