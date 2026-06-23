@@ -40,6 +40,7 @@ fn finish_cached_block_commits_without_pending_side_effects() {
 
     assert_eq!(result, JIT_FINISH_COMMITTED);
     assert_eq!(emulator.machine.cpus[0].regs.pc, RAM_BASE + 4);
+    assert_eq!(emulator.machine.active_core, 0);
     assert!(emulator.jit_pending_stores.is_empty());
     assert!(emulator.jit_pending_exclusive_clear.is_none());
     assert!(emulator.jit_pending_exclusive_reservation.is_none());

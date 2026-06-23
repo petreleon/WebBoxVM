@@ -129,7 +129,7 @@ pub(super) fn commit_jit_state(
     cpu.sys.cycle_count = cycle_count.wrapping_add(steps);
     deliver_jit_timer_boundary(cpu);
     machine.total_steps = machine.total_steps.wrapping_add(steps);
-    machine.active_core = (core_id + 1) % machine.cpus.len();
+    machine.active_core = 0;
     Ok(())
 }
 
