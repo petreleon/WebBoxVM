@@ -1,5 +1,6 @@
 use super::*;
 
+mod fetch;
 mod irq_poll;
 
 #[test]

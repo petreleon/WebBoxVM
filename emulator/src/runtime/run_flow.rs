@@ -40,11 +40,14 @@ impl Machine {
         num_cores: usize,
     ) -> Option<u64> {
         let cpu = &mut self.cpus[core];
+        if cpu.sys.sctlr_el1 & SCTLR_MMU_ENABLE == 0 {
+            return Some(pc);
+        }
         match translate(&cpu.sys, &mut cpu.tlb, &self.bus.mem, pc) {
             Ok(pa) => Some(pa),
             Err(_) => {
                 self.fetch_faults += 1;
-                if cpu.sys.vbar_el1 != 0 && (cpu.sys.sctlr_el1 & SCTLR_MMU_ENABLE) != 0 {
+                if cpu.sys.vbar_el1 != 0 {
                     cpu.sys.far_el1 = pc;
                     take_instruction_abort(cpu, pc);
                 } else {
