@@ -26,6 +26,7 @@ test("jit cache reset preserves an explicit manual jit toggle", () => {
   state.jitBlockHits.set("0:1000", 3);
   state.jitRejectedBlocks.add("0:2000");
   state.jitSkippedBlocks.add("0:3000");
+  state.jitStatePtr = 0x2000n;
   state.jitStateSize = 512;
   state.jitEnabled = true;
 
@@ -36,6 +37,7 @@ test("jit cache reset preserves an explicit manual jit toggle", () => {
   assert.equal(state.jitBlockHits.size, 0);
   assert.equal(state.jitRejectedBlocks.size, 0);
   assert.equal(state.jitSkippedBlocks.size, 0);
+  assert.equal(state.jitStatePtr, undefined);
   assert.equal(state.jitStateSize, undefined);
   state.jitEnabled = DEFAULT_JIT_ENABLED;
 });

@@ -10,6 +10,7 @@ afterEach(() => {
   state.jitBlockHits = new Map();
   state.jitRejectedBlocks = new Set();
   state.jitSkippedBlocks = new Set();
+  state.jitStatePtr = undefined;
   state.jitStateSize = undefined;
 });
 
@@ -71,6 +72,7 @@ test("compile jit block wires pair memory helper imports", async () => {
   let pairStoreArgs;
   let quadLoadArgs;
   let quadStoreArgs;
+  let statePtrCalls = 0;
   let stateSizeCalls = 0;
   let metadataCalls = 0;
   const unusedMetadata = () => assert.fail("packed JIT metadata should be used");
@@ -92,7 +94,10 @@ test("compile jit block wires pair memory helper imports", async () => {
     jit_last_block_steps: unusedMetadata,
     jit_last_block_uses_guest_helpers: () =>
       assert.fail("unused skip metadata should not be read"),
-    jit_state_ptr: () => 0x2000n,
+    jit_state_ptr: () => {
+      statePtrCalls += 1;
+      return 0x2000n;
+    },
     jit_state_size: () => {
       stateSizeCalls += 1;
       return 512;
@@ -128,6 +133,9 @@ test("compile jit block wires pair memory helper imports", async () => {
     const cachedResult = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
 
     assert.equal(result.compiled, true);
+    assert.equal(result.statePtr, 0x2000n);
+    assert.equal(cachedResult.statePtr, 0x2000n);
+    assert.equal(statePtrCalls, 1);
     assert.equal(result.stateSize, 512);
     assert.equal(cachedResult.stateSize, 512);
     assert.equal(metadataCalls, 2);

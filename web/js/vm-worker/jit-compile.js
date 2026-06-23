@@ -37,7 +37,7 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
   const rawHash = metadata[6];
   const startPageGeneration = metadata[7];
   const endPageGeneration = metadata[8];
-  const statePtr = owner.jit_state_ptr();
+  const statePtr = jitStatePtr(owner);
   const { instance, module } = await WebAssembly.instantiate(bytes, {
     env: {
       memory: state.wasmExports.memory,
@@ -112,6 +112,11 @@ export function compiledJitBlockSkipReason(_metadata) {
 
 function readJitBlockMetadata(owner) {
   return owner.jit_last_block_metadata();
+}
+
+function jitStatePtr(owner) {
+  state.jitStatePtr ??= owner.jit_state_ptr();
+  return state.jitStatePtr;
 }
 
 function jitStateSize(owner) {
