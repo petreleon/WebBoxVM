@@ -1,4 +1,4 @@
-use super::pair_bulk::{read_pair_scalars, write_pair_scalars};
+use super::pair_bulk::{read_pair_scalars, read_pair_simd, write_pair_scalars, write_pair_simd};
 use super::*;
 
 pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
@@ -83,38 +83,43 @@ pub(in crate::arch::arm64::execute) fn exec_ldp_stp(
         Opcode::SimdLdp => {
             let access_size = size as u8;
             let (pa1, pa2) = translate_pair(cpu, bus, va, size, false, "SIMD LDP bus fault")?;
-            cpu.simd[instr.rd as usize] =
-                read_simd_guest_translated(cpu, bus, va, pa1, access_size, "SIMD LDP bus fault")?;
-            cpu.simd[instr.rm as usize] = read_simd_guest_translated(
-                cpu,
-                bus,
-                va + size,
-                pa2,
-                access_size,
-                "SIMD LDP bus fault",
-            )?;
+            let (lo, hi) =
+                read_pair_simd(cpu, bus, va, (pa1, pa2), access_size, "SIMD LDP bus fault")?;
+            cpu.simd[instr.rd as usize] = lo;
+            cpu.simd[instr.rm as usize] = hi;
         }
         Opcode::SimdStp => {
             let access_size = size as u8;
             let (pa1, pa2) = translate_pair(cpu, bus, va, size, true, "SIMD STP bus fault")?;
-            write_simd_guest_translated(
+            if !write_pair_simd(
                 cpu,
                 bus,
                 va,
                 pa1,
                 access_size,
                 cpu.simd[instr.rd as usize],
-                "SIMD STP bus fault",
-            )?;
-            write_simd_guest_translated(
-                cpu,
-                bus,
-                va + size,
-                pa2,
-                access_size,
                 cpu.simd[instr.rm as usize],
                 "SIMD STP bus fault",
-            )?;
+            )? {
+                write_simd_guest_translated(
+                    cpu,
+                    bus,
+                    va,
+                    pa1,
+                    access_size,
+                    cpu.simd[instr.rd as usize],
+                    "SIMD STP bus fault",
+                )?;
+                write_simd_guest_translated(
+                    cpu,
+                    bus,
+                    va + size,
+                    pa2,
+                    access_size,
+                    cpu.simd[instr.rm as usize],
+                    "SIMD STP bus fault",
+                )?;
+            }
         }
         _ => unreachable!(),
     }
