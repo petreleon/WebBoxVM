@@ -13,6 +13,7 @@ function cachedEntry() {
     alternateExitPc: 0n,
     dynamicExit: false,
     exitPc: 0x1010n,
+    memoryGeneration: 4n,
     rawHash: 1n,
     run: () => 0x1010n,
     startPageGeneration: 2n,

@@ -11,6 +11,7 @@ fn prepare_jit_block_copies_validated_core_state() {
     machine.cpus[0].regs.set_x(0, 0x1234);
     machine.bus.mem.write(RAM_BASE, 4, NOP as u64);
     let hash = hash_raw_words(RAM_BASE, [NOP]);
+    let memory_generation = machine.bus.mem.generation();
     let (start_generation, end_generation) =
         code_page_generations(&machine.bus.mem, RAM_BASE, 1).expect("code page generations");
     let mut state = WasmJitCpuState::default();
@@ -22,6 +23,7 @@ fn prepare_jit_block_copies_validated_core_state() {
         RAM_BASE,
         RAM_BASE,
         hash,
+        memory_generation,
         start_generation,
         end_generation,
         1,
@@ -43,8 +45,19 @@ fn prepare_jit_block_rejects_timer_boundary_before_copying_state() {
     cpu.sys.cntv_cval_el0 = 103;
     let mut state = WasmJitCpuState::default();
 
-    let err = prepare_jit_block(&mut machine, &mut state, 0, RAM_BASE, RAM_BASE, 0, 0, 0, 4)
-        .expect_err("timer preflight must reject before validation/sync");
+    let err = prepare_jit_block(
+        &mut machine,
+        &mut state,
+        0,
+        RAM_BASE,
+        RAM_BASE,
+        0,
+        0,
+        0,
+        0,
+        4,
+    )
+    .expect_err("timer preflight must reject before validation/sync");
 
     assert!(err.contains("timer deadline"), "{err}");
     assert_eq!(state.pc, 0);

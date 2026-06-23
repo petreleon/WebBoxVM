@@ -45,6 +45,7 @@ function runCachedJitBlockCore(coreId, key, entry, pc, emulator, fastResult) {
       entry.startPc,
       entry.startPa,
       entry.rawHash,
+      entry.memoryGeneration,
       entry.startPageGeneration,
       entry.endPageGeneration,
       entry.steps,

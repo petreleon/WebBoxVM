@@ -13,6 +13,7 @@ function cachedEntry() {
     alternateExitPc: 0n,
     dynamicExit: false,
     exitPc: 0x1010n,
+    memoryGeneration: 4n,
     rawHash: 1n,
     run: () => 0x1010n,
     startPageGeneration: 2n,
@@ -46,7 +47,7 @@ test("prepare failure falls back without running cached jit", () => {
   assert.equal(result.committed, false);
   assert.equal(result.error, "JIT block crosses timer deadline");
   assert.equal(result.invalidated, undefined);
-  assert.deepEqual(prepareArgs, [0, 0x1000n, 0x2000n, 1n, 2n, 3n, 4]);
+  assert.deepEqual(prepareArgs, [0, 0x1000n, 0x2000n, 1n, 4n, 2n, 3n, 4]);
   assert.equal(ran, false);
 });
 
@@ -76,7 +77,7 @@ test("cached jit prepare receives metadata and run uses cached state pointer", (
 
   assert.equal(result.committed, true);
   assert.equal(runStatePtr, 0x3000n);
-  assert.deepEqual(prepareArgs, [0, 0x1000n, 0x2000n, 1n, 2n, 3n, 4]);
+  assert.deepEqual(prepareArgs, [0, 0x1000n, 0x2000n, 1n, 4n, 2n, 3n, 4]);
   assert.deepEqual(finishArgs, [0, 4, 0x1010n, 0x1010n, 0n, false]);
 });
 

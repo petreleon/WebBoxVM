@@ -8,13 +8,13 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 impl Emulator {
-    /// Validate that a cached JIT block still matches current guest code.
     pub fn jit_validate_block(
         &mut self,
         core_id: Option<usize>,
         start_pc: u64,
         start_pa: u64,
         raw_hash: u64,
+        memory_generation: u64,
         start_page_generation: u64,
         end_page_generation: u64,
         steps: usize,
@@ -23,14 +23,14 @@ impl Emulator {
         let machine = self
             .boot
             .as_ref()
-            .map(|boot| &boot.machine)
-            .unwrap_or(&self.machine);
+            .map_or(&self.machine, |boot| &boot.machine);
         let result = validate_jit_block(
             machine,
             core_id,
             start_pc,
             start_pa,
             raw_hash,
+            memory_generation,
             start_page_generation,
             end_page_generation,
             steps,
@@ -55,6 +55,7 @@ pub(super) fn validate_jit_block(
     start_pc: u64,
     start_pa: u64,
     raw_hash: u64,
+    memory_generation: u64,
     start_page_generation: u64,
     end_page_generation: u64,
     steps: usize,
@@ -97,6 +98,9 @@ pub(super) fn validate_jit_block(
                 "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
             ));
         }
+    }
+    if machine.bus.mem.generation() == memory_generation {
+        return Ok(());
     }
 
     let (current_start_generation, current_end_generation) =

@@ -14,6 +14,7 @@ fn validate_jit_block_rejects_changed_second_instruction_translation() {
     machine.bus.mem.write(start_pa, 4, NOP as u64);
     machine.bus.mem.write(start_pa + 4, 4, NOP as u64);
     let hash = hash_raw_words(start_pa, [NOP, NOP]);
+    let memory_generation = machine.bus.mem.generation();
     let (start_generation, end_generation) =
         code_page_generations(&machine.bus.mem, start_pa, 2).expect("code page generations");
 
@@ -23,6 +24,7 @@ fn validate_jit_block_rejects_changed_second_instruction_translation() {
         start_pc,
         start_pa,
         hash,
+        memory_generation,
         start_generation,
         end_generation,
         2,
@@ -44,6 +46,7 @@ fn validate_jit_block_rejects_changed_raw_word() {
     machine.bus.mem.write(start_pa, 4, NOP as u64);
     machine.bus.mem.write(start_pa + 4, 4, NOP as u64);
     let hash = hash_raw_words(start_pa, [NOP, NOP]);
+    let memory_generation = machine.bus.mem.generation();
     let (start_generation, end_generation) =
         code_page_generations(&machine.bus.mem, start_pa, 2).expect("code page generations");
 
@@ -55,6 +58,7 @@ fn validate_jit_block_rejects_changed_raw_word() {
         start_pc,
         start_pa,
         hash,
+        memory_generation,
         start_generation,
         end_generation,
         2,
@@ -73,6 +77,7 @@ fn validate_jit_block_skips_raw_hash_for_unchanged_code_pages() {
     machine.bus.mem.write(start_pa, 4, NOP as u64);
     let (start_generation, end_generation) =
         code_page_generations(&machine.bus.mem, start_pa, 1).expect("code page generations");
+    let memory_generation = machine.bus.mem.generation();
 
     validate_jit_block(
         &machine,
@@ -80,11 +85,35 @@ fn validate_jit_block_skips_raw_hash_for_unchanged_code_pages() {
         start_pc,
         start_pa,
         0,
+        memory_generation,
         start_generation,
         end_generation,
         1,
     )
     .expect("matching page generations skip raw hash validation");
+}
+
+#[test]
+fn validate_jit_block_skips_page_generations_when_memory_is_unchanged() {
+    let mut machine = Machine::new(1);
+    let start_pc = RAM_BASE;
+    let start_pa = RAM_BASE;
+    machine.cpus[0].regs.pc = start_pc;
+    machine.bus.mem.write(start_pa, 4, NOP as u64);
+    let memory_generation = machine.bus.mem.generation();
+
+    validate_jit_block(
+        &machine,
+        0,
+        start_pc,
+        start_pa,
+        0,
+        memory_generation,
+        999,
+        999,
+        1,
+    )
+    .expect("unchanged memory generation should skip stale page generations and hash");
 }
 
 #[test]
@@ -124,6 +153,7 @@ fn validate_jit_block_rejects_oversized_span() {
         0,
         RAM_BASE,
         RAM_BASE,
+        0,
         0,
         0,
         0,

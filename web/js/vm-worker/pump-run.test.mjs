@@ -39,6 +39,7 @@ test("cached jit pump path does not probe boolean then", async () => {
     alternateExitPc: 0n,
     dynamicExit: false,
     exitPc: 0x1004n,
+    memoryGeneration: 4n,
     rawHash: 1n,
     run: () => 0x1004n,
     startPageGeneration: 2n,

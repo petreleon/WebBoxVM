@@ -16,6 +16,7 @@ function cachedEntry() {
     alternateExitPc: 0n,
     dynamicExit: false,
     exitPc: 0x1004n,
+    memoryGeneration: 4n,
     rawHash: 1n,
     run: () => 0x1004n,
     startPageGeneration: 2n,
@@ -137,7 +138,7 @@ test("jit compile success drops warmup hit counter", async () => {
   state.emulator = {
     jit_compile_current_block: () => new Uint8Array([1]),
     jit_finish_cached_block: () => 0,
-    jit_last_block_metadata: () => [1n, 0x1000n, 0x2000n, 0x1004n, 0n, 0n, 1n, 2n, 3n],
+    jit_last_block_metadata: () => [1n, 0x1000n, 0x2000n, 0x1004n, 0n, 0n, 1n, 4n, 2n, 3n],
     jit_last_error: () => "",
     jit_prepare_cached_block: () => true,
     jit_state_ptr: () => 0x3000n,

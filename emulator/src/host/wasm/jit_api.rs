@@ -76,7 +76,7 @@ impl Emulator {
     /// Packed metadata for the last successfully compiled JIT block.
     ///
     /// Order: steps, start_pc, start_pa, exit_pc, alternate_exit_pc,
-    /// dynamic_exit, raw_hash, start_generation, end_generation.
+    /// dynamic_exit, raw_hash, memory_generation, start_generation, end_generation.
     pub fn jit_last_block_metadata(&self) -> Vec<u64> {
         vec![
             self.jit_last_block_steps as u64,
@@ -86,6 +86,7 @@ impl Emulator {
             self.jit_last_block_alternate_exit_pc,
             u64::from(self.jit_last_block_dynamic_exit),
             self.jit_last_block_raw_hash,
+            self.jit_last_block_memory_generation,
             self.jit_last_block_start_page_generation,
             self.jit_last_block_end_page_generation,
         ]

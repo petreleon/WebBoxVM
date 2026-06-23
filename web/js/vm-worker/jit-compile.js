@@ -26,8 +26,9 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
   const alternateExitPc = metadata[4];
   const dynamicExit = metadata[5] !== 0n;
   const rawHash = metadata[6];
-  const startPageGeneration = metadata[7];
-  const endPageGeneration = metadata[8];
+  const memoryGeneration = metadata[7];
+  const startPageGeneration = metadata[8];
+  const endPageGeneration = metadata[9];
   const statePtr = jitStatePtr(owner);
   const { instance } = await WebAssembly.instantiate(bytes, jitImports(owner, coreId));
   if (state.emulator !== owner) {
@@ -43,6 +44,7 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
     dynamicExit,
     exitPc,
     rawHash,
+    memoryGeneration,
     run: instance.exports.run,
     startPageGeneration,
     endPageGeneration,
@@ -62,6 +64,7 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
     exitPc,
     pc,
     rawHash,
+    memoryGeneration,
     startPageGeneration,
     endPageGeneration,
     startPa,
