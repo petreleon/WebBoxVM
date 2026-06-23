@@ -39,6 +39,27 @@ impl Emulator {
         }
 
         let core_id = core_id.unwrap_or(0);
+        let no_side_effects = self.jit_pending_stores.is_empty()
+            && self.jit_pending_exclusive_clear.is_none()
+            && self.jit_pending_exclusive_reservation.is_none();
+        if no_side_effects {
+            let result = if let Some(ref mut boot) = self.boot {
+                commit_jit_state(&self.jit_state, &mut boot.machine, core_id, steps, exit_pc)
+            } else {
+                commit_jit_state(&self.jit_state, &mut self.machine, core_id, steps, exit_pc)
+            };
+            return match result {
+                Ok(()) => {
+                    self.jit_last_error.clear();
+                    JIT_FINISH_COMMITTED
+                }
+                Err(err) => {
+                    self.jit_last_error = err;
+                    JIT_FINISH_COMMIT_REJECTED
+                }
+            };
+        }
+
         let pending_stores = std::mem::take(&mut self.jit_pending_stores);
         let pending_exclusive_clear = self.jit_pending_exclusive_clear.take();
         let pending_exclusive_reservation = self.jit_pending_exclusive_reservation.take();
