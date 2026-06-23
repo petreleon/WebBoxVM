@@ -43,7 +43,7 @@ pub(in crate::arch::arm64::execute) fn write_sve_bytes(
 
     let first_pa = translate_sve_byte(cpu, bus, va, true)?;
     if !access_crosses_page(va, bytes.len()) && bus.write_bytes(first_pa, bytes).is_some() {
-        clear_exclusive_bytes(cpu, first_pa, bytes.len());
+        cpu.clear_exclusive_range_if_overlaps(first_pa, bytes.len() as u64);
         return Ok(());
     }
 
@@ -87,10 +87,4 @@ fn translate_sve_byte(
 
 fn access_crosses_page(va: u64, len: usize) -> bool {
     (va & PAGE_OFFSET_MASK) + len as u64 > PAGE_SIZE
-}
-
-fn clear_exclusive_bytes(cpu: &mut Armv8Cpu, pa: u64, len: usize) {
-    for offset in 0..len {
-        cpu.clear_exclusive_if_overlaps(pa.wrapping_add(offset as u64), 1);
-    }
 }

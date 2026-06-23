@@ -84,8 +84,12 @@ impl Armv8Cpu {
     }
 
     pub fn clear_exclusive_if_overlaps(&mut self, addr: u64, size: u8) {
+        self.clear_exclusive_range_if_overlaps(addr, size as u64);
+    }
+
+    pub fn clear_exclusive_range_if_overlaps(&mut self, addr: u64, len: u64) {
         if self.exclusive.is_some_and(|reservation| {
-            ranges_overlap(reservation.addr, reservation.size, addr, size)
+            ranges_overlap(reservation.addr, reservation.size as u64, addr, len)
         }) {
             self.clear_exclusive();
         }
@@ -129,9 +133,9 @@ impl Default for Armv8Cpu {
     }
 }
 
-fn ranges_overlap(a: u64, a_size: u8, b: u64, b_size: u8) -> bool {
-    let a_end = a.saturating_add(a_size as u64);
-    let b_end = b.saturating_add(b_size as u64);
+fn ranges_overlap(a: u64, a_size: u64, b: u64, b_size: u64) -> bool {
+    let a_end = a.saturating_add(a_size);
+    let b_end = b.saturating_add(b_size);
     a < b_end && b < a_end
 }
 
@@ -153,5 +157,17 @@ mod tests {
         cpu.regs.set_x(0, 42);
         cpu.reset();
         assert_eq!(cpu.regs.x(0), 0);
+    }
+
+    #[test]
+    fn range_clear_drops_only_overlapping_exclusive_reservation() {
+        let mut cpu = Armv8Cpu::new();
+        cpu.reserve_exclusive(0x1000, 8);
+
+        cpu.clear_exclusive_range_if_overlaps(0x2000, 0x100);
+        assert!(cpu.exclusive_matches(0x1000, 8));
+
+        cpu.clear_exclusive_range_if_overlaps(0x1004, 0x100);
+        assert!(cpu.exclusive.is_none());
     }
 }

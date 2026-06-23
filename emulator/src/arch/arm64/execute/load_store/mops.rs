@@ -59,9 +59,7 @@ fn try_bulk_set_same_page(
         return Ok(false);
     }
 
-    for offset in 0..size {
-        cpu.clear_exclusive_if_overlaps(pa.wrapping_add(offset), 1);
-    }
+    cpu.clear_exclusive_range_if_overlaps(pa, size);
     Ok(true)
 }
 

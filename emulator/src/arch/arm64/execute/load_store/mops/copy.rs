@@ -68,7 +68,7 @@ fn try_bulk_copy_same_page(
     if bus.write_bytes(dst_pa, &bytes[..size as usize]).is_none() {
         return Ok(false);
     }
-    clear_exclusive_bytes(cpu, dst_pa, size);
+    cpu.clear_exclusive_range_if_overlaps(dst_pa, size);
     Ok(true)
 }
 
@@ -144,10 +144,4 @@ fn is_prologue(op: Opcode) -> bool {
 
 fn same_page_range(va: u64, size: u64) -> bool {
     size <= PAGE_SIZE - (va & PAGE_OFFSET_MASK)
-}
-
-fn clear_exclusive_bytes(cpu: &mut Armv8Cpu, pa: u64, size: u64) {
-    for offset in 0..size {
-        cpu.clear_exclusive_if_overlaps(pa.wrapping_add(offset), 1);
-    }
 }
