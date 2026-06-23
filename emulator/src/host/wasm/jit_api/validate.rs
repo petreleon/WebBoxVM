@@ -20,29 +20,21 @@ impl Emulator {
         steps: usize,
     ) -> bool {
         let core_id = core_id.unwrap_or(0);
-        let result = if let Some(ref boot) = self.boot {
-            validate_jit_block(
-                &boot.machine,
-                core_id,
-                start_pc,
-                start_pa,
-                raw_hash,
-                start_page_generation,
-                end_page_generation,
-                steps,
-            )
-        } else {
-            validate_jit_block(
-                &self.machine,
-                core_id,
-                start_pc,
-                start_pa,
-                raw_hash,
-                start_page_generation,
-                end_page_generation,
-                steps,
-            )
-        };
+        let machine = self
+            .boot
+            .as_ref()
+            .map(|boot| &boot.machine)
+            .unwrap_or(&self.machine);
+        let result = validate_jit_block(
+            machine,
+            core_id,
+            start_pc,
+            start_pa,
+            raw_hash,
+            start_page_generation,
+            end_page_generation,
+            steps,
+        );
 
         match result {
             Ok(()) => {
@@ -91,28 +83,24 @@ pub(super) fn validate_jit_block(
         ));
     }
     let end_offset = block_end_offset(steps)?;
-    if end_offset != 0 {
-        let end_pc = start_pc
-            .checked_add(end_offset)
-            .ok_or_else(|| "cached JIT block PC range overflows".to_string())?;
-        let end_pa = start_pa
-            .checked_add(end_offset)
-            .ok_or_else(|| "cached JIT block PA range overflows".to_string())?;
-        if crosses_translation_page(start_pc, start_pa, end_pc, end_pa) {
-            let current_pa =
-                translate_read_only(&cpu.sys, Some(&cpu.tlb), &machine.bus.mem, end_pc).map_err(
-                    |_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"),
-                )?;
-            if current_pa != end_pa {
-                return Err(format!(
-                    "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
-                ));
-            }
+    let end_pc = start_pc
+        .checked_add(end_offset)
+        .ok_or_else(|| "cached JIT block PC range overflows".to_string())?;
+    let end_pa = start_pa
+        .checked_add(end_offset)
+        .ok_or_else(|| "cached JIT block PA range overflows".to_string())?;
+    if crosses_translation_page(start_pc, start_pa, end_pc, end_pa) {
+        let current_pa = translate_read_only(&cpu.sys, Some(&cpu.tlb), &machine.bus.mem, end_pc)
+            .map_err(|_| format!("cached JIT block PC 0x{end_pc:016x} translation fault"))?;
+        if current_pa != end_pa {
+            return Err(format!(
+                "cached JIT block PA changed at PC 0x{end_pc:016x}: cached=0x{end_pa:016x} current=0x{current_pa:016x}"
+            ));
         }
     }
 
     let (current_start_generation, current_end_generation) =
-        code_page_generations(&machine.bus.mem, start_pa, steps)?;
+        code_page_generations_to_end(&machine.bus.mem, start_pa, end_pa)?;
     if current_start_generation == start_page_generation
         && current_end_generation == end_page_generation
     {
@@ -151,6 +139,14 @@ pub(super) fn code_page_generations(
     let end_pa = start_pa
         .checked_add(end_offset)
         .ok_or_else(|| "cached JIT block code range overflows".to_string())?;
+    code_page_generations_to_end(mem, start_pa, end_pa)
+}
+
+fn code_page_generations_to_end(
+    mem: &PhysicalMemory,
+    start_pa: u64,
+    end_pa: u64,
+) -> Result<(u64, u64), String> {
     let start = mem
         .page_generation(start_pa)
         .ok_or_else(|| format!("cached JIT block start page 0x{start_pa:016x} is unreadable"))?;
