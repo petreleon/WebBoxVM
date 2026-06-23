@@ -142,7 +142,7 @@ test("jit compile success drops warmup hit counter", async () => {
     jit_last_error: () => "",
     jit_prepare_cached_block: () => true,
     jit_state_ptr: () => 0x3000n,
-    jit_state_size: () => 512,
+    jit_state_size: () => assert.fail("hot compile path does not need state size"),
     pc: () => 0x1000n,
   };
   WebAssembly.instantiate = async () => ({
