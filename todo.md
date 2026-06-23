@@ -16,4 +16,4 @@ History: [sprint-history.md](sprint-history.md).
 - Speed: slow; latest browser proof 594.3s, 0 JIT rejects/skips, 1 timer fallback.
 
 ## Done
-- [x] WS NAT install -> OPFS disk boot -> Debian serial login.
+- [x] Debian: WS NAT install -> OPFS disk login.
