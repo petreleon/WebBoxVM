@@ -42,8 +42,9 @@ export function recordJitFallback(key, pc, error, coreId = 0, emulator = state.e
   state.jitStatsVersion += 1;
   state.jitFallbackCount += 1;
   const errorText = error || "unknown JIT fallback";
+  const keyText = jitEventKey(key, coreId);
   const pcHex = pc.toString(16);
-  if (isSameFallbackEvent(state.jitLastFallback, key, pcHex, errorText)) {
+  if (isSameFallbackEvent(state.jitLastFallback, keyText, pcHex, errorText)) {
     return;
   }
   state.jitLastFallback = jitEvent(key, pc, errorText, "unknown JIT fallback", coreId, emulator);
@@ -72,7 +73,7 @@ export function currentJitInstruction(coreId = 0, emulator = state.emulator) {
 function jitEvent(key, pc, error, fallbackError, coreId, emulator) {
   const event = {
     error: error || fallbackError,
-    key,
+    key: jitEventKey(key, coreId),
     pc: pc.toString(16),
   };
   const instruction = currentJitInstruction(coreId, emulator);
@@ -80,6 +81,13 @@ function jitEvent(key, pc, error, fallbackError, coreId, emulator) {
     event.instruction = instruction;
   }
   return event;
+}
+
+function jitEventKey(key, coreId) {
+  if (typeof key === "bigint") {
+    return `${coreId}:${key.toString(16)}`;
+  }
+  return key;
 }
 
 function isSameFallbackEvent(event, key, pc, error) {

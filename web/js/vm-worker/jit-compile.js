@@ -102,6 +102,9 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
 }
 
 export function jitBlockKey(coreId, pc) {
+  if (coreId === 0) {
+    return pc;
+  }
   return `${coreId}:${pc.toString(16)}`;
 }
 

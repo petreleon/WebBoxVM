@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { compileJitBlock, compiledJitBlockSkipReason } from "./jit-compile.js";
+import { compileJitBlock, compiledJitBlockSkipReason, jitBlockKey } from "./jit-compile.js";
 import { state } from "./state.js";
 
 afterEach(() => {
@@ -57,6 +57,11 @@ test("compile jit block can reuse checked emulator reference", async () => {
   } finally {
     Object.defineProperty(state, "emulator", previousDescriptor);
   }
+});
+
+test("jit block keys avoid string allocation for core zero", () => {
+  assert.equal(jitBlockKey(0, 0x1000n), 0x1000n);
+  assert.equal(jitBlockKey(2, 0x1000n), "2:1000");
 });
 
 test("compile jit block wires pair memory helper imports", async () => {

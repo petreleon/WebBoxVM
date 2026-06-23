@@ -78,13 +78,26 @@ test("repeated identical jit fallback reuses last instruction snapshot", () => {
     },
   };
 
-  recordJitFallback("0:2000", 0x2000n, "JIT block crosses timer deadline", 0);
+  recordJitFallback(0x2000n, 0x2000n, "JIT block crosses timer deadline", 0);
   const firstFallback = state.jitLastFallback;
-  recordJitFallback("0:2000", 0x2000n, "JIT block crosses timer deadline", 0);
+  recordJitFallback(0x2000n, 0x2000n, "JIT block crosses timer deadline", 0);
 
   assert.equal(state.jitFallbackCount, 2);
+  assert.equal(firstFallback.key, "0:2000");
   assert.equal(state.jitLastFallback, firstFallback);
   assert.equal(instructionReads, 1);
+  resetTelemetry();
+});
+
+test("jit telemetry normalizes bigint cache keys to strings", () => {
+  resetTelemetry();
+  recordJitReject(0x1000n, 0x1000n, "bad block", 0);
+  recordJitSkip(0x2000n, 0x2000n, "", 0);
+  recordJitFallback(0x3000n, 0x3000n, "commit failed", 0);
+
+  assert.equal(state.jitRejectLog[0].key, "0:1000");
+  assert.equal(state.jitSkipLog[0].key, "0:2000");
+  assert.equal(state.jitLastFallback.key, "0:3000");
   resetTelemetry();
 });
 
