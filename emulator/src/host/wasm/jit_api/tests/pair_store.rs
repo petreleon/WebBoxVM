@@ -1,3 +1,4 @@
+use super::super::pair_load::jit_load_pair_guest_from_machine;
 use super::super::pair_store::stage_jit_pair_store_from_machine;
 use super::super::store::{apply_jit_pending_stores, stage_jit_store_from_machine};
 use crate::constants::{
@@ -45,7 +46,7 @@ fn jit_pair_store_stages_both_values_before_commit() {
     .expect("pair store should stage RAM writes");
 
     assert_eq!(machine.bus.mem.read(base, 8), Some(0));
-    assert_eq!(stores.len(), 2);
+    assert_eq!(stores.len(), 1);
     apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
     assert_eq!(machine.bus.mem.read(base, 8), Some(0x1122_3344_5566_7788));
     assert_eq!(
@@ -77,6 +78,23 @@ fn jit_pair_store_keeps_staging_atomic_when_second_value_faults() {
 
     assert!(err.contains("JIT store helper"), "{err}");
     assert!(stores.is_empty());
+}
+
+#[test]
+fn jit_pair_store_pending_span_forwards_before_commit() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    let base = RAM_BASE + 0x5000;
+
+    stage_jit_pair_store_from_machine(&mut machine, 0, base, 8, 0x11, 0x22, &mut stores)
+        .expect("pair store should stage one span");
+
+    let values = jit_load_pair_guest_from_machine(&mut machine, 0, base, 8, &stores)
+        .expect("merged pending pair store should forward");
+
+    assert_eq!(stores.len(), 1);
+    assert_eq!(values, (0x11, 0x22));
+    assert_eq!(machine.bus.mem.read(base, 8), Some(0));
 }
 
 #[test]

@@ -49,7 +49,7 @@ pub(in crate::host::wasm) struct JitPendingExclusiveReservation {
 
 pub(in crate::host::wasm) struct JitPendingStore {
     pub pa: u64,
-    pub bytes: [u8; 8],
+    pub bytes: [u8; 32],
     pub len: u8,
 }
 

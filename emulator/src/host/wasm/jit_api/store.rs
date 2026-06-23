@@ -9,7 +9,7 @@ impl JitPendingStore {
     pub(in crate::host::wasm) fn new(pa: u64, bytes: &[u8]) -> Self {
         let mut store = Self {
             pa,
-            bytes: [0; 8],
+            bytes: [0; 32],
             len: bytes.len() as u8,
         };
         store.bytes[..bytes.len()].copy_from_slice(bytes);

@@ -70,17 +70,18 @@ pub(super) fn stage_jit_pair_store_from_machine(
         .get_mut(core_id)
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     let pa = translate_store(cpu, &mut bus.mem, va)?;
-    let pa2 = pa.wrapping_add(size as u64);
     let total_len = size as usize * 2;
     if bus.overlaps_device_range(pa, total_len) || !bus.mem.contains_range(pa, total_len) {
         return Err(format!("JIT store helper rejected PA 0x{pa:016x}"));
     }
 
+    let lane_size = size as usize;
     let bytes1 = value1.to_le_bytes();
     let bytes2 = value2.to_le_bytes();
-    stores.reserve(2);
-    stores.push(JitPendingStore::new(pa, &bytes1[..size as usize]));
-    stores.push(JitPendingStore::new(pa2, &bytes2[..size as usize]));
+    let mut bytes = [0; 16];
+    bytes[..lane_size].copy_from_slice(&bytes1[..lane_size]);
+    bytes[lane_size..total_len].copy_from_slice(&bytes2[..lane_size]);
+    stores.push(JitPendingStore::new(pa, &bytes[..total_len]));
     Ok(())
 }
 

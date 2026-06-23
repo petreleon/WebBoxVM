@@ -71,14 +71,16 @@ pub(super) fn stage_jit_quad_store_from_machine(
         .get_mut(core_id)
         .ok_or_else(|| format!("core {core_id} does not exist"))?;
     let pa = translate_store(cpu, &mut bus.mem, va)?;
-    validate_store_target(bus, pa, size as usize * values.len())?;
+    let total_len = size as usize * values.len();
+    validate_store_target(bus, pa, total_len)?;
 
-    stores.reserve(values.len());
+    let mut bytes = [0; 32];
     for (index, value) in values.into_iter().enumerate() {
-        let lane_pa = pa.wrapping_add(index as u64 * size as u64);
-        let bytes = value.to_le_bytes();
-        stores.push(JitPendingStore::new(lane_pa, &bytes[..size as usize]));
+        let lane_offset = index * size as usize;
+        let lane_bytes = value.to_le_bytes();
+        bytes[lane_offset..lane_offset + size as usize].copy_from_slice(&lane_bytes);
     }
+    stores.push(JitPendingStore::new(pa, &bytes[..total_len]));
     Ok(())
 }
 

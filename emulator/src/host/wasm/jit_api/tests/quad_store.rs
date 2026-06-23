@@ -1,3 +1,4 @@
+use super::super::quad_load::jit_load_quad_guest_from_machine;
 use super::super::quad_store::stage_jit_quad_store_from_machine;
 use super::super::store::apply_jit_pending_stores;
 use super::map_two_ttbr0_pages;
@@ -13,7 +14,7 @@ fn jit_quad_store_stages_four_values_before_commit() {
     stage_jit_quad_store_from_machine(&mut machine, 0, base, 8, [1, 2, 3, 4], &mut stores)
         .expect("quad store should stage RAM writes");
 
-    assert_eq!(stores.len(), 4);
+    assert_eq!(stores.len(), 1);
     assert_eq!(machine.bus.mem.read(base, 8), Some(0));
     apply_jit_pending_stores(&mut machine, &stores).expect("apply staged quad stores");
     for index in 0..4 {
@@ -37,11 +38,29 @@ fn jit_quad_store_falls_back_across_noncontiguous_pages() {
     )
     .expect("cross-page quad store should translate both pages");
 
+    assert_eq!(stores.len(), 2);
     apply_jit_pending_stores(&mut machine, &stores).expect("apply staged quad stores");
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x3ff0, 8), Some(1));
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x3ff8, 8), Some(2));
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x8000, 8), Some(3));
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x8008, 8), Some(4));
+}
+
+#[test]
+fn jit_quad_store_pending_span_forwards_before_commit() {
+    let mut machine = Machine::new(1);
+    let mut stores = Vec::new();
+    let base = RAM_BASE + 0x5000;
+
+    stage_jit_quad_store_from_machine(&mut machine, 0, base, 8, [1, 2, 3, 4], &mut stores)
+        .expect("quad store should stage one span");
+
+    let values = jit_load_quad_guest_from_machine(&mut machine, 0, base, 8, &stores)
+        .expect("merged pending quad store should forward");
+
+    assert_eq!(stores.len(), 1);
+    assert_eq!(values, [1, 2, 3, 4]);
+    assert_eq!(machine.bus.mem.read(base, 8), Some(0));
 }
 
 #[test]
