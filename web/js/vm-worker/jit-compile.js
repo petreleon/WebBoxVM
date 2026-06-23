@@ -25,15 +25,6 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
   const exitPc = metadata[3];
   const alternateExitPc = metadata[4];
   const dynamicExit = metadata[5] !== 0n;
-  const skipReason = compiledJitBlockSkipReason();
-  if (skipReason) {
-    return {
-      compiled: false,
-      error: skipReason,
-      pc,
-      skipped: true,
-    };
-  }
   const rawHash = metadata[6];
   const startPageGeneration = metadata[7];
   const endPageGeneration = metadata[8];
@@ -114,10 +105,6 @@ export function jitBlockKey(coreId, pc) {
     return pc;
   }
   return `${coreId}:${pc.toString(16)}`;
-}
-
-export function compiledJitBlockSkipReason(_metadata) {
-  return undefined;
 }
 
 function readJitBlockMetadata(owner) {

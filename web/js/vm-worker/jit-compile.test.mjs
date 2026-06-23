@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { compileJitBlock, compiledJitBlockSkipReason, jitBlockKey } from "./jit-compile.js";
+import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
 import { state } from "./state.js";
 
 afterEach(() => {
@@ -152,11 +152,4 @@ test("compile jit block wires pair memory helper imports", async () => {
   } finally {
     WebAssembly.instantiate = originalInstantiate;
   }
-});
-
-test("EL0 guest-memory helper blocks are not compile-time skipped", () => {
-  assert.equal(
-    compiledJitBlockSkipReason({ blockEl: 0, usesGuestHelpers: true }),
-    undefined,
-  );
 });
