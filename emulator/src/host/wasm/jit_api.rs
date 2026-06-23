@@ -9,6 +9,7 @@ mod load_pending;
 mod pair_load;
 mod pair_store;
 mod prepare;
+mod prepared_commit;
 mod quad_load;
 mod quad_store;
 mod state;

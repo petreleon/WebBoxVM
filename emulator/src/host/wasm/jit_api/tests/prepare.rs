@@ -1,6 +1,7 @@
 use super::*;
 use crate::arch::arm64::jit::{WasmJitCpuState, hash_raw_words};
 use crate::constants::TIMER_CTL_ENABLE;
+use crate::host::wasm::Emulator;
 use crate::host::wasm::jit_api::prepare::prepare_jit_block;
 use crate::host::wasm::jit_api::validate::code_page_generations;
 
@@ -32,6 +33,33 @@ fn prepare_jit_block_copies_validated_core_state() {
 
     assert_eq!(state.pc, RAM_BASE);
     assert_eq!(state.x[0], 0x1234);
+}
+
+#[test]
+fn jit_prepare_cached_block_marks_prepared_commit() {
+    let mut emulator = Emulator::new(Some(1));
+    emulator.machine.cpus[0].regs.pc = RAM_BASE;
+    emulator.machine.bus.mem.write(RAM_BASE, 4, NOP as u64);
+    let hash = hash_raw_words(RAM_BASE, [NOP]);
+    let generation = emulator.machine.bus.mem.generation();
+    let (start_generation, end_generation) =
+        code_page_generations(&emulator.machine.bus.mem, RAM_BASE, 1)
+            .expect("code page generations");
+
+    let prepared = emulator.jit_prepare_cached_block(
+        Some(0),
+        RAM_BASE,
+        RAM_BASE,
+        hash,
+        generation,
+        start_generation,
+        end_generation,
+        1,
+    );
+
+    assert!(prepared);
+    assert!(emulator.jit_prepared_block);
+    assert_eq!(emulator.jit_state.pc, RAM_BASE);
 }
 
 #[test]

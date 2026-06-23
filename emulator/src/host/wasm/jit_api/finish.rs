@@ -3,9 +3,9 @@ use crate::host::wasm::{Emulator, JitPendingExclusiveReservation, JitPendingStor
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
-use super::commit::commit_jit_state;
 use super::exclusive::apply_jit_pending_exclusive_clear;
 use super::exclusive_load::apply_jit_pending_exclusive_reservation;
+use super::prepared_commit::commit_finished_jit_state;
 use super::store::apply_jit_pending_stores;
 
 pub(super) const JIT_FINISH_COMMITTED: u8 = 0;
@@ -39,14 +39,29 @@ impl Emulator {
         }
 
         let core_id = core_id.unwrap_or(0);
+        let prepared = std::mem::take(&mut self.jit_prepared_block);
         let no_side_effects = self.jit_pending_stores.is_empty()
             && self.jit_pending_exclusive_clear.is_none()
             && self.jit_pending_exclusive_reservation.is_none();
         if no_side_effects {
             let result = if let Some(ref mut boot) = self.boot {
-                commit_jit_state(&self.jit_state, &mut boot.machine, core_id, steps, exit_pc)
+                commit_finished_jit_state(
+                    &self.jit_state,
+                    &mut boot.machine,
+                    core_id,
+                    steps,
+                    exit_pc,
+                    prepared,
+                )
             } else {
-                commit_jit_state(&self.jit_state, &mut self.machine, core_id, steps, exit_pc)
+                commit_finished_jit_state(
+                    &self.jit_state,
+                    &mut self.machine,
+                    core_id,
+                    steps,
+                    exit_pc,
+                    prepared,
+                )
             };
             return match result {
                 Ok(()) => {
@@ -73,6 +88,7 @@ impl Emulator {
                 &pending_stores,
                 pending_exclusive_clear,
                 pending_exclusive_reservation,
+                prepared,
             )
         } else {
             finish_jit_block(
@@ -84,6 +100,7 @@ impl Emulator {
                 &pending_stores,
                 pending_exclusive_clear,
                 pending_exclusive_reservation,
+                prepared,
             )
         };
 
@@ -109,8 +126,9 @@ pub(super) fn finish_jit_block(
     pending_stores: &[JitPendingStore],
     pending_exclusive_clear: Option<usize>,
     pending_exclusive_reservation: Option<JitPendingExclusiveReservation>,
+    prepared: bool,
 ) -> Result<(), String> {
-    commit_jit_state(state, machine, core_id, steps, expected_exit_pc)
+    commit_finished_jit_state(state, machine, core_id, steps, expected_exit_pc, prepared)
         .and_then(|()| apply_jit_pending_stores(machine, pending_stores))
         .map(|()| apply_jit_pending_exclusive_clear(machine, pending_exclusive_clear))
         .map(|()| apply_jit_pending_exclusive_reservation(machine, pending_exclusive_reservation))

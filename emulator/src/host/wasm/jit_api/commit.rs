@@ -44,6 +44,7 @@ impl Emulator {
         expected_exit_pc: u64,
     ) -> bool {
         let core_id = core_id.unwrap_or(0);
+        self.jit_prepared_block = false;
         let pending_stores = std::mem::take(&mut self.jit_pending_stores);
         let pending_exclusive_clear = self.jit_pending_exclusive_clear.take();
         let pending_exclusive_reservation = self.jit_pending_exclusive_reservation.take();

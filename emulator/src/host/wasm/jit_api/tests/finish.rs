@@ -24,6 +24,7 @@ fn finish_jit_block_applies_pending_store_on_commit() {
         &stores,
         None,
         None,
+        false,
     )
     .expect("finish should commit valid JIT state and stores");
 
@@ -44,6 +45,19 @@ fn finish_cached_block_commits_without_pending_side_effects() {
     assert!(emulator.jit_pending_stores.is_empty());
     assert!(emulator.jit_pending_exclusive_clear.is_none());
     assert!(emulator.jit_pending_exclusive_reservation.is_none());
+}
+
+#[test]
+fn finish_cached_block_consumes_prepared_marker() {
+    let mut emulator = Emulator::new(Some(1));
+    emulator.jit_prepared_block = true;
+    emulator.jit_state.pc = RAM_BASE + 4;
+
+    let result = emulator.jit_finish_cached_block(Some(0), 1, RAM_BASE + 4, RAM_BASE + 4, 0, false);
+
+    assert_eq!(result, JIT_FINISH_COMMITTED);
+    assert!(!emulator.jit_prepared_block);
+    assert_eq!(emulator.machine.cpus[0].regs.pc, RAM_BASE + 4);
 }
 
 #[test]

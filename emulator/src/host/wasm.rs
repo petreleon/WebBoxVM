@@ -35,6 +35,7 @@ pub struct Emulator {
     jit_last_block_end_page_generation: u64,
     jit_last_block_uses_guest_helpers: bool,
     jit_helper_failed: bool,
+    jit_prepared_block: bool,
     jit_pending_exclusive_clear: Option<usize>,
     jit_pending_exclusive_reservation: Option<JitPendingExclusiveReservation>,
     jit_pending_stores: Vec<JitPendingStore>,
@@ -55,6 +56,7 @@ pub(in crate::host::wasm) struct JitPendingStore {
 
 impl Emulator {
     pub(in crate::host::wasm) fn clear_jit_side_effects(&mut self) {
+        self.jit_prepared_block = false;
         self.jit_pending_exclusive_clear = None;
         self.jit_pending_exclusive_reservation = None;
         self.jit_pending_stores.clear();
@@ -89,6 +91,7 @@ impl Emulator {
             jit_last_block_end_page_generation: 0,
             jit_last_block_uses_guest_helpers: false,
             jit_helper_failed: false,
+            jit_prepared_block: false,
             jit_pending_exclusive_clear: None,
             jit_pending_exclusive_reservation: None,
             jit_pending_stores: Vec::new(),

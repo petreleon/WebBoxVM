@@ -55,6 +55,7 @@ impl Emulator {
         match result {
             Ok(()) => {
                 self.jit_last_error.clear();
+                self.jit_prepared_block = true;
                 true
             }
             Err(err) => {
