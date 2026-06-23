@@ -8,12 +8,15 @@ fn pending_before_enable_becomes_deliverable() {
     let mut gic = Gicv3::new();
 
     gic.set_pending(IRQ_A);
+    assert!(!gic.has_pending_enabled());
     assert_eq!(gic.next_pending_enabled(), None);
 
     gic.enable_interrupt(IRQ_A);
+    assert!(gic.has_pending_enabled());
     assert_eq!(gic.next_pending_enabled(), Some(IRQ_A));
 
     gic.clear_pending(IRQ_A);
+    assert!(!gic.has_pending_enabled());
     assert_eq!(gic.next_pending_enabled(), None);
 }
 

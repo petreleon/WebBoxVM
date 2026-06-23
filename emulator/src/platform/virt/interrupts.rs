@@ -34,6 +34,10 @@ impl SystemBus {
         }
     }
 
+    pub fn external_irq_poll_needed(&self) -> bool {
+        self.uart_rx_refresh_needed || self.gic.has_pending_enabled()
+    }
+
     pub(super) fn mark_uart_rx_refresh_needed(&mut self) {
         self.uart_rx_refresh_needed = true;
     }

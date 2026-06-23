@@ -33,12 +33,16 @@ impl Gicv3 {
         self.pending.get(idx).copied().unwrap_or(0)
     }
 
+    pub fn has_pending_enabled(&self) -> bool {
+        self.pending_enabled_words != 0
+    }
+
     pub fn next_pending_enabled(&self) -> Option<u32> {
-        let active_words = self.pending_enabled_words;
-        if active_words == 0 {
+        if !self.has_pending_enabled() {
             return None;
         }
 
+        let active_words = self.pending_enabled_words;
         let idx = active_words.trailing_zeros() as usize;
         let active = self.pending_enabled[idx];
         debug_assert_ne!(active, 0);

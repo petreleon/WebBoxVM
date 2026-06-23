@@ -1,5 +1,7 @@
 use super::*;
 
+mod irq_poll;
+
 #[test]
 fn load_store_translation_fault_enters_data_abort_vector() {
     let mut machine = Machine::new(1);

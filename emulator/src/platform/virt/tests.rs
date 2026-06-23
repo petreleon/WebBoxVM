@@ -1,6 +1,8 @@
 use super::*;
 use crate::api::{AccessWidth, PhysAddr};
 
+mod interrupt_poll;
+
 #[test]
 fn device_mmio_windows_are_disjoint() {
     let windows = [
