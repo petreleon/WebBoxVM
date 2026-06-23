@@ -88,7 +88,7 @@ pub(in crate::arch::arm64::execute) fn read_guest_bytes(
     read_guest_bytes_from_first_pa(cpu, bus, va, first_pa, bytes, translate_err, bus_err)
 }
 
-fn read_guest_bytes_from_first_pa(
+pub(in crate::arch::arm64::execute) fn read_guest_bytes_from_first_pa(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,
     va: u64,

@@ -13,9 +13,9 @@ pub(in crate::arch::arm64::execute) fn read_simd_guest(
         4 => Ok(read_guest(cpu, bus, va, 4, err)? as u32 as u128),
         8 => Ok(read_guest(cpu, bus, va, 8, err)? as u128),
         16 => {
-            let lo = read_guest(cpu, bus, va, 8, err)? as u128;
-            let hi = read_guest(cpu, bus, va.wrapping_add(8), 8, err)? as u128;
-            Ok(lo | (hi << 64))
+            let mut bytes = [0; 16];
+            read_guest_bytes(cpu, bus, va, &mut bytes, err, err)?;
+            Ok(u128::from_le_bytes(bytes))
         }
         _ => Err("unsupported SIMD load size"),
     }
@@ -35,9 +35,9 @@ pub(in crate::arch::arm64::execute) fn read_simd_guest_translated(
         4 => Ok(read_guest_translated(cpu, bus, va, first_pa, 4, err)? as u32 as u128),
         8 => Ok(read_guest_translated(cpu, bus, va, first_pa, 8, err)? as u128),
         16 => {
-            let lo = read_guest_translated(cpu, bus, va, first_pa, 8, err)? as u128;
-            let hi = read_guest(cpu, bus, va.wrapping_add(8), 8, err)? as u128;
-            Ok(lo | (hi << 64))
+            let mut bytes = [0; 16];
+            read_guest_bytes_from_first_pa(cpu, bus, va, first_pa, &mut bytes, err, err)?;
+            Ok(u128::from_le_bytes(bytes))
         }
         _ => Err("unsupported SIMD load size"),
     }
