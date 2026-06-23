@@ -12,47 +12,25 @@ impl Emulator {
     /// interpreter. Use `jit_last_error()` for the reason.
     pub fn jit_compile_current_block(&mut self, core_id: Option<usize>) -> Vec<u8> {
         let core_id = core_id.unwrap_or(0);
-        let (result, current_el) = if let Some(ref boot) = self.boot {
-            let Some(cpu) = boot.machine.cpus.get(core_id) else {
-                self.jit_last_error = format!("core {core_id} does not exist");
-                return Vec::new();
-            };
-            (
-                compile_wasm64_block_at_pc(cpu, &boot.machine.bus),
-                cpu.pstate.el(),
-            )
-        } else {
-            let Some(cpu) = self.machine.cpus.get(core_id) else {
-                self.jit_last_error = format!("core {core_id} does not exist");
-                return Vec::new();
-            };
-            (
-                compile_wasm64_block_at_pc(cpu, &self.machine.bus),
-                cpu.pstate.el(),
-            )
+        let machine = self
+            .boot
+            .as_ref()
+            .map_or(&self.machine, |boot| &boot.machine);
+        let Some(cpu) = machine.cpus.get(core_id) else {
+            self.jit_last_error = format!("core {core_id} does not exist");
+            return Vec::new();
         };
+        let result = compile_wasm64_block_at_pc(cpu, &machine.bus);
+        let current_el = cpu.pstate.el();
 
         match result {
             Ok(module) => {
-                let (generations, memory_generation) = if let Some(ref boot) = self.boot {
-                    (
-                        code_page_generations(
-                            &boot.machine.bus.mem,
-                            module.start_pa,
-                            module.guest_instr_count,
-                        ),
-                        boot.machine.bus.mem.generation(),
-                    )
-                } else {
-                    (
-                        code_page_generations(
-                            &self.machine.bus.mem,
-                            module.start_pa,
-                            module.guest_instr_count,
-                        ),
-                        self.machine.bus.mem.generation(),
-                    )
-                };
+                let generations = code_page_generations(
+                    &machine.bus.mem,
+                    module.start_pa,
+                    module.guest_instr_count,
+                );
+                let memory_generation = machine.bus.mem.generation();
                 let Ok((start_generation, end_generation)) = generations else {
                     self.jit_last_error = "compiled JIT block code page generation missing".into();
                     self.jit_last_block_steps = 0;
