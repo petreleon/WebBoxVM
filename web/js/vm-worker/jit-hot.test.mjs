@@ -104,6 +104,7 @@ test("jit compile fallback reuses hot-path pc", async () => {
   };
 
   assert.equal(await tryRunOrCompileJitBlock(), false);
+  assert.equal(state.jitBlockHits.get(0x1000n), 1);
   assert.equal(await tryRunOrCompileJitBlock(), false);
   assert.equal(pcCalls, 2);
   assert.equal(state.jitBlockHits.has(0x1000n), false);

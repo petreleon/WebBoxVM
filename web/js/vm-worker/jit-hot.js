@@ -33,10 +33,11 @@ export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
   }
 
   const hits = (state.jitBlockHits.get(key) ?? 0) + 1;
-  state.jitBlockHits.set(key, hits);
   if (hits < JIT_HOT_THRESHOLD) {
+    state.jitBlockHits.set(key, hits);
     return false;
   }
+  state.jitBlockHits.delete(key);
 
   return compileAndRunJitBlock({ coreId, key, pc, emulator });
 }
@@ -48,7 +49,6 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
   const compiled = await compileJitBlock({ coreId, pc, emulator });
   if (!state.running || state.emulator !== emulator || !compiled.compiled) {
     if (!compiled.compiled) {
-      state.jitBlockHits.delete(key);
       if (compiled.skipped) {
         state.jitSkippedBlocks.add(key);
         recordJitSkip(key, pc, compiled.error, coreId, emulator);
@@ -59,7 +59,6 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
     }
     return false;
   }
-  state.jitBlockHits.delete(key);
 
   const entry = state.jitBlocks.get(key);
   if (!entry) {
