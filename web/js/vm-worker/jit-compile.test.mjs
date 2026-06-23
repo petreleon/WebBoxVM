@@ -87,7 +87,7 @@ test("compile jit block wires pair memory helper imports", async () => {
     jit_last_block_exit_pc: unusedMetadata,
     jit_last_block_metadata: () => {
       metadataCalls += 1;
-      return [1n, 0x1000n, 0x4000_1000n, 0x1004n, 0x1004n, 0n, 7n, 9n, 0n, 0n];
+      return [2n, 0x1000n, 0x4000_1000n, 0x1004n, 0x1004n, 0n, 7n, 9n, 0n, 0n];
     },
     jit_last_block_raw_hash: unusedMetadata,
     jit_last_block_start_pa: unusedMetadata,

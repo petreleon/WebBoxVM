@@ -1,6 +1,8 @@
 import { requireEmulator } from "./lifecycle.js";
 import { JIT_MAX_BLOCKS, state } from "./state.js";
 
+const MIN_CACHED_JIT_STEPS = 2;
+
 export async function compileJitBlock({
   coreId = 0,
   pc: knownPc,
@@ -43,6 +45,14 @@ async function compileJitBlockFor(owner, coreId, knownPc, details) {
   const memoryGeneration = metadata[7];
   const startPageGeneration = metadata[8];
   const endPageGeneration = metadata[9];
+  if (steps < MIN_CACHED_JIT_STEPS) {
+    return {
+      compiled: false,
+      error: "single-instruction JIT block skipped",
+      pc,
+      skipped: true,
+    };
+  }
   const statePtr = jitStatePtr(owner);
   const { instance } = await WebAssembly.instantiate(bytes, jitImports(owner, coreId));
   if (state.emulator !== owner) {
