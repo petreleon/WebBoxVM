@@ -44,7 +44,7 @@ export async function compileJitBlock({
     };
   }
   evictOldestJitBlockIfNeeded();
-  state.jitBlocks.set(key, {
+  const entry = {
     alternateExitPc,
     dynamicExit,
     exitPc,
@@ -57,12 +57,13 @@ export async function compileJitBlock({
     startPc,
     statePtr,
     steps,
-  });
+  };
+  state.jitBlocks.set(key, entry);
   state.jitRejectedBlocks.delete(key);
   state.jitSkippedBlocks.delete(key);
 
   if (!details) {
-    return { compiled: true, pc };
+    return entry;
   }
 
   return {

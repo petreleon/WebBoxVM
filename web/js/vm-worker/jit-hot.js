@@ -46,21 +46,20 @@ async function compileAndRunJitBlock({ coreId, key, pc, emulator }) {
   if (state.emulator !== emulator) {
     return false;
   }
-  const compiled = await compileJitBlock({ coreId, pc, emulator, details: false });
-  if (!state.running || state.emulator !== emulator || !compiled.compiled) {
-    if (!compiled.compiled) {
-      if (compiled.skipped) {
+  const entry = await compileJitBlock({ coreId, pc, emulator, details: false });
+  if (!state.running || state.emulator !== emulator || entry.compiled === false) {
+    if (entry.compiled === false) {
+      if (entry.skipped) {
         state.jitSkippedBlocks.add(key);
-        recordJitSkip(key, pc, compiled.error, coreId, emulator);
+        recordJitSkip(key, pc, entry.error, coreId, emulator);
       } else {
         state.jitRejectedBlocks.add(key);
-        recordJitReject(key, pc, compiled.error, coreId, emulator);
+        recordJitReject(key, pc, entry.error, coreId, emulator);
       }
     }
     return false;
   }
 
-  const entry = state.jitBlocks.get(key);
   if (!entry) {
     return false;
   }

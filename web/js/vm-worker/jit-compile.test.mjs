@@ -134,6 +134,12 @@ test("compile jit block wires pair memory helper imports", async () => {
   try {
     const result = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
     const cachedResult = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
+    const compactResult = await compileJitBlock({
+      coreId: 3,
+      pc: 0x1000n,
+      emulator,
+      details: false,
+    });
 
     assert.equal(result.compiled, true);
     assert.equal(result.statePtr, 0x2000n);
@@ -143,11 +149,12 @@ test("compile jit block wires pair memory helper imports", async () => {
     assert.equal(cachedResult.stateSize, 512);
     assert.equal(importObjects[0], importObjects[1]);
     const entry = state.jitBlocks.get("3:1000");
+    assert.equal(compactResult, entry);
     assert.equal(entry.instance, undefined);
     assert.equal(entry.module, undefined);
     assert.equal(typeof entry.run, "function");
     assert.equal(entry.memoryGeneration, 9n);
-    assert.equal(metadataCalls, 2);
+    assert.equal(metadataCalls, 3);
     assert.equal(stateSizeCalls, 1);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);
     assert.deepEqual(pairStoreArgs, [3, 0x10n, 8, 0x1122n, 0x3344n]);
