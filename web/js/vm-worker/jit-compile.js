@@ -24,10 +24,7 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
   const exitPc = owner.jit_last_block_exit_pc();
   const alternateExitPc = owner.jit_last_block_alternate_exit_pc();
   const dynamicExit = owner.jit_last_block_dynamic_exit();
-  const skipReason = compiledJitBlockSkipReason({
-    blockEl: owner.jit_last_block_el(),
-    usesGuestHelpers: owner.jit_last_block_uses_guest_helpers(),
-  });
+  const skipReason = compiledJitBlockSkipReason();
   if (skipReason) {
     return {
       compiled: false,
