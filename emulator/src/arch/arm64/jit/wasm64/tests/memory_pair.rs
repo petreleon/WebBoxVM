@@ -42,24 +42,18 @@ fn compiles_ldpsw_with_sign_extension() {
 }
 
 #[test]
-fn compiles_pair_store_as_two_staged_store_calls() {
+fn compiles_pair_store_with_pair_helper_call() {
     let block = block(vec![stp_instr(2, 16)]);
 
     let module = Wasm64Compiler::compile(&block).expect("compile stp");
-    let calls = module
+    let pair_helper_calls = module
         .bytes
-        .iter()
-        .filter(|&&byte| byte == opcodes::OP_CALL)
+        .windows([opcodes::OP_CALL, 6].len())
+        .filter(|&w| w == [opcodes::OP_CALL, 6])
         .count();
 
     assert_eq!(module.guest_instr_count, 1);
-    assert!(
-        module
-            .bytes
-            .windows(b"jitStoreGuest".len())
-            .any(|w| w == b"jitStoreGuest")
-    );
-    assert!(calls >= 2);
+    assert_eq!(pair_helper_calls, 1);
 }
 
 #[test]

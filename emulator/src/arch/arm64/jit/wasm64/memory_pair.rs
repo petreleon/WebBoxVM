@@ -4,7 +4,7 @@ use super::*;
 use crate::arch::arm64::{Instr, Opcode};
 
 const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
-const JIT_STORE_GUEST_FUNC_INDEX: u32 = 1;
+const JIT_STORE_PAIR_GUEST_FUNC_INDEX: u32 = 6;
 const PAIR_VALUE2_LOCAL: u32 = 4;
 
 impl WasmExpr {
@@ -42,8 +42,11 @@ impl WasmExpr {
         self.local_set(VALUE_LOCAL);
         self.emit_read_reg(instr.rm, instr.sf);
         self.local_set(PAIR_VALUE2_LOCAL);
-        self.emit_pair_store_call(size, VALUE_LOCAL, 0);
-        self.emit_pair_store_call(size, PAIR_VALUE2_LOCAL, size as u64);
+        self.local_get(ADDR_LOCAL);
+        self.i32_const(size as i32);
+        self.local_get(VALUE_LOCAL);
+        self.local_get(PAIR_VALUE2_LOCAL);
+        self.call_func(JIT_STORE_PAIR_GUEST_FUNC_INDEX);
         if writeback {
             self.emit_write_reg_sp_with(instr.rn, true, |this| {
                 this.local_get(WRITEBACK_LOCAL);
@@ -78,17 +81,6 @@ impl WasmExpr {
                 false
             }
         }
-    }
-
-    fn emit_pair_store_call(&mut self, size: u8, value_local: u32, offset: u64) {
-        self.local_get(ADDR_LOCAL);
-        if offset != 0 {
-            self.i64_const(offset);
-            self.op(OP_I64_ADD);
-        }
-        self.i32_const(size as i32);
-        self.local_get(value_local);
-        self.call_func(JIT_STORE_GUEST_FUNC_INDEX);
     }
 
     fn emit_pair_load_call(&mut self, size: u8, target_local: u32, offset: u64, signed: bool) {
