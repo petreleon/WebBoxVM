@@ -4,7 +4,6 @@ use super::*;
 use crate::arch::arm64::{Instr, Opcode};
 
 const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
-const JIT_STORE_GUEST_FUNC_INDEX: u32 = 1;
 const SIMD_POST_INDEX_IMM: u8 = 0xfe;
 
 impl WasmExpr {
@@ -122,13 +121,6 @@ impl WasmExpr {
             this.i32_const(8);
             this.call_func(JIT_LOAD_GUEST_FUNC_INDEX);
         });
-    }
-
-    pub(super) fn emit_store_simd_half(&mut self, reg: u8, high: bool, offset: u64) {
-        self.emit_guest_addr(offset);
-        self.i32_const(8);
-        self.emit_read_simd_half(reg, high);
-        self.call_func(JIT_STORE_GUEST_FUNC_INDEX);
     }
 
     fn emit_guest_addr(&mut self, offset: u64) {

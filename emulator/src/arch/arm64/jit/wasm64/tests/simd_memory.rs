@@ -114,15 +114,14 @@ fn compiles_observed_simd_str_q_immediate() {
     assert_eq!((instr.imm, instr.size), (0, 16));
 
     let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile str q");
+    let pair_helper_calls = module
+        .bytes
+        .windows([opcodes::OP_CALL, 6].len())
+        .filter(|&w| w == [opcodes::OP_CALL, 6])
+        .count();
 
     assert_eq!(module.guest_instr_count, 1);
-    assert!(module.bytes.contains(&opcodes::OP_CALL));
-    assert!(
-        module
-            .bytes
-            .windows(b"jitStoreGuest".len())
-            .any(|w| w == b"jitStoreGuest")
-    );
+    assert_eq!(pair_helper_calls, 1);
 }
 
 #[test]
@@ -162,14 +161,13 @@ fn compiles_observed_simd_stp_q_registers_as_boundary() {
 
     let block = block(vec![stp, instr(Opcode::Nop, 0, 0, 0, 0, true)]);
     let module = Wasm64Compiler::compile(&block).expect("compile simd stp");
+    let pair_helper_calls = module
+        .bytes
+        .windows([opcodes::OP_CALL, 6].len())
+        .filter(|&w| w == [opcodes::OP_CALL, 6])
+        .count();
 
     assert_eq!(module.guest_instr_count, 1);
     assert_eq!(module.exit_pc, 0x1004);
-    assert!(module.bytes.contains(&opcodes::OP_CALL));
-    assert!(
-        module
-            .bytes
-            .windows(b"jitStoreGuest".len())
-            .any(|w| w == b"jitStoreGuest")
-    );
+    assert_eq!(pair_helper_calls, 2);
 }
