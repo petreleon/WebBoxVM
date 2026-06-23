@@ -12,7 +12,7 @@ History: [sprint-history.md](sprint-history.md).
 - [ ] Explain `web/js/vm-worker/jit-compile.js` JIT policy
 
 ## Current Blocker
-- Speed only: `Boot disk` reaches Debian 13 `ttyAMA0` login in 520s post-click-runner time, improved from 594.3s.
+- Speed only: `Boot disk` reaches Debian 13 `ttyAMA0` login in 538s latest / 520s best post-click-runner time, improved from 594.3s. Latest JIT stats: 0 rejects, 0 skips, 1 timer-deadline fallback.
 
 ## Done
 - [x] Browser NAT + Debian disk boot reaches login.
