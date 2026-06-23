@@ -61,7 +61,9 @@ pub(super) fn stage_jit_store_from_machine(
 
     if !access_crosses_page(va, size) {
         let pa = translate_store(cpu, &mut bus.mem, va)?;
-        if bus.overlaps_device_range(pa, size as usize) || bus.mem.read(pa, size).is_none() {
+        if bus.overlaps_device_range(pa, size as usize)
+            || !bus.mem.contains_range(pa, size as usize)
+        {
             return Err(format!("JIT store helper rejected PA 0x{pa:016x}"));
         }
         stores.push(JitPendingStore::new(pa, &bytes[..size as usize]));
@@ -71,7 +73,7 @@ pub(super) fn stage_jit_store_from_machine(
     for offset in 0..size {
         let byte_va = va.wrapping_add(offset as u64);
         let pa = translate_store(cpu, &mut bus.mem, byte_va)?;
-        if bus.overlaps_device_range(pa, 1) || bus.mem.read(pa, 1).is_none() {
+        if bus.overlaps_device_range(pa, 1) || !bus.mem.contains_range(pa, 1) {
             return Err(format!("JIT store helper rejected PA 0x{pa:016x}"));
         }
         stores.push(JitPendingStore::new(pa, &bytes[offset as usize..][..1]));

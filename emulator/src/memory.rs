@@ -88,6 +88,10 @@ impl PhysicalMemory {
         Some(())
     }
 
+    pub fn contains_range(&self, addr: u64, len: usize) -> bool {
+        self.select_region(addr, len).is_some()
+    }
+
     pub fn page_generation(&self, addr: u64) -> Option<u64> {
         self.select_region_for_addr(addr)
             .map(|region| region.page_generation(addr))

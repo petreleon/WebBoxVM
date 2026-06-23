@@ -170,7 +170,7 @@ fn validate_store_target(
     pa: u64,
     size: u8,
 ) -> Result<(), String> {
-    if bus.overlaps_device_range(pa, size as usize) || bus.mem.read(pa, size).is_none() {
+    if bus.overlaps_device_range(pa, size as usize) || !bus.mem.contains_range(pa, size as usize) {
         return Err(format!(
             "JIT exclusive store helper rejected PA 0x{pa:016x}"
         ));

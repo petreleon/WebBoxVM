@@ -103,6 +103,15 @@ fn memory_generation_tracks_successful_non_empty_writes() {
 }
 
 #[test]
+fn contains_range_checks_region_bounds_without_allocating_pages() {
+    let m = PhysicalMemory::new();
+
+    assert!(m.contains_range(RAM_BASE + PAGE_SIZE - 2, 4));
+    assert!(!m.contains_range(LOW_REGION_END - 2, 3));
+    assert_eq!(m.allocated_pages(), 0);
+}
+
+#[test]
 fn page_generation_uses_single_address_region_bounds() {
     let m = PhysicalMemory::new();
 
