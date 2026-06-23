@@ -5,8 +5,10 @@ use crate::arch::arm64::{Armv8Cpu, ProcessorState};
 fn jit_state_layout_matches_emitted_offsets() {
     let state = WasmJitCpuState::default();
     let base = &state as *const _ as usize;
+    let sp_el0 = &state.sp_el0 as *const _ as usize;
     let simd = &state.simd as *const _ as usize;
 
+    assert_eq!(sp_el0 - base, JIT_STATE_SP_EL0_OFFSET as usize);
     assert_eq!(simd - base, JIT_STATE_SIMD_OFFSET as usize);
     assert_eq!(core::mem::size_of::<WasmJitCpuState>(), JIT_STATE_SIZE);
 }
@@ -19,6 +21,7 @@ fn jit_state_roundtrips_cpu_registers_and_simd() {
     cpu.regs.sp = 0x8000;
     cpu.regs.pc = 0x4000;
     cpu.pstate = ProcessorState::from_u64(0xa000_0000);
+    cpu.sys.sp_el0 = 0x9000;
     cpu.simd[0] = 0x0011_2233_4455_6677_8899_aabb_ccdd_eeff;
     cpu.simd[31] = 0xffee_ddcc_bbaa_9988_7766_5544_3322_1100;
 
@@ -33,6 +36,7 @@ fn jit_state_roundtrips_cpu_registers_and_simd() {
     assert_eq!(restored.regs.sp, 0x8000);
     assert_eq!(restored.regs.pc, 0x4000);
     assert_eq!(restored.pstate.to_u64(), 0xa000_0000);
+    assert_eq!(restored.sys.sp_el0, 0x9000);
     assert_eq!(restored.simd[0], cpu.simd[0]);
     assert_eq!(restored.simd[31], cpu.simd[31]);
 }

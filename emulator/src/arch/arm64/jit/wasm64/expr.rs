@@ -126,6 +126,10 @@ impl WasmExpr {
         self.emit_store_with(JIT_STATE_PSTATE_OFFSET, true, value);
     }
 
+    pub(super) fn emit_write_sp_el0_with(&mut self, value: impl FnOnce(&mut Self)) {
+        self.emit_store_with(JIT_STATE_SP_EL0_OFFSET, true, value);
+    }
+
     pub(super) fn emit_write_pc_with(&mut self, value: impl FnOnce(&mut Self)) {
         self.emit_store_with(JIT_STATE_PC_OFFSET, true, value);
     }

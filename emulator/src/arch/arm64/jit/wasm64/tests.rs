@@ -29,6 +29,7 @@ mod simd_narrow;
 mod simd_pairwise;
 mod state;
 mod system_reg;
+mod system_reg_write;
 mod terminal_branch;
 mod variable_shift;
 fn block(instructions: Vec<Instr>) -> Block {

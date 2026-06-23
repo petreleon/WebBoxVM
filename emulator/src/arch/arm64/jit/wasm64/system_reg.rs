@@ -43,9 +43,15 @@ impl WasmExpr {
     }
 
     pub(super) fn emit_msr(&mut self, instr: Instr) -> bool {
-        if instr.imm as u16 != SYSREG_DAIF {
-            return false;
+        match instr.imm as u16 {
+            SYSREG_DAIF => self.emit_msr_daif(instr),
+            SYSREG_SP_EL0 => self.emit_write_sp_el0_with(|this| this.emit_read_reg(instr.rd, true)),
+            _ => return false,
         }
+        true
+    }
+
+    fn emit_msr_daif(&mut self, instr: Instr) {
         self.emit_write_pstate_with(|this| {
             this.emit_read_pstate();
             this.i64_const(!PSTATE_DAIF_MASK);
@@ -55,7 +61,6 @@ impl WasmExpr {
             this.op(OP_I64_AND);
             this.op(OP_I64_OR);
         });
-        true
     }
 
     fn emit_write_pstate_sysreg(&mut self, rd: u8, mask: u64) {

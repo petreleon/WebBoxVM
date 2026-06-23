@@ -59,6 +59,7 @@ mod simd_pairwise;
 mod simd_quad;
 mod simd_store;
 mod state;
+mod system_boundary;
 mod system_reg;
 mod terminal_branch;
 mod types;
@@ -75,7 +76,7 @@ use helpers::{can_emit_shift, logical_opcode, reg_offset};
 use module_builder::build_module;
 pub use state::{
     JIT_STATE_PC_OFFSET, JIT_STATE_PSTATE_OFFSET, JIT_STATE_SIMD_OFFSET, JIT_STATE_SIZE,
-    JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET, WasmJitCpuState,
+    JIT_STATE_SP_EL0_OFFSET, JIT_STATE_SP_OFFSET, JIT_STATE_X_OFFSET, WasmJitCpuState,
 };
 pub use types::{WasmBlockModule, WasmJitError};
 
@@ -119,6 +120,16 @@ impl Wasm64Compiler {
                 alternate_exit_pc = exits.alternate_exit_pc;
                 raw_hash = hash_raw_word(raw_hash, raw);
                 compiled += 1;
+                break;
+            }
+            if let Some(emitted) = body.emit_system_boundary(instr) {
+                if !emitted && compiled == 0 {
+                    return Err(WasmJitError::UnsupportedFirstOpcode { op: instr.op, raw });
+                }
+                if emitted {
+                    raw_hash = hash_raw_word(raw_hash, raw);
+                    compiled += 1;
+                }
                 break;
             }
             if let Some(emitted) = body.emit_memory_boundary(instr) {
