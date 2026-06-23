@@ -114,6 +114,7 @@ function jitImports(owner, coreId) {
       jitStoreExclusivePair: (va, size, value1, value2) =>
         owner.jit_store_exclusive_pair(coreId, va, size, value1, value2),
       jitLoadExclusive: (va, size) => owner.jit_load_exclusive(coreId, va, size),
+      jitLoadExclusivePair: (va, size) => owner.jit_load_exclusive_pair(coreId, va, size),
       jitStoreExclusive: (va, size, value) =>
         owner.jit_store_exclusive(coreId, va, size, value),
     },

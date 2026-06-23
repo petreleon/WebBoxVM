@@ -9,6 +9,7 @@ mod cmp_flags;
 mod cond_select;
 mod conditional_compare;
 mod errors;
+mod exclusive_pair_load;
 mod extract;
 mod hints;
 mod logical_flags;

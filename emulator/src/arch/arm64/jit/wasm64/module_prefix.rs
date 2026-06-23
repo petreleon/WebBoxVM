@@ -12,7 +12,7 @@ const PAIR_STORE_HELPER_TYPE_INDEX: u32 = 6;
 const PAIR_LOAD_HELPER_TYPE_INDEX: u32 = 7;
 const QUAD_STORE_HELPER_TYPE_INDEX: u32 = 8;
 const QUAD_LOAD_HELPER_TYPE_INDEX: u32 = 9;
-const FULL_RUN_FUNC_INDEX: u32 = 10;
+const FULL_RUN_FUNC_INDEX: u32 = 11;
 
 static FULL_PREFIX_BYTES: LazyLock<Vec<u8>> = LazyLock::new(full_prefix);
 static MINIMAL_PREFIX_BYTES: LazyLock<Vec<u8>> = LazyLock::new(minimal_prefix);
@@ -102,7 +102,7 @@ fn append_func_type(section: &mut Vec<u8>, params: &[u8], results: &[u8]) {
 }
 
 fn full_import_section() -> Vec<u8> {
-    let mut section = memory_import_section(11);
+    let mut section = memory_import_section(12);
     encode_name(&mut section, "env");
     encode_name(&mut section, "jitLoadGuest");
     section.push(IMPORT_FUNC);
@@ -132,6 +132,7 @@ fn append_helper_imports(section: &mut Vec<u8>) {
     append_func_import(section, "jitLoadPairGuest", PAIR_LOAD_HELPER_TYPE_INDEX);
     append_func_import(section, "jitStoreQuadGuest", QUAD_STORE_HELPER_TYPE_INDEX);
     append_func_import(section, "jitLoadQuadGuest", QUAD_LOAD_HELPER_TYPE_INDEX);
+    append_func_import(section, "jitLoadExclusivePair", PAIR_LOAD_HELPER_TYPE_INDEX);
 }
 
 fn append_func_import(section: &mut Vec<u8>, name: &str, type_index: u32) {

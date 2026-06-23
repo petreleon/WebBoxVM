@@ -11,6 +11,7 @@ use crate::runtime::Machine;
 use super::commit::commit_jit_state;
 
 mod exclusive;
+mod exclusive_pair_load;
 mod finish;
 mod metadata;
 mod pair_load;

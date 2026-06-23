@@ -5,6 +5,7 @@ impl WasmExpr {
     pub(super) fn emit_memory_boundary(&mut self, instr: Instr) -> Option<bool> {
         match instr.op {
             Opcode::Ldxr => Some(self.emit_exclusive_load(instr)),
+            Opcode::Ldxp => Some(self.emit_exclusive_pair_load(instr)),
             Opcode::Str => Some(self.emit_memory_store(instr)),
             Opcode::Stxr => Some(self.emit_exclusive_store(instr)),
             Opcode::Stp => Some(self.emit_memory_pair_store(instr)),
