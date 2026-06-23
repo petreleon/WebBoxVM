@@ -1,4 +1,4 @@
-use super::opcodes::OP_I64_AND;
+use super::opcodes::{OP_I64_AND, OP_I64_OR};
 use super::*;
 use crate::arch::arm64::Instr;
 use crate::constants::{
@@ -38,6 +38,22 @@ impl WasmExpr {
                 this.call_func(JIT_READ_SYSREG_FUNC_INDEX);
             }),
         }
+        true
+    }
+
+    pub(super) fn emit_msr(&mut self, instr: Instr) -> bool {
+        if instr.imm as u16 != SYSREG_DAIF {
+            return false;
+        }
+        self.emit_write_pstate_with(|this| {
+            this.emit_read_pstate();
+            this.i64_const(!PSTATE_DAIF_MASK);
+            this.op(OP_I64_AND);
+            this.emit_read_reg(instr.rd, true);
+            this.i64_const(PSTATE_DAIF_MASK);
+            this.op(OP_I64_AND);
+            this.op(OP_I64_OR);
+        });
         true
     }
 

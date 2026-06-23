@@ -127,6 +127,7 @@ impl WasmExpr {
             }
             Opcode::Ldar | Opcode::Ldr | Opcode::LdrSign => self.emit_memory_load(instr),
             Opcode::Mrs => self.emit_mrs(instr),
+            Opcode::Msr => self.emit_msr(instr),
             Opcode::Adr => {
                 let target = (pc as i64 + instr.imm as i64) as u64;
                 self.emit_write_reg_with(instr.rd, true, |this| this.i64_const(target));

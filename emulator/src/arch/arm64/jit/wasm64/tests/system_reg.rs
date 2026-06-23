@@ -25,6 +25,21 @@ fn compiles_mrs_with_sysreg_helper_import() {
 }
 
 #[test]
+fn compiles_observed_msr_daif_as_pstate_update() {
+    let instr = crate::arch::arm64::decode(0xd51b_4233).expect("decode observed MSR DAIF");
+    assert_eq!(instr.op, Opcode::Msr);
+    assert_eq!((instr.rd, instr.imm as u16), (19, SYSREG_DAIF));
+
+    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MSR DAIF");
+
+    assert_eq!(module.guest_instr_count, 1);
+    assert!(!module.uses_guest_helpers);
+    assert!(!run_body_contains_call(&module.bytes));
+    assert!(module.bytes.contains(&opcodes::OP_I64_AND));
+    assert!(module.bytes.contains(&opcodes::OP_I64_OR));
+}
+
+#[test]
 fn compiles_observed_mrs_tpidr_el0() {
     let cases = [(0xd53b_d042, 2, SYSREG_TPIDR_EL0)];
     for (raw, rd, sysreg) in cases {
