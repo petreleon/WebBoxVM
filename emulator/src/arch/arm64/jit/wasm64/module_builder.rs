@@ -15,7 +15,7 @@ const QUAD_LOAD_HELPER_TYPE_INDEX: u32 = 9;
 const RUN_FUNC_INDEX: u32 = 10;
 
 pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
-    let mut module = Vec::new();
+    let mut module = Vec::with_capacity(expr.len() + 320);
     module.extend_from_slice(b"\0asm");
     module.extend_from_slice(&[1, 0, 0, 0]);
     append_section(&mut module, SECTION_TYPE, type_section());
@@ -27,7 +27,7 @@ pub(super) fn build_module(expr: Vec<u8>) -> Vec<u8> {
 }
 
 fn type_section() -> Vec<u8> {
-    let mut section = Vec::new();
+    let mut section = Vec::with_capacity(80);
     encode_u32(&mut section, 10);
     append_func_type(&mut section, &[TYPE_I64, TYPE_I32], &[TYPE_I64]);
     append_func_type(&mut section, &[TYPE_I64, TYPE_I32, TYPE_I64], &[]);
@@ -63,7 +63,7 @@ fn append_func_type(section: &mut Vec<u8>, params: &[u8], results: &[u8]) {
 }
 
 fn import_section() -> Vec<u8> {
-    let mut section = Vec::new();
+    let mut section = Vec::with_capacity(256);
     encode_u32(&mut section, 11);
     encode_name(&mut section, "env");
     encode_name(&mut section, "memory");
@@ -114,14 +114,14 @@ fn import_section() -> Vec<u8> {
 }
 
 fn function_section() -> Vec<u8> {
-    let mut section = Vec::new();
+    let mut section = Vec::with_capacity(2);
     encode_u32(&mut section, 1);
     encode_u32(&mut section, RUN_TYPE_INDEX);
     section
 }
 
 fn export_section() -> Vec<u8> {
-    let mut section = Vec::new();
+    let mut section = Vec::with_capacity(8);
     encode_u32(&mut section, 1);
     encode_name(&mut section, "run");
     section.push(EXPORT_FUNC);
@@ -130,13 +130,13 @@ fn export_section() -> Vec<u8> {
 }
 
 fn code_section(expr: Vec<u8>) -> Vec<u8> {
-    let mut body = Vec::new();
+    let mut body = Vec::with_capacity(expr.len() + 8);
     encode_u32(&mut body, 1);
     encode_u32(&mut body, SCRATCH_I64_LOCALS);
     body.push(TYPE_I64);
     body.extend_from_slice(&expr);
 
-    let mut section = Vec::new();
+    let mut section = Vec::with_capacity(body.len() + 6);
     encode_u32(&mut section, 1);
     encode_u32(&mut section, body.len() as u32);
     section.extend_from_slice(&body);
