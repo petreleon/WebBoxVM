@@ -1,5 +1,5 @@
 # WebBoxVM — Sprint History
 
-Done: ISO boot + OPFS disk + WS NAT.
+Done: WS NAT install -> OPFS disk boot -> Debian ttyAMA0 login.
 
-Current: finish install; boot saved disk.
+Current: speed + ARM64/JIT semantics.
