@@ -1,3 +1,4 @@
+use super::lookup::block_page;
 use super::*;
 
 pub(super) fn read_entry_valid(
@@ -9,7 +10,7 @@ pub(super) fn read_entry_valid(
 ) -> bool {
     entry.valid
         && entry.epoch == epoch
-        && entry.va_page == page
+        && entry.va_page == block_page(page, entry.page_mask)
         && entry.context == context
         && read_descriptor_current(entry, mem)
 }
@@ -23,7 +24,7 @@ pub(super) fn read_entry_valid_read_only(
 ) -> bool {
     entry.valid
         && entry.epoch == epoch
-        && entry.va_page == page
+        && entry.va_page == block_page(page, entry.page_mask)
         && entry.context == context
         && read_descriptor_current_read_only(entry, mem)
 }
@@ -37,7 +38,7 @@ pub(super) fn write_entry_valid(
 ) -> bool {
     entry.valid
         && entry.epoch == epoch
-        && entry.va_page == page
+        && entry.va_page == block_page(page, entry.page_mask)
         && entry.context == context
         && write_descriptor_current(entry, mem)
 }
@@ -86,6 +87,7 @@ mod tests {
             valid: true,
             va_page: 1,
             pa_page: 2,
+            page_mask: 0,
             context,
             desc_addr,
             desc_generation: mem.page_generation(desc_addr).unwrap(),
@@ -112,6 +114,7 @@ mod tests {
             valid: true,
             va_page: 1,
             pa_page: 2,
+            page_mask: 0,
             context,
             desc_addr,
             desc_generation: mem.page_generation(desc_addr).unwrap(),

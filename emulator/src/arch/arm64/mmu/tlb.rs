@@ -1,14 +1,18 @@
 use super::*;
 
+mod lookup;
+#[cfg(test)]
+mod tests;
 mod validate;
-use validate::*;
+use lookup::{block_page, tlb_index};
 
-/// A single TLB entry at page granularity.
+/// A single TLB entry for a page or block descriptor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TlbEntry {
     pub valid: bool,
     pub va_page: u64,
     pub pa_page: u64,
+    page_mask: u64,
     context: TlbContext,
     desc_addr: u64,
     desc_generation: u64,
@@ -21,6 +25,7 @@ struct WriteTlbEntry {
     valid: bool,
     va_page: u64,
     pa_page: u64,
+    page_mask: u64,
     context: TlbContext,
     desc_addr: u64,
     desc_generation: u64,
@@ -52,63 +57,15 @@ impl Tlb {
         }
     }
 
-    pub(super) fn lookup(
-        &mut self,
-        mem: &PhysicalMemory,
-        va: u64,
-        context: TlbContext,
-    ) -> Option<u64> {
-        let page = va >> PAGE_SHIFT;
-        let idx = (page & TLB_INDEX_MASK) as usize;
-        let entry = &mut self.entries[idx];
-        if read_entry_valid(entry, mem, page, context, self.epoch) {
-            Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
-        } else {
-            None
-        }
-    }
-
-    pub(super) fn lookup_read_only(
-        &self,
-        mem: &PhysicalMemory,
-        va: u64,
-        context: TlbContext,
-    ) -> Option<u64> {
-        let page = va >> PAGE_SHIFT;
-        let idx = (page & TLB_INDEX_MASK) as usize;
-        let entry = &self.entries[idx];
-        if read_entry_valid_read_only(entry, mem, page, context, self.epoch) {
-            Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
-        } else {
-            None
-        }
-    }
-
-    pub(super) fn lookup_write(
-        &mut self,
-        mem: &PhysicalMemory,
-        va: u64,
-        current_el: u8,
-        context: TlbContext,
-    ) -> Option<u64> {
-        let page = va >> PAGE_SHIFT;
-        let idx = (page & TLB_INDEX_MASK) as usize;
-        let entry = &mut self.write_entries[idx];
-        let el_allowed = current_el != 0 || entry.el0_accessible;
-        if write_entry_valid(entry, mem, page, context, self.epoch) && el_allowed {
-            Some((entry.pa_page << PAGE_SHIFT) | (va & PAGE_OFFSET_MASK))
-        } else {
-            None
-        }
-    }
-
     pub(super) fn insert(&mut self, va: u64, pa: u64, meta: TlbInsert) {
         let page = va >> PAGE_SHIFT;
-        let idx = (page & TLB_INDEX_MASK) as usize;
+        let page_base = block_page(page, meta.page_mask);
+        let idx = tlb_index(page_base);
         self.entries[idx] = TlbEntry {
             valid: true,
-            va_page: page,
-            pa_page: pa >> PAGE_SHIFT,
+            va_page: page_base,
+            pa_page: block_page(pa >> PAGE_SHIFT, meta.page_mask),
+            page_mask: meta.page_mask,
             context: meta.context,
             desc_addr: meta.desc_addr,
             desc_generation: meta.desc_generation,
@@ -119,11 +76,13 @@ impl Tlb {
 
     pub(super) fn insert_write(&mut self, va: u64, pa: u64, meta: TlbInsert, el0_accessible: bool) {
         let page = va >> PAGE_SHIFT;
-        let idx = (page & TLB_INDEX_MASK) as usize;
+        let page_base = block_page(page, meta.page_mask);
+        let idx = tlb_index(page_base);
         self.write_entries[idx] = WriteTlbEntry {
             valid: true,
-            va_page: page,
-            pa_page: pa >> PAGE_SHIFT,
+            va_page: page_base,
+            pa_page: block_page(pa >> PAGE_SHIFT, meta.page_mask),
+            page_mask: meta.page_mask,
             context: meta.context,
             desc_addr: meta.desc_addr,
             desc_generation: meta.desc_generation,
@@ -160,6 +119,7 @@ pub(super) struct TlbInsert {
     pub(super) desc_addr: u64,
     pub(super) desc_generation: u64,
     pub(super) memory_generation: u64,
+    pub(super) page_mask: u64,
 }
 
 pub(super) fn descriptor_generation(mem: &PhysicalMemory, desc_addr: u64) -> Option<u64> {

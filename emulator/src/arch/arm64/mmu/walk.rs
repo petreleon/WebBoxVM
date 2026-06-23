@@ -5,14 +5,16 @@ pub(super) struct WalkResult {
     pub pa: u64,
     pub desc: u64,
     pub desc_addr: u64,
+    pub page_mask: u64,
 }
 
 impl WalkResult {
-    fn new(pa: u64, desc: u64, desc_addr: u64) -> Self {
+    fn new(pa: u64, desc: u64, desc_addr: u64, page_mask: u64) -> Self {
         Self {
             pa,
             desc,
             desc_addr,
+            page_mask,
         }
     }
 }
@@ -39,6 +41,7 @@ pub(super) fn page_table_walk_with_desc(
                 (desc.raw & 0x0000_FFFF_C000_0000) | (va & (L1_BLOCK_SIZE - 1)),
                 desc.raw,
                 desc.addr,
+                block_page_mask(L1_BLOCK_SIZE),
             ));
         }
         table_base = desc.raw & DESC_ADDR_MASK;
@@ -51,6 +54,7 @@ pub(super) fn page_table_walk_with_desc(
                 (desc.raw & 0x0000_FFFF_FFE0_0000) | (va & (L2_BLOCK_SIZE - 1)),
                 desc.raw,
                 desc.addr,
+                block_page_mask(L2_BLOCK_SIZE),
             ));
         }
         table_base = desc.raw & DESC_ADDR_MASK;
@@ -64,7 +68,12 @@ pub(super) fn page_table_walk_with_desc(
         (desc.raw & DESC_ADDR_MASK) | (va & PAGE_OFFSET_MASK),
         desc.raw,
         desc.addr,
+        0,
     ))
+}
+
+fn block_page_mask(block_size: u64) -> u64 {
+    (block_size - 1) >> PAGE_SHIFT
 }
 
 fn walk_root(sys: &SystemRegisters, va: u64) -> (u64, u8) {
