@@ -164,10 +164,13 @@ pub(super) fn can_commit_jit_block_now(
         }
     }
 
+    if cpu.pstate.irq_masked() {
+        return Ok(());
+    }
     machine.bus.refresh_interrupts();
     let external_irq = machine.bus.gic.next_pending_enabled();
     let cpu_irq = cpu.sys.irq_pending && cpu.sys.last_irq_id != GIC_SPURIOUS_INTERRUPT as u32;
-    if !cpu.pstate.irq_masked() && (cpu_irq || external_irq.is_some()) {
+    if cpu_irq || external_irq.is_some() {
         return Err("JIT block crosses an unmasked pending IRQ boundary".to_string());
     }
     Ok(())

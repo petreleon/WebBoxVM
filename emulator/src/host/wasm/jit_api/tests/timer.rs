@@ -1,9 +1,12 @@
 use super::super::commit::{can_commit_jit_block_now, commit_jit_state};
 use crate::arch::arm64::jit::WasmJitCpuState;
 use crate::constants::{
-    RAM_BASE, TIMER_CTL_ENABLE, VBAR_IRQ_LOWER_EL_AARCH64, VIRTUAL_TIMER_IRQ_ID,
+    PL011_UART_IRQ_ID, RAM_BASE, TIMER_CTL_ENABLE, UART_BASE, UART_IMSC_OFFSET,
+    VBAR_IRQ_LOWER_EL_AARCH64, VIRTUAL_TIMER_IRQ_ID,
 };
 use crate::runtime::Machine;
+
+const UART_RX_IRQ_MASK: u64 = (1 << 4) | (1 << 6);
 
 #[test]
 fn commit_accepts_block_ending_on_timer_deadline() {
@@ -70,4 +73,31 @@ fn preflight_accepts_block_ending_on_timer_deadline() {
 
     can_commit_jit_block_now(&mut machine, 0, 4)
         .expect("exact timer boundary is still committable");
+}
+
+#[test]
+fn preflight_skips_interrupt_refresh_when_irqs_are_masked() {
+    let mut machine = Machine::new(1);
+    machine.cpus[0].pstate = machine.cpus[0].pstate.with_irq_masked(true);
+    machine.bus.gic.enable_interrupt(PL011_UART_IRQ_ID);
+    machine
+        .bus
+        .uart
+        .write(UART_BASE + UART_IMSC_OFFSET, 4, UART_RX_IRQ_MASK);
+    machine.bus.feed_uart_input("a");
+    machine.bus.clear_irq_pending(PL011_UART_IRQ_ID);
+
+    can_commit_jit_block_now(&mut machine, 0, 4).expect("masked IRQs cannot block JIT commit");
+
+    assert_eq!(machine.bus.gic.next_pending_enabled(), None);
+
+    machine.cpus[0].pstate = machine.cpus[0].pstate.with_irq_masked(false);
+    let err = can_commit_jit_block_now(&mut machine, 0, 4)
+        .expect_err("unmasked IRQs must still block JIT commit");
+
+    assert!(err.contains("unmasked pending IRQ"), "{err}");
+    assert_eq!(
+        machine.bus.gic.next_pending_enabled(),
+        Some(PL011_UART_IRQ_ID)
+    );
 }
