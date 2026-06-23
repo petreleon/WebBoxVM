@@ -30,6 +30,19 @@ test("background autosave throttles unchanged and recent generations", () => {
   assert.equal(disk.shouldAutosave(emulator), true);
 });
 
+test("default background autosave avoids startup snapshot churn", () => {
+  let now = 600_000 - 1;
+  const disk = new DiskPersistence({ now: () => now, store: fakeStore() });
+  const emulator = fakeEmulator();
+  disk.available = true;
+  emulator.generation = 1n;
+
+  assert.equal(disk.shouldAutosave(emulator), false);
+
+  now = 600_000;
+  assert.equal(disk.shouldAutosave(emulator), true);
+});
+
 test("background autosave skips while a snapshot is already saving", () => {
   const disk = new DiskPersistence({
     autosaveIntervalMs: 1000,

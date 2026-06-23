@@ -1,7 +1,7 @@
 import { OpfsDiskStore } from "./persistence-store.js";
 import { formatBytes } from "./utils.js";
 
-const AUTOSAVE_INTERVAL_MS = 60_000;
+const AUTOSAVE_INTERVAL_MS = 600_000;
 
 export class DiskPersistence {
   available = false;

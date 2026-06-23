@@ -62,6 +62,10 @@ test("metrics posting can reuse a caller timestamp", () => {
   }
 });
 
+test("worker autosave requests use a coarse disk-snapshot cadence", () => {
+  assert.equal(AUTOSAVE_INTERVAL_MS, 60_000);
+});
+
 test("routine metrics use a low-overhead ui cadence", () => {
   assert.equal(METRICS_INTERVAL_MS, 250);
 });

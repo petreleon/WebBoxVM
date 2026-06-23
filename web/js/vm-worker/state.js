@@ -1,4 +1,4 @@
-export const AUTOSAVE_INTERVAL_MS = 5000;
+export const AUTOSAVE_INTERVAL_MS = 60_000;
 export const AUTOSAVE_POLL_MS = 1000;
 export const DEFAULT_STEP_SLICE = 5_000_000;
 export const MAX_STEP_SLICE = 50_000_000;
