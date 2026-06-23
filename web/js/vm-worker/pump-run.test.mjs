@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
 import { createPumpTaskScheduler, schedulePump } from "./pump.js";
-import { DEFAULT_JIT_ENABLED, DEFAULT_STEP_SLICE, state } from "./state.js";
+import { DEFAULT_JIT_ENABLED, DEFAULT_STEP_SLICE, resetJitState, state } from "./state.js";
 
 const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;
@@ -11,12 +11,70 @@ afterEach(() => {
   globalThis.postMessage = previousPostMessage;
   state.emulator = undefined;
   state.jitEnabled = DEFAULT_JIT_ENABLED;
+  resetJitState();
   state.lastAutosavePollAt = 0;
   state.lastMetricsAt = 0;
   state.lastUartPollAt = 0;
   state.networkStatus = "offline";
   state.pumpScheduled = false;
   state.running = false;
+});
+
+test("cached jit pump path does not probe boolean then", async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(Boolean.prototype, "then");
+  let thenReads = 0;
+  let resolveRun;
+  const ran = new Promise((resolve) => (resolveRun = resolve));
+  Object.defineProperty(Boolean.prototype, "then", {
+    configurable: true,
+    get() {
+      thenReads += 1;
+      return undefined;
+    },
+  });
+  globalThis.performance = { now: () => 100 };
+  globalThis.postMessage = () => {};
+  state.jitEnabled = true;
+  state.jitBlocks.set(0x1000n, {
+    alternateExitPc: 0n,
+    dynamicExit: false,
+    exitPc: 0x1004n,
+    instance: { exports: { run: () => 0x1004n } },
+    rawHash: 1n,
+    startPageGeneration: 2n,
+    endPageGeneration: 3n,
+    startPa: 0x2000n,
+    startPc: 0x1000n,
+    statePtr: 0x3000n,
+    steps: 1,
+  });
+  state.lastAutosavePollAt = 10_000;
+  state.lastMetricsAt = 10_000;
+  state.lastUartPollAt = 10_000;
+  state.running = true;
+  state.emulator = {
+    jit_finish_cached_block: () => {
+      state.running = false;
+      resolveRun();
+      return 0;
+    },
+    jit_last_error: () => "",
+    jit_prepare_cached_block: () => true,
+    pc: () => 0x1000n,
+  };
+
+  try {
+    schedulePump();
+    await ran;
+
+    assert.equal(thenReads, 0);
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Boolean.prototype, "then", descriptor);
+    } else {
+      delete Boolean.prototype.then;
+    }
+  }
 });
 
 test("interpreter fallback reuses current batch timestamp before run", async () => {

@@ -67,7 +67,7 @@ async function runPump() {
         return;
       }
       let usedJit = tryRunOrCompileJitBlock(0, emulator);
-      if (usedJit?.then) {
+      if (usedJit !== true && usedJit !== false) {
         usedJit = await usedJit;
         if (!state.running) {
           return;
