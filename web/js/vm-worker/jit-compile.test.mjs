@@ -10,6 +10,7 @@ afterEach(() => {
   state.jitBlockHits = new Map();
   state.jitRejectedBlocks = new Set();
   state.jitSkippedBlocks = new Set();
+  state.jitStateSize = undefined;
 });
 
 test("compile jit block reuses caller pc on fallback", async () => {
@@ -70,6 +71,7 @@ test("compile jit block wires pair memory helper imports", async () => {
   let pairStoreArgs;
   let quadLoadArgs;
   let quadStoreArgs;
+  let stateSizeCalls = 0;
   const emulator = {
     jit_compile_current_block: () => new Uint8Array([1, 2, 3]),
     jit_last_block_alternate_exit_pc: () => 0x1004n,
@@ -85,7 +87,10 @@ test("compile jit block wires pair memory helper imports", async () => {
     jit_last_block_uses_guest_helpers: () =>
       assert.fail("unused skip metadata should not be read"),
     jit_state_ptr: () => 0x2000n,
-    jit_state_size: () => 512,
+    jit_state_size: () => {
+      stateSizeCalls += 1;
+      return 512;
+    },
     jit_load_pair_guest: (...args) => {
       pairLoadArgs = args;
       return [0xaabbn, 0xccddn];
@@ -114,8 +119,12 @@ test("compile jit block wires pair memory helper imports", async () => {
 
   try {
     const result = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
+    const cachedResult = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
 
     assert.equal(result.compiled, true);
+    assert.equal(result.stateSize, 512);
+    assert.equal(cachedResult.stateSize, 512);
+    assert.equal(stateSizeCalls, 1);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);
     assert.deepEqual(pairStoreArgs, [3, 0x10n, 8, 0x1122n, 0x3344n]);
     assert.deepEqual(quadLoadArgs, [3, 0x30n, 8]);

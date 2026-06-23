@@ -93,7 +93,7 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
     endPageGeneration,
     startPa,
     statePtr,
-    stateSize: owner.jit_state_size(),
+    stateSize: jitStateSize(owner),
     steps,
   };
 }
@@ -107,6 +107,11 @@ export function jitBlockKey(coreId, pc) {
 
 export function compiledJitBlockSkipReason(_metadata) {
   return undefined;
+}
+
+function jitStateSize(owner) {
+  state.jitStateSize ??= owner.jit_state_size();
+  return state.jitStateSize;
 }
 
 function evictOldestJitBlockIfNeeded() {
