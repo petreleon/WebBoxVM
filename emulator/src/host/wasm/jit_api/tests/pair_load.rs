@@ -42,6 +42,26 @@ fn jit_pair_load_forwards_pending_store_bytes() {
 }
 
 #[test]
+fn jit_pair_load_ignores_disjoint_pending_store() {
+    let mut machine = Machine::new(1);
+    machine
+        .bus
+        .mem
+        .write(RAM_BASE + 0x40, 8, 0x1122_3344_5566_7788);
+    machine
+        .bus
+        .mem
+        .write(RAM_BASE + 0x48, 8, 0x99aa_bbcc_ddee_ff00);
+    let bytes = 0xaabb_ccdd_u32.to_le_bytes();
+    let stores = [JitPendingStore::new(RAM_BASE + 0x80, &bytes)];
+
+    let values = jit_load_pair_guest_from_machine(&mut machine, 0, RAM_BASE + 0x40, 8, &stores)
+        .expect("disjoint staged store should not affect pair load");
+
+    assert_eq!(values, (0x1122_3344_5566_7788, 0x99aa_bbcc_ddee_ff00));
+}
+
+#[test]
 fn jit_pair_load_falls_back_across_noncontiguous_pages() {
     let mut machine = Machine::new(1);
     map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);

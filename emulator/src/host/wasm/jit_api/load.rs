@@ -5,6 +5,8 @@ use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
+use super::load_pending::{pending_store_byte, pending_stores_overlap_range};
+
 #[wasm_bindgen]
 impl Emulator {
     /// Read guest RAM for a generated JIT block.
@@ -81,7 +83,7 @@ where
     if overlaps_device(pa, size as usize) {
         return Err(format!("JIT load helper rejected device PA 0x{pa:016x}"));
     }
-    if pending_stores.is_empty() {
+    if !pending_stores_overlap_range(pending_stores, pa, size as usize) {
         return mem
             .read(pa, size)
             .ok_or_else(|| format!("JIT load helper unreadable PA 0x{pa:016x}"));
@@ -114,7 +116,7 @@ where
     }
 
     let mut values = [0; LANES];
-    if pending_stores.is_empty() {
+    if !pending_stores_overlap_range(pending_stores, pa, len) {
         let mut bytes = [0u8; 32];
         let window = &mut bytes[..len];
         mem.read_bytes(pa, window)
@@ -151,17 +153,6 @@ pub(super) fn read_guest_byte(
     pending_store_byte(pending_stores, pa)
         .or_else(|| mem.read(pa, 1))
         .ok_or_else(|| format!("JIT load helper unreadable PA 0x{pa:016x}"))
-}
-
-fn pending_store_byte(pending_stores: &[JitPendingStore], pa: u64) -> Option<u64> {
-    pending_stores.iter().rev().find_map(|store| {
-        let offset = pa.checked_sub(store.pa)?;
-        if offset < store.len as u64 {
-            Some(store.bytes[offset as usize] as u64)
-        } else {
-            None
-        }
-    })
 }
 
 pub(super) fn translate_load(

@@ -39,6 +39,24 @@ fn jit_quad_load_forwards_pending_store_bytes() {
 }
 
 #[test]
+fn jit_quad_load_ignores_disjoint_pending_store() {
+    let mut machine = Machine::new(1);
+    for index in 0..4 {
+        machine
+            .bus
+            .mem
+            .write(RAM_BASE + 0x40 + index * 8, 8, 0x1000 + index as u64);
+    }
+    let bytes = 0xaabb_ccdd_u32.to_le_bytes();
+    let stores = [JitPendingStore::new(RAM_BASE + 0x90, &bytes)];
+
+    let values = jit_load_quad_guest_from_machine(&mut machine, 0, RAM_BASE + 0x40, 8, &stores)
+        .expect("disjoint staged store should not affect quad load");
+
+    assert_eq!(values, [0x1000, 0x1001, 0x1002, 0x1003]);
+}
+
+#[test]
 fn jit_quad_load_falls_back_across_noncontiguous_pages() {
     let mut machine = Machine::new(1);
     map_two_ttbr0_pages(&mut machine, RAM_BASE + 0x3000, RAM_BASE + 0x8000);
