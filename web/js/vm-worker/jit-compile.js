@@ -18,12 +18,13 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
   }
 
   const key = jitBlockKey(coreId, pc);
-  const steps = owner.jit_last_block_steps();
-  const startPc = owner.jit_last_block_start_pc();
-  const startPa = owner.jit_last_block_start_pa();
-  const exitPc = owner.jit_last_block_exit_pc();
-  const alternateExitPc = owner.jit_last_block_alternate_exit_pc();
-  const dynamicExit = owner.jit_last_block_dynamic_exit();
+  const metadata = readJitBlockMetadata(owner);
+  const steps = Number(metadata[0]);
+  const startPc = metadata[1];
+  const startPa = metadata[2];
+  const exitPc = metadata[3];
+  const alternateExitPc = metadata[4];
+  const dynamicExit = metadata[5] !== 0n;
   const skipReason = compiledJitBlockSkipReason();
   if (skipReason) {
     return {
@@ -33,9 +34,9 @@ export async function compileJitBlock({ coreId = 0, pc: knownPc, emulator: owner
       skipped: true,
     };
   }
-  const rawHash = owner.jit_last_block_raw_hash();
-  const startPageGeneration = owner.jit_last_block_start_page_generation();
-  const endPageGeneration = owner.jit_last_block_end_page_generation();
+  const rawHash = metadata[6];
+  const startPageGeneration = metadata[7];
+  const endPageGeneration = metadata[8];
   const statePtr = owner.jit_state_ptr();
   const { instance, module } = await WebAssembly.instantiate(bytes, {
     env: {
@@ -107,6 +108,10 @@ export function jitBlockKey(coreId, pc) {
 
 export function compiledJitBlockSkipReason(_metadata) {
   return undefined;
+}
+
+function readJitBlockMetadata(owner) {
+  return owner.jit_last_block_metadata();
 }
 
 function jitStateSize(owner) {

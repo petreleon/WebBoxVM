@@ -72,18 +72,24 @@ test("compile jit block wires pair memory helper imports", async () => {
   let quadLoadArgs;
   let quadStoreArgs;
   let stateSizeCalls = 0;
+  let metadataCalls = 0;
+  const unusedMetadata = () => assert.fail("packed JIT metadata should be used");
   const emulator = {
     jit_compile_current_block: () => new Uint8Array([1, 2, 3]),
-    jit_last_block_alternate_exit_pc: () => 0x1004n,
-    jit_last_block_dynamic_exit: () => false,
+    jit_last_block_alternate_exit_pc: unusedMetadata,
+    jit_last_block_dynamic_exit: unusedMetadata,
     jit_last_block_el: () => assert.fail("unused skip metadata should not be read"),
-    jit_last_block_end_page_generation: () => 0n,
-    jit_last_block_exit_pc: () => 0x1004n,
-    jit_last_block_raw_hash: () => 7n,
-    jit_last_block_start_pa: () => 0x4000_1000n,
-    jit_last_block_start_page_generation: () => 0n,
-    jit_last_block_start_pc: () => 0x1000n,
-    jit_last_block_steps: () => 1,
+    jit_last_block_end_page_generation: unusedMetadata,
+    jit_last_block_exit_pc: unusedMetadata,
+    jit_last_block_metadata: () => {
+      metadataCalls += 1;
+      return [1n, 0x1000n, 0x4000_1000n, 0x1004n, 0x1004n, 0n, 7n, 0n, 0n];
+    },
+    jit_last_block_raw_hash: unusedMetadata,
+    jit_last_block_start_pa: unusedMetadata,
+    jit_last_block_start_page_generation: unusedMetadata,
+    jit_last_block_start_pc: unusedMetadata,
+    jit_last_block_steps: unusedMetadata,
     jit_last_block_uses_guest_helpers: () =>
       assert.fail("unused skip metadata should not be read"),
     jit_state_ptr: () => 0x2000n,
@@ -124,6 +130,7 @@ test("compile jit block wires pair memory helper imports", async () => {
     assert.equal(result.compiled, true);
     assert.equal(result.stateSize, 512);
     assert.equal(cachedResult.stateSize, 512);
+    assert.equal(metadataCalls, 2);
     assert.equal(stateSizeCalls, 1);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);
     assert.deepEqual(pairStoreArgs, [3, 0x10n, 8, 0x1122n, 0x3344n]);

@@ -12,6 +12,7 @@ use super::commit::commit_jit_state;
 
 mod exclusive;
 mod finish;
+mod metadata;
 mod pair_load;
 mod pair_store;
 mod prepare;
