@@ -15,4 +15,4 @@ History: [sprint-history.md](sprint-history.md).
 - Speed only: `Boot disk` reaches Debian 13 `ttyAMA0` login in 594.3s.
 
 ## Done
-- [x] WS NAT + installer + OPFS disk boot -> Debian login.
+- [x] Browser NAT + Debian disk boot reaches login.
