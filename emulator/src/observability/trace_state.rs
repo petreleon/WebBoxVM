@@ -21,6 +21,7 @@ pub(crate) struct TraceOptions {
     pub chase_assert: bool,
     pub path_extend: bool,
     pub pc_range: bool,
+    pub progress: bool,
 }
 
 impl TraceOptions {
@@ -43,6 +44,7 @@ impl TraceOptions {
             chase_assert: env_flag("WEBBOXVM_TRACE_CHASE_ASSERT"),
             path_extend: env_flag("WEBBOXVM_TRACE_PATH_EXTEND"),
             pc_range: env_flag("WEBBOXVM_TRACE_PC_RANGE"),
+            progress: env_flag("WEBBOXVM_TRACE_PROGRESS"),
         }
     }
 
@@ -120,6 +122,7 @@ mod tests {
         assert!(!options.has_fetch_hooks());
         assert!(!options.has_instruction_hooks());
         assert!(!options.has_syscall_return_hooks());
+        assert!(!options.progress);
     }
 
     #[test]
@@ -152,5 +155,17 @@ mod tests {
             }
             .has_syscall_return_hooks()
         );
+    }
+
+    #[test]
+    fn progress_trace_is_not_a_hot_loop_hook_group() {
+        let options = TraceOptions {
+            progress: true,
+            ..TraceOptions::default()
+        };
+
+        assert!(!options.has_fetch_hooks());
+        assert!(!options.has_instruction_hooks());
+        assert!(!options.has_syscall_return_hooks());
     }
 }

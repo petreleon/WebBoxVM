@@ -12,10 +12,11 @@ impl Machine {
         let trace_fetch_hooks = trace_options.has_fetch_hooks();
         let trace_instruction_hooks = trace_options.has_instruction_hooks();
         let trace_syscall_returns = trace_options.has_syscall_return_hooks();
+        let trace_progress = trace_options.progress;
 
         while self.total_steps < end_steps {
             let core = self.active_core;
-            if self.total_steps >= next_report_at {
+            if trace_progress && self.total_steps >= next_report_at {
                 self.report_progress(start_steps, &mut next_report_at, core);
             }
 
