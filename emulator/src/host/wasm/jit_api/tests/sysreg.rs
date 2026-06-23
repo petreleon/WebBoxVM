@@ -1,8 +1,8 @@
 use super::super::sysreg::jit_read_sysreg_from_machine;
 use crate::constants::{
     DCZID_EL0_VAL, PSTATE_DAIF_MASK, PSTATE_EL_SHIFT, SYSREG_CNTVCT_EL0, SYSREG_CURRENTEL,
-    SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_SPSR_EL1,
-    SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
+    SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ESR_EL1, SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0,
+    SYSREG_SPSR_EL1, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
 };
 use crate::runtime::Machine;
 
@@ -38,6 +38,7 @@ fn jit_read_sysreg_reads_kernel_thread_and_mmu_registers() {
     machine.cpus[0].sys.tpidr_el1 = 0x1111_2222_3333_4444;
     machine.cpus[0].sys.tcr_el1 = 0x5555_6666_7777_8888;
     machine.cpus[0].sys.spsr_el1 = 0x9999_aaaa_bbbb_cccc;
+    machine.cpus[0].sys.esr_el1 = 0x1357_2468_abcd_ef01;
 
     let tpidr = jit_read_sysreg_from_machine(&mut machine, 0, SYSREG_TPIDR_EL1)
         .expect("JIT sysreg helper should read TPIDR_EL1");
@@ -45,10 +46,13 @@ fn jit_read_sysreg_reads_kernel_thread_and_mmu_registers() {
         .expect("JIT sysreg helper should read TCR_EL1");
     let spsr = jit_read_sysreg_from_machine(&mut machine, 0, SYSREG_SPSR_EL1)
         .expect("JIT sysreg helper should read SPSR_EL1");
+    let esr = jit_read_sysreg_from_machine(&mut machine, 0, SYSREG_ESR_EL1)
+        .expect("JIT sysreg helper should read ESR_EL1");
 
     assert_eq!(tpidr, 0x1111_2222_3333_4444);
     assert_eq!(tcr, 0x5555_6666_7777_8888);
     assert_eq!(spsr, 0x9999_aaaa_bbbb_cccc);
+    assert_eq!(esr, 0x1357_2468_abcd_ef01);
 }
 
 #[test]

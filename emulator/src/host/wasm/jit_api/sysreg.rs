@@ -1,7 +1,7 @@
 use crate::constants::{
     SYSREG_CNTPCT_EL0, SYSREG_CNTVCT_EL0, SYSREG_CURRENTEL, SYSREG_DAIF, SYSREG_DCZID_EL0,
-    SYSREG_SP_EL0, SYSREG_SPSR_EL1, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1,
-    SYSREG_TPIDRRO_EL0,
+    SYSREG_ESR_EL1, SYSREG_SP_EL0, SYSREG_SPSR_EL1, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0,
+    SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
 };
 use crate::host::wasm::Emulator;
 use crate::runtime::Machine;
@@ -49,6 +49,7 @@ pub(super) fn jit_read_sysreg_from_machine(
             | SYSREG_TPIDR_EL1
             | SYSREG_TPIDRRO_EL0
             | SYSREG_SPSR_EL1
+            | SYSREG_ESR_EL1
             | SYSREG_CURRENTEL
             | SYSREG_DCZID_EL0
             | SYSREG_CNTPCT_EL0
