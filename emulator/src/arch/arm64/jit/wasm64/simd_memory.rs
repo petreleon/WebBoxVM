@@ -4,6 +4,9 @@ use super::*;
 use crate::arch::arm64::{Instr, Opcode};
 
 const JIT_LOAD_GUEST_FUNC_INDEX: u32 = 0;
+const JIT_LOAD_PAIR_GUEST_FUNC_INDEX: u32 = 7;
+const SIMD_LOW_LOCAL: u32 = 3;
+const SIMD_HIGH_LOCAL: u32 = 4;
 const SIMD_POST_INDEX_IMM: u8 = 0xfe;
 
 impl WasmExpr {
@@ -23,10 +26,10 @@ impl WasmExpr {
             return false;
         }
         let writeback = self.emit_simd_structure_address(instr);
-        self.emit_load_simd_half(instr.rd, false, 0);
         if instr.size == 16 {
-            self.emit_load_simd_half(instr.rd, true, 8);
+            self.emit_load_simd_q(instr.rd, 0);
         } else {
+            self.emit_load_simd_half(instr.rd, false, 0);
             self.emit_write_simd_half_with(instr.rd, true, |this| this.i64_const(0));
         }
         if writeback {
@@ -47,8 +50,7 @@ impl WasmExpr {
         for register_index in 0..2 {
             let reg = instr.rd.wrapping_add(register_index) & 31;
             let offset = register_index as u64 * 16;
-            self.emit_load_simd_half(reg, false, offset);
-            self.emit_load_simd_half(reg, true, offset + 8);
+            self.emit_load_simd_q(reg, offset);
         }
         true
     }
@@ -58,10 +60,8 @@ impl WasmExpr {
             return false;
         }
         let writeback = self.emit_simd_pair_address(instr);
-        self.emit_load_simd_half(instr.rd, false, 0);
-        self.emit_load_simd_half(instr.rd, true, 8);
-        self.emit_load_simd_half(instr.rm, false, 16);
-        self.emit_load_simd_half(instr.rm, true, 24);
+        self.emit_load_simd_q(instr.rd, 0);
+        self.emit_load_simd_q(instr.rm, 16);
         if writeback {
             self.emit_write_reg_sp_with(instr.rn, true, |this| {
                 this.local_get(WRITEBACK_LOCAL);
@@ -77,8 +77,7 @@ impl WasmExpr {
         let Some(writeback) = self.emit_memory_address(instr) else {
             return false;
         };
-        self.emit_load_simd_half(instr.rd, false, 0);
-        self.emit_load_simd_half(instr.rd, true, 8);
+        self.emit_load_simd_q(instr.rd, 0);
         if writeback {
             self.emit_write_reg_sp_with(instr.rn, true, |this| {
                 this.local_get(WRITEBACK_LOCAL);
@@ -121,6 +120,16 @@ impl WasmExpr {
             this.i32_const(8);
             this.call_func(JIT_LOAD_GUEST_FUNC_INDEX);
         });
+    }
+
+    fn emit_load_simd_q(&mut self, reg: u8, offset: u64) {
+        self.emit_guest_addr(offset);
+        self.i32_const(8);
+        self.call_func(JIT_LOAD_PAIR_GUEST_FUNC_INDEX);
+        self.local_set(SIMD_HIGH_LOCAL);
+        self.local_set(SIMD_LOW_LOCAL);
+        self.emit_write_simd_half_with(reg, false, |this| this.local_get(SIMD_LOW_LOCAL));
+        self.emit_write_simd_half_with(reg, true, |this| this.local_get(SIMD_HIGH_LOCAL));
     }
 
     fn emit_guest_addr(&mut self, offset: u64) {
