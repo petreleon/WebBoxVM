@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
+import { compileJitBlock, compileJitBlockEntry, jitBlockKey } from "./jit-compile.js";
 import { state } from "./state.js";
 
 afterEach(() => {
@@ -134,12 +134,7 @@ test("compile jit block wires pair memory helper imports", async () => {
   try {
     const result = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
     const cachedResult = await compileJitBlock({ coreId: 3, pc: 0x1000n, emulator });
-    const compactResult = await compileJitBlock({
-      coreId: 3,
-      pc: 0x1000n,
-      emulator,
-      details: false,
-    });
+    const compactResult = await compileJitBlockEntry(3, 0x1000n, emulator);
 
     assert.equal(result.compiled, true);
     assert.equal(result.statePtr, 0x2000n);

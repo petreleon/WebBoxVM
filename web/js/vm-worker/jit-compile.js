@@ -8,6 +8,15 @@ export async function compileJitBlock({
   details = true,
 } = {}) {
   owner ||= requireEmulator();
+  return compileJitBlockFor(owner, coreId, knownPc, details);
+}
+
+export async function compileJitBlockEntry(coreId = 0, knownPc, owner) {
+  owner ||= requireEmulator();
+  return compileJitBlockFor(owner, coreId, knownPc, false);
+}
+
+async function compileJitBlockFor(owner, coreId, knownPc, details) {
   if (!state.wasmExports?.memory) {
     throw new Error("Wasm memory export is unavailable for JIT blocks");
   }
