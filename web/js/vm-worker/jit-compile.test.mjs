@@ -128,7 +128,7 @@ test("compile jit block wires pair memory helper imports", async () => {
     imports.env.jitStorePairGuest(0x10n, 8, 0x1122n, 0x3344n);
     assert.deepEqual(imports.env.jitLoadQuadGuest(0x30n, 8), [1n, 2n, 3n, 4n]);
     imports.env.jitStoreQuadGuest(0x40n, 8, 1n, 2n, 3n, 4n);
-    return { instance: {}, module: {} };
+    return { instance: { exports: { run: () => 0x1004n } }, module: {} };
   };
 
   try {
@@ -142,7 +142,10 @@ test("compile jit block wires pair memory helper imports", async () => {
     assert.equal(result.stateSize, 512);
     assert.equal(cachedResult.stateSize, 512);
     assert.equal(importObjects[0], importObjects[1]);
-    assert.equal(state.jitBlocks.get("3:1000").module, undefined);
+    const entry = state.jitBlocks.get("3:1000");
+    assert.equal(entry.instance, undefined);
+    assert.equal(entry.module, undefined);
+    assert.equal(typeof entry.run, "function");
     assert.equal(metadataCalls, 2);
     assert.equal(stateSizeCalls, 1);
     assert.deepEqual(pairLoadArgs, [3, 0x20n, 8]);

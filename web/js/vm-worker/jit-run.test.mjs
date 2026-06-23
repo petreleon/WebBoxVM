@@ -13,12 +13,8 @@ function cachedEntry() {
     alternateExitPc: 0n,
     dynamicExit: false,
     exitPc: 0x1010n,
-    instance: {
-      exports: {
-        run: () => 0x1010n,
-      },
-    },
     rawHash: 1n,
+    run: () => 0x1010n,
     startPageGeneration: 2n,
     endPageGeneration: 3n,
     startPa: 0x2000n,
@@ -41,7 +37,7 @@ test("prepare failure falls back without running cached jit", () => {
   };
 
   const entry = cachedEntry();
-  entry.instance.exports.run = () => {
+  entry.run = () => {
     ran = true;
     return 0x1010n;
   };
@@ -71,7 +67,7 @@ test("cached jit prepare receives metadata and run uses cached state pointer", (
     pc: () => 0x1000n,
   };
   const entry = cachedEntry();
-  entry.instance.exports.run = (statePtr) => {
+  entry.run = (statePtr) => {
     runStatePtr = statePtr;
     return 0x1010n;
   };

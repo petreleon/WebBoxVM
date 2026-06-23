@@ -13,8 +13,8 @@ function cachedEntry() {
     alternateExitPc: 0n,
     dynamicExit: false,
     exitPc: 0x1010n,
-    instance: { exports: { run: () => 0x1010n } },
     rawHash: 1n,
+    run: () => 0x1010n,
     startPageGeneration: 2n,
     endPageGeneration: 3n,
     startPa: 0x2000n,
@@ -33,7 +33,7 @@ test("cached jit fast path returns true on commit", () => {
     pc: () => 0x1000n,
   };
   const entry = cachedEntry();
-  entry.instance.exports.run = (statePtr) => {
+  entry.run = (statePtr) => {
     runStatePtr = statePtr;
     return 0x1010n;
   };

@@ -58,7 +58,7 @@ function runCachedJitBlockCore(coreId, key, entry, pc, emulator, fastResult) {
     return result;
   }
 
-  const exitPc = entry.instance.exports.run(entry.statePtr);
+  const exitPc = entry.run(entry.statePtr);
   const finish = emulator.jit_finish_cached_block(
     coreId,
     entry.steps,
