@@ -29,4 +29,5 @@ vmlinuz
 *.wbdz
 assets/busybox-aarch64
 pkg/
+pkg-threaded/
 *.wasm

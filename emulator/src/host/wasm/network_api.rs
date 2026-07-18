@@ -4,16 +4,18 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 impl Emulator {
     pub fn inject_network_frame(&mut self, frame: Vec<u8>) -> bool {
+        let _access = self.require_parallel_idle();
         if let Some(ref mut boot) = self.boot {
-            boot.machine.bus.inject_network_frame(&frame);
+            boot.machine.inject_network_frame(&frame);
             true
         } else {
-            self.machine.bus.inject_network_frame(&frame);
+            self.machine.inject_network_frame(&frame);
             true
         }
     }
 
     pub fn network_tx_frame(&mut self) -> Vec<u8> {
+        let _access = self.require_parallel_idle();
         if let Some(ref mut boot) = self.boot {
             boot.machine
                 .bus
@@ -30,6 +32,7 @@ impl Emulator {
     }
 
     pub fn network_tx_pending(&self) -> usize {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.machine.bus.virtio_net.pending_tx_frames()
         } else {
@@ -38,6 +41,7 @@ impl Emulator {
     }
 
     pub fn network_rx_pending(&self) -> usize {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.machine.bus.virtio_net.pending_rx_frames()
         } else {
@@ -46,6 +50,7 @@ impl Emulator {
     }
 
     pub fn network_rx_packets(&self) -> u64 {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.machine.bus.virtio_net.rx_packet_count()
         } else {
@@ -54,6 +59,7 @@ impl Emulator {
     }
 
     pub fn network_tx_packets(&self) -> u64 {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.machine.bus.virtio_net.tx_packet_count()
         } else {

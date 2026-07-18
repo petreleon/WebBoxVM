@@ -3,8 +3,12 @@ use super::*;
 impl Machine {
     pub(super) fn finish_core(&mut self, core: usize, num_cores: usize) {
         self.total_steps += 1;
-        let next = core + 1;
-        self.active_core = if next == num_cores { 0 } else { next };
+        self.virtual_time = self
+            .virtual_time
+            .saturating_add(1)
+            .max(self.cpus[core].sys.cycle_count);
+        let next = if core + 1 == num_cores { 0 } else { core + 1 };
+        self.active_core = self.find_runnable_from(next).unwrap_or(next);
     }
 
     pub(super) fn report_progress(&self, start_steps: u64, next_report_at: &mut u64, core: usize) {
@@ -77,13 +81,13 @@ impl Machine {
     }
 
     pub(super) fn deliver_irq(&mut self, core: usize) {
-        if !self.bus.external_irq_poll_needed() {
+        if !self.bus.external_irq_poll_needed_for_cpu(core) {
             return;
         }
         self.bus.refresh_interrupts();
-        if !self.bus.external_irq_poll_needed() {
+        if !self.bus.external_irq_poll_needed_for_cpu(core) {
             return;
         }
-        deliver_external_irq(&mut self.cpus[core], &mut self.bus);
+        deliver_external_irq(&mut self.cpus[core], &mut self.bus, core);
     }
 }

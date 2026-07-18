@@ -40,7 +40,7 @@ impl SystemRegisters {
             SYSREG_SPSR_EL2 => self.spsr_el2,
             SYSREG_ELR_EL2 => self.elr_el2,
             SYSREG_MIDR_EL1 => MIDR_CORTEX_A72_R0P3,
-            SYSREG_MPIDR_EL1 => MPIDR_SINGLE_CORE,
+            SYSREG_MPIDR_EL1 => self.mpidr_el1,
             SYSREG_CURRENTEL => (current_el as u64) << PSTATE_EL_SHIFT,
             SYSREG_ID_AA64PFR0_EL1 => ID_AA64PFR0_EL1_VAL,
             SYSREG_ID_AA64PFR1_EL1

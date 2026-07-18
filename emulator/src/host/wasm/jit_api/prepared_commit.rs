@@ -48,6 +48,7 @@ fn commit_prepared_jit_state(
     let cycle_count = cpu.sys.cycle_count;
     state.copy_to_cpu(cpu);
     cpu.sys.cycle_count = cycle_count.wrapping_add(steps as u64);
+    machine.virtual_time = machine.virtual_time.max(cpu.sys.cycle_count);
     deliver_jit_timer_boundary(cpu);
     machine.total_steps = machine.total_steps.wrapping_add(steps as u64);
     machine.active_core = 0;

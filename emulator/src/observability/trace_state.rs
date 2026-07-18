@@ -67,6 +67,18 @@ impl TraceOptions {
     pub(crate) const fn has_syscall_return_hooks(self) -> bool {
         self.syscall_paths || self.exec
     }
+
+    #[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
+    pub(crate) const fn allows_parallel_execution(self) -> bool {
+        !self.faults
+            && !self.has_fetch_hooks()
+            && !self.has_instruction_hooks()
+            && !self.has_syscall_return_hooks()
+            && !self.el0_faults
+            && !self.el0_fault_raw
+            && !self.fp_traps
+            && !self.progress
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -118,9 +130,7 @@ mod tests {
     #[test]
     fn default_options_have_no_hot_loop_hooks() {
         let options = TraceOptions::default();
-
-        assert!(!options.has_fetch_hooks());
-        assert!(!options.has_instruction_hooks());
+        assert!(!options.has_fetch_hooks() && !options.has_instruction_hooks());
         assert!(!options.has_syscall_return_hooks());
         assert!(!options.progress);
     }
@@ -163,9 +173,8 @@ mod tests {
             progress: true,
             ..TraceOptions::default()
         };
-
         assert!(!options.has_fetch_hooks());
         assert!(!options.has_instruction_hooks());
-        assert!(!options.has_syscall_return_hooks());
+        assert!(!options.has_syscall_return_hooks() && options.progress);
     }
 }

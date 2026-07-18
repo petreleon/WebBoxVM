@@ -10,10 +10,18 @@ impl Machine {
         trace_options: TraceOptions,
         num_cores: usize,
     ) -> bool {
+        self.bus.begin_cpu_instruction();
         let result = {
             let cpu = &mut self.cpus[core];
             execute(cpu, &mut self.bus, instr)
         };
+        if result.is_ok()
+            && matches!(instr.op, Opcode::Ldxr | Opcode::Ldxp)
+            && self.cpus[core].exclusive.is_some()
+        {
+            self.cpus[core].exclusive_epoch = self.memory_epoch;
+        }
+        self.apply_memory_write_invalidations();
         let Err(err) = result else {
             return false;
         };

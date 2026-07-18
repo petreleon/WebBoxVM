@@ -114,7 +114,7 @@ export class WorkerVm {
   }
 
   free() {
-    this.#channel.free();
+    return this.#channel.free();
   }
 
   allocated_pages() {

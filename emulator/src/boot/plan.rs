@@ -1,6 +1,6 @@
 use super::initrd::{DEFAULT_BOOTARGS, build_busybox_initrd, build_default_initrd};
 use crate::constants::*;
-use crate::dtb::build_dtb_with_boot_media_device;
+use crate::dtb::build_dtb_with_boot_media_device_and_num_cores;
 
 /// Pure boot artifact bundle. It owns bytes and addresses, never a live VM.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -77,13 +77,14 @@ impl BootPlan {
         advertise_boot_media: bool,
     ) -> Result<Self, String> {
         let initrd_end = validate_inputs(num_cores, initrd)?;
-        let dtb_image = build_dtb_with_boot_media_device(
+        let dtb_image = build_dtb_with_boot_media_device_and_num_cores(
             RAM_BASE,
             RAM_SIZE,
             Some(INITRD_BASE),
             Some(initrd_end),
             Some(bootargs),
             advertise_boot_media,
+            num_cores,
         );
 
         Ok(Self {
@@ -109,6 +110,11 @@ impl BootPlan {
 fn validate_inputs(num_cores: usize, initrd: &[u8]) -> Result<u64, String> {
     if num_cores == 0 {
         return Err("num_cores must be at least 1".to_string());
+    }
+    if num_cores > GICR_MAX_CPUS {
+        return Err(format!(
+            "num_cores must not exceed {GICR_MAX_CPUS}, the fixed GIC redistributor capacity"
+        ));
     }
     if initrd.is_empty() {
         return Err("initrd must not be empty".to_string());

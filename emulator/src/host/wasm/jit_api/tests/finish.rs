@@ -52,12 +52,14 @@ fn finish_cached_block_consumes_prepared_marker() {
     let mut emulator = Emulator::new(Some(1));
     emulator.jit_prepared_block = true;
     emulator.jit_state.pc = RAM_BASE + 4;
+    emulator.machine.cpus[0].sys.cycle_count = 40;
 
     let result = emulator.jit_finish_cached_block(Some(0), 1, RAM_BASE + 4, RAM_BASE + 4, 0, false);
 
     assert_eq!(result, JIT_FINISH_COMMITTED);
     assert!(!emulator.jit_prepared_block);
     assert_eq!(emulator.machine.cpus[0].regs.pc, RAM_BASE + 4);
+    assert_eq!(emulator.machine.virtual_time, 41);
 }
 
 #[test]

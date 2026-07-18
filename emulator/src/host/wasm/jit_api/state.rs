@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 impl Emulator {
     /// Copy one emulated core's architectural register state into the JIT state buffer.
     pub fn jit_sync_state_from_core(&mut self, core_id: Option<usize>) -> bool {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         self.jit_helper_failed = false;
         self.clear_jit_side_effects();
@@ -29,6 +30,7 @@ impl Emulator {
     /// This is intentionally explicit so the browser worker can validate a JIT
     /// block before allowing it to mutate the VM.
     pub fn jit_sync_state_to_core(&mut self, core_id: Option<usize>) -> bool {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         let cpu = if let Some(ref mut boot) = self.boot {
             boot.machine.cpus.get_mut(core_id)

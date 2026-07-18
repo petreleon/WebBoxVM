@@ -1,4 +1,5 @@
 import { NETWORK_IDLE_FAST_MS, NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js";
+import { withEmulatorAccess } from "./access.js";
 
 const RETRY_MS = 3000;
 let socket;
@@ -71,7 +72,10 @@ function connect() {
     retryTimer = setTimeout(connect, RETRY_MS);
   };
   socket.onerror = () => setStatus("offline");
-  socket.onmessage = (event) => injectFrame(event.data);
+  socket.onmessage = (event) =>
+    withEmulatorAccess(() => injectFrame(event.data)).catch((error) => {
+      postMessage({ error: error?.message ?? String(error), event: "error" });
+    });
 }
 
 function injectFrame(data) {

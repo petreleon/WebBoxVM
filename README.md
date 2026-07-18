@@ -21,6 +21,7 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 - **VirtIO network path** — exposes a VirtIO-net MMIO device, browser WebSocket Ethernet hub, and Linux TAP-backed NAT peer
 - **Debian installer milestone** — Debian ARM64 netinst reaches the text installer in browser validation, loads installer components from ISO media to 100%, and advances to network hardware detection
 - **Browser terminal app** — wasm64 worker build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
+- **Parallel vCPU execution** — multicore native boots use one host thread per vCPU; isolated browsers use a persistent Web Worker per vCPU over one shared Memory64 heap
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
 - **Conservative browser JIT** — Wasm64 basic-block JIT for safe paths, with EL0 guest-memory helper blocks skipped when helper-call overhead or speculative memory effects would hurt progress
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
@@ -87,10 +88,17 @@ make web-debian-arm64
 sudo python3 scripts/webbox_nat.py --configure-host
 ```
 
-`make web` and `make web-debian-arm64` build `web/pkg/` on demand as
-`wasm64-unknown-unknown` with nightly `build-std` and `wasm-bindgen`; generated
-WASM output is not committed to the repository. The browser runtime must support
-WebAssembly Memory64.
+`make web` and `make web-debian-arm64` build two `wasm64-unknown-unknown`
+packages with nightly `build-std`: `web/pkg/` is the serial fallback and
+`web/pkg-threaded/` uses atomics and shared Memory64. Both packages are generated
+with the same revision-pinned, Memory64-aware wasm-bindgen tool built by
+`make wasm-bindgen-memory64-threads`. Generated WASM output is not committed to
+the repository.
+
+Threaded browser execution requires Memory64, `SharedArrayBuffer`, Web Workers,
+and cross-origin isolation. The bundled server sends the required COOP/COEP
+headers. Deployments must do the same; otherwise the loader automatically uses
+the serial package. Multicore threaded execution disables the single-vCPU JIT.
 
 The browser network path uses `/webboxvm-net` for raw Ethernet frames. See
 [scripts/networking.md](scripts/networking.md) for the Linux TAP/NAT peer setup.

@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 impl Emulator {
     /// Run the EFI stub phase (bootloader).
     pub fn run_efi(&mut self, max_steps: usize) -> String {
+        let _access = self.require_parallel_idle();
         if let Some(ref mut boot) = self.boot {
             let steps = boot.run_efi_phase(max_steps);
             format!("EFI: {} steps, PC={:#018x}", steps, boot.pc())
@@ -15,6 +16,7 @@ impl Emulator {
 
     /// Run the kernel phase using the multi-core machine.
     pub fn run_kernel(&mut self, max_steps: usize) -> String {
+        let _access = self.require_parallel_idle();
         if let Some(ref mut boot) = self.boot {
             let steps = boot.run_kernel_phase(max_steps);
             format!("KERNEL: {} steps, PC={:#018x}", steps, boot.pc())
@@ -25,6 +27,7 @@ impl Emulator {
 
     /// Get register Xn of a core.
     pub fn reg(&self, n: u8, core_id: Option<usize>) -> u64 {
+        let _access = self.require_parallel_idle();
         let cid = core_id.unwrap_or(0);
         if let Some(ref boot) = self.boot {
             if cid < boot.machine.cpus.len() {
@@ -40,6 +43,7 @@ impl Emulator {
 
     /// Total steps across all phases.
     pub fn total_steps(&self) -> u64 {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.total_steps()
         } else {
@@ -49,6 +53,7 @@ impl Emulator {
 
     /// Get PC of core 0.
     pub fn pc(&self) -> u64 {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.pc()
         } else if !self.machine.cpus.is_empty() {

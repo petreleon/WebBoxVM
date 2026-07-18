@@ -1,11 +1,12 @@
 import { Emulator, ensureWasm } from "./wasm.js";
+import { VcpuPool } from "./vcpu-pool.js";
 import { changedJitStats, jitStats } from "./jit-stats.js";
 import { startNetworkProxy, stopNetworkProxy } from "./network.js";
 import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
 
 export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   await ensureWasm();
-  freeEmulator();
+  await freeEmulator();
   const emulator = new Emulator(numCores);
   state.emulator = emulator;
   state.lastUart = 0;
@@ -16,6 +17,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   state.lastAutosaveAt = performance.now();
   state.lastAutosavePollAt = state.lastAutosaveAt;
   const result = emulator.boot_iso_with_disk(isoImage, numCores, diskSizeBytes);
+  await prepareExecutionMode(numCores);
   const installDiskGeneration = emulator.install_disk_generation();
   state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
@@ -24,7 +26,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
 
 export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numCores }) {
   await ensureWasm();
-  freeEmulator();
+  await freeEmulator();
   const emulator = new Emulator(numCores);
   state.emulator = emulator;
   state.lastUart = 0;
@@ -39,6 +41,7 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
     numCores,
     extraBootargs,
   );
+  await prepareExecutionMode(numCores);
   const installDiskGeneration = emulator.install_disk_generation();
   state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
@@ -65,7 +68,7 @@ export function installDiskSnapshot() {
   };
 }
 
-export function freeEmulator() {
+export async function freeEmulator() {
   state.running = false;
   state.pumpScheduled = false;
   state.lastUart = 0;
@@ -74,6 +77,11 @@ export function freeEmulator() {
   state.lastAutosavePollAt = 0;
   resetJitState();
   stopNetworkProxy();
+  if (state.vcpuPool) {
+    await state.vcpuPool.stop();
+    state.vcpuPool = undefined;
+  }
+  state.executionMode = "cooperative";
   if (state.emulator) {
     state.emulator.free();
     state.emulator = undefined;
@@ -94,6 +102,9 @@ export function metrics({
     networkStatus: state.networkStatus,
     networkTxPackets: emulator.network_tx_packets(),
     networkTxPending: emulator.network_tx_pending(),
+    executionMode: state.executionMode,
+    parallelMaxLocalInFlight: emulator.parallel_max_local_in_flight?.() ?? 1,
+    parallelWorkerThreads: emulator.parallel_worker_threads?.() ?? 1,
     pc: emulator.pc(),
     totalSteps: emulator.total_steps(),
     uartOutputLen: emulator.uart_output_len(),
@@ -103,6 +114,21 @@ export function metrics({
     snapshot.jitStats = stats;
   }
   return snapshot;
+}
+
+async function prepareExecutionMode(numCores) {
+  state.executionMode = "cooperative";
+  if (!state.threadedWasm || numCores <= 1) {
+    return;
+  }
+  try {
+    state.vcpuPool = await VcpuPool.create(numCores, state.threadedWasm);
+    state.executionMode = "parallel-wasm";
+    state.jitEnabled = false;
+  } catch (error) {
+    state.wasmFallbackReason = error?.message ?? String(error);
+    state.vcpuPool = undefined;
+  }
 }
 
 export function setStepSlice(value) {

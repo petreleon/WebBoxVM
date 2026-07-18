@@ -42,7 +42,9 @@ fn build_context(
     image: &[u8],
 ) -> Result<(NativeVm, Option<Vec<u8>>), Box<dyn std::error::Error>> {
     let extra = env::var("BOOT_TEST_EXTRA_BOOTARGS").ok();
-    let boot = boot_from_image(kernel_path, image, 1, extra.as_deref())?;
+    let cores = util::env_usize("BOOT_TEST_CORES", 1).max(1);
+    println!("Virtual CPUs: {cores}");
+    let boot = boot_from_image(kernel_path, image, cores, extra.as_deref())?;
 
     if let NativeBootSource::Iso(info) = &boot.source {
         println!("ISO kernel: {}", info.kernel_path);

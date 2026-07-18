@@ -116,6 +116,14 @@ impl VirtioBlk {
         ));
         self.reset_queue();
     }
+
+    pub(crate) fn cold_reset(&mut self) {
+        self.device_features_sel = 0;
+        self.driver_features_sel = 0;
+        self.queue_sel = 0;
+        self.status = 0;
+        self.reset_queue();
+    }
 }
 
 impl Default for VirtioBlk {

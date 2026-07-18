@@ -11,16 +11,14 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 log = "0.4"
-wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
-js-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
-web-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", optional = true }
+wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "ddd322514d87a4b21342b7ab9a9d70796fc60576", optional = true }
 disarm64 = "0.1.26"
 ext4-view = { version = "0.9.3", default-features = false }
 flate2 = "1"
 
 [features]
 default = []
-wasm = ["wasm-bindgen", "js-sys", "web-sys"]
+wasm = ["wasm-bindgen"]
 
 [dev-dependencies]
 crossterm = "0.28"

@@ -11,6 +11,7 @@ use wasm_bindgen::prelude::*;
 impl Emulator {
     /// Read a side-effect-free system register for a generated JIT block.
     pub fn jit_read_sysreg(&mut self, core_id: Option<usize>, sysreg_id: u32) -> u64 {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return 0;
         }

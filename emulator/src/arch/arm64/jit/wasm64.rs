@@ -38,6 +38,7 @@ mod logical_flags;
 mod memory_address;
 mod memory_boundary;
 mod memory_exclusive;
+mod memory_import;
 mod memory_load;
 mod memory_pair;
 mod memory_store;

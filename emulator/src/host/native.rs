@@ -1,5 +1,6 @@
 use crate::boot::{BootContext, merge_bootargs};
 use crate::images::iso::load_iso_boot_image;
+use crate::runtime::RunBackend;
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -39,7 +40,8 @@ pub fn boot_from_image(
     if is_iso_path(path_hint) {
         boot_from_iso_image(image, cores, extra_bootargs)
     } else {
-        let context = BootContext::new(image, cores).map_err(io_other)?;
+        let mut context = BootContext::new(image, cores).map_err(io_other)?;
+        enable_native_threads(&mut context);
         Ok(NativeBoot {
             context,
             source: NativeBootSource::Kernel,
@@ -77,6 +79,7 @@ fn boot_from_iso_image(
     let mut context =
         BootContext::new_with_initrd_and_bootargs(&boot.kernel, cores, &boot.initrd, &bootargs)
             .map_err(io_other)?;
+    enable_native_threads(&mut context);
     context.attach_virtio_block(image);
 
     Ok(NativeBoot {
@@ -92,6 +95,12 @@ fn boot_from_iso_image(
 
 fn io_other(err: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::Other, err.into())
+}
+
+fn enable_native_threads(context: &mut BootContext) {
+    if context.machine.cpus.len() > 1 {
+        context.machine.set_run_backend(RunBackend::NativeThreads);
+    }
 }
 
 #[cfg(test)]

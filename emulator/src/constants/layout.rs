@@ -46,6 +46,10 @@ pub const GICD_SIZE: u64 = 0x1_0000;
 pub const GICR_BASE: u64 = 0x080A_0000;
 /// Range size of the GICR register window.
 pub const GICR_SIZE: u64 = 0xF6_0000;
+/// Size of one standard GICv3 redistributor frame (RD + SGI frames).
+pub const GICR_FRAME_SIZE: u64 = 0x2_0000;
+/// Maximum CPUs representable by the fixed redistributor MMIO aperture.
+pub const GICR_MAX_CPUS: usize = (GICR_SIZE / GICR_FRAME_SIZE) as usize;
 
 /// Combined GIC area — covers both distributor and redistributor.
 pub const GIC_MMIO_BASE: u64 = 0x0800_0000;

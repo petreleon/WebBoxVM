@@ -9,11 +9,13 @@ mod emitter_a64;
 mod engine;
 mod wasm64;
 
+#[cfg(feature = "wasm")]
 pub(crate) use block::MAX_BLOCK_INSTRUCTIONS;
 pub use engine::JitEngine;
 pub use wasm64::{
     JIT_STATE_SIZE, Wasm64Compiler, WasmBlockModule, WasmJitCpuState, WasmJitError, hash_raw_words,
 };
+#[cfg(feature = "wasm")]
 pub(crate) use wasm64::{hash_raw_word, hash_seed};
 
 pub fn compile_wasm64_block_at_pc(

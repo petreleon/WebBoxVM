@@ -31,10 +31,35 @@ fn boot_plan_builds_artifacts_without_live_machine() {
 }
 
 #[test]
+fn boot_plan_dtb_uses_requested_core_count() {
+    let image = synthetic_arm64_image(0);
+    let initrd = [0x51u8; 4];
+    let bootargs = "console=ttyAMA0";
+    let plan = BootPlan::new_with_initrd_and_bootargs(&image, 4, &initrd, bootargs).unwrap();
+    let expected = crate::dtb::build_dtb_with_boot_media_device_and_num_cores(
+        RAM_BASE,
+        RAM_SIZE,
+        Some(INITRD_BASE),
+        Some(INITRD_BASE + initrd.len() as u64),
+        Some(bootargs),
+        true,
+        4,
+    );
+
+    assert_eq!(plan.dtb_image, expected);
+    let text = String::from_utf8_lossy(&plan.dtb_image);
+    assert!(text.contains("cpu@0"));
+    assert!(text.contains("cpu@3"));
+    assert!(!text.contains("cpu@4"));
+}
+
+#[test]
 fn boot_plan_rejects_invalid_inputs_before_machine_creation() {
     let image = synthetic_arm64_image(0);
 
     assert!(BootPlan::new_with_initrd(&image, 0, &[1]).is_err());
+    let too_many = BootPlan::new_with_initrd(&image, GICR_MAX_CPUS + 1, &[1]).unwrap_err();
+    assert!(too_many.contains(&GICR_MAX_CPUS.to_string()));
     assert!(BootPlan::new_with_initrd(&image, 1, &[]).is_err());
 }
 

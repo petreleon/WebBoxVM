@@ -1,5 +1,11 @@
 pub const MIDR_CORTEX_A72_R0P3: u64 = 0x410FD083;
-pub const MPIDR_SINGLE_CORE: u64 = 0x80000000;
+pub const MPIDR_RES1: u64 = 0x8000_0000;
+pub const MPIDR_AFF0_MASK: u64 = 0xFF;
+pub const MPIDR_SINGLE_CORE: u64 = MPIDR_RES1;
+
+pub const fn mpidr_for_core(core_id: u32) -> u64 {
+    MPIDR_RES1 | (core_id as u64 & MPIDR_AFF0_MASK)
+}
 pub const ID_AA64PFR0_EL1_VAL: u64 = 0x0000_0000_0000_0011;
 
 pub const CPACR_FPEN_SHIFT: u32 = 20;
@@ -15,5 +21,7 @@ pub const ID_AA64ISAR0_EL1_VAL: u64 = 0x0000_0000_0000_0000;
 pub const ID_AA64ISAR1_EL1_VAL: u64 = 0x0000_0000_0000_0000;
 pub const ID_AA64DFR0_EL1_VAL: u64 = 0x0000_0000_0010_3106;
 pub const CTR_EL0_VAL: u64 = 0x8444_c004;
+/// Exclusive reservation granule advertised by CTR_EL0.ERG, in bytes.
+pub const EXCLUSIVE_RESERVATION_GRANULE_BYTES: u64 = 4 << ((CTR_EL0_VAL >> 20) & 0xf);
 pub const DCZID_EL0_VAL: u64 = 0x0000_0000_0000_0002;
 pub const GICD_IIDR_VAL: u32 = 0x0201743B;

@@ -1,7 +1,6 @@
 use crate::constants::{PAGE_OFFSET_MASK, PAGE_SIZE};
 use crate::host::wasm::{Emulator, JitPendingStore};
 use crate::runtime::Machine;
-use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
 use super::load::{read_guest_lanes, translate_load};
@@ -10,7 +9,13 @@ use super::pair_load::jit_load_pair_guest_from_machine;
 #[wasm_bindgen]
 impl Emulator {
     /// Read four adjacent 64-bit guest RAM lanes for SIMD pair transfers.
-    pub fn jit_load_quad_guest(&mut self, core_id: Option<usize>, va: u64, size: u8) -> Array {
+    pub fn jit_load_quad_guest(
+        &mut self,
+        core_id: Option<usize>,
+        va: u64,
+        size: u8,
+    ) -> Box<[JsValue]> {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return quad_values_to_js([0; 4]);
         }
@@ -78,10 +83,6 @@ fn quad_access_crosses_page(va: u64, size: u8) -> bool {
     (va & PAGE_OFFSET_MASK) + (size as u64 * 4) > PAGE_SIZE
 }
 
-fn quad_values_to_js(values: [u64; 4]) -> Array {
-    let array = Array::new();
-    for value in values {
-        array.push(&JsValue::from(value));
-    }
-    array
+fn quad_values_to_js(values: [u64; 4]) -> Box<[JsValue]> {
+    values.map(JsValue::from).into()
 }

@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::*;
 impl Emulator {
     /// Return the current instruction context for browser-side diagnosis.
     pub fn current_instruction(&mut self, core_id: Option<usize>) -> String {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         if let Some(ref mut boot) = self.boot {
             return current_instruction_for(&mut boot.machine, core_id);
@@ -15,14 +16,17 @@ impl Emulator {
     }
 
     pub fn debug_translate_va(&mut self, va: u64, core_id: Option<usize>) -> String {
+        let _access = self.require_parallel_idle();
         translate_va_for(active_machine_mut(self), core_id.unwrap_or(0), va)
     }
 
     pub fn debug_read_va_u64(&mut self, va: u64, core_id: Option<usize>) -> String {
+        let _access = self.require_parallel_idle();
         read_va_u64_for(active_machine_mut(self), core_id.unwrap_or(0), va)
     }
 
     pub fn debug_read_pa_u64(&mut self, pa: u64) -> String {
+        let _access = self.require_parallel_idle();
         read_pa_u64_for(active_machine_mut(self), pa)
     }
 }

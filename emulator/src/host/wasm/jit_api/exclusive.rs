@@ -16,6 +16,7 @@ impl Emulator {
         size: u8,
         value: u64,
     ) -> u64 {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return 1;
         }
@@ -48,6 +49,7 @@ impl Emulator {
         value1: u64,
         value2: u64,
     ) -> u64 {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return 1;
         }

@@ -22,6 +22,7 @@ impl Opcode {
             Self::Blr => "Blr",
             Self::Ret => "Ret",
             Self::Eret => "Eret",
+            Self::Hvc => "Hvc",
             Self::Cbz => "Cbz",
             Self::Cbnz => "Cbnz",
             Self::BCond => "BCond",
