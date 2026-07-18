@@ -1,5 +1,6 @@
 import { Emulator, ensureWasm } from "./wasm.js";
 import { VcpuPool } from "./vcpu-pool.js";
+import { BootPhaseTimer } from "./boot-timing.js";
 import { changedJitStats, jitStats } from "./jit-stats.js";
 import { startNetworkProxy, stopNetworkProxy } from "./network.js";
 import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
@@ -25,9 +26,12 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
 }
 
 export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numCores }) {
+  const timer = new BootPhaseTimer();
   await ensureWasm();
+  timer.end("wasmLoadMs");
   await freeEmulator();
   const emulator = new Emulator(numCores);
+  timer.end("emulatorCreateMs");
   state.emulator = emulator;
   state.lastUart = 0;
   state.lastUartFlushAt = 0;
@@ -41,11 +45,17 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
     numCores,
     extraBootargs,
   );
+  timer.end("firmwarePreparationMs");
   await prepareExecutionMode(numCores);
+  timer.end("workerPoolMs");
   const installDiskGeneration = emulator.install_disk_generation();
   state.lastAutosaveGeneration = installDiskGeneration;
   startNetworkProxy();
-  return { metrics: metrics({ emulator, installDiskGeneration }), result };
+  return {
+    bootTimings: timer.finish(),
+    metrics: metrics({ emulator, installDiskGeneration }),
+    result,
+  };
 }
 
 export function restoreInstallDisk(snapshot) {

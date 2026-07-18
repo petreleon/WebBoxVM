@@ -1,4 +1,5 @@
 import { VmBooter } from "./js/boot-vm.js";
+import { formatBootMilestone } from "./js/boot-timeline.js";
 import { els } from "./js/dom.js";
 import { DiskPersistence } from "./js/persistence.js";
 import { VmRunner } from "./js/runner.js";
@@ -29,6 +30,7 @@ runner = new VmRunner({
   getEmulator: () => emulator,
   saveDisk,
   handleError,
+  onBootTimeline: (milestone) => ui.log(formatBootMilestone(milestone)),
 });
 booter = new VmBooter({
   els,

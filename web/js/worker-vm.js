@@ -14,6 +14,7 @@ export class WorkerVm {
   onUart = () => {};
 
   #channel;
+  #bootTimings;
   #networkStats = {
     rxPackets: 0n,
     status: "offline",
@@ -42,7 +43,10 @@ export class WorkerVm {
     const bytes = transferableBytes(snapshot);
     return this.#channel
       .request("bootInstalledDisk", { diskSnapshot: bytes, extraBootargs, numCores }, [bytes.buffer])
-      .then(({ result }) => result);
+      .then(({ bootTimings, result }) => {
+        this.#bootTimings = bootTimings;
+        return result;
+      });
   }
 
   restore_install_disk(snapshot) {
@@ -119,6 +123,10 @@ export class WorkerVm {
 
   allocated_pages() {
     return this.#channel.metrics.allocatedPages;
+  }
+
+  boot_timings() {
+    return this.#bootTimings;
   }
 
   install_disk_allocated_bytes() {

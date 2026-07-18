@@ -67,7 +67,28 @@ test("runner uses faster default step slice when input is blank", () => {
   assert.equal(emulator.startedWith, 5_000_000);
 });
 
-function setupRunner({ stepSlice = "1000000" } = {}) {
+test("runner forwards installed UART milestones and resets its probe on restart", () => {
+  let now = 0;
+  const milestones = [];
+  const { emulator, runner } = setupRunner({
+    now: () => now,
+    onBootTimeline: (milestone) => milestones.push(milestone),
+  });
+  runner.start({ installedSystem: true });
+  now = 20;
+  emulator.onUart("CPU1: Booted secondary processor\r\n");
+  runner.start({ installedSystem: true });
+  assert.equal(fakeDocument.probe.textContent, "");
+  now = 50;
+  emulator.onUart("webboxvm login: ");
+
+  assert.deepEqual(milestones, [
+    { elapsedMs: 20, name: "cpu1-online" },
+    { elapsedMs: 30, name: "login-prompt" },
+  ]);
+});
+
+function setupRunner({ stepSlice = "1000000", now, onBootTimeline } = {}) {
   const emulator = { start: (value) => (emulator.startedWith = value) };
   const term = {
     output: "",
@@ -84,6 +105,8 @@ function setupRunner({ stepSlice = "1000000" } = {}) {
     },
     getEmulator: () => emulator,
     handleError: () => {},
+    now,
+    onBootTimeline,
     saveDisk: async () => {},
     term,
     ui: { log: () => {}, updateMetrics: () => {} },

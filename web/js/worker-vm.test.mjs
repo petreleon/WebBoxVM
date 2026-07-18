@@ -23,7 +23,9 @@ class FakeWorker {
     }
   }
 
-  postMessage() {}
+  postMessage(message) {
+    this.lastMessage = message;
+  }
   terminate() {}
 }
 
@@ -63,6 +65,27 @@ test("network stats reuse a stable view while reflecting updates", () => {
     status: "connected",
     txPackets: 4n,
     txPending: 5,
+  });
+});
+
+test("installed disk boot retains worker phase timings", async () => {
+  const vm = new WorkerVm();
+  const boot = vm.boot_installed_disk(new Uint8Array([1, 2]), 2);
+  const worker = FakeWorker.instances[0];
+
+  worker.emitMessage({
+    id: worker.lastMessage.id,
+    ok: true,
+    value: {
+      bootTimings: { firmwarePreparationMs: 12.5, workerPoolMs: 3.5 },
+      result: "OK: booted",
+    },
+  });
+
+  assert.equal(await boot, "OK: booted");
+  assert.deepEqual(vm.boot_timings(), {
+    firmwarePreparationMs: 12.5,
+    workerPoolMs: 3.5,
   });
 });
 

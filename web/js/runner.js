@@ -1,4 +1,5 @@
 import { clamp } from "./utils.js";
+import { UartBootTimeline } from "./boot-timeline.js";
 
 const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;
@@ -14,10 +15,21 @@ export class VmRunner {
   #handleError;
   #running = false;
   #boundEmulator;
+  #bootTimeline;
   #uartTail = "";
   #uartProbeText;
 
-  constructor({ els, term, ui, disk, getEmulator, saveDisk, handleError }) {
+  constructor({
+    els,
+    term,
+    ui,
+    disk,
+    getEmulator,
+    saveDisk,
+    handleError,
+    now,
+    onBootTimeline,
+  }) {
     this.#els = els;
     this.#term = term;
     this.#ui = ui;
@@ -25,6 +37,10 @@ export class VmRunner {
     this.#getEmulator = getEmulator;
     this.#saveDisk = saveDisk;
     this.#handleError = handleError;
+    this.#bootTimeline = new UartBootTimeline({
+      now,
+      onMilestone: onBootTimeline,
+    });
     this.#els.stepSlice.addEventListener("input", () => {
       this.#getEmulator()?.set_step_slice(this.#stepSlice());
     });
@@ -32,8 +48,9 @@ export class VmRunner {
     this.#uartProbeText = text;
   }
 
-  start() {
+  start({ installedSystem = false } = {}) {
     this.#running = true;
+    this.#beginBoot(installedSystem);
     const emulator = this.#bindCurrentEmulator();
     emulator?.start(this.#stepSlice());
   }
@@ -83,6 +100,7 @@ export class VmRunner {
     }
     this.#term.write(output);
     this.#recordUart(output);
+    this.#bootTimeline.observe(output);
     if (this.#els.autoScroll.checked) {
       this.#term.scrollToBottom();
     }
@@ -101,6 +119,14 @@ export class VmRunner {
     }
     this.#uartTail += output;
     this.#uartProbeText.appendData(output);
+  }
+
+  #beginBoot(installedSystem) {
+    if (this.#uartTail) {
+      this.#uartTail = "";
+      this.#uartProbeText.data = "";
+    }
+    this.#bootTimeline.start({ installedSystem });
   }
 
   #stepSlice() {
