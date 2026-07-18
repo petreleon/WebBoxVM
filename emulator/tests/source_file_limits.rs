@@ -87,7 +87,7 @@ fn is_exempt_dir(path: &Path) -> bool {
     let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
         return false;
     };
-    matches!(name, "pkg" | "target")
+    matches!(name, "pkg" | "pkg-threaded" | "target")
 }
 
 fn relative<'a>(path: &'a Path, workspace: &Path) -> &'a Path {

@@ -19,6 +19,7 @@ export const JIT_PROBE_STEP_SLICE = DEFAULT_STEP_SLICE;
 
 export const state = {
   emulator: undefined,
+  executionMode: "cooperative",
   jitEnabled: DEFAULT_JIT_ENABLED,
   jitBlockHits: new Map(),
   jitBlocks: new Map(),
@@ -46,7 +47,10 @@ export const state = {
   pumpScheduled: false,
   running: false,
   stepSlice: DEFAULT_STEP_SLICE,
+  threadedWasm: undefined,
+  vcpuPool: undefined,
   wasmExports: undefined,
+  wasmFallbackReason: undefined,
   wasmReady: false,
 };
 

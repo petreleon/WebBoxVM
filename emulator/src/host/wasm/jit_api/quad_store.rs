@@ -20,6 +20,7 @@ impl Emulator {
         value3: u64,
         value4: u64,
     ) {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return;
         }

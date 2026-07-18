@@ -31,6 +31,7 @@ pub struct SystemRegisters {
     pub esr_el1: u64,  // Exception Syndrome Register — why the exception happened
 
     // ── Feature access ──
+    pub mpidr_el1: u64, // Multiprocessor Affinity Register
     pub cpacr_el1: u64, // Architectural Feature Access Control (FP/SIMD enable)
     pub fpcr: u64,      // Floating-point Control Register
     pub fpsr: u64,      // Floating-point Status Register

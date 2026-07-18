@@ -2,6 +2,12 @@ use super::*;
 
 mod fetch;
 mod irq_poll;
+mod multicore;
+mod multicore_control;
+#[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
+mod parallel_native;
+#[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
+mod parallel_native_idle;
 
 #[test]
 fn load_store_translation_fault_enters_data_abort_vector() {
@@ -102,6 +108,8 @@ fn finish_core_preserves_single_core_round_robin_without_modulo() {
 #[test]
 fn finish_core_wraps_multi_core_round_robin() {
     let mut machine = Machine::new(3);
+    machine.core_mut(1).lifecycle = CpuLifecycle::Runnable;
+    machine.core_mut(2).lifecycle = CpuLifecycle::Runnable;
 
     machine.finish_core(0, 3);
     assert_eq!(machine.active_core, 1);

@@ -52,6 +52,12 @@ impl Pl011Uart {
         String::from_utf8_lossy(&self.output).to_string()
     }
 
+    pub(crate) fn cold_reset(&mut self) {
+        let output = std::mem::take(&mut self.output);
+        *self = Self::new();
+        self.output = output;
+    }
+
     pub(in crate::devices::pl011) fn raw_interrupt_status(&self) -> u16 {
         if self.input.is_empty() {
             0

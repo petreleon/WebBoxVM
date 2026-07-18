@@ -26,6 +26,7 @@ fn commit_accepts_block_ending_on_timer_deadline() {
 
     let cpu = &machine.cpus[0];
     assert_eq!(cpu.sys.cycle_count, 104);
+    assert_eq!(machine.virtual_time, 104);
     assert_eq!(cpu.sys.last_irq_id, VIRTUAL_TIMER_IRQ_ID);
     assert_eq!(cpu.sys.elr_el1, RAM_BASE + 16);
     assert_eq!(cpu.regs.pc, RAM_BASE + 0x8000 + VBAR_IRQ_LOWER_EL_AARCH64);

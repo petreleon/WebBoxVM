@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { withEmulatorAccess } from "./access.js";
 import { handleMessage } from "./messages.js";
 import { resetJitState, state } from "./state.js";
 
@@ -31,6 +32,41 @@ test("setJitEnabled resets cached jit state and stale telemetry", async () => {
   assert.deepEqual(messages, [{ id: 7, ok: true, value: {} }]);
 
   state.jitEnabled = false;
+});
+
+test("requests wait until a parallel pump relinquishes emulator access", async () => {
+  let releasePump;
+  let markPumpStarted;
+  const pumpStarted = new Promise((resolve) => {
+    markPumpStarted = resolve;
+  });
+  const pump = withEmulatorAccess(async () => {
+    markPumpStarted();
+    await new Promise((resolve) => {
+      releasePump = resolve;
+    });
+  });
+  await pumpStarted;
+  let reads = 0;
+  state.emulator = {
+    current_instruction: () => {
+      reads += 1;
+      return "instruction";
+    },
+  };
+  const messages = [];
+  const request = withPostMessage(messages, () =>
+    handleMessage({ id: 8, payload: { coreId: 0 }, type: "currentInstruction" }),
+  );
+
+  await Promise.resolve();
+  assert.equal(reads, 0);
+  releasePump();
+  await Promise.all([pump, request]);
+
+  assert.equal(reads, 1);
+  assert.deepEqual(messages, [{ id: 8, ok: true, value: "instruction" }]);
+  state.emulator = undefined;
 });
 
 async function withPostMessage(messages, run) {

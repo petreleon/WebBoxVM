@@ -4,6 +4,7 @@ import { WorkerVm } from "./worker-vm.js";
 
 const BOOT_KIND_MEDIA = "media";
 const BOOT_KIND_SAVED_DISK = "saved-disk";
+export const DEFAULT_VM_CORES = 2;
 
 export class VmBooter {
   #els;
@@ -39,9 +40,11 @@ export class VmBooter {
     await nextFrame();
 
     const emulator = new WorkerVm();
-    emulator.set_jit_enabled(jitEnabledForBoot(BOOT_KIND_MEDIA, this.#getJitEnabled()));
+    emulator.set_jit_enabled(
+      jitEnabledForBoot(BOOT_KIND_MEDIA, this.#getJitEnabled(), DEFAULT_VM_CORES),
+    );
     this.#setEmulator(emulator);
-    const result = await emulator.boot_iso_with_disk(bytes, 1, this.#diskSizeBytes());
+    const result = await emulator.boot_iso_with_disk(bytes, DEFAULT_VM_CORES, this.#diskSizeBytes());
     this.#ui.log(result);
     if (result.startsWith("ERR:")) {
       this.#ui.setStatus(result, "error");
@@ -75,9 +78,11 @@ export class VmBooter {
     await nextFrame();
 
     const emulator = new WorkerVm();
-    emulator.set_jit_enabled(jitEnabledForBoot(BOOT_KIND_SAVED_DISK, this.#getJitEnabled()));
+    emulator.set_jit_enabled(
+      jitEnabledForBoot(BOOT_KIND_SAVED_DISK, this.#getJitEnabled(), DEFAULT_VM_CORES),
+    );
     this.#setEmulator(emulator);
-    const result = await emulator.boot_installed_disk(snapshot, 1, extraBootargs);
+    const result = await emulator.boot_installed_disk(snapshot, DEFAULT_VM_CORES, extraBootargs);
     this.#ui.log(result);
     if (result.startsWith("ERR:")) {
       this.#ui.setStatus(result, "error");
@@ -127,6 +132,9 @@ export class VmBooter {
   }
 }
 
-export function jitEnabledForBoot(bootKind, manualEnabled) {
+export function jitEnabledForBoot(bootKind, manualEnabled, numCores = 1) {
+  if (numCores !== 1) {
+    return false;
+  }
   return bootKind === BOOT_KIND_SAVED_DISK || Boolean(manualEnabled);
 }

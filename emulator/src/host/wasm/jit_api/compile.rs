@@ -11,11 +11,12 @@ impl Emulator {
     /// Returns an empty byte vector when the current block must fall back to the
     /// interpreter. Use `jit_last_error()` for the reason.
     pub fn jit_compile_current_block(&mut self, core_id: Option<usize>) -> Vec<u8> {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         let machine = self
             .boot
             .as_ref()
-            .map_or(&self.machine, |boot| &boot.machine);
+            .map_or(self.machine.as_ref(), |boot| &boot.machine);
         let Some(cpu) = machine.cpus.get(core_id) else {
             self.jit_last_error = format!("core {core_id} does not exist");
             return Vec::new();

@@ -30,9 +30,28 @@ use crate::constants::*;
 use crate::platform::virt::SystemBus;
 use std::env;
 
+pub type ExecutionResult = Result<(), &'static str>;
+
 /// Execute one decoded instruction, returning an error string if something goes wrong.
 pub fn execute(cpu: &mut Armv8Cpu, bus: &mut SystemBus, instr: Instr) -> Result<(), &'static str> {
-    match dispatch::execute_body(cpu, bus, instr)? {
+    let flow = dispatch::execute_body(cpu, bus, instr)?;
+    finish_flow(cpu, flow)
+}
+
+/// Execute an instruction that is proven to touch only this CPU's architectural state.
+///
+/// `None` means the caller must execute the instruction through [`execute`] while
+/// providing synchronized access to the system bus and machine-wide state.
+pub fn try_execute_local(cpu: &mut Armv8Cpu, instr: Instr) -> Option<ExecutionResult> {
+    match dispatch::execute_local_body(cpu, instr) {
+        Ok(Some(flow)) => Some(finish_flow(cpu, flow)),
+        Ok(None) => None,
+        Err(error) => Some(Err(error)),
+    }
+}
+
+fn finish_flow(cpu: &mut Armv8Cpu, flow: dispatch::Flow) -> ExecutionResult {
+    match flow {
         dispatch::Flow::Advance => {
             advance_pc(cpu);
             if cpu.sys.timer_irq_check_needed() {

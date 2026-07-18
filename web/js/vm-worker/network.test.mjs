@@ -131,7 +131,7 @@ test("network drain can reuse checked emulator reference", () => {
   }
 });
 
-test("incoming network frame reuses one checked emulator reference", () => {
+test("incoming network frame reuses one checked emulator reference", async () => {
   const previousDescriptor = Object.getOwnPropertyDescriptor(state, "emulator");
   let emulatorReads = 0;
   let injected;
@@ -146,7 +146,7 @@ test("incoming network frame reuses one checked emulator reference", () => {
 
   try {
     startNetworkProxy();
-    FakeWebSocket.last.onmessage?.({ data: new Uint8Array([11, 12]) });
+    await FakeWebSocket.last.onmessage?.({ data: new Uint8Array([11, 12]) });
     assert.deepEqual([...injected], [11, 12]);
     assert.equal(emulatorReads, 1);
   } finally {

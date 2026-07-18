@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 impl Emulator {
     /// Get UART output.
     pub fn uart_output(&self) -> String {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.uart_output()
         } else {
@@ -14,6 +15,7 @@ impl Emulator {
 
     /// Get UART output length in bytes.
     pub fn uart_output_len(&self) -> usize {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.uart_output_len()
         } else {
@@ -23,6 +25,7 @@ impl Emulator {
 
     /// Get UART output since a byte offset.
     pub fn uart_output_since(&self, offset: usize) -> String {
+        let _access = self.require_parallel_idle();
         if let Some(ref boot) = self.boot {
             boot.uart_output_since(offset)
         } else {
@@ -33,6 +36,7 @@ impl Emulator {
 
     /// Send text to the guest UART receive path.
     pub fn send_uart_input(&mut self, input: &str) {
+        let _access = self.require_parallel_idle();
         if let Some(ref mut boot) = self.boot {
             boot.feed_uart_input(input);
         } else {
@@ -42,6 +46,7 @@ impl Emulator {
 
     /// Send raw bytes to the guest UART receive path.
     pub fn send_uart_bytes(&mut self, input: Vec<u8>) {
+        let _access = self.require_parallel_idle();
         if let Some(ref mut boot) = self.boot {
             boot.feed_uart_bytes(&input);
         } else if !input.is_empty() {

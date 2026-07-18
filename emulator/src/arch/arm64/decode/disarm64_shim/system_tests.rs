@@ -31,6 +31,7 @@ fn maps_system_mnemonics() {
         (0xD503_42DF, Opcode::DaifSet, "msr"),
         (0xD503_42FF, Opcode::DaifClr, "msr"),
         (0xD400_0001, Opcode::Svc, "svc"),
+        (0xD402_4682, Opcode::Hvc, "hvc"),
         (0xD420_0000, Opcode::Brk, "brk"),
         (0x0000_1234, Opcode::Udf, "udf"),
         (0xD69F_03E0, Opcode::Eret, "eret"),

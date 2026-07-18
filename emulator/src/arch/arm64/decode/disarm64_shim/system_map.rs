@@ -64,6 +64,7 @@ pub(super) fn map(raw: u32, m: disarm64::decoder::Mnemonic) -> Option<Opcode> {
         M::r#sys if cache_maintenance(raw) => Opcode::NopBarrier,
         M::r#sys if legacy_tlbi(raw) => Opcode::Tlbi,
         M::r#svc => Opcode::Svc,
+        M::r#hvc => Opcode::Hvc,
         M::r#brk => Opcode::Brk,
         M::r#udf => Opcode::Udf,
         M::r#eret => Opcode::Eret,

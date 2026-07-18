@@ -6,6 +6,7 @@ import {
   restoreInstallDisk,
   setStepSlice,
 } from "./lifecycle.js";
+import { withEmulatorAccess } from "./access.js";
 import { compileJitBlock } from "./jit-compile.js";
 import { errorMessage } from "./errors.js";
 import { runJitBlock } from "./jit-run.js";
@@ -16,7 +17,7 @@ export async function handleMessage(message) {
   const { id, payload = {}, type } = message;
 
   try {
-    const response = await handleRequest(type, payload);
+    const response = await withEmulatorAccess(() => handleRequest(type, payload));
     if (id === undefined) {
       return;
     }
@@ -51,7 +52,7 @@ async function handleRequest(type, payload) {
     case "debugTranslateVa":
       return state.emulator?.debug_translate_va(BigInt(payload.va), payload.coreId);
     case "free":
-      freeEmulator();
+      await freeEmulator();
       return {};
     case "installDiskSnapshot":
       return installDiskSnapshot();

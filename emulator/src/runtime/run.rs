@@ -1,9 +1,21 @@
 use super::*;
 
 impl Machine {
+    /// Run using the selected host execution backend.
+    pub fn run(&mut self, max_total_steps: usize) -> usize {
+        #[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
+        if self.run_backend == RunBackend::NativeThreads
+            && self.cpus.len() > 1
+            && self.trace.options.allows_parallel_execution()
+        {
+            return self.run_parallel_native(max_total_steps);
+        }
+        self.run_serial(max_total_steps)
+    }
+
     /// Run up to `max_total_steps` across all cores using round-robin.
     /// Each core executes one instruction per turn.
-    pub fn run(&mut self, max_total_steps: usize) -> usize {
+    pub(crate) fn run_serial(&mut self, max_total_steps: usize) -> usize {
         let start_steps = self.total_steps;
         let end_steps = start_steps.saturating_add(max_total_steps as u64);
         let num_cores = self.cpus.len();
@@ -15,7 +27,9 @@ impl Machine {
         let trace_progress = trace_options.progress;
 
         while self.total_steps < end_steps {
-            let core = self.active_core;
+            let Some(core) = self.prepare_next_core() else {
+                break;
+            };
             if trace_progress && self.total_steps >= next_report_at {
                 self.report_progress(start_steps, &mut next_report_at, core);
             }
@@ -40,7 +54,14 @@ impl Machine {
                 self.trace_instruction_hooks(core, pc, pa, instr, trace_options);
             }
 
-            if self.handle_gic_access(core, instr, num_cores)
+            if instr.op == Opcode::Tlbi {
+                for cpu in &mut self.cpus {
+                    cpu.tlb.invalidate_all();
+                }
+            }
+
+            if self.handle_psci_call(core, instr, num_cores)
+                || self.handle_gic_access(core, instr, num_cores)
                 || self.handle_fp_simd_trap(core, pc, pa, instr, trace_options, num_cores)
                 || self.execute_or_fault(core, pc, pa, instr, trace_options, num_cores)
             {
@@ -51,6 +72,9 @@ impl Machine {
                 self.trace_syscall_return(core, instr);
             }
             self.deliver_irq(core);
+            if instr.op == Opcode::Wfi {
+                self.park_after_wfi(core);
+            }
             self.finish_core(core, num_cores);
         }
 

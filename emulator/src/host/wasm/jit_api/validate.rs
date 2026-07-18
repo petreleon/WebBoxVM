@@ -5,7 +5,6 @@ use crate::host::wasm::Emulator;
 use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
-
 #[wasm_bindgen]
 impl Emulator {
     pub fn jit_validate_block(
@@ -19,11 +18,12 @@ impl Emulator {
         end_page_generation: u64,
         steps: usize,
     ) -> bool {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         let machine = self
             .boot
             .as_ref()
-            .map_or(&self.machine, |boot| &boot.machine);
+            .map_or(self.machine.as_ref(), |boot| &boot.machine);
         let result = validate_jit_block(
             machine,
             core_id,

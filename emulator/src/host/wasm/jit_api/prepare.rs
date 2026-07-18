@@ -20,6 +20,7 @@ impl Emulator {
         end_page_generation: u64,
         steps: usize,
     ) -> bool {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         self.jit_helper_failed = false;
         self.clear_jit_side_effects();

@@ -28,6 +28,10 @@ pub(super) fn execute(
             exec_udf(cpu)?;
             return Ok(Some(Flow::Return));
         }
+        Opcode::Hvc => {
+            exec_udf(cpu)?;
+            return Ok(Some(Flow::Return));
+        }
         Opcode::Cfinv => exec_cfinv(cpu),
         Opcode::Rmif => exec_rmif(cpu, instr),
         Opcode::Setf8 | Opcode::Setf16 => exec_setf(cpu, instr),
@@ -36,7 +40,7 @@ pub(super) fn execute(
             return Ok(Some(Flow::Return));
         }
         op if is_nop_like(op) => exec_nop_like(cpu, instr),
-        Opcode::Wfi | Opcode::Wfe => advance_timer_deadline(cpu),
+        Opcode::Wfi | Opcode::Wfe => {}
         _ => return Ok(None),
     }
     Ok(Some(Flow::Advance))
@@ -104,15 +108,5 @@ fn exec_nop_like(cpu: &mut Armv8Cpu, instr: Instr) {
         }
     } else if instr.cond == 3 {
         cpu.clear_exclusive();
-    } else if instr.cond == 4 {
-        advance_timer_deadline(cpu);
-    }
-}
-
-fn advance_timer_deadline(cpu: &mut Armv8Cpu) {
-    if let Some(deadline) = cpu.sys.next_timer_deadline()
-        && deadline > cpu.sys.cycle_count
-    {
-        cpu.sys.cycle_count = deadline;
     }
 }

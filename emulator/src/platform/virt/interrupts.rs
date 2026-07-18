@@ -17,11 +17,42 @@ impl SystemBus {
         self.gic.set_pending(int_id);
     }
 
+    pub fn set_irq_pending_for_cpu(&mut self, core: usize, int_id: u32) {
+        self.gic.set_pending_for_cpu(core, int_id);
+    }
+
     pub fn clear_irq_pending(&mut self, int_id: u32) {
-        self.gic.clear_pending(int_id);
+        self.clear_irq_pending_for_cpu(0, int_id);
+    }
+
+    pub fn clear_irq_pending_for_cpu(&mut self, core: usize, int_id: u32) {
+        self.gic.clear_pending_for_cpu(core, int_id);
         if int_id == PL011_UART_IRQ_ID {
             self.mark_uart_rx_refresh_needed();
         }
+    }
+
+    pub fn acknowledge_irq_for_cpu(&mut self, core: usize, int_id: u32) -> bool {
+        let acknowledged = self.gic.acknowledge_interrupt_for_cpu(core, int_id);
+        if acknowledged && int_id == PL011_UART_IRQ_ID {
+            self.mark_uart_rx_refresh_needed();
+        }
+        acknowledged
+    }
+
+    pub fn deactivate_irq_for_cpu(&mut self, core: usize, int_id: u32) -> bool {
+        if int_id == PL011_UART_IRQ_ID {
+            if self.uart.masked_rx_interrupt_pending() {
+                self.gic.set_pending(int_id);
+            } else {
+                self.gic.clear_pending(int_id);
+            }
+        }
+        let deactivated = self.gic.deactivate_interrupt_for_cpu(core, int_id);
+        if deactivated && int_id == PL011_UART_IRQ_ID {
+            self.mark_uart_rx_refresh_needed();
+        }
+        deactivated
     }
 
     pub fn refresh_interrupts(&mut self) {
@@ -35,7 +66,11 @@ impl SystemBus {
     }
 
     pub fn external_irq_poll_needed(&self) -> bool {
-        self.uart_rx_refresh_needed || self.gic.has_pending_enabled()
+        self.external_irq_poll_needed_for_cpu(0)
+    }
+
+    pub fn external_irq_poll_needed_for_cpu(&self, core: usize) -> bool {
+        self.uart_rx_refresh_needed || self.gic.has_pending_enabled_for_cpu(core)
     }
 
     pub(super) fn mark_uart_rx_refresh_needed(&mut self) {

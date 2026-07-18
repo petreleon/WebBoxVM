@@ -14,6 +14,7 @@ pub(super) fn build_tree(
     initrd_end: Option<u64>,
     bootargs: Option<&str>,
     advertise_boot_media: bool,
+    num_cores: usize,
 ) {
     root::build_tree(
         builder,
@@ -23,5 +24,6 @@ pub(super) fn build_tree(
         initrd_end,
         bootargs,
         advertise_boot_media,
+        num_cores,
     );
 }

@@ -2,7 +2,6 @@ use crate::arch::arm64::{Armv8Cpu, translate};
 use crate::host::wasm::{Emulator, JitPendingExclusiveReservation, JitPendingStore};
 use crate::memory::PhysicalMemory;
 use crate::runtime::Machine;
-use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
 use super::load::{read_guest_bytes, read_guest_lanes};
@@ -11,6 +10,7 @@ use super::load::{read_guest_bytes, read_guest_lanes};
 impl Emulator {
     /// Read RAM and stage an exclusive reservation for a generated JIT block.
     pub fn jit_load_exclusive(&mut self, core_id: Option<usize>, va: u64, size: u8) -> u64 {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return 0;
         }
@@ -35,7 +35,13 @@ impl Emulator {
     }
 
     /// Read adjacent RAM values and stage an exclusive pair reservation.
-    pub fn jit_load_exclusive_pair(&mut self, core_id: Option<usize>, va: u64, size: u8) -> Array {
+    pub fn jit_load_exclusive_pair(
+        &mut self,
+        core_id: Option<usize>,
+        va: u64,
+        size: u8,
+    ) -> Box<[JsValue]> {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return pair_values_to_js(0, 0);
         }
@@ -143,11 +149,8 @@ pub(super) fn apply_jit_pending_exclusive_reservation(
     }
 }
 
-fn pair_values_to_js(value1: u64, value2: u64) -> Array {
-    let values = Array::new();
-    values.push(&JsValue::from(value1));
-    values.push(&JsValue::from(value2));
-    values
+fn pair_values_to_js(value1: u64, value2: u64) -> Box<[JsValue]> {
+    Box::new([JsValue::from(value1), JsValue::from(value2)])
 }
 
 fn pair_access_crosses_page(va: u64, size: u8) -> bool {

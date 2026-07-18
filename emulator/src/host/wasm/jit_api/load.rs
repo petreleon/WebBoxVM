@@ -14,6 +14,7 @@ impl Emulator {
     /// Device ranges are rejected so a speculative JIT helper cannot consume
     /// MMIO side effects before the block passes commit checks.
     pub fn jit_load_guest(&mut self, core_id: Option<usize>, va: u64, size: u8) -> u64 {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return 0;
         }

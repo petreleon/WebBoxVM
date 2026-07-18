@@ -1,7 +1,6 @@
 use crate::constants::{PAGE_OFFSET_MASK, PAGE_SIZE};
 use crate::host::wasm::{Emulator, JitPendingStore};
 use crate::runtime::Machine;
-use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
 use super::load::{jit_load_guest_from_machine, read_guest_lanes, translate_load};
@@ -9,7 +8,13 @@ use super::load::{jit_load_guest_from_machine, read_guest_lanes, translate_load}
 #[wasm_bindgen]
 impl Emulator {
     /// Read adjacent guest RAM values for a generated JIT pair load.
-    pub fn jit_load_pair_guest(&mut self, core_id: Option<usize>, va: u64, size: u8) -> Array {
+    pub fn jit_load_pair_guest(
+        &mut self,
+        core_id: Option<usize>,
+        va: u64,
+        size: u8,
+    ) -> Box<[JsValue]> {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return pair_values_to_js(0, 0);
         }
@@ -78,9 +83,6 @@ fn pair_access_crosses_page(va: u64, size: u8) -> bool {
     (va & PAGE_OFFSET_MASK) + (size as u64 * 2) > PAGE_SIZE
 }
 
-fn pair_values_to_js(value1: u64, value2: u64) -> Array {
-    let values = Array::new();
-    values.push(&JsValue::from(value1));
-    values.push(&JsValue::from(value2));
-    values
+fn pair_values_to_js(value1: u64, value2: u64) -> Box<[JsValue]> {
+    Box::new([JsValue::from(value1), JsValue::from(value2)])
 }

@@ -1,4 +1,4 @@
-use crate::arch::arm64::Armv8Cpu;
+use crate::arch::arm64::{Armv8Cpu, ProcessorState};
 use crate::boot::{BootPlan, build_busybox_initrd, build_default_initrd};
 use crate::constants::SCTLR_MMU_ENABLE;
 use crate::dtb::load_dtb;
@@ -68,13 +68,21 @@ impl BootContext {
             .mem
             .write_bytes(plan.entry, &plan.kernel_image)
             .ok_or_else(|| "kernel image does not fit in guest RAM".to_string())?;
-
         configure_primary_core(&mut machine.cpus[0], &plan);
         load_initrd(&mut machine.bus, plan.initrd_addr, &plan.initrd_image);
         load_dtb(&mut machine.bus, plan.dtb_addr, &plan.dtb_image);
         if let Some(media) = plan.boot_media {
             machine.bus.virtio_blk.set_image_owned(media);
         }
+        machine.configure_system_reset(
+            plan.entry,
+            plan.dtb_addr,
+            vec![
+                (plan.entry, plan.kernel_image),
+                (plan.initrd_addr, plan.initrd_image),
+                (plan.dtb_addr, plan.dtb_image),
+            ],
+        );
 
         Ok(Self {
             machine,
@@ -165,7 +173,7 @@ fn configure_primary_core(cpu: &mut Armv8Cpu, plan: &BootPlan) {
     cpu.regs.set_x(1, 0);
     cpu.regs.set_x(2, 0);
     cpu.regs.set_x(3, 0);
-    cpu.pstate = cpu.pstate.with_el(1).with_irq_masked(true);
+    cpu.pstate = ProcessorState::el1h_masked();
     cpu.sys.sctlr_el1 &= !SCTLR_MMU_ENABLE;
     cpu.regs.pc = plan.entry;
 }

@@ -13,18 +13,21 @@ const INITIAL_METRICS = {
   totalSteps: 0n,
   uartOutputLen: 0,
 };
-
 export class WorkerChannel {
   #callbacks;
+  #closing = false;
+  #freePromise;
+  #freeTimeoutMs;
   #instructionProbe;
   #jitProbe;
   #metrics = { ...INITIAL_METRICS };
   #nextRequestId = 1;
   #pending = new Map();
+  #terminated = false;
   #worker;
-
-  constructor(workerUrl, callbacks) {
+  constructor(workerUrl, callbacks, options = {}) {
     this.#callbacks = callbacks;
+    this.#freeTimeoutMs = options.freeTimeoutMs ?? 2_000;
     this.#worker = new Worker(workerUrl, { type: "module" });
     this.#worker.addEventListener("message", (event) => this.#handleMessage(event.data));
     this.#worker.addEventListener("error", (event) => {
@@ -33,29 +36,49 @@ export class WorkerChannel {
       this.#callbacks.onError(error);
     });
   }
-
   get metrics() {
     return this.#metrics;
   }
-
   request(type, payload = {}, transfer = []) {
+    if (this.#closing) {
+      return Promise.reject(new Error("Worker VM is closing"));
+    }
     const id = this.#nextRequestId++;
     const message = { id, payload, type };
     const promise = new Promise((resolve, reject) => {
       this.#pending.set(id, { reject, resolve });
     });
-    this.#worker.postMessage(message, transfer);
+    try {
+      this.#worker.postMessage(message, transfer);
+    } catch (error) {
+      this.#pending.get(id)?.reject(error);
+      this.#pending.delete(id);
+    }
     return promise;
   }
-
   post(type, payload = {}, transfer = []) {
+    if (this.#closing) return;
     this.#worker.postMessage({ payload, type }, transfer);
   }
-
   free() {
-    this.post("free");
-    this.#worker.terminate();
-    this.#rejectAll(new Error("Worker VM terminated"));
+    if (this.#freePromise) return this.#freePromise;
+    const acknowledgment = this.request("free").catch(() => {});
+    this.#closing = true;
+    let timeout;
+    this.#freePromise = Promise.race([
+      acknowledgment,
+      new Promise((resolve) => {
+        timeout = setTimeout(resolve, this.#freeTimeoutMs);
+      }),
+    ]).then(() => {
+      clearTimeout(timeout);
+      if (!this.#terminated) {
+        this.#terminated = true;
+        this.#worker.terminate();
+      }
+      this.#rejectAll(new Error("Worker VM terminated"));
+    });
+    return this.#freePromise;
   }
 
   #handleMessage(message) {
@@ -69,7 +92,6 @@ export class WorkerChannel {
       return;
     }
     this.#pending.delete(message.id);
-
     if (message.ok) {
       if (message.value?.metrics) {
         this.#updateMetrics(message.value.metrics);
@@ -79,7 +101,6 @@ export class WorkerChannel {
       pending.reject(new Error(message.error ?? "Worker VM request failed"));
     }
   }
-
   #handleEvent(message) {
     switch (message.event) {
       case "autosave":
@@ -104,7 +125,6 @@ export class WorkerChannel {
         break;
     }
   }
-
   #updateMetrics(metrics) {
     const hasJitStats = metrics.jitStats !== undefined;
     const hasInstruction = Object.hasOwn(metrics, "currentInstruction");

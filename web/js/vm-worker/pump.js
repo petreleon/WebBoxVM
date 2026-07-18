@@ -1,4 +1,5 @@
 import { tryRunOrCompileJitBlock } from "./jit-hot.js";
+import { withEmulatorAccess } from "./access.js";
 import { errorMessage } from "./errors.js";
 import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
 import { drainNetworkTx } from "./network.js";
@@ -22,7 +23,9 @@ export function schedulePump() {
     return;
   }
   state.pumpScheduled = true;
-  schedulePumpTask(runPump);
+  schedulePumpTask(() => {
+    void withEmulatorAccess(runPump);
+  });
 }
 
 export function createPumpTaskScheduler({
@@ -66,7 +69,10 @@ async function runPump() {
       if (!emulator) {
         return;
       }
-      let usedJit = tryRunOrCompileJitBlock(0, emulator);
+      let usedJit =
+        state.executionMode === "parallel-wasm"
+          ? false
+          : tryRunOrCompileJitBlock(0, emulator);
       if (usedJit !== true && usedJit !== false) {
         usedJit = await usedJit;
         if (!state.running) {
@@ -81,7 +87,12 @@ async function runPump() {
         return;
       }
       if (!usedJit) {
-        emulator.run_kernel(interpreterStepSlice(now, emulator));
+        const stepSlice = interpreterStepSlice(now, emulator);
+        if (state.executionMode === "parallel-wasm") {
+          await state.vcpuPool.runRound(emulator, stepSlice);
+        } else {
+          emulator.run_kernel(stepSlice);
+        }
       }
       now = performance.now();
       const sentNetworkFrames =

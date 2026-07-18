@@ -26,6 +26,7 @@ impl Emulator {
         alternate_exit_pc: u64,
         dynamic_exit: bool,
     ) -> u8 {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             self.clear_jit_side_effects();
             return JIT_FINISH_HELPER_REJECTED;

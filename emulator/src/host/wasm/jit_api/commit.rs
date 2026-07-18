@@ -1,18 +1,18 @@
+use super::exclusive::apply_jit_pending_exclusive_clear;
+use super::exclusive_load::apply_jit_pending_exclusive_reservation;
+use super::store::apply_jit_pending_stores;
+use super::timer::deliver_jit_timer_boundary;
 use crate::arch::arm64::jit::WasmJitCpuState;
 use crate::constants::GIC_SPURIOUS_INTERRUPT;
 use crate::host::wasm::Emulator;
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
-use super::exclusive::apply_jit_pending_exclusive_clear;
-use super::exclusive_load::apply_jit_pending_exclusive_reservation;
-use super::store::apply_jit_pending_stores;
-use super::timer::deliver_jit_timer_boundary;
-
 #[wasm_bindgen]
 impl Emulator {
     /// Check whether a generated JIT block can commit at the current boundary.
     pub fn jit_can_commit_block_now(&mut self, core_id: Option<usize>, steps: usize) -> bool {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         let result = if let Some(ref mut boot) = self.boot {
             can_commit_jit_block_now(&mut boot.machine, core_id, steps)
@@ -43,6 +43,7 @@ impl Emulator {
         steps: usize,
         expected_exit_pc: u64,
     ) -> bool {
+        let _access = self.require_parallel_idle();
         let core_id = core_id.unwrap_or(0);
         self.jit_prepared_block = false;
         let pending_stores = std::mem::take(&mut self.jit_pending_stores);
@@ -128,6 +129,7 @@ pub(super) fn commit_jit_state(
     let cycle_count = cpu.sys.cycle_count;
     state.copy_to_cpu(cpu);
     cpu.sys.cycle_count = cycle_count.wrapping_add(steps);
+    machine.virtual_time = machine.virtual_time.max(cpu.sys.cycle_count);
     deliver_jit_timer_boundary(cpu);
     machine.total_steps = machine.total_steps.wrapping_add(steps);
     machine.active_core = 0;

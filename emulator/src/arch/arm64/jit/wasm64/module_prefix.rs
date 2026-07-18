@@ -1,4 +1,5 @@
-use super::encoding::{encode_name, encode_u32, encode_u64};
+use super::encoding::{encode_name, encode_u32};
+use super::memory_import::append_memory_type;
 use super::opcodes::*;
 use std::sync::LazyLock;
 
@@ -148,8 +149,7 @@ fn memory_import_section(import_count: u32) -> Vec<u8> {
     encode_name(&mut section, "env");
     encode_name(&mut section, "memory");
     section.push(IMPORT_MEMORY);
-    encode_u32(&mut section, LIMITS_MEMORY64);
-    encode_u64(&mut section, 0);
+    append_memory_type(&mut section);
     section
 }
 

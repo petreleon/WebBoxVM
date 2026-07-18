@@ -11,6 +11,7 @@ mod busybox_simd_cases;
 mod cmp_aliases;
 mod cssc;
 mod exclusive;
+mod hvc;
 mod loads_literals;
 mod logical_aliases;
 mod mops;

@@ -45,6 +45,14 @@ impl ProcessorState {
         self
     }
 
+    pub fn all_exceptions_masked(&self) -> bool {
+        self.daif() == PSTATE_DAIF_MASK
+    }
+
+    pub fn with_all_exceptions_masked(self) -> Self {
+        self.with_daif(PSTATE_DAIF_MASK)
+    }
+
     // ── Condition flags ──
 
     pub fn n(&self) -> bool {
@@ -83,6 +91,29 @@ impl ProcessorState {
         self
     }
 
+    /// Whether the current EL's stack pointer (SP_ELx) is selected.
+    pub fn sp_select(&self) -> bool {
+        self.bit(PSTATE_SP_BIT)
+    }
+
+    pub fn with_sp_select(mut self, select_sp_elx: bool) -> Self {
+        if select_sp_elx {
+            self.bits |= PSTATE_SP_MASK;
+        } else {
+            self.bits &= !PSTATE_SP_MASK;
+        }
+        self
+    }
+
+    pub fn with_el1h(self) -> Self {
+        self.with_el(1).with_sp_select(true)
+    }
+
+    /// Reset state required for a PSCI-started AArch64 secondary CPU.
+    pub fn el1h_masked() -> Self {
+        Self { bits: 0 }.with_el1h().with_all_exceptions_masked()
+    }
+
     // ── Serialization ──
 
     /// Pack PSTATE into a u64 (SPSR_ELx format).
@@ -107,25 +138,4 @@ impl ProcessorState {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn boot_el3() {
-        let p = ProcessorState::new();
-        assert_eq!(p.el(), MAX_EL);
-    }
-
-    #[test]
-    fn nzcv_roundtrip() {
-        let mut p = ProcessorState::new();
-        p.set_nzcv(true, false, true, false);
-        assert!(p.n() && !p.z() && p.c() && !p.v());
-    }
-
-    #[test]
-    fn el_transition() {
-        let p = ProcessorState::new().with_el(1);
-        assert_eq!(p.el(), 1);
-    }
-}
+mod tests;

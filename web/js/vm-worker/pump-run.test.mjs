@@ -10,6 +10,7 @@ afterEach(() => {
   globalThis.performance = previousPerformance;
   globalThis.postMessage = previousPostMessage;
   state.emulator = undefined;
+  state.executionMode = "cooperative";
   state.jitEnabled = DEFAULT_JIT_ENABLED;
   resetJitState();
   state.lastAutosavePollAt = 0;
@@ -18,6 +19,7 @@ afterEach(() => {
   state.networkStatus = "offline";
   state.pumpScheduled = false;
   state.running = false;
+  state.vcpuPool = undefined;
 });
 
 test("cached jit pump path does not probe boolean then", async () => {
@@ -103,6 +105,31 @@ test("interpreter fallback reuses current batch timestamp before run", async () 
 
   assert.equal(stepSlice, DEFAULT_STEP_SLICE);
   assert.equal(nowCalls, 2);
+});
+
+test("parallel interpreter batches run through the vcpu pool", async () => {
+  let resolveRun;
+  const ran = new Promise((resolve) => (resolveRun = resolve));
+  const emulator = {};
+  globalThis.performance = { now: () => 100 };
+  globalThis.postMessage = () => {};
+  state.executionMode = "parallel-wasm";
+  state.lastAutosavePollAt = 10_000;
+  state.lastMetricsAt = 10_000;
+  state.lastUartPollAt = 10_000;
+  state.running = true;
+  state.emulator = emulator;
+  state.vcpuPool = {
+    runRound(actual, slice) {
+      assert.equal(actual, emulator);
+      assert.equal(slice, DEFAULT_STEP_SLICE);
+      state.running = false;
+      resolveRun();
+    },
+  };
+
+  schedulePump();
+  await ran;
 });
 
 test("pump scheduler uses message channel when available", () => {

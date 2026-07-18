@@ -13,6 +13,7 @@ impl Default for SystemRegisters {
             spsr_el1: 0,
             elr_el1: 0,
             esr_el1: 0,
+            mpidr_el1: MPIDR_SINGLE_CORE,
             cpacr_el1: 0,
             fpcr: 0,
             fpsr: 0,

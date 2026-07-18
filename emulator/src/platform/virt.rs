@@ -13,6 +13,8 @@ use crate::devices::virtio_blk::VirtioBlk;
 use crate::devices::virtio_net::VirtioNet;
 use crate::memory::PhysicalMemory;
 
+mod construction;
+mod exclusive;
 mod interrupts;
 mod ranges;
 
@@ -27,24 +29,15 @@ pub struct SystemBus {
     pub virtio_disk: VirtioBlk,
     pub virtio_net: VirtioNet,
     uart_rx_refresh_needed: bool,
+    memory_writes: Vec<exclusive::MemoryWrite>,
+    // Virtio completions can touch several discontiguous guest buffers. A
+    // global marker is both cheaper to propagate and architecturally safe:
+    // exclusive monitors are allowed to fail spuriously.
+    dma_write_during_instruction: bool,
+    external_dma_write_pending: bool,
 }
 
 impl SystemBus {
-    pub fn new() -> Self {
-        Self {
-            mem: PhysicalMemory::new(),
-            uart: Pl011Uart::new(),
-            gic: Gicv3::new(),
-            virtio_blk: VirtioBlk::new(),
-            virtio_disk: VirtioBlk::writable_sparse(
-                crate::devices::virtio_blk::DEFAULT_SPARSE_DISK_SIZE,
-                b"webboxvm-disk\0",
-            ),
-            virtio_net: VirtioNet::new(),
-            uart_rx_refresh_needed: false,
-        }
-    }
-
     pub fn read(&mut self, addr: u64, size: u8) -> Option<u64> {
         // Redirect fixmap kernel VA UART reads to the correct device.
         // Only applies to kernel VAs (>= 0xffff000000000000), not physical addresses.
@@ -90,7 +83,11 @@ impl SystemBus {
         if addr < LOW_REGION_END && overlaps_device_range(addr, bytes.len()) {
             return None;
         }
-        self.mem.write_bytes(addr, bytes)
+        let result = self.mem.write_bytes(addr, bytes);
+        if result.is_some() {
+            self.record_memory_write(addr, bytes.len() as u64);
+        }
+        result
     }
 
     pub fn overlaps_device_range(&self, addr: u64, len: usize) -> bool {
@@ -99,6 +96,7 @@ impl SystemBus {
 
     pub fn inject_network_frame(&mut self, frame: &[u8]) {
         if self.virtio_net.inject_rx_frame(&mut self.mem, frame) {
+            self.record_external_dma_write();
             self.gic.set_pending(VIRTIO_NET_IRQ_ID);
         }
     }
@@ -117,7 +115,9 @@ impl SystemBus {
         }
 
         if addr >= LOW_REGION_END && addr < KERNEL_VA_BASE {
-            self.mem.write(addr, size, value);
+            if self.mem.write(addr, size, value).is_some() {
+                self.record_memory_write(addr, size as u64);
+            }
             return;
         }
 
@@ -143,6 +143,7 @@ impl SystemBus {
                 .virtio_blk
                 .write(&mut self.mem, addr - VIRTIO_BLK_BASE, value, size)
             {
+                self.record_dma_write();
                 self.gic.set_pending(VIRTIO_BLK_IRQ_ID);
             }
             return;
@@ -151,6 +152,7 @@ impl SystemBus {
                 .virtio_disk
                 .write(&mut self.mem, addr - VIRTIO_DISK_BASE, value, size)
             {
+                self.record_dma_write();
                 self.gic.set_pending(VIRTIO_DISK_IRQ_ID);
             }
             return;
@@ -159,11 +161,14 @@ impl SystemBus {
                 .virtio_net
                 .write(&mut self.mem, addr - VIRTIO_NET_BASE, value, size)
             {
+                self.record_dma_write();
                 self.gic.set_pending(VIRTIO_NET_IRQ_ID);
             }
             return;
         }
-        self.mem.write(addr, size, value);
+        if self.mem.write(addr, size, value).is_some() {
+            self.record_memory_write(addr, size as u64);
+        }
     }
 
     pub fn write_phys(&mut self, addr: PhysAddr, width: AccessWidth, value: u64) {

@@ -74,6 +74,19 @@ pub(super) fn decode(raw: u32) -> DecodeStep {
             cond: 0,
         });
     }
+    if (raw & 0xFFE0001F) == 0xD4000002 {
+        let imm16 = ((raw >> 5) & 0xFFFF) as u64;
+        return DecodeStep::Hit(Instr {
+            size: 0,
+            op: Opcode::Hvc,
+            rd: 0,
+            rn: 0,
+            rm: 0,
+            imm: imm16,
+            sf: true,
+            cond: 0,
+        });
+    }
     if (raw & 0xFFE0001F) == 0xD4200000 {
         let imm16 = ((raw >> 5) & 0xFFFF) as u64;
         return DecodeStep::Hit(Instr {

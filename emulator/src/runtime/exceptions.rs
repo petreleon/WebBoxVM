@@ -1,11 +1,15 @@
 use super::*;
 
-pub(in crate::runtime) fn deliver_external_irq(cpu: &mut Armv8Cpu, bus: &mut SystemBus) {
+pub(in crate::runtime) fn deliver_external_irq(
+    cpu: &mut Armv8Cpu,
+    bus: &mut SystemBus,
+    core: usize,
+) {
     if cpu.sys.vbar_el1 == 0 || cpu.sys.irq_pending || cpu.pstate.irq_masked() {
         return;
     }
 
-    let Some(int_id) = bus.gic.next_pending_enabled() else {
+    let Some(int_id) = bus.gic.next_pending_enabled_for_cpu(core) else {
         return;
     };
 

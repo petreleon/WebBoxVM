@@ -27,6 +27,8 @@ test("worker and wasm package URLs are cache busted", async () => {
   const wasmLoader = await readFile(new URL("./vm-worker/wasm.js", import.meta.url), "utf8");
 
   assert.match(workerVm, /versionedUrl\("\.\/vm-worker\.js"/);
-  assert.match(wasmLoader, /versionedUrl\("\.\.\/\.\.\/pkg\/emulator\.js"/);
-  assert.match(wasmLoader, /versionedUrl\("\.\.\/\.\.\/pkg\/emulator_bg\.wasm"/);
+  assert.match(wasmLoader, /loadPackage\("\.\.\/\.\.\/pkg-threaded"\)/);
+  assert.match(wasmLoader, /loadPackage\("\.\.\/\.\.\/pkg"\)/);
+  assert.match(wasmLoader, /versionedUrl\(`\$\{directory\}\/emulator\.js`/);
+  assert.match(wasmLoader, /versionedUrl\(`\$\{directory\}\/emulator_bg\.wasm`/);
 });

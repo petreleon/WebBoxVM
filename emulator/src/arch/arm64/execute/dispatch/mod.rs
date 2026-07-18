@@ -16,6 +16,28 @@ pub(super) enum Flow {
     Return,
 }
 
+pub(super) fn execute_local_body(
+    cpu: &mut Armv8Cpu,
+    instr: Instr,
+) -> Result<Option<Flow>, &'static str> {
+    if let Some(flow) = scalar_basic::execute(cpu, instr)? {
+        return Ok(Some(flow));
+    }
+    if let Some(flow) = branching::execute(cpu, instr)? {
+        return Ok(Some(flow));
+    }
+    if let Some(flow) = condition_logic::execute(cpu, instr)? {
+        return Ok(Some(flow));
+    }
+    if let Some(flow) = arithmetic::execute(cpu, instr)? {
+        return Ok(Some(flow));
+    }
+    if let Some(flow) = simd_fp::execute(cpu, instr)? {
+        return Ok(Some(flow));
+    }
+    Ok(None)
+}
+
 pub(super) fn execute_body(
     cpu: &mut Armv8Cpu,
     bus: &mut SystemBus,

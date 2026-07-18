@@ -137,4 +137,5 @@ impl super::Opcode {
     pub const Ldapurs: Self = Self(599);
     pub const Stlur: Self = Self(600);
     pub const MteStgp: Self = Self(602);
+    pub const Hvc: Self = Self(605);
 }

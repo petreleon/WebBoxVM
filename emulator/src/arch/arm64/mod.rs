@@ -1,6 +1,6 @@
 //! ARM64 (AArch64) CPU core.
 
-use crate::constants::PSTATE_DAIF_MASK;
+use crate::constants::{EXCLUSIVE_RESERVATION_GRANULE_BYTES, PSTATE_DAIF_MASK, mpidr_for_core};
 
 mod bitmask_imm;
 mod decode;
@@ -10,6 +10,7 @@ pub(crate) mod gic_sysregs;
 mod helpers;
 mod interpreter;
 pub mod jit;
+mod lifecycle;
 pub mod machine;
 mod mmu;
 mod opcodes;
@@ -20,9 +21,10 @@ mod system_regs;
 pub use crate::runtime::Machine;
 pub use decode::decode;
 pub use decode_cache::DecodeCache;
-pub use execute::execute;
+pub use execute::{execute, try_execute_local};
 pub use helpers::{cond_taken, read_base, read_reg, write_reg, write_reg_sp};
 pub use interpreter::{RunError, run};
+pub use lifecycle::CpuLifecycle;
 pub(crate) use mmu::translate_read_only;
 #[cfg(feature = "wasm")]
 pub(crate) use mmu::translate_write;
@@ -36,6 +38,7 @@ pub use system_regs::SystemRegisters;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Armv8Cpu {
     pub core_id: u32,
+    pub lifecycle: CpuLifecycle,
     pub regs: RegisterFile,
     pub pstate: ProcessorState,
     pub sys: SystemRegisters,
@@ -46,6 +49,7 @@ pub struct Armv8Cpu {
     pub sve_vl_bytes: u16,
     pub sme_svl_bytes: u16,
     pub exclusive: Option<ExclusiveReservation>,
+    pub(crate) exclusive_epoch: u64,
     pub trace_syscall_stack_top: u64,
     pub trace_syscall_access_budget: u32,
 }
@@ -61,13 +65,20 @@ impl Armv8Cpu {
         Self::default()
     }
     pub fn with_core(core_id: u32) -> Self {
-        Self {
+        let mut cpu = Self {
             core_id,
             ..Self::default()
-        }
+        };
+        cpu.sys.mpidr_el1 = mpidr_for_core(core_id);
+        cpu
     }
+
+    /// Reset architectural state without changing CPU identity or lifecycle.
     pub fn reset(&mut self) {
-        *self = Self::default();
+        let core_id = self.core_id;
+        let lifecycle = self.lifecycle;
+        *self = Self::with_core(core_id);
+        self.lifecycle = lifecycle;
     }
 
     pub fn reserve_exclusive(&mut self, addr: u64, size: u8) {
@@ -76,6 +87,7 @@ impl Armv8Cpu {
 
     pub fn clear_exclusive(&mut self) {
         self.exclusive = None;
+        self.exclusive_epoch = 0;
     }
 
     pub fn exclusive_matches(&self, addr: u64, size: u8) -> bool {
@@ -89,7 +101,16 @@ impl Armv8Cpu {
 
     pub fn clear_exclusive_range_if_overlaps(&mut self, addr: u64, len: u64) {
         if self.exclusive.is_some_and(|reservation| {
-            ranges_overlap(reservation.addr, reservation.size as u64, addr, len)
+            let granule_mask = EXCLUSIVE_RESERVATION_GRANULE_BYTES - 1;
+            let monitor_start = reservation.addr & !granule_mask;
+            let reservation_last = reservation
+                .addr
+                .saturating_add(reservation.size.saturating_sub(1) as u64);
+            let monitor_last = reservation_last & !granule_mask;
+            let monitor_len = monitor_last
+                .saturating_sub(monitor_start)
+                .saturating_add(EXCLUSIVE_RESERVATION_GRANULE_BYTES);
+            ranges_overlap(monitor_start, monitor_len, addr, len)
         }) {
             self.clear_exclusive();
         }
@@ -100,7 +121,12 @@ impl Armv8Cpu {
             self.sys.sp_el0 = self.regs.sp;
             self.regs.sp = self.sys.sp_el1;
         }
-        self.pstate = self.pstate.with_el(1).with_daif(PSTATE_DAIF_MASK);
+        let target = self.pstate.with_el(1).with_daif(PSTATE_DAIF_MASK);
+        self.pstate = if from_lower_el {
+            target.with_sp_select(true)
+        } else {
+            target
+        };
     }
 
     pub fn eret_to(&mut self, target: ProcessorState) {
@@ -117,6 +143,7 @@ impl Default for Armv8Cpu {
     fn default() -> Self {
         Self {
             core_id: 0,
+            lifecycle: CpuLifecycle::default(),
             regs: RegisterFile::default(),
             pstate: ProcessorState::new(),
             sys: SystemRegisters::default(),
@@ -127,6 +154,7 @@ impl Default for Armv8Cpu {
             sve_vl_bytes: 16,
             sme_svl_bytes: 16,
             exclusive: None,
+            exclusive_epoch: 0,
             trace_syscall_stack_top: 0,
             trace_syscall_access_budget: 0,
         }
@@ -140,34 +168,4 @@ fn ranges_overlap(a: u64, a_size: u64, b: u64, b_size: u64) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn boot_state() {
-        let cpu = Armv8Cpu::new();
-        assert_eq!(cpu.pstate.el(), 3);
-        assert_eq!(cpu.regs.x(0), 0);
-        assert_eq!(cpu.sys.sctlr_el1, 0);
-    }
-
-    #[test]
-    fn reset_clears_all() {
-        let mut cpu = Armv8Cpu::new();
-        cpu.regs.set_x(0, 42);
-        cpu.reset();
-        assert_eq!(cpu.regs.x(0), 0);
-    }
-
-    #[test]
-    fn range_clear_drops_only_overlapping_exclusive_reservation() {
-        let mut cpu = Armv8Cpu::new();
-        cpu.reserve_exclusive(0x1000, 8);
-
-        cpu.clear_exclusive_range_if_overlaps(0x2000, 0x100);
-        assert!(cpu.exclusive_matches(0x1000, 8));
-
-        cpu.clear_exclusive_range_if_overlaps(0x1004, 0x100);
-        assert!(cpu.exclusive.is_none());
-    }
-}
+mod tests;

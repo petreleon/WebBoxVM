@@ -25,6 +25,7 @@ impl JitPendingStore {
 impl Emulator {
     /// Stage a guest RAM store for a generated JIT block.
     pub fn jit_store_guest(&mut self, core_id: Option<usize>, va: u64, size: u8, value: u64) {
+        let _access = self.require_parallel_idle();
         if self.jit_helper_failed {
             return;
         }
