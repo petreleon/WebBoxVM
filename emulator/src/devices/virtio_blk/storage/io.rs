@@ -21,18 +21,34 @@ impl SparseDiskStorage {
             let chunk_offset = (current % SPARSE_DISK_CHUNK_SIZE as u64) as usize;
             let count = (src.len() - done).min(SPARSE_DISK_CHUNK_SIZE - chunk_offset);
             let src_range = &src[done..done + count];
-            if !bytes_have_data(src_range) && !self.chunks.contains_key(&chunk_index) {
-                done += count;
-                continue;
+            let base_chunk = self
+                .base
+                .as_ref()
+                .and_then(|base| base.chunk_data(chunk_index));
+            if !self.overlay.contains_key(&chunk_index) {
+                let base_range_has_data = base_chunk.is_some_and(|chunk| {
+                    bytes_have_data(&chunk[chunk_offset..chunk_offset + count])
+                });
+                if !bytes_have_data(src_range) && !base_range_has_data {
+                    done += count;
+                    continue;
+                }
+
+                let mut initial = Box::new([0; SPARSE_DISK_CHUNK_SIZE]);
+                if let Some(chunk) = base_chunk {
+                    initial.copy_from_slice(chunk);
+                }
+                self.overlay.insert(chunk_index, initial);
             }
 
             let chunk = self
-                .chunks
-                .entry(chunk_index)
-                .or_insert_with(|| Box::new([0; SPARSE_DISK_CHUNK_SIZE]));
+                .overlay
+                .get_mut(&chunk_index)
+                .expect("copy-on-write chunk was inserted");
             chunk[chunk_offset..chunk_offset + count].copy_from_slice(src_range);
-            if !chunk_has_data(chunk) {
-                self.chunks.remove(&chunk_index);
+            let matches_base = base_chunk.is_some_and(|base| chunk.as_ref() == base);
+            if matches_base || (base_chunk.is_none() && !chunk_has_data(chunk)) {
+                self.overlay.remove(&chunk_index);
             }
             done += count;
         }

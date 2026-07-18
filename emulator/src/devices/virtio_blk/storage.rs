@@ -2,6 +2,7 @@ mod io;
 mod snapshot;
 
 use super::*;
+use crate::devices::virtio_blk::sparse_snapshot::SparseDiskSnapshot;
 use io::read_image;
 use std::collections::HashMap;
 
@@ -78,7 +79,8 @@ impl BlockStorage {
 pub(super) struct SparseDiskStorage {
     pub(super) size_bytes: u64,
     pub(super) id: &'static [u8],
-    pub(super) chunks: HashMap<u64, Box<[u8; SPARSE_DISK_CHUNK_SIZE]>>,
+    pub(super) base: Option<SparseDiskSnapshot>,
+    pub(super) overlay: HashMap<u64, Box<[u8; SPARSE_DISK_CHUNK_SIZE]>>,
     pub(super) generation: u64,
 }
 
@@ -87,8 +89,19 @@ impl SparseDiskStorage {
         Self {
             size_bytes,
             id,
-            chunks: HashMap::new(),
+            base: None,
+            overlay: HashMap::new(),
             generation: 0,
+        }
+    }
+
+    pub(super) fn from_parsed_snapshot(snapshot: SparseDiskSnapshot, id: &'static [u8]) -> Self {
+        Self {
+            size_bytes: snapshot.size_bytes(),
+            id,
+            base: Some(snapshot),
+            overlay: HashMap::new(),
+            generation: 1,
         }
     }
 
@@ -104,7 +117,9 @@ impl SparseDiskStorage {
             let chunk_offset = (current % SPARSE_DISK_CHUNK_SIZE as u64) as usize;
             let count = (dst.len() - done).min(SPARSE_DISK_CHUNK_SIZE - chunk_offset);
 
-            if let Some(chunk) = self.chunks.get(&chunk_index) {
+            if let Some(chunk) = self.overlay.get(&chunk_index) {
+                dst[done..done + count].copy_from_slice(&chunk[chunk_offset..chunk_offset + count]);
+            } else if let Some(chunk) = self.base_chunk(chunk_index) {
                 dst[done..done + count].copy_from_slice(&chunk[chunk_offset..chunk_offset + count]);
             } else {
                 dst[done..done + count].fill(0);
@@ -127,7 +142,24 @@ impl SparseDiskStorage {
     }
 
     pub(super) fn allocated_bytes(&self) -> u64 {
-        self.chunks.len() as u64 * SPARSE_DISK_CHUNK_SIZE as u64
+        let base_chunks = self.base.as_ref().map_or(0, |base| {
+            base.chunk_count()
+                - self
+                    .overlay
+                    .keys()
+                    .filter(|index| base.chunk_data(**index).is_some())
+                    .count()
+        });
+        let overlay_chunks = self
+            .overlay
+            .values()
+            .filter(|chunk| chunk_has_data(chunk))
+            .count();
+        (base_chunks + overlay_chunks) as u64 * SPARSE_DISK_CHUNK_SIZE as u64
+    }
+
+    fn base_chunk(&self, index: u64) -> Option<&[u8; SPARSE_DISK_CHUNK_SIZE]> {
+        self.base.as_ref()?.chunk_data(index)
     }
 
     fn range_in_disk(&self, offset: u64, len: usize) -> bool {

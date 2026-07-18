@@ -1,12 +1,14 @@
 use super::*;
+use std::collections::HashMap;
 use std::ops::Range;
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct SparseDiskSnapshot {
-    data: Arc<[u8]>,
+    data: Arc<Vec<u8>>,
     size_bytes: u64,
     chunks: Arc<[SparseChunk]>,
+    positions: Arc<HashMap<u64, usize>>,
 }
 
 #[derive(Clone, Debug)]
@@ -37,16 +39,18 @@ impl SparseDiskSnapshot {
         }
         chunks.sort_by_key(|chunk| chunk.index);
         reject_duplicates(&chunks)?;
+        let positions = chunks
+            .iter()
+            .enumerate()
+            .map(|(position, chunk)| (chunk.index, position))
+            .collect();
 
         Ok(Self {
-            data: Arc::from(snapshot.into_boxed_slice()),
+            data: Arc::new(snapshot),
             size_bytes,
             chunks: Arc::from(chunks),
+            positions: Arc::new(positions),
         })
-    }
-
-    pub fn as_bytes(&self) -> &[u8] {
-        &self.data
     }
 
     pub fn size_bytes(&self) -> u64 {
@@ -67,9 +71,8 @@ impl SparseDiskSnapshot {
             let index = current / SPARSE_DISK_CHUNK_SIZE as u64;
             let in_chunk = (current % SPARSE_DISK_CHUNK_SIZE as u64) as usize;
             let count = (dst.len() - done).min(SPARSE_DISK_CHUNK_SIZE - in_chunk);
-            if let Some(chunk) = self.find_chunk(index) {
-                let start = chunk.data.start + in_chunk;
-                dst[done..done + count].copy_from_slice(&self.data[start..start + count]);
+            if let Some(chunk) = self.chunk_data(index) {
+                dst[done..done + count].copy_from_slice(&chunk[in_chunk..in_chunk + count]);
             } else {
                 dst[done..done + count].fill(0);
             }
@@ -78,11 +81,42 @@ impl SparseDiskSnapshot {
         Ok(())
     }
 
-    fn find_chunk(&self, index: u64) -> Option<&SparseChunk> {
+    pub(in crate::devices::virtio_blk) fn chunk_data(
+        &self,
+        index: u64,
+    ) -> Option<&[u8; SPARSE_DISK_CHUNK_SIZE]> {
+        self.find_chunk(index).map(|chunk| chunk.data(&self.data))
+    }
+
+    pub(in crate::devices::virtio_blk) fn chunks(
+        &self,
+    ) -> impl Iterator<Item = (u64, &[u8; SPARSE_DISK_CHUNK_SIZE])> {
         self.chunks
-            .binary_search_by_key(&index, |chunk| chunk.index)
-            .ok()
-            .map(|pos| &self.chunks[pos])
+            .iter()
+            .map(|chunk| (chunk.index, chunk.data(&self.data)))
+    }
+
+    pub(in crate::devices::virtio_blk) fn chunk_count(&self) -> usize {
+        self.chunks.len()
+    }
+
+    #[cfg(test)]
+    pub(in crate::devices::virtio_blk) fn shares_backing(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.data, &other.data)
+    }
+
+    fn find_chunk(&self, index: u64) -> Option<&SparseChunk> {
+        self.positions
+            .get(&index)
+            .map(|position| &self.chunks[*position])
+    }
+}
+
+impl SparseChunk {
+    fn data<'a>(&self, snapshot: &'a [u8]) -> &'a [u8; SPARSE_DISK_CHUNK_SIZE] {
+        snapshot[self.data.clone()]
+            .try_into()
+            .expect("validated sparse snapshot chunk length")
     }
 }
 
