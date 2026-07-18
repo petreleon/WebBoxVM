@@ -117,6 +117,32 @@ impl VirtioBlk {
         self.reset_queue();
     }
 
+    pub(crate) fn set_sparse_disk_snapshot(
+        &mut self,
+        snapshot: sparse_snapshot::SparseDiskSnapshot,
+    ) {
+        self.storage = BlockStorage::SparseDisk(storage::SparseDiskStorage::from_parsed_snapshot(
+            snapshot,
+            b"webboxvm-disk\0",
+        ));
+        self.reset_queue();
+    }
+
+    #[cfg(test)]
+    pub(crate) fn sparse_disk_shares_snapshot_backing(
+        &self,
+        snapshot: &sparse_snapshot::SparseDiskSnapshot,
+    ) -> bool {
+        matches!(
+            &self.storage,
+            BlockStorage::SparseDisk(disk)
+                if disk
+                    .base
+                    .as_ref()
+                    .is_some_and(|base| base.shares_backing(snapshot))
+        )
+    }
+
     pub(crate) fn cold_reset(&mut self) {
         self.device_features_sel = 0;
         self.driver_features_sel = 0;
