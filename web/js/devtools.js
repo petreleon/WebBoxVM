@@ -1,4 +1,4 @@
-import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260718-staged-fast-boot";
+import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260720-firmware-fast-boot-r2";
 
 export function installWebboxVmDevtools(getEmulator, getRunner) {
   const bridge = installDomBridge(getEmulator);

@@ -28,15 +28,14 @@ impl Machine {
                 continue;
             }
             self.cpus[core].sys.cycle_count = self.virtual_time;
-            if self.core_has_wake_event(core) {
+            let event_wake = self.cpus[core].waiting_for_event && self.cpus[core].event_register;
+            if event_wake || self.core_has_wake_event(core) {
+                if event_wake {
+                    self.cpus[core].event_register = false;
+                }
                 self.cpus[core].lifecycle = CpuLifecycle::Runnable;
+                self.cpus[core].waiting_for_event = false;
             }
-        }
-    }
-
-    pub(super) fn park_after_wfi(&mut self, core: usize) {
-        if !self.core_has_wake_event(core) {
-            self.cpus[core].lifecycle = CpuLifecycle::WaitingForInterrupt;
         }
     }
 
@@ -48,11 +47,15 @@ impl Machine {
             .filter_map(|cpu| cpu.sys.next_timer_deadline())
             .min();
         if let Some(deadline) = deadline {
-            self.virtual_time = self.virtual_time.max(deadline);
+            let previous = self.virtual_time;
+            self.virtual_time = previous.max(deadline);
+            self.cooperative_idle_fast_forward_cycles = self
+                .cooperative_idle_fast_forward_cycles
+                .saturating_add(self.virtual_time.saturating_sub(previous));
         }
     }
 
-    fn core_has_wake_event(&self, core: usize) -> bool {
+    pub(super) fn core_has_wake_event(&self, core: usize) -> bool {
         let cpu = &self.cpus[core];
         cpu.sys.irq_pending
             || cpu.sys.timer_irq_check_needed()

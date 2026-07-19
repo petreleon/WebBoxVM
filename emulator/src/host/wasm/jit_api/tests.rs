@@ -113,7 +113,7 @@ fn jit_store_guest_stages_until_applied() {
     .expect("JIT store helper should stage RAM write");
 
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0));
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged store");
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x40, 4), Some(0x4433_2211));
 }
 
@@ -127,7 +127,7 @@ fn jit_store_commit_updates_exclusive_reservations() {
 
         stage_jit_store_from_machine(&mut machine, 0, store_pa, 4, 1, &mut stores)
             .expect("stage RAM store");
-        apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+        apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged store");
 
         assert_eq!(
             machine.cpus[0].exclusive_matches(RAM_BASE + 0x40, 8),

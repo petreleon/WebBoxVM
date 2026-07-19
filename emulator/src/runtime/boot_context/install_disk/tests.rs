@@ -22,7 +22,9 @@ fn probe_args_and_staged_smp_have_unambiguous_precedence() {
 
     assert!(probed.ends_with("init=/bin/sh"));
     assert!(!probed.contains("maxcpus="));
-    assert!(staged.ends_with("maxcpus=1"));
+    assert!(staged.contains("maxcpus=1"));
+    assert!(staged.contains("noresume"));
+    assert!(staged.ends_with("clocksource.arm_arch_timer.evtstrm=false"));
 }
 
 #[test]
@@ -84,6 +86,19 @@ fn installed_boot_retains_parsed_snapshot_as_disk_base() {
     assert_eq!(ctx.install_disk_generation(), 1);
 }
 
+#[test]
+fn unavailable_fast_initrd_preserves_the_current_overlay_fallback() {
+    let mut installed = installed_boot(compatible_initrd());
+    let original = installed.initrd.clone();
+    let overlay_start = (original.len() + 3) & !3;
+
+    prepare_staged_initrd(&mut installed);
+
+    assert_eq!(&installed.initrd[..original.len()], original);
+    let overlay = crate::initrd::parse_cpio(&installed.initrd[overlay_start..]).unwrap();
+    assert_eq!(overlay[0].name, "conf/param.conf");
+}
+
 fn compatible_initrd() -> Vec<u8> {
     build_cpio_nodes(&[
         CpioNode::file(
@@ -108,6 +123,9 @@ fn installed_boot(initrd: Vec<u8>) -> InstalledDiskBoot {
         boot_partition: 1,
         root_partition: Some(1),
         staged_smp_capable: true,
+        kernel_suffix: None,
+        fast_initrd_kernel: false,
+        root_ext4_clean: false,
     }
 }
 

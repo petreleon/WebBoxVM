@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { VcpuPool } from "./vcpu-pool.js?v=20260718-staged-fast-boot";
+import { VcpuPool } from "./vcpu-pool.js?v=20260720-firmware-fast-boot-r2";
 
 const previousWorker = globalThis.Worker;
 

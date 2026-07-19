@@ -1,8 +1,8 @@
-import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260718-staged-fast-boot";
-import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260718-staged-fast-boot";
-import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260718-staged-fast-boot";
-import { tryRunCachedJitBlock } from "./jit-run.js?v=20260718-staged-fast-boot";
-import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260718-staged-fast-boot";
+import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260720-firmware-fast-boot-r2";
+import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260720-firmware-fast-boot-r2";
+import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260720-firmware-fast-boot-r2";
+import { tryRunCachedJitBlock } from "./jit-run.js?v=20260720-firmware-fast-boot-r2";
+import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 export function tryRunOrCompileNextJitBlock(emulator = state.emulator) {
   if (!state.jitEnabled || !emulator) {

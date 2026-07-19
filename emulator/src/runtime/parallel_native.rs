@@ -8,6 +8,7 @@ use super::*;
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, AtomicUsize, Ordering};
 
+pub(in crate::runtime) mod events;
 pub(super) mod idle;
 mod instruction;
 mod lifecycle;
@@ -22,6 +23,7 @@ pub(super) const LIFE_RUNNABLE: u8 = 1;
 pub(super) const LIFE_WAITING: u8 = 2;
 pub(super) const LIFE_STARTING: u8 = 3;
 pub(super) const LIFE_BOOT_READY: u8 = 4;
+pub(super) const LIFE_WAITING_EVENT: u8 = 5;
 pub(super) const NO_DEADLINE: u64 = u64::MAX;
 
 pub(super) struct SharedRun<'a> {
@@ -35,6 +37,7 @@ pub(super) struct SharedRun<'a> {
     pub memory_epoch: AtomicU64,
     pub tlb_epoch: AtomicU64,
     pub lifecycle: Vec<AtomicU8>,
+    pub event_registers: Vec<AtomicBool>,
     pub deadlines: Vec<AtomicU64>,
     pub power_entry: Vec<AtomicU64>,
     pub power_context: Vec<AtomicU64>,
@@ -73,7 +76,7 @@ impl Machine {
         let initial_state = self
             .cpus
             .iter()
-            .map(|cpu| (lifecycle_code(cpu.lifecycle), idle::initial_deadline(cpu)))
+            .map(|cpu| (lifecycle_code(cpu), idle::initial_deadline(cpu)))
             .collect::<Vec<_>>();
         let shared = SharedRun {
             bus: RwLock::new(&mut self.bus),
@@ -88,6 +91,11 @@ impl Machine {
             lifecycle: initial_state
                 .iter()
                 .map(|(state, _)| AtomicU8::new(*state))
+                .collect(),
+            event_registers: self
+                .cpus
+                .iter()
+                .map(|cpu| AtomicBool::new(cpu.event_register))
                 .collect(),
             deadlines: initial_state
                 .iter()
@@ -138,30 +146,13 @@ impl Machine {
             worker_threads,
             max_local_in_flight: shared.max_local_in_flight.load(Ordering::Relaxed),
         };
-        for core in 0..core_count {
-            if system_off {
-                self.cpus[core].lifecycle = CpuLifecycle::PoweredOff;
-                continue;
-            }
-            match shared.lifecycle[core].load(Ordering::Acquire) {
-                LIFE_OFF => self.cpus[core].lifecycle = CpuLifecycle::PoweredOff,
-                LIFE_WAITING => {
-                    self.cpus[core].lifecycle = CpuLifecycle::WaitingForInterrupt;
-                }
-                LIFE_STARTING | LIFE_BOOT_READY => {
-                    let entry = shared.power_entry[core].load(Ordering::Acquire);
-                    let context = shared.power_context[core].load(Ordering::Acquire);
-                    initialize_powered_on_core(
-                        &mut self.cpus[core],
-                        &mut self.caches[core],
-                        entry,
-                        context,
-                        self.virtual_time,
-                    );
-                }
-                _ => self.cpus[core].lifecycle = CpuLifecycle::Runnable,
-            }
-        }
+        lifecycle::sync_cpus(
+            &mut self.cpus,
+            &mut self.caches,
+            self.virtual_time,
+            &shared,
+            system_off,
+        );
         drop(shared);
         self.total_steps = self.total_steps.saturating_add(ran as u64);
         if spawn_failed {

@@ -4,6 +4,7 @@ use crate::devices::virtio_blk::sparse_snapshot::SparseDiskSnapshot;
 use ext4_view::Ext4;
 
 mod capabilities;
+mod ext4_state;
 
 #[derive(Clone, Debug)]
 pub struct InstalledDiskBoot {
@@ -14,6 +15,9 @@ pub struct InstalledDiskBoot {
     pub boot_partition: u32,
     pub root_partition: Option<u32>,
     pub(crate) staged_smp_capable: bool,
+    pub(crate) kernel_suffix: Option<String>,
+    pub(crate) fast_initrd_kernel: bool,
+    pub(crate) root_ext4_clean: bool,
 }
 
 pub fn extract_installed_boot(
@@ -29,17 +33,29 @@ pub fn extract_installed_boot(
         };
         if root.is_none() && fs.exists("/etc/fstab").unwrap_or(false) {
             staged_root = capabilities::staged_smp_root(&fs);
-            root = Some((partition.number, fs.uuid().to_string()));
+            root = Some((
+                partition.number,
+                fs.uuid().to_string(),
+                ext4_state::clean(&disk, *partition),
+            ));
         }
-        if boot.is_none() {
-            if let Some((kernel, initrd, kernel_suffix)) = read_boot_pair(&fs) {
-                let hotplug = capabilities::kernel_cpu_hotplug(&fs, kernel_suffix.as_deref());
-                boot = Some((*partition, kernel, initrd, hotplug));
-            }
+        if boot.is_none()
+            && let Some((kernel, initrd, kernel_suffix)) = read_boot_pair(&fs)
+        {
+            let hotplug = capabilities::kernel_cpu_hotplug(&fs, kernel_suffix.as_deref());
+            let fast_initrd = capabilities::kernel_fast_initrd(&fs, kernel_suffix.as_deref());
+            boot = Some((
+                *partition,
+                kernel,
+                initrd,
+                kernel_suffix,
+                hotplug,
+                fast_initrd,
+            ));
         }
     }
 
-    let (partition, kernel, initrd, kernel_hotplug) =
+    let (partition, kernel, initrd, kernel_suffix, kernel_hotplug, fast_initrd_kernel) =
         boot.ok_or_else(|| "installed disk has no readable kernel/initrd pair".to_string())?;
     let bootargs = bootargs(root.as_ref(), partition.number);
     Ok(InstalledDiskBoot {
@@ -48,8 +64,11 @@ pub fn extract_installed_boot(
         initrd,
         bootargs,
         boot_partition: partition.number,
-        root_partition: root.map(|(number, _)| number),
+        root_partition: root.as_ref().map(|(number, _, _)| *number),
         staged_smp_capable: staged_root && kernel_hotplug,
+        kernel_suffix,
+        fast_initrd_kernel,
+        root_ext4_clean: root.is_some_and(|(_, _, clean)| clean),
     })
 }
 
@@ -142,9 +161,9 @@ fn join_path(dir: &str, name: &str) -> String {
     }
 }
 
-fn bootargs(root: Option<&(u32, String)>, boot_partition: u32) -> String {
+fn bootargs(root: Option<&(u32, String, bool)>, boot_partition: u32) -> String {
     let root_arg = match root {
-        Some((_, uuid)) => format!("root=UUID={uuid}"),
+        Some((_, uuid, _)) => format!("root=UUID={uuid}"),
         None => format!("root=/dev/vda{}", boot_partition + 1),
     };
     format!("{root_arg} rw rootwait TERM=vt102 console=ttyAMA0,115200n8")

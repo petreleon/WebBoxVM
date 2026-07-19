@@ -47,7 +47,7 @@ fn jit_pair_store_stages_both_values_before_commit() {
 
     assert_eq!(machine.bus.mem.read(base, 8), Some(0));
     assert_eq!(stores.len(), 1);
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged pair stores");
     assert_eq!(machine.bus.mem.read(base, 8), Some(0x1122_3344_5566_7788));
     assert_eq!(
         machine.bus.mem.read(base + 8, 8),
@@ -115,7 +115,7 @@ fn jit_pair_store_falls_back_across_noncontiguous_pages() {
     .expect("cross-page pair store should translate both pages");
 
     assert_eq!(stores.len(), 2);
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged pair stores");
     assert_eq!(
         machine.bus.mem.read(RAM_BASE + 0x3ffc, 4),
         Some(0x1122_3344)
@@ -135,6 +135,6 @@ fn scalar_store_helper_still_supports_subword_stores() {
     stage_jit_store_from_machine(&mut machine, 0, base, 2, 0xaabb, &mut stores)
         .expect("scalar helper keeps existing widths");
 
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged store");
     assert_eq!(machine.bus.mem.read(base, 2), Some(0xaabb));
 }

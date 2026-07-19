@@ -1,7 +1,5 @@
 use super::*;
-use crate::runtime::parallel_native::{
-    LIFE_OFF, LIFE_RUNNABLE, NO_DEADLINE, SharedRun, idle, psci,
-};
+use crate::runtime::parallel_native::{LIFE_OFF, LIFE_RUNNABLE, NO_DEADLINE, SharedRun, psci};
 use crate::runtime::psci::{PSCI_CPU_ON64, PSCI_SYSTEM_OFF};
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, AtomicUsize, Ordering};
@@ -101,7 +99,7 @@ fn system_off_latch_rejects_late_cpu_on_and_wfi_publication() {
     late_cpu.regs.set_x(1, 2);
     late_cpu.regs.set_x(2, entry);
     assert!(psci::handle(1, &mut late_cpu, hvc, &shared));
-    idle::park_after_wfi(1, &mut late_cpu, &shared);
+    crate::runtime::parallel_native::events::park_after_wait(1, &mut late_cpu, &shared, false);
 
     assert!(shared.system_off.load(Ordering::Acquire));
     assert!(
@@ -141,6 +139,7 @@ pub(super) fn test_shared_run<'a>(bus: &'a mut SystemBus, states: &[u8]) -> Shar
         memory_epoch: AtomicU64::new(0),
         tlb_epoch: AtomicU64::new(0),
         lifecycle: states.iter().copied().map(AtomicU8::new).collect(),
+        event_registers: (0..cores).map(|_| AtomicBool::new(false)).collect(),
         deadlines: (0..cores).map(|_| AtomicU64::new(NO_DEADLINE)).collect(),
         power_entry: (0..cores).map(|_| AtomicU64::new(0)).collect(),
         power_context: (0..cores).map(|_| AtomicU64::new(0)).collect(),

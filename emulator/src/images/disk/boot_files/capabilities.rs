@@ -46,16 +46,34 @@ pub(super) fn staged_smp_root(fs: &Ext4) -> bool {
 }
 
 pub(super) fn kernel_cpu_hotplug(fs: &Ext4, suffix: Option<&str>) -> bool {
-    let Some(suffix) = suffix.filter(|suffix| !suffix.is_empty()) else {
-        return false;
-    };
+    kernel_config(fs, suffix).is_some_and(|config| has_line(&config, b"CONFIG_HOTPLUG_CPU=y"))
+}
+
+pub(super) fn kernel_fast_initrd(fs: &Ext4, suffix: Option<&str>) -> bool {
+    kernel_config(fs, suffix).is_some_and(|config| fast_initrd_config(&config))
+}
+
+fn kernel_config(fs: &Ext4, suffix: Option<&str>) -> Option<Vec<u8>> {
+    let suffix = suffix.filter(|suffix| !suffix.is_empty())?;
     let config = format!("config-{suffix}");
-    ["/", "/boot"].into_iter().any(|dir| {
+    ["/", "/boot"].into_iter().find_map(|dir| {
         let path = join_path(dir, &config);
-        fs.read(path.as_str())
-            .ok()
-            .is_some_and(|data| has_line(&data, b"CONFIG_HOTPLUG_CPU=y"))
+        fs.read(path.as_str()).ok()
     })
+}
+
+fn fast_initrd_config(config: &[u8]) -> bool {
+    [
+        b"CONFIG_BLK_DEV_INITRD=y".as_slice(),
+        b"CONFIG_RD_ZSTD=y".as_slice(),
+        b"CONFIG_DEVTMPFS=y".as_slice(),
+        b"CONFIG_MODULES=y".as_slice(),
+        b"CONFIG_SMP=y".as_slice(),
+        b"CONFIG_HOTPLUG_CPU=y".as_slice(),
+        b"CONFIG_VIRTIO=y".as_slice(),
+    ]
+    .into_iter()
+    .all(|required| has_line(config, required))
 }
 
 fn serial_getty_is_unmodified(fs: &Ext4) -> bool {

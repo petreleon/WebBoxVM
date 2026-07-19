@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260718-staged-fast-boot";
-
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-firmware-fast-boot-r2";
 test("CPU1 and login milestones request and report one parallel transition", async () => {
   let calls = 0;
   let resolveLogged;
@@ -10,6 +9,8 @@ test("CPU1 and login milestones request and report one parallel transition", asy
   });
   const logs = [];
   const emulator = {
+    cooperative_idle_fast_forward_cycles: () => 62500000n,
+    cooperative_wfe_parks: () => 42n,
     transition_to_parallel: async () => {
       calls += 1;
       return { executionMode: "parallel-wasm", transitioned: true };
@@ -34,7 +35,10 @@ test("CPU1 and login milestones request and report one parallel transition", asy
   await logged;
 
   assert.equal(calls, 1);
-  assert.deepEqual(logs, ["Fast boot execution mode: parallel-wasm"]);
+  assert.deepEqual(logs, [
+    "Fast boot execution mode: parallel-wasm",
+    "Fast boot idle acceleration: 42 WFE parks, 62500000 cycles skipped",
+  ]);
 });
 
 test("login alone keeps the safe cooperative mode", async () => {
@@ -56,7 +60,6 @@ test("login alone keeps the safe cooperative mode", async () => {
 
   assert.equal(calls, 0);
 });
-
 test("failed parallel transition is reported as a cooperative-jit fallback", async () => {
   let resolveLogged;
   const logged = new Promise((resolve) => {
@@ -64,6 +67,8 @@ test("failed parallel transition is reported as a cooperative-jit fallback", asy
   });
   const logs = [];
   const emulator = {
+    cooperative_idle_fast_forward_cycles: () => 12n,
+    cooperative_wfe_parks: () => 3n,
     transition_to_parallel: async () => ({
       executionMode: "cooperative-jit",
       reason: "threads unavailable",
@@ -89,9 +94,9 @@ test("failed parallel transition is reported as a cooperative-jit fallback", asy
 
   assert.deepEqual(logs, [
     "Fast boot execution mode: cooperative-jit (threads unavailable)",
+    "Fast boot idle acceleration: 3 WFE parks, 12 cycles skipped",
   ]);
 });
-
 test("reset invalidates an in-flight transition failure", async () => {
   let rejectTransition;
   const transition = new Promise((_resolve, reject) => {

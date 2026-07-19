@@ -2,7 +2,7 @@ use super::*;
 use std::sync::atomic::Ordering;
 
 pub(super) fn initial_deadline(cpu: &Armv8Cpu, lifecycle: u8) -> u64 {
-    if lifecycle == LIFE_WAITING {
+    if matches!(lifecycle, LIFE_WAITING | LIFE_WAITING_EVENT) {
         waiting_deadline(cpu)
     } else {
         NO_DEADLINE
@@ -22,27 +22,19 @@ pub(super) fn wake_if_ready(
         return false;
     }
     cpu.sys.cycle_count = control.next_cycle.load(Ordering::Acquire);
-    if !has_wake_event_locked(core, cpu, control) {
+    let state = control.lifecycle[core].load(Ordering::Acquire);
+    let event_wake =
+        state == LIFE_WAITING_EVENT && control.event_registers[core].swap(false, Ordering::AcqRel);
+    if !event_wake && !has_wake_event_locked(core, cpu, control) {
         publish_deadline(core, cpu, control);
         return false;
     }
+    cpu.event_register = control.event_registers[core].load(Ordering::Acquire);
+    cpu.waiting_for_event = false;
     cpu.lifecycle = CpuLifecycle::Runnable;
     control.deadlines[core].store(NO_DEADLINE, Ordering::Release);
     control.lifecycle[core].store(LIFE_RUNNABLE, Ordering::Release);
     true
-}
-
-pub(super) fn park_if_quiet(core: usize, cpu: &mut Armv8Cpu, control: &WasmParallelControl) {
-    let _guard = control
-        .gate
-        .write()
-        .unwrap_or_else(|poison| poison.into_inner());
-    if control.system_off.load(Ordering::Acquire) || has_wake_event_locked(core, cpu, control) {
-        return;
-    }
-    cpu.lifecycle = CpuLifecycle::WaitingForInterrupt;
-    control.deadlines[core].store(waiting_deadline(cpu), Ordering::Relaxed);
-    control.lifecycle[core].store(LIFE_WAITING, Ordering::Release);
 }
 
 pub(super) fn coordinate(core: usize, cpu: &Armv8Cpu, control: &WasmParallelControl) -> bool {
@@ -70,7 +62,10 @@ pub(super) fn coordinate(core: usize, cpu: &Armv8Cpu, control: &WasmParallelCont
     let bus = unsafe { &mut *bus_ptr(control) };
     bus.refresh_interrupts();
     if control.lifecycle.iter().enumerate().any(|(core, state)| {
-        state.load(Ordering::Acquire) == LIFE_WAITING && bus.gic.has_pending_enabled_for_cpu(core)
+        matches!(
+            state.load(Ordering::Acquire),
+            LIFE_WAITING | LIFE_WAITING_EVENT
+        ) && bus.gic.has_pending_enabled_for_cpu(core)
     }) {
         std::hint::spin_loop();
         return false;
@@ -91,7 +86,11 @@ pub(super) fn coordinate(core: usize, cpu: &Armv8Cpu, control: &WasmParallelCont
     }
 }
 
-fn has_wake_event_locked(core: usize, cpu: &Armv8Cpu, control: &WasmParallelControl) -> bool {
+pub(super) fn has_wake_event_locked(
+    core: usize,
+    cpu: &Armv8Cpu,
+    control: &WasmParallelControl,
+) -> bool {
     if cpu.sys.irq_pending || cpu.sys.timer_irq_check_needed() {
         return true;
     }
@@ -101,7 +100,10 @@ fn has_wake_event_locked(core: usize, cpu: &Armv8Cpu, control: &WasmParallelCont
 }
 
 fn publish_deadline(core: usize, cpu: &Armv8Cpu, control: &WasmParallelControl) {
-    let deadline = if control.lifecycle[core].load(Ordering::Acquire) == LIFE_WAITING {
+    let deadline = if matches!(
+        control.lifecycle[core].load(Ordering::Acquire),
+        LIFE_WAITING | LIFE_WAITING_EVENT
+    ) {
         waiting_deadline(cpu)
     } else {
         NO_DEADLINE

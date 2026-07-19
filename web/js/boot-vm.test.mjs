@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260718-staged-fast-boot";
+import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260720-firmware-fast-boot-r2";
 
 test("browser boots default to two virtual CPUs", () => {
   assert.equal(DEFAULT_VM_CORES, 2);
@@ -28,6 +28,7 @@ test("saved disk boot logs stable host and worker phase durations", async (t) =>
   const previousWorker = globalThis.Worker;
   globalThis.requestAnimationFrame = (callback) => callback();
   globalThis.Worker = FakeWorker;
+  FakeWorker.bootRequests = [];
   t.after(() => {
     globalThis.requestAnimationFrame = previousAnimationFrame;
     globalThis.Worker = previousWorker;
@@ -73,13 +74,17 @@ test("saved disk boot logs stable host and worker phase durations", async (t) =>
   ]);
   assert.deepEqual(runnerOptions, { installedSystem: true, stagedSmp: true });
 
-  await booter.bootInstalledSnapshot(new Uint8Array([3, 4]), "benchmark installed disk");
+  await booter.bootInstalledSnapshot(new Uint8Array([3, 4]), "benchmark installed disk", "", false);
 
   assert.equal(loads, 1, "direct snapshot boot must bypass OPFS");
   assert.equal(logs.at(-4), "OK: installed disk booted");
+  assert.equal(FakeWorker.bootRequests.at(-1).payload.extraBootargs, "");
+  assert.equal(FakeWorker.bootRequests.at(-1).payload.stagedSmpRequested, false);
 });
 
 class FakeWorker {
+  static bootRequests = [];
+
   constructor() {
     this.listeners = [];
   }
@@ -94,6 +99,7 @@ class FakeWorker {
     if (message.type !== "bootInstalledDisk") {
       return;
     }
+    FakeWorker.bootRequests.push(message);
     queueMicrotask(() => {
       const data = {
         id: message.id,
@@ -102,7 +108,7 @@ class FakeWorker {
           bootTimings: { firmwarePreparationMs: 12.34, workerPoolMs: 6.78 },
           metrics: bootMetrics(),
           result: "OK: installed disk booted",
-          stagedSmp: true,
+          stagedSmp: message.payload.stagedSmpRequested,
         },
       };
       for (const listener of this.listeners) {

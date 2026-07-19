@@ -4,6 +4,7 @@ use super::*;
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, AtomicUsize, Ordering};
 
+mod events;
 mod idle;
 mod instruction;
 mod machine;
@@ -19,6 +20,7 @@ pub(super) const LIFE_RUNNABLE: u8 = 1;
 pub(super) const LIFE_WAITING: u8 = 2;
 pub(super) const LIFE_STARTING: u8 = 3;
 pub(super) const LIFE_BOOT_READY: u8 = 4;
+pub(super) const LIFE_WAITING_EVENT: u8 = 5;
 pub(super) const NO_DEADLINE: u64 = u64::MAX;
 
 pub(crate) struct WasmParallelControl {
@@ -35,6 +37,7 @@ pub(crate) struct WasmParallelControl {
     pub memory_epoch: AtomicU64,
     pub tlb_epoch: AtomicU64,
     pub lifecycle: Vec<AtomicU8>,
+    pub event_registers: Vec<AtomicBool>,
     pub deadlines: Vec<AtomicU64>,
     pub power_entry: Vec<AtomicU64>,
     pub power_context: Vec<AtomicU64>,
@@ -67,6 +70,7 @@ impl WasmParallelControl {
             memory_epoch: AtomicU64::new(0),
             tlb_epoch: AtomicU64::new(0),
             lifecycle: atomics_u8(cores, LIFE_OFF),
+            event_registers: (0..cores).map(|_| AtomicBool::new(false)).collect(),
             deadlines: atomics_u64(cores, NO_DEADLINE),
             power_entry: atomics_u64(cores, 0),
             power_context: atomics_u64(cores, 0),

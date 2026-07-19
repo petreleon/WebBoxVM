@@ -65,6 +65,26 @@ impl Emulator {
         }
     }
 
+    /// Cooperative-scheduler WFE instructions that entered a sleep state.
+    pub fn cooperative_wfe_parks(&self) -> u64 {
+        let _access = self.require_parallel_idle();
+        let machine = self
+            .boot
+            .as_ref()
+            .map_or(self.machine.as_ref(), |boot| &boot.machine);
+        machine.cooperative_wfe_parks
+    }
+
+    /// Guest cycles skipped while every cooperative vCPU was asleep.
+    pub fn cooperative_idle_fast_forward_cycles(&self) -> u64 {
+        let _access = self.require_parallel_idle();
+        let machine = self
+            .boot
+            .as_ref()
+            .map_or(self.machine.as_ref(), |boot| &boot.machine);
+        machine.cooperative_idle_fast_forward_cycles
+    }
+
     /// Get PC of core 0.
     pub fn pc(&self) -> u64 {
         let _access = self.require_parallel_idle();

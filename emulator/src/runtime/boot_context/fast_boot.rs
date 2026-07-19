@@ -2,7 +2,8 @@ use crate::initrd::{CpioNode, build_cpio_nodes, find_cpio_entries_and_zstd_tail,
 use ruzstd::decoding::StreamingDecoder;
 use ruzstd::io::Read;
 
-pub(super) const STAGED_SMP_BOOTARGS: &str = "maxcpus=1";
+pub(super) const STAGED_SMP_BOOTARGS: &str =
+    "maxcpus=1 noresume clocksource.arm_arch_timer.evtstrm=false";
 const MAX_DECOMPRESSED_INITRD_BYTES: usize = 128 * 1024 * 1024;
 const INIT_BOTTOM_ORDER: &str = "scripts/init-bottom/ORDER";
 const PARAM_CONF: &str = "conf/param.conf";
@@ -70,7 +71,7 @@ fn staged_smp_entries(initrd: &[u8]) -> Option<[Option<Vec<u8>>; 3]> {
     Some(selected)
 }
 
-fn decode_zstd(data: &[u8]) -> Option<Vec<u8>> {
+pub(super) fn decode_zstd(data: &[u8]) -> Option<Vec<u8>> {
     let mut source = data;
     let mut decoder = StreamingDecoder::new(&mut source).ok()?;
     let mut decoded = Vec::new();

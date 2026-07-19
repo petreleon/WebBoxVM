@@ -16,7 +16,7 @@ fn jit_quad_store_stages_four_values_before_commit() {
 
     assert_eq!(stores.len(), 1);
     assert_eq!(machine.bus.mem.read(base, 8), Some(0));
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged quad stores");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged quad stores");
     for index in 0..4 {
         assert_eq!(machine.bus.mem.read(base + index * 8, 8), Some(index + 1));
     }
@@ -39,7 +39,7 @@ fn jit_quad_store_falls_back_across_noncontiguous_pages() {
     .expect("cross-page quad store should translate both pages");
 
     assert_eq!(stores.len(), 2);
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged quad stores");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged quad stores");
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x3ff0, 8), Some(1));
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x3ff8, 8), Some(2));
     assert_eq!(machine.bus.mem.read(RAM_BASE + 0x8000, 8), Some(3));

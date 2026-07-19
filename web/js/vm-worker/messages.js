@@ -7,13 +7,13 @@ import {
   restoreInstallDisk,
   setStepSlice,
   transitionToParallel,
-} from "./lifecycle.js?v=20260718-staged-fast-boot";
-import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
-import { compileJitBlock } from "./jit-compile.js?v=20260718-staged-fast-boot";
-import { errorMessage } from "./errors.js?v=20260718-staged-fast-boot";
-import { runJitBlock } from "./jit-run.js?v=20260718-staged-fast-boot";
-import { schedulePump } from "./pump.js?v=20260718-staged-fast-boot";
-import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
+} from "./lifecycle.js?v=20260720-firmware-fast-boot-r2";
+import { withEmulatorAccess } from "./access.js?v=20260720-firmware-fast-boot-r2";
+import { compileJitBlock } from "./jit-compile.js?v=20260720-firmware-fast-boot-r2";
+import { errorMessage } from "./errors.js?v=20260720-firmware-fast-boot-r2";
+import { runJitBlock } from "./jit-run.js?v=20260720-firmware-fast-boot-r2";
+import { schedulePump } from "./pump.js?v=20260720-firmware-fast-boot-r2";
+import { resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;

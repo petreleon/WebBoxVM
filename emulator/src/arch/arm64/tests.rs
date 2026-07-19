@@ -15,6 +15,8 @@ fn boot_state_is_runnable_on_core_zero() {
 fn reset_clears_architecture_but_preserves_identity_and_lifecycle() {
     let mut cpu = Armv8Cpu::with_core(7);
     cpu.lifecycle = CpuLifecycle::PoweredOff;
+    cpu.event_register = true;
+    cpu.waiting_for_event = true;
     cpu.regs.set_x(0, 42);
     cpu.sys.sctlr_el1 = 1;
 
@@ -22,6 +24,8 @@ fn reset_clears_architecture_but_preserves_identity_and_lifecycle() {
 
     assert_eq!(cpu.core_id, 7);
     assert_eq!(cpu.lifecycle, CpuLifecycle::PoweredOff);
+    assert!(!cpu.event_register);
+    assert!(!cpu.waiting_for_event);
     assert_eq!(cpu.regs.x(0), 0);
     assert_eq!(cpu.sys.sctlr_el1, 0);
     assert_eq!(cpu.sys.mpidr_el1, MPIDR_RES1 | 7);

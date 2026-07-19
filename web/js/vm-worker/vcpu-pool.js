@@ -1,5 +1,5 @@
-import { versionedUrl } from "../asset-version.js?v=20260718-staged-fast-boot";
-import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260718-staged-fast-boot";
+import { versionedUrl } from "../asset-version.js?v=20260720-firmware-fast-boot-r2";
+import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260720-firmware-fast-boot-r2";
 
 const DEFAULT_STOP_TIMEOUT_MS = 1_000;
 

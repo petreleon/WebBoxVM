@@ -68,14 +68,23 @@ pub(super) fn execute_shared(
         cpu.exclusive_epoch = shared.memory_epoch.load(Ordering::Acquire);
     }
     let wrote = bus.dma_write_during_instruction() || !bus.memory_writes().is_empty();
+    let poll_irq = bus.external_irq_poll_needed_for_cpu(core);
     if wrote {
         shared.memory_epoch.fetch_add(1, Ordering::AcqRel);
     }
     bus.finish_cpu_instruction();
+    drop(bus);
+    if wrote {
+        events::signal_remote_store(core, shared);
+    }
     if let Err(error) = result {
         handle_execute_fault(cpu, pc, instr, error, shared);
     }
-    if bus.external_irq_poll_needed_for_cpu(core) {
+    if poll_irq {
+        let mut bus = shared
+            .bus
+            .write()
+            .unwrap_or_else(|poison| poison.into_inner());
         bus.refresh_interrupts();
         deliver_external_irq(cpu, &mut bus, core);
     }

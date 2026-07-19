@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerChannel } from "./channel.js?v=20260718-staged-fast-boot";
-
+import { WorkerChannel } from "./channel.js?v=20260720-firmware-fast-boot-r2";
 const previousWorker = globalThis.Worker;
 const previousDocument = globalThis.document;
-
 class FakeWorker {
   static instances = [];
 
@@ -128,6 +126,8 @@ test("metrics updates keep the cache object stable", () => {
   });
 
   assert.equal(channel.metrics, initialMetrics);
+  assert.equal(channel.metrics.cooperativeIdleFastForwardCycles, 13n);
+  assert.equal(channel.metrics.cooperativeWfeParks, 14n);
   assert.equal(channel.metrics.totalSteps, 11n);
 });
 
@@ -161,6 +161,8 @@ function countedProbe() {
 function metrics(overrides = {}) {
   return {
     allocatedPages: 1,
+    cooperativeIdleFastForwardCycles: 13n,
+    cooperativeWfeParks: 14n,
     currentInstruction: undefined,
     installDiskAllocatedBytes: 2n,
     installDiskGeneration: 3n,

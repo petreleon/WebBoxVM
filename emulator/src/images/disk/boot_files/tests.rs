@@ -34,7 +34,7 @@ fn kernel_suffix_must_match_the_exact_selected_initrd() {
 
 #[test]
 fn bootargs_prefers_root_uuid_over_device_name() {
-    let args = bootargs(Some(&(3, "abcd".to_string())), 2);
+    let args = bootargs(Some(&(3, "abcd".to_string(), true)), 2);
 
     assert!(args.contains("root=UUID=abcd"));
     assert!(args.contains("console=ttyAMA0,115200n8"));

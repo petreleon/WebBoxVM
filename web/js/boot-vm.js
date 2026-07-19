@@ -1,7 +1,7 @@
-import { GIB, clamp, nextFrame } from "./utils.js?v=20260718-staged-fast-boot";
-import { assertWasm64Supported } from "./wasm64.js?v=20260718-staged-fast-boot";
-import { WorkerVm } from "./worker-vm.js?v=20260718-staged-fast-boot";
-import { formatBootPhase } from "./boot-timeline.js?v=20260718-staged-fast-boot";
+import { GIB, clamp, nextFrame } from "./utils.js?v=20260720-firmware-fast-boot-r2";
+import { assertWasm64Supported } from "./wasm64.js?v=20260720-firmware-fast-boot-r2";
+import { WorkerVm } from "./worker-vm.js?v=20260720-firmware-fast-boot-r2";
+import { formatBootPhase } from "./boot-timeline.js?v=20260720-firmware-fast-boot-r2";
 
 const BOOT_KIND_MEDIA = "media";
 const BOOT_KIND_SAVED_DISK = "saved-disk";
@@ -87,7 +87,7 @@ export class VmBooter {
     await this.bootInstalledSnapshot(snapshot, "saved disk", extraBootargs);
   }
 
-  async bootInstalledSnapshot(snapshot, name = "installed disk", extraBootargs = "") {
+  async bootInstalledSnapshot(snapshot, name = "installed disk", extraBootargs = "", stagedSmpRequested = true) {
     await this.#ensureWasm();
     if (!snapshot?.byteLength) {
       throw new Error("Installed disk snapshot is empty");
@@ -104,7 +104,9 @@ export class VmBooter {
       jitEnabledForBoot(BOOT_KIND_SAVED_DISK, this.#getJitEnabled(), DEFAULT_VM_CORES),
     );
     this.#setEmulator(emulator);
-    const result = await emulator.boot_installed_disk(snapshot, DEFAULT_VM_CORES, extraBootargs);
+    const result = await emulator.boot_installed_disk(
+      snapshot, DEFAULT_VM_CORES, extraBootargs, stagedSmpRequested,
+    );
     this.#ui.log(result);
     this.#logWorkerBootTimings(emulator);
     if (result.startsWith("ERR:")) {

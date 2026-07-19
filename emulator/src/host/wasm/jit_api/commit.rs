@@ -111,7 +111,7 @@ fn commit_jit_state_with_side_effects(
 ) -> Result<(), String> {
     validate_jit_state_commit(state, machine, core_id, steps, expected_exit_pc)?;
     apply_committed_jit_state(state, machine, core_id, steps);
-    apply_jit_pending_stores(machine, pending_stores)?;
+    apply_jit_pending_stores(machine, core_id, pending_stores)?;
     apply_jit_pending_exclusive_clear(machine, pending_exclusive_clear);
     apply_jit_pending_exclusive_reservation(machine, pending_exclusive_reservation);
     finish_committed_jit_state(machine, core_id, steps);

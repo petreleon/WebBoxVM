@@ -3,8 +3,8 @@ import test, { afterEach } from "node:test";
 import {
   prepareExecutionMode,
   transitionToParallel,
-} from "./lifecycle.js?v=20260718-staged-fast-boot";
-import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
+} from "./lifecycle.js?v=20260720-firmware-fast-boot-r2";
+import { resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 afterEach(() => {
   state.executionMode = "cooperative";

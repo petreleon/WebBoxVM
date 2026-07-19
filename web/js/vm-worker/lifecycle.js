@@ -1,10 +1,10 @@
-import { Emulator, ensureWasm } from "./wasm.js?v=20260718-staged-fast-boot";
-import { BootPhaseTimer } from "./boot-timing.js?v=20260718-staged-fast-boot";
-import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260718-staged-fast-boot";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260718-staged-fast-boot";
-import { changedJitStats, jitStats } from "./jit-stats.js?v=20260718-staged-fast-boot";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260718-staged-fast-boot";
-import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260718-staged-fast-boot";
+import { Emulator, ensureWasm } from "./wasm.js?v=20260720-firmware-fast-boot-r2";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260720-firmware-fast-boot-r2";
+import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260720-firmware-fast-boot-r2";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260720-firmware-fast-boot-r2";
+import { changedJitStats, jitStats } from "./jit-stats.js?v=20260720-firmware-fast-boot-r2";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260720-firmware-fast-boot-r2";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 export { prepareExecutionMode, transitionToParallel };
 
@@ -28,7 +28,12 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   return { metrics: metrics({ emulator, installDiskGeneration }), result };
 }
 
-export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numCores }) {
+export async function bootInstalledDisk({
+  diskSnapshot,
+  extraBootargs = "",
+  numCores,
+  stagedSmpRequested = true,
+}) {
   const timer = new BootPhaseTimer();
   await ensureWasm();
   timer.end("wasmLoadMs");
@@ -43,6 +48,7 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
       diskSnapshot,
       extraBootargs,
       preparation,
+      stagedSmpRequested,
       (created) => {
         timer.end("emulatorCreateMs");
         state.emulator = created;
@@ -135,6 +141,8 @@ export function metrics({
 } = {}) {
   const snapshot = {
     allocatedPages: emulator.allocated_pages(),
+    cooperativeIdleFastForwardCycles: emulator.cooperative_idle_fast_forward_cycles?.() ?? 0n,
+    cooperativeWfeParks: emulator.cooperative_wfe_parks?.() ?? 0n,
     installDiskAllocatedBytes: emulator.install_disk_allocated_bytes(),
     installDiskGeneration: installDiskGeneration ?? emulator.install_disk_generation(),
     installDiskSizeBytes: emulator.install_disk_size_bytes(),

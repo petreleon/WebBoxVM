@@ -3,6 +3,7 @@ export function bootPreparedInstalledDisk(
   diskSnapshot,
   extraBootargs,
   preparation,
+  stagedSmpRequested = true,
   onCreated = () => {},
 ) {
   const emulator = new EmulatorClass(preparation.bootCores);
@@ -11,7 +12,7 @@ export function bootPreparedInstalledDisk(
     diskSnapshot,
     preparation.bootCores,
     extraBootargs,
-    preparation.parallelReady,
+    preparation.parallelReady && stagedSmpRequested,
   );
   return { emulator, result };
 }

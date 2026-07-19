@@ -1,6 +1,8 @@
 use super::*;
 use std::sync::atomic::Ordering;
 
+mod exclusive_event;
+
 fn begin_parallel(machine: &mut Machine, max_steps: usize) -> u64 {
     let access = WasmAccessControl::new();
     let start = access.try_parallel_start().unwrap();

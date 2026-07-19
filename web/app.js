@@ -1,25 +1,27 @@
-import { VmBooter } from "./js/boot-vm.js?v=20260718-staged-fast-boot";
-import { formatBootMilestone } from "./js/boot-timeline.js?v=20260718-staged-fast-boot";
-import { els } from "./js/dom.js?v=20260718-staged-fast-boot";
-import { DiskPersistence } from "./js/persistence.js?v=20260718-staged-fast-boot";
-import { VmRunner } from "./js/runner.js?v=20260718-staged-fast-boot";
+import { VmBooter } from "./js/boot-vm.js?v=20260720-firmware-fast-boot-r2";
+import { formatBootMilestone } from "./js/boot-timeline.js?v=20260720-firmware-fast-boot-r2";
+import { els } from "./js/dom.js?v=20260720-firmware-fast-boot-r2";
+import { DiskPersistence } from "./js/persistence.js?v=20260720-firmware-fast-boot-r2";
+import { VmRunner } from "./js/runner.js?v=20260720-firmware-fast-boot-r2";
 import {
   extraBootargsFromLocation,
   installedDiskBenchmarkFromLocation,
-} from "./js/boot-args.js?v=20260718-staged-fast-boot";
-import { installWebboxVmDevtools } from "./js/devtools.js?v=20260718-staged-fast-boot";
+  stagedSmpRequestedFromLocation,
+} from "./js/boot-args.js?v=20260720-firmware-fast-boot-r2";
+import { installWebboxVmDevtools } from "./js/devtools.js?v=20260720-firmware-fast-boot-r2";
 import {
   fetchBundledDebian,
   fetchInstalledDiskBenchmark,
   readSelectedIso,
-} from "./js/sources.js?v=20260718-staged-fast-boot";
-import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260718-staged-fast-boot";
-import { UiController } from "./js/ui.js?v=20260718-staged-fast-boot";
+} from "./js/sources.js?v=20260720-firmware-fast-boot-r2";
+import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260720-firmware-fast-boot-r2";
+import { UiController } from "./js/ui.js?v=20260720-firmware-fast-boot-r2";
 
 const ui = new UiController(els);
 const disk = new DiskPersistence();
 const diskBootExtraArgs = extraBootargsFromLocation();
 const installedDiskBenchmark = installedDiskBenchmarkFromLocation();
+const stagedSmpRequested = stagedSmpRequestedFromLocation();
 
 let term;
 let emulator;
@@ -112,7 +114,12 @@ async function bootDisk() {
 
 async function bootInstalledDiskBenchmark() {
   const source = await fetchInstalledDiskBenchmark(ui);
-  await booter.bootInstalledSnapshot(source.bytes, source.name, diskBootExtraArgs);
+  await booter.bootInstalledSnapshot(
+    source.bytes,
+    source.name,
+    diskBootExtraArgs,
+    stagedSmpRequested,
+  );
 }
 
 function pauseVm() {

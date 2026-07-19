@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260718-staged-fast-boot";
-import { DEFAULT_JIT_ENABLED, resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
+import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260720-firmware-fast-boot-r2";
+import { DEFAULT_JIT_ENABLED, resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 afterEach(() => {
   resetJitState();

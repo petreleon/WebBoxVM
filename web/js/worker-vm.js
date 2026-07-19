@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260718-staged-fast-boot";
-import { versionedUrl } from "./asset-version.js?v=20260718-staged-fast-boot";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260718-staged-fast-boot";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260720-firmware-fast-boot-r2";
+import { versionedUrl } from "./asset-version.js?v=20260720-firmware-fast-boot-r2";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260720-firmware-fast-boot-r2";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);
@@ -40,10 +40,10 @@ export class WorkerVm {
       .then(({ result }) => result);
   }
 
-  boot_installed_disk(snapshot, numCores, extraBootargs = "") {
+  boot_installed_disk(snapshot, numCores, extraBootargs = "", stagedSmpRequested = true) {
     const bytes = transferableBytes(snapshot);
     return this.#channel
-      .request("bootInstalledDisk", { diskSnapshot: bytes, extraBootargs, numCores }, [bytes.buffer])
+      .request("bootInstalledDisk", { diskSnapshot: bytes, extraBootargs, numCores, stagedSmpRequested }, [bytes.buffer])
       .then(({ bootTimings, result, stagedSmp }) => {
         this.#bootTimings = bootTimings;
         this.#stagedSmp = Boolean(stagedSmp);
@@ -137,9 +137,9 @@ export class WorkerVm {
     return this.#bootTimings;
   }
 
-  execution_mode() {
-    return this.#channel.metrics.executionMode;
-  }
+  execution_mode() { return this.#channel.metrics.executionMode; }
+  cooperative_idle_fast_forward_cycles() { return this.#channel.metrics.cooperativeIdleFastForwardCycles; }
+  cooperative_wfe_parks() { return this.#channel.metrics.cooperativeWfeParks; }
   staged_smp_enabled() { return this.#stagedSmp; }
 
   install_disk_allocated_bytes() {

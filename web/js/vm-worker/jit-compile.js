@@ -1,6 +1,6 @@
-import { requireEmulator } from "./lifecycle.js?v=20260718-staged-fast-boot";
-import { pcForCore } from "./jit-core.js?v=20260718-staged-fast-boot";
-import { JIT_MAX_BLOCKS, state } from "./state.js?v=20260718-staged-fast-boot";
+import { requireEmulator } from "./lifecycle.js?v=20260720-firmware-fast-boot-r2";
+import { pcForCore } from "./jit-core.js?v=20260720-firmware-fast-boot-r2";
+import { JIT_MAX_BLOCKS, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 const MIN_CACHED_JIT_STEPS = 2;
 

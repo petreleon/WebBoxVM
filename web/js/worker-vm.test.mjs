@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js?v=20260718-staged-fast-boot";
+import { WorkerVm } from "./worker-vm.js?v=20260720-firmware-fast-boot-r2";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;
@@ -89,6 +89,24 @@ test("installed disk boot retains worker phase timings", async () => {
     workerPoolMs: 3.5,
   });
   assert.equal(vm.staged_smp_enabled(), true);
+});
+
+test("installed disk boot serializes an explicit staged SMP opt-out", async () => {
+  const vm = new WorkerVm();
+  const boot = vm.boot_installed_disk(new Uint8Array([1, 2]), 2, "", false);
+  const worker = FakeWorker.instances[0];
+
+  assert.equal(worker.lastMessage.type, "bootInstalledDisk");
+  assert.equal(worker.lastMessage.payload.extraBootargs, "");
+  assert.equal(worker.lastMessage.payload.stagedSmpRequested, false);
+  worker.emitMessage({
+    id: worker.lastMessage.id,
+    ok: true,
+    value: { bootTimings: {}, result: "OK: booted", stagedSmp: false },
+  });
+
+  assert.equal(await boot, "OK: booted");
+  assert.equal(vm.staged_smp_enabled(), false);
 });
 
 test("parallel transition uses a request so callers can observe completion", async () => {

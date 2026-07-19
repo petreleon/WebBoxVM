@@ -64,6 +64,9 @@ export class BootParallelTransition {
       const reason = result?.reason ? ` (${result.reason})` : "";
       this.#ui.log(`Fast boot execution mode: ${mode}${reason}`);
     }
+    const wfeParks = emulator.cooperative_wfe_parks?.() ?? 0n;
+    const idleCycles = emulator.cooperative_idle_fast_forward_cycles?.() ?? 0n;
+    this.#ui.log(`Fast boot idle acceleration: ${wfeParks} WFE parks, ${idleCycles} cycles skipped`);
     this.#ui.updateMetrics(emulator, this.#disk);
   }
 }

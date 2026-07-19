@@ -21,7 +21,7 @@ impl Machine {
         {
             self.cpus[core].exclusive_epoch = self.memory_epoch;
         }
-        self.apply_memory_write_invalidations();
+        self.apply_memory_write_invalidations(core);
         let Err(err) = result else {
             return false;
         };

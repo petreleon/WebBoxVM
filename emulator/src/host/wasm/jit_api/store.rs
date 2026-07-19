@@ -84,6 +84,7 @@ pub(super) fn stage_jit_store_from_machine(
 
 pub(super) fn apply_jit_pending_stores(
     machine: &mut Machine,
+    writer: usize,
     stores: &[JitPendingStore],
 ) -> Result<(), String> {
     for store in stores {
@@ -92,7 +93,7 @@ pub(super) fn apply_jit_pending_stores(
             .mem
             .write_bytes(store.pa, store.bytes())
             .ok_or_else(|| format!("JIT pending store failed at PA 0x{:016x}", store.pa))?;
-        machine.clear_exclusive_overlaps(store.pa, store.len);
+        machine.clear_guest_exclusive_overlaps(writer, store.pa, store.len);
     }
     Ok(())
 }

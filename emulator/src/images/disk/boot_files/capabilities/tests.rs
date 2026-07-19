@@ -111,6 +111,28 @@ fn hotplug_config_line_is_exact() {
     ));
 }
 
+#[test]
+fn fast_initrd_config_requires_every_kernel_capability() {
+    let required = [
+        "CONFIG_BLK_DEV_INITRD=y",
+        "CONFIG_RD_ZSTD=y",
+        "CONFIG_DEVTMPFS=y",
+        "CONFIG_MODULES=y",
+        "CONFIG_SMP=y",
+        "CONFIG_HOTPLUG_CPU=y",
+        "CONFIG_VIRTIO=y",
+    ];
+    let config = required.join("\n");
+    assert!(fast_initrd_config(config.as_bytes()));
+    for missing in required {
+        assert!(!fast_initrd_config(
+            config
+                .replace(missing, "# capability unavailable")
+                .as_bytes()
+        ));
+    }
+}
+
 const KNOWN_DEBIAN_SERIAL_GETTY: &[u8] = br#"[Unit]
 Description=Serial Getty on %I
 Documentation=man:agetty(8) man:systemd-getty-generator(8)

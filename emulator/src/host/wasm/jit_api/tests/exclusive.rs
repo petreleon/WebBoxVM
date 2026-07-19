@@ -34,7 +34,7 @@ fn jit_store_exclusive_pair_stages_successful_pair() {
     assert_eq!(status, 0);
     assert_eq!(machine.bus.mem.read(addr, 8), Some(0));
     assert!(machine.cpus[0].exclusive_matches(addr, 16));
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged pair stores");
     apply_jit_pending_exclusive_clear(&mut machine, Some(0));
     assert_eq!(machine.bus.mem.read(addr, 8), Some(0x1122_3344_5566_7788));
     assert_eq!(
@@ -58,7 +58,7 @@ fn jit_store_exclusive_stages_successful_store() {
 
     assert_eq!(status, 0);
     assert_eq!(machine.bus.mem.read(addr, 4), Some(0));
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged store");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged store");
     apply_jit_pending_exclusive_clear(&mut machine, Some(0));
     assert_eq!(machine.bus.mem.read(addr, 4), Some(0x1122_3344));
     assert!(machine.cpus[0].exclusive.is_none());
@@ -120,7 +120,7 @@ fn jit_store_exclusive_pair_falls_back_across_noncontiguous_pages() {
     .expect("cross-page exclusive pair store should translate both pages");
 
     assert_eq!(status, 0);
-    apply_jit_pending_stores(&mut machine, &stores).expect("apply staged pair stores");
+    apply_jit_pending_stores(&mut machine, 0, &stores).expect("apply staged pair stores");
     assert_eq!(machine.bus.mem.read(first_pa + 0xffc, 4), Some(0x1122_3344));
     assert_eq!(machine.bus.mem.read(second_pa, 4), Some(0x5566_7788));
 }

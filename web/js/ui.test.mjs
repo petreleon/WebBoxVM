@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { UiController } from "./ui.js?v=20260718-staged-fast-boot";
+import { UiController } from "./ui.js?v=20260720-firmware-fast-boot-r2";
 
 test("active metric updates avoid duplicate jit stats reads", () => {
   let jitStatsCalls = 0;

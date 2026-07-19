@@ -16,14 +16,20 @@ pub(super) fn run(lease: &registry::WorkerLease) -> Result<(), &'static str> {
         if apply_power_on(core, cpu, cache, control) {
             seen_tlb_epoch = control.tlb_epoch.load(Ordering::Acquire);
         }
-        match control.lifecycle[core].load(Ordering::Acquire) {
+        let lifecycle = control.lifecycle[core].load(Ordering::Acquire);
+        if lifecycle == LIFE_RUNNABLE && cpu.lifecycle == CpuLifecycle::WaitingForInterrupt {
+            cpu.lifecycle = CpuLifecycle::Runnable;
+            cpu.waiting_for_event = false;
+            cpu.event_register = control.event_registers[core].load(Ordering::Acquire);
+        }
+        match lifecycle {
             LIFE_OFF => {
                 if idle::coordinate(core, cpu, control) {
                     break;
                 }
                 continue;
             }
-            LIFE_WAITING => {
+            LIFE_WAITING | LIFE_WAITING_EVENT => {
                 if idle::wake_if_ready(core, cpu, control) {
                     continue;
                 }
@@ -83,8 +89,12 @@ pub(super) fn run(lease: &registry::WorkerLease) -> Result<(), &'static str> {
             instruction::execute_shared(core, cpu, pc, instr, control);
             local_since_irq_poll = 0;
         }
-        if instr.op == Opcode::Wfi {
-            idle::park_if_quiet(core, cpu, control);
+        match instr.op {
+            Opcode::Sevl => events::set_local(core, cpu, control),
+            Opcode::Sev => events::broadcast(core, cpu, control),
+            Opcode::Wfe => events::park_after_wait(core, cpu, control, true),
+            Opcode::Wfi => events::park_after_wait(core, cpu, control, false),
+            _ => {}
         }
         retire(cpu, control);
     }
@@ -116,6 +126,7 @@ fn apply_power_on(
     cpu.regs.pc = control.power_entry[core].load(Ordering::Acquire);
     cpu.regs
         .set_x(0, control.power_context[core].load(Ordering::Acquire));
+    control.event_registers[core].store(false, Ordering::Relaxed);
     control.deadlines[core].store(NO_DEADLINE, Ordering::Release);
     control.lifecycle[core].store(LIFE_RUNNABLE, Ordering::Release);
     true

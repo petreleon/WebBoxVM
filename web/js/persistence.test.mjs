@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DiskPersistence } from "./persistence.js?v=20260718-staged-fast-boot";
+import { DiskPersistence } from "./persistence.js?v=20260720-firmware-fast-boot-r2";
 
 test("background autosave throttles unchanged and recent generations", () => {
   let now = 0;

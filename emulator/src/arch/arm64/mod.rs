@@ -39,6 +39,10 @@ pub use system_regs::SystemRegisters;
 pub struct Armv8Cpu {
     pub core_id: u32,
     pub lifecycle: CpuLifecycle,
+    /// Architected local event register consumed by WFE.
+    pub event_register: bool,
+    /// Sleep subtype; true only when lifecycle is WaitingForInterrupt after WFE.
+    pub waiting_for_event: bool,
     pub regs: RegisterFile,
     pub pstate: ProcessorState,
     pub sys: SystemRegisters,
@@ -144,6 +148,8 @@ impl Default for Armv8Cpu {
         Self {
             core_id: 0,
             lifecycle: CpuLifecycle::default(),
+            event_register: false,
+            waiting_for_event: false,
             regs: RegisterFile::default(),
             pstate: ProcessorState::new(),
             sys: SystemRegisters::default(),

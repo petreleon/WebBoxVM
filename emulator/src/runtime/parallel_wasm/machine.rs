@@ -47,8 +47,9 @@ impl Machine {
             Ordering::Relaxed,
         );
         for (core, cpu) in self.cpus.iter().enumerate() {
-            let lifecycle = lifecycle_code(cpu.lifecycle);
+            let lifecycle = lifecycle_code(cpu);
             control.core_owners[core].store(0, Ordering::Relaxed);
+            control.event_registers[core].store(cpu.event_register, Ordering::Relaxed);
             control.deadlines[core]
                 .store(idle::initial_deadline(cpu, lifecycle), Ordering::Relaxed);
             control.lifecycle[core].store(lifecycle, Ordering::Relaxed);
@@ -119,13 +120,22 @@ fn sync_lifecycle(machine: &mut Machine) {
     if machine.wasm_parallel.system_off.load(Ordering::Acquire) {
         for cpu in &mut machine.cpus {
             cpu.lifecycle = CpuLifecycle::PoweredOff;
+            cpu.event_register = false;
+            cpu.waiting_for_event = false;
         }
         return;
     }
     for core in 0..machine.cpus.len() {
+        machine.cpus[core].event_register =
+            machine.wasm_parallel.event_registers[core].load(Ordering::Acquire);
+        machine.cpus[core].waiting_for_event = false;
         match machine.wasm_parallel.lifecycle[core].load(Ordering::Acquire) {
             LIFE_OFF => machine.cpus[core].lifecycle = CpuLifecycle::PoweredOff,
             LIFE_WAITING => machine.cpus[core].lifecycle = CpuLifecycle::WaitingForInterrupt,
+            LIFE_WAITING_EVENT => {
+                machine.cpus[core].lifecycle = CpuLifecycle::WaitingForInterrupt;
+                machine.cpus[core].waiting_for_event = true;
+            }
             LIFE_STARTING | LIFE_BOOT_READY => initialize_powered_on_core(machine, core),
             _ => machine.cpus[core].lifecycle = CpuLifecycle::Runnable,
         }
@@ -146,10 +156,11 @@ fn initialize_powered_on_core(machine: &mut Machine, core: usize) {
     cpu.regs.set_x(0, context);
 }
 
-fn lifecycle_code(lifecycle: CpuLifecycle) -> u8 {
-    match lifecycle {
+fn lifecycle_code(cpu: &Armv8Cpu) -> u8 {
+    match cpu.lifecycle {
         CpuLifecycle::PoweredOff => LIFE_OFF,
         CpuLifecycle::Runnable => LIFE_RUNNABLE,
+        CpuLifecycle::WaitingForInterrupt if cpu.waiting_for_event => LIFE_WAITING_EVENT,
         CpuLifecycle::WaitingForInterrupt => LIFE_WAITING,
     }
 }

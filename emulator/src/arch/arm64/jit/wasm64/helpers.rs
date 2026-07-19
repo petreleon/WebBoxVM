@@ -81,8 +81,6 @@ pub(super) fn is_wasm_noop_alias(op: Opcode) -> bool {
             | Opcode::BtiC
             | Opcode::BtiJ
             | Opcode::BtiJc
-            | Opcode::Sev
-            | Opcode::Sevl
             | Opcode::Esb
             | Opcode::PsbCsync
             | Opcode::TsbCsync

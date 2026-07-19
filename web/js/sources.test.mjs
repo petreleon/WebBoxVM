@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
-import { fetchInstalledDiskBenchmark } from "./sources.js?v=20260718-staged-fast-boot";
+import { fetchInstalledDiskBenchmark } from "./sources.js?v=20260720-firmware-fast-boot-r2";
 
 const previousAnimationFrame = globalThis.requestAnimationFrame;
 globalThis.requestAnimationFrame = (callback) => callback();

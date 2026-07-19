@@ -1,8 +1,8 @@
-import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260718-staged-fast-boot";
-import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
-import { errorMessage } from "./errors.js?v=20260718-staged-fast-boot";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260718-staged-fast-boot";
-import { drainNetworkTx } from "./network.js?v=20260718-staged-fast-boot";
+import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260720-firmware-fast-boot-r2";
+import { withEmulatorAccess } from "./access.js?v=20260720-firmware-fast-boot-r2";
+import { errorMessage } from "./errors.js?v=20260720-firmware-fast-boot-r2";
+import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260720-firmware-fast-boot-r2";
+import { drainNetworkTx } from "./network.js?v=20260720-firmware-fast-boot-r2";
 import {
   JIT_PROBE_STEP_SLICE,
   MAX_FRAME_BATCHES,
@@ -14,7 +14,7 @@ import {
   UART_FLUSH_INTERVAL_MS,
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260718-staged-fast-boot";
+} from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 const schedulePumpTask = createPumpTaskScheduler();
 

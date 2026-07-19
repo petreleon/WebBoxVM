@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { drainUart, interpreterStepSlice, shouldContinuePumpFrame, shouldFlushUart, shouldPollUart } from "./pump.js?v=20260718-staged-fast-boot";
+import { drainUart, interpreterStepSlice, shouldContinuePumpFrame, shouldFlushUart, shouldPollUart } from "./pump.js?v=20260720-firmware-fast-boot-r2";
 import {
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
@@ -12,7 +12,7 @@ import {
   UART_POLL_INTERVAL_MS,
   resetJitState,
   state,
-} from "./state.js?v=20260718-staged-fast-boot";
+} from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(DEFAULT_JIT_ENABLED, false);

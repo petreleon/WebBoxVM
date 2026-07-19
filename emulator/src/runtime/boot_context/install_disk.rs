@@ -1,5 +1,6 @@
 use super::BootContext;
 use super::fast_boot::{STAGED_SMP_BOOTARGS, append_staged_smp_overlay, staged_smp_supported};
+use super::fast_initrd::{FastInitrdSpec, build_fast_initrd};
 use crate::boot::{BootPlan, merge_bootargs};
 use crate::images::disk::{InstalledDiskBoot, installed_boot_from_snapshot};
 
@@ -63,7 +64,7 @@ impl BootContext {
             && staged_smp_bootargs_allowed(&installed.bootargs, extra_bootargs);
         installed.bootargs = installed_disk_bootargs(&installed.bootargs, extra_bootargs, staged);
         if staged {
-            append_staged_smp_overlay(&mut installed.initrd);
+            prepare_staged_initrd(&mut installed);
         }
         let mut ctx = Self::from_plan(BootPlan::new_installed_disk(
             &installed.kernel,
@@ -76,6 +77,21 @@ impl BootContext {
             .virtio_disk
             .set_sparse_disk_snapshot(installed.disk);
         Ok((ctx, staged))
+    }
+}
+
+fn prepare_staged_initrd(installed: &mut InstalledDiskBoot) {
+    let fast = build_fast_initrd(FastInitrdSpec {
+        original: &installed.initrd,
+        kernel_suffix: installed.kernel_suffix.as_deref(),
+        root_partition: installed.root_partition,
+        kernel_supported: installed.fast_initrd_kernel,
+        root_clean: installed.root_ext4_clean,
+    });
+    if let Some(fast) = fast {
+        installed.initrd = fast;
+    } else {
+        append_staged_smp_overlay(&mut installed.initrd);
     }
 }
 

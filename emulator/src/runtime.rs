@@ -13,6 +13,7 @@ use crate::observability::*;
 use crate::platform::virt::SystemBus;
 
 mod boot_context;
+mod events;
 pub(crate) mod exceptions;
 mod external_io;
 #[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
@@ -71,6 +72,8 @@ pub struct Machine {
     pub active_core: usize,
     pub total_steps: u64,
     pub virtual_time: u64,
+    pub cooperative_wfe_parks: u64,
+    pub cooperative_idle_fast_forward_cycles: u64,
     pub fetch_faults: u64,
     pub exec_faults: u64,
     reset_entry: u64,
@@ -110,6 +113,8 @@ impl Machine {
             active_core: 0,
             total_steps: 0,
             virtual_time: 0,
+            cooperative_wfe_parks: 0,
+            cooperative_idle_fast_forward_cycles: 0,
             fetch_faults: 0,
             exec_faults: 0,
             reset_entry: KERNEL_LOAD_ADDR,

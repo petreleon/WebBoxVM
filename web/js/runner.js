@@ -1,7 +1,7 @@
-import { clamp } from "./utils.js?v=20260718-staged-fast-boot";
-import { UartBootTimeline } from "./boot-timeline.js?v=20260718-staged-fast-boot";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260718-staged-fast-boot";
-import { installUartProbe } from "./uart-probe.js?v=20260718-staged-fast-boot";
+import { clamp } from "./utils.js?v=20260720-firmware-fast-boot-r2";
+import { UartBootTimeline } from "./boot-timeline.js?v=20260720-firmware-fast-boot-r2";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-firmware-fast-boot-r2";
+import { installUartProbe } from "./uart-probe.js?v=20260720-firmware-fast-boot-r2";
 
 const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;

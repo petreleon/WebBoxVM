@@ -72,9 +72,7 @@ impl Machine {
                 self.trace_syscall_return(core, instr);
             }
             self.deliver_irq(core);
-            if instr.op == Opcode::Wfi {
-                self.park_after_wfi(core);
-            }
+            self.finish_event_instruction(core, instr.op);
             self.finish_core(core, num_cores);
         }
 

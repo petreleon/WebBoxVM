@@ -4,7 +4,8 @@ import {
   extraBootargsFromLocation,
   installedDiskBenchmarkFromLocation,
   normalizeExtraBootargs,
-} from "./boot-args.js?v=20260718-staged-fast-boot";
+  stagedSmpRequestedFromLocation,
+} from "./boot-args.js?v=20260720-firmware-fast-boot-r2";
 
 test("normalizeExtraBootargs trims and collapses whitespace", () => {
   assert.equal(normalizeExtraBootargs("  ftrace_filter=close   quiet "), "ftrace_filter=close quiet");
@@ -43,4 +44,27 @@ test("installed disk benchmark requires the exact opt-in value", () => {
   );
   assert.equal(installedDiskBenchmarkFromLocation({ href: "http://localhost:8080/" }), false);
   assert.equal(installedDiskBenchmarkFromLocation(undefined), false);
+});
+
+test("staged SMP URL control defaults on and accepts exact on/off values", () => {
+  assert.equal(stagedSmpRequestedFromLocation(undefined), true);
+  assert.equal(
+    stagedSmpRequestedFromLocation({ href: "http://localhost:8080/?staged-smp=on" }),
+    true,
+  );
+  assert.equal(
+    stagedSmpRequestedFromLocation({ href: "http://localhost:8080/?staged-smp=off" }),
+    false,
+  );
+});
+
+test("staged SMP URL control rejects ambiguous values", () => {
+  for (const value of ["false", "0", "ON", ""]) {
+    assert.throws(
+      () => stagedSmpRequestedFromLocation({
+        href: `http://localhost:8080/?staged-smp=${encodeURIComponent(value)}`,
+      }),
+      /must be 'on' or 'off'/,
+    );
+  }
 });

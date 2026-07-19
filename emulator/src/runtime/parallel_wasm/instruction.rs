@@ -68,8 +68,10 @@ pub(super) fn execute_shared(
     {
         cpu.exclusive_epoch = control.memory_epoch.load(Ordering::Acquire);
     }
-    if bus.dma_write_during_instruction() || !bus.memory_writes().is_empty() {
+    let wrote = bus.dma_write_during_instruction() || !bus.memory_writes().is_empty();
+    if wrote {
         control.memory_epoch.fetch_add(1, Ordering::AcqRel);
+        events::signal_remote_store_locked(core, control);
     }
     bus.finish_cpu_instruction();
     if let Err(error) = result {

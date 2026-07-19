@@ -4,7 +4,7 @@ import {
   UartBootTimeline,
   formatBootMilestone,
   formatBootPhase,
-} from "./boot-timeline.js?v=20260718-staged-fast-boot";
+} from "./boot-timeline.js?v=20260720-firmware-fast-boot-r2";
 
 test("installed boot timeline finds split CPU1 and login milestones once", () => {
   let now = 1000;
@@ -55,6 +55,20 @@ test("timeline accepts the verified late CPU marker", () => {
   timeline.observe("WEBBOXVM_CPU1_ONLINE\r\n");
 
   assert.deepEqual(milestones, [{ elapsedMs: 0, name: "cpu1-online" }]);
+});
+
+test("timeline reports the minimal initrd marker once", () => {
+  const milestones = [];
+  const timeline = new UartBootTimeline({
+    now: () => 25,
+    onMilestone: (milestone) => milestones.push(milestone),
+  });
+  timeline.start({ installedSystem: true });
+
+  timeline.observe("WEBBOXVM_FAST_INITRD_");
+  timeline.observe("ACTIVE\r\nWEBBOXVM_FAST_INITRD_ACTIVE\r\n");
+
+  assert.deepEqual(milestones, [{ elapsedMs: 0, name: "fast-initrd" }]);
 });
 
 test("boot timeline messages use stable one-decimal durations", () => {

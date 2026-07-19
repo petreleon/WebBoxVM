@@ -131,7 +131,7 @@ pub(super) fn finish_jit_block(
     prepared: bool,
 ) -> Result<(), String> {
     apply_finished_jit_state(state, machine, core_id, steps, expected_exit_pc, prepared)?;
-    apply_jit_pending_stores(machine, pending_stores)?;
+    apply_jit_pending_stores(machine, core_id, pending_stores)?;
     apply_jit_pending_exclusive_clear(machine, pending_exclusive_clear);
     apply_jit_pending_exclusive_reservation(machine, pending_exclusive_reservation);
     finish_committed_jit_state(machine, core_id, steps);

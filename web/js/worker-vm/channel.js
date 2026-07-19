@@ -1,5 +1,7 @@
 const INITIAL_METRICS = {
   allocatedPages: 0,
+  cooperativeIdleFastForwardCycles: 0n,
+  cooperativeWfeParks: 0n,
   currentInstruction: undefined,
   executionMode: "cooperative",
   installDiskAllocatedBytes: 0n,
@@ -81,13 +83,11 @@ export class WorkerChannel {
     });
     return this.#freePromise;
   }
-
   #handleMessage(message) {
     if (message.event) {
       this.#handleEvent(message);
       return;
     }
-
     const pending = this.#pending.get(message.id);
     if (!pending) {
       return;
@@ -130,6 +130,8 @@ export class WorkerChannel {
     const hasJitStats = metrics.jitStats !== undefined;
     const hasInstruction = Object.hasOwn(metrics, "currentInstruction");
     this.#metrics.allocatedPages = metrics.allocatedPages;
+    this.#metrics.cooperativeIdleFastForwardCycles = metrics.cooperativeIdleFastForwardCycles;
+    this.#metrics.cooperativeWfeParks = metrics.cooperativeWfeParks;
     this.#metrics.executionMode = metrics.executionMode ?? this.#metrics.executionMode;
     if (hasInstruction) {
       this.#metrics.currentInstruction = metrics.currentInstruction;
@@ -147,7 +149,6 @@ export class WorkerChannel {
     this.#metrics.uartOutputLen = metrics.uartOutputLen;
     this.#updateMetricProbes(hasJitStats, hasInstruction);
   }
-
   #updateMetricProbes(hasJitStats, hasInstruction) {
     if (hasJitStats) {
       this.#jitProbe ||= document.querySelector("[data-testid='webboxvm-jit-stats']");
@@ -164,7 +165,6 @@ export class WorkerChannel {
       }
     }
   }
-
   #setProbeText(probe, text) {
     if (probe.textContent !== text) {
       probe.textContent = text;

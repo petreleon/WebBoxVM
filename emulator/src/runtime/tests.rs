@@ -1,5 +1,7 @@
 use super::*;
 
+mod event_wait;
+mod exclusive_event;
 mod fetch;
 mod irq_poll;
 mod multicore;

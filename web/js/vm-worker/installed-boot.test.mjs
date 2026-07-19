@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260718-staged-fast-boot";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260720-firmware-fast-boot-r2";
 
 test("installed boot boundary passes the successful preflight unchanged", () => {
   const calls = [];
@@ -50,4 +50,24 @@ test("installed boot boundary preserves two cores but never stages after failed 
 
   assert.equal(emulator.cores, 2);
   assert.deepEqual(calls, [[new Uint8Array([3]), 2, "", false]]);
+});
+
+test("explicit opt-out reaches Rust despite a successful worker preflight", () => {
+  const calls = [];
+  class FakeEmulator {
+    boot_installed_disk_with_staged_smp(...args) {
+      calls.push(args);
+      return "booted";
+    }
+  }
+
+  bootPreparedInstalledDisk(
+    FakeEmulator,
+    new Uint8Array([4]),
+    "",
+    { bootCores: 2, parallelReady: true },
+    false,
+  );
+
+  assert.deepEqual(calls, [[new Uint8Array([4]), 2, "", false]]);
 });

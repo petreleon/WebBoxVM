@@ -1,5 +1,5 @@
-import { OpfsDiskStore } from "./persistence-store.js?v=20260718-staged-fast-boot";
-import { formatBytes } from "./utils.js?v=20260718-staged-fast-boot";
+import { OpfsDiskStore } from "./persistence-store.js?v=20260720-firmware-fast-boot-r2";
+import { formatBytes } from "./utils.js?v=20260720-firmware-fast-boot-r2";
 
 const AUTOSAVE_INTERVAL_MS = 600_000;
 

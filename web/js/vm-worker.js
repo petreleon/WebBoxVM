@@ -1,5 +1,5 @@
-import { errorMessage } from "./vm-worker/errors.js?v=20260718-staged-fast-boot";
-import { handleMessage } from "./vm-worker/messages.js?v=20260718-staged-fast-boot";
+import { errorMessage } from "./vm-worker/errors.js?v=20260720-firmware-fast-boot-r2";
+import { handleMessage } from "./vm-worker/messages.js?v=20260720-firmware-fast-boot-r2";
 
 self.onmessage = (event) => {
   handleMessage(event.data).catch((error) => {

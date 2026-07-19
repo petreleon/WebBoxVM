@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260718-staged-fast-boot";
-import { schedulePump } from "./pump.js?v=20260718-staged-fast-boot";
-import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260720-firmware-fast-boot-r2";
+import { schedulePump } from "./pump.js?v=20260720-firmware-fast-boot-r2";
+import { resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
 
 const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;

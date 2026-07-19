@@ -14,14 +14,20 @@ pub(super) fn run(
         if apply_power_on(core, cpu, cache, shared) {
             seen_tlb_epoch = shared.tlb_epoch.load(Ordering::Acquire);
         }
-        match shared.lifecycle[core].load(Ordering::Acquire) {
+        let lifecycle = shared.lifecycle[core].load(Ordering::Acquire);
+        if lifecycle == LIFE_RUNNABLE && cpu.lifecycle == CpuLifecycle::WaitingForInterrupt {
+            cpu.lifecycle = CpuLifecycle::Runnable;
+            cpu.waiting_for_event = false;
+            cpu.event_register = shared.event_registers[core].load(Ordering::Acquire);
+        }
+        match lifecycle {
             LIFE_OFF => {
                 if idle::coordinate(core, cpu, shared) {
                     break;
                 }
                 continue;
             }
-            LIFE_WAITING => {
+            LIFE_WAITING | LIFE_WAITING_EVENT => {
                 if idle::wake_if_ready(core, cpu, shared) {
                     continue;
                 }
@@ -83,8 +89,12 @@ pub(super) fn run(
             instruction::execute_shared(core, cpu, pc, instr, shared);
             local_since_irq_poll = 0;
         }
-        if instr.op == Opcode::Wfi && !idle::has_wake_event(core, cpu, shared) {
-            idle::park_after_wfi(core, cpu, shared);
+        match instr.op {
+            Opcode::Sevl => events::set_local(core, cpu, shared),
+            Opcode::Sev => events::broadcast(core, cpu, shared),
+            Opcode::Wfe => events::park_after_wait(core, cpu, shared, true),
+            Opcode::Wfi => events::park_after_wait(core, cpu, shared, false),
+            _ => {}
         }
         retire(cpu, shared);
     }
@@ -108,6 +118,7 @@ fn apply_power_on(
         context,
         shared.next_cycle.load(Ordering::Acquire),
     );
+    shared.event_registers[core].store(false, Ordering::Relaxed);
     if shared.lifecycle[core]
         .compare_exchange(
             LIFE_BOOT_READY,
