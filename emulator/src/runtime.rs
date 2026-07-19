@@ -44,7 +44,9 @@ use simd_traps::*;
 
 pub use boot_context::BootContext;
 #[cfg(any(test, feature = "wasm"))]
-pub(crate) use wasm_access::{WasmAccessControl, WasmIdleAccess};
+pub(crate) use wasm_access::WasmAccessControl;
+#[cfg(feature = "wasm")]
+pub(crate) use wasm_access::WasmIdleAccess;
 #[cfg(any(test, target_arch = "wasm64"))]
 pub(crate) use wasm_access::{WasmDropAccess, WasmParallelStart};
 

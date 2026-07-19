@@ -1,14 +1,26 @@
-import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js";
-import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js";
-import { tryRunCachedJitBlock } from "./jit-run.js";
-import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js";
+import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260718-staged-fast-boot";
+import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260718-staged-fast-boot";
+import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260718-staged-fast-boot";
+import { tryRunCachedJitBlock } from "./jit-run.js?v=20260718-staged-fast-boot";
+import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260718-staged-fast-boot";
+
+export function tryRunOrCompileNextJitBlock(emulator = state.emulator) {
+  if (!state.jitEnabled || !emulator) {
+    return false;
+  }
+  const coreId = prepareNextJitCore(emulator);
+  if (!Number.isInteger(coreId) || coreId < 0) {
+    return false;
+  }
+  return tryRunOrCompileJitBlock(coreId, emulator);
+}
 
 export function tryRunOrCompileJitBlock(coreId = 0, emulator = state.emulator) {
   if (!state.jitEnabled || !emulator) {
     return false;
   }
 
-  const pc = emulator.pc();
+  const pc = pcForCore(emulator, coreId);
   const key = jitBlockKey(coreId, pc);
   const cached = state.jitBlocks.get(key);
   if (cached) {

@@ -47,7 +47,6 @@ mod module_builder;
 mod module_prefix;
 mod multiply;
 mod opcodes;
-mod pstate_control;
 mod rev;
 mod simd_compare;
 mod simd_dispatch;

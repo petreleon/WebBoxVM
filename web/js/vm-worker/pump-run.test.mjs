@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { createPumpTaskScheduler, schedulePump } from "./pump.js";
-import { DEFAULT_JIT_ENABLED, DEFAULT_STEP_SLICE, resetJitState, state } from "./state.js";
+import { createPumpTaskScheduler, schedulePump } from "./pump.js?v=20260718-staged-fast-boot";
+import { DEFAULT_JIT_ENABLED, DEFAULT_STEP_SLICE, resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
 
 const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;

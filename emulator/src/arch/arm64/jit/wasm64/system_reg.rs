@@ -1,10 +1,10 @@
-use super::opcodes::{OP_I64_AND, OP_I64_OR};
+use super::opcodes::OP_I64_AND;
 use super::*;
 use crate::arch::arm64::Instr;
 use crate::constants::{
-    DCZID_EL0_VAL, PSTATE_DAIF_MASK, PSTATE_EL_MASK, SYSREG_CNTPCT_EL0, SYSREG_CNTVCT_EL0,
-    SYSREG_CURRENTEL, SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ESR_EL1, SYSREG_SP_EL0,
-    SYSREG_SPSR_EL1, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
+    DCZID_EL0_VAL, PSTATE_DAIF_MASK, PSTATE_EL_MASK, SYSREG_CURRENTEL, SYSREG_DAIF,
+    SYSREG_DCZID_EL0, SYSREG_ESR_EL1, SYSREG_SP_EL0, SYSREG_SPSR_EL1, SYSREG_TCR_EL1,
+    SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
 };
 
 const JIT_READ_SYSREG_FUNC_INDEX: u32 = 2;
@@ -22,8 +22,6 @@ impl WasmExpr {
                 | SYSREG_ESR_EL1
                 | SYSREG_CURRENTEL
                 | SYSREG_DCZID_EL0
-                | SYSREG_CNTPCT_EL0
-                | SYSREG_CNTVCT_EL0
                 | SYSREG_DAIF
         ) {
             return false;
@@ -44,23 +42,10 @@ impl WasmExpr {
 
     pub(super) fn emit_msr(&mut self, instr: Instr) -> bool {
         match instr.imm as u16 {
-            SYSREG_DAIF => self.emit_msr_daif(instr),
             SYSREG_SP_EL0 => self.emit_write_sp_el0_with(|this| this.emit_read_reg(instr.rd, true)),
             _ => return false,
         }
         true
-    }
-
-    fn emit_msr_daif(&mut self, instr: Instr) {
-        self.emit_write_pstate_with(|this| {
-            this.emit_read_pstate();
-            this.i64_const(!PSTATE_DAIF_MASK);
-            this.op(OP_I64_AND);
-            this.emit_read_reg(instr.rd, true);
-            this.i64_const(PSTATE_DAIF_MASK);
-            this.op(OP_I64_AND);
-            this.op(OP_I64_OR);
-        });
     }
 
     fn emit_write_pstate_sysreg(&mut self, rd: u8, mask: u64) {

@@ -6,8 +6,8 @@ import {
   recordJitFallback,
   recordJitReject,
   recordJitSkip,
-} from "./jit-stats.js";
-import { resetJitState, state } from "./state.js";
+} from "./jit-stats.js?v=20260718-staged-fast-boot";
+import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
 
 test("jit reject logs include parsed current instruction snapshots", () => {
   resetTelemetry();

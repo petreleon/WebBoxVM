@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { wasm64ThreadsSupported } from "./wasm64.js";
+import { wasm64ThreadsSupported } from "./wasm64.js?v=20260718-staged-fast-boot";
 
 test("threaded wasm64 requires isolation and a shared Memory64", () => {
   class SharedArrayBufferMock {}

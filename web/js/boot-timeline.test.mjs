@@ -4,7 +4,7 @@ import {
   UartBootTimeline,
   formatBootMilestone,
   formatBootPhase,
-} from "./boot-timeline.js";
+} from "./boot-timeline.js?v=20260718-staged-fast-boot";
 
 test("installed boot timeline finds split CPU1 and login milestones once", () => {
   let now = 1000;
@@ -42,6 +42,19 @@ test("timeline ignores installer-like text unless an installed boot is active", 
   timeline.observe("Starting Login Service\r\nPrompt: login:");
 
   assert.deepEqual(milestones, []);
+});
+
+test("timeline accepts the verified late CPU marker", () => {
+  const milestones = [];
+  const timeline = new UartBootTimeline({
+    now: () => 25,
+    onMilestone: (milestone) => milestones.push(milestone),
+  });
+  timeline.start({ installedSystem: true });
+
+  timeline.observe("WEBBOXVM_CPU1_ONLINE\r\n");
+
+  assert.deepEqual(milestones, [{ elapsedMs: 0, name: "cpu1-online" }]);
 });
 
 test("boot timeline messages use stable one-decimal durations", () => {

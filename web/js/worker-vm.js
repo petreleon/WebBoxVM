@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js";
-import { versionedUrl } from "./asset-version.js";
-import { WorkerChannel } from "./worker-vm/channel.js";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260718-staged-fast-boot";
+import { versionedUrl } from "./asset-version.js?v=20260718-staged-fast-boot";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260718-staged-fast-boot";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);
@@ -15,6 +15,7 @@ export class WorkerVm {
 
   #channel;
   #bootTimings;
+  #stagedSmp = false;
   #networkStats = {
     rxPackets: 0n,
     status: "offline",
@@ -43,8 +44,9 @@ export class WorkerVm {
     const bytes = transferableBytes(snapshot);
     return this.#channel
       .request("bootInstalledDisk", { diskSnapshot: bytes, extraBootargs, numCores }, [bytes.buffer])
-      .then(({ bootTimings, result }) => {
+      .then(({ bootTimings, result, stagedSmp }) => {
         this.#bootTimings = bootTimings;
+        this.#stagedSmp = Boolean(stagedSmp);
         return result;
       });
   }
@@ -105,6 +107,12 @@ export class WorkerVm {
     this.#channel.post("pause");
   }
 
+  transition_to_parallel() {
+    return this.#channel
+      .request("transitionToParallel")
+      .then(({ metrics: _metrics, ...result }) => result);
+  }
+
   stop() {
     this.#channel.post("stop");
   }
@@ -128,6 +136,11 @@ export class WorkerVm {
   boot_timings() {
     return this.#bootTimings;
   }
+
+  execution_mode() {
+    return this.#channel.metrics.executionMode;
+  }
+  staged_smp_enabled() { return this.#stagedSmp; }
 
   install_disk_allocated_bytes() {
     return this.#channel.metrics.installDiskAllocatedBytes;

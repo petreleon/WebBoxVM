@@ -1,10 +1,10 @@
+use super::commit_boundary::can_commit_jit_block_now;
 use super::exclusive::apply_jit_pending_exclusive_clear;
 use super::exclusive_load::apply_jit_pending_exclusive_reservation;
 use super::store::apply_jit_pending_stores;
 use super::timer::deliver_jit_timer_boundary;
 use crate::arch::arm64::jit::WasmJitCpuState;
-use crate::constants::GIC_SPURIOUS_INTERRUPT;
-use crate::host::wasm::Emulator;
+use crate::host::wasm::{Emulator, JitPendingExclusiveReservation, JitPendingStore};
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
@@ -34,9 +34,8 @@ impl Emulator {
 
     /// Commit the JIT state buffer back to a core after a generated block runs.
     ///
-    /// This is deliberately conservative. It only commits for single-core VMs
-    /// and rejects blocks that could cross a timer deadline or pending unmasked
-    /// IRQ boundary.
+    /// This is deliberately conservative. It rejects blocks that could cross a
+    /// timer deadline, scheduler wake deadline, or pending unmasked IRQ boundary.
     pub fn jit_commit_state_to_core(
         &mut self,
         core_id: Option<usize>,
@@ -50,37 +49,27 @@ impl Emulator {
         let pending_exclusive_clear = self.jit_pending_exclusive_clear.take();
         let pending_exclusive_reservation = self.jit_pending_exclusive_reservation.take();
         let result = if let Some(ref mut boot) = self.boot {
-            commit_jit_state(
+            commit_jit_state_with_side_effects(
                 &self.jit_state,
                 &mut boot.machine,
                 core_id,
                 steps,
                 expected_exit_pc,
+                &pending_stores,
+                pending_exclusive_clear,
+                pending_exclusive_reservation,
             )
-            .and_then(|()| apply_jit_pending_stores(&mut boot.machine, &pending_stores))
-            .map(|()| apply_jit_pending_exclusive_clear(&mut boot.machine, pending_exclusive_clear))
-            .map(|()| {
-                apply_jit_pending_exclusive_reservation(
-                    &mut boot.machine,
-                    pending_exclusive_reservation,
-                )
-            })
         } else {
-            commit_jit_state(
+            commit_jit_state_with_side_effects(
                 &self.jit_state,
                 &mut self.machine,
                 core_id,
                 steps,
                 expected_exit_pc,
+                &pending_stores,
+                pending_exclusive_clear,
+                pending_exclusive_reservation,
             )
-            .and_then(|()| apply_jit_pending_stores(&mut self.machine, &pending_stores))
-            .map(|()| apply_jit_pending_exclusive_clear(&mut self.machine, pending_exclusive_clear))
-            .map(|()| {
-                apply_jit_pending_exclusive_reservation(
-                    &mut self.machine,
-                    pending_exclusive_reservation,
-                )
-            })
         };
 
         match result {
@@ -96,7 +85,40 @@ impl Emulator {
     }
 }
 
+#[cfg(test)]
 pub(super) fn commit_jit_state(
+    state: &WasmJitCpuState,
+    machine: &mut Machine,
+    core_id: usize,
+    steps: usize,
+    expected_exit_pc: u64,
+) -> Result<(), String> {
+    validate_jit_state_commit(state, machine, core_id, steps, expected_exit_pc)?;
+    apply_committed_jit_state(state, machine, core_id, steps);
+    finish_committed_jit_state(machine, core_id, steps);
+    Ok(())
+}
+
+fn commit_jit_state_with_side_effects(
+    state: &WasmJitCpuState,
+    machine: &mut Machine,
+    core_id: usize,
+    steps: usize,
+    expected_exit_pc: u64,
+    pending_stores: &[JitPendingStore],
+    pending_exclusive_clear: Option<usize>,
+    pending_exclusive_reservation: Option<JitPendingExclusiveReservation>,
+) -> Result<(), String> {
+    validate_jit_state_commit(state, machine, core_id, steps, expected_exit_pc)?;
+    apply_committed_jit_state(state, machine, core_id, steps);
+    apply_jit_pending_stores(machine, pending_stores)?;
+    apply_jit_pending_exclusive_clear(machine, pending_exclusive_clear);
+    apply_jit_pending_exclusive_reservation(machine, pending_exclusive_reservation);
+    finish_committed_jit_state(machine, core_id, steps);
+    Ok(())
+}
+
+pub(super) fn validate_jit_state_commit(
     state: &WasmJitCpuState,
     machine: &mut Machine,
     core_id: usize,
@@ -112,69 +134,26 @@ pub(super) fn commit_jit_state(
             state.pc
         ));
     }
-    if machine.cpus.len() != 1 {
-        return Err("JIT commit is currently restricted to single-core VMs".to_string());
-    }
-    if machine.active_core != core_id {
-        return Err(format!(
-            "JIT core mismatch: active core is {}, requested {core_id}",
-            machine.active_core
-        ));
-    }
-
     can_commit_jit_block_now(machine, core_id, steps)?;
-    let steps = steps as u64;
+    Ok(())
+}
 
+pub(super) fn apply_committed_jit_state(
+    state: &WasmJitCpuState,
+    machine: &mut Machine,
+    core_id: usize,
+    steps: usize,
+) {
+    let steps = steps as u64;
     let cpu = &mut machine.cpus[core_id];
     let cycle_count = cpu.sys.cycle_count;
     state.copy_to_cpu(cpu);
     cpu.sys.cycle_count = cycle_count.wrapping_add(steps);
-    machine.virtual_time = machine.virtual_time.max(cpu.sys.cycle_count);
-    deliver_jit_timer_boundary(cpu);
-    machine.total_steps = machine.total_steps.wrapping_add(steps);
-    machine.active_core = 0;
-    Ok(())
 }
 
-pub(super) fn can_commit_jit_block_now(
-    machine: &mut Machine,
-    core_id: usize,
-    steps: usize,
-) -> Result<(), String> {
-    if steps == 0 {
-        return Err("cannot commit an empty JIT block".to_string());
-    }
-    if machine.cpus.len() != 1 {
-        return Err("JIT commit is currently restricted to single-core VMs".to_string());
-    }
-    if machine.active_core != core_id {
-        return Err(format!(
-            "JIT core mismatch: active core is {}, requested {core_id}",
-            machine.active_core
-        ));
-    }
-
-    let Some(cpu) = machine.cpus.get(core_id) else {
-        return Err(format!("core {core_id} does not exist"));
-    };
+pub(super) fn finish_committed_jit_state(machine: &mut Machine, core_id: usize, steps: usize) {
     let steps = steps as u64;
-    if let Some(deadline) = cpu.sys.next_timer_deadline() {
-        let end_cycle = cpu.sys.cycle_count.saturating_add(steps);
-        if deadline < end_cycle {
-            return Err(format!(
-                "JIT block crosses timer deadline at cycle {deadline} end={end_cycle}"
-            ));
-        }
-    }
-
-    if cpu.pstate.irq_masked() {
-        return Ok(());
-    }
-    machine.bus.refresh_interrupts();
-    let external_irq = machine.bus.gic.next_pending_enabled();
-    let cpu_irq = cpu.sys.irq_pending && cpu.sys.last_irq_id != GIC_SPURIOUS_INTERRUPT as u32;
-    if cpu_irq || external_irq.is_some() {
-        return Err("JIT block crosses an unmasked pending IRQ boundary".to_string());
-    }
-    Ok(())
+    let cpu = &mut machine.cpus[core_id];
+    deliver_jit_timer_boundary(cpu);
+    machine.finish_jit_core(core_id, steps);
 }

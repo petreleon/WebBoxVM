@@ -3,9 +3,10 @@ use crate::host::wasm::{Emulator, JitPendingExclusiveReservation, JitPendingStor
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
+use super::commit::finish_committed_jit_state;
 use super::exclusive::apply_jit_pending_exclusive_clear;
 use super::exclusive_load::apply_jit_pending_exclusive_reservation;
-use super::prepared_commit::commit_finished_jit_state;
+use super::prepared_commit::{apply_finished_jit_state, commit_finished_jit_state};
 use super::store::apply_jit_pending_stores;
 
 pub(super) const JIT_FINISH_COMMITTED: u8 = 0;
@@ -129,10 +130,12 @@ pub(super) fn finish_jit_block(
     pending_exclusive_reservation: Option<JitPendingExclusiveReservation>,
     prepared: bool,
 ) -> Result<(), String> {
-    commit_finished_jit_state(state, machine, core_id, steps, expected_exit_pc, prepared)
-        .and_then(|()| apply_jit_pending_stores(machine, pending_stores))
-        .map(|()| apply_jit_pending_exclusive_clear(machine, pending_exclusive_clear))
-        .map(|()| apply_jit_pending_exclusive_reservation(machine, pending_exclusive_reservation))
+    apply_finished_jit_state(state, machine, core_id, steps, expected_exit_pc, prepared)?;
+    apply_jit_pending_stores(machine, pending_stores)?;
+    apply_jit_pending_exclusive_clear(machine, pending_exclusive_clear);
+    apply_jit_pending_exclusive_reservation(machine, pending_exclusive_reservation);
+    finish_committed_jit_state(machine, core_id, steps);
+    Ok(())
 }
 
 fn validate_jit_exit(

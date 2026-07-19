@@ -1,8 +1,8 @@
 use super::*;
 use crate::constants::{
-    SYSREG_CNTVCT_EL0, SYSREG_CURRENTEL, SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ESR_EL1,
-    SYSREG_ICC_IAR1_EL1, SYSREG_SP_EL0, SYSREG_SPSR_EL1, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0,
-    SYSREG_TPIDR_EL1, SYSREG_TPIDRRO_EL0,
+    SYSREG_CURRENTEL, SYSREG_DAIF, SYSREG_DCZID_EL0, SYSREG_ESR_EL1, SYSREG_ICC_IAR1_EL1,
+    SYSREG_SP_EL0, SYSREG_SPSR_EL1, SYSREG_TCR_EL1, SYSREG_TPIDR_EL0, SYSREG_TPIDR_EL1,
+    SYSREG_TPIDRRO_EL0,
 };
 
 #[test]
@@ -22,21 +22,6 @@ fn compiles_mrs_with_sysreg_helper_import() {
             .windows(b"jitReadSysReg".len())
             .any(|w| w == b"jitReadSysReg")
     );
-}
-
-#[test]
-fn compiles_observed_msr_daif_as_pstate_update() {
-    let instr = crate::arch::arm64::decode(0xd51b_4233).expect("decode observed MSR DAIF");
-    assert_eq!(instr.op, Opcode::Msr);
-    assert_eq!((instr.rd, instr.imm as u16), (19, SYSREG_DAIF));
-
-    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MSR DAIF");
-
-    assert_eq!(module.guest_instr_count, 1);
-    assert!(!module.uses_guest_helpers);
-    assert!(!run_body_contains_call(&module.bytes));
-    assert!(module.bytes.contains(&opcodes::OP_I64_AND));
-    assert!(module.bytes.contains(&opcodes::OP_I64_OR));
 }
 
 #[test]
@@ -63,18 +48,6 @@ fn compiles_mrs_tpidrro_el0() {
     }]);
 
     let module = Wasm64Compiler::compile(&block).expect("compile MRS TPIDRRO_EL0");
-
-    assert_eq!(module.guest_instr_count, 1);
-    assert!(run_body_contains_call(&module.bytes));
-}
-
-#[test]
-fn compiles_observed_mrs_cntvct_el0() {
-    let instr = crate::arch::arm64::decode(0xd53b_e040).expect("decode mrs x0, cntvct_el0");
-    assert_eq!(instr.op, Opcode::Mrs);
-    assert_eq!((instr.rd, instr.imm as u16), (0, SYSREG_CNTVCT_EL0));
-
-    let module = Wasm64Compiler::compile(&block(vec![instr])).expect("compile MRS CNTVCT_EL0");
 
     assert_eq!(module.guest_instr_count, 1);
     assert!(run_body_contains_call(&module.bytes));

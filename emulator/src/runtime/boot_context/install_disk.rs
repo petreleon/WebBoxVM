@@ -1,4 +1,5 @@
 use super::BootContext;
+use super::fast_boot::{STAGED_SMP_BOOTARGS, append_staged_smp_overlay, staged_smp_supported};
 use crate::boot::{BootPlan, merge_bootargs};
 use crate::images::disk::{InstalledDiskBoot, installed_boot_from_snapshot};
 
@@ -29,16 +30,41 @@ impl BootContext {
         num_cores: usize,
         extra_bootargs: &str,
     ) -> Result<Self, String> {
+        Self::new_from_install_disk_snapshot_with_staged_smp(
+            snapshot,
+            num_cores,
+            extra_bootargs,
+            false,
+        )
+        .map(|(context, _staged)| context)
+    }
+
+    /// Build an installed-disk boot and report whether guarded staged SMP was enabled.
+    pub fn new_from_install_disk_snapshot_with_staged_smp(
+        snapshot: Vec<u8>,
+        num_cores: usize,
+        extra_bootargs: &str,
+        staged_smp_requested: bool,
+    ) -> Result<(Self, bool), String> {
         let installed = installed_boot_from_snapshot(snapshot)?;
-        Self::from_installed_disk_boot(installed, num_cores, extra_bootargs)
+        Self::from_installed_disk_boot(installed, num_cores, extra_bootargs, staged_smp_requested)
     }
 
     fn from_installed_disk_boot(
         mut installed: InstalledDiskBoot,
         num_cores: usize,
         extra_bootargs: &str,
-    ) -> Result<Self, String> {
-        installed.bootargs = installed_disk_bootargs(&installed.bootargs, extra_bootargs);
+        staged_smp_requested: bool,
+    ) -> Result<(Self, bool), String> {
+        let staged = staged_smp_requested
+            && installed.staged_smp_capable
+            && installed.root_partition.is_some()
+            && staged_smp_supported(&installed.initrd, num_cores)
+            && staged_smp_bootargs_allowed(&installed.bootargs, extra_bootargs);
+        installed.bootargs = installed_disk_bootargs(&installed.bootargs, extra_bootargs, staged);
+        if staged {
+            append_staged_smp_overlay(&mut installed.initrd);
+        }
         let mut ctx = Self::from_plan(BootPlan::new_installed_disk(
             &installed.kernel,
             num_cores,
@@ -49,68 +75,46 @@ impl BootContext {
             .bus
             .virtio_disk
             .set_sparse_disk_snapshot(installed.disk);
-        Ok(ctx)
+        Ok((ctx, staged))
     }
 }
 
-fn installed_disk_bootargs(base: &str, extra: &str) -> String {
-    merge_bootargs(&merge_bootargs(base, INSTALLED_DISK_COMPAT_BOOTARGS), extra)
+fn installed_disk_bootargs(base: &str, extra: &str, staged_smp: bool) -> String {
+    let compat = merge_bootargs(base, INSTALLED_DISK_COMPAT_BOOTARGS);
+    let combined = merge_bootargs(&compat, extra);
+    if staged_smp {
+        merge_bootargs(&combined, STAGED_SMP_BOOTARGS)
+    } else {
+        combined
+    }
+}
+
+fn staged_smp_bootargs_allowed(base: &str, extra: &str) -> bool {
+    if !extra.trim().is_empty() {
+        return false;
+    }
+    let mut root = 0;
+    let mut serial_console = 0;
+    let mut rw = false;
+    let mut rootwait = false;
+    let mut term = false;
+    for arg in base.split_ascii_whitespace() {
+        match arg {
+            "rw" => rw = true,
+            "rootwait" => rootwait = true,
+            "TERM=vt102" => term = true,
+            "console=ttyAMA0,115200n8" => serial_console += 1,
+            _ if arg
+                .strip_prefix("root=")
+                .is_some_and(|value| !value.is_empty()) =>
+            {
+                root += 1;
+            }
+            _ => return false,
+        }
+    }
+    root == 1 && serial_console == 1 && rw && rootwait && term
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::devices::virtio_blk::sparse_snapshot::SparseDiskSnapshot;
-
-    #[test]
-    fn installed_disk_bootargs_include_browser_compat_args() {
-        let args = installed_disk_bootargs("root=/dev/vdb3", "");
-
-        assert!(args.contains("lsm=landlock,lockdown,yama,integrity,apparmor"));
-        assert!(args.contains("systemd.mask=keyboard-setup.service"));
-        assert!(args.contains("systemd.mask=console-setup.service"));
-        assert!(args.contains("systemd.mask=apparmor.service"));
-        assert!(args.contains("systemd.mask=getty-static.service"));
-        assert!(args.contains("systemd.mask=getty@tty6.service"));
-    }
-
-    #[test]
-    fn installed_disk_bootargs_append_probe_args_last() {
-        let args = installed_disk_bootargs("root=/dev/vdb3", "init=/bin/sh");
-
-        assert!(args.ends_with("init=/bin/sh"));
-    }
-
-    #[test]
-    fn installed_boot_retains_parsed_snapshot_as_disk_base() {
-        let disk = SparseDiskSnapshot::load(empty_snapshot(64 * 1024)).unwrap();
-        let backing = disk.clone();
-        let installed = InstalledDiskBoot {
-            disk,
-            kernel: vec![0; 64],
-            initrd: vec![1],
-            bootargs: "root=/dev/vda1".into(),
-            boot_partition: 1,
-            root_partition: Some(1),
-        };
-
-        let ctx = BootContext::from_installed_disk_boot(installed, 1, "").unwrap();
-
-        assert!(
-            ctx.machine
-                .bus
-                .virtio_disk
-                .sparse_disk_shares_snapshot_backing(&backing)
-        );
-        assert_eq!(ctx.install_disk_generation(), 1);
-    }
-
-    fn empty_snapshot(size_bytes: u64) -> Vec<u8> {
-        let mut snapshot = Vec::new();
-        snapshot.extend_from_slice(b"WBDISK01");
-        snapshot.extend_from_slice(&size_bytes.to_le_bytes());
-        snapshot.extend_from_slice(&(64 * 1024u32).to_le_bytes());
-        snapshot.extend_from_slice(&0u64.to_le_bytes());
-        snapshot
-    }
-}
+mod tests;

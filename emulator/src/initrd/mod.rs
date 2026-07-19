@@ -12,6 +12,9 @@ mod parser;
 
 pub use builder::{build_cpio, build_cpio_nodes};
 pub use node::{CpioEntry, CpioNode};
+pub(crate) use parser::find_cpio_entries_and_zstd_tail;
+#[cfg(test)]
+pub(crate) use parser::find_cpio_entry;
 pub use parser::parse_cpio;
 
 /// Load a cpio archive into emulator memory at `addr`.

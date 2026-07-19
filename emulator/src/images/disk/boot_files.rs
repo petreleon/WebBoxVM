@@ -3,6 +3,8 @@ use super::partitions::Partition;
 use crate::devices::virtio_blk::sparse_snapshot::SparseDiskSnapshot;
 use ext4_view::Ext4;
 
+mod capabilities;
+
 #[derive(Clone, Debug)]
 pub struct InstalledDiskBoot {
     pub disk: SparseDiskSnapshot,
@@ -11,6 +13,7 @@ pub struct InstalledDiskBoot {
     pub bootargs: String,
     pub boot_partition: u32,
     pub root_partition: Option<u32>,
+    pub(crate) staged_smp_capable: bool,
 }
 
 pub fn extract_installed_boot(
@@ -19,21 +22,24 @@ pub fn extract_installed_boot(
 ) -> Result<InstalledDiskBoot, String> {
     let mut root = None;
     let mut boot = None;
+    let mut staged_root = false;
     for partition in partitions {
         let Ok(fs) = load_ext4(disk.clone(), *partition) else {
             continue;
         };
         if root.is_none() && fs.exists("/etc/fstab").unwrap_or(false) {
+            staged_root = capabilities::staged_smp_root(&fs);
             root = Some((partition.number, fs.uuid().to_string()));
         }
         if boot.is_none() {
-            if let Some((kernel, initrd)) = read_boot_pair(&fs) {
-                boot = Some((*partition, kernel, initrd));
+            if let Some((kernel, initrd, kernel_suffix)) = read_boot_pair(&fs) {
+                let hotplug = capabilities::kernel_cpu_hotplug(&fs, kernel_suffix.as_deref());
+                boot = Some((*partition, kernel, initrd, hotplug));
             }
         }
     }
 
-    let (partition, kernel, initrd) =
+    let (partition, kernel, initrd, kernel_hotplug) =
         boot.ok_or_else(|| "installed disk has no readable kernel/initrd pair".to_string())?;
     let bootargs = bootargs(root.as_ref(), partition.number);
     Ok(InstalledDiskBoot {
@@ -43,6 +49,7 @@ pub fn extract_installed_boot(
         bootargs,
         boot_partition: partition.number,
         root_partition: root.map(|(number, _)| number),
+        staged_smp_capable: staged_root && kernel_hotplug,
     })
 }
 
@@ -51,19 +58,20 @@ fn load_ext4(disk: SparseDiskSnapshot, partition: Partition) -> Result<Ext4, Str
     Ext4::load(Box::new(reader)).map_err(|err| err.to_string())
 }
 
-fn read_boot_pair(fs: &Ext4) -> Option<(Vec<u8>, Vec<u8>)> {
+fn read_boot_pair(fs: &Ext4) -> Option<(Vec<u8>, Vec<u8>, Option<String>)> {
     for (kernel, initrd) in [
         ("/vmlinuz", "/initrd.img"),
         ("/boot/vmlinuz", "/boot/initrd.img"),
     ] {
         if let Ok(pair) = read_pair(fs, kernel, initrd) {
-            return Some(pair);
+            let suffix = resolved_pair_suffix(fs, kernel, initrd);
+            return Some((pair.0, pair.1, suffix));
         }
     }
     for dir in ["/", "/boot"] {
-        if let Some((kernel, initrd)) = select_versioned_pair(&list_dir(fs, dir), dir) {
+        if let Some((kernel, initrd, suffix)) = select_versioned_pair(&list_dir(fs, dir), dir) {
             if let Ok(pair) = read_pair(fs, &kernel, &initrd) {
-                return Some(pair);
+                return Some((pair.0, pair.1, Some(suffix)));
             }
         }
     }
@@ -86,7 +94,7 @@ fn list_dir(fs: &Ext4, dir: &str) -> Vec<String> {
         .collect()
 }
 
-fn select_versioned_pair(names: &[String], dir: &str) -> Option<(String, String)> {
+fn select_versioned_pair(names: &[String], dir: &str) -> Option<(String, String, String)> {
     let mut kernels: Vec<_> = names
         .iter()
         .filter_map(|name| name.strip_prefix("vmlinuz-"))
@@ -99,10 +107,31 @@ fn select_versioned_pair(names: &[String], dir: &str) -> Option<(String, String)
             return Some((
                 join_path(dir, &format!("vmlinuz-{suffix}")),
                 join_path(dir, &initrd),
+                suffix.to_string(),
             ));
         }
     }
     None
+}
+
+fn resolved_pair_suffix(fs: &Ext4, kernel_path: &str, initrd_path: &str) -> Option<String> {
+    let kernel_link = fs.read_link(kernel_path).ok();
+    let initrd_link = fs.read_link(initrd_path).ok();
+    let kernel = kernel_link
+        .as_ref()
+        .and_then(|path| path.to_str().ok())
+        .unwrap_or(kernel_path);
+    let initrd = initrd_link
+        .as_ref()
+        .and_then(|path| path.to_str().ok())
+        .unwrap_or(initrd_path);
+    matching_pair_suffix(kernel, initrd).map(ToString::to_string)
+}
+
+fn matching_pair_suffix<'a>(kernel: &'a str, initrd: &str) -> Option<&'a str> {
+    let kernel = kernel.rsplit('/').next()?.strip_prefix("vmlinuz-")?;
+    let initrd = initrd.rsplit('/').next()?.strip_prefix("initrd.img-")?;
+    (!kernel.is_empty() && kernel == initrd).then_some(kernel)
 }
 
 fn join_path(dir: &str, name: &str) -> String {
@@ -122,39 +151,4 @@ fn bootargs(root: Option<&(u32, String)>, boot_partition: u32) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn picks_highest_matching_kernel_and_initrd_suffix() {
-        let names = vec![
-            "initrd.img-6.1".to_string(),
-            "vmlinuz-6.1".to_string(),
-            "vmlinuz-6.12".to_string(),
-            "initrd.img-6.12".to_string(),
-        ];
-
-        assert_eq!(
-            select_versioned_pair(&names, "/boot"),
-            Some((
-                "/boot/vmlinuz-6.12".to_string(),
-                "/boot/initrd.img-6.12".to_string()
-            ))
-        );
-    }
-
-    #[test]
-    fn bootargs_prefers_root_uuid_over_device_name() {
-        let args = bootargs(Some(&(3, "abcd".to_string())), 2);
-
-        assert!(args.contains("root=UUID=abcd"));
-        assert!(args.contains("console=ttyAMA0,115200n8"));
-    }
-
-    #[test]
-    fn bootargs_fallback_uses_single_installed_disk_name() {
-        let args = bootargs(None, 2);
-
-        assert!(args.contains("root=/dev/vda3"));
-    }
-}
+mod tests;

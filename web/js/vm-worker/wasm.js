@@ -1,6 +1,6 @@
-import { versionedUrl } from "../asset-version.js";
-import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js";
-import { state } from "./state.js";
+import { versionedUrl } from "../asset-version.js?v=20260718-staged-fast-boot";
+import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260718-staged-fast-boot";
+import { state } from "./state.js?v=20260718-staged-fast-boot";
 
 export let Emulator;
 let wasmInitialization;

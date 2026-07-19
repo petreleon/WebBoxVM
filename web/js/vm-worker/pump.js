@@ -1,8 +1,8 @@
-import { tryRunOrCompileJitBlock } from "./jit-hot.js";
-import { withEmulatorAccess } from "./access.js";
-import { errorMessage } from "./errors.js";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js";
-import { drainNetworkTx } from "./network.js";
+import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260718-staged-fast-boot";
+import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
+import { errorMessage } from "./errors.js?v=20260718-staged-fast-boot";
+import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260718-staged-fast-boot";
+import { drainNetworkTx } from "./network.js?v=20260718-staged-fast-boot";
 import {
   JIT_PROBE_STEP_SLICE,
   MAX_FRAME_BATCHES,
@@ -14,7 +14,7 @@ import {
   UART_FLUSH_INTERVAL_MS,
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js";
+} from "./state.js?v=20260718-staged-fast-boot";
 
 const schedulePumpTask = createPumpTaskScheduler();
 
@@ -72,7 +72,7 @@ async function runPump() {
       let usedJit =
         state.executionMode === "parallel-wasm"
           ? false
-          : tryRunOrCompileJitBlock(0, emulator);
+          : tryRunOrCompileNextJitBlock(emulator);
       if (usedJit !== true && usedJit !== false) {
         usedJit = await usedJit;
         if (!state.running) {

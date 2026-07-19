@@ -1,17 +1,25 @@
-import { VmBooter } from "./js/boot-vm.js";
-import { formatBootMilestone } from "./js/boot-timeline.js";
-import { els } from "./js/dom.js";
-import { DiskPersistence } from "./js/persistence.js";
-import { VmRunner } from "./js/runner.js";
-import { extraBootargsFromLocation } from "./js/boot-args.js";
-import { installWebboxVmDevtools } from "./js/devtools.js";
-import { fetchBundledDebian, readSelectedIso } from "./js/sources.js";
-import { mountTerminal, waitForTerminal } from "./js/terminal.js";
-import { UiController } from "./js/ui.js";
+import { VmBooter } from "./js/boot-vm.js?v=20260718-staged-fast-boot";
+import { formatBootMilestone } from "./js/boot-timeline.js?v=20260718-staged-fast-boot";
+import { els } from "./js/dom.js?v=20260718-staged-fast-boot";
+import { DiskPersistence } from "./js/persistence.js?v=20260718-staged-fast-boot";
+import { VmRunner } from "./js/runner.js?v=20260718-staged-fast-boot";
+import {
+  extraBootargsFromLocation,
+  installedDiskBenchmarkFromLocation,
+} from "./js/boot-args.js?v=20260718-staged-fast-boot";
+import { installWebboxVmDevtools } from "./js/devtools.js?v=20260718-staged-fast-boot";
+import {
+  fetchBundledDebian,
+  fetchInstalledDiskBenchmark,
+  readSelectedIso,
+} from "./js/sources.js?v=20260718-staged-fast-boot";
+import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260718-staged-fast-boot";
+import { UiController } from "./js/ui.js?v=20260718-staged-fast-boot";
 
 const ui = new UiController(els);
 const disk = new DiskPersistence();
 const diskBootExtraArgs = extraBootargsFromLocation();
+const installedDiskBenchmark = installedDiskBenchmarkFromLocation();
 
 let term;
 let emulator;
@@ -50,9 +58,15 @@ booter = new VmBooter({
 wireEvents();
 ui.setControls("idle", disk, emulator);
 ui.updateStorageMetric(disk);
-const persistenceReady = disk.init((message) => ui.log(message)).catch(handlePersistenceError);
+const persistenceReady = installedDiskBenchmark
+  ? Promise.resolve()
+  : disk.init((message) => ui.log(message)).catch(handlePersistenceError);
 persistenceReady.then(() => ui.setControls(ui.controlState, disk, emulator));
 ui.log("Ready");
+if (installedDiskBenchmark) {
+  ui.log("Benchmark mode: persistence disabled");
+  bootInstalledDiskBenchmark().catch(handleError);
+}
 
 function wireEvents() {
   els.bootIso.addEventListener("click", () => bootFrom(readSelectedIso(els, ui)).catch(handleError));
@@ -94,6 +108,11 @@ async function bootFrom(sourcePromise) {
 
 async function bootDisk() {
   await booter.bootSavedDisk(persistenceReady, diskBootExtraArgs);
+}
+
+async function bootInstalledDiskBenchmark() {
+  const source = await fetchInstalledDiskBenchmark(ui);
+  await booter.bootInstalledSnapshot(source.bytes, source.name, diskBootExtraArgs);
 }
 
 function pauseVm() {

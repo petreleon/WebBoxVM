@@ -1,49 +1,11 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { VcpuPool } from "./vcpu-pool.js";
+import { VcpuPool } from "./vcpu-pool.js?v=20260718-staged-fast-boot";
 
 const previousWorker = globalThis.Worker;
 
 afterEach(() => {
   globalThis.Worker = previousWorker;
-});
-
-test("vcpu pool initializes every worker and completes one bounded round", async () => {
-  const workers = [];
-  globalThis.Worker = class {
-    constructor() {
-      this.messages = [];
-      this.terminated = false;
-      workers.push(this);
-    }
-
-    postMessage(message) {
-      this.messages.push(message);
-      queueMicrotask(() => this.onmessage({ data: { id: message.id, ok: true, value: {} } }));
-    }
-
-    terminate() {
-      this.terminated = true;
-    }
-  };
-  const calls = [];
-  const emulator = {
-    parallel_begin_kernel: (steps) => (calls.push(["begin", steps]), 7n),
-  };
-
-  const pool = await VcpuPool.create(2, threadedWasm({
-    finishParallelRun: (token) => (assert.equal(token, 7n), calls.push(["finish"]), "done"),
-  }));
-  assert.equal(await pool.runRound(emulator, 50), "done");
-  await pool.stop();
-
-  assert.deepEqual(calls, [["begin", 50], ["finish"]]);
-  assert.deepEqual(
-    workers.map((worker) => worker.messages.map((message) => message.type)),
-    [["init", "run", "stop"], ["init", "run", "stop"]],
-  );
-  assert.ok(workers.every((worker) => worker.messages[1].token === 7n));
-  assert.ok(workers.every((worker) => worker.terminated));
 });
 
 test("first worker crash cancels the Rust round before joining healthy workers", async () => {

@@ -1,11 +1,14 @@
-import { clamp } from "./utils.js";
-import { UartBootTimeline } from "./boot-timeline.js";
+import { clamp } from "./utils.js?v=20260718-staged-fast-boot";
+import { UartBootTimeline } from "./boot-timeline.js?v=20260718-staged-fast-boot";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260718-staged-fast-boot";
+import { installUartProbe } from "./uart-probe.js?v=20260718-staged-fast-boot";
 
 const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;
 const UART_TAIL_LIMIT = 32768;
 
 export class VmRunner {
+  #acceptingEvents = false;
   #els;
   #term;
   #ui;
@@ -16,6 +19,9 @@ export class VmRunner {
   #running = false;
   #boundEmulator;
   #bootTimeline;
+  #onBootTimeline;
+  #parallelTransition;
+  #stagedSmp = false;
   #uartTail = "";
   #uartProbeText;
 
@@ -37,25 +43,34 @@ export class VmRunner {
     this.#getEmulator = getEmulator;
     this.#saveDisk = saveDisk;
     this.#handleError = handleError;
+    this.#onBootTimeline = onBootTimeline;
+    this.#parallelTransition = new BootParallelTransition({
+      disk,
+      getEmulator,
+      handleError,
+      ui,
+    });
     this.#bootTimeline = new UartBootTimeline({
       now,
-      onMilestone: onBootTimeline,
+      onMilestone: (milestone) => this.#handleBootMilestone(milestone),
     });
     this.#els.stepSlice.addEventListener("input", () => {
       this.#getEmulator()?.set_step_slice(this.#stepSlice());
     });
-    const { text } = installUartProbe();
-    this.#uartProbeText = text;
+    this.#uartProbeText = installUartProbe();
   }
 
-  start({ installedSystem = false } = {}) {
+  start({ installedSystem = false, stagedSmp = false } = {}) {
+    this.#acceptingEvents = true;
     this.#running = true;
+    this.#stagedSmp = stagedSmp;
     this.#beginBoot(installedSystem);
     const emulator = this.#bindCurrentEmulator();
     emulator?.start(this.#stepSlice());
   }
 
   resume() {
+    this.#acceptingEvents = true;
     this.#running = true;
     const emulator = this.#bindCurrentEmulator();
     emulator?.resume(this.#stepSlice());
@@ -67,7 +82,9 @@ export class VmRunner {
   }
 
   stop() {
+    this.#acceptingEvents = false;
     this.#running = false;
+    this.#deactivateBootTracking();
     this.#getEmulator()?.stop();
   }
 
@@ -77,19 +94,29 @@ export class VmRunner {
       return emulator;
     }
 
+    const isCurrent = () => this.#acceptingEvents && emulator === this.#getEmulator();
     emulator.onAutosave = () => {
-      if (!this.#disk.shouldAutosave(emulator)) {
+      if (!isCurrent() || !this.#disk.shouldAutosave(emulator)) {
         return;
       }
       this.#saveDisk({ quiet: true }).catch(this.#handleError);
     };
     emulator.onError = (error) => {
+      if (!isCurrent()) return;
+      this.#acceptingEvents = false;
       this.#running = false;
+      this.#deactivateBootTracking();
       this.#handleError(error);
     };
-    emulator.onMetrics = () => this.#ui.updateMetrics(emulator, this.#disk);
-    emulator.onNetwork = (status) => this.#ui.log(`Network proxy ${status}`);
-    emulator.onUart = (output) => this.#writeUart(output);
+    emulator.onMetrics = () => {
+      if (isCurrent()) this.#ui.updateMetrics(emulator, this.#disk);
+    };
+    emulator.onNetwork = (status) => {
+      if (isCurrent()) this.#ui.log(`Network proxy ${status}`);
+    };
+    emulator.onUart = (output) => {
+      if (isCurrent()) this.#writeUart(output);
+    };
     this.#boundEmulator = emulator;
     return emulator;
   }
@@ -122,6 +149,7 @@ export class VmRunner {
   }
 
   #beginBoot(installedSystem) {
+    this.#parallelTransition.reset();
     if (this.#uartTail) {
       this.#uartTail = "";
       this.#uartProbeText.data = "";
@@ -129,24 +157,20 @@ export class VmRunner {
     this.#bootTimeline.start({ installedSystem });
   }
 
+  #deactivateBootTracking() {
+    this.#stagedSmp = false;
+    this.#parallelTransition.reset();
+    this.#bootTimeline.start();
+  }
+
+  #handleBootMilestone(milestone) {
+    this.#onBootTimeline?.(milestone);
+    if (this.#stagedSmp) {
+      this.#parallelTransition.observe(milestone);
+    }
+  }
+
   #stepSlice() {
     return clamp(Number(this.#els.stepSlice.value) || DEFAULT_STEP_SLICE, 1000, MAX_STEP_SLICE);
   }
-}
-
-function installUartProbe() {
-  const probe = document.createElement("pre");
-  const text = document.createTextNode("");
-  probe.append(text);
-  probe.dataset.testid = "webboxvm-uart-tail";
-  probe.style.cssText = [
-    "position:fixed",
-    "left:-10000px",
-    "top:0",
-    "width:1px",
-    "height:1px",
-    "overflow:hidden",
-  ].join(";");
-  document.body.append(probe);
-  return { probe, text };
 }

@@ -1,5 +1,5 @@
-import { versionedUrl } from "../asset-version.js";
-import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js";
+import { versionedUrl } from "../asset-version.js?v=20260718-staged-fast-boot";
+import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260718-staged-fast-boot";
 
 const DEFAULT_STOP_TIMEOUT_MS = 1_000;
 
@@ -7,15 +7,16 @@ export class VcpuPool {
   static async create(coreCount, threadedWasm, options = {}) {
     const requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
     const workerUrl = versionedUrl("../vcpu-worker.js", import.meta.url);
-    const slots = Array.from({ length: coreCount }, (_, core) => {
-      const worker = new Worker(workerUrl, {
-        name: `webbox-vcpu-${core}`,
-        type: "module",
-      });
-      return new WorkerSlot(worker, core, requestTimeoutMs);
-    });
+    const slots = [];
     const pool = new VcpuPool(slots, threadedWasm, options.stopTimeoutMs);
     try {
+      for (let core = 0; core < coreCount; core += 1) {
+        const worker = new Worker(workerUrl, {
+          name: `webbox-vcpu-${core}`,
+          type: "module",
+        });
+        slots.push(new WorkerSlot(worker, core, requestTimeoutMs));
+      }
       await Promise.all(
         slots.map((slot) =>
           slot.request({
@@ -44,6 +45,14 @@ export class VcpuPool {
     this.stopPromise = undefined;
     this.stopTimeoutMs = stopTimeoutMs;
     this.stopping = false;
+  }
+
+  isReady(coreCount) {
+    return (
+      !this.stopping &&
+      this.slots.length === coreCount &&
+      this.slots.every((slot) => !slot.dead)
+    );
   }
 
   runRound(emulator, maxSteps) {

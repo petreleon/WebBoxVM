@@ -60,10 +60,6 @@ impl WasmExpr {
                 self.emit_cond_select(instr);
                 true
             }
-            Opcode::DaifSet | Opcode::DaifClr => {
-                self.emit_daif_imm(instr);
-                true
-            }
             Opcode::Rev => {
                 self.emit_rev(instr);
                 true

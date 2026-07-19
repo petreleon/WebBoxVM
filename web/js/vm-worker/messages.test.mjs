@@ -1,8 +1,21 @@
 import assert from "node:assert/strict";
-import test from "node:test";
-import { withEmulatorAccess } from "./access.js";
-import { handleMessage } from "./messages.js";
-import { resetJitState, state } from "./state.js";
+import test, { afterEach } from "node:test";
+import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
+import { handleMessage } from "./messages.js?v=20260718-staged-fast-boot";
+import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
+
+afterEach(() => {
+  state.emulator = undefined;
+  state.executionMode = "cooperative";
+  state.jitEnabled = false;
+  state.numCores = 0;
+  state.parallelTransitionDeferred = false;
+  state.pumpScheduled = false;
+  state.running = false;
+  state.threadedWasm = undefined;
+  state.vcpuPool = undefined;
+  resetJitState();
+});
 
 test("setJitEnabled resets cached jit state and stale telemetry", async () => {
   resetJitState();
@@ -67,6 +80,44 @@ test("requests wait until a parallel pump relinquishes emulator access", async (
   assert.equal(reads, 1);
   assert.deepEqual(messages, [{ id: 8, ok: true, value: "instruction" }]);
   state.emulator = undefined;
+});
+
+test("parallel transition waits for pump ownership to become quiescent", async () => {
+  let releasePump;
+  let markPumpStarted;
+  const pumpStarted = new Promise((resolve) => {
+    markPumpStarted = resolve;
+  });
+  const pump = withEmulatorAccess(async () => {
+    markPumpStarted();
+    await new Promise((resolve) => {
+      releasePump = resolve;
+    });
+  });
+  await pumpStarted;
+  state.executionMode = "cooperative-jit";
+  state.jitEnabled = true;
+  state.numCores = 2;
+  state.parallelTransitionDeferred = true;
+  state.threadedWasm = undefined;
+  const messages = [];
+
+  const transition = withPostMessage(messages, () =>
+    handleMessage({ id: 9, type: "transitionToParallel" }),
+  );
+  await Promise.resolve();
+
+  assert.deepEqual(messages, []);
+  assert.equal(state.parallelTransitionDeferred, true);
+  releasePump();
+  await Promise.all([pump, transition]);
+
+  assert.equal(state.executionMode, "cooperative-jit");
+  assert.equal(state.jitEnabled, true);
+  assert.equal(state.parallelTransitionDeferred, false);
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].id, 9);
+  assert.equal(messages[0].ok, true);
 });
 
 async function withPostMessage(messages, run) {

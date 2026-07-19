@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js";
+import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260718-staged-fast-boot";
 
 test("browser boots default to two virtual CPUs", () => {
   assert.equal(DEFAULT_VM_CORES, 2);
@@ -18,9 +18,9 @@ test("saved disk boots enable jit by default", () => {
   assert.equal(jitEnabledForBoot("saved-disk", false), true);
 });
 
-test("multicore boots keep the single-core JIT disabled", () => {
+test("multicore saved boots use cooperative JIT while media remains parallel-safe", () => {
   assert.equal(jitEnabledForBoot("media", true, 2), false);
-  assert.equal(jitEnabledForBoot("saved-disk", false, 2), false);
+  assert.equal(jitEnabledForBoot("saved-disk", false, 2), true);
 });
 
 test("saved disk boot logs stable host and worker phase durations", async (t) => {
@@ -33,11 +33,15 @@ test("saved disk boot logs stable host and worker phase durations", async (t) =>
     globalThis.Worker = previousWorker;
   });
   const logs = [];
+  let loads = 0;
   let runnerOptions;
   const booter = new VmBooter({
     disk: {
       available: true,
-      load: async () => new Uint8Array([1, 2]),
+      load: async () => {
+        loads += 1;
+        return new Uint8Array([1, 2]);
+      },
       markClean: () => {},
       persistedBytes: 2,
     },
@@ -64,9 +68,15 @@ test("saved disk boot logs stable host and worker phase durations", async (t) =>
     "Fast boot OPFS load: 25.0 ms",
     "OK: installed disk booted",
     "Fast boot firmware preparation: 12.3 ms",
-    "Fast boot worker pool: 6.8 ms",
+    "Fast boot execution setup: 6.8 ms",
+    "Fast boot execution mode: cooperative-jit",
   ]);
-  assert.deepEqual(runnerOptions, { installedSystem: true });
+  assert.deepEqual(runnerOptions, { installedSystem: true, stagedSmp: true });
+
+  await booter.bootInstalledSnapshot(new Uint8Array([3, 4]), "benchmark installed disk");
+
+  assert.equal(loads, 1, "direct snapshot boot must bypass OPFS");
+  assert.equal(logs.at(-4), "OK: installed disk booted");
 });
 
 class FakeWorker {
@@ -90,7 +100,9 @@ class FakeWorker {
         ok: true,
         value: {
           bootTimings: { firmwarePreparationMs: 12.34, workerPoolMs: 6.78 },
+          metrics: bootMetrics(),
           result: "OK: installed disk booted",
+          stagedSmp: true,
         },
       };
       for (const listener of this.listeners) {
@@ -98,6 +110,23 @@ class FakeWorker {
       }
     });
   }
+}
+
+function bootMetrics() {
+  return {
+    allocatedPages: 1,
+    executionMode: "cooperative-jit",
+    installDiskAllocatedBytes: 2n,
+    installDiskGeneration: 3n,
+    installDiskSizeBytes: 4n * 1024n * 1024n * 1024n,
+    networkRxPackets: 0n,
+    networkStatus: "offline",
+    networkTxPackets: 0n,
+    networkTxPending: 0,
+    pc: 0n,
+    totalSteps: 0n,
+    uartOutputLen: 0,
+  };
 }
 
 function sequence(...values) {

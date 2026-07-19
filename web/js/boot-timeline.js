@@ -1,6 +1,6 @@
 const UART_TAIL_LIMIT = 32768;
 const CPU1_ONLINE_PATTERN =
-  /(?:CPU1:\s+Booted secondary processor|smp:\s+Brought up[^\r\n]*\b2 CPUs\b)/i;
+  /(?:CPU1:\s+Booted secondary processor|smp:\s+Brought up[^\r\n]*\b2 CPUs\b|WEBBOXVM_CPU1_ONLINE)/i;
 const LOGIN_PROMPT_PATTERN =
   /(?:^|[\r\n])[A-Za-z0-9][A-Za-z0-9._-]* login:[ \t]*(?:\r?$)/im;
 

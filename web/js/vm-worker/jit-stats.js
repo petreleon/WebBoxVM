@@ -1,4 +1,4 @@
-import { state } from "./state.js";
+import { state } from "./state.js?v=20260718-staged-fast-boot";
 
 const MAX_REJECT_LOG = 16;
 

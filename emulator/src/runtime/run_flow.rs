@@ -2,10 +2,25 @@ use super::*;
 
 impl Machine {
     pub(super) fn finish_core(&mut self, core: usize, num_cores: usize) {
-        self.total_steps += 1;
+        self.finish_core_steps(core, num_cores, 1);
+    }
+
+    /// Finish a cooperatively executed JIT quantum for one runnable core.
+    ///
+    /// The JIT updates the core-local cycle counter before calling this method.
+    /// Advancing global time by the same number of guest instructions preserves
+    /// the serial scheduler invariant, then the next quantum starts at the next
+    /// runnable core in round-robin order.
+    #[cfg(feature = "wasm")]
+    pub(crate) fn finish_jit_core(&mut self, core: usize, steps: u64) {
+        self.finish_core_steps(core, self.cpus.len(), steps);
+    }
+
+    fn finish_core_steps(&mut self, core: usize, num_cores: usize, steps: u64) {
+        self.total_steps = self.total_steps.wrapping_add(steps);
         self.virtual_time = self
             .virtual_time
-            .saturating_add(1)
+            .saturating_add(steps)
             .max(self.cpus[core].sys.cycle_count);
         let next = if core + 1 == num_cores { 0 } else { core + 1 };
         self.active_core = self.find_runnable_from(next).unwrap_or(next);

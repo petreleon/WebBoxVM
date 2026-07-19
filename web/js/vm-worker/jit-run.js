@@ -1,7 +1,8 @@
-import { compileJitBlock, jitBlockKey } from "./jit-compile.js";
-import { postMetrics } from "./metrics-events.js";
-import { state } from "./state.js";
-import { requireEmulator } from "./lifecycle.js";
+import { compileJitBlock, jitBlockKey } from "./jit-compile.js?v=20260718-staged-fast-boot";
+import { pcForCore } from "./jit-core.js?v=20260718-staged-fast-boot";
+import { postMetrics } from "./metrics-events.js?v=20260718-staged-fast-boot";
+import { state } from "./state.js?v=20260718-staged-fast-boot";
+import { requireEmulator } from "./lifecycle.js?v=20260718-staged-fast-boot";
 
 const JIT_FINISH_COMMITTED = 0;
 const JIT_FINISH_HELPER_REJECTED = 1;
@@ -10,7 +11,7 @@ const JIT_FINISH_EXIT_REJECTED = 3;
 export async function runJitBlock({ coreId = 0 } = {}) {
   requireEmulator();
   const emulator = state.emulator;
-  const pc = emulator.pc();
+  const pc = pcForCore(emulator, coreId);
   const key = jitBlockKey(coreId, pc);
   let entry = state.jitBlocks.get(key);
 
@@ -38,7 +39,7 @@ export function tryRunCachedJitBlock(coreId, key, entry, pc, emulator = state.em
 }
 
 function runCachedJitBlockCore(coreId, key, entry, pc, emulator, fastResult) {
-  const knownPc = pc ?? emulator.pc();
+  const knownPc = pc ?? pcForCore(emulator, coreId);
   if (
     !emulator.jit_prepare_cached_block(
       coreId,

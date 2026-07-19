@@ -35,6 +35,7 @@ pub struct Emulator {
     // relocate an allocation that may need to be deliberately leaked.
     machine: ManuallyDrop<Box<Machine>>,
     boot: Option<Box<BootContext>>,
+    staged_smp: bool,
     parallel_access: Arc<WasmAccessControl>,
     jit_state: Box<WasmJitCpuState>,
     jit_last_error: String,
@@ -131,6 +132,7 @@ impl Emulator {
         Emulator {
             machine: ManuallyDrop::new(Box::new(Machine::new(cores.unwrap_or(1)))),
             boot: None,
+            staged_smp: false,
             parallel_access: WasmAccessControl::new(),
             jit_state: Box::default(),
             jit_last_error: String::new(),

@@ -7,6 +7,7 @@
 //! Set `BOOT_BENCH_STEPS` to execute a bounded guest instruction budget after
 //! the direct ARM64 kernel handoff. The default is zero so the reported
 //! firmware-fast-boot preparation time is not mixed with Linux boot time.
+//! Set `BOOT_BENCH_STAGED_SMP=1` to include the guarded two-core staging path.
 
 use emulator::boot::BootContext;
 use emulator::runtime::RunBackend;
@@ -20,6 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|| "output/webboxvm-final-install-compact.wbdisk".to_string());
     let cores = env_usize("BOOT_BENCH_CORES", 2).max(1);
     let steps = env_usize("BOOT_BENCH_STEPS", 0);
+    let staged_requested = env::var_os("BOOT_BENCH_STAGED_SMP").is_some();
     let total_start = Instant::now();
 
     let read_start = Instant::now();
@@ -27,7 +29,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let read_elapsed = read_start.elapsed();
 
     let prepare_start = Instant::now();
-    let mut vm = BootContext::new_from_install_disk_snapshot(snapshot, cores)?;
+    let (mut vm, staged_smp) = if staged_requested {
+        BootContext::new_from_install_disk_snapshot_with_staged_smp(snapshot, cores, "", true)?
+    } else {
+        (
+            BootContext::new_from_install_disk_snapshot(snapshot, cores)?,
+            false,
+        )
+    };
     let prepare_elapsed = prepare_start.elapsed();
     if env::var_os("BOOT_BENCH_EMPTY_DISK").is_some() {
         vm.set_install_disk_size(vm.install_disk_size_bytes());
@@ -39,6 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("WebBoxVM installed-disk boot benchmark");
     println!("source: {path}");
     println!("cores: {cores}");
+    println!("staged SMP: {staged_smp}");
     println!("snapshot read: {:.3}s", read_elapsed.as_secs_f64());
     println!(
         "firmware preparation: {:.3}s",

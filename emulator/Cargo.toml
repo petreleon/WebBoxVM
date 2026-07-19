@@ -15,6 +15,7 @@ wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "dd
 disarm64 = "0.1.26"
 ext4-view = { version = "0.9.3", default-features = false }
 flate2 = "1"
+ruzstd = "0.8.3"
 
 [features]
 default = []

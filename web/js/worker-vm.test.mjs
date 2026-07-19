@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js";
+import { WorkerVm } from "./worker-vm.js?v=20260718-staged-fast-boot";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;
@@ -79,6 +79,7 @@ test("installed disk boot retains worker phase timings", async () => {
     value: {
       bootTimings: { firmwarePreparationMs: 12.5, workerPoolMs: 3.5 },
       result: "OK: booted",
+      stagedSmp: true,
     },
   });
 
@@ -87,12 +88,37 @@ test("installed disk boot retains worker phase timings", async () => {
     firmwarePreparationMs: 12.5,
     workerPoolMs: 3.5,
   });
+  assert.equal(vm.staged_smp_enabled(), true);
+});
+
+test("parallel transition uses a request so callers can observe completion", async () => {
+  const vm = new WorkerVm();
+  const transition = vm.transition_to_parallel();
+  const worker = FakeWorker.instances[0];
+
+  assert.equal(worker.lastMessage.type, "transitionToParallel");
+  worker.emitMessage({
+    id: worker.lastMessage.id,
+    ok: true,
+    value: {
+      executionMode: "parallel-wasm",
+      metrics: metrics({ executionMode: "parallel-wasm" }),
+      transitioned: true,
+    },
+  });
+
+  assert.deepEqual(await transition, {
+    executionMode: "parallel-wasm",
+    transitioned: true,
+  });
+  assert.equal(vm.execution_mode(), "parallel-wasm");
 });
 
 function metrics(overrides = {}) {
   return {
     allocatedPages: 1,
     currentInstruction: undefined,
+    executionMode: "cooperative",
     installDiskAllocatedBytes: 2n,
     installDiskGeneration: 3n,
     installDiskSizeBytes: 4n,

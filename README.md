@@ -22,6 +22,7 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 - **Debian installer milestone** — Debian ARM64 netinst reaches the text installer in browser validation, loads installer components from ISO media to 100%, and advances to network hardware detection
 - **Browser terminal app** — wasm64 worker build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
 - **Parallel vCPU execution** — multicore native boots use one host thread per vCPU; isolated browsers use a persistent Web Worker per vCPU over one shared Memory64 heap
+- **Experimental staged multicore boot** — a guarded path for compatible Debian/systemd saved systems defers CPU1 through the critical path, verifies late hotplug, then switches to parallel vCPU workers; exact-fixture browser validation is still pending
 - **Sparse guest memory** — guest RAM/low/EFI regions allocate touched 4 KiB pages instead of reserving the full platform address layout up front
 - **Conservative browser JIT** — Wasm64 basic-block JIT for safe paths, with EL0 guest-memory helper blocks skipped when helper-call overhead or speculative memory effects would hurt progress
 - **UEFI/PE infrastructure** — System Table, Boot/Runtime Services, PE header parsing, and relocation helpers remain available for EFI experiments
@@ -84,21 +85,40 @@ make web
 # Download Debian, expose it to the browser app, and serve WebBoxVM
 make web-debian-arm64
 
+make web-benchmark
+# Open http://localhost:8080/?benchmark=installed-disk
+
 # On a Linux NAT peer, route browser VM Ethernet through the host network
 sudo python3 scripts/webbox_nat.py --configure-host
 ```
 
-`make web` and `make web-debian-arm64` build two `wasm64-unknown-unknown`
-packages with nightly `build-std`: `web/pkg/` is the serial fallback and
+`make web` and `make web-debian-arm64` build two `wasm64-unknown-unknown` packages with nightly `build-std`: `web/pkg/` is the serial fallback and
 `web/pkg-threaded/` uses atomics and shared Memory64. Both packages are generated
 with the same revision-pinned, Memory64-aware wasm-bindgen tool built by
-`make wasm-bindgen-memory64-threads`. Generated WASM output is not committed to
-the repository.
+`make wasm-bindgen-memory64-threads`. Generated WASM output is not committed to the repository.
 
 Threaded browser execution requires Memory64, `SharedArrayBuffer`, Web Workers,
 and cross-origin isolation. The bundled server sends the required COOP/COEP
-headers. Deployments must do the same; otherwise the loader automatically uses
-the serial package. Multicore threaded execution disables the single-vCPU JIT.
+headers and disables caching. Cacheable deployments must keep the stamped ESM
+graph generation together or use content-hashed bundles. Other deployments must
+send COOP/COEP; otherwise the loader uses the serial package. ISO boots enter parallel workers immediately.
+An experimental two-core saved-disk boot path stages CPU1 only after exact bootarg, root/systemd, selected-kernel hotplug, initramfs, and worker-preflight checks pass. If worker
+preflight is unavailable, both vCPUs boot cooperatively and staging is never
+requested. If the guest capability gate declines with workers ready, both CPUs
+boot directly in parallel. Neither fallback adds `maxcpus=1`. The compatible
+path runs CPU0 with the Wasm64 JIT, hot-plugs CPU1 immediately before serial login, then switches to parallel Wasm after both milestones.
+Unit and native preparation checks cover this flow, but an exact-fixture browser run has not yet completed both milestones.
+
+Installed-disk startup is a firmware-level fast path for ARM64, not Intel Fast
+Boot: WebBoxVM validates the sparse disk and installed kernel/initrd, builds the
+DTB, and enters the standard ARM64 Linux Image protocol directly. It executes
+zero EFI/firmware guest instructions, so there is no PC-style POST, DXE/BDS, or
+device-enumeration phase to skip.
+
+`make web-benchmark` maps `output/webboxvm-final-install-compact.wbdisk` to a fixed same-origin URL
+after verifying its SHA-256. Benchmark mode validates the fixed response length
+and WBDISK structure, disables OPFS and autosave, and reports host-time firmware,
+CPU1-online, login, and execution-mode milestones in the event log.
 
 The browser network path uses `/webboxvm-net` for raw Ethernet frames. See
 [scripts/networking.md](scripts/networking.md) for the Linux TAP/NAT peer setup.
@@ -156,4 +176,5 @@ Detecting network hardware ... 100%
 Full details in [todo.md](todo.md), [sprint-history.md](sprint-history.md), and [future.md](future.md).
 
 ## License
+
 AGPL-3.0. Commercial licensing available on request.

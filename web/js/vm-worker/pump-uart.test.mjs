@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { drainUart } from "./pump.js";
-import { state } from "./state.js";
+import { drainUart } from "./pump.js?v=20260718-staged-fast-boot";
+import { state } from "./state.js?v=20260718-staged-fast-boot";
 
 const previousPostMessage = globalThis.postMessage;
 

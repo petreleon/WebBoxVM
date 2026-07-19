@@ -1,5 +1,6 @@
-import { requireEmulator } from "./lifecycle.js";
-import { JIT_MAX_BLOCKS, state } from "./state.js";
+import { requireEmulator } from "./lifecycle.js?v=20260718-staged-fast-boot";
+import { pcForCore } from "./jit-core.js?v=20260718-staged-fast-boot";
+import { JIT_MAX_BLOCKS, state } from "./state.js?v=20260718-staged-fast-boot";
 
 const MIN_CACHED_JIT_STEPS = 2;
 
@@ -23,7 +24,7 @@ async function compileJitBlockFor(owner, coreId, knownPc, details) {
     throw new Error("Wasm memory export is unavailable for JIT blocks");
   }
 
-  const pc = knownPc ?? owner.pc();
+  const pc = knownPc ?? pcForCore(owner, coreId);
   const bytes = owner.jit_compile_current_block(coreId);
   if (!bytes.length) {
     return {

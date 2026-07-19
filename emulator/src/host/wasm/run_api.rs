@@ -25,6 +25,20 @@ impl Emulator {
         }
     }
 
+    /// Prepare the serial scheduler and return the next runnable core for JIT.
+    ///
+    /// Returns -1 when no core is runnable after wake checks and idle-time
+    /// fast-forwarding.
+    pub fn jit_prepare_next_core(&mut self) -> i32 {
+        let _access = self.require_parallel_idle();
+        let core = if let Some(ref mut boot) = self.boot {
+            boot.machine.prepare_next_core()
+        } else {
+            self.machine.prepare_next_core()
+        };
+        core.and_then(|core| i32::try_from(core).ok()).unwrap_or(-1)
+    }
+
     /// Get register Xn of a core.
     pub fn reg(&self, n: u8, core_id: Option<usize>) -> u64 {
         let _access = self.require_parallel_idle();
@@ -61,5 +75,15 @@ impl Emulator {
         } else {
             0
         }
+    }
+
+    /// Get the PC of a specific core, or zero when the core does not exist.
+    pub fn pc_for_core(&self, core_id: usize) -> u64 {
+        let _access = self.require_parallel_idle();
+        let machine = self
+            .boot
+            .as_ref()
+            .map_or(self.machine.as_ref(), |boot| &boot.machine);
+        machine.cpus.get(core_id).map_or(0, |cpu| cpu.regs.pc)
     }
 }

@@ -1,8 +1,10 @@
 use crate::arch::arm64::jit::WasmJitCpuState;
 use crate::runtime::Machine;
 
-use super::commit::commit_jit_state;
-use super::timer::deliver_jit_timer_boundary;
+use super::commit::{
+    apply_committed_jit_state, finish_committed_jit_state, validate_jit_state_commit,
+};
+use super::commit_boundary::validate_jit_commit_target;
 
 pub(super) fn commit_finished_jit_state(
     state: &WasmJitCpuState,
@@ -12,19 +14,24 @@ pub(super) fn commit_finished_jit_state(
     expected_exit_pc: u64,
     prepared: bool,
 ) -> Result<(), String> {
-    if !prepared {
-        return commit_jit_state(state, machine, core_id, steps, expected_exit_pc);
-    }
-    commit_prepared_jit_state(state, machine, core_id, steps, expected_exit_pc)
+    apply_finished_jit_state(state, machine, core_id, steps, expected_exit_pc, prepared)?;
+    finish_committed_jit_state(machine, core_id, steps);
+    Ok(())
 }
 
-fn commit_prepared_jit_state(
+pub(super) fn apply_finished_jit_state(
     state: &WasmJitCpuState,
     machine: &mut Machine,
     core_id: usize,
     steps: usize,
     expected_exit_pc: u64,
+    prepared: bool,
 ) -> Result<(), String> {
+    if !prepared {
+        validate_jit_state_commit(state, machine, core_id, steps, expected_exit_pc)?;
+        apply_committed_jit_state(state, machine, core_id, steps);
+        return Ok(());
+    }
     if steps == 0 {
         return Err("cannot commit an empty JIT block".to_string());
     }
@@ -34,23 +41,7 @@ fn commit_prepared_jit_state(
             state.pc
         ));
     }
-    if machine.cpus.len() != 1 {
-        return Err("JIT commit is currently restricted to single-core VMs".to_string());
-    }
-    if machine.active_core != core_id {
-        return Err(format!(
-            "JIT core mismatch: active core is {}, requested {core_id}",
-            machine.active_core
-        ));
-    }
-
-    let cpu = &mut machine.cpus[core_id];
-    let cycle_count = cpu.sys.cycle_count;
-    state.copy_to_cpu(cpu);
-    cpu.sys.cycle_count = cycle_count.wrapping_add(steps as u64);
-    machine.virtual_time = machine.virtual_time.max(cpu.sys.cycle_count);
-    deliver_jit_timer_boundary(cpu);
-    machine.total_steps = machine.total_steps.wrapping_add(steps as u64);
-    machine.active_core = 0;
+    validate_jit_commit_target(machine, core_id, steps)?;
+    apply_committed_jit_state(state, machine, core_id, steps);
     Ok(())
 }

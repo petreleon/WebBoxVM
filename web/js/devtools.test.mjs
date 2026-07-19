@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installWebboxVmDevtools } from "./devtools.js";
+import { installWebboxVmDevtools } from "./devtools.js?v=20260718-staged-fast-boot";
 
 test("hidden devtools jit checkbox follows the safe default", () => {
   withFakeDocument((document) => {

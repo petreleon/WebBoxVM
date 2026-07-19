@@ -44,6 +44,8 @@ export const state = {
   lastUartFlushAt: 0,
   lastUartPollAt: 0,
   networkStatus: "offline",
+  numCores: 0,
+  parallelTransitionDeferred: false,
   pumpScheduled: false,
   running: false,
   stepSlice: DEFAULT_STEP_SLICE,

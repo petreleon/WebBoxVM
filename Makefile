@@ -2,6 +2,8 @@ ARTIFACTS_DIR ?= .artifacts
 DEBIAN_ARM64_ISO ?= $(ARTIFACTS_DIR)/debian-arm64-netinst.iso
 DEBIAN_ARM64_ISO_BASE ?= https://cdimage.debian.org/debian-cd/current/arm64/iso-cd
 DEBIAN_ARM64_ISO_FILE ?=
+WEB_BENCHMARK_DISK ?= output/webboxvm-final-install-compact.wbdisk
+WEB_BENCHMARK_SHA256 ?= 97d819803774d67c9aabaa19f336f066656cc5235b5e8276cb8dc14fdff6217d
 DRY_RUN ?= 0
 WEB_PORT ?= 8080
 WEB_TARGET ?= wasm64-unknown-unknown
@@ -11,7 +13,7 @@ WEB_THREADS_RUSTFLAGS ?= -C target-feature=+atomics,+bulk-memory -C link-arg=--s
 WASM_BINDGEN_THREADS_ROOT ?= $(ARTIFACTS_DIR)/tools/wasm-bindgen-memory64-threads
 WASM_BINDGEN_THREADS ?= $(WASM_BINDGEN_THREADS_ROOT)/bin/wasm-bindgen
 
-.PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-debian-arm64 test
+.PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-benchmark web-debian-arm64 test
 
 busybox:
 	scripts/update_busybox.sh
@@ -42,6 +44,7 @@ $(WASM_BINDGEN_THREADS): scripts/build_wasm_bindgen_memory64_threads.sh patches/
 	WASM_BINDGEN_INSTALL_ROOT="$(abspath $(WASM_BINDGEN_THREADS_ROOT))" scripts/build_wasm_bindgen_memory64_threads.sh
 
 web-pkg:
+	node scripts/stamp_web_asset_version.mjs --check
 	$(MAKE) web-pkg-serial
 	$(MAKE) web-pkg-threaded
 
@@ -56,6 +59,14 @@ web-pkg-threaded: $(WASM_BINDGEN_THREADS)
 web: web-pkg
 	python3 scripts/serve_web.py --port $(WEB_PORT) --directory web
 
+web-benchmark: web-pkg
+	@test -f "$(WEB_BENCHMARK_DISK)" || (echo "benchmark disk not found: $(WEB_BENCHMARK_DISK)" >&2; exit 2)
+	@printf '%s  %s\n' "$(WEB_BENCHMARK_SHA256)" "$(WEB_BENCHMARK_DISK)" | shasum -a 256 -c -
+	mkdir -p web/media
+	ln -sf "$(abspath $(WEB_BENCHMARK_DISK))" web/media/benchmark-installed.wbdisk
+	@trap 'unlink web/media/benchmark-installed.wbdisk 2>/dev/null || true' EXIT HUP INT TERM; \
+		python3 scripts/serve_web.py --port $(WEB_PORT) --directory web
+
 web-debian-arm64: iso-debian-arm64 web-pkg
 	mkdir -p web/media
 	ln -sf "$(abspath $(DEBIAN_ARM64_ISO))" web/media/debian-arm64-netinst.iso
@@ -63,3 +74,5 @@ web-debian-arm64: iso-debian-arm64 web-pkg
 
 test:
 	cargo test -p emulator
+	node scripts/stamp_web_asset_version.mjs --check
+	find web/js -name '*.test.mjs' -exec node --test '{}' +

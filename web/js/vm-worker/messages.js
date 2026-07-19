@@ -3,15 +3,17 @@ import {
   bootIsoWithDisk,
   freeEmulator,
   installDiskSnapshot,
+  metrics,
   restoreInstallDisk,
   setStepSlice,
-} from "./lifecycle.js";
-import { withEmulatorAccess } from "./access.js";
-import { compileJitBlock } from "./jit-compile.js";
-import { errorMessage } from "./errors.js";
-import { runJitBlock } from "./jit-run.js";
-import { schedulePump } from "./pump.js";
-import { resetJitState, state } from "./state.js";
+  transitionToParallel,
+} from "./lifecycle.js?v=20260718-staged-fast-boot";
+import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
+import { compileJitBlock } from "./jit-compile.js?v=20260718-staged-fast-boot";
+import { errorMessage } from "./errors.js?v=20260718-staged-fast-boot";
+import { runJitBlock } from "./jit-run.js?v=20260718-staged-fast-boot";
+import { schedulePump } from "./pump.js?v=20260718-staged-fast-boot";
+import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;
@@ -85,6 +87,11 @@ async function handleRequest(type, payload) {
     case "stop":
       state.running = false;
       return {};
+    case "transitionToParallel": {
+      const result = await transitionToParallel();
+      schedulePump();
+      return state.emulator ? { ...result, metrics: metrics() } : result;
+    }
     default:
       throw new Error(`Unknown worker VM request: ${type}`);
   }

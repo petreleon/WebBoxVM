@@ -1,5 +1,5 @@
-import { metrics } from "./lifecycle.js";
-import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js";
+import { metrics } from "./lifecycle.js?v=20260718-staged-fast-boot";
+import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260718-staged-fast-boot";
 
 export function maybePostMetrics(now = performance.now(), emulator = state.emulator) {
   if (now - state.lastMetricsAt < METRICS_INTERVAL_MS) {

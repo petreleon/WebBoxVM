@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { withEmulatorAccess } from "./access.js";
+import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
 
 test("emulator access waits for an active worker round", async () => {
   let releaseRound;

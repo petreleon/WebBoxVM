@@ -1,7 +1,7 @@
-import { GIB, clamp, nextFrame } from "./utils.js";
-import { assertWasm64Supported } from "./wasm64.js";
-import { WorkerVm } from "./worker-vm.js";
-import { formatBootPhase } from "./boot-timeline.js";
+import { GIB, clamp, nextFrame } from "./utils.js?v=20260718-staged-fast-boot";
+import { assertWasm64Supported } from "./wasm64.js?v=20260718-staged-fast-boot";
+import { WorkerVm } from "./worker-vm.js?v=20260718-staged-fast-boot";
+import { formatBootPhase } from "./boot-timeline.js?v=20260718-staged-fast-boot";
 
 const BOOT_KIND_MEDIA = "media";
 const BOOT_KIND_SAVED_DISK = "saved-disk";
@@ -84,8 +84,14 @@ export class VmBooter {
     if (!snapshot) {
       throw new Error("No saved disk snapshot is available");
     }
+    await this.bootInstalledSnapshot(snapshot, "saved disk", extraBootargs);
+  }
 
-    const name = "saved disk";
+  async bootInstalledSnapshot(snapshot, name = "installed disk", extraBootargs = "") {
+    await this.#ensureWasm();
+    if (!snapshot?.byteLength) {
+      throw new Error("Installed disk snapshot is empty");
+    }
     this.#resetEmulator();
     this.#term.clear();
     this.#term.write(`Booting ${name}\r\n`);
@@ -107,10 +113,14 @@ export class VmBooter {
       return;
     }
 
+    this.#ui.log(`Fast boot execution mode: ${emulator.execution_mode()}`);
     this.#disk.markClean(emulator);
     this.#syncDiskSizeInput(emulator);
     this.#onBooted(name);
-    this.#runner.start({ installedSystem: true });
+    this.#runner.start({
+      installedSystem: true,
+      stagedSmp: emulator.staged_smp_enabled?.() ?? false,
+    });
     this.#ui.setControls("running", this.#disk, emulator);
     this.#ui.setStatus(`Running ${name}`);
     this.#term.focus();
@@ -143,7 +153,7 @@ export class VmBooter {
       return;
     }
     this.#ui.log(formatBootPhase("firmware preparation", timings.firmwarePreparationMs));
-    this.#ui.log(formatBootPhase("worker pool", timings.workerPoolMs));
+    this.#ui.log(formatBootPhase("execution setup", timings.workerPoolMs));
   }
 
   #diskSizeBytes() {
@@ -159,8 +169,8 @@ export class VmBooter {
 }
 
 export function jitEnabledForBoot(bootKind, manualEnabled, numCores = 1) {
-  if (numCores !== 1) {
-    return false;
+  if (bootKind === BOOT_KIND_SAVED_DISK) {
+    return true;
   }
-  return bootKind === BOOT_KIND_SAVED_DISK || Boolean(manualEnabled);
+  return numCores === 1 && Boolean(manualEnabled);
 }

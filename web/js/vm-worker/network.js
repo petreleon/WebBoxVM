@@ -1,5 +1,5 @@
-import { NETWORK_IDLE_FAST_MS, NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js";
-import { withEmulatorAccess } from "./access.js";
+import { NETWORK_IDLE_FAST_MS, NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js?v=20260718-staged-fast-boot";
+import { withEmulatorAccess } from "./access.js?v=20260718-staged-fast-boot";
 
 const RETRY_MS = 3000;
 let socket;

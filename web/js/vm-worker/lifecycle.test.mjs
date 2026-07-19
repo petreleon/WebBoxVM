@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { metrics, restoreInstallDisk } from "./lifecycle.js";
-import { resetJitState, state } from "./state.js";
+import { metrics, restoreInstallDisk } from "./lifecycle.js?v=20260718-staged-fast-boot";
+import { resetJitState, state } from "./state.js?v=20260718-staged-fast-boot";
 
 const previousPostMessage = globalThis.postMessage;
 

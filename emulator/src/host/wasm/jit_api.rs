@@ -1,4 +1,5 @@
 mod commit;
+mod commit_boundary;
 mod compile;
 mod exclusive;
 mod exclusive_load;

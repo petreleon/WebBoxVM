@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { compileJitBlock, compileJitBlockEntry, jitBlockKey } from "./jit-compile.js";
-import { state } from "./state.js";
+import { compileJitBlock, compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260718-staged-fast-boot";
+import { state } from "./state.js?v=20260718-staged-fast-boot";
 
 afterEach(() => {
   state.emulator = undefined;

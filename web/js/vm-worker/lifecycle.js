@@ -1,9 +1,12 @@
-import { Emulator, ensureWasm } from "./wasm.js";
-import { VcpuPool } from "./vcpu-pool.js";
-import { BootPhaseTimer } from "./boot-timing.js";
-import { changedJitStats, jitStats } from "./jit-stats.js";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js";
-import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js";
+import { Emulator, ensureWasm } from "./wasm.js?v=20260718-staged-fast-boot";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260718-staged-fast-boot";
+import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260718-staged-fast-boot";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260718-staged-fast-boot";
+import { changedJitStats, jitStats } from "./jit-stats.js?v=20260718-staged-fast-boot";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260718-staged-fast-boot";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260718-staged-fast-boot";
+
+export { prepareExecutionMode, transitionToParallel };
 
 export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   await ensureWasm();
@@ -30,9 +33,50 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
   await ensureWasm();
   timer.end("wasmLoadMs");
   await freeEmulator();
-  const emulator = new Emulator(numCores);
-  timer.end("emulatorCreateMs");
-  state.emulator = emulator;
+  const preparation = await prepareExecutionMode(numCores, { deferParallel: true });
+  timer.end("workerPoolMs");
+  let emulator;
+  let result;
+  try {
+    ({ emulator, result } = bootPreparedInstalledDisk(
+      Emulator,
+      diskSnapshot,
+      extraBootargs,
+      preparation,
+      (created) => {
+        timer.end("emulatorCreateMs");
+        state.emulator = created;
+        resetBootPollState();
+      },
+    ));
+  } catch (error) {
+    await freeEmulator();
+    throw error;
+  }
+  timer.end("firmwarePreparationMs");
+  const bootSucceeded = !result.startsWith("ERR:");
+  const stagedSmp = bootSucceeded && emulator.staged_smp_enabled();
+  if (!bootSucceeded && state.vcpuPool) {
+    await state.vcpuPool.stop();
+    state.vcpuPool = undefined;
+    state.parallelTransitionDeferred = false;
+  } else if (preparation.parallelReady && !stagedSmp) {
+    await transitionToParallel();
+  }
+  const installDiskGeneration = emulator.install_disk_generation();
+  state.lastAutosaveGeneration = installDiskGeneration;
+  if (bootSucceeded) {
+    startNetworkProxy();
+  }
+  return {
+    bootTimings: timer.finish(),
+    metrics: metrics({ emulator, installDiskGeneration }),
+    result,
+    stagedSmp,
+  };
+}
+
+function resetBootPollState() {
   state.lastUart = 0;
   state.lastUartFlushAt = 0;
   state.lastUartPollAt = 0;
@@ -40,22 +84,6 @@ export async function bootInstalledDisk({ diskSnapshot, extraBootargs = "", numC
   state.lastMetricsAt = 0;
   state.lastAutosaveAt = performance.now();
   state.lastAutosavePollAt = state.lastAutosaveAt;
-  const result = emulator.boot_installed_disk_with_extra_bootargs(
-    diskSnapshot,
-    numCores,
-    extraBootargs,
-  );
-  timer.end("firmwarePreparationMs");
-  await prepareExecutionMode(numCores);
-  timer.end("workerPoolMs");
-  const installDiskGeneration = emulator.install_disk_generation();
-  state.lastAutosaveGeneration = installDiskGeneration;
-  startNetworkProxy();
-  return {
-    bootTimings: timer.finish(),
-    metrics: metrics({ emulator, installDiskGeneration }),
-    result,
-  };
 }
 
 export function restoreInstallDisk(snapshot) {
@@ -92,6 +120,8 @@ export async function freeEmulator() {
     state.vcpuPool = undefined;
   }
   state.executionMode = "cooperative";
+  state.numCores = 0;
+  state.parallelTransitionDeferred = false;
   if (state.emulator) {
     state.emulator.free();
     state.emulator = undefined;
@@ -124,21 +154,6 @@ export function metrics({
     snapshot.jitStats = stats;
   }
   return snapshot;
-}
-
-async function prepareExecutionMode(numCores) {
-  state.executionMode = "cooperative";
-  if (!state.threadedWasm || numCores <= 1) {
-    return;
-  }
-  try {
-    state.vcpuPool = await VcpuPool.create(numCores, state.threadedWasm);
-    state.executionMode = "parallel-wasm";
-    state.jitEnabled = false;
-  } catch (error) {
-    state.wasmFallbackReason = error?.message ?? String(error);
-    state.vcpuPool = undefined;
-  }
 }
 
 export function setStepSlice(value) {

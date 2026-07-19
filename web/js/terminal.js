@@ -1,4 +1,4 @@
-import { delay } from "./utils.js";
+import { delay } from "./utils.js?v=20260718-staged-fast-boot";
 
 export async function waitForTerminal() {
   while (!window.Terminal || !window.FitAddon) {

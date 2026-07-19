@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { interpreterStepSlice } from "./pump.js";
+import { interpreterStepSlice } from "./pump.js?v=20260718-staged-fast-boot";
 import {
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
@@ -8,7 +8,7 @@ import {
   NETWORK_STEP_SLICE,
   NETWORK_TX_POLL_INTERVAL_MS,
   state,
-} from "./state.js";
+} from "./state.js?v=20260718-staged-fast-boot";
 
 afterEach(() => {
   state.emulator = undefined;

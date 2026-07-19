@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerChannel } from "./channel.js";
+import { WorkerChannel } from "./channel.js?v=20260718-staged-fast-boot";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;

@@ -1,7 +1,7 @@
 use super::*;
 
 impl Machine {
-    pub(super) fn prepare_next_core(&mut self) -> Option<usize> {
+    pub(crate) fn prepare_next_core(&mut self) -> Option<usize> {
         self.apply_external_dma_write_invalidations();
         self.wake_waiting_cores();
         if self.find_runnable_from(self.active_core).is_none() {

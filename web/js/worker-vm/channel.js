@@ -1,6 +1,7 @@
 const INITIAL_METRICS = {
   allocatedPages: 0,
   currentInstruction: undefined,
+  executionMode: "cooperative",
   installDiskAllocatedBytes: 0n,
   installDiskGeneration: 0n,
   installDiskSizeBytes: 0n,
@@ -129,6 +130,7 @@ export class WorkerChannel {
     const hasJitStats = metrics.jitStats !== undefined;
     const hasInstruction = Object.hasOwn(metrics, "currentInstruction");
     this.#metrics.allocatedPages = metrics.allocatedPages;
+    this.#metrics.executionMode = metrics.executionMode ?? this.#metrics.executionMode;
     if (hasInstruction) {
       this.#metrics.currentInstruction = metrics.currentInstruction;
     }

@@ -3,7 +3,7 @@ use crate::host::wasm::Emulator;
 use crate::runtime::Machine;
 use wasm_bindgen::prelude::*;
 
-use super::commit::can_commit_jit_block_now;
+use super::commit_boundary::can_commit_jit_block_now;
 use super::validate::validate_jit_block;
 
 #[wasm_bindgen]

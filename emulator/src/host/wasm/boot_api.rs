@@ -14,6 +14,7 @@ impl Emulator {
             Ok(ctx) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(Box::new(ctx));
+                self.staged_smp = false;
                 format!("OK: kernel loaded, {} cores ready", cores)
             }
             Err(e) => format!("ERR: {}", e),
@@ -34,6 +35,7 @@ impl Emulator {
             Ok(ctx) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(Box::new(ctx));
+                self.staged_smp = false;
                 format!(
                     "OK: kernel loaded with custom initrd, {} cores ready",
                     cores
@@ -57,6 +59,7 @@ impl Emulator {
             Ok(ctx) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(Box::new(ctx));
+                self.staged_smp = false;
                 format!(
                     "OK: kernel loaded with BusyBox initrd, {} cores ready",
                     cores
@@ -75,6 +78,7 @@ impl Emulator {
             Ok(ctx) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(Box::new(ctx));
+                self.staged_smp = false;
                 format!("OK: ISO kernel/initrd loaded, {} cores ready", cores)
             }
             Err(e) => format!("ERR: {}", e),
@@ -96,6 +100,7 @@ impl Emulator {
                 ctx.set_install_disk_size(disk_size_bytes);
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(Box::new(ctx));
+                self.staged_smp = false;
                 format!(
                     "OK: ISO kernel/initrd loaded with writable disk, {} cores ready",
                     cores
@@ -117,17 +122,30 @@ impl Emulator {
         num_cores: usize,
         extra_bootargs: String,
     ) -> String {
+        self.boot_installed_disk_with_staged_smp(disk_snapshot, num_cores, extra_bootargs, false)
+    }
+
+    /// Boot an installed system with conservative staged Linux SMP.
+    pub fn boot_installed_disk_with_staged_smp(
+        &mut self,
+        disk_snapshot: Vec<u8>,
+        num_cores: usize,
+        extra_bootargs: String,
+        staged_smp_requested: bool,
+    ) -> String {
         let Ok(_access) = self.try_parallel_idle() else {
             return "ERR: parallel run must be finished before replacing the VM".into();
         };
-        match BootContext::new_from_install_disk_snapshot_with_extra_bootargs(
+        match BootContext::new_from_install_disk_snapshot_with_staged_smp(
             disk_snapshot,
             num_cores,
             &extra_bootargs,
+            staged_smp_requested,
         ) {
-            Ok(ctx) => {
+            Ok((ctx, staged_smp)) => {
                 let cores = ctx.machine.cpus.len();
                 self.boot = Some(Box::new(ctx));
+                self.staged_smp = staged_smp;
                 format!(
                     "OK: installed disk kernel/initrd loaded, {} cores ready",
                     cores
@@ -135,5 +153,10 @@ impl Emulator {
             }
             Err(e) => format!("ERR: {}", e),
         }
+    }
+
+    pub fn staged_smp_enabled(&self) -> bool {
+        let _access = self.require_parallel_idle();
+        self.staged_smp
     }
 }

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { WEBBOXVM_ASSET_VERSION, versionedUrl } from "./asset-version.js";
+import {
+  checkWebAssetGraph,
+  findRelativeModuleSpecifiers,
+} from "../../scripts/stamp_web_asset_version.mjs?v=20260718-staged-fast-boot";
+import { WEBBOXVM_ASSET_VERSION, versionedUrl } from "./asset-version.js?v=20260718-staged-fast-boot";
 
 test("versionedUrl stamps the shared asset version", () => {
   const url = versionedUrl("./vm-worker.js", "http://localhost/app.js");
@@ -20,6 +24,25 @@ test("browser entrypoint uses the shared asset version", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
   assert.match(html, new RegExp(`app\\.js\\?v=${WEBBOXVM_ASSET_VERSION}`));
+});
+
+test("module graph finder covers every ESM dependency form", () => {
+  const keyword = ["im", "port"].join("");
+  const source = [
+    `${keyword} value from "./static.js";`,
+    `${keyword}("./dynamic.js");`,
+    `${keyword} "./side-effect.js";`,
+  ].join("\n");
+
+  assert.deepEqual(findRelativeModuleSpecifiers(source), [
+    "./static.js",
+    "./dynamic.js",
+    "./side-effect.js",
+  ]);
+});
+
+test("all local web and test module edges share one asset version", async () => {
+  assert.deepEqual(await checkWebAssetGraph(), []);
 });
 
 test("worker and wasm package URLs are cache busted", async () => {

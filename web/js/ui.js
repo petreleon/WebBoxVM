@@ -1,4 +1,4 @@
-import { formatBytes } from "./utils.js";
+import { formatBytes } from "./utils.js?v=20260718-staged-fast-boot";
 
 export class UiController {
   constructor(els) {

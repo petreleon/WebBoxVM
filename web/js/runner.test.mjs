@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { VmRunner } from "./runner.js";
+import { VmRunner } from "./runner.js?v=20260718-staged-fast-boot";
 
 const previousDocument = globalThis.document;
 let fakeDocument;
