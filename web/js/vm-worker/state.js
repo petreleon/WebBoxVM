@@ -8,6 +8,9 @@ export const NETWORK_TX_POLL_INTERVAL_MS = 16;
 export const UART_FLUSH_BYTES = 8192;
 export const UART_FLUSH_INTERVAL_MS = 50;
 export const UART_POLL_INTERVAL_MS = 16;
+export const INTERACTIVE_STEP_SLICE = 100_000;
+export const INTERACTIVE_WINDOW_MS = 750;
+export const COOPERATIVE_STEP_SLICE = 500_000;
 export const MAX_FRAME_MS = 32;
 export const MAX_FRAME_BATCHES = 128;
 export const METRICS_INTERVAL_MS = 250;
@@ -15,7 +18,7 @@ export const DEFAULT_JIT_ENABLED = false;
 export const JIT_HOT_THRESHOLD = 2;
 export const JIT_MAX_HIT_SITES = 1024;
 export const JIT_MAX_BLOCKS = 4096;
-export const JIT_PROBE_STEP_SLICE = DEFAULT_STEP_SLICE;
+export const JIT_PROBE_STEP_SLICE = COOPERATIVE_STEP_SLICE;
 
 export const state = {
   emulator: undefined,
@@ -42,6 +45,7 @@ export const state = {
   lastNetworkTxPollAt: 0,
   lastUart: 0,
   lastUartFlushAt: 0,
+  lastUartInputAt: Number.NEGATIVE_INFINITY,
   lastUartPollAt: 0,
   networkStatus: "offline",
   numCores: 0,
@@ -50,6 +54,8 @@ export const state = {
   running: false,
   stepSlice: DEFAULT_STEP_SLICE,
   threadedWasm: undefined,
+  uartNeedsGuestService: false,
+  urgentUartWaiters: 0,
   vcpuPool: undefined,
   wasmExports: undefined,
   wasmFallbackReason: undefined,

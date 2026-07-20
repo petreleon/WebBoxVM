@@ -1,10 +1,11 @@
-import { Emulator, ensureWasm } from "./wasm.js?v=20260720-firmware-fast-boot-r2";
-import { BootPhaseTimer } from "./boot-timing.js?v=20260720-firmware-fast-boot-r2";
-import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260720-firmware-fast-boot-r2";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260720-firmware-fast-boot-r2";
-import { changedJitStats, jitStats } from "./jit-stats.js?v=20260720-firmware-fast-boot-r2";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260720-firmware-fast-boot-r2";
-import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260720-firmware-fast-boot-r2";
+import { Emulator, ensureWasm } from "./wasm.js?v=20260720-input-latency-r4";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260720-input-latency-r4";
+import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260720-input-latency-r4";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260720-input-latency-r4";
+import { changedJitStats, jitStats } from "./jit-stats.js?v=20260720-input-latency-r4";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260720-input-latency-r4";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260720-input-latency-r4";
+import { resetUartInput } from "./uart-input.js?v=20260720-input-latency-r4";
 
 export { prepareExecutionMode, transitionToParallel };
 
@@ -83,6 +84,7 @@ export async function bootInstalledDisk({
 }
 
 function resetBootPollState() {
+  resetUartInput();
   state.lastUart = 0;
   state.lastUartFlushAt = 0;
   state.lastUartPollAt = 0;
@@ -119,6 +121,7 @@ export async function freeEmulator() {
   state.lastUartPollAt = 0;
   state.lastNetworkTxPollAt = 0;
   state.lastAutosavePollAt = 0;
+  resetUartInput();
   resetJitState();
   stopNetworkProxy();
   if (state.vcpuPool) {

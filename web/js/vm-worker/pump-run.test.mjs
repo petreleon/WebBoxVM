@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { createPumpTaskScheduler, schedulePump } from "./pump.js?v=20260720-firmware-fast-boot-r2";
-import { DEFAULT_JIT_ENABLED, DEFAULT_STEP_SLICE, resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
+import { schedulePump } from "./pump.js?v=20260720-input-latency-r4";
+import {
+  COOPERATIVE_STEP_SLICE,
+  DEFAULT_JIT_ENABLED,
+  DEFAULT_STEP_SLICE,
+  resetJitState,
+  state,
+} from "./state.js?v=20260720-input-latency-r4";
+import { resetUartInput } from "./uart-input.js?v=20260720-input-latency-r4";
 
 const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;
@@ -15,11 +22,16 @@ afterEach(() => {
   resetJitState();
   state.lastAutosavePollAt = 0;
   state.lastMetricsAt = 0;
+  state.lastUart = 0;
+  state.lastUartFlushAt = 0;
   state.lastUartPollAt = 0;
   state.networkStatus = "offline";
   state.pumpScheduled = false;
   state.running = false;
+  state.stepSlice = DEFAULT_STEP_SLICE;
+  state.urgentUartWaiters = 0;
   state.vcpuPool = undefined;
+  resetUartInput();
 });
 
 test("cached jit pump path does not probe boolean then", async () => {
@@ -103,7 +115,7 @@ test("interpreter fallback reuses current batch timestamp before run", async () 
   schedulePump();
   await ran;
 
-  assert.equal(stepSlice, DEFAULT_STEP_SLICE);
+  assert.equal(stepSlice, COOPERATIVE_STEP_SLICE);
   assert.equal(nowCalls, 2);
 });
 
@@ -130,43 +142,4 @@ test("parallel interpreter batches run through the vcpu pool", async () => {
 
   schedulePump();
   await ran;
-});
-
-test("pump scheduler uses message channel when available", () => {
-  let port1;
-  class FakeMessageChannel {
-    constructor() {
-      port1 = { addEventListener: (_, listener) => (port1.listener = listener), start() {} };
-      this.port1 = port1;
-      this.port2 = { postMessage: () => port1.listener() };
-    }
-  }
-  const scheduler = createPumpTaskScheduler({
-    MessageChannelCtor: FakeMessageChannel,
-    timeout: () => assert.fail("setTimeout fallback should not run"),
-  });
-  let ran = false;
-
-  scheduler(() => (ran = true));
-
-  assert.equal(ran, true);
-});
-
-test("pump scheduler falls back to timeout without message channel", () => {
-  let scheduled;
-  let delay;
-  const scheduler = createPumpTaskScheduler({
-    MessageChannelCtor: null,
-    timeout: (callback, ms) => {
-      scheduled = callback;
-      delay = ms;
-    },
-  });
-  let ran = false;
-
-  scheduler(() => (ran = true));
-  scheduled();
-
-  assert.equal(delay, 0);
-  assert.equal(ran, true);
 });

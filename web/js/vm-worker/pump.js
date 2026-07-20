@@ -1,8 +1,8 @@
-import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260720-firmware-fast-boot-r2";
-import { withEmulatorAccess } from "./access.js?v=20260720-firmware-fast-boot-r2";
-import { errorMessage } from "./errors.js?v=20260720-firmware-fast-boot-r2";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260720-firmware-fast-boot-r2";
-import { drainNetworkTx } from "./network.js?v=20260720-firmware-fast-boot-r2";
+import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260720-input-latency-r4";
+import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
+import { errorMessage } from "./errors.js?v=20260720-input-latency-r4";
+import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260720-input-latency-r4";
+import { drainNetworkTx } from "./network.js?v=20260720-input-latency-r4";
 import {
   JIT_PROBE_STEP_SLICE,
   MAX_FRAME_BATCHES,
@@ -10,11 +10,16 @@ import {
   NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
   NETWORK_TX_POLL_INTERVAL_MS,
-  UART_FLUSH_BYTES,
-  UART_FLUSH_INTERVAL_MS,
-  UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260720-firmware-fast-boot-r2";
+} from "./state.js?v=20260720-input-latency-r4";
+import {
+  isInputResponsive,
+  markUartGuestServiced,
+  responsiveStepSlice,
+} from "./uart-input.js?v=20260720-input-latency-r4";
+import { drainUart } from "./uart-output.js?v=20260720-input-latency-r4";
+
+export { drainUart, shouldFlushUart, shouldPollUart } from "./uart-output.js?v=20260720-input-latency-r4";
 
 const schedulePumpTask = createPumpTaskScheduler();
 
@@ -95,11 +100,16 @@ async function runPump() {
         }
       }
       now = performance.now();
+      if (state.urgentUartWaiters > 0) {
+        schedulePump();
+        return;
+      }
+      markUartGuestServiced(now);
       const sentNetworkFrames =
         state.networkStatus === "connected" ? drainNetworkTx(now, emulator) : 0;
-      drainUart(now, emulator);
+      const sentUart = drainUart(now, emulator);
       batches += 1;
-      if (sentNetworkFrames > 0) {
+      if (sentNetworkFrames > 0 || sentUart) {
         break;
       }
     } while (state.running && shouldContinuePumpFrame(frameStart, now, batches));
@@ -120,15 +130,27 @@ export function interpreterStepSlice(now = performance.now(), emulator = state.e
   return Math.min(networkResponsiveStepSlice(now, emulator), JIT_PROBE_STEP_SLICE);
 }
 
-export function shouldContinuePumpFrame(frameStart, now, batches) {
-  return now - frameStart < MAX_FRAME_MS && batches < MAX_FRAME_BATCHES;
+export function shouldContinuePumpFrame(
+  frameStart,
+  now,
+  batches,
+  responsive = isInputResponsive(now),
+  executionMode = state.executionMode,
+) {
+  const canReceiveMessagesDuringBatch = executionMode === "parallel-wasm";
+  return (
+    (!responsive || canReceiveMessagesDuringBatch) &&
+    now - frameStart < MAX_FRAME_MS &&
+    batches < MAX_FRAME_BATCHES
+  );
 }
 
 function networkResponsiveStepSlice(now, emulator) {
+  const baseSlice = responsiveStepSlice(now);
   if (networkNeedsResponsiveSlices(now, emulator)) {
-    return Math.min(state.stepSlice, NETWORK_STEP_SLICE);
+    return Math.min(baseSlice, NETWORK_STEP_SLICE);
   }
-  return state.stepSlice;
+  return baseSlice;
 }
 
 function networkNeedsResponsiveSlices(now, emulator) {
@@ -145,31 +167,4 @@ function networkNeedsResponsiveSlices(now, emulator) {
     return false;
   }
   return (emulator?.network_tx_pending?.() ?? 0) > 0;
-}
-
-export function drainUart(now, emulator = state.emulator) {
-  if (!emulator || !shouldPollUart(now, state.lastUartPollAt)) {
-    return;
-  }
-  state.lastUartPollAt = now;
-  const uartLen = emulator.uart_output_len();
-  const pendingBytes = uartLen - state.lastUart;
-  if (!shouldFlushUart(pendingBytes, now, state.lastUartFlushAt)) {
-    return;
-  }
-  const output = emulator.uart_output_since(state.lastUart);
-  state.lastUart = uartLen;
-  state.lastUartFlushAt = now;
-  postMessage({ event: "uart", output });
-}
-
-export function shouldFlushUart(pendingBytes, now, lastFlushAt) {
-  if (pendingBytes <= 0) {
-    return false;
-  }
-  return pendingBytes >= UART_FLUSH_BYTES || now - lastFlushAt >= UART_FLUSH_INTERVAL_MS;
-}
-
-export function shouldPollUart(now, lastPollAt) {
-  return lastPollAt === 0 || now - lastPollAt >= UART_POLL_INTERVAL_MS;
 }

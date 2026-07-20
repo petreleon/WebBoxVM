@@ -4,7 +4,7 @@ import {
   decodeDiskSnapshotFromStorage,
   encodeDiskSnapshotForStorage,
   writeDiskSnapshotToStorage,
-} from "./persistence-store.js?v=20260720-firmware-fast-boot-r2";
+} from "./persistence-store.js?v=20260720-input-latency-r4";
 
 test("compressed disk snapshots roundtrip from storage", async () => {
   const snapshot = new Uint8Array(1024 * 1024);

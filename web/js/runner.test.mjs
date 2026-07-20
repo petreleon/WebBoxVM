@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { VmRunner } from "./runner.js?v=20260720-firmware-fast-boot-r2";
+import { VmRunner } from "./runner.js?v=20260720-input-latency-r4";
 
 const previousDocument = globalThis.document;
 let fakeDocument;
@@ -20,7 +20,6 @@ afterEach(() => {
 
 test("uart probe appends small chunks without full text replacement", () => {
   const { emulator, runner, term } = setupRunner();
-
   runner.start();
   emulator.onUart("abc");
   emulator.onUart("def");
@@ -93,8 +92,9 @@ function setupRunner({ stepSlice = "1000000", now, onBootTimeline } = {}) {
   const term = {
     output: "",
     scrollToBottom: () => {},
-    write(output) {
+    write(output, done) {
       this.output += output;
+      done?.();
     },
   };
   const runner = new VmRunner({

@@ -22,6 +22,7 @@ pub(super) const LIFE_STARTING: u8 = 3;
 pub(super) const LIFE_BOOT_READY: u8 = 4;
 pub(super) const LIFE_WAITING_EVENT: u8 = 5;
 pub(super) const NO_DEADLINE: u64 = u64::MAX;
+pub(super) const IDLE_LOCK_POLL_CYCLES: u64 = 32;
 
 pub(crate) struct WasmParallelControl {
     pub gate: RwLock<()>,

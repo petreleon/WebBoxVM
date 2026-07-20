@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { drainUart } from "./pump.js?v=20260720-firmware-fast-boot-r2";
-import { state } from "./state.js?v=20260720-firmware-fast-boot-r2";
+import { drainUart } from "./pump.js?v=20260720-input-latency-r4";
+import { state } from "./state.js?v=20260720-input-latency-r4";
 
 const previousPostMessage = globalThis.postMessage;
 
@@ -31,7 +31,7 @@ test("uart drain can reuse checked emulator reference", () => {
   });
 
   try {
-    drainUart(10, emulator);
+    assert.equal(drainUart(10, emulator), true);
 
     assert.equal(emulatorReads, 0);
     assert.equal(messages.length, 1);

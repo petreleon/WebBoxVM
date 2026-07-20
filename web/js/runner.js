@@ -1,7 +1,8 @@
-import { clamp } from "./utils.js?v=20260720-firmware-fast-boot-r2";
-import { UartBootTimeline } from "./boot-timeline.js?v=20260720-firmware-fast-boot-r2";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-firmware-fast-boot-r2";
-import { installUartProbe } from "./uart-probe.js?v=20260720-firmware-fast-boot-r2";
+import { clamp } from "./utils.js?v=20260720-input-latency-r4";
+import { UartBootTimeline } from "./boot-timeline.js?v=20260720-input-latency-r4";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-input-latency-r4";
+import { installUartProbe } from "./uart-probe.js?v=20260720-input-latency-r4";
+import { TerminalWriter } from "./terminal-writer.js?v=20260720-input-latency-r4";
 
 const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;
@@ -11,6 +12,7 @@ export class VmRunner {
   #acceptingEvents = false;
   #els;
   #term;
+  #terminalWriter;
   #ui;
   #disk;
   #getEmulator;
@@ -38,6 +40,9 @@ export class VmRunner {
   }) {
     this.#els = els;
     this.#term = term;
+    this.#terminalWriter = new TerminalWriter(term, {
+      autoScroll: () => this.#els.autoScroll.checked,
+    });
     this.#ui = ui;
     this.#disk = disk;
     this.#getEmulator = getEmulator;
@@ -125,12 +130,9 @@ export class VmRunner {
     if (!output) {
       return;
     }
-    this.#term.write(output);
+    this.#terminalWriter.write(output);
     this.#recordUart(output);
     this.#bootTimeline.observe(output);
-    if (this.#els.autoScroll.checked) {
-      this.#term.scrollToBottom();
-    }
   }
 
   #recordUart(output) {
@@ -150,6 +152,7 @@ export class VmRunner {
 
   #beginBoot(installedSystem) {
     this.#parallelTransition.reset();
+    this.#terminalWriter.reset();
     if (this.#uartTail) {
       this.#uartTail = "";
       this.#uartProbeText.data = "";

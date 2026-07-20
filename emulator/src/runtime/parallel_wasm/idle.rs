@@ -9,6 +9,36 @@ pub(super) fn initial_deadline(cpu: &Armv8Cpu, lifecycle: u8) -> u64 {
     }
 }
 
+pub(super) fn has_runnable_peer(core: usize, control: &WasmParallelControl) -> bool {
+    control
+        .lifecycle
+        .iter()
+        .enumerate()
+        .any(|(candidate, state)| {
+            candidate != core
+                && matches!(
+                    state.load(Ordering::Acquire),
+                    LIFE_RUNNABLE | LIFE_STARTING | LIFE_BOOT_READY
+                )
+        })
+}
+
+pub(super) fn locked_poll_due(
+    core: usize,
+    cpu: &Armv8Cpu,
+    lifecycle: u8,
+    last_poll_cycle: u64,
+    control: &WasmParallelControl,
+) -> bool {
+    let now = control.next_cycle.load(Ordering::Acquire);
+    !has_runnable_peer(core, control)
+        || cpu.sys.irq_pending
+        || (lifecycle == LIFE_WAITING_EVENT
+            && control.event_registers[core].load(Ordering::Acquire))
+        || control.deadlines[core].load(Ordering::Acquire) <= now
+        || now.wrapping_sub(last_poll_cycle) >= IDLE_LOCK_POLL_CYCLES
+}
+
 pub(super) fn wake_if_ready(
     core: usize,
     cpu: &mut Armv8Cpu,

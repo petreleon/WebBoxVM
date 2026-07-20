@@ -1,14 +1,15 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { interpreterStepSlice } from "./pump.js?v=20260720-firmware-fast-boot-r2";
+import { interpreterStepSlice } from "./pump.js?v=20260720-input-latency-r4";
 import {
+  COOPERATIVE_STEP_SLICE,
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
   JIT_PROBE_STEP_SLICE,
   NETWORK_STEP_SLICE,
   NETWORK_TX_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260720-firmware-fast-boot-r2";
+} from "./state.js?v=20260720-input-latency-r4";
 
 afterEach(() => {
   state.emulator = undefined;
@@ -36,7 +37,7 @@ test("interpreter step slice can reuse checked emulator reference", () => {
   state.stepSlice = 50_000_000;
 
   try {
-    assert.equal(interpreterStepSlice(10_000, emulator), NETWORK_STEP_SLICE);
+    assert.equal(interpreterStepSlice(10_000, emulator), COOPERATIVE_STEP_SLICE);
     assert.equal(emulatorReads, 0);
   } finally {
     Object.defineProperty(state, "emulator", previousDescriptor);
@@ -47,7 +48,7 @@ test("idle jit probe fallback uses the normal interpreter slice", () => {
   state.jitEnabled = true;
   state.networkStatus = "offline";
 
-  assert.equal(JIT_PROBE_STEP_SLICE, DEFAULT_STEP_SLICE);
+  assert.equal(JIT_PROBE_STEP_SLICE, COOPERATIVE_STEP_SLICE);
   assert.equal(interpreterStepSlice(10_000), JIT_PROBE_STEP_SLICE);
 });
 
@@ -58,7 +59,10 @@ test("jit probe fallback still yields to pending network transmit", () => {
   state.lastNetworkTxPollAt = 10_000;
   state.emulator = { network_tx_pending: () => 1 };
 
-  assert.equal(interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS), NETWORK_STEP_SLICE);
+  assert.equal(
+    interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS),
+    COOPERATIVE_STEP_SLICE,
+  );
 });
 
 test("idle network pending checks respect tx poll cadence", () => {
@@ -75,8 +79,14 @@ test("idle network pending checks respect tx poll cadence", () => {
     },
   };
 
-  assert.equal(interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS - 1), 50_000_000);
+  assert.equal(
+    interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS - 1),
+    COOPERATIVE_STEP_SLICE,
+  );
   assert.equal(pendingPolls, 0);
-  assert.equal(interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS), NETWORK_STEP_SLICE);
+  assert.equal(
+    interpreterStepSlice(10_000 + NETWORK_TX_POLL_INTERVAL_MS),
+    COOPERATIVE_STEP_SLICE,
+  );
   assert.equal(pendingPolls, 1);
 });

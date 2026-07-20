@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { VmRunner } from "./runner.js?v=20260720-firmware-fast-boot-r2";
+import { VmRunner } from "./runner.js?v=20260720-input-latency-r4";
 
 const previousDocument = globalThis.document;
 
@@ -18,7 +18,14 @@ test("runner ignores callbacks from replaced and stopped emulators", async () =>
   let metrics = 0;
   let saves = 0;
   const milestones = [];
-  const term = { output: "", scrollToBottom() {}, write(value) { this.output += value; } };
+  const term = {
+    output: "",
+    scrollToBottom() {},
+    write(value, done) {
+      this.output += value;
+      done?.();
+    },
+  };
   const runner = new VmRunner({
     disk: { shouldAutosave: () => true },
     els: {

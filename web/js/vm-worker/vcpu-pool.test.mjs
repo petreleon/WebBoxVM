@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { VcpuPool } from "./vcpu-pool.js?v=20260720-firmware-fast-boot-r2";
+import { VcpuPool } from "./vcpu-pool.js?v=20260720-input-latency-r4";
 
 const previousWorker = globalThis.Worker;
 
@@ -127,6 +127,19 @@ test("stop terminates workers that do not acknowledge before the deadline", asyn
   await firstStop;
 
   assert.ok(workers.every((worker) => worker.terminated));
+});
+
+test("interactive interrupt cancels only the active parallel round", () => {
+  const calls = [];
+  const pool = new VcpuPool([], threadedWasm({
+    cancelParallelRun: (token) => calls.push(token),
+  }));
+
+  assert.equal(pool.interrupt(), false);
+  pool.activeToken = 12n;
+  assert.equal(pool.interrupt(), true);
+  assert.equal(pool.interrupt(), true);
+  assert.deepEqual(calls, [12n]);
 });
 
 function threadedWasm(overrides = {}) {

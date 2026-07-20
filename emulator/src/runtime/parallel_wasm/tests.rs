@@ -2,6 +2,7 @@ use super::*;
 use std::sync::atomic::Ordering;
 
 mod exclusive_event;
+mod idle_polling;
 
 fn begin_parallel(machine: &mut Machine, max_steps: usize) -> u64 {
     let access = WasmAccessControl::new();

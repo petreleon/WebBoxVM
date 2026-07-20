@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { drainUart, interpreterStepSlice, shouldContinuePumpFrame, shouldFlushUart, shouldPollUart } from "./pump.js?v=20260720-firmware-fast-boot-r2";
+import { interpreterStepSlice, shouldContinuePumpFrame } from "./pump.js?v=20260720-input-latency-r4";
 import {
+  COOPERATIVE_STEP_SLICE,
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
   JIT_PROBE_STEP_SLICE,
@@ -9,17 +10,16 @@ import {
   MAX_FRAME_MS,
   NETWORK_IDLE_FAST_MS,
   NETWORK_STEP_SLICE,
-  UART_POLL_INTERVAL_MS,
   resetJitState,
   state,
-} from "./state.js?v=20260720-firmware-fast-boot-r2";
+} from "./state.js?v=20260720-input-latency-r4";
 
 test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(DEFAULT_JIT_ENABLED, false);
   assert.equal(state.jitEnabled, false);
   assert.equal(state.stepSlice, DEFAULT_STEP_SLICE);
   assert.equal(DEFAULT_STEP_SLICE, 5_000_000);
-  assert.equal(JIT_PROBE_STEP_SLICE, DEFAULT_STEP_SLICE);
+  assert.equal(JIT_PROBE_STEP_SLICE, COOPERATIVE_STEP_SLICE);
   assert.equal(NETWORK_STEP_SLICE, 1_000_000);
 });
 
@@ -52,7 +52,7 @@ test("connected network caps interpreter step slices for TCP responsiveness", ()
   state.stepSlice = 50_000_000;
   state.lastNetworkActivityAt = performance.now();
 
-  assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
+  assert.equal(interpreterStepSlice(), COOPERATIVE_STEP_SLICE);
 
   state.networkStatus = "offline";
   state.stepSlice = DEFAULT_STEP_SLICE;
@@ -71,7 +71,7 @@ test("recent network activity skips pending tx polling", () => {
     },
   };
 
-  assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
+  assert.equal(interpreterStepSlice(), COOPERATIVE_STEP_SLICE);
   assert.equal(pendingPolls, 0);
 
   state.emulator = undefined;
@@ -92,7 +92,10 @@ test("network responsiveness can reuse a caller timestamp", () => {
     },
   };
 
-  assert.equal(interpreterStepSlice(1000 + NETWORK_IDLE_FAST_MS - 1), NETWORK_STEP_SLICE);
+  assert.equal(
+    interpreterStepSlice(1000 + NETWORK_IDLE_FAST_MS - 1),
+    COOPERATIVE_STEP_SLICE,
+  );
   assert.equal(pendingPolls, 0);
 
   state.emulator = undefined;
@@ -100,13 +103,13 @@ test("network responsiveness can reuse a caller timestamp", () => {
   state.stepSlice = DEFAULT_STEP_SLICE;
 });
 
-test("idle connected network allows fast interpreter step slices", () => {
+test("idle connected network keeps the cooperative latency bound", () => {
   state.jitEnabled = false;
   state.networkStatus = "connected";
   state.lastNetworkActivityAt = performance.now() - 10_000;
   state.stepSlice = 50_000_000;
 
-  assert.equal(interpreterStepSlice(), 50_000_000);
+  assert.equal(interpreterStepSlice(), COOPERATIVE_STEP_SLICE);
 
   state.networkStatus = "offline";
   state.stepSlice = DEFAULT_STEP_SLICE;
@@ -119,14 +122,14 @@ test("pending network transmit keeps responsive interpreter slices", () => {
   state.stepSlice = 50_000_000;
   state.emulator = { network_tx_pending: () => 1 };
 
-  assert.equal(interpreterStepSlice(), NETWORK_STEP_SLICE);
+  assert.equal(interpreterStepSlice(), COOPERATIVE_STEP_SLICE);
 
   state.emulator = undefined;
   state.networkStatus = "offline";
   state.stepSlice = DEFAULT_STEP_SLICE;
 });
 
-test("pump allows more cached jit batches inside the frame budget", () => {
+test("pump bounds steady-state cached jit residency", () => {
   assert.equal(MAX_FRAME_MS, 32);
   assert.equal(MAX_FRAME_BATCHES, 128);
   assert.equal(shouldContinuePumpFrame(100, 100 + MAX_FRAME_MS - 1, 127), true);
@@ -137,37 +140,7 @@ test("pump yields on frame time or batch cap", () => {
   assert.equal(shouldContinuePumpFrame(100, 100, MAX_FRAME_BATCHES), false);
 });
 
-test("uart flushing batches small bursts for terminal throughput", () => {
-  assert.equal(shouldFlushUart(16, 40, 0), false);
-  assert.equal(shouldFlushUart(16, 55, 0), true);
-});
-
-test("uart flushing sends large chunks immediately", () => {
-  assert.equal(shouldFlushUart(8192, 1, 0), true);
-});
-
-test("uart polling runs immediately then respects poll cadence", () => {
-  assert.equal(shouldPollUart(5, 0), true);
-  assert.equal(shouldPollUart(1000 + UART_POLL_INTERVAL_MS - 1, 1000), false);
-  assert.equal(shouldPollUart(1000 + UART_POLL_INTERVAL_MS, 1000), true);
-});
-
-test("uart drain skips emulator length calls inside poll window", () => {
-  let lenCalls = 0;
-  state.lastUart = 0;
-  state.lastUartPollAt = 1000;
-  state.emulator = {
-    uart_output_len: () => {
-      lenCalls += 1;
-      return 0;
-    },
-  };
-
-  drainUart(1000 + UART_POLL_INTERVAL_MS - 1);
-
-  assert.equal(lenCalls, 0);
-  assert.equal(state.lastUartPollAt, 1000);
-
-  state.emulator = undefined;
-  state.lastUartPollAt = 0;
+test("interactive parallel pump can service more guest work inside one bounded frame", () => {
+  assert.equal(shouldContinuePumpFrame(100, 101, 1, true, "parallel-wasm"), true);
+  assert.equal(shouldContinuePumpFrame(100, 101, 1, true, "cooperative"), false);
 });

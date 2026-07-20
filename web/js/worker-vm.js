@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260720-firmware-fast-boot-r2";
-import { versionedUrl } from "./asset-version.js?v=20260720-firmware-fast-boot-r2";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260720-firmware-fast-boot-r2";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260720-input-latency-r4";
+import { versionedUrl } from "./asset-version.js?v=20260720-input-latency-r4";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260720-input-latency-r4";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);

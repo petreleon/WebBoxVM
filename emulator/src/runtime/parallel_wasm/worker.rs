@@ -8,6 +8,10 @@ pub(super) fn run(lease: &registry::WorkerLease) -> Result<(), &'static str> {
     let cache = unsafe { &mut *cache_ptr(control, core) };
     let mut seen_tlb_epoch = control.tlb_epoch.load(Ordering::Acquire);
     let mut local_since_irq_poll = 0u8;
+    let mut last_idle_poll_cycle = control
+        .next_cycle
+        .load(Ordering::Acquire)
+        .wrapping_sub(IDLE_LOCK_POLL_CYCLES);
 
     while !control.stop.load(Ordering::Acquire) {
         if control.system_off.load(Ordering::Acquire) {
@@ -24,13 +28,26 @@ pub(super) fn run(lease: &registry::WorkerLease) -> Result<(), &'static str> {
         }
         match lifecycle {
             LIFE_OFF => {
+                if idle::has_runnable_peer(core, control) {
+                    std::hint::spin_loop();
+                    continue;
+                }
                 if idle::coordinate(core, cpu, control) {
                     break;
                 }
                 continue;
             }
             LIFE_WAITING | LIFE_WAITING_EVENT => {
+                if !idle::locked_poll_due(core, cpu, lifecycle, last_idle_poll_cycle, control) {
+                    std::hint::spin_loop();
+                    continue;
+                }
+                last_idle_poll_cycle = control.next_cycle.load(Ordering::Acquire);
                 if idle::wake_if_ready(core, cpu, control) {
+                    continue;
+                }
+                if idle::has_runnable_peer(core, control) {
+                    std::hint::spin_loop();
                     continue;
                 }
                 if idle::coordinate(core, cpu, control) {

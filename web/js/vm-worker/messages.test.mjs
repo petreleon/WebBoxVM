@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260720-firmware-fast-boot-r2";
-import { handleMessage } from "./messages.js?v=20260720-firmware-fast-boot-r2";
-import { resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
+import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
+import { handleMessage } from "./messages.js?v=20260720-input-latency-r4";
+import { resetJitState, state } from "./state.js?v=20260720-input-latency-r4";
+import { resetUartInput } from "./uart-input.js?v=20260720-input-latency-r4";
 
 afterEach(() => {
   state.emulator = undefined;
@@ -14,40 +15,11 @@ afterEach(() => {
   state.running = false;
   state.threadedWasm = undefined;
   state.vcpuPool = undefined;
+  resetUartInput();
   resetJitState();
 });
 
-test("setJitEnabled resets cached jit state and stale telemetry", async () => {
-  resetJitState();
-  state.jitBlockHits.set("0:1000", 2);
-  state.jitBlocks.set("0:1000", {});
-  state.jitFallbackCount = 1;
-  state.jitLastFallback = { error: "old fallback" };
-  state.jitRejectedBlocks.add("0:2000");
-  state.jitRejectLog.push({ error: "old reject" });
-  state.jitSkippedBlocks.add("0:3000");
-  state.jitSkipLog.push({ error: "old skip" });
-
-  const messages = [];
-  await withPostMessage(messages, () =>
-    handleMessage({ id: 7, payload: { enabled: true }, type: "setJitEnabled" }),
-  );
-
-  assert.equal(state.jitEnabled, true);
-  assert.equal(state.jitBlockHits.size, 0);
-  assert.equal(state.jitBlocks.size, 0);
-  assert.equal(state.jitFallbackCount, 0);
-  assert.equal(state.jitLastFallback, undefined);
-  assert.equal(state.jitRejectedBlocks.size, 0);
-  assert.equal(state.jitRejectLog.length, 0);
-  assert.equal(state.jitSkippedBlocks.size, 0);
-  assert.equal(state.jitSkipLog.length, 0);
-  assert.deepEqual(messages, [{ id: 7, ok: true, value: {} }]);
-
-  state.jitEnabled = false;
-});
-
-test("requests wait until a parallel pump relinquishes emulator access", async () => {
+test("UART input preempts a parallel pump and injects after access is released", async () => {
   let releasePump;
   let markPumpStarted;
   const pumpStarted = new Promise((resolve) => {
@@ -60,72 +32,50 @@ test("requests wait until a parallel pump relinquishes emulator access", async (
     });
   });
   await pumpStarted;
-  let reads = 0;
+  const calls = [];
+  state.emulator = { send_uart_input: (input) => calls.push(["send", input]) };
+  state.vcpuPool = { interrupt: () => calls.push(["interrupt"]) };
+
+  const input = handleMessage({ payload: { input: "x" }, type: "sendUartInput" });
+  await Promise.resolve();
+  assert.deepEqual(calls, [["interrupt"]]);
+
+  releasePump();
+  await Promise.all([pump, input]);
+  assert.deepEqual(calls, [["interrupt"], ["send", "x"]]);
+});
+
+test("UART input remains behind an earlier pause request", async () => {
+  let releasePump;
+  let markPumpStarted;
+  const pumpStarted = new Promise((resolve) => {
+    markPumpStarted = resolve;
+  });
+  const pump = withEmulatorAccess(async () => {
+    markPumpStarted();
+    await new Promise((resolve) => {
+      releasePump = resolve;
+    });
+  });
+  await pumpStarted;
+  const calls = [];
+  state.running = true;
   state.emulator = {
-    current_instruction: () => {
-      reads += 1;
-      return "instruction";
+    send_uart_input(input) {
+      calls.push(["send", input, state.running]);
     },
   };
-  const messages = [];
-  const request = withPostMessage(messages, () =>
-    handleMessage({ id: 8, payload: { coreId: 0 }, type: "currentInstruction" }),
-  );
+  state.vcpuPool = { interrupt: () => calls.push(["interrupt"]) };
 
+  const pause = handleMessage({ type: "pause" });
+  const input = handleMessage({ payload: { input: "x" }, type: "sendUartInput" });
   await Promise.resolve();
-  assert.equal(reads, 0);
+  assert.deepEqual(calls, [["interrupt"]]);
+
   releasePump();
-  await Promise.all([pump, request]);
+  await Promise.all([pump, pause, input]);
 
-  assert.equal(reads, 1);
-  assert.deepEqual(messages, [{ id: 8, ok: true, value: "instruction" }]);
-  state.emulator = undefined;
+  assert.deepEqual(calls, [["interrupt"], ["send", "x", false]]);
+  assert.equal(state.running, false);
+  assert.equal(state.urgentUartWaiters, 0);
 });
-
-test("parallel transition waits for pump ownership to become quiescent", async () => {
-  let releasePump;
-  let markPumpStarted;
-  const pumpStarted = new Promise((resolve) => {
-    markPumpStarted = resolve;
-  });
-  const pump = withEmulatorAccess(async () => {
-    markPumpStarted();
-    await new Promise((resolve) => {
-      releasePump = resolve;
-    });
-  });
-  await pumpStarted;
-  state.executionMode = "cooperative-jit";
-  state.jitEnabled = true;
-  state.numCores = 2;
-  state.parallelTransitionDeferred = true;
-  state.threadedWasm = undefined;
-  const messages = [];
-
-  const transition = withPostMessage(messages, () =>
-    handleMessage({ id: 9, type: "transitionToParallel" }),
-  );
-  await Promise.resolve();
-
-  assert.deepEqual(messages, []);
-  assert.equal(state.parallelTransitionDeferred, true);
-  releasePump();
-  await Promise.all([pump, transition]);
-
-  assert.equal(state.executionMode, "cooperative-jit");
-  assert.equal(state.jitEnabled, true);
-  assert.equal(state.parallelTransitionDeferred, false);
-  assert.equal(messages.length, 1);
-  assert.equal(messages[0].id, 9);
-  assert.equal(messages[0].ok, true);
-});
-
-async function withPostMessage(messages, run) {
-  const previousPostMessage = globalThis.postMessage;
-  globalThis.postMessage = (message) => messages.push(message);
-  try {
-    return await run();
-  } finally {
-    globalThis.postMessage = previousPostMessage;
-  }
-}

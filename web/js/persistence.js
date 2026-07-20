@@ -1,5 +1,5 @@
-import { OpfsDiskStore } from "./persistence-store.js?v=20260720-firmware-fast-boot-r2";
-import { formatBytes } from "./utils.js?v=20260720-firmware-fast-boot-r2";
+import { OpfsDiskStore } from "./persistence-store.js?v=20260720-input-latency-r4";
+import { formatBytes } from "./utils.js?v=20260720-input-latency-r4";
 
 const AUTOSAVE_INTERVAL_MS = 600_000;
 

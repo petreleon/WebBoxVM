@@ -1,8 +1,13 @@
 export function installUartProbe() {
+  return installTextProbe("webboxvm-uart-tail").text;
+}
+
+export function installTextProbe(testId) {
   const probe = document.createElement("pre");
   const text = document.createTextNode("");
   probe.append(text);
-  probe.dataset.testid = "webboxvm-uart-tail";
+  probe.dataset.testid = testId;
+  probe.setAttribute?.("aria-hidden", "true");
   probe.style.cssText = [
     "position:fixed",
     "left:-10000px",
@@ -12,5 +17,5 @@ export function installUartProbe() {
     "overflow:hidden",
   ].join(";");
   document.body.append(probe);
-  return text;
+  return { probe, text };
 }

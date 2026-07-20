@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-firmware-fast-boot-r2";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-input-latency-r4";
 test("CPU1 and login milestones request and report one parallel transition", async () => {
   let calls = 0;
   let resolveLogged;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installWebboxVmDevtools } from "./devtools.js?v=20260720-firmware-fast-boot-r2";
+import { installWebboxVmDevtools } from "./devtools.js?v=20260720-input-latency-r4";
 
 test("hidden devtools jit checkbox follows the safe default", () => {
   withFakeDocument((document) => {

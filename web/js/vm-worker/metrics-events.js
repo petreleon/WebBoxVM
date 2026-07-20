@@ -1,5 +1,5 @@
-import { metrics } from "./lifecycle.js?v=20260720-firmware-fast-boot-r2";
-import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
+import { metrics } from "./lifecycle.js?v=20260720-input-latency-r4";
+import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260720-input-latency-r4";
 
 export function maybePostMetrics(now = performance.now(), emulator = state.emulator) {
   if (now - state.lastMetricsAt < METRICS_INTERVAL_MS) {

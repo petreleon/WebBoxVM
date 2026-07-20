@@ -1,21 +1,21 @@
-import { VmBooter } from "./js/boot-vm.js?v=20260720-firmware-fast-boot-r2";
-import { formatBootMilestone } from "./js/boot-timeline.js?v=20260720-firmware-fast-boot-r2";
-import { els } from "./js/dom.js?v=20260720-firmware-fast-boot-r2";
-import { DiskPersistence } from "./js/persistence.js?v=20260720-firmware-fast-boot-r2";
-import { VmRunner } from "./js/runner.js?v=20260720-firmware-fast-boot-r2";
+import { VmBooter } from "./js/boot-vm.js?v=20260720-input-latency-r4";
+import { formatBootMilestone } from "./js/boot-timeline.js?v=20260720-input-latency-r4";
+import { els } from "./js/dom.js?v=20260720-input-latency-r4";
+import { DiskPersistence } from "./js/persistence.js?v=20260720-input-latency-r4";
+import { VmRunner } from "./js/runner.js?v=20260720-input-latency-r4";
 import {
   extraBootargsFromLocation,
   installedDiskBenchmarkFromLocation,
   stagedSmpRequestedFromLocation,
-} from "./js/boot-args.js?v=20260720-firmware-fast-boot-r2";
-import { installWebboxVmDevtools } from "./js/devtools.js?v=20260720-firmware-fast-boot-r2";
+} from "./js/boot-args.js?v=20260720-input-latency-r4";
+import { installWebboxVmDevtools } from "./js/devtools.js?v=20260720-input-latency-r4";
 import {
   fetchBundledDebian,
   fetchInstalledDiskBenchmark,
   readSelectedIso,
-} from "./js/sources.js?v=20260720-firmware-fast-boot-r2";
-import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260720-firmware-fast-boot-r2";
-import { UiController } from "./js/ui.js?v=20260720-firmware-fast-boot-r2";
+} from "./js/sources.js?v=20260720-input-latency-r4";
+import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260720-input-latency-r4";
+import { UiController } from "./js/ui.js?v=20260720-input-latency-r4";
 
 const ui = new UiController(els);
 const disk = new DiskPersistence();

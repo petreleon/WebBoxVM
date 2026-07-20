@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js?v=20260720-firmware-fast-boot-r2";
+import { WorkerVm } from "./worker-vm.js?v=20260720-input-latency-r4";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;

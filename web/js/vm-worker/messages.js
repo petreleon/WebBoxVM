@@ -7,19 +7,31 @@ import {
   restoreInstallDisk,
   setStepSlice,
   transitionToParallel,
-} from "./lifecycle.js?v=20260720-firmware-fast-boot-r2";
-import { withEmulatorAccess } from "./access.js?v=20260720-firmware-fast-boot-r2";
-import { compileJitBlock } from "./jit-compile.js?v=20260720-firmware-fast-boot-r2";
-import { errorMessage } from "./errors.js?v=20260720-firmware-fast-boot-r2";
-import { runJitBlock } from "./jit-run.js?v=20260720-firmware-fast-boot-r2";
-import { schedulePump } from "./pump.js?v=20260720-firmware-fast-boot-r2";
-import { resetJitState, state } from "./state.js?v=20260720-firmware-fast-boot-r2";
+} from "./lifecycle.js?v=20260720-input-latency-r4";
+import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
+import { compileJitBlock } from "./jit-compile.js?v=20260720-input-latency-r4";
+import { errorMessage } from "./errors.js?v=20260720-input-latency-r4";
+import { runJitBlock } from "./jit-run.js?v=20260720-input-latency-r4";
+import { schedulePump } from "./pump.js?v=20260720-input-latency-r4";
+import { resetJitState, state } from "./state.js?v=20260720-input-latency-r4";
+import {
+  beginUrgentUartMessage,
+  finishUrgentUartMessage,
+  injectUartMessage,
+} from "./uart-input.js?v=20260720-input-latency-r4";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;
+  const urgentUart = beginUrgentUartMessage(message);
 
   try {
-    const response = await withEmulatorAccess(() => handleRequest(type, payload));
+    const response = await withEmulatorAccess(async () => {
+      try {
+        return await handleRequest(type, payload);
+      } finally {
+        finishUrgentUartMessage(urgentUart);
+      }
+    });
     if (id === undefined) {
       return;
     }
@@ -72,10 +84,8 @@ async function handleRequest(type, payload) {
     case "runJitBlock":
       return runJitBlock(payload);
     case "sendUartBytes":
-      state.emulator?.send_uart_bytes(payload.input);
-      return {};
     case "sendUartInput":
-      state.emulator?.send_uart_input(payload.input);
+      injectUartMessage(type, payload.input);
       return {};
     case "setStepSlice":
       setStepSlice(payload.stepSlice);
