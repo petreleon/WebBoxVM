@@ -31,24 +31,29 @@ impl VirtioGpu {
                     self.create_surface(&mut context, handle, resource, format, level, layers)?;
                 }
                 Command::DestroySurface { handle } => {
-                    context
-                        .surfaces
-                        .remove(&handle)
-                        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+                    if !context.destroy_surface(handle) {
+                        return Err(RESP_ERR_INVALID_PARAMETER);
+                    }
+                }
+                Command::SetFramebuffer { surface } => {
+                    if !context.bind_framebuffer(surface) {
+                        return Err(RESP_ERR_INVALID_PARAMETER);
+                    }
+                }
+                Command::Clear { color } => {
+                    let (resource, rect) = self.framebuffer_clear_target(&context, color)?;
+                    set_clear(&mut clear, resource, color, rect)?;
                 }
                 Command::ClearSurface {
                     handle,
                     color,
                     rect,
                 } => {
-                    if clear.is_some() {
-                        return Err(RESP_ERR_INVALID_PARAMETER);
-                    }
-                    clear = Some((
-                        self.validate_clear(&context, handle, color, rect)?,
-                        color,
-                        rect,
-                    ));
+                    let resource = context
+                        .surface_resource(handle)
+                        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+                    self.validate_clear(resource, color, rect)?;
+                    set_clear(&mut clear, resource, color, rect)?;
                 }
             }
         }
@@ -71,33 +76,23 @@ impl VirtioGpu {
         level: u32,
         layers: u32,
     ) -> Result<(), u32> {
-        if handle == 0 || context.surfaces.contains_key(&handle) || level != 0 || layers != 0 {
+        if handle == 0 || context.has_surface(handle) || level != 0 || layers != 0 {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let Some(target) = self.resources.get(&resource) else {
             return Err(RESP_ERR_INVALID_RESOURCE_ID);
         };
-        if !context.attached.contains(&resource)
+        if !context.is_attached(resource)
             || !self.is_virgl_resource(resource)
             || target.format != format
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        context.surfaces.insert(handle, resource);
+        context.add_surface(handle, resource);
         Ok(())
     }
 
-    fn validate_clear(
-        &self,
-        context: &VirglContext,
-        handle: u32,
-        color: [f32; 4],
-        rect: Rect,
-    ) -> Result<u32, u32> {
-        let resource = *context
-            .surfaces
-            .get(&handle)
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    fn validate_clear(&self, resource: u32, color: [f32; 4], rect: Rect) -> Result<(), u32> {
         let Some(target) = self.resources.get(&resource) else {
             return Err(RESP_ERR_INVALID_RESOURCE_ID);
         };
@@ -112,8 +107,37 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        Ok(resource)
+        Ok(())
     }
+
+    fn framebuffer_clear_target(
+        &self,
+        context: &VirglContext,
+        color: [f32; 4],
+    ) -> Result<(u32, Rect), u32> {
+        let resource = context
+            .framebuffer_resource()
+            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        let rect = self
+            .scanout
+            .filter(|current| current.resource_id == resource)
+            .map(|current| current.rect)
+            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        self.validate_clear(resource, color, rect)?;
+        Ok((resource, rect))
+    }
+}
+
+fn set_clear(
+    clear: &mut Option<(u32, [f32; 4], Rect)>,
+    resource: u32,
+    color: [f32; 4],
+    rect: Rect,
+) -> Result<(), u32> {
+    if clear.replace((resource, color, rect)).is_some() {
+        return Err(RESP_ERR_INVALID_PARAMETER);
+    }
+    Ok(())
 }
 
 fn matches_scanout(scanout: Option<Scanout>, resource: u32, rect: Rect) -> bool {

@@ -12,7 +12,7 @@ const REQUEST: u64 = RAM_BASE + 0x5000;
 const RESPONSE: u64 = RAM_BASE + 0x30000;
 
 #[test]
-fn queued_virgl_clear_waits_for_ack_before_mutating_scanout() {
+fn queued_standard_framebuffer_clear_waits_for_ack_before_mutating_scanout() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mem, &resource_create(4), RESP_OK_NODATA);
@@ -26,7 +26,7 @@ fn queued_virgl_clear_waits_for_ack_before_mutating_scanout() {
         RESP_OK_NODATA,
     );
 
-    configure_queue(&mut gpu, &mut mem, &submit(&surface_clear(9)), 24);
+    configure_queue(&mut gpu, &mut mem, &submit(&framebuffer_clear(9)), 24);
     assert!(!gpu.write(&mut mem, 0x050, 0, 4));
     assert_eq!(&gpu.resources[&4].pixels[..4], &[0, 0, 0, 0]);
     let packet = gpu.take_3d_update();
@@ -38,6 +38,35 @@ fn queued_virgl_clear_waits_for_ack_before_mutating_scanout() {
     assert_eq!(mem.read(USED + 2, 2), Some(1));
     assert_eq!(mem.read(RESPONSE, 4), Some(RESP_OK_NODATA as u64));
     assert_eq!(&gpu.take_scanout_update()[..4], b"WBGF");
+}
+
+#[test]
+fn destroyed_surface_cannot_remain_a_framebuffer_target() {
+    let mut gpu = VirtioGpu::new();
+    let mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mem, &resource_create(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mem, &attach_resource(4), RESP_OK_NODATA);
+    assert_response(
+        &mut gpu,
+        &mem,
+        &submit(&surface_create(9, 4)),
+        RESP_OK_NODATA,
+    );
+    assert_response(
+        &mut gpu,
+        &mem,
+        &submit(&framebuffer_bind(9)),
+        RESP_OK_NODATA,
+    );
+    assert_response(&mut gpu, &mem, &submit(&surface_destroy(9)), RESP_OK_NODATA);
+    assert_response(
+        &mut gpu,
+        &mem,
+        &submit(&generic_clear()),
+        RESP_ERR_INVALID_PARAMETER,
+    );
+    assert!(gpu.take_3d_update().is_empty());
 }
 
 fn resource_create(id: u32) -> Vec<u8> {
@@ -78,10 +107,24 @@ fn surface_create(handle: u32, resource: u32) -> Vec<u32> {
     vec![header_word(1, 7, 5), handle, resource, 1, 0, 0]
 }
 
-fn surface_clear(handle: u32) -> Vec<u32> {
-    let mut words = vec![header_word(62, 0, 10), 8, handle];
+fn framebuffer_clear(handle: u32) -> Vec<u32> {
+    let mut words = framebuffer_bind(handle);
+    words.extend(generic_clear());
+    words
+}
+
+fn framebuffer_bind(handle: u32) -> Vec<u32> {
+    vec![header_word(5, 0, 3), 1, 0, handle]
+}
+
+fn surface_destroy(handle: u32) -> Vec<u32> {
+    vec![header_word(3, 7, 1), handle]
+}
+
+fn generic_clear() -> Vec<u32> {
+    let mut words = vec![header_word(7, 0, 8), 4];
     words.extend([0.25f32, 0.5, 0.75, 1.0].map(f32::to_bits));
-    words.extend([0, 0, SCANOUT_WIDTH, SCANOUT_HEIGHT]);
+    words.extend([0, 0, 0]);
     words
 }
 

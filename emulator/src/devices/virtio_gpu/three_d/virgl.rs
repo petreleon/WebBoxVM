@@ -1,45 +1,16 @@
+mod context;
 mod resource;
 mod stream;
 
 use super::{DeferredSubmit, Pending3d, Pending3dEffect};
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
-use std::collections::{HashMap, HashSet};
+
+pub(in crate::devices::virtio_gpu) use context::VirglContext;
 
 pub(super) const VIRGL_OBJECT_SURFACE: u8 = 7;
 pub(super) const VIRGL_CMD_CLEAR_SURFACE: u8 = 62;
 pub(super) const MAX_VIRGL_SUBMIT_BYTES: usize = 64 * 1024;
-
-#[derive(Clone, Debug)]
-pub(in crate::devices::virtio_gpu) struct VirglContext {
-    pub generation: u32,
-    attached: HashSet<u32>,
-    surfaces: HashMap<u32, u32>,
-}
-
-impl VirglContext {
-    pub(super) fn new(generation: u32) -> Self {
-        Self {
-            generation,
-            attached: HashSet::new(),
-            surfaces: HashMap::new(),
-        }
-    }
-
-    pub(in crate::devices::virtio_gpu) fn attach(&mut self, resource_id: u32) {
-        self.attached.insert(resource_id);
-    }
-
-    pub(in crate::devices::virtio_gpu) fn detach(&mut self, resource_id: u32) -> bool {
-        let removed = self.attached.remove(&resource_id);
-        self.surfaces.retain(|_, resource| *resource != resource_id);
-        removed
-    }
-
-    fn remove_resource(&mut self, resource_id: u32) {
-        let _ = self.detach(resource_id);
-    }
-}
 
 impl VirtioGpu {
     pub(super) fn allocate_virgl_context_generation(&mut self) -> u32 {

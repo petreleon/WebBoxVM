@@ -9,7 +9,7 @@ mod virgl;
 
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};
 use packet::decode_submit;
-pub(super) use virgl::VirglContext;
+pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
 
 pub(super) const CAPSET_ID: u32 = 7;
 pub(super) const CAPSET_VERSION: u32 = 1;

@@ -4,6 +4,8 @@ use crate::devices::virtio_gpu::protocol::{Rect, read_u32};
 const CMD_NOP: u8 = 0;
 const CMD_CREATE_OBJECT: u8 = 1;
 const CMD_DESTROY_OBJECT: u8 = 3;
+const CMD_SET_FRAMEBUFFER_STATE: u8 = 5;
+const CMD_CLEAR: u8 = 7;
 const CLEAR_COLOR0: u32 = 1 << 2;
 
 #[derive(Clone, Copy)]
@@ -18,6 +20,12 @@ pub(super) enum Command {
     },
     DestroySurface {
         handle: u32,
+    },
+    SetFramebuffer {
+        surface: Option<u32>,
+    },
+    Clear {
+        color: [f32; 4],
     },
     ClearSurface {
         handle: u32,
@@ -70,6 +78,22 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         }
         (CMD_DESTROY_OBJECT, VIRGL_OBJECT_SURFACE, [handle]) => {
             Some(Command::DestroySurface { handle: *handle })
+        }
+        (CMD_SET_FRAMEBUFFER_STATE, 0, [0, 0]) => Some(Command::SetFramebuffer { surface: None }),
+        (CMD_SET_FRAMEBUFFER_STATE, 0, [1, 0, surface]) if *surface != 0 => {
+            Some(Command::SetFramebuffer {
+                surface: Some(*surface),
+            })
+        }
+        (CMD_CLEAR, 0, [buffers, red, green, blue, alpha, _, _, _]) if *buffers == CLEAR_COLOR0 => {
+            Some(Command::Clear {
+                color: [
+                    f32::from_bits(*red),
+                    f32::from_bits(*green),
+                    f32::from_bits(*blue),
+                    f32::from_bits(*alpha),
+                ],
+            })
         }
         (
             VIRGL_CMD_CLEAR_SURFACE,

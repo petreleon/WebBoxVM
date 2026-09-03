@@ -16,15 +16,16 @@ operation is a full-scanout color clear.
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
 | Resource creation | `RESOURCE_CREATE_3D` accepts a B8G8R8A8 2D render target | One target, one level, no multisampling |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
-| VirGL stream | surface create/destroy and `CLEAR_SURFACE` are decoded | No shaders, state, draws, or transfers |
+| VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, draws, or transfers |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
 
 The standard guest stream uses the ordinary VirGL command header, object type
-7 (`SURFACE`), and command 62 (`CLEAR_SURFACE`). Parsing is bounded to 64 KiB,
-each record is fully framed before use, and the projected context is committed
-only after the whole stream validates. A malformed stream therefore cannot
-partially create a surface or modify scanout pixels.
+7 (`SURFACE`), `SET_FRAMEBUFFER_STATE`, generic `CLEAR`, and command 62
+(`CLEAR_SURFACE`). Parsing is bounded to 64 KiB, each record is fully framed
+before use, and the projected context is committed only after the whole stream
+validates. A malformed stream therefore cannot partially create a surface,
+leave a dangling framebuffer binding, or modify scanout pixels.
 
 ## Resource and completion model
 
@@ -70,12 +71,12 @@ geometry pipeline, buffers, or textures.
 
 ## Validation retained in the repository
 
-Rust tests prove the exact capset response, a complete resource-to-scanout
-clear lifecycle, deferred mutation until successful browser acknowledgment, and
-rejection without mutation for malformed streams. Browser tests prove that a
-`VGC1` clear produces one WebGPU submission, uses the requested canvas size and
-clear color, returns success after queue completion, and leaves WBG3 rendering
-objects unused.
+Rust tests prove the exact capset response, generic framebuffer and
+`CLEAR_SURFACE` resource-to-scanout lifecycles, deferred mutation until a
+successful browser acknowledgment, and rejection without mutation for malformed
+or stale-surface streams. Browser tests prove that a `VGC1` clear produces one
+WebGPU submission, uses the requested canvas size and clear color, returns
+success after queue completion, and leaves WBG3 rendering objects unused.
 
 These tests are host-level protocol evidence. A future guest proof must create
 the standard 3D resource through the Linux `virtgpu` UAPI, attach it through an
@@ -97,5 +98,6 @@ first compatibility milestone.
 
 - [VirtIO GPU device specification](https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.pdf)
 - [Linux VirtIO-GPU wire UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h)
+- [Mesa VirGL clear context](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_context.c) and [encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c)
 - [Mesa VirGL architecture](https://docs.mesa3d.org/drivers/virgl.html)
 - [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
