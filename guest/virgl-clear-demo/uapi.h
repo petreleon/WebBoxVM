@@ -38,6 +38,12 @@ struct drm_virtgpu_context_init {
     u64 ctx_set_params;
 };
 
+struct drm_virtgpu_map {
+    u64 offset;
+    u32 handle;
+    u32 pad;
+};
+
 struct drm_virtgpu_resource_create {
     u32 target;
     u32 format;
@@ -53,6 +59,24 @@ struct drm_virtgpu_resource_create {
     u32 res_handle;
     u32 size;
     u32 stride;
+};
+
+struct drm_virtgpu_3d_box {
+    u32 x;
+    u32 y;
+    u32 z;
+    u32 w;
+    u32 h;
+    u32 d;
+};
+
+struct drm_virtgpu_3d_transfer_to_host {
+    u32 bo_handle;
+    struct drm_virtgpu_3d_box box;
+    u32 level;
+    u32 offset;
+    u32 stride;
+    u32 layer_stride;
 };
 
 struct drm_virtgpu_execbuffer {
@@ -93,14 +117,22 @@ struct drm_virtgpu_3d_wait {
     DRM_IOWR(DRM_COMMAND_BASE + 0x09u, struct drm_virtgpu_get_caps)
 #define DRM_IOCTL_VIRTGPU_CONTEXT_INIT \
     DRM_IOWR(DRM_COMMAND_BASE + 0x0bu, struct drm_virtgpu_context_init)
+#define DRM_IOCTL_VIRTGPU_MAP \
+    DRM_IOWR(DRM_COMMAND_BASE + 0x01u, struct drm_virtgpu_map)
+#define DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST \
+    DRM_IOWR(DRM_COMMAND_BASE + 0x07u, struct drm_virtgpu_3d_transfer_to_host)
 
 _Static_assert(sizeof(void *) == 8, "the demo requires AArch64 LP64");
 _Static_assert(sizeof(struct drm_virtgpu_context_init) == 16, "bad context ABI");
+_Static_assert(sizeof(struct drm_virtgpu_map) == 16, "bad map ABI");
 _Static_assert(sizeof(struct drm_virtgpu_resource_create) == 56, "bad resource ABI");
+_Static_assert(sizeof(struct drm_virtgpu_3d_transfer_to_host) == 44, "bad transfer ABI");
 _Static_assert(sizeof(struct drm_virtgpu_execbuffer) == 64, "bad execbuffer ABI");
 _Static_assert(sizeof(struct drm_virtgpu_get_caps) == 24, "bad caps ABI");
 _Static_assert(DRM_IOCTL_VIRTGPU_CONTEXT_INIT == 0xc010644bu, "bad context ioctl");
+_Static_assert(DRM_IOCTL_VIRTGPU_MAP == 0xc0106441u, "bad map ioctl");
 _Static_assert(DRM_IOCTL_VIRTGPU_RESOURCE_CREATE == 0xc0386444u, "bad resource ioctl");
+_Static_assert(DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST == 0xc02c6447u, "bad transfer ioctl");
 _Static_assert(DRM_IOCTL_VIRTGPU_EXECBUFFER == 0xc0406442u, "bad execbuffer ioctl");
 
 #endif

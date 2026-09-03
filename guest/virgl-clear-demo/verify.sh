@@ -18,9 +18,9 @@ test -z "$("$nm" -u "$binary")"
 
 size=$(wc -c < "$binary" | tr -d ' ')
 test "$size" -le 65536
-for source in Makefile README.md demo.c kms.c kms.h link.ld memory.c syscall.h uapi.h virgl.h verify.sh; do
+for source in Makefile README.md demo.c kms.c kms.h link.ld memory.c syscall.h transfer.c transfer.h uapi.h virgl.h verify.sh; do
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done
-printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL clear=%s bytes\n' \
+printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL transfer/clear=%s bytes\n' \
     "$binary" "$size"

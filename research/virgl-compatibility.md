@@ -90,12 +90,14 @@ unused.
 `scripts/virgl_guest_transport_smoke.sh` adds a native Linux guest proof. It
 builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
 installed Debian fixture, obtains capset 1 through `DRM_IOCTL_VIRTGPU_GET_CAPS`,
-creates a capset-1 resource, binds it to the legacy KMS primary plane, submits
-the normal surface/framebuffer/`CLEAR` stream through `EXECBUFFER`, and waits
-on the resource fence. The harness validates the exact `VGC1` packet before it
-returns the positive host completion, then verifies that the resulting full
-`WBGF` readback contains only BGRA `[191, 128, 64, 255]`; only then does it
-accept the guest's fence-gated PASS marker.
+creates a capset-1 resource, maps its backing with `DRM_IOCTL_VIRTGPU_MAP`, and
+writes two distinctive BGRA pixels before issuing
+`DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`. It binds the resource to the legacy KMS
+primary plane, submits the normal surface/framebuffer/`CLEAR` stream through
+`EXECBUFFER`, and waits on the resource fence. The harness first verifies the
+exact two-pixel upload in a full `WBGF`, then validates `VGC1`, captures the
+all-BGRA `[191, 128, 64, 255]` `WBGF` immediately at positive completion, and
+only then accepts the guest's fence-gated PASS marker.
 
 That native proof validates Linux DRM/KMS transport and post-ack CPU-side
 readback. It intentionally uses the native completion adapter, not a browser
@@ -105,9 +107,8 @@ WebGPU device, so it complements rather than replaces the browser queue tests.
 
 The guest-side capset-1/KMS probe prerequisite is complete. Next:
 
-1. Add a guest-side proof for the accepted resource upload, then implement
-   enough surface, state, shader, and draw semantics for a deliberately small
-   Mesa/OpenGL acceptance test.
+1. Add enough resource variants, surface, state, shader, and draw semantics
+   for a deliberately small Mesa/OpenGL acceptance test.
 2. Expand capability reporting only when each advertised feature has matching
    parser, resource-lifetime, browser, and negative-path coverage.
 3. Investigate Venus only after blob-resource, external-memory, and sync

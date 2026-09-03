@@ -57,7 +57,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
     let mut steps = 0u64;
-    let mut readback = false;
+    let mut clear_sequence = None;
+    let mut upload_readback = false;
     while steps < max_steps && start.elapsed() < timeout {
         let ran = vm.run_kernel_phase(chunk_steps.min((max_steps - steps) as usize));
         steps += ran as u64;
@@ -87,21 +88,33 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let packet = vm.machine.bus.virtio_gpu.take_3d_update();
                 if !packet.is_empty() {
                     let sequence = vgc1_sequence(&packet)?;
-                    if !vm.machine.bus.complete_gpu_3d(sequence, true) {
-                        return Err("standard VirGL completion was rejected".into());
-                    }
-                    println!("VGC1 validated and completed: sequence {sequence}");
-                    phase = Phase::Result;
+                    println!("VGC1 validated: sequence {sequence}");
+                    clear_sequence = Some(sequence);
                 }
             }
             _ => {}
         }
         let frame = vm.machine.bus.virtio_gpu.take_scanout_update();
-        if phase == Phase::Result && !frame.is_empty() && is_clear_readback(&frame) {
-            readback = true;
-            println!("WBGF full-scanout BGRA readback validated");
+        if phase == Phase::Packet && !frame.is_empty() && is_upload_readback(&frame) {
+            upload_readback = true;
+            println!("WBGF standard VirGL upload readback validated");
         }
-        if phase == Phase::Result && readback && uart.contains(PASS) {
+        if phase == Phase::Packet
+            && upload_readback
+            && let Some(sequence) = clear_sequence
+        {
+            if !vm.machine.bus.complete_gpu_3d(sequence, true) {
+                return Err("standard VirGL completion was rejected".into());
+            }
+            let frame = vm.machine.bus.virtio_gpu.take_scanout_update();
+            if !is_clear_readback(&frame) {
+                return Err("clear did not produce the expected full WBGF readback".into());
+            }
+            println!("VGC1 completed after upload readback: sequence {sequence}");
+            println!("WBGF full-scanout BGRA readback validated");
+            phase = Phase::Result;
+        }
+        if phase == Phase::Result && uart.contains(PASS) {
             println!(
                 "PASS: {PASS}; steps={steps}; seconds={:.3}",
                 start.elapsed().as_secs_f64()

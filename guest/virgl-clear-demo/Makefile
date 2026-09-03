@@ -1,7 +1,7 @@
 CROSS ?= aarch64-elf-
 CC := $(CROSS)gcc
 TARGET := build/virgl-clear-demo
-SOURCES := demo.c kms.c memory.c
+SOURCES := demo.c kms.c memory.c transfer.c
 OBJECTS := $(SOURCES:%.c=build/%.o)
 
 CPPFLAGS := -I.
@@ -19,7 +19,7 @@ all: verify
 $(TARGET): $(OBJECTS) link.ld
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
 
-build/%.o: %.c kms.h syscall.h uapi.h virgl.h | build
+build/%.o: %.c kms.h syscall.h transfer.h uapi.h virgl.h | build
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 build:
@@ -29,4 +29,4 @@ verify: $(TARGET)
 	CROSS=$(CROSS) ./verify.sh $(TARGET)
 
 clean:
-	rm -f build/demo.o build/kms.o build/memory.o build/virgl-clear-demo
+	rm -f build/demo.o build/kms.o build/memory.o build/transfer.o build/virgl-clear-demo

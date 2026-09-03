@@ -1,4 +1,5 @@
-pub(super) const PASS: &str = "VIRGL_CLEAR_DEMO_PASS card0 capset=1 clear=64,128,191,255";
+pub(super) const PASS: &str =
+    "VIRGL_TRANSFER_CLEAR_DEMO_PASS card0 capset=1 upload=10,20,30,255 clear=64,128,191,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 
 pub(super) fn demo_script(binary: &[u8]) -> String {
@@ -28,15 +29,32 @@ pub(super) fn vgc1_sequence(packet: &[u8]) -> Result<u32, String> {
 }
 
 pub(super) fn is_clear_readback(packet: &[u8]) -> bool {
-    packet.len() == 32 + 1024 * 768 * 4
+    frame_pixels(packet).is_some_and(|pixels| {
+        pixels
+            .chunks_exact(4)
+            .all(|pixel| pixel == [191, 128, 64, 255])
+    })
+}
+
+pub(super) fn is_upload_readback(packet: &[u8]) -> bool {
+    let Some(pixels) = frame_pixels(packet) else {
+        return false;
+    };
+    let offset = (1024 + 1) * 4;
+    pixels[..offset].iter().all(|byte| *byte == 0)
+        && pixels[offset..offset + 4] == [10, 20, 30, 255]
+        && pixels[offset + 4..offset + 8] == [40, 50, 60, 255]
+        && pixels[offset + 8..].iter().all(|byte| *byte == 0)
+}
+
+fn frame_pixels(packet: &[u8]) -> Option<&[u8]> {
+    (packet.len() == 32 + 1024 * 768 * 4
         && packet.get(..4) == Some(b"WBGF")
         && [4, 8, 12, 16, 20, 24, 28]
             .into_iter()
             .zip([1, 1024, 768, 0, 0, 1024, 768])
-            .all(|(offset, expected)| read_u32(packet, offset) == Some(expected))
-        && packet[32..]
-            .chunks_exact(4)
-            .all(|pixel| pixel == [191, 128, 64, 255])
+            .all(|(offset, expected)| read_u32(packet, offset) == Some(expected)))
+    .then_some(&packet[32..])
 }
 
 fn read_u32(bytes: &[u8], offset: usize) -> Option<u32> {

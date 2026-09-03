@@ -1,14 +1,16 @@
 #include "kms.h"
 #include "syscall.h"
+#include "transfer.h"
 #include "virgl.h"
 
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_CLEAR_DEMO_PASS card0 capset=1 clear=64,128,191,255\n";
+static const char pass[] = "VIRGL_TRANSFER_CLEAR_DEMO_PASS card0 capset=1 upload=10,20,30,255 clear=64,128,191,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
 static const char fail_resource[] = "VIRGL_CLEAR_DEMO_FAIL resource-create\n";
+static const char fail_transfer[] = "VIRGL_CLEAR_DEMO_FAIL transfer-upload\n";
 static const char fail_submit[] = "VIRGL_CLEAR_DEMO_FAIL execbuffer\n";
 static const char fail_wait[] = "VIRGL_CLEAR_DEMO_FAIL completion-wait\n";
 
@@ -138,11 +140,18 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         int kms = kms_configure_scanout(fd, bo_handle);
 
         if (kms != 0)
-            stage = 4 - kms;
-        else if (submit_clear(fd, bo_handle, resource_handle) != 0)
-            stage = 9;
-        else if (wait_for_clear(fd, bo_handle) != 0)
-            stage = 10;
+            stage = 5 - kms;
+        else if (virgl_upload_pattern(fd, bo_handle) != 0)
+            stage = 5;
+        else {
+            kms = kms_configure_scanout(fd, bo_handle);
+            if (kms != 0)
+                stage = 5 - kms;
+            else if (submit_clear(fd, bo_handle, resource_handle) != 0)
+                stage = 16;
+            else if (wait_for_clear(fd, bo_handle) != 0)
+                stage = 17;
+        }
     }
     if (stage == 0)
         EMIT(pass);
@@ -154,9 +163,11 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         EMIT(fail_context);
     else if (stage == 4)
         EMIT(fail_resource);
-    else if (stage >= 5 && stage <= 14)
-        emit_kms_failure(stage - 4);
-    else if (stage == 9)
+    else if (stage == 5)
+        EMIT(fail_transfer);
+    else if (stage >= 6 && stage <= 15)
+        emit_kms_failure(stage - 5);
+    else if (stage == 16)
         EMIT(fail_submit);
     else
         EMIT(fail_wait);
