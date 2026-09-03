@@ -22,6 +22,7 @@ int virgl_submit_copy(long fd, u32 source_bo, u32 source_resource,
                       u32 destination_bo, u32 destination_resource);
 int virgl_submit_buffer_copy(long fd, u32 source_bo, u32 source_resource,
                              u32 destination_bo, u32 destination_resource);
+int virgl_submit_vertex_input(long fd, u32 bo_handle, u32 resource_handle);
 int virgl_wait_for_resource(long fd, u32 bo_handle);
 
 #endif

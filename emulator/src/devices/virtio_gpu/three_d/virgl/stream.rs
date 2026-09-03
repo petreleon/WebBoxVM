@@ -1,4 +1,5 @@
 mod decode;
+mod vertex;
 
 use super::VirglContext;
 use crate::devices::virtio_gpu::protocol::*;
@@ -68,6 +69,7 @@ impl VirtioGpu {
                     }
                     self.validate_virgl_copy(&context, region)?;
                 }
+                Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
             }
         }
         if let Some(region) = copy {

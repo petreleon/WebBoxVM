@@ -15,11 +15,11 @@ and raw vertex-buffer copy paths for resource data flow.
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
-| Resource creation | `RESOURCE_CREATE_3D` accepts four packed 2D color targets and an R8 `PIPE_BUFFER` with vertex binding | Buffer storage only; no vertex input or draw |
+| Resource creation | `RESOURCE_CREATE_3D` accepts four packed 2D color targets and an R8 `PIPE_BUFFER` with vertex binding | One bounded vertex-state shape; no fetch or draw |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer | 2D color and raw R8 vertex-buffer upload/readback use standard 72-byte transfers | No blobs, arrays, mip levels, or explicit strides |
 | Resource copy | `RESOURCE_COPY_REGION` copies one 2D rectangle or raw vertex-buffer byte range | No blit, format conversion, batching, or scanout copy |
-| VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, or draws |
+| VirGL stream | clear/surface state plus one `SET_VERTEX_BUFFERS` and `VERTEX_ELEMENTS` chain are decoded | No shaders, fixed state, or draws |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
 
@@ -46,10 +46,13 @@ One additional non-renderable shape is accepted as resource storage groundwork:
 - width measured in bytes, height/depth/array size of one;
 - level zero, zero samples, and no resource flags.
 
-That resource is intentionally not included in the capset vertex-format mask:
-there is no `SET_VERTEX_BUFFERS`, vertex-element object, shader, or draw path
-yet. It cannot become a surface, framebuffer, clear target, or color-copy
-operand.
+The capset vertex-format mask remains unset until a rendered feature exists.
+Before that, the stream accepts only an empty unbind or one attached R8 buffer
+at byte offset within the resource with stride one, plus one type-5
+`VERTEX_ELEMENTS` object whose R8 element has zero source offset/divisor and
+uses buffer slot zero. Detach clears the bound buffer and destroying the bound
+object clears its selection. It cannot become a surface, framebuffer, clear
+target, or color-copy operand.
 
 `TRANSFER_TO_HOST_3D` and `TRANSFER_FROM_HOST_3D` use the exact same 72-byte
 standard wire structure. In this slice each requires a live capset-1 context
@@ -94,8 +97,8 @@ guest-to-WebGPU path without relabeling private WBG3 packets as VirGL.
 It does **not** establish any of the following:
 
 - Mesa's VirGL driver can initialize or render;
-- OpenGL contexts, Gallium state, vertex input, TGSI, shaders, textures, blending,
-  depth/stencil, draw calls, multi-format readback, or general resource-transfer work;
+- OpenGL contexts, actual vertex fetch, Gallium/TGSI shaders, textures, blending,
+  depth/stencil, draw calls, multi-format readback, or general transfer work;
 - capset 2 or capability coverage beyond the conservative v1 response;
 - Vulkan, Venus, blob resources, external memory, or synchronization support.
 
@@ -108,10 +111,10 @@ geometry pipeline, buffers, or textures.
 
 Rust tests prove the exact capset response, 72-byte bidirectional transfer frames
 for color and byte-buffer resources with context, backing, and layout rejection
-paths without mutation; byte-buffer and 2D same-resource overlap with
-transactional rejection for command-17 copy; generic framebuffer and
-`CLEAR_SURFACE` resource-to-scanout
-lifecycles; and deferred mutation until a successful browser acknowledgment.
+paths without mutation; byte-buffer/2D same-resource copy overlap; transactional
+vertex-state rejection and detach/destroy lifetime cleanup; generic framebuffer
+and `CLEAR_SURFACE` resource-to-scanout lifecycles; and deferred mutation until
+a successful browser acknowledgment.
 Browser tests prove that a `VGC1` clear produces one WebGPU submission, uses the
 requested canvas size and clear color, returns success after queue completion,
 and leaves WBG3 rendering objects unused.
@@ -119,9 +122,11 @@ and leaves WBG3 rendering objects unused.
 `scripts/virgl_guest_transport_smoke.sh` adds a native Linux guest proof. It
 builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
 installed Debian fixture, obtains capset 1 through `DRM_IOCTL_VIRTGPU_GET_CAPS`,
-creates source and destination R8 `PIPE_BUFFER` vertex-buffer resources, and
-performs byte-range upload, command-17 copy, and readback at different backing
-offsets through the real Linux DRM ioctls. It then creates a B8G8R8X8 capset-1 resource, maps its backing with
+creates source and destination R8 `PIPE_BUFFER` vertex-buffer resources,
+performs byte-range upload, submits type-5 vertex-element create/bind plus
+`SET_VERTEX_BUFFERS`, then performs command-17 copy and readback at different
+backing offsets through real Linux DRM ioctls. It then creates a B8G8R8X8
+capset-1 resource, maps its backing with
 `DRM_IOCTL_VIRTGPU_MAP`, and writes two distinctive BGRX pixels before issuing
 `DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`. It creates two four-pixel off-screen
 resources, uploads two pixels to one, submits ordinary command-17
@@ -142,8 +147,8 @@ WebGPU device, so it complements rather than replaces the browser queue tests.
 
 The guest-side capset-1/KMS probe prerequisite is complete. Next:
 
-1. Add `SET_VERTEX_BUFFERS`, vertex elements, fixed state, shaders, and one
-   bounded draw path on top of the verified raw buffer storage.
+1. Add fixed state, shader validation, and one bounded draw path on top of the
+   verified vertex-input state.
 2. Expand capability reporting only when each advertised feature has matching
    parser, resource-lifetime, browser, and negative-path coverage.
 3. Investigate Venus only after blob-resource, external-memory, and sync

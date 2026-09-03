@@ -12,6 +12,7 @@
 #define VIRGL_CLEAR_COLOR0 (1u << 2)
 #define VIRGL_CLEAR_WORDS 19u
 #define VIRGL_COPY_WORDS 14u
+#define VIRGL_VERTEX_INPUT_WORDS 12u
 #define VIRGL_HEADER(command, object, length) \
     ((u32)(command) | ((u32)(object) << 8) | ((u32)(length) << 16))
 
@@ -74,6 +75,23 @@ static inline void virgl_buffer_copy_stream(
     words[11] = 8;
     words[12] = 1;
     words[13] = 1;
+}
+
+static inline void virgl_vertex_input_stream(
+    u32 words[VIRGL_VERTEX_INPUT_WORDS], u32 resource)
+{
+    words[0] = VIRGL_HEADER(1, 5, 5);
+    words[1] = 9;
+    words[2] = 0;
+    words[3] = 0;
+    words[4] = 0;
+    words[5] = VIRGL_FORMAT_R8_UNORM;
+    words[6] = VIRGL_HEADER(2, 5, 1);
+    words[7] = 9;
+    words[8] = VIRGL_HEADER(6, 0, 3);
+    words[9] = 1;
+    words[10] = 4;
+    words[11] = resource;
 }
 
 #endif

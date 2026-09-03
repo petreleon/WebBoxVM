@@ -1,3 +1,5 @@
+pub(super) mod vertex;
+
 use super::super::{
     CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE,
 };
@@ -36,6 +38,7 @@ pub(super) enum Command {
         rect: Rect,
     },
     CopyRegion(CopyRegion),
+    Vertex(vertex::Command),
 }
 
 pub(super) fn decode_stream(input: &[u8]) -> Option<Vec<Command>> {
@@ -153,6 +156,6 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
             src_z: *src_z,
             depth: *depth,
         })),
-        _ => None,
+        _ => vertex::decode(command, object, words).map(Command::Vertex),
     }
 }

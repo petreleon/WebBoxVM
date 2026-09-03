@@ -12,6 +12,7 @@ mod virgl_copy;
 mod virgl_queue;
 mod virgl_readback;
 mod virgl_transfer;
+mod virgl_vertex_state;
 
 use super::protocol::*;
 use crate::memory::PhysicalMemory;

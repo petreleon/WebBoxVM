@@ -5,12 +5,14 @@
 
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 buffer-copy=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255\n";
+static const char pass[] = "VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 vertex-state=bound buffer-copy=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
 static const char fail_resource[] = "VIRGL_CLEAR_DEMO_FAIL resource-create\n";
 static const char fail_buffer_upload[] = "VIRGL_CLEAR_DEMO_FAIL buffer-upload\n";
+static const char fail_vertex_state[] = "VIRGL_CLEAR_DEMO_FAIL vertex-state\n";
+static const char fail_vertex_wait[] = "VIRGL_CLEAR_DEMO_FAIL vertex-wait\n";
 static const char fail_buffer_copy[] = "VIRGL_CLEAR_DEMO_FAIL buffer-copy\n";
 static const char fail_buffer_wait[] = "VIRGL_CLEAR_DEMO_FAIL buffer-wait\n";
 static const char fail_buffer_readback[] = "VIRGL_CLEAR_DEMO_FAIL buffer-readback\n";
@@ -62,15 +64,20 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
     else if ((stage = virgl_setup(fd, &resources)) == 0) {
         if (virgl_upload_vertex_buffer(fd, resources.vertex_source_bo) != 0)
             stage = 30;
+        else if (virgl_submit_vertex_input(fd, resources.vertex_source_bo,
+                                           resources.vertex_source_resource) != 0)
+            stage = 31;
+        else if (virgl_wait_for_resource(fd, resources.vertex_source_bo) != 0)
+            stage = 32;
         else if (virgl_submit_buffer_copy(fd, resources.vertex_source_bo,
                                           resources.vertex_source_resource,
                                           resources.vertex_destination_bo,
                                           resources.vertex_destination_resource) != 0)
-            stage = 31;
-        else if (virgl_wait_for_resource(fd, resources.vertex_destination_bo) != 0)
-            stage = 32;
-        else if (virgl_readback_vertex_buffer(fd, resources.vertex_destination_bo) != 0)
             stage = 33;
+        else if (virgl_wait_for_resource(fd, resources.vertex_destination_bo) != 0)
+            stage = 34;
+        else if (virgl_readback_vertex_buffer(fd, resources.vertex_destination_bo) != 0)
+            stage = 35;
         else {
             int kms = kms_configure_scanout(fd, resources.scanout_bo);
 
@@ -132,10 +139,14 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
     else if (stage == 30)
         EMIT(fail_buffer_upload);
     else if (stage == 31)
-        EMIT(fail_buffer_copy);
+        EMIT(fail_vertex_state);
     else if (stage == 32)
-        EMIT(fail_buffer_wait);
+        EMIT(fail_vertex_wait);
     else if (stage == 33)
+        EMIT(fail_buffer_copy);
+    else if (stage == 34)
+        EMIT(fail_buffer_wait);
+    else if (stage == 35)
         EMIT(fail_buffer_readback);
     else
         EMIT(fail_readback);
