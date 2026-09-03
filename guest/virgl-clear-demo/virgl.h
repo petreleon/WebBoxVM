@@ -32,6 +32,7 @@
     (1u | (3u << 4) | (19u << 9) | (1u << 17) | (19u << 22) | (15u << 27))
 #define VIRGL_SCISSOR_RASTERIZER_STATE \
     ((1u << 1) | (1u << 14) | (1u << 29) | (1u << 30))
+#define VIRGL_REPEAT_NEAREST_SAMPLER_STATE 0x1080u
 #define VIRGL_HEADER(command, object, length) \
     ((u32)(command) | ((u32)(object) << 8) | ((u32)(length) << 16))
 

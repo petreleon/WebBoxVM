@@ -5,19 +5,19 @@ const VERTICES: &[u32] = &[
     0x3f40_0000,
     0,
     0x3f80_0000,
-    0,
+    0x3f80_0000,
     0x3f80_0000,
     0xbf40_0000,
     0xbf40_0000,
     0,
     0x3f80_0000,
-    0,
+    0x3f80_0000,
     0x3f80_0000,
     0x3f40_0000,
     0xbf40_0000,
     0,
     0x3f80_0000,
-    0,
+    0x3f80_0000,
     0x3f80_0000,
 ];
 const VIEWPORT: &[u32] = &[
@@ -33,11 +33,11 @@ const TEXTURE: &[u8] = &[
 ];
 
 pub(super) fn vgt1_sequence(packet: &[u8]) -> Result<u32, String> {
-    if packet.len() != 192
+    if packet.len() != 196
         || packet.get(..4) != Some(b"VGD1")
         || [4, 12, 16, 20]
             .into_iter()
-            .zip([3, 1024, 768, 3])
+            .zip([5, 1024, 768, 3])
             .any(|(at, want)| read_u32(packet, at) != Some(want))
         || !words_are(
             packet,
@@ -48,8 +48,9 @@ pub(super) fn vgt1_sequence(packet: &[u8]) -> Result<u32, String> {
         || !words_are(packet, 56, VERTICES)
         || !words_are(packet, 128, VIEWPORT)
         || !words_are(packet, 152, &[448, 336, 128, 96])
-        || !words_are(packet, 168, &[2, 2])
-        || packet.get(176..) != Some(TEXTURE)
+        || read_u32(packet, 168) != Some(0x1080)
+        || !words_are(packet, 172, &[2, 2])
+        || packet.get(180..) != Some(TEXTURE)
     {
         return Err("guest emitted an invalid standard VirGL textured draw packet".into());
     }

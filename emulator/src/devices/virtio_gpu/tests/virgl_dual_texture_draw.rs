@@ -9,21 +9,7 @@ const RIGHT_TEXTURE: u32 = 7;
 fn standard_fragment_two_sampler_slots_multiply_bounded_texture_snapshots() {
     let (mut gpu, mut mem) = prepared();
     attach_right_texture(&mut gpu, &mut mem);
-    let mut state = surface_create(9, TARGET);
-    state.extend(framebuffer(9));
-    state.extend(shader_create(11, 0, TEXTURED_VERT));
-    state.extend(shader_create(12, 1, TEXTURED_MULTIPLY_FRAG));
-    state.extend(shader_bind(11, 0));
-    state.extend(shader_bind(12, 1));
-    state.extend(virgl_source_over_state(13));
-    state.extend(virgl_viewport_scissor_state(14));
-    state.extend(textured_vertex_state());
-    state.extend(sampler_state(17));
-    state.extend(sampler_state(19));
-    state.extend(sampler_view(18, TEXTURE));
-    state.extend(sampler_view(20, RIGHT_TEXTURE));
-    state.extend(set_sampler_views([18, 20]));
-    state.extend(bind_sampler_states([17, 19]));
+    let state = dual_textured_state(0x1092, 0x1092);
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);
     fill_texture(&mut gpu, TEXTURE, [100, 100, 100, 255]);
@@ -58,6 +44,47 @@ fn standard_fragment_two_sampler_slots_multiply_bounded_texture_snapshots() {
     );
 }
 
+#[test]
+fn repeat_sampler_is_rejected_when_the_fixed_dual_texture_path_cannot_serialize_it() {
+    let (mut gpu, mut mem) = prepared();
+    attach_right_texture(&mut gpu, &mut mem);
+    assert_response(
+        &mut gpu,
+        &mut mem,
+        &submit(&dual_textured_state(0x1080, 0x1092)),
+        RESP_OK_NODATA,
+    );
+    upload_textured_vertices(&mut gpu);
+    let mut command = clear([0.1, 0.2, 0.3, 1.0]);
+    command.extend(draw());
+    assert_response(
+        &mut gpu,
+        &mut mem,
+        &submit(&command),
+        RESP_ERR_INVALID_PARAMETER,
+    );
+    assert!(gpu.take_3d_update().is_empty());
+}
+
+fn dual_textured_state(left_state: u32, right_state: u32) -> Vec<u32> {
+    let mut state = surface_create(9, TARGET);
+    state.extend(framebuffer(9));
+    state.extend(shader_create(11, 0, TEXTURED_VERT));
+    state.extend(shader_create(12, 1, TEXTURED_MULTIPLY_FRAG));
+    state.extend(shader_bind(11, 0));
+    state.extend(shader_bind(12, 1));
+    state.extend(virgl_source_over_state(13));
+    state.extend(virgl_viewport_scissor_state(14));
+    state.extend(textured_vertex_state());
+    state.extend(sampler_state(17, left_state));
+    state.extend(sampler_state(19, right_state));
+    state.extend(sampler_view(18, TEXTURE));
+    state.extend(sampler_view(20, RIGHT_TEXTURE));
+    state.extend(set_sampler_views([18, 20]));
+    state.extend(bind_sampler_states([17, 19]));
+    state
+}
+
 fn attach_right_texture(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory) {
     let mut create = header(CMD_RESOURCE_CREATE_3D);
     for value in [RIGHT_TEXTURE, 2, 1, 1 << 3, 2, 2, 1, 1, 0, 0, 0, 0] {
@@ -80,8 +107,8 @@ fn fill_texture(gpu: &mut VirtioGpu, resource: u32, pixel: [u8; 4]) {
         .for_each(|destination| destination.copy_from_slice(&pixel));
 }
 
-fn sampler_state(handle: u32) -> Vec<u32> {
-    vec![word(1, 7, 9), handle, 0x1092, 0, 0, 0, 0, 0, 0, 0]
+fn sampler_state(handle: u32, state: u32) -> Vec<u32> {
+    vec![word(1, 7, 9), handle, state, 0, 0, 0, 0, 0, 0, 0]
 }
 
 fn sampler_view(handle: u32, resource: u32) -> Vec<u32> {

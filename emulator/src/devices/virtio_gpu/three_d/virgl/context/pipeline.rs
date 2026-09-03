@@ -7,6 +7,23 @@ pub(super) struct Rasterizer {
     pub scissor: bool,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::devices::virtio_gpu) enum SamplerAddressMode {
+    ClampToEdge,
+    Repeat,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(in crate::devices::virtio_gpu::three_d::virgl) struct SamplerState {
+    pub address_mode: SamplerAddressMode,
+}
+
+#[derive(Clone, Copy)]
+pub(in crate::devices::virtio_gpu::three_d::virgl) struct SampledResource {
+    pub resource: u32,
+    pub address_mode: SamplerAddressMode,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) struct Viewport {
     scale: [f32; 3],
@@ -62,7 +79,7 @@ pub(super) struct PipelineState {
     pub(super) viewport: Option<Viewport>,
     pub(super) scissor: Option<Rect>,
     pub(super) sampler_views: HashMap<u32, u32>,
-    pub(super) sampler_states: HashSet<u32>,
+    pub(super) sampler_states: HashMap<u32, SamplerState>,
     pub(super) bound_sampler_views: [Option<u32>; MAX_VIRGL_FRAGMENT_SAMPLERS],
     pub(super) bound_sampler_states: [Option<u32>; MAX_VIRGL_FRAGMENT_SAMPLERS],
 }
@@ -77,7 +94,7 @@ impl PipelineState {
             viewport: None,
             scissor: None,
             sampler_views: HashMap::new(),
-            sampler_states: HashSet::new(),
+            sampler_states: HashMap::new(),
             bound_sampler_views: [None; MAX_VIRGL_FRAGMENT_SAMPLERS],
             bound_sampler_states: [None; MAX_VIRGL_FRAGMENT_SAMPLERS],
         }

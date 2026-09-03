@@ -11,8 +11,8 @@ pub(super) fn apply(
     command: Command,
 ) -> Result<(), u32> {
     match command {
-        Command::CreateState { handle } => context
-            .create_sampler_state(handle)
+        Command::CreateState { handle, state } => context
+            .create_sampler_state(handle, state)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
         Command::DestroyState { handle } => context

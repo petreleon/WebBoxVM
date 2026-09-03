@@ -1,4 +1,7 @@
+use super::super::SamplerAddressMode;
 use super::{DrawMaterial, DrawWork, TRIANGLE_VERTICES};
+
+const REPEAT_NEAREST_SAMPLER_STATE: u32 = 0x1080;
 
 pub(in crate::devices::virtio_gpu::three_d) fn packet(
     sequence: u32,
@@ -39,10 +42,14 @@ fn textured(
     work: &DrawWork,
     texture: &super::TextureSnapshot,
 ) -> Vec<u8> {
-    let mut packet = header(3, sequence, width, height);
+    let repeat = texture.address_mode == SamplerAddressMode::Repeat;
+    let mut packet = header(if repeat { 5 } else { 3 }, sequence, width, height);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
+    if repeat {
+        packet.extend_from_slice(&REPEAT_NEAREST_SAMPLER_STATE.to_le_bytes());
+    }
     for value in [texture.width, texture.height] {
         packet.extend_from_slice(&value.to_le_bytes());
     }

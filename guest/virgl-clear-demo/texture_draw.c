@@ -85,7 +85,7 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = resources->textured_resource;
     words[next++] = VIRGL_HEADER(1, 7, 9);
     words[next++] = 17;
-    words[next++] = 0x1092u;
+    words[next++] = VIRGL_REPEAT_NEAREST_SAMPLER_STATE;
     next += 7;
     words[next++] = VIRGL_HEADER(1, 6, 6);
     words[next++] = 18;

@@ -29,6 +29,7 @@ export class VirglTextureRenderer {
   #pipeline;
   #revision = 0;
   #sampler;
+  #samplerAddressMode;
   #session;
   #texture;
   #textureHeight = 0;
@@ -68,6 +69,7 @@ export class VirglTextureRenderer {
     this.#bindGroup = undefined;
     this.#pipeline = undefined;
     this.#sampler = undefined;
+    this.#samplerAddressMode = undefined;
     this.#texture = undefined;
     this.#generation = 0;
     this.#textureHeight = 0;
@@ -95,10 +97,6 @@ export class VirglTextureRenderer {
       ] }], entryPoint: "vertex_main", module },
     }));
     if (revision !== this.#revision) return false;
-    this.#sampler = device.createSampler({
-      addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge", magFilter: "nearest",
-      minFilter: "nearest", mipmapFilter: "nearest",
-    });
     return revision === this.#revision;
   }
 
@@ -108,6 +106,7 @@ export class VirglTextureRenderer {
       device, this.#vertexBuffer, this.#vertexCapacity, frame.vertices.byteLength,
       "VirGL textured positions and UVs", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX,
     );
+    this.#ensureSampler(device, frame.texture.addressMode ?? "clamp-to-edge");
     this.#ensureTexture(device, frame.texture);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, frame.vertices);
@@ -133,17 +132,29 @@ export class VirglTextureRenderer {
   }
 
   #ensureTexture(device, texture) {
-    if (this.#texture && this.#textureWidth === texture.width && this.#textureHeight === texture.height) return;
-    this.#texture?.destroy?.();
-    this.#texture = device.createTexture({
-      format: "bgra8unorm", label: "VirGL sampled texture", size: { width: texture.width, height: texture.height, depthOrArrayLayers: 1 },
-      usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING,
-    });
-    this.#textureWidth = texture.width;
-    this.#textureHeight = texture.height;
+    if (!this.#texture || this.#textureWidth !== texture.width || this.#textureHeight !== texture.height) {
+      this.#texture?.destroy?.();
+      this.#texture = device.createTexture({
+        format: "bgra8unorm", label: "VirGL sampled texture", size: { width: texture.width, height: texture.height, depthOrArrayLayers: 1 },
+        usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING,
+      });
+      this.#textureWidth = texture.width;
+      this.#textureHeight = texture.height;
+    }
+    if (this.#bindGroup) return;
     this.#bindGroup = device.createBindGroup({ entries: [
       { binding: 0, resource: this.#texture.createView() }, { binding: 1, resource: this.#sampler },
     ], layout: this.#pipeline.getBindGroupLayout(0) });
+  }
+
+  #ensureSampler(device, addressMode) {
+    if (this.#sampler && this.#samplerAddressMode === addressMode) return;
+    this.#sampler = device.createSampler({
+      addressModeU: addressMode, addressModeV: addressMode, magFilter: "nearest",
+      minFilter: "nearest", mipmapFilter: "nearest",
+    });
+    this.#samplerAddressMode = addressMode;
+    this.#bindGroup = undefined;
   }
 }
 

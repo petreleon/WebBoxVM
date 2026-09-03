@@ -1,5 +1,7 @@
 use super::super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
-use super::super::super::{VIRGL_OBJECT_SAMPLER_STATE, VIRGL_OBJECT_SAMPLER_VIEW};
+use super::super::super::{
+    SamplerAddressMode, SamplerState, VIRGL_OBJECT_SAMPLER_STATE, VIRGL_OBJECT_SAMPLER_VIEW,
+};
 use crate::devices::virtio_gpu::resource::sampled_texture_format;
 
 const CMD_BIND_SAMPLER_STATES: u8 = 18;
@@ -7,13 +9,15 @@ const CMD_CREATE_OBJECT: u8 = 1;
 const CMD_DESTROY_OBJECT: u8 = 3;
 const CMD_SET_SAMPLER_VIEWS: u8 = 10;
 const FRAGMENT_SHADER: u32 = 1;
-const FIXED_SAMPLER_STATE: u32 = 0x1092;
+const CLAMP_NEAREST_SAMPLER_STATE: u32 = 0x1092;
 const IDENTITY_SWIZZLE: u32 = 0x688;
+const REPEAT_NEAREST_SAMPLER_STATE: u32 = 0x1080;
 
 #[derive(Clone)]
 pub(in crate::devices::virtio_gpu::three_d::virgl::stream) enum Command {
     CreateState {
         handle: u32,
+        state: SamplerState,
     },
     DestroyState {
         handle: u32,
@@ -38,11 +42,12 @@ pub(in crate::devices::virtio_gpu::three_d::virgl::stream) enum Command {
 
 pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> {
     match (command, object, words) {
-        (
-            CMD_CREATE_OBJECT,
-            VIRGL_OBJECT_SAMPLER_STATE,
-            [handle, FIXED_SAMPLER_STATE, 0, 0, 0, 0, 0, 0, 0],
-        ) => Some(Command::CreateState { handle: *handle }),
+        (CMD_CREATE_OBJECT, VIRGL_OBJECT_SAMPLER_STATE, [handle, state, 0, 0, 0, 0, 0, 0, 0]) => {
+            sampler_state(*state).map(|state| Command::CreateState {
+                handle: *handle,
+                state,
+            })
+        }
         (CMD_DESTROY_OBJECT, VIRGL_OBJECT_SAMPLER_STATE, [handle]) => {
             Some(Command::DestroyState { handle: *handle })
         }
@@ -66,6 +71,15 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> 
         }
         _ => None,
     }
+}
+
+fn sampler_state(word: u32) -> Option<SamplerState> {
+    let address_mode = match word {
+        CLAMP_NEAREST_SAMPLER_STATE => SamplerAddressMode::ClampToEdge,
+        REPEAT_NEAREST_SAMPLER_STATE => SamplerAddressMode::Repeat,
+        _ => return None,
+    };
+    Some(SamplerState { address_mode })
 }
 
 fn bindings(start: u32, handles: &[u32]) -> Option<(usize, Vec<Option<u32>>)> {

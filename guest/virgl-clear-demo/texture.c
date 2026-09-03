@@ -74,9 +74,9 @@ static int create_texture(long fd, u32 *bo, u32 *handle)
 static int upload_vertices(long fd, u32 bo)
 {
     static const u32 data[] = {
-        0, 0x3f400000u, 0, 0x3f800000u, 0, 0x3f800000u,
-        0xbf400000u, 0xbf400000u, 0, 0x3f800000u, 0, 0x3f800000u,
-        0x3f400000u, 0xbf400000u, 0, 0x3f800000u, 0, 0x3f800000u,
+        0, 0x3f400000u, 0, 0x3f800000u, 0x3f800000u, 0x3f800000u,
+        0xbf400000u, 0xbf400000u, 0, 0x3f800000u, 0x3f800000u, 0x3f800000u,
+        0x3f400000u, 0xbf400000u, 0, 0x3f800000u, 0x3f800000u, 0x3f800000u,
     };
     struct drm_virtgpu_3d_transfer_to_host transfer = {
         .bo_handle = bo,

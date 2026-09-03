@@ -1,3 +1,4 @@
+use super::super::{SampledResource, SamplerAddressMode};
 use super::{DrawMaterial, DrawState, TextureSnapshot, solid, texture};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
@@ -33,7 +34,7 @@ fn snapshot(
     gpu: &VirtioGpu,
     context: &VirglContext,
     target: u32,
-    resource: Option<u32>,
+    resource: Option<SampledResource>,
 ) -> Result<TextureSnapshot, u32> {
     texture::snapshot(gpu, context, target, resource)
 }
@@ -42,10 +43,15 @@ fn pair(
     gpu: &VirtioGpu,
     context: &VirglContext,
     target: u32,
-    [left, right]: [Option<u32>; 2],
+    [left, right]: [Option<SampledResource>; 2],
 ) -> Result<[TextureSnapshot; 2], u32> {
-    Ok([
+    let snapshots = [
         snapshot(gpu, context, target, left)?,
         snapshot(gpu, context, target, right)?,
-    ])
+    ];
+    snapshots
+        .iter()
+        .all(|texture| texture.address_mode == SamplerAddressMode::ClampToEdge)
+        .then_some(snapshots)
+        .ok_or(RESP_ERR_INVALID_PARAMETER)
 }

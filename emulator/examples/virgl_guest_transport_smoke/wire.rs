@@ -41,7 +41,7 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
         Some(magic) if magic == b"VGC1" => vgc1_sequence(packet).map(VirglPacket::Clear),
         Some(magic) if magic == b"VGD1" => match read_u32(packet, 4) {
             Some(2) => vgd1_sequence(packet).map(VirglPacket::Draw),
-            Some(3) => vgt1_sequence(packet).map(VirglPacket::TexturedDraw),
+            Some(5) => vgt1_sequence(packet).map(VirglPacket::TexturedDraw),
             _ => Err("guest emitted an unsupported VGD1 packet version".into()),
         },
         _ => Err("guest emitted an unsupported VirGL browser packet".into()),

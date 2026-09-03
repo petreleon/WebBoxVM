@@ -1,5 +1,5 @@
 use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
-use super::VirglContext;
+use super::{SampledResource, SamplerState, VirglContext};
 
 impl VirglContext {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_sampler_view(
@@ -54,15 +54,16 @@ impl VirglContext {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_sampler_state(
         &mut self,
         handle: u32,
+        state: SamplerState,
     ) -> bool {
-        handle != 0 && self.pipeline.sampler_states.insert(handle)
+        handle != 0 && self.pipeline.sampler_states.insert(handle, state).is_none()
     }
 
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn destroy_sampler_state(
         &mut self,
         handle: u32,
     ) -> bool {
-        if !self.pipeline.sampler_states.remove(&handle) {
+        if self.pipeline.sampler_states.remove(&handle).is_none() {
             return false;
         }
         self.pipeline
@@ -86,7 +87,7 @@ impl VirglContext {
             || handles
                 .iter()
                 .flatten()
-                .any(|handle| !self.pipeline.sampler_states.contains(handle))
+                .any(|handle| !self.pipeline.sampler_states.contains_key(handle))
         {
             return false;
         }
@@ -96,17 +97,22 @@ impl VirglContext {
 
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn sampled_resources(
         &self,
-    ) -> [Option<u32>; MAX_VIRGL_FRAGMENT_SAMPLERS] {
+    ) -> [Option<SampledResource>; MAX_VIRGL_FRAGMENT_SAMPLERS] {
         std::array::from_fn(|slot| {
-            self.pipeline.bound_sampler_states[slot]?;
-            self.pipeline.bound_sampler_views[slot]
-                .and_then(|handle| self.pipeline.sampler_views.get(&handle).copied())
+            let state = self.pipeline.bound_sampler_states[slot]
+                .and_then(|handle| self.pipeline.sampler_states.get(&handle))?;
+            let resource = self.pipeline.bound_sampler_views[slot]
+                .and_then(|handle| self.pipeline.sampler_views.get(&handle).copied())?;
+            Some(SampledResource {
+                resource,
+                address_mode: state.address_mode,
+            })
         })
     }
 
     #[cfg(test)]
     pub(in crate::devices::virtio_gpu) fn bound_sampled_resource(&self) -> Option<u32> {
-        self.sampled_resources()[0]
+        self.sampled_resources()[0].map(|sampled| sampled.resource)
     }
 
     pub(in crate::devices::virtio_gpu) fn remove_sampler_resource(&mut self, resource: u32) {

@@ -8,7 +8,7 @@ use material::material;
 pub(in crate::devices::virtio_gpu::three_d) use packet::packet;
 use vertices::resolve;
 
-use super::{DrawState, VirglContext};
+use super::{DrawState, SamplerAddressMode, VirglContext};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 
@@ -25,6 +25,7 @@ pub(in crate::devices::virtio_gpu) struct TextureSnapshot {
     pub width: u32,
     pub height: u32,
     pub bgra: Vec<u8>,
+    pub address_mode: SamplerAddressMode,
 }
 
 #[derive(Clone, Debug)]

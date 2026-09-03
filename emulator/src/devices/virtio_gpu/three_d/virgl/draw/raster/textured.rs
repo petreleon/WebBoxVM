@@ -1,7 +1,7 @@
 use super::geometry;
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::resource::GpuResource;
-use crate::devices::virtio_gpu::three_d::virgl::draw::TextureSnapshot;
+use crate::devices::virtio_gpu::three_d::virgl::{SamplerAddressMode, draw::TextureSnapshot};
 
 const STRIDE: usize = 24;
 
@@ -93,12 +93,8 @@ fn sample(textures: &[TextureSnapshot], uv: [f32; 2]) -> [f32; 4] {
 }
 
 fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
-    let x = (u * texture.width as f32)
-        .floor()
-        .clamp(0.0, texture.width.saturating_sub(1) as f32) as usize;
-    let y = ((1.0 - v) * texture.height as f32)
-        .floor()
-        .clamp(0.0, texture.height.saturating_sub(1) as f32) as usize;
+    let x = texel(u, texture.width, texture.address_mode);
+    let y = texel(1.0 - v, texture.height, texture.address_mode);
     let index = (y * texture.width as usize + x) * 4;
     let pixel = &texture.bgra[index..index + 4];
     [
@@ -107,4 +103,14 @@ fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
         pixel[0] as f32 / 255.0,
         pixel[3] as f32 / 255.0,
     ]
+}
+
+fn texel(value: f32, size: u32, mode: SamplerAddressMode) -> usize {
+    let value = match mode {
+        SamplerAddressMode::ClampToEdge => value,
+        SamplerAddressMode::Repeat => value - value.floor(),
+    };
+    (value * size as f32)
+        .floor()
+        .clamp(0.0, size.saturating_sub(1) as f32) as usize
 }

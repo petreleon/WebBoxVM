@@ -12,7 +12,9 @@ use std::collections::{HashMap, HashSet};
 
 pub(super) use draw::DrawState;
 use pipeline::PipelineState;
-pub(super) use pipeline::Viewport;
+pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
+    SampledResource, SamplerAddressMode, SamplerState, Viewport,
+};
 use shader::PendingShader;
 
 pub(in crate::devices::virtio_gpu) use index::IndexBuffer;

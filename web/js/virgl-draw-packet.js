@@ -3,6 +3,8 @@ const LEGACY_BYTES = 104;
 const STATE_BYTES = 144;
 const TEXTURED_BYTES = 176;
 const TEXTURED_PAIR_BYTES = 184;
+const REPEAT_TEXTURED_BYTES = 180;
+const REPEAT_NEAREST_SAMPLER_STATE = 0x1080;
 const MAX_DIMENSION = 8192;
 const MAX_TEXTURE_DIMENSION = 64;
 const VERTEX_COUNT = 3;
@@ -36,12 +38,13 @@ export function parseVirglDrawPacket(packet) {
   const clearColor = colors(view, 24, "clear");
   const drawColor = colors(view, 40, "draw");
   const paired = version === 4;
-  const textured = version === 3 || paired;
+  const repeat = version === 5;
+  const textured = version === 3 || repeat || paired;
   const vertices = textured ? texturedVertices(view) : positions(view);
   const state = version === 1 ? {} : viewportState(
     view, canvasWidth, canvasHeight, textured ? 128 : 104, textured ? 152 : 128,
   );
-  const texture = textured ? textureFrame(view, packet, paired) : {};
+  const texture = textured ? textureFrame(view, packet, paired, repeat) : {};
   return {
     acceleration: paired ? "webgpu-virgl-capset1-texture-multiply"
       : textured ? "webgpu-virgl-capset1-texture" : "webgpu-virgl-capset1-draw",
@@ -59,6 +62,10 @@ function length(view, version) {
   if (version === 2) return STATE_BYTES;
   if (version === 3) {
     return view.byteLength < TEXTURED_BYTES ? 0 : textureLength(view, 168, 172, TEXTURED_BYTES);
+  }
+  if (version === 5) {
+    return view.byteLength < REPEAT_TEXTURED_BYTES || view.getUint32(168, true) !== REPEAT_NEAREST_SAMPLER_STATE
+      ? 0 : textureLength(view, 172, 176, REPEAT_TEXTURED_BYTES);
   }
   if (version !== 4 || view.byteLength < TEXTURED_PAIR_BYTES) return 0;
   const left = textureBytes(view, 168, 172);
@@ -131,9 +138,10 @@ function textureBytes(view, widthOffset, heightOffset) {
     ? width * height * 4 : 0;
 }
 
-function textureFrame(view, packet, paired) {
-  const left = textureAt(view, packet, 168, 172, paired ? TEXTURED_PAIR_BYTES : TEXTURED_BYTES);
-  if (!paired) return { texture: left };
+function textureFrame(view, packet, paired, repeat) {
+  const offset = repeat ? 172 : 168;
+  const left = textureAt(view, packet, offset, offset + 4, repeat ? REPEAT_TEXTURED_BYTES : paired ? TEXTURED_PAIR_BYTES : TEXTURED_BYTES);
+  if (!paired) return { texture: { ...left, addressMode: repeat ? "repeat" : "clamp-to-edge" } };
   const right = textureAt(view, packet, 176, 180, TEXTURED_PAIR_BYTES + left.pixels.byteLength);
   return { textures: [left, right] };
 }
