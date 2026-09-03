@@ -5,7 +5,7 @@ use super::resource::{GpuResource, total_resource_limit};
 use super::three_d::DeferredSubmit;
 use super::{MAX_RESOURCES, SCANOUT_HEIGHT, SCANOUT_WIDTH, Scanout, VirtioGpu};
 use crate::memory::PhysicalMemory;
-use decode::{exact_u32_command, read_create_2d, read_rect_resource};
+use decode::{read_create_2d, read_rect_resource};
 pub(super) struct CommandResult {
     pub response: Vec<u8>,
     pub deferred: Option<DeferredSubmit>,
@@ -31,7 +31,7 @@ impl VirtioGpu {
                 return immediate(self.capset_response(header, input));
             }
             CMD_RESOURCE_CREATE_2D => self.create_2d(input),
-            CMD_RESOURCE_UNREF => self.unref(input),
+            CMD_RESOURCE_UNREF => self.unref_resource(input),
             CMD_SET_SCANOUT => self.set_scanout(input),
             CMD_RESOURCE_FLUSH => self.flush(input),
             CMD_TRANSFER_TO_HOST_2D => self.transfer(mem, input),
@@ -43,8 +43,10 @@ impl VirtioGpu {
             CMD_CTX_ATTACH_RESOURCE | CMD_CTX_DETACH_RESOURCE => {
                 self.context_resource(header, input)
             }
+            CMD_RESOURCE_CREATE_3D => self.create_virgl_resource(input),
             CMD_SUBMIT_3D => match self.submit_3d(header, input) {
-                Ok(deferred) => return deferred_result(header, deferred),
+                Ok(Some(deferred)) => return deferred_result(header, deferred),
+                Ok(None) => RESP_OK_NODATA,
                 Err(response) => response,
             },
             _ => RESP_ERR_UNSPEC,
@@ -75,20 +77,6 @@ impl VirtioGpu {
             .expect("format, dimensions, and per-resource size checked above");
         self.allocated_resource_bytes += resource_bytes;
         self.resources.insert(resource_id, resource);
-        RESP_OK_NODATA
-    }
-
-    fn unref(&mut self, input: &[u8]) -> u32 {
-        let Some(resource_id) = exact_u32_command(input, 32) else {
-            return RESP_ERR_INVALID_PARAMETER;
-        };
-        let Some(resource) = self.resources.remove(&resource_id) else {
-            return RESP_ERR_INVALID_RESOURCE_ID;
-        };
-        self.allocated_resource_bytes = self
-            .allocated_resource_bytes
-            .saturating_sub(resource.pixels.len());
-        self.detach_scanout_resource(resource_id);
         RESP_OK_NODATA
     }
 

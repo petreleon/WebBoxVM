@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260903-webgpu-virtio-r4";
+import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-capset1-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260903-webgpu-virtio-r4";
-import { gpuPacket } from "./gpu-test-packets.mjs?v=20260903-webgpu-virtio-r4";
+  from "./gpu-test-fakes.mjs?v=20260903-virgl-capset1-r1";
+import { gpuPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-capset1-r1";
 
 test("missing WebGPU falls back to Canvas2D and converts BGRA to RGBA", async () => {
   const canvas = fakeCanvas({ canvas2d: true });

@@ -1,11 +1,12 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-webgpu-virtio-r4";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-capset1-r1";
 import {
   defaultBufferUsage,
   ensureBuffer,
   paddedIndexBytes,
   pipelineDescriptor,
   renderPassDescriptor,
-} from "./webgpu-3d-resources.js?v=20260903-webgpu-virtio-r4";
+} from "./webgpu-3d-resources.js?v=20260903-virgl-capset1-r1";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-capset1-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
@@ -47,6 +48,9 @@ export class ExperimentalWebGpu3dRenderer {
   }
 
   async render(backend, frame, isCurrent = () => true) {
+    if (frame.protocol === "virgl-clear") {
+      return renderVirglClear(this.#session, backend, frame, isCurrent);
+    }
     const { device } = backend;
     if (typeof device.queue.onSubmittedWorkDone !== "function") {
       throw new Error("WebGPU queue completion tracking is unavailable");

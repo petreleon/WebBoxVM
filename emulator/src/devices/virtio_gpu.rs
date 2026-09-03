@@ -1,4 +1,4 @@
-//! Host-neutral VirtIO-GPU 2D device with bounded private-capset 3D transport.
+//! Host-neutral VirtIO-GPU 2D device with bounded 3D transport profiles.
 //!
 //! The device implements the Linux-facing control queue and retains normalized
 //! BGRA8 host resources. Browser presentation is deliberately outside this
@@ -20,7 +20,8 @@ mod tests;
 use protocol::{BackingEntry, Rect};
 use resource::GpuResource;
 use std::collections::HashMap;
-use three_d::Pending3d;
+use std::collections::HashSet;
+use three_d::{Pending3d, VirglContext};
 
 pub const SCANOUT_WIDTH: u32 = 1024;
 pub const SCANOUT_HEIGHT: u32 = 768;
@@ -71,9 +72,12 @@ pub struct VirtioGpu {
     scanout: Option<Scanout>,
     pending_damage: Option<Rect>,
     contexts: HashMap<u32, u32>,
+    virgl_contexts: HashMap<u32, VirglContext>,
+    virgl_resources: HashSet<u32>,
     pending_3d: Vec<Pending3d>,
     pending_3d_bytes: usize,
     next_3d_sequence: u32,
+    next_virgl_context_generation: u32,
     reset_generation: u32,
 }
 
@@ -91,9 +95,12 @@ impl VirtioGpu {
             scanout: None,
             pending_damage: None,
             contexts: HashMap::new(),
+            virgl_contexts: HashMap::new(),
+            virgl_resources: HashSet::new(),
             pending_3d: Vec::new(),
             pending_3d_bytes: 0,
             next_3d_sequence: 1,
+            next_virgl_context_generation: 1,
             reset_generation: 0,
         }
     }

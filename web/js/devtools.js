@@ -1,4 +1,4 @@
-import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260903-webgpu-virtio-r4";
+import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260903-virgl-capset1-r1";
 
 export function installWebboxVmDevtools(getEmulator, getRunner) {
   const bridge = installDomBridge(getEmulator);

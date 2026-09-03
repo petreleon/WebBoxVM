@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260903-webgpu-virtio-r4";
-import { handleMessage } from "./messages.js?v=20260903-webgpu-virtio-r4";
-import { resetJitState, state } from "./state.js?v=20260903-webgpu-virtio-r4";
-import { resetUartInput } from "./uart-input.js?v=20260903-webgpu-virtio-r4";
+import { withEmulatorAccess } from "./access.js?v=20260903-virgl-capset1-r1";
+import { handleMessage } from "./messages.js?v=20260903-virgl-capset1-r1";
+import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r1";
+import { resetUartInput } from "./uart-input.js?v=20260903-virgl-capset1-r1";
 
 afterEach(() => {
   state.emulator = undefined;

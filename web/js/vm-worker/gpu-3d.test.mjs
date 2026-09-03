@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { maybePostGpu3d } from "./gpu-3d.js?v=20260903-webgpu-virtio-r4";
-import { state } from "./state.js?v=20260903-webgpu-virtio-r4";
+import { maybePostGpu3d } from "./gpu-3d.js?v=20260903-virgl-capset1-r1";
+import { state } from "./state.js?v=20260903-virgl-capset1-r1";
 
 let previousPollAt;
 beforeEach(() => {

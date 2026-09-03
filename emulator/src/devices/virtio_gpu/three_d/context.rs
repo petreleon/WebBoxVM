@@ -1,4 +1,5 @@
-use super::CAPSET_ID;
+use super::capset::supports;
+use super::{VIRGL_CAPSET_ID, VirglContext};
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_CONTEXTS, VirtioGpu};
 
@@ -18,7 +19,8 @@ impl VirtioGpu {
         else {
             return RESP_ERR_INVALID_PARAMETER;
         };
-        if name_len > 64 || !matches!(context_init, 0 | CAPSET_ID) {
+        let capset = context_init & 0xff;
+        if name_len > 64 || context_init != capset || (capset != 0 && !supports(capset)) {
             return RESP_ERR_INVALID_PARAMETER;
         }
         if self.contexts.contains_key(&header.ctx_id) {
@@ -27,7 +29,12 @@ impl VirtioGpu {
         if self.contexts.len() >= MAX_CONTEXTS {
             return RESP_ERR_OUT_OF_MEMORY;
         }
-        self.contexts.insert(header.ctx_id, context_init);
+        self.contexts.insert(header.ctx_id, capset);
+        if capset == VIRGL_CAPSET_ID {
+            let generation = self.allocate_virgl_context_generation();
+            self.virgl_contexts
+                .insert(header.ctx_id, VirglContext::new(generation));
+        }
         RESP_OK_NODATA
     }
 
@@ -36,24 +43,45 @@ impl VirtioGpu {
             return RESP_ERR_INVALID_CONTEXT_ID;
         }
         self.contexts.remove(&header.ctx_id);
+        self.virgl_contexts.remove(&header.ctx_id);
         RESP_OK_NODATA
     }
 
     pub(in crate::devices::virtio_gpu) fn context_resource(
-        &self,
+        &mut self,
         header: CtrlHeader,
         input: &[u8],
     ) -> u32 {
         if input.len() != 32 {
             return RESP_ERR_INVALID_PARAMETER;
         }
-        if !self.contexts.contains_key(&header.ctx_id) {
+        let Some(capset) = self.contexts.get(&header.ctx_id).copied() else {
             return RESP_ERR_INVALID_CONTEXT_ID;
+        };
+        let Some(resource_id) = read_u32(input, 24) else {
+            return RESP_ERR_INVALID_PARAMETER;
+        };
+        if !self.resources.contains_key(&resource_id) {
+            return RESP_ERR_INVALID_RESOURCE_ID;
         }
-        match read_u32(input, 24) {
-            Some(resource_id) if self.resources.contains_key(&resource_id) => RESP_OK_NODATA,
-            Some(_) => RESP_ERR_INVALID_RESOURCE_ID,
-            None => RESP_ERR_INVALID_PARAMETER,
+        if capset != VIRGL_CAPSET_ID {
+            return RESP_OK_NODATA;
+        }
+        if !self.is_virgl_resource(resource_id) {
+            return RESP_ERR_INVALID_PARAMETER;
+        }
+        let context = self
+            .virgl_contexts
+            .get_mut(&header.ctx_id)
+            .expect("VirGL context inserted at creation");
+        match header.command_type {
+            CMD_CTX_ATTACH_RESOURCE => {
+                context.attach(resource_id);
+                RESP_OK_NODATA
+            }
+            CMD_CTX_DETACH_RESOURCE if context.detach(resource_id) => RESP_OK_NODATA,
+            CMD_CTX_DETACH_RESOURCE => RESP_ERR_INVALID_PARAMETER,
+            _ => RESP_ERR_INVALID_PARAMETER,
         }
     }
 }

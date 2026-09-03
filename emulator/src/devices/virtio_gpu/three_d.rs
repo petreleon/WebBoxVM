@@ -2,10 +2,14 @@ use super::completion::PendingCompletion;
 use super::protocol::*;
 use super::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
+mod capset;
 mod context;
 pub(super) mod packet;
+mod virgl;
 
-use packet::{PACKET_HEADER_BYTES, VERTEX_FLOATS, decode_submit};
+pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};
+use packet::decode_submit;
+pub(super) use virgl::VirglContext;
 
 pub(super) const CAPSET_ID: u32 = 7;
 pub(super) const CAPSET_VERSION: u32 = 1;
@@ -20,6 +24,18 @@ pub(super) struct Pending3d {
     pub bytes: usize,
     pub packet: Option<Vec<u8>>,
     pub completion: Option<PendingCompletion>,
+    pub effect: Option<Pending3dEffect>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(super) enum Pending3dEffect {
+    VirglClear {
+        context_id: u32,
+        generation: u32,
+        resource_id: u32,
+        rect: Rect,
+        bgra: [u8; 4],
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -30,36 +46,31 @@ pub(super) struct DeferredSubmit {
 
 impl VirtioGpu {
     pub(super) fn capset_info_response(&self, header: CtrlHeader, input: &[u8]) -> Vec<u8> {
-        if input.len() != 32 || read_u32(input, 24) != Some(0) || read_u32(input, 28) != Some(0) {
+        if input.len() != 32 || read_u32(input, 28) != Some(0) {
             return header.encode(RESP_ERR_INVALID_PARAMETER);
         }
+        let Some(capset) = capset::by_index(read_u32(input, 24).unwrap_or_default()) else {
+            return header.encode(RESP_ERR_INVALID_PARAMETER);
+        };
         let mut out = header.encode(RESP_OK_CAPSET_INFO);
-        for value in [CAPSET_ID, CAPSET_VERSION, CAPSET_SIZE, 0] {
+        for value in [capset.id, capset.version, capset.size, 0] {
             push_u32(&mut out, value);
         }
         out
     }
 
     pub(super) fn capset_response(&self, header: CtrlHeader, input: &[u8]) -> Vec<u8> {
-        if input.len() != 32
-            || read_u32(input, 24) != Some(CAPSET_ID)
-            || read_u32(input, 28) != Some(CAPSET_VERSION)
-        {
+        if input.len() != 32 {
             return header.encode(RESP_ERR_INVALID_PARAMETER);
         }
+        let (Some(id), Some(version)) = (read_u32(input, 24), read_u32(input, 28)) else {
+            return header.encode(RESP_ERR_INVALID_PARAMETER);
+        };
+        let Some(data) = capset::data(id, version) else {
+            return header.encode(RESP_ERR_INVALID_PARAMETER);
+        };
         let mut out = header.encode(RESP_OK_CAPSET);
-        out.extend_from_slice(b"WBG3");
-        for value in [
-            CAPSET_VERSION,
-            MAX_3D_DIMENSION,
-            MAX_3D_VERTICES,
-            MAX_3D_INDICES,
-            PACKET_HEADER_BYTES as u32,
-            VERTEX_FLOATS as u32,
-            2,
-        ] {
-            push_u32(&mut out, value);
-        }
+        out.extend_from_slice(&data);
         out
     }
 
@@ -67,10 +78,15 @@ impl VirtioGpu {
         &mut self,
         header: CtrlHeader,
         input: &[u8],
-    ) -> Result<DeferredSubmit, u32> {
-        if self.contexts.get(&header.ctx_id) != Some(&CAPSET_ID) {
-            return Err(RESP_ERR_INVALID_CONTEXT_ID);
+    ) -> Result<Option<DeferredSubmit>, u32> {
+        match self.contexts.get(&header.ctx_id) {
+            Some(&CAPSET_ID) => return self.submit_wbg3(header, input).map(Some),
+            Some(&VIRGL_CAPSET_ID) => return self.submit_virgl(header, input),
+            _ => return Err(RESP_ERR_INVALID_CONTEXT_ID),
         }
+    }
+
+    fn submit_wbg3(&mut self, header: CtrlHeader, input: &[u8]) -> Result<DeferredSubmit, u32> {
         let packet = decode_submit(input).ok_or(RESP_ERR_INVALID_PARAMETER)?;
         if self.pending_3d.len() >= MAX_PENDING_3D_SUBMITS
             || self
@@ -89,6 +105,7 @@ impl VirtioGpu {
             bytes: packet.len(),
             packet: Some(packet),
             completion: None,
+            effect: None,
         });
         Ok(DeferredSubmit { sequence, header })
     }

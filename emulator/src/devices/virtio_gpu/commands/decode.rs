@@ -9,10 +9,6 @@ pub(super) fn read_create_2d(input: &[u8]) -> Option<(u32, u32, u32, u32)> {
     ))
 }
 
-pub(super) fn exact_u32_command(input: &[u8], minimum: usize) -> Option<u32> {
-    (input.len() >= minimum).then(|| read_u32(input, CTRL_HEADER_LEN))?
-}
-
 pub(super) fn read_rect_resource(input: &[u8], minimum: usize) -> Option<(Rect, u32)> {
     (input.len() >= minimum)
         .then_some((Rect::decode(input, CTRL_HEADER_LEN)?, read_u32(input, 40)?))

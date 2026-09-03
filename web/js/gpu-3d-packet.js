@@ -2,6 +2,12 @@ export const GPU_3D_HEADER_BYTES = 48;
 export const GPU_3D_OPCODE_DRAW_INDEXED = 1;
 export const GPU_3D_VERSION = 1;
 
+import {
+  extractVirglClearSequence,
+  isVirglClearPacket,
+  parseVirglClearPacket,
+} from "./virgl-clear-packet.js?v=20260903-virgl-capset1-r1";
+
 const MAGIC = [0x57, 0x42, 0x47, 0x33]; // WBG3
 const MAX_DIMENSION = 8192;
 const MAX_VERTICES = 4096;
@@ -11,6 +17,7 @@ const VERTEX_FLOATS = 7;
 const FIXED_BYTES = GPU_3D_HEADER_BYTES + MVP_FLOATS * 4;
 
 export function extractGpu3dSequence(packet) {
+  if (isVirglClearPacket(packet)) return extractVirglClearSequence(packet);
   if (!(packet instanceof Uint8Array) || packet.byteLength < 16) return undefined;
   for (let index = 0; index < MAGIC.length; index += 1) {
     if (packet[index] !== MAGIC[index]) return undefined;
@@ -20,6 +27,7 @@ export function extractGpu3dSequence(packet) {
 }
 
 export function parseGpu3dPacket(packet) {
+  if (isVirglClearPacket(packet)) return parseVirglClearPacket(packet);
   if (!(packet instanceof Uint8Array)) throw new TypeError("GPU 3D packet must be a Uint8Array");
   if (packet.byteLength < FIXED_BYTES) {
     throw new Error("GPU 3D packet is shorter than its header and MVP matrix");
@@ -61,13 +69,17 @@ export function parseGpu3dPacket(packet) {
     indices[index] = value;
   }
   return {
+    acceleration: "webgpu-experimental-capset",
     canvasHeight,
     canvasWidth,
+    capsetId: 7,
     clearColor,
     indexCount,
     indices,
     mvp,
     opcode,
+    presentationLabel: "experimental guest 3D",
+    protocol: "wbg3",
     sequence,
     vertexCount,
     vertices,

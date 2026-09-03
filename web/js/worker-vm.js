@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260903-webgpu-virtio-r4";
-import { versionedUrl } from "./asset-version.js?v=20260903-webgpu-virtio-r4";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260903-webgpu-virtio-r4";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260903-virgl-capset1-r1";
+import { versionedUrl } from "./asset-version.js?v=20260903-virgl-capset1-r1";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260903-virgl-capset1-r1";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);

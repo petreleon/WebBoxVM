@@ -4,7 +4,7 @@ import {
   decodeDiskSnapshotFromStorage,
   encodeDiskSnapshotForStorage,
   writeDiskSnapshotToStorage,
-} from "./persistence-store.js?v=20260903-webgpu-virtio-r4";
+} from "./persistence-store.js?v=20260903-virgl-capset1-r1";
 
 test("compressed disk snapshots roundtrip from storage", async () => {
   const snapshot = new Uint8Array(1024 * 1024);

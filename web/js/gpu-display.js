@@ -1,19 +1,19 @@
-import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260903-webgpu-virtio-r4";
+import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260903-virgl-capset1-r1";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260903-webgpu-virtio-r4";
-import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260903-webgpu-virtio-r4";
-import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260903-webgpu-virtio-r4";
-import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260903-webgpu-virtio-r4";
-import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260903-webgpu-virtio-r4";
-import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260903-webgpu-virtio-r4";
-import { WebGpuSession } from "./webgpu-session.js?v=20260903-webgpu-virtio-r4";
+} from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r1";
+import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260903-virgl-capset1-r1";
+import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r1";
+import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260903-virgl-capset1-r1";
+import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260903-virgl-capset1-r1";
+import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260903-virgl-capset1-r1";
+import { WebGpuSession } from "./webgpu-session.js?v=20260903-virgl-capset1-r1";
 
 export { extractGpu3dSequence, parseGpu3dPacket }
-  from "./gpu-3d-packet.js?v=20260903-webgpu-virtio-r4";
+  from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r1";
 export { padBgraRows, paddedBytesPerRow, parseGpuScanoutPacket }
-  from "./gpu-scanout-packet.js?v=20260903-webgpu-virtio-r4";
+  from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r1";
 
 export class GuestDisplay {
   #canvas2d;
@@ -62,7 +62,7 @@ export class GuestDisplay {
     }
     this.#diagnostics.received3d(frame.sequence);
     const claim = ++this.#presentationClaim;
-    this.#presentationMode = "wbg3-pending";
+    this.#presentationMode = "guest-3d-pending";
     const epoch = this.#epoch;
     const previous = this.#gpu3dPromise ?? Promise.resolve();
     const scheduled = previous.then(() => this.#draw3d(frame, epoch));
@@ -158,7 +158,7 @@ export class GuestDisplay {
   #settle3d(result, claim) {
     if (claim !== this.#presentationClaim) return result;
     if (result.success) {
-      this.#presentationMode = "wbg3-active";
+      this.#presentationMode = "guest-3d-active";
     } else {
       this.#presentationMode = "scanout";
       this.#state.markFull();

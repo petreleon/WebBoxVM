@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260903-webgpu-virtio-r4";
-import { gpu3dPacket } from "./gpu-test-packets.mjs?v=20260903-webgpu-virtio-r4";
+} from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r1";
+import { gpu3dPacket, virglClearPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-capset1-r1";
 
 test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
   const packet = gpu3dPacket({ sequence: 42 });
@@ -58,6 +58,18 @@ test("WBG3 sequence extraction trusts only a nonzero sequence behind its magic",
   assert.equal(extractGpu3dSequence(packet), undefined);
   assert.equal(extractGpu3dSequence(new Uint8Array(15)), undefined);
   assert.equal(extractGpu3dSequence("WBG3"), undefined);
+});
+
+test("VirGL clear envelope identifies capset one and rejects invalid color values", () => {
+  const packet = virglClearPacket({ sequence: 61 });
+  const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.protocol, "virgl-clear");
+  assert.equal(frame.capsetId, 1);
+  assert.equal(frame.sequence, 61);
+  assert.deepEqual([...frame.clearColor], [0.25, 0.5, 0.75, 1].map(Math.fround));
+  assert.equal(extractGpu3dSequence(packet), 61);
+  new DataView(packet.buffer).setFloat32(20, Number.NaN, true);
+  assert.throws(() => parseGpu3dPacket(packet), /normalized finite/);
 });
 
 function assertMutation(packet, offset, value, expected) {

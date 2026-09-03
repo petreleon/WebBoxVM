@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installWebboxVmDevtools } from "./devtools.js?v=20260903-webgpu-virtio-r4";
+import { installWebboxVmDevtools } from "./devtools.js?v=20260903-virgl-capset1-r1";
 
 test("hidden devtools jit checkbox follows the safe default", () => {
   withFakeDocument((document) => {

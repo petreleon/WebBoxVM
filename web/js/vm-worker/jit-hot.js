@@ -1,8 +1,8 @@
-import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260903-webgpu-virtio-r4";
-import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260903-webgpu-virtio-r4";
-import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260903-webgpu-virtio-r4";
-import { tryRunCachedJitBlock } from "./jit-run.js?v=20260903-webgpu-virtio-r4";
-import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260903-webgpu-virtio-r4";
+import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260903-virgl-capset1-r1";
+import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260903-virgl-capset1-r1";
+import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260903-virgl-capset1-r1";
+import { tryRunCachedJitBlock } from "./jit-run.js?v=20260903-virgl-capset1-r1";
+import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260903-virgl-capset1-r1";
 
 export function tryRunOrCompileNextJitBlock(emulator = state.emulator) {
   if (!state.jitEnabled || !emulator) {

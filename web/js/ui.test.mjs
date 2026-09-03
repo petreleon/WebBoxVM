@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { UiController } from "./ui.js?v=20260903-webgpu-virtio-r4";
+import { UiController } from "./ui.js?v=20260903-virgl-capset1-r1";
 
 test("active metric updates avoid duplicate jit stats reads", () => {
   let jitStatsCalls = 0;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { maybePostMetrics, maybeRequestAutosave, postMetrics } from "./metrics-events.js?v=20260903-webgpu-virtio-r4";
-import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260903-webgpu-virtio-r4";
+import { maybePostMetrics, maybeRequestAutosave, postMetrics } from "./metrics-events.js?v=20260903-virgl-capset1-r1";
+import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260903-virgl-capset1-r1";
 
 const previousPostMessage = globalThis.postMessage;
 let messages = [];

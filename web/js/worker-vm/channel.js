@@ -1,4 +1,4 @@
-import { initialMetrics } from "./channel-state.js?v=20260903-webgpu-virtio-r4";
+import { initialMetrics } from "./channel-state.js?v=20260903-virgl-capset1-r1";
 
 export class WorkerChannel {
   #callbacks;

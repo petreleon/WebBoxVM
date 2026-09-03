@@ -30,8 +30,8 @@ Linux discovers device ID 16 and uses its unmodified VirtIO-GPU driver. Resource
 WebGPU only uploads the resulting dirty BGRA8 rectangle, samples a host texture,
 and presents it on the browser canvas; it does not accelerate guest rendering.
 
-The initial 3D path uses the same stock Linux driver but an explicitly private, experimental capability set.
-It is a bounded guest-command path, not VirGL, Venus, OpenGL, Vulkan, or general-purpose compute compatibility.
+The original 3D path uses the same stock Linux driver but an explicitly private, experimental capability set.
+Its bounded guest-command path is not VirGL, Venus, OpenGL, Vulkan, or general-purpose compute compatibility.
 
 ## Why the vCPU does not move to WebGPU
 
@@ -70,7 +70,7 @@ Tightly packed BGRA8 pixels follow the header.
 ## Experimental 3D slice
 
 WebBoxVM advertises the standard `VIRTIO_GPU_F_VIRGL` and `VIRTIO_GPU_F_CONTEXT_INIT` bits so the stock Linux 6.12 `virtio_gpu` DRM driver exposes its render ioctl path.
-The first bit is only a transport enabler here: there is no VirGL decoder or VirGL capset.
+The device now separately exposes a deliberately narrow standard VirGL capset-1 clear path, documented in [VirGL compatibility](virgl-compatibility.md).
 Capset ID 7 is deliberately private and unregistered, its data starts with
 `WBG3`, and generic Mesa must not select or interpret it.
 
@@ -101,14 +101,14 @@ Browser draw telemetry and a pixel check remain necessary to prove WebGPU execut
 A completed WBG3 v1 draw owns full-canvas presentation until reset, device loss, or a later failed draw; later WBGF packets update the CPU shadow without overwriting active 3D.
 There is no v1 guest-release or mixed-composition opcode.
 
-VirGL would additionally require a Gallium state machine and TGSI-to-WGSL translator.
+Full VirGL would additionally require a Gallium state machine and TGSI-to-WGSL translator.
 Venus requires blob/host-visible resources and host Vulkan external memory primitives that WebGPU does not expose; neither name is used for the private capset.
 
 ## Known transport limitations
 
 - Both queues are exposed, but only control-queue commands are implemented; `UPDATE_CURSOR` and `MOVE_CURSOR` on the cursor queue return an error.
 - Feature-selection/status registers are exposed, but guest feature values are not retained or validated and command behavior is not gated on negotiated bits or `FEATURES_OK` yet.
-- The private WBG3 draw is the only 3D operation; there are no VirGL/Venus resource, shader, state, blob, host-visible-memory, or general compute APIs.
+- WBG3 and the narrow capset-1 clear are the only 3D operations; there are no general VirGL/Venus shader, state, blob, host-visible-memory, or compute APIs.
 
 ## Invariants
 
@@ -126,7 +126,7 @@ Venus requires blob/host-visible resources and host Vulkan external memory primi
   applied in order; VM replacement/reset rejects packets from an older VM.
 - VM replacement or a guest VirtIO-GPU reset changes a host-observed generation
   and invalidates queued frames; stale work cannot retain or reclaim the canvas.
-- If initial WebGPU setup fails before the canvas is claimed, 2D uses Canvas2D; WBG3 has no Canvas2D fallback.
+- If initial WebGPU setup fails before the canvas is claimed, 2D uses Canvas2D; neither 3D path has a Canvas2D fallback.
   After WebGPU claims the canvas, it cannot switch to Canvas2D. Device loss preserves the CPU shadow framebuffer and attempts reconstruction.
   If reconstruction fails, the VM continues and later frames trigger retries while presentation remains unavailable.
 

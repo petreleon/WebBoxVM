@@ -57,6 +57,10 @@ impl VirtioGpu {
         let pending = self.pending_3d.remove(index);
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");
+        let success = success
+            && pending
+                .effect
+                .is_none_or(|effect| self.apply_3d_effect(effect));
         let response_type = if success {
             RESP_OK_NODATA
         } else {

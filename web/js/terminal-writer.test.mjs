@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { TerminalWriter } from "./terminal-writer.js?v=20260903-webgpu-virtio-r4";
+import { TerminalWriter } from "./terminal-writer.js?v=20260903-virgl-capset1-r1";
 
 const previousDocument = globalThis.document;
 const previousRequestAnimationFrame = globalThis.requestAnimationFrame;

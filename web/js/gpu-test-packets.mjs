@@ -54,6 +54,24 @@ export function gpu3dPacket({
   return packet;
 }
 
+export function virglClearPacket({
+  canvasHeight = 768,
+  canvasWidth = 1024,
+  clearColor = [0.25, 0.5, 0.75, 1],
+  sequence = 7,
+  version = 1,
+} = {}) {
+  const packet = new Uint8Array(36);
+  packet.set([0x56, 0x47, 0x43, 0x31]);
+  const view = new DataView(packet.buffer);
+  view.setUint32(4, version, true);
+  view.setUint32(8, sequence, true);
+  view.setUint32(12, canvasWidth, true);
+  view.setUint32(16, canvasHeight, true);
+  writeFloats(view, 20, clearColor);
+  return packet;
+}
+
 function writeFloats(view, offset, values) {
   values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
 }

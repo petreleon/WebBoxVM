@@ -5,7 +5,7 @@ import {
   installedDiskBenchmarkFromLocation,
   normalizeExtraBootargs,
   stagedSmpRequestedFromLocation,
-} from "./boot-args.js?v=20260903-webgpu-virtio-r4";
+} from "./boot-args.js?v=20260903-virgl-capset1-r1";
 
 test("normalizeExtraBootargs trims and collapses whitespace", () => {
   assert.equal(normalizeExtraBootargs("  ftrace_filter=close   quiet "), "ftrace_filter=close quiet");

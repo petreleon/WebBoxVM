@@ -1,4 +1,4 @@
-import { installTextProbe } from "./uart-probe.js?v=20260903-webgpu-virtio-r4";
+import { installTextProbe } from "./uart-probe.js?v=20260903-virgl-capset1-r1";
 
 const RENDER_TAIL_LIMIT = 32768;
 

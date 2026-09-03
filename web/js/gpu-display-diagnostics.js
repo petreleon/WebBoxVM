@@ -10,6 +10,7 @@ export class GpuDisplayDiagnostics {
   #lastSequence;
   #status;
   #threeD = "inactive";
+  #threeDCapsetId = "";
   #threeDDraws = 0;
   #threeDErrors = 0;
   #threeDLastError = "";
@@ -33,7 +34,7 @@ export class GpuDisplayDiagnostics {
     if (state === "ready") this.#backend = "webgpu";
     else if (state === "recovering") {
       this.#backend = "recovering";
-      if (this.#threeD === "webgpu-experimental-capset") this.#threeD = "recovering";
+      if (this.#threeD.startsWith("webgpu-")) this.#threeD = "recovering";
     } else if (state === "initializing") this.#backend = "initializing";
     else if (state === "unavailable") this.#backend = "unavailable";
     else if (state === "idle") {
@@ -72,9 +73,10 @@ export class GpuDisplayDiagnostics {
 
   drew3d(frame) {
     this.#threeDDraws += 1;
-    this.#threeD = "webgpu-experimental-capset";
+    this.#threeD = frame.acceleration;
+    this.#threeDCapsetId = String(frame.capsetId);
     this.status(
-      `WebGPU experimental guest 3D · ${frame.canvasWidth}×${frame.canvasHeight} · sequence ${frame.sequence}`,
+      `WebGPU ${frame.presentationLabel} · ${frame.canvasWidth}×${frame.canvasHeight} · sequence ${frame.sequence}`,
     );
   }
 
@@ -98,6 +100,7 @@ export class GpuDisplayDiagnostics {
     this.#threeDDraws = 0;
     this.#threeDErrors = 0;
     this.#threeDLastError = "";
+    this.#threeDCapsetId = "";
     this.#lastSequence = undefined;
     this.#lastError = "";
     this.#threeD = "inactive";
@@ -119,7 +122,7 @@ export class GpuDisplayDiagnostics {
       probe.dataset.backend = this.#backend;
       probe.dataset.accelerationPath = "2d-scanout";
       probe.dataset.threeDAcceleration = this.#threeD;
-      probe.dataset.threeDCapsetId = "7";
+      probe.dataset.threeDCapsetId = this.#threeDCapsetId;
       probe.dataset.adapter = this.#adapter;
       probe.dataset.fallbackAdapter = this.#adapter === "fallback" ? "true" :
         this.#adapter === "non-fallback" ? "false" : "unknown";

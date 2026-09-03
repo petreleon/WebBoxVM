@@ -31,7 +31,7 @@ impl VirtioGpu {
             0x0b8 | 0x0bc => 0,
             0x0fc | 0x100 | 0x104 => 0,
             0x108 => 1,
-            0x10c => 1,
+            0x10c => super::three_d::CAPSET_COUNT as u64,
             _ => 0,
         };
         mask_read(value, size)

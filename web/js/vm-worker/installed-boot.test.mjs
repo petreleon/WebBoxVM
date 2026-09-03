@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260903-webgpu-virtio-r4";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260903-virgl-capset1-r1";
 
 test("installed boot boundary passes the successful preflight unchanged", () => {
   const calls = [];

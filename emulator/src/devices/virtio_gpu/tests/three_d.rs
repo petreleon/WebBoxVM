@@ -8,7 +8,7 @@ use super::{context_create, header, response_type, submit_3d, wbg3_packet};
 use crate::memory::PhysicalMemory;
 
 #[test]
-fn features_and_private_capset_are_advertised_with_exact_structures() {
+fn features_and_private_capset_remain_advertised_with_exact_structures() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_eq!(
@@ -17,10 +17,10 @@ fn features_and_private_capset_are_advertised_with_exact_structures() {
     );
     gpu.write(&mut mem, 0x014, 1, 4);
     assert_eq!(gpu.read(0x010, 4), Some(1));
-    assert_eq!(gpu.read(0x10c, 4), Some(1));
+    assert_eq!(gpu.read(0x10c, 4), Some(2));
 
     let mut info = header(CMD_GET_CAPSET_INFO);
-    push_u32(&mut info, 0);
+    push_u32(&mut info, 1);
     push_u32(&mut info, 0);
     let response = gpu.execute_command(&mem, &info);
     assert_eq!(response_type(&response), RESP_OK_CAPSET_INFO);
@@ -43,7 +43,7 @@ fn features_and_private_capset_are_advertised_with_exact_structures() {
 }
 
 #[test]
-fn contexts_are_capset_seven_only_and_destroy_is_checked() {
+fn private_contexts_remain_checked_and_unknown_capsets_reject() {
     let mut gpu = VirtioGpu::new();
     let mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mem, &context_create(), RESP_OK_NODATA);
