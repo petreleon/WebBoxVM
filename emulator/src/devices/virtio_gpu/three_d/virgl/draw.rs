@@ -3,19 +3,21 @@ mod packet;
 mod raster;
 mod solid;
 mod texture;
+mod vertices;
 use material::material;
 pub(in crate::devices::virtio_gpu::three_d) use packet::packet;
+use vertices::resolve;
 
 use super::{DrawState, VirglContext};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
-use crate::devices::virtio_gpu::resource::FORMAT_R32G32B32A32_FLOAT;
 
 pub(super) const TRIANGLE_VERTICES: u32 = 3;
 
 #[derive(Clone, Copy)]
 pub(super) struct DrawCall {
     pub start: u32,
+    pub indexed: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -66,7 +68,7 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        let vertices = vertices(self, context, resource_id, state, call, vertex_bytes)?;
+        let vertices = resolve(self, context, resource_id, state, call, vertex_bytes)?;
         if !raster::valid(&vertices, &material) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
@@ -121,45 +123,4 @@ impl VirtioGpu {
         self.add_damage(resource_id, rect);
         true
     }
-}
-
-fn vertices(
-    gpu: &VirtioGpu,
-    context: &VirglContext,
-    target: u32,
-    state: DrawState,
-    call: DrawCall,
-    vertex_bytes: usize,
-) -> Result<Vec<u8>, u32> {
-    let binding = state.vertex_buffer;
-    let source = gpu
-        .resources
-        .get(&binding.resource)
-        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-    let valid = binding.stride == vertex_bytes as u32
-        && binding.offset % vertex_bytes as u32 == 0
-        && state.vertex_layout.draw_stride() == Some(vertex_bytes as u32)
-        && source.is_buffer()
-        && source.format == FORMAT_R32G32B32A32_FLOAT
-        && context.is_attached(target)
-        && context.is_attached(binding.resource)
-        && gpu.is_virgl_resource(target)
-        && gpu.is_virgl_resource(binding.resource);
-    if !valid {
-        return Err(RESP_ERR_INVALID_PARAMETER);
-    }
-    let start = usize::try_from(call.start).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
-    let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
-    let bytes = (TRIANGLE_VERTICES as usize)
-        .checked_mul(vertex_bytes)
-        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-    let start = start
-        .checked_mul(vertex_bytes)
-        .and_then(|value| value.checked_add(offset))
-        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-    source
-        .pixels
-        .get(start..start.checked_add(bytes).ok_or(RESP_ERR_INVALID_PARAMETER)?)
-        .map(ToOwned::to_owned)
-        .ok_or(RESP_ERR_INVALID_PARAMETER)
 }

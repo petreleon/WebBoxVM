@@ -1,5 +1,6 @@
 pub(super) mod blend;
 pub(super) mod draw;
+pub(super) mod index;
 pub(super) mod sampler;
 pub(super) mod shader;
 pub(super) mod state;
@@ -47,6 +48,7 @@ pub(super) enum Command {
     Draw(DrawCall),
     Blend(blend::Command),
     Vertex(vertex::Command),
+    Index(index::Command),
     Sampler(sampler::Command),
     Shader(shader::Command),
     State(state::Command),
@@ -81,8 +83,7 @@ pub(super) fn decode_stream(input: &[u8]) -> Option<Vec<Command>> {
 }
 
 fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
-    let command = header as u8;
-    let object = (header >> 8) as u8;
+    let (command, object) = (header as u8, (header >> 8) as u8);
     match (command, object, words) {
         (CMD_NOP, 0, []) => Some(Command::Nop),
         (CMD_CREATE_OBJECT, VIRGL_OBJECT_SURFACE, [handle, resource, format, level, layers]) => {
@@ -169,6 +170,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         })),
         _ => vertex::decode(command, object, words)
             .map(Command::Vertex)
+            .or_else(|| index::decode(command, object, words).map(Command::Index))
             .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))
             .or_else(|| blend::decode(command, object, words).map(Command::Blend))

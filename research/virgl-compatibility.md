@@ -17,10 +17,10 @@ with one viewport/scissor.
 | --- | --- | --- |
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
 | Texture resources | Packed 2D render targets and two concurrently bound B8G8R8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
-| Buffer resources | R8 raw storage and R32G32B32A32_FLOAT vertex buffers | R8 is not a renderable vertex format |
+| Buffer resources | R8 raw vertex/index storage and R32G32B32A32_FLOAT vertex buffers | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
-| VirGL stream | Surface/framebuffer, canonical TGSI, vertex/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
+| VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
 | Presentation | Clear, solid, nearest-texture, or fixed texture-multiply triangle through WebGPU | No multi-draw composition, depth, arbitrary blending, or filtering |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
@@ -37,13 +37,13 @@ feature level is advertised.
 - texture-2D target; one advertised packed color format and render-target bind,
   or B8G8R8A8 with sampler-view or render-and-sampler bind; depth/array one,
   level zero, zero or one sample, and no flags;
-- `PIPE_BUFFER` target; R8 or R32G32B32A32_FLOAT; exactly vertex-buffer bind;
-  width in bytes; height/depth/array one; level/sample zero; no flags.
+- `PIPE_BUFFER` target; R32G32B32A32_FLOAT with exactly vertex-buffer bind, or
+  R8 with exactly vertex- or index-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
 
-R8 buffers remain useful for standard transfer, readback, and byte-copy tests.
-A solid draw requires an attached format-31 VBO at stride 16. A textured draw
-uses stride 24 with type-5 `VERTEX_ELEMENTS`: format 31 position at offset zero
-and format 29 UV at offset 16; both use divisor zero and VBO slot zero.
+R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4
+and a nonempty aligned byte offset. Solid draws require attached format-31 VBOs
+at stride 16; textured draws use stride 24 with type-5 `VERTEX_ELEMENTS`:
+format-31 position at offset zero and format-29 UV at offset 16, both divisor zero in VBO slot zero.
 
 Type-4 shader objects accept only canonical NUL-terminated TGSI text: the
 solid passthrough/constant-RGBA pair; a one-2D-`TEX` pair; or a two-2D-`TEX`,
@@ -82,26 +82,26 @@ two slots. Type 8, rather than type 7, is the standard surface object type.
 
 The guest stream uses ordinary VirGL headers, object types 1, 2, 4, 5, 6, 7,
 and 8; `SET_FRAMEBUFFER_STATE`, `SET_VIEWPORT_STATE`, `SET_SCISSOR_STATE`,
-generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, command 29
-`BIND_SHADER`, command 10 sampler-view binding, command 18 sampler-state
-binding, and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context
-mutations occur on a clone and commit only after the complete stream validates.
+generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, command 11
+`SET_INDEX_BUFFER`, command 29 `BIND_SHADER`, commands 10/18 sampler bindings,
+and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
+occur on a clone and commit only after the complete stream validates.
 
-The single accepted draw has the standard 12-word `DRAW_VBO` payload with a
-non-indexed count of three, one instance, `PIPE_PRIM_TRIANGLES`, zero bias,
-zero start instance, no primitive restart, and no stream-output count. The
-non-indexed restart and min/max hint fields are accepted but do not influence
-the bounded renderer. It must follow one clear in the same submission and use
-the same full current scanout framebuffer target. Clear/copy and draw/copy
-mixtures, a second clear, or a second draw fail transactionally.
+The accepted standard 12-word `DRAW_VBO` has count three, one instance,
+`PIPE_PRIM_TRIANGLES`, zero bias/start-instance/restart, and no stream-output count.
+Its indexed field is zero for consecutive VBO records, or one for a command-11
+binding that resolves exactly three little-endian u16 or u32 indices from `start`.
+Restart and min/max hint fields are accepted but do not influence the bounded
+renderer. Each draw follows one clear in the same submission against the current
+full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots exactly three positions from the attached
-VBO. They must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and
-form a nondegenerate triangle. Texture routes additionally snapshot three finite
-UVs in `[-8, 8]` and one or two attached B8G8R8A8 sources, each limited to
-64×64; feedback into the target is rejected. Later buffer, texture, or state mutation
-cannot alter queued browser work. Solid color and sampled texels use the
-required source-over blend object.
+At draw validation Rust snapshots exactly three positions from the attached VBO,
+directly for non-indexed draws or through three bounded index-buffer lookups. They
+must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and form a
+nondegenerate triangle. Texture routes additionally snapshot three finite UVs in
+`[-8, 8]` and one or two attached B8G8R8A8 sources, each limited to 64×64;
+feedback into the target is rejected. Later buffer, texture, or state mutation cannot
+alter queued browser work. Solid color and sampled texels use the required source-over blend object.
 
 After validation Rust sends a private `VGD1` envelope to the browser. `VGD1`
 is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
@@ -128,7 +128,7 @@ from private capset-7 WBG3 geometry.
 ## What this does not establish
 
 This slice does not establish Mesa initialization, an OpenGL context, arbitrary
-Gallium/TGSI, shader compilation, clipping, indexed or instanced draws,
+Gallium/TGSI, shader compilation, clipping, unbounded or instanced draws,
 multiple vertex attributes beyond the fixed position/UV layout, arbitrary
 sampling/filtering or blending, depth/stencil, multi-target rendering, general
 readback, or a broad VirGL renderer.
@@ -139,10 +139,10 @@ that this capset deliberately does not advertise.
 
 ## Validation retained in the repository
 
-Rust tests prove the capset bits, transactional no-clear rejection, exact
-source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4 `VGD1`
-payloads, one- and two-texture snapshot isolation, viewport/scissor bounds, deferred
-acknowledgment, CPU clipped source-over raster results, and `WBGF` damage.
+Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
+exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4 `VGD1`
+payloads, u16/u32 index resolution, one- and two-texture snapshot isolation, deferred
+acknowledgment, CPU clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed state rejection, exact
 WebGPU blend/sampler descriptors, one/two padded BGRA uploads, viewport/scissor calls,
 cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
@@ -157,9 +157,9 @@ deferred fence; and reads the blended `143,160,48,255` center plus the clear
 outside-scissor pixel back through the Linux driver. It then creates an attached
 B8G8R8A8 sampler-view texture and 24-byte position/UV VBO, validates schema-3,
 completes it, and reads exact BGRA `10,20,30,255` at the center. Dual-texture
-multiplication is presently covered by Rust stream and browser WebGPU tests,
-not that native guest harness. It does not claim native Mesa, a native OpenGL
-context, or browser WebGPU execution from that harness.
+multiplication and indexed `DRAW_VBO` are covered by Rust stream tests; the
+former also has browser WebGPU validation, while the native guest harness remains
+non-indexed. It does not claim native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 

@@ -1,6 +1,7 @@
 mod blend;
 mod clear;
 mod decode;
+mod index;
 mod sampler;
 mod shader;
 mod state;
@@ -85,6 +86,7 @@ impl VirtioGpu {
                 }
                 Command::Blend(command) => blend::apply(&mut context, command)?,
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
+                Command::Index(command) => index::apply(self, &mut context, command)?,
                 Command::Sampler(command) => sampler::apply(self, &mut context, command)?,
                 Command::Shader(command) => shader::apply(&mut context, command)?,
                 Command::State(command) => state::apply(&mut context, command)?,

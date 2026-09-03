@@ -4,7 +4,9 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{
     RESP_ERR_INVALID_PARAMETER, RESP_ERR_INVALID_RESOURCE_ID,
 };
-use crate::devices::virtio_gpu::resource::{FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT};
+use crate::devices::virtio_gpu::resource::{
+    BufferBind, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT,
+};
 
 pub(super) fn apply(
     gpu: &VirtioGpu,
@@ -60,7 +62,7 @@ fn set_buffer(
     if !shape
         || !context.is_attached(binding.resource)
         || !gpu.is_virgl_resource(binding.resource)
-        || !resource.is_buffer()
+        || !resource.is_buffer_bind(BufferBind::Vertex)
         || offset >= resource.pixels.len()
     {
         return Err(RESP_ERR_INVALID_PARAMETER);

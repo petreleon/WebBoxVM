@@ -20,6 +20,12 @@ enum ResourceKind {
     Buffer,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum BufferBind {
+    Vertex,
+    Index,
+}
+
 #[derive(Debug, Clone)]
 pub(super) struct GpuResource {
     pub format: u32,
@@ -29,6 +35,7 @@ pub(super) struct GpuResource {
     pub backing: Vec<BackingEntry>,
     kind: ResourceKind,
     sampleable: bool,
+    buffer_bind: Option<BufferBind>,
 }
 
 impl GpuResource {
@@ -68,10 +75,11 @@ impl GpuResource {
             backing: Vec::new(),
             kind: ResourceKind::ColorTexture2d,
             sampleable,
+            buffer_bind: None,
         })
     }
 
-    pub fn new_buffer(format: u32, width: u32) -> Option<Self> {
+    pub(super) fn new_buffer(format: u32, width: u32, buffer_bind: BufferBind) -> Option<Self> {
         let len = Self::buffer_byte_len(width)?;
         Some(Self {
             format,
@@ -81,6 +89,7 @@ impl GpuResource {
             backing: Vec::new(),
             kind: ResourceKind::Buffer,
             sampleable: false,
+            buffer_bind: Some(buffer_bind),
         })
     }
 
@@ -96,6 +105,10 @@ impl GpuResource {
 
     pub fn is_buffer(&self) -> bool {
         self.kind == ResourceKind::Buffer
+    }
+
+    pub(super) fn is_buffer_bind(&self, bind: BufferBind) -> bool {
+        self.is_buffer() && self.buffer_bind == Some(bind)
     }
 
     pub fn is_sampled(&self) -> bool {

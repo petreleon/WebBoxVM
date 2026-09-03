@@ -1,5 +1,6 @@
 mod blend;
 mod draw;
+mod index;
 mod pipeline;
 mod rasterizer;
 mod sampler;
@@ -14,6 +15,7 @@ use pipeline::PipelineState;
 pub(super) use pipeline::Viewport;
 use shader::PendingShader;
 
+pub(in crate::devices::virtio_gpu) use index::IndexBuffer;
 pub(super) use vertex::VertexLayout;
 use vertex::VertexState;
 pub(in crate::devices::virtio_gpu) use vertex::{VertexBuffer, VertexElement};
@@ -26,6 +28,7 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     surfaces: HashMap<u32, u32>,
     pipeline: PipelineState,
     vertex: VertexState,
+    index_buffer: Option<IndexBuffer>,
     shaders: HashMap<u32, Shader>,
     pending_vertex_shader: Option<PendingShader>,
     pending_fragment_shader: Option<PendingShader>,
@@ -42,6 +45,7 @@ impl VirglContext {
             surfaces: HashMap::new(),
             pipeline: PipelineState::new(),
             vertex: VertexState::new(),
+            index_buffer: None,
             shaders: HashMap::new(),
             pending_vertex_shader: None,
             pending_fragment_shader: None,
@@ -67,6 +71,7 @@ impl VirglContext {
         self.surfaces.retain(|_, resource| *resource != resource_id);
         self.remove_sampler_resource(resource_id);
         self.remove_vertex_resource(resource_id);
+        self.remove_index_resource(resource_id);
         true
     }
 

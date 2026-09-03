@@ -12,7 +12,9 @@ use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
 use context::DrawState;
-pub(in crate::devices::virtio_gpu) use context::{VertexBuffer, VertexElement, VirglContext};
+pub(in crate::devices::virtio_gpu) use context::{
+    IndexBuffer, VertexBuffer, VertexElement, VirglContext,
+};
 pub(super) use copy::CopyRegion;
 pub(super) use draw::DrawMaterial;
 use draw::DrawWork;

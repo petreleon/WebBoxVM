@@ -5,9 +5,27 @@ const PIPE_PRIM_TRIANGLES: u32 = 4;
 
 pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<DrawCall> {
     match (command, object, words) {
-        (CMD_DRAW_VBO, 0, [start, 3, PIPE_PRIM_TRIANGLES, 0, 1, 0, 0, 0, _, _, _, 0]) => {
-            Some(DrawCall { start: *start })
-        }
+        (
+            CMD_DRAW_VBO,
+            0,
+            [
+                start,
+                3,
+                PIPE_PRIM_TRIANGLES,
+                indexed,
+                1,
+                0,
+                0,
+                0,
+                _,
+                _,
+                _,
+                0,
+            ],
+        ) if *indexed <= 1 => Some(DrawCall {
+            start: *start,
+            indexed: *indexed != 0,
+        }),
         _ => None,
     }
 }

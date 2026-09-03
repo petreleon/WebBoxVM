@@ -1,6 +1,6 @@
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::{
-    FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource,
+    BufferBind, FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource,
     total_resource_limit,
 };
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
@@ -11,6 +11,7 @@ const VIRGL_BIND_RENDER_TARGET: u32 = 1 << 1;
 const VIRGL_BIND_SAMPLER_VIEW: u32 = 1 << 3;
 const VIRGL_BIND_RENDER_AND_SAMPLE: u32 = VIRGL_BIND_RENDER_TARGET | VIRGL_BIND_SAMPLER_VIEW;
 const VIRGL_BIND_VERTEX_BUFFER: u32 = 1 << 4;
+const VIRGL_BIND_INDEX_BUFFER: u32 = 1 << 5;
 
 impl VirtioGpu {
     pub(in crate::devices::virtio_gpu) fn create_virgl_resource(&mut self, input: &[u8]) -> u32 {
@@ -29,10 +30,10 @@ impl VirtioGpu {
             color_texture(target, format, bind, depth, array, level, samples, flags)
         {
             GpuResource::new_texture(format, width, height, sampleable)
-        } else if vertex_buffer(
+        } else if let Some(buffer_bind) = buffer_bind(
             target, format, bind, height, depth, array, level, samples, flags,
         ) {
-            GpuResource::new_buffer(format, width)
+            GpuResource::new_buffer(format, width, buffer_bind)
         } else {
             return RESP_ERR_INVALID_PARAMETER;
         };
@@ -79,7 +80,7 @@ fn color_texture(
         .flatten()
 }
 
-fn vertex_buffer(
+fn buffer_bind(
     target: u32,
     format: u32,
     bind: u32,
@@ -89,16 +90,22 @@ fn vertex_buffer(
     level: u32,
     samples: u32,
     flags: u32,
-) -> bool {
-    target == VIRGL_TARGET_BUFFER
-        && matches!(format, FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT)
-        && bind == VIRGL_BIND_VERTEX_BUFFER
+) -> Option<BufferBind> {
+    (target == VIRGL_TARGET_BUFFER
         && height == 1
         && depth == 1
         && array == 1
         && level == 0
         && samples == 0
-        && flags == 0
+        && flags == 0)
+        .then_some(match (format, bind) {
+            (FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT, VIRGL_BIND_VERTEX_BUFFER) => {
+                Some(BufferBind::Vertex)
+            }
+            (FORMAT_R8_UNORM, VIRGL_BIND_INDEX_BUFFER) => Some(BufferBind::Index),
+            _ => None,
+        })
+        .flatten()
 }
 
 fn decode_create(input: &[u8]) -> Option<(u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32)> {
