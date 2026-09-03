@@ -41,7 +41,7 @@ feature level is advertised.
   R8 with exactly vertex- or index-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
 
 R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4
-and a nonempty aligned byte offset. Solid draws require attached format-31 VBOs
+and accepts aligned byte offsets, including nonzero values. Solid draws require attached format-31 VBOs
 at stride 16; textured draws use stride 24 with type-5 `VERTEX_ELEMENTS`:
 format-31 position at offset zero and format-29 UV at offset 16, both divisor zero in VBO slot zero.
 
@@ -141,7 +141,7 @@ that this capset deliberately does not advertise.
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4 `VGD1`
-payloads, u16/u32 index resolution, one- and two-texture snapshot isolation, deferred
+payloads, nonzero-offset u16/u32 index resolution, one- and two-texture snapshot isolation, deferred
 acknowledgment, CPU clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed state rejection, exact
 WebGPU blend/sampler descriptors, one/two padded BGRA uploads, viewport/scissor calls,
@@ -150,9 +150,9 @@ cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for capset discovery, R8 buffer transfer/copy,
 color transfer/readback, and the standard clear/fence path. It then creates
-the exact R32G32B32A32 VBO plus a six-byte R8 index buffer, canonical TGSI state,
+the exact R32G32B32A32 VBO plus an eight-byte R8 index buffer, canonical TGSI state,
 exact type-1 source-over blend and type-2 scissor-rasterizer objects, viewport/scissor,
-command-11 `SET_INDEX_BUFFER`, and indexed `DRAW_VBO`; it validates the schema-2
+command-11 `SET_INDEX_BUFFER` at byte offset two, and indexed `DRAW_VBO`; it validates the schema-2
 `VGD1` envelope with the guest's `[2,1,0]` reordered vertices, resolves the
 deferred fence, and reads the blended `143,160,48,255` center plus the clear
 outside-scissor pixel back through the Linux driver. It then creates an attached

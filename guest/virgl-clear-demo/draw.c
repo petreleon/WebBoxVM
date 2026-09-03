@@ -103,7 +103,7 @@ static u32 triangle_stream(u32 *words, u32 triangle, u32 index)
     words[next++] = VIRGL_HEADER(11, 0, 3);
     words[next++] = index;
     words[next++] = 2;
-    words[next++] = 0;
+    words[next++] = 2;
     words[next++] = VIRGL_HEADER(7, 0, 8);
     words[next++] = VIRGL_CLEAR_COLOR0;
     words[next++] = 0x3e800000u;

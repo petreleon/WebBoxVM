@@ -21,10 +21,10 @@ the scanout resource through KMS's XRGB primary plane, submits standard
 `OBJECT_SURFACE`, `SET_FRAMEBUFFER_STATE`, and generic `CLEAR` commands, waits
 for the resource fence, then obtains and checks two clear pixels through
 `DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST`. Finally it creates a 48-byte
-`R32G32B32A32_FLOAT` vertex buffer and six-byte R8 index buffer, uploads three
-fixed clip-space vertices plus little-endian `[2,1,0]` indices, and submits one
+`R32G32B32A32_FLOAT` vertex buffer and eight-byte R8 index buffer, uploads three
+fixed clip-space vertices plus a two-byte pad then little-endian `[2,1,0]` indices, and submits one
 standard type-1 source-over blend object, type-2 scissor rasterizer, type-4
-shader objects, type-5 vertex elements, shader binds, command-11 index binding,
+shader objects, type-5 vertex elements, shader binds, command-11 index binding at byte offset two,
 one viewport/scissor, a generic clear, and one indexed `DRAW_VBO`. It waits again
 and requires the scanout center pixel to read back as source-over BGRA
 (`143,160,48,255`), while a point inside the viewport but outside the scissor remains clear. It then

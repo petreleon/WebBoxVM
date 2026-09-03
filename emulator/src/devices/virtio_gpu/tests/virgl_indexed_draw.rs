@@ -9,9 +9,13 @@ fn standard_indexed_draw_vbo_resolves_bounded_u16_and_u32_triangles() {
     attach_index_buffer(&mut gpu, &mut mem);
     configure_draw(&mut gpu, &mut mem);
     upload_vertices(&mut gpu);
-    for (size, data) in [
-        (2, &[2, 0, 1, 0, 0, 0][..]),
-        (4, &[2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0][..]),
+    for (size, offset, data) in [
+        (2, 2, &[0xa5, 0x5a, 2, 0, 1, 0, 0, 0][..]),
+        (
+            4,
+            4,
+            &[0xa5, 0x5a, 0x55, 0xaa, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0][..],
+        ),
     ] {
         gpu.resources
             .get_mut(&INDEX)
@@ -21,7 +25,7 @@ fn standard_indexed_draw_vbo_resolves_bounded_u16_and_u32_triangles() {
         assert_response(
             &mut gpu,
             &mut mem,
-            &submit(&index_buffer(INDEX, size, 0)),
+            &submit(&index_buffer(INDEX, size, offset)),
             RESP_OK_NODATA,
         );
         let mut command = clear([0.1, 0.2, 0.3, 1.0]);
@@ -43,7 +47,7 @@ fn standard_indexed_draw_vbo_resolves_bounded_u16_and_u32_triangles() {
         &submit(&invalid),
         RESP_ERR_INVALID_PARAMETER,
     );
-    assert_eq!(binding(&gpu), Some((4, 0, INDEX)));
+    assert_eq!(binding(&gpu), Some((4, 4, INDEX)));
     detach(&mut gpu, &mut mem, INDEX);
     assert_eq!(binding(&gpu), None);
 }
@@ -55,7 +59,7 @@ fn index_buffer_binding_rejects_bad_shapes_transactionally() {
     assert_response(
         &mut gpu,
         &mut mem,
-        &submit(&index_buffer(INDEX, 2, 0)),
+        &submit(&index_buffer(INDEX, 2, 2)),
         RESP_OK_NODATA,
     );
     for (words, expected) in [
@@ -67,7 +71,7 @@ fn index_buffer_binding_rejects_bad_shapes_transactionally() {
     ] {
         assert_response(&mut gpu, &mut mem, &submit(&words), expected);
     }
-    assert_eq!(binding(&gpu), Some((2, 0, INDEX)));
+    assert_eq!(binding(&gpu), Some((2, 2, INDEX)));
     assert_response(
         &mut gpu,
         &mut mem,
@@ -92,7 +96,7 @@ fn configure_draw(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::Ph
 
 fn attach_index_buffer(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {
     let mut create = header(CMD_RESOURCE_CREATE_3D);
-    for value in [INDEX, 0, 64, 1 << 5, 12, 1, 1, 1, 0, 0, 0, 0] {
+    for value in [INDEX, 0, 64, 1 << 5, 16, 1, 1, 1, 0, 0, 0, 0] {
         push_u32(&mut create, value);
     }
     assert_response(gpu, mem, &create, RESP_OK_NODATA);

@@ -26,7 +26,7 @@ int virgl_create_index_buffer(long fd, u32 *bo_handle, u32 *resource_handle)
 
 int virgl_upload_index_buffer(long fd, u32 bo_handle)
 {
-    static const u8 indices[VIRGL_INDEX_BUFFER_BYTES] = {2, 0, 1, 0, 0, 0};
+    static const u8 indices[VIRGL_INDEX_BUFFER_BYTES] = {0xa5, 0x5a, 2, 0, 1, 0, 0, 0};
     struct drm_virtgpu_3d_transfer_to_host transfer = {
         .bo_handle = bo_handle,
         .box = {.w = VIRGL_INDEX_BUFFER_BYTES, .h = 1, .d = 1},
