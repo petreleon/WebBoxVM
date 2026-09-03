@@ -4,7 +4,7 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{
     RESP_ERR_INVALID_PARAMETER, RESP_ERR_INVALID_RESOURCE_ID,
 };
-use crate::devices::virtio_gpu::resource::FORMAT_R8_UNORM;
+use crate::devices::virtio_gpu::resource::{FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT};
 
 pub(super) fn apply(
     gpu: &VirtioGpu,
@@ -29,7 +29,7 @@ fn create(context: &mut VirglContext, handle: u32, element: VertexElement) -> Re
     let valid = element.offset == 0
         && element.divisor == 0
         && element.buffer_index == 0
-        && element.format == FORMAT_R8_UNORM;
+        && matches!(element.format, FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT);
     if !valid || !context.create_vertex_elements(handle, element) {
         return Err(RESP_ERR_INVALID_PARAMETER);
     }
@@ -57,11 +57,14 @@ fn set_buffer(
         .get(&binding.resource)
         .ok_or(RESP_ERR_INVALID_RESOURCE_ID)?;
     let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
-    if binding.stride != 1
+    let shape = matches!(
+        (binding.stride, resource.format),
+        (1, FORMAT_R8_UNORM) | (16, FORMAT_R32G32B32A32_FLOAT)
+    );
+    if !shape
         || !context.is_attached(binding.resource)
         || !gpu.is_virgl_resource(binding.resource)
         || !resource.is_buffer()
-        || resource.format != FORMAT_R8_UNORM
         || offset >= resource.pixels.len()
     {
         return Err(RESP_ERR_INVALID_PARAMETER);

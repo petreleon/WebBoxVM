@@ -1,5 +1,5 @@
-import { versionedUrl } from "../asset-version.js?v=20260903-virgl-capset1-r1";
-import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260903-virgl-capset1-r1";
+import { versionedUrl } from "../asset-version.js?v=20260903-virgl-capset1-r2";
+import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260903-virgl-capset1-r2";
 
 const DEFAULT_STOP_TIMEOUT_MS = 1_000;
 

@@ -4,8 +4,8 @@ import { test } from "node:test";
 import {
   checkWebAssetGraph,
   findRelativeModuleSpecifiers,
-} from "../../scripts/stamp_web_asset_version.mjs?v=20260903-virgl-capset1-r1";
-import { WEBBOXVM_ASSET_VERSION, versionedUrl } from "./asset-version.js?v=20260903-virgl-capset1-r1";
+} from "../../scripts/stamp_web_asset_version.mjs?v=20260903-virgl-capset1-r2";
+import { WEBBOXVM_ASSET_VERSION, versionedUrl } from "./asset-version.js?v=20260903-virgl-capset1-r2";
 
 test("versionedUrl stamps the shared asset version", () => {
   const url = versionedUrl("./vm-worker.js", "http://localhost/app.js");

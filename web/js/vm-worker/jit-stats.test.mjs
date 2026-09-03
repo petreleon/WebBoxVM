@@ -6,8 +6,8 @@ import {
   recordJitFallback,
   recordJitReject,
   recordJitSkip,
-} from "./jit-stats.js?v=20260903-virgl-capset1-r1";
-import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r1";
+} from "./jit-stats.js?v=20260903-virgl-capset1-r2";
+import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r2";
 
 test("jit reject logs include parsed current instruction snapshots", () => {
   resetTelemetry();

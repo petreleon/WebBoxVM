@@ -72,6 +72,29 @@ export function virglClearPacket({
   return packet;
 }
 
+export function virglDrawPacket({
+  canvasHeight = 768,
+  canvasWidth = 1024,
+  clearColor = [0.1, 0.2, 0.3, 1],
+  drawColor = [0, 1, 0, 1],
+  sequence = 7,
+  version = 1,
+  vertices = virglTriangle(),
+} = {}) {
+  const packet = new Uint8Array(104);
+  packet.set([0x56, 0x47, 0x44, 0x31]);
+  const view = new DataView(packet.buffer);
+  view.setUint32(4, version, true);
+  view.setUint32(8, sequence, true);
+  view.setUint32(12, canvasWidth, true);
+  view.setUint32(16, canvasHeight, true);
+  view.setUint32(20, 3, true);
+  writeFloats(view, 24, clearColor);
+  writeFloats(view, 40, drawColor);
+  writeFloats(view, 56, vertices);
+  return packet;
+}
+
 function writeFloats(view, offset, values) {
   values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
 }
@@ -86,4 +109,8 @@ function triangleVertices() {
     -0.5, -0.5, 0, 0, 1, 0, 1,
     0.5, -0.5, 0, 0, 0, 1, 1,
   ];
+}
+
+function virglTriangle() {
+  return [0, 0.75, 0, 1, -0.75, -0.75, 0, 1, 0.75, -0.75, 0, 1];
 }

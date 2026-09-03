@@ -1,5 +1,5 @@
-import { VcpuPool } from "./vcpu-pool.js?v=20260903-virgl-capset1-r1";
-import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r1";
+import { VcpuPool } from "./vcpu-pool.js?v=20260903-virgl-capset1-r2";
+import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r2";
 
 export async function prepareExecutionMode(
   numCores,

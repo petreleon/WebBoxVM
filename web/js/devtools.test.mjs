@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installWebboxVmDevtools } from "./devtools.js?v=20260903-virgl-capset1-r1";
+import { installWebboxVmDevtools } from "./devtools.js?v=20260903-virgl-capset1-r2";
 
 test("hidden devtools jit checkbox follows the safe default", () => {
   withFakeDocument((document) => {

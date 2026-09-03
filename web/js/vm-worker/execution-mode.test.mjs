@@ -3,8 +3,8 @@ import test, { afterEach } from "node:test";
 import {
   prepareExecutionMode,
   transitionToParallel,
-} from "./lifecycle.js?v=20260903-virgl-capset1-r1";
-import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r1";
+} from "./lifecycle.js?v=20260903-virgl-capset1-r2";
+import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r2";
 
 afterEach(() => {
   state.executionMode = "cooperative";

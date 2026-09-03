@@ -1,5 +1,7 @@
 use crate::devices::virtio_gpu::protocol::*;
-use crate::devices::virtio_gpu::resource::{FORMAT_R8_UNORM, GpuResource, total_resource_limit};
+use crate::devices::virtio_gpu::resource::{
+    FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource, total_resource_limit,
+};
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
 const VIRGL_TARGET_BUFFER: u32 = 0;
@@ -25,7 +27,7 @@ impl VirtioGpu {
         } else if vertex_buffer(
             target, format, bind, height, depth, array, level, samples, flags,
         ) {
-            GpuResource::new_buffer(width)
+            GpuResource::new_buffer(format, width)
         } else {
             return RESP_ERR_INVALID_PARAMETER;
         };
@@ -75,7 +77,7 @@ fn vertex_buffer(
     flags: u32,
 ) -> bool {
     target == VIRGL_TARGET_BUFFER
-        && format == FORMAT_R8_UNORM
+        && matches!(format, FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT)
         && bind == VIRGL_BIND_VERTEX_BUFFER
         && height == 1
         && depth == 1

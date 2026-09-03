@@ -1,6 +1,8 @@
 mod context;
 mod copy;
 mod copy_buffer;
+mod draw;
+mod effect;
 mod resource;
 mod shader;
 mod stream;
@@ -9,8 +11,11 @@ use super::{DeferredSubmit, Pending3d, Pending3dEffect};
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
-pub(in crate::devices::virtio_gpu) use context::{VertexBuffer, VertexElement, VirglContext};
+pub(in crate::devices::virtio_gpu) use context::{
+    DrawState, VertexBuffer, VertexElement, VirglContext,
+};
 pub(super) use copy::CopyRegion;
+use draw::DrawWork;
 pub(in crate::devices::virtio_gpu) use shader::ShaderKind;
 #[cfg(test)]
 #[allow(unused_imports)]
@@ -37,11 +42,63 @@ impl VirtioGpu {
         rect: Rect,
         color: [f32; 4],
     ) -> Result<DeferredSubmit, u32> {
+        let sequence = self.virgl_sequence()?;
+        let packet = clear_packet(sequence, rect.width, rect.height, color);
+        self.queue_virgl_packet(
+            header,
+            sequence,
+            packet,
+            Pending3dEffect::VirglClear {
+                context_id: header.ctx_id,
+                generation,
+                resource_id,
+                rect,
+                bgra: bgra(color),
+            },
+        )
+    }
+
+    pub(in crate::devices::virtio_gpu::three_d::virgl) fn queue_virgl_draw(
+        &mut self,
+        header: CtrlHeader,
+        generation: u32,
+        resource_id: u32,
+        rect: Rect,
+        clear: [f32; 4],
+        work: DrawWork,
+    ) -> Result<DeferredSubmit, u32> {
+        let sequence = self.virgl_sequence()?;
+        let packet = draw::packet(sequence, rect.width, rect.height, clear, &work);
+        self.queue_virgl_packet(
+            header,
+            sequence,
+            packet,
+            Pending3dEffect::VirglDraw {
+                context_id: header.ctx_id,
+                generation,
+                resource_id,
+                rect,
+                clear_bgra: bgra(clear),
+                draw_bgra: bgra(work.color),
+                vertices: work.vertices,
+            },
+        )
+    }
+
+    fn virgl_sequence(&mut self) -> Result<u32, u32> {
         if self.pending_3d.len() >= MAX_PENDING_3D_SUBMITS {
             return Err(RESP_ERR_OUT_OF_MEMORY);
         }
-        let sequence = self.allocate_3d_sequence().ok_or(RESP_ERR_OUT_OF_MEMORY)?;
-        let packet = clear_packet(sequence, rect.width, rect.height, color);
+        self.allocate_3d_sequence().ok_or(RESP_ERR_OUT_OF_MEMORY)
+    }
+
+    fn queue_virgl_packet(
+        &mut self,
+        header: CtrlHeader,
+        sequence: u32,
+        packet: Vec<u8>,
+        effect: Pending3dEffect,
+    ) -> Result<DeferredSubmit, u32> {
         if self
             .pending_3d_bytes
             .checked_add(packet.len())
@@ -55,44 +112,9 @@ impl VirtioGpu {
             bytes: packet.len(),
             packet: Some(packet),
             completion: None,
-            effect: Some(Pending3dEffect::VirglClear {
-                context_id: header.ctx_id,
-                generation,
-                resource_id,
-                rect,
-                bgra: bgra(color),
-            }),
+            effect: Some(effect),
         });
         Ok(DeferredSubmit { sequence, header })
-    }
-
-    pub(in crate::devices::virtio_gpu) fn apply_3d_effect(
-        &mut self,
-        effect: Pending3dEffect,
-    ) -> bool {
-        let Pending3dEffect::VirglClear {
-            context_id,
-            generation,
-            resource_id,
-            rect,
-            bgra,
-        } = effect;
-        if self
-            .virgl_contexts
-            .get(&context_id)
-            .map(|ctx| ctx.generation)
-            != Some(generation)
-        {
-            return false;
-        }
-        let cleared = self
-            .resources
-            .get_mut(&resource_id)
-            .is_some_and(|resource| resource.clear_bgra(rect, bgra).is_some());
-        if cleared {
-            self.add_damage(resource_id, rect);
-        }
-        cleared
     }
 
     pub(in crate::devices::virtio_gpu) fn remove_virgl_resource(&mut self, resource_id: u32) {

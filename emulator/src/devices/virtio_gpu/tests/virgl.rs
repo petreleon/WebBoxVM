@@ -58,6 +58,7 @@ fn virgl_surface_clear_is_deferred_until_webgpu_ack_effect() {
 
     let effect = gpu.pending_3d[0]
         .effect
+        .clone()
         .expect("VirGL clear has an ack effect");
     assert!(gpu.apply_3d_effect(effect));
     assert_eq!(&gpu.resources[&4].pixels[..4], &[191, 128, 64, 255]);

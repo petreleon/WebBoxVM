@@ -1,12 +1,13 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-capset1-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-capset1-r2";
 import {
   defaultBufferUsage,
   ensureBuffer,
   paddedIndexBytes,
   pipelineDescriptor,
   renderPassDescriptor,
-} from "./webgpu-3d-resources.js?v=20260903-virgl-capset1-r1";
-import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-capset1-r1";
+} from "./webgpu-3d-resources.js?v=20260903-virgl-capset1-r2";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-capset1-r2";
+import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260903-virgl-capset1-r2";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
@@ -40,17 +41,20 @@ export class ExperimentalWebGpu3dRenderer {
   #uniformBuffer;
   #vertexBuffer;
   #vertexCapacity = 0;
+  #virglDraw;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
     this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
+    this.#virglDraw = new VirglDrawRenderer(session, options);
   }
 
   async render(backend, frame, isCurrent = () => true) {
     if (frame.protocol === "virgl-clear") {
       return renderVirglClear(this.#session, backend, frame, isCurrent);
     }
+    if (frame.protocol === "virgl-draw") return this.#virglDraw.render(backend, frame, isCurrent);
     const { device } = backend;
     if (typeof device.queue.onSubmittedWorkDone !== "function") {
       throw new Error("WebGPU queue completion tracking is unavailable");
@@ -68,6 +72,7 @@ export class ExperimentalWebGpu3dRenderer {
 
   invalidate() {
     this.#revision += 1;
+    this.#virglDraw.invalidate();
     this.#uniformBuffer?.destroy?.();
     this.#vertexBuffer?.destroy?.();
     this.#indexBuffer?.destroy?.();

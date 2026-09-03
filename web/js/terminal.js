@@ -1,4 +1,4 @@
-import { delay } from "./utils.js?v=20260903-virgl-capset1-r1";
+import { delay } from "./utils.js?v=20260903-virgl-capset1-r2";
 
 export async function waitForTerminal() {
   while (!window.Terminal || !window.FitAddon) {

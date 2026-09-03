@@ -51,9 +51,11 @@ fn virgl_caps() -> Vec<u8> {
     write_u32(&mut caps, 0, VIRGL_CAPSET_VERSION);
     write_u32(&mut caps, 4, 1 << 1);
     write_u32(&mut caps, 68, VIRGL_COLOR_RENDER_FORMATS);
+    write_u32(&mut caps, 196, 1 << 31);
     write_u32(&mut caps, 268, 1);
     write_u32(&mut caps, 280, 1);
     write_u32(&mut caps, 284, 1);
+    write_u32(&mut caps, 288, 1 << 4);
     caps
 }
 

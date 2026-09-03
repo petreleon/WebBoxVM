@@ -3,8 +3,8 @@ import {
   UART_FLUSH_INTERVAL_MS,
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260903-virgl-capset1-r1";
-import { isInputResponsive } from "./uart-input.js?v=20260903-virgl-capset1-r1";
+} from "./state.js?v=20260903-virgl-capset1-r2";
+import { isInputResponsive } from "./uart-input.js?v=20260903-virgl-capset1-r2";
 
 export function drainUart(now, emulator = state.emulator) {
   const responsive = isInputResponsive(now);

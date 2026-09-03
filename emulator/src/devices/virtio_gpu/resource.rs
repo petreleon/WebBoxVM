@@ -9,6 +9,7 @@ pub(super) const FORMAT_B8G8R8A8_UNORM: u32 = 1;
 pub(super) const FORMAT_B8G8R8X8_UNORM: u32 = 2;
 pub(super) const FORMAT_A8R8G8B8_UNORM: u32 = 3;
 pub(super) const FORMAT_X8R8G8B8_UNORM: u32 = 4;
+pub(super) const FORMAT_R32G32B32A32_FLOAT: u32 = 31;
 pub(super) const FORMAT_R8_UNORM: u32 = 64;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,10 +63,10 @@ impl GpuResource {
         })
     }
 
-    pub fn new_buffer(width: u32) -> Option<Self> {
+    pub fn new_buffer(format: u32, width: u32) -> Option<Self> {
         let len = Self::buffer_byte_len(width)?;
         Some(Self {
-            format: FORMAT_R8_UNORM,
+            format,
             width,
             height: 1,
             pixels: vec![0; len],

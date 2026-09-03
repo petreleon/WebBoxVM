@@ -55,6 +55,7 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
     bindGroups: [],
     bufferWrites: [],
     buffers: [],
+    draw: [],
     drawIndexed: [],
     limits: { maxTextureDimension2D: 8192 },
     lost,
@@ -81,7 +82,7 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
           device.renderPasses.push(descriptor);
           const pass = {
             descriptor,
-            draw() {},
+            draw(count) { device.draw.push(count); },
             drawIndexed(count) { device.drawIndexed.push(count); },
             end() {},
             setBindGroup() {},

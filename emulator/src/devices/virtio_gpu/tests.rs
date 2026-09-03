@@ -9,6 +9,8 @@ mod virgl;
 mod virgl_buffer;
 mod virgl_buffer_copy;
 mod virgl_copy;
+mod virgl_draw;
+mod virgl_draw_capset;
 mod virgl_queue;
 mod virgl_readback;
 mod virgl_shader_state;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { TerminalWriter } from "./terminal-writer.js?v=20260903-virgl-capset1-r1";
+import { TerminalWriter } from "./terminal-writer.js?v=20260903-virgl-capset1-r2";
 
 const previousDocument = globalThis.document;
 const previousRequestAnimationFrame = globalThis.requestAnimationFrame;

@@ -1,6 +1,8 @@
+pub(super) mod draw;
 pub(super) mod shader;
 pub(super) mod vertex;
 
+use super::super::draw::DrawCall;
 use super::super::{
     CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE,
 };
@@ -39,6 +41,7 @@ pub(super) enum Command {
         rect: Rect,
     },
     CopyRegion(CopyRegion),
+    Draw(DrawCall),
     Vertex(vertex::Command),
     Shader(shader::Command),
 }
@@ -160,6 +163,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         })),
         _ => vertex::decode(command, object, words)
             .map(Command::Vertex)
+            .or_else(|| draw::decode(command, object, words).map(Command::Draw))
             .or_else(|| shader::decode(command, object, words).map(Command::Shader)),
     }
 }

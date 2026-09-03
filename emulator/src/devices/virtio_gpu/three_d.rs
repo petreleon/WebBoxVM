@@ -30,7 +30,7 @@ pub(super) struct Pending3d {
     pub effect: Option<Pending3dEffect>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub(super) enum Pending3dEffect {
     VirglClear {
         context_id: u32,
@@ -38,6 +38,15 @@ pub(super) enum Pending3dEffect {
         resource_id: u32,
         rect: Rect,
         bgra: [u8; 4],
+    },
+    VirglDraw {
+        context_id: u32,
+        generation: u32,
+        resource_id: u32,
+        rect: Rect,
+        clear_bgra: [u8; 4],
+        draw_bgra: [u8; 4],
+        vertices: Vec<u8>,
     },
 }
 

@@ -1,10 +1,12 @@
+mod clear;
 mod decode;
 mod shader;
 mod vertex;
 
 use super::VirglContext;
+use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
-use crate::devices::virtio_gpu::{Scanout, VirtioGpu};
+use clear::set;
 use decode::{Command, decode_stream};
 
 impl VirtioGpu {
@@ -21,6 +23,7 @@ impl VirtioGpu {
             .ok_or(RESP_ERR_INVALID_CONTEXT_ID)?;
         let mut clear = None;
         let mut copy = None;
+        let mut draw = None;
         for command in commands {
             match command {
                 Command::Nop => {}
@@ -44,31 +47,38 @@ impl VirtioGpu {
                     }
                 }
                 Command::Clear { color } => {
-                    if copy.is_some() {
+                    if copy.is_some() || draw.is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
-                    let (resource, rect) = self.framebuffer_clear_target(&context, color)?;
-                    set_clear(&mut clear, resource, color, rect)?;
+                    let (resource, rect) = self.framebuffer_virgl_clear_target(&context, color)?;
+                    set(&mut clear, resource, color, rect)?;
                 }
                 Command::ClearSurface {
                     handle,
                     color,
                     rect,
                 } => {
-                    if copy.is_some() {
+                    if copy.is_some() || draw.is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                     let resource = context
                         .surface_resource(handle)
                         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-                    self.validate_clear(resource, color, rect)?;
-                    set_clear(&mut clear, resource, color, rect)?;
+                    self.validate_virgl_clear(resource, color, rect)?;
+                    set(&mut clear, resource, color, rect)?;
                 }
                 Command::CopyRegion(region) => {
-                    if clear.is_some() || copy.replace(region).is_some() {
+                    if clear.is_some() || draw.is_some() || copy.replace(region).is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                     self.validate_virgl_copy(&context, region)?;
+                }
+                Command::Draw(call) => {
+                    if copy.is_some() || draw.is_some() {
+                        return Err(RESP_ERR_INVALID_PARAMETER);
+                    }
+                    let (resource, _, rect) = clear.ok_or(RESP_ERR_INVALID_PARAMETER)?;
+                    draw = Some(self.prepare_virgl_draw(&context, resource, rect, call)?);
                 }
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
                 Command::Shader(command) => shader::apply(&mut context, command)?,
@@ -77,11 +87,20 @@ impl VirtioGpu {
         if let Some(region) = copy {
             self.apply_virgl_copy(region)?;
         }
-        let deferred = match clear {
-            Some((resource, color, rect)) => {
+        let deferred = match (clear, draw) {
+            (Some((resource, color, rect)), Some(work)) => Some(self.queue_virgl_draw(
+                header,
+                context.generation,
+                resource,
+                rect,
+                color,
+                work,
+            )?),
+            (Some((resource, color, rect)), None) => {
                 Some(self.queue_virgl_clear(header, context.generation, resource, rect, color)?)
             }
-            None => None,
+            (None, None) => None,
+            (None, Some(_)) => return Err(RESP_ERR_INVALID_PARAMETER),
         };
         self.virgl_contexts.insert(header.ctx_id, context);
         Ok(deferred)
@@ -112,56 +131,4 @@ impl VirtioGpu {
         context.add_surface(handle, resource);
         Ok(())
     }
-
-    fn validate_clear(&self, resource: u32, color: [f32; 4], rect: Rect) -> Result<(), u32> {
-        let Some(target) = self.resources.get(&resource) else {
-            return Err(RESP_ERR_INVALID_RESOURCE_ID);
-        };
-        if !color
-            .iter()
-            .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
-        {
-            return Err(RESP_ERR_INVALID_PARAMETER);
-        }
-        if !target.is_texture_2d()
-            || !rect.valid_within(target.width, target.height)
-            || !matches_scanout(self.scanout, resource, rect)
-        {
-            return Err(RESP_ERR_INVALID_PARAMETER);
-        }
-        Ok(())
-    }
-
-    fn framebuffer_clear_target(
-        &self,
-        context: &VirglContext,
-        color: [f32; 4],
-    ) -> Result<(u32, Rect), u32> {
-        let resource = context
-            .framebuffer_resource()
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let rect = self
-            .scanout
-            .filter(|current| current.resource_id == resource)
-            .map(|current| current.rect)
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        self.validate_clear(resource, color, rect)?;
-        Ok((resource, rect))
-    }
-}
-
-fn set_clear(
-    clear: &mut Option<(u32, [f32; 4], Rect)>,
-    resource: u32,
-    color: [f32; 4],
-    rect: Rect,
-) -> Result<(), u32> {
-    if clear.replace((resource, color, rect)).is_some() {
-        return Err(RESP_ERR_INVALID_PARAMETER);
-    }
-    Ok(())
-}
-
-fn matches_scanout(scanout: Option<Scanout>, resource: u32, rect: Rect) -> bool {
-    scanout.is_some_and(|current| current.resource_id == resource && current.rect == rect)
 }

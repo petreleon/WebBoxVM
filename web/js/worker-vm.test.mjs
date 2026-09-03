@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js?v=20260903-virgl-capset1-r1";
+import { WorkerVm } from "./worker-vm.js?v=20260903-virgl-capset1-r2";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;

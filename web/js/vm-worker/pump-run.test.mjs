@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { schedulePump } from "./pump.js?v=20260903-virgl-capset1-r1";
+import { schedulePump } from "./pump.js?v=20260903-virgl-capset1-r2";
 import {
   COOPERATIVE_STEP_SLICE,
   DEFAULT_JIT_ENABLED,
   DEFAULT_STEP_SLICE,
   resetJitState,
   state,
-} from "./state.js?v=20260903-virgl-capset1-r1";
-import { resetUartInput } from "./uart-input.js?v=20260903-virgl-capset1-r1";
+} from "./state.js?v=20260903-virgl-capset1-r2";
+import { resetUartInput } from "./uart-input.js?v=20260903-virgl-capset1-r2";
 
 const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;

@@ -1,6 +1,6 @@
-import { requireEmulator } from "./lifecycle.js?v=20260903-virgl-capset1-r1";
-import { pcForCore } from "./jit-core.js?v=20260903-virgl-capset1-r1";
-import { JIT_MAX_BLOCKS, state } from "./state.js?v=20260903-virgl-capset1-r1";
+import { requireEmulator } from "./lifecycle.js?v=20260903-virgl-capset1-r2";
+import { pcForCore } from "./jit-core.js?v=20260903-virgl-capset1-r2";
+import { JIT_MAX_BLOCKS, state } from "./state.js?v=20260903-virgl-capset1-r2";
 
 const MIN_CACHED_JIT_STEPS = 2;
 

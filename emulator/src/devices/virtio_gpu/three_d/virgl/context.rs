@@ -1,7 +1,10 @@
+mod draw;
 mod shader;
 
 use super::shader::Shader;
 use std::collections::{HashMap, HashSet};
+
+pub(in crate::devices::virtio_gpu) use draw::DrawState;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(in crate::devices::virtio_gpu) struct VertexBuffer {

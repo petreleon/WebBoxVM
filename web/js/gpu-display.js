@@ -1,19 +1,19 @@
-import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260903-virgl-capset1-r1";
+import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260903-virgl-capset1-r2";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r1";
-import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260903-virgl-capset1-r1";
-import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r1";
-import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260903-virgl-capset1-r1";
-import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260903-virgl-capset1-r1";
-import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260903-virgl-capset1-r1";
-import { WebGpuSession } from "./webgpu-session.js?v=20260903-virgl-capset1-r1";
+} from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r2";
+import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260903-virgl-capset1-r2";
+import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r2";
+import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260903-virgl-capset1-r2";
+import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260903-virgl-capset1-r2";
+import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260903-virgl-capset1-r2";
+import { WebGpuSession } from "./webgpu-session.js?v=20260903-virgl-capset1-r2";
 
 export { extractGpu3dSequence, parseGpu3dPacket }
-  from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r1";
+  from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r2";
 export { padBgraRows, paddedBytesPerRow, parseGpuScanoutPacket }
-  from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r1";
+  from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r2";
 
 export class GuestDisplay {
   #canvas2d;

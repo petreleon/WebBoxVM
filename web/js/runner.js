@@ -1,9 +1,9 @@
-import { clamp } from "./utils.js?v=20260903-virgl-capset1-r1";
-import { UartBootTimeline } from "./boot-timeline.js?v=20260903-virgl-capset1-r1";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260903-virgl-capset1-r1";
-import { installUartProbe } from "./uart-probe.js?v=20260903-virgl-capset1-r1";
-import { TerminalWriter } from "./terminal-writer.js?v=20260903-virgl-capset1-r1";
-import { bindRunnerEvents } from "./runner-events.js?v=20260903-virgl-capset1-r1";
+import { clamp } from "./utils.js?v=20260903-virgl-capset1-r2";
+import { UartBootTimeline } from "./boot-timeline.js?v=20260903-virgl-capset1-r2";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260903-virgl-capset1-r2";
+import { installUartProbe } from "./uart-probe.js?v=20260903-virgl-capset1-r2";
+import { TerminalWriter } from "./terminal-writer.js?v=20260903-virgl-capset1-r2";
+import { bindRunnerEvents } from "./runner-events.js?v=20260903-virgl-capset1-r2";
 
 const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;

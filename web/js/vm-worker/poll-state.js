@@ -1,5 +1,5 @@
-import { state } from "./state.js?v=20260903-virgl-capset1-r1";
-import { resetUartInput } from "./uart-input.js?v=20260903-virgl-capset1-r1";
+import { state } from "./state.js?v=20260903-virgl-capset1-r2";
+import { resetUartInput } from "./uart-input.js?v=20260903-virgl-capset1-r2";
 
 export function resetVmPollState(now = performance.now()) {
   resetUartInput();
