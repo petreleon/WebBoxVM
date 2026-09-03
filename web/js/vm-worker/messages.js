@@ -4,21 +4,22 @@ import {
   freeEmulator,
   installDiskSnapshot,
   metrics,
+  requireEmulator,
   restoreInstallDisk,
   setStepSlice,
   transitionToParallel,
-} from "./lifecycle.js?v=20260720-input-latency-r4";
-import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
-import { compileJitBlock } from "./jit-compile.js?v=20260720-input-latency-r4";
-import { errorMessage } from "./errors.js?v=20260720-input-latency-r4";
-import { runJitBlock } from "./jit-run.js?v=20260720-input-latency-r4";
-import { schedulePump } from "./pump.js?v=20260720-input-latency-r4";
-import { resetJitState, state } from "./state.js?v=20260720-input-latency-r4";
+} from "./lifecycle.js?v=20260903-webgpu-virtio-r4";
+import { withEmulatorAccess } from "./access.js?v=20260903-webgpu-virtio-r4";
+import { compileJitBlock } from "./jit-compile.js?v=20260903-webgpu-virtio-r4";
+import { errorMessage } from "./errors.js?v=20260903-webgpu-virtio-r4";
+import { runJitBlock } from "./jit-run.js?v=20260903-webgpu-virtio-r4";
+import { schedulePump } from "./pump.js?v=20260903-webgpu-virtio-r4";
+import { resetJitState, state } from "./state.js?v=20260903-webgpu-virtio-r4";
 import {
   beginUrgentUartMessage,
   finishUrgentUartMessage,
   injectUartMessage,
-} from "./uart-input.js?v=20260720-input-latency-r4";
+} from "./uart-input.js?v=20260903-webgpu-virtio-r4";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;
@@ -68,6 +69,15 @@ async function handleRequest(type, payload) {
     case "free":
       await freeEmulator();
       return {};
+    case "gpu3dAck": {
+      const emulator = requireEmulator();
+      if (typeof emulator.gpu_3d_complete !== "function") {
+        throw new Error("Worker VM wasm export gpu_3d_complete is unavailable");
+      }
+      return {
+        accepted: emulator.gpu_3d_complete(payload.sequence, Boolean(payload.success)),
+      };
+    }
     case "installDiskSnapshot":
       return installDiskSnapshot();
     case "pause":

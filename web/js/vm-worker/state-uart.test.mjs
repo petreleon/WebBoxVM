@@ -4,11 +4,11 @@ import {
   drainUart,
   shouldFlushUart,
   shouldPollUart,
-} from "./pump.js?v=20260720-input-latency-r4";
+} from "./pump.js?v=20260903-webgpu-virtio-r4";
 import {
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260720-input-latency-r4";
+} from "./state.js?v=20260903-webgpu-virtio-r4";
 
 test("uart flushing batches small bursts for terminal throughput", () => {
   assert.equal(shouldFlushUart(16, 40, 0), false);

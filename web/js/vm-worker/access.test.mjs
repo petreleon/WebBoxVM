@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
+import { withEmulatorAccess } from "./access.js?v=20260903-webgpu-virtio-r4";
 
 test("emulator access waits for an active worker round", async () => {
   let releaseRound;

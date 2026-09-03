@@ -4,8 +4,8 @@ import { test } from "node:test";
 import {
   checkWebAssetGraph,
   findRelativeModuleSpecifiers,
-} from "../../scripts/stamp_web_asset_version.mjs?v=20260720-input-latency-r4";
-import { WEBBOXVM_ASSET_VERSION, versionedUrl } from "./asset-version.js?v=20260720-input-latency-r4";
+} from "../../scripts/stamp_web_asset_version.mjs?v=20260903-webgpu-virtio-r4";
+import { WEBBOXVM_ASSET_VERSION, versionedUrl } from "./asset-version.js?v=20260903-webgpu-virtio-r4";
 
 test("versionedUrl stamps the shared asset version", () => {
   const url = versionedUrl("./vm-worker.js", "http://localhost/app.js");

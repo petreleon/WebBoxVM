@@ -21,6 +21,7 @@ impl SystemBus {
                 b"webboxvm-disk\0",
             ),
             virtio_net: VirtioNet::new(),
+            virtio_gpu: VirtioGpu::new(),
             uart_rx_refresh_needed: false,
             memory_writes: Vec::new(),
             dma_write_during_instruction: false,
@@ -34,6 +35,7 @@ impl SystemBus {
         self.virtio_blk.cold_reset();
         self.virtio_disk.cold_reset();
         self.virtio_net = VirtioNet::new();
+        self.virtio_gpu.cold_reset();
         self.uart_rx_refresh_needed = false;
         self.memory_writes.clear();
         self.dma_write_during_instruction = false;

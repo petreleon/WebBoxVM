@@ -1,6 +1,6 @@
-import { versionedUrl } from "../asset-version.js?v=20260720-input-latency-r4";
-import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260720-input-latency-r4";
-import { state } from "./state.js?v=20260720-input-latency-r4";
+import { versionedUrl } from "../asset-version.js?v=20260903-webgpu-virtio-r4";
+import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260903-webgpu-virtio-r4";
+import { state } from "./state.js?v=20260903-webgpu-virtio-r4";
 
 export let Emulator;
 let wasmInitialization;

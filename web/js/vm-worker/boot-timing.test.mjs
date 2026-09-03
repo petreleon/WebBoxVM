@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BootPhaseTimer } from "./boot-timing.js?v=20260720-input-latency-r4";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260903-webgpu-virtio-r4";
 
 test("boot phase timer records adjacent phases and overall time", () => {
   const samples = [100, 105, 117.5, 125];

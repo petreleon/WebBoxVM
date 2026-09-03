@@ -28,3 +28,29 @@ fn boot_machine_address_is_stable_when_emulator_moves() {
     Machine::cancel_parallel_wasm(token).unwrap();
     Machine::finish_parallel_wasm(token).unwrap();
 }
+
+#[test]
+fn gpu_scanout_export_is_empty_without_flushed_damage() {
+    let mut emulator = Emulator::new(Some(1));
+    assert!(emulator.gpu_scanout_update().is_empty());
+    emulator.boot = Some(Box::new(BootContext {
+        machine: Machine::new(1),
+        dtb_addr: 0,
+    }));
+    assert!(emulator.gpu_scanout_update().is_empty());
+}
+
+#[test]
+fn gpu_3d_export_and_completion_are_empty_without_a_submission() {
+    let mut emulator = Emulator::new(Some(1));
+    assert_eq!(emulator.gpu_reset_generation(), 0);
+    assert!(emulator.gpu_3d_update().is_empty());
+    assert!(!emulator.gpu_3d_complete(1, true));
+    emulator.boot = Some(Box::new(BootContext {
+        machine: Machine::new(1),
+        dtb_addr: 0,
+    }));
+    assert_eq!(emulator.gpu_reset_generation(), 0);
+    assert!(emulator.gpu_3d_update().is_empty());
+    assert!(!emulator.gpu_3d_complete(1, false));
+}

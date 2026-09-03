@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js?v=20260720-input-latency-r4";
+import { WorkerVm } from "./worker-vm.js?v=20260903-webgpu-virtio-r4";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;
@@ -130,6 +130,26 @@ test("parallel transition uses a request so callers can observe completion", asy
     transitioned: true,
   });
   assert.equal(vm.execution_mode(), "parallel-wasm");
+});
+
+test("GPU events and 3D acknowledgments preserve transferable packets", () => {
+  const vm = new WorkerVm();
+  const packet = new Uint8Array([1, 2, 3]);
+  const received = [];
+  vm.onGpuFrame = (value) => received.push(["2d", value]);
+  vm.onGpu3dFrame = (value) => received.push(["3d", value]);
+  vm.onGpuReset = (value) => received.push(["reset", value]);
+
+  FakeWorker.instances[0].emitMessage({ event: "gpuFrame", packet });
+  FakeWorker.instances[0].emitMessage({ event: "gpu3dFrame", packet });
+  FakeWorker.instances[0].emitMessage({ event: "gpuReset", generation: 4 });
+  vm.gpu3d_ack(17, true);
+
+  assert.deepEqual(received, [["2d", packet], ["3d", packet], ["reset", 4]]);
+  assert.deepEqual(FakeWorker.instances[0].lastMessage, {
+    payload: { sequence: 17, success: true },
+    type: "gpu3dAck",
+  });
 });
 
 function metrics(overrides = {}) {

@@ -5,14 +5,15 @@
 //!   2. GICv3 (distributor at 0x0800_0000, redistributor at 0x080A_0000)
 //!   3. Physical memory (fallback for RAM, EFI, and low region)
 
-use crate::api::{AccessWidth, PhysAddr};
 use crate::constants::*;
 use crate::devices::gicv3::Gicv3;
 use crate::devices::pl011::Pl011Uart;
 use crate::devices::virtio_blk::VirtioBlk;
+use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_net::VirtioNet;
 use crate::memory::PhysicalMemory;
 
+mod access;
 mod construction;
 mod exclusive;
 mod interrupts;
@@ -28,6 +29,7 @@ pub struct SystemBus {
     pub virtio_blk: VirtioBlk,
     pub virtio_disk: VirtioBlk,
     pub virtio_net: VirtioNet,
+    pub virtio_gpu: VirtioGpu,
     uart_rx_refresh_needed: bool,
     memory_writes: Vec<exclusive::MemoryWrite>,
     // Virtio completions can touch several discontiguous guest buffers. A
@@ -72,33 +74,10 @@ impl SystemBus {
         if in_virtio_net_range(addr) {
             return self.virtio_net.read(addr - VIRTIO_NET_BASE, size);
         }
+        if in_virtio_gpu_range(addr) {
+            return self.virtio_gpu.read(addr - VIRTIO_GPU_BASE, size);
+        }
         self.mem.read(addr, size)
-    }
-
-    pub fn read_phys(&mut self, addr: PhysAddr, width: AccessWidth) -> Option<u64> {
-        self.read(addr.get(), width.bytes())
-    }
-
-    pub fn write_bytes(&mut self, addr: u64, bytes: &[u8]) -> Option<()> {
-        if addr < LOW_REGION_END && overlaps_device_range(addr, bytes.len()) {
-            return None;
-        }
-        let result = self.mem.write_bytes(addr, bytes);
-        if result.is_some() {
-            self.record_memory_write(addr, bytes.len() as u64);
-        }
-        result
-    }
-
-    pub fn overlaps_device_range(&self, addr: u64, len: usize) -> bool {
-        overlaps_device_range(addr, len)
-    }
-
-    pub fn inject_network_frame(&mut self, frame: &[u8]) {
-        if self.virtio_net.inject_rx_frame(&mut self.mem, frame) {
-            self.record_external_dma_write();
-            self.gic.set_pending(VIRTIO_NET_IRQ_ID);
-        }
     }
 
     pub fn write(&mut self, addr: u64, size: u8, value: u64) {
@@ -165,14 +144,19 @@ impl SystemBus {
                 self.gic.set_pending(VIRTIO_NET_IRQ_ID);
             }
             return;
+        } else if in_virtio_gpu_range(addr) {
+            if self
+                .virtio_gpu
+                .write(&mut self.mem, addr - VIRTIO_GPU_BASE, value, size)
+            {
+                self.record_dma_write();
+                self.gic.set_pending(VIRTIO_GPU_IRQ_ID);
+            }
+            return;
         }
         if self.mem.write(addr, size, value).is_some() {
             self.record_memory_write(addr, size as u64);
         }
-    }
-
-    pub fn write_phys(&mut self, addr: PhysAddr, width: AccessWidth, value: u64) {
-        self.write(addr.get(), width.bytes(), value);
     }
 }
 

@@ -1,4 +1,4 @@
-import { installTextProbe } from "./uart-probe.js?v=20260720-input-latency-r4";
+import { installTextProbe } from "./uart-probe.js?v=20260903-webgpu-virtio-r4";
 
 const RENDER_TAIL_LIMIT = 32768;
 

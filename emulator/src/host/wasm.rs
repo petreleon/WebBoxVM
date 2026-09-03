@@ -4,6 +4,7 @@
 
 mod boot_api;
 mod debug_api;
+mod gpu_api;
 #[cfg(test)]
 mod guard_tests;
 mod io_api;

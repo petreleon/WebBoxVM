@@ -1,0 +1,67 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  extractGpu3dSequence,
+  parseGpu3dPacket,
+} from "./gpu-3d-packet.js?v=20260903-webgpu-virtio-r4";
+import { gpu3dPacket } from "./gpu-test-packets.mjs?v=20260903-webgpu-virtio-r4";
+
+test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
+  const packet = gpu3dPacket({ sequence: 42 });
+  const framed = new Uint8Array(packet.byteLength + 5);
+  framed.set(packet, 3);
+  const frame = parseGpu3dPacket(framed.subarray(3, 3 + packet.byteLength));
+  assert.equal(frame.version, 1);
+  assert.equal(frame.opcode, 1);
+  assert.equal(frame.sequence, 42);
+  assert.equal(frame.canvasWidth, 320);
+  assert.equal(frame.canvasHeight, 240);
+  assert.equal(frame.vertexCount, 3);
+  assert.deepEqual([...frame.indices], [0, 1, 2]);
+  assert.deepEqual([...frame.clearColor], [0.1, 0.2, 0.3, 1].map(Math.fround));
+  assert.equal(frame.mvp.length, 16);
+  assert.equal(frame.vertices.length, 21);
+});
+
+test("WBG3 parser enforces magic, version, opcode, dimensions, and exact length", () => {
+  const valid = gpu3dPacket();
+  const badMagic = valid.slice();
+  badMagic[0] = 0;
+  assert.throws(() => parseGpu3dPacket(badMagic), /invalid WBG3 magic/);
+  assertMutation(valid, 4, 2, /version 2/);
+  assertMutation(valid, 8, 2, /opcode 2/);
+  assertMutation(valid, 16, 8193, /between 1 and 8192/);
+  assert.throws(() => parseGpu3dPacket(valid.subarray(0, -1)), /length mismatch/);
+});
+
+test("WBG3 parser bounds geometry and validates every triangle index", () => {
+  const valid = gpu3dPacket();
+  assertMutation(valid, 24, 4097, /vertex count exceeds 4096/);
+  assertMutation(valid, 28, 12289, /index count exceeds 12288/);
+  assertMutation(valid, 28, 2, /divisible by 3/);
+  const badIndex = gpu3dPacket({ indices: [0, 1, 3] });
+  assert.throws(() => parseGpu3dPacket(badIndex), /outside 3 vertices/);
+});
+
+test("WBG3 parser rejects non-finite clear, MVP, and vertex values", () => {
+  for (const [offset, label] of [[32, /clear color/], [48, /MVP/], [112, /vertex/]]) {
+    const packet = gpu3dPacket();
+    new DataView(packet.buffer).setFloat32(offset, Number.NaN, true);
+    assert.throws(() => parseGpu3dPacket(packet), label);
+  }
+});
+
+test("WBG3 sequence extraction trusts only a nonzero sequence behind its magic", () => {
+  const packet = gpu3dPacket({ sequence: 73 });
+  assert.equal(extractGpu3dSequence(packet.subarray(0, 16)), 73);
+  packet[0] = 0;
+  assert.equal(extractGpu3dSequence(packet), undefined);
+  assert.equal(extractGpu3dSequence(new Uint8Array(15)), undefined);
+  assert.equal(extractGpu3dSequence("WBG3"), undefined);
+});
+
+function assertMutation(packet, offset, value, expected) {
+  const mutated = packet.slice();
+  new DataView(mutated.buffer).setUint32(offset, value, true);
+  assert.throws(() => parseGpu3dPacket(mutated), expected);
+}

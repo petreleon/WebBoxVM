@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { drainUart } from "./pump.js?v=20260720-input-latency-r4";
-import { state } from "./state.js?v=20260720-input-latency-r4";
+import { drainUart } from "./pump.js?v=20260903-webgpu-virtio-r4";
+import { state } from "./state.js?v=20260903-webgpu-virtio-r4";
 
 const previousPostMessage = globalThis.postMessage;
 

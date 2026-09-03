@@ -16,7 +16,11 @@ Linux TAP NAT path ready for validation.
 - [ ] ACPI tables: RSDP, DSDT, MADT, GTDT, FADT
 - [ ] NVMe or a more complete VirtIO storage controller
 - [ ] TPM 2.0 MMIO stub
-- [ ] Framebuffer through VirtIO GPU or simple linear FB
+- [x] Implement VirtIO-GPU 2D scanout with WebGPU host presentation; guest rendering remains CPU-side
+- [x] Implement private bounded capset 7 for `WBG3` indexed WebGPU draws, not a VirGL/Venus/Mesa API
+- [ ] VirtIO-GPU cursor commands and enforcement of guest-negotiated feature bits
+- [x] Isolated-browser queue-completion and pixel validation for the GPU paths
+- [ ] End-to-end A/B performance and p95 VM input-latency acceptance
 - [ ] Keyboard and mouse input through HID
 
 ## Windows 11 ARM64

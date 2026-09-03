@@ -8,14 +8,14 @@ import {
   markUartGuestServiced,
   resetUartInput,
   responsiveStepSlice,
-} from "./uart-input.js?v=20260720-input-latency-r4";
+} from "./uart-input.js?v=20260903-webgpu-virtio-r4";
 import {
   COOPERATIVE_STEP_SLICE,
   DEFAULT_STEP_SLICE,
   INTERACTIVE_STEP_SLICE,
   INTERACTIVE_WINDOW_MS,
   state,
-} from "./state.js?v=20260720-input-latency-r4";
+} from "./state.js?v=20260903-webgpu-virtio-r4";
 
 afterEach(() => {
   resetUartInput();

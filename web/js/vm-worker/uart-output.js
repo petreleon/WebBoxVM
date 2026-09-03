@@ -3,8 +3,8 @@ import {
   UART_FLUSH_INTERVAL_MS,
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260720-input-latency-r4";
-import { isInputResponsive } from "./uart-input.js?v=20260720-input-latency-r4";
+} from "./state.js?v=20260903-webgpu-virtio-r4";
+import { isInputResponsive } from "./uart-input.js?v=20260903-webgpu-virtio-r4";
 
 export function drainUart(now, emulator = state.emulator) {
   const responsive = isInputResponsive(now);

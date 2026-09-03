@@ -1,8 +1,10 @@
-import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260720-input-latency-r4";
-import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
-import { errorMessage } from "./errors.js?v=20260720-input-latency-r4";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260720-input-latency-r4";
-import { drainNetworkTx } from "./network.js?v=20260720-input-latency-r4";
+import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260903-webgpu-virtio-r4";
+import { withEmulatorAccess } from "./access.js?v=20260903-webgpu-virtio-r4";
+import { errorMessage } from "./errors.js?v=20260903-webgpu-virtio-r4";
+import { maybePostGpu3d } from "./gpu-3d.js?v=20260903-webgpu-virtio-r4";
+import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260903-webgpu-virtio-r4";
+import { maybePostGpuScanout } from "./gpu-scanout.js?v=20260903-webgpu-virtio-r4";
+import { drainNetworkTx } from "./network.js?v=20260903-webgpu-virtio-r4";
 import {
   JIT_PROBE_STEP_SLICE,
   MAX_FRAME_BATCHES,
@@ -11,15 +13,15 @@ import {
   NETWORK_STEP_SLICE,
   NETWORK_TX_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260720-input-latency-r4";
+} from "./state.js?v=20260903-webgpu-virtio-r4";
 import {
   isInputResponsive,
   markUartGuestServiced,
   responsiveStepSlice,
-} from "./uart-input.js?v=20260720-input-latency-r4";
-import { drainUart } from "./uart-output.js?v=20260720-input-latency-r4";
+} from "./uart-input.js?v=20260903-webgpu-virtio-r4";
+import { drainUart } from "./uart-output.js?v=20260903-webgpu-virtio-r4";
 
-export { drainUart, shouldFlushUart, shouldPollUart } from "./uart-output.js?v=20260720-input-latency-r4";
+export { drainUart, shouldFlushUart, shouldPollUart } from "./uart-output.js?v=20260903-webgpu-virtio-r4";
 
 const schedulePumpTask = createPumpTaskScheduler();
 
@@ -108,8 +110,10 @@ async function runPump() {
       const sentNetworkFrames =
         state.networkStatus === "connected" ? drainNetworkTx(now, emulator) : 0;
       const sentUart = drainUart(now, emulator);
+      const sentGpuFrame = maybePostGpuScanout(now, emulator);
+      const sentGpu3dFrame = maybePostGpu3d(now, emulator);
       batches += 1;
-      if (sentNetworkFrames > 0 || sentUart) {
+      if (sentNetworkFrames > 0 || sentUart || sentGpuFrame || sentGpu3dFrame) {
         break;
       }
     } while (state.running && shouldContinuePumpFrame(frameStart, now, batches));

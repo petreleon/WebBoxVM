@@ -31,6 +31,10 @@ pub(super) fn in_virtio_net_range(addr: u64) -> bool {
     addr >= VIRTIO_NET_BASE && addr < VIRTIO_NET_END
 }
 
+pub(super) fn in_virtio_gpu_range(addr: u64) -> bool {
+    addr >= VIRTIO_GPU_BASE && addr < VIRTIO_GPU_END
+}
+
 pub(super) fn overlaps_device_range(addr: u64, len: usize) -> bool {
     if len == 0 {
         return false;
@@ -48,6 +52,7 @@ pub(super) fn overlaps_device_range(addr: u64, len: usize) -> bool {
         || range_overlaps(addr, range_end, VIRTIO_BLK_BASE, VIRTIO_BLK_END)
         || range_overlaps(addr, range_end, VIRTIO_DISK_BASE, VIRTIO_DISK_END)
         || range_overlaps(addr, range_end, VIRTIO_NET_BASE, VIRTIO_NET_END)
+        || range_overlaps(addr, range_end, VIRTIO_GPU_BASE, VIRTIO_GPU_END)
 }
 
 pub(super) fn is_printable_or_control(b: u8) -> bool {

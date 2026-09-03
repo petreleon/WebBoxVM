@@ -1,11 +1,12 @@
-import { Emulator, ensureWasm } from "./wasm.js?v=20260720-input-latency-r4";
-import { BootPhaseTimer } from "./boot-timing.js?v=20260720-input-latency-r4";
-import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260720-input-latency-r4";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260720-input-latency-r4";
-import { changedJitStats, jitStats } from "./jit-stats.js?v=20260720-input-latency-r4";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260720-input-latency-r4";
-import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260720-input-latency-r4";
-import { resetUartInput } from "./uart-input.js?v=20260720-input-latency-r4";
+import { Emulator, ensureWasm } from "./wasm.js?v=20260903-webgpu-virtio-r4";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260903-webgpu-virtio-r4";
+import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260903-webgpu-virtio-r4";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260903-webgpu-virtio-r4";
+import { changedJitStats, jitStats } from "./jit-stats.js?v=20260903-webgpu-virtio-r4";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260903-webgpu-virtio-r4";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260903-webgpu-virtio-r4";
+import { resetUartInput } from "./uart-input.js?v=20260903-webgpu-virtio-r4";
+import { resetVmPollState } from "./poll-state.js?v=20260903-webgpu-virtio-r4";
 
 export { prepareExecutionMode, transitionToParallel };
 
@@ -14,13 +15,7 @@ export async function bootIsoWithDisk({ diskSizeBytes, isoImage, numCores }) {
   await freeEmulator();
   const emulator = new Emulator(numCores);
   state.emulator = emulator;
-  state.lastUart = 0;
-  state.lastUartFlushAt = 0;
-  state.lastUartPollAt = 0;
-  state.lastNetworkTxPollAt = 0;
-  state.lastMetricsAt = 0;
-  state.lastAutosaveAt = performance.now();
-  state.lastAutosavePollAt = state.lastAutosaveAt;
+  resetVmPollState();
   const result = emulator.boot_iso_with_disk(isoImage, numCores, diskSizeBytes);
   await prepareExecutionMode(numCores);
   const installDiskGeneration = emulator.install_disk_generation();
@@ -53,7 +48,7 @@ export async function bootInstalledDisk({
       (created) => {
         timer.end("emulatorCreateMs");
         state.emulator = created;
-        resetBootPollState();
+        resetVmPollState();
       },
     ));
   } catch (error) {
@@ -83,17 +78,6 @@ export async function bootInstalledDisk({
   };
 }
 
-function resetBootPollState() {
-  resetUartInput();
-  state.lastUart = 0;
-  state.lastUartFlushAt = 0;
-  state.lastUartPollAt = 0;
-  state.lastNetworkTxPollAt = 0;
-  state.lastMetricsAt = 0;
-  state.lastAutosaveAt = performance.now();
-  state.lastAutosavePollAt = state.lastAutosaveAt;
-}
-
 export function restoreInstallDisk(snapshot) {
   const emulator = requireEmulator();
   const result = emulator.restore_install_disk(snapshot);
@@ -120,6 +104,8 @@ export async function freeEmulator() {
   state.lastUart = 0;
   state.lastUartPollAt = 0;
   state.lastNetworkTxPollAt = 0;
+  state.lastGpuScanoutPollAt = Number.NEGATIVE_INFINITY;
+  state.lastGpu3dPollAt = Number.NEGATIVE_INFINITY;
   state.lastAutosavePollAt = 0;
   resetUartInput();
   resetJitState();

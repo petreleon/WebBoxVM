@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="./styles.css">
     <script defer crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@xterm/xterm/lib/xterm.js"></script>
     <script defer crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit/lib/addon-fit.js"></script>
-    <script type="module" src="./app.js?v=20260720-input-latency-r4"></script>
+    <script type="module" src="./app.js?v=20260903-webgpu-virtio-r4"></script>
   </head>
   <body>
     <main class="shell">
@@ -91,10 +91,46 @@
           <pre id="eventLog" class="event-log" aria-label="Event log"></pre>
         </aside>
 
-        <section class="terminal-pane" aria-label="Guest serial console">
-          <div id="terminal"></div>
-          <pre id="jitStatsValue" data-testid="webboxvm-jit-stats" hidden></pre>
-          <pre id="currentInstructionValue" data-testid="webboxvm-current-instruction" hidden></pre>
+        <section class="guest-io">
+          <section class="display-pane" aria-label="Guest graphical display">
+            <header class="display-header">
+              <h2>Guest display</h2>
+              <span
+                id="displayStatus"
+                data-testid="webboxvm-display-status"
+                data-backend="none"
+                data-acceleration-path="2d-scanout"
+                data-three-d-acceleration="inactive"
+                data-three-d-capset-id="7"
+                data-three-d-frames-received="0"
+                data-three-d-draws="0"
+                data-three-d-errors="0"
+                data-three-d-last-error=""
+                data-three-d-last-sequence=""
+                data-adapter="unknown"
+                data-adapter-vendor=""
+                data-adapter-architecture=""
+                data-adapter-description=""
+                data-device-generation="0"
+                data-fallback-adapter="unknown"
+                data-frames-received="0"
+                data-uploads="0"
+                data-last-error=""
+              >Waiting for guest display</span>
+            </header>
+            <canvas
+              id="displayCanvas"
+              data-testid="webboxvm-display-canvas"
+              width="640"
+              height="480"
+            ></canvas>
+          </section>
+
+          <section class="terminal-pane" aria-label="Guest serial console">
+            <div id="terminal"></div>
+            <pre id="jitStatsValue" data-testid="webboxvm-jit-stats" hidden></pre>
+            <pre id="currentInstructionValue" data-testid="webboxvm-current-instruction" hidden></pre>
+          </section>
         </section>
       </section>
     </main>

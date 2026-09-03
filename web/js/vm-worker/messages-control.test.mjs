@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260720-input-latency-r4";
-import { handleMessage } from "./messages.js?v=20260720-input-latency-r4";
-import { resetJitState, state } from "./state.js?v=20260720-input-latency-r4";
+import { withEmulatorAccess } from "./access.js?v=20260903-webgpu-virtio-r4";
+import { handleMessage } from "./messages.js?v=20260903-webgpu-virtio-r4";
+import { resetJitState, state } from "./state.js?v=20260903-webgpu-virtio-r4";
 
 afterEach(() => {
   state.emulator = undefined;
@@ -43,6 +43,51 @@ test("setJitEnabled resets cached jit state and stale telemetry", async () => {
   assert.equal(state.jitSkippedBlocks.size, 0);
   assert.equal(state.jitSkipLog.length, 0);
   assert.deepEqual(messages, [{ id: 7, ok: true, value: {} }]);
+});
+
+test("gpu3dAck reaches the actual gpu_3d_complete wasm boundary", async () => {
+  const acknowledgments = [];
+  state.emulator = {
+    gpu_3d_complete: (...values) => {
+      acknowledgments.push(values);
+      return true;
+    },
+  };
+  await withPostMessage([], () =>
+    handleMessage({ payload: { sequence: 19, success: false }, type: "gpu3dAck" }),
+  );
+  assert.deepEqual(acknowledgments, [[19, false]]);
+});
+
+test("gpu3dAck reports an unaccepted completion without mutating Rust state", async () => {
+  state.emulator = { gpu_3d_complete: () => false };
+  const messages = [];
+  await withPostMessage(messages, () =>
+    handleMessage({ id: 20, payload: { sequence: 21, success: true }, type: "gpu3dAck" }),
+  );
+  assert.deepEqual(messages, [{ id: 20, ok: true, value: { accepted: false } }]);
+});
+
+test("a stale one-way gpu3dAck after device reset is not a global worker error", async () => {
+  state.emulator = { gpu_3d_complete: () => false };
+  const messages = [];
+  await withPostMessage(messages, () =>
+    handleMessage({ payload: { sequence: 21, success: true }, type: "gpu3dAck" }),
+  );
+  assert.deepEqual(messages, []);
+});
+
+test("gpu3dAck fails closed when the wasm completion export is missing", async () => {
+  state.emulator = {};
+  const messages = [];
+  await withPostMessage(messages, () =>
+    handleMessage({ id: 18, payload: { sequence: 20, success: true }, type: "gpu3dAck" }),
+  );
+  assert.deepEqual(messages, [{
+    error: "Worker VM wasm export gpu_3d_complete is unavailable",
+    id: 18,
+    ok: false,
+  }]);
 });
 
 test("requests wait until a parallel pump relinquishes emulator access", async () => {

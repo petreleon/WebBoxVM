@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=20260720-input-latency-r4";
+import { state } from "./state.js?v=20260903-webgpu-virtio-r4";
 
 const MAX_REJECT_LOG = 16;
 

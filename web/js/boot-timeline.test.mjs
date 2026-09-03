@@ -4,7 +4,7 @@ import {
   UartBootTimeline,
   formatBootMilestone,
   formatBootPhase,
-} from "./boot-timeline.js?v=20260720-input-latency-r4";
+} from "./boot-timeline.js?v=20260903-webgpu-virtio-r4";
 
 test("installed boot timeline finds split CPU1 and login milestones once", () => {
   let now = 1000;

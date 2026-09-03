@@ -1,5 +1,5 @@
-import { versionedUrl } from "../asset-version.js?v=20260720-input-latency-r4";
-import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260720-input-latency-r4";
+import { versionedUrl } from "../asset-version.js?v=20260903-webgpu-virtio-r4";
+import { DEFAULT_REQUEST_TIMEOUT_MS, WorkerSlot } from "./vcpu-worker-slot.js?v=20260903-webgpu-virtio-r4";
 
 const DEFAULT_STOP_TIMEOUT_MS = 1_000;
 

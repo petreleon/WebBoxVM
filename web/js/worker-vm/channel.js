@@ -1,21 +1,5 @@
-const INITIAL_METRICS = {
-  allocatedPages: 0,
-  cooperativeIdleFastForwardCycles: 0n,
-  cooperativeWfeParks: 0n,
-  currentInstruction: undefined,
-  executionMode: "cooperative",
-  installDiskAllocatedBytes: 0n,
-  installDiskGeneration: 0n,
-  installDiskSizeBytes: 0n,
-  jitStats: { cacheBlocks: 0, enabled: true, hitSites: 0, recentRejects: [], rejectedBlocks: 0 },
-  networkRxPackets: 0n,
-  networkStatus: "offline",
-  networkTxPackets: 0n,
-  networkTxPending: 0,
-  pc: 0n,
-  totalSteps: 0n,
-  uartOutputLen: 0,
-};
+import { initialMetrics } from "./channel-state.js?v=20260903-webgpu-virtio-r4";
+
 export class WorkerChannel {
   #callbacks;
   #closing = false;
@@ -23,7 +7,7 @@ export class WorkerChannel {
   #freeTimeoutMs;
   #instructionProbe;
   #jitProbe;
-  #metrics = { ...INITIAL_METRICS };
+  #metrics = initialMetrics();
   #nextRequestId = 1;
   #pending = new Map();
   #terminated = false;
@@ -116,6 +100,15 @@ export class WorkerChannel {
       case "metrics":
         this.#updateMetrics(message.metrics);
         this.#callbacks.onMetrics();
+        break;
+      case "gpuFrame":
+        this.#callbacks.onGpuFrame?.(message.packet);
+        break;
+      case "gpu3dFrame":
+        this.#callbacks.onGpu3dFrame?.(message.packet);
+        break;
+      case "gpuReset":
+        this.#callbacks.onGpuReset?.(message.generation);
         break;
       case "network":
         this.#metrics.networkStatus = message.status;

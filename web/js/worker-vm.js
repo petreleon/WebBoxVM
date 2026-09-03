@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260720-input-latency-r4";
-import { versionedUrl } from "./asset-version.js?v=20260720-input-latency-r4";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260720-input-latency-r4";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260903-webgpu-virtio-r4";
+import { versionedUrl } from "./asset-version.js?v=20260903-webgpu-virtio-r4";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260903-webgpu-virtio-r4";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);
@@ -9,6 +9,9 @@ function versionedWorkerUrl() {
 export class WorkerVm {
   onAutosave = () => {};
   onError = () => {};
+  onGpuFrame = () => {};
+  onGpu3dFrame = () => {};
+  onGpuReset = () => {};
   onMetrics = () => {};
   onNetwork = () => {};
   onUart = () => {};
@@ -27,6 +30,9 @@ export class WorkerVm {
     this.#channel = new WorkerChannel(versionedWorkerUrl(), {
       onAutosave: () => this.onAutosave(),
       onError: (error) => this.onError(error),
+      onGpuFrame: (packet) => this.onGpuFrame(packet),
+      onGpu3dFrame: (packet) => this.onGpu3dFrame(packet),
+      onGpuReset: (generation) => this.onGpuReset(generation),
       onMetrics: () => this.onMetrics(),
       onNetwork: (status) => this.onNetwork(status),
       onUart: (output) => this.onUart(output),
@@ -95,6 +101,10 @@ export class WorkerVm {
     this.#channel.post("sendUartBytes", { input: bytes }, [bytes.buffer]);
   }
 
+  gpu3d_ack(sequence, success) {
+    this.#channel.post("gpu3dAck", { sequence, success: Boolean(success) });
+  }
+
   start(stepSlice) {
     this.#channel.post("start", { stepSlice });
   }
@@ -142,21 +152,10 @@ export class WorkerVm {
   cooperative_wfe_parks() { return this.#channel.metrics.cooperativeWfeParks; }
   staged_smp_enabled() { return this.#stagedSmp; }
 
-  install_disk_allocated_bytes() {
-    return this.#channel.metrics.installDiskAllocatedBytes;
-  }
-
-  install_disk_generation() {
-    return this.#channel.metrics.installDiskGeneration;
-  }
-
-  install_disk_size_bytes() {
-    return this.#channel.metrics.installDiskSizeBytes;
-  }
-
-  jit_stats() {
-    return this.#channel.metrics.jitStats;
-  }
+  install_disk_allocated_bytes() { return this.#channel.metrics.installDiskAllocatedBytes; }
+  install_disk_generation() { return this.#channel.metrics.installDiskGeneration; }
+  install_disk_size_bytes() { return this.#channel.metrics.installDiskSizeBytes; }
+  jit_stats() { return this.#channel.metrics.jitStats; }
 
   network_stats() {
     this.#networkStats.rxPackets = this.#channel.metrics.networkRxPackets;
@@ -166,15 +165,7 @@ export class WorkerVm {
     return this.#networkStats;
   }
 
-  pc() {
-    return this.#channel.metrics.pc;
-  }
-
-  total_steps() {
-    return this.#channel.metrics.totalSteps;
-  }
-
-  uart_output_len() {
-    return this.#channel.metrics.uartOutputLen;
-  }
+  pc() { return this.#channel.metrics.pc; }
+  total_steps() { return this.#channel.metrics.totalSteps; }
+  uart_output_len() { return this.#channel.metrics.uartOutputLen; }
 }

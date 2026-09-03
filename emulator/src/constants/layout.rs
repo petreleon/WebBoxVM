@@ -76,6 +76,10 @@ pub const VIRTIO_DISK_END: u64 = VIRTIO_DISK_BASE + VIRTIO_BLK_SIZE;
 pub const VIRTIO_NET_BASE: u64 = 0x0A00_2000;
 /// End of the VirtIO-MMIO network adapter region.
 pub const VIRTIO_NET_END: u64 = VIRTIO_NET_BASE + VIRTIO_BLK_SIZE;
+/// Base address of the VirtIO-MMIO GPU device.
+pub const VIRTIO_GPU_BASE: u64 = 0x0A00_3000;
+/// End of the VirtIO-MMIO GPU device region.
+pub const VIRTIO_GPU_END: u64 = VIRTIO_GPU_BASE + VIRTIO_BLK_SIZE;
 
 /// PL011 UART register offsets (from base address).
 pub const UART_DR_OFFSET: u64 = 0x00;

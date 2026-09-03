@@ -1,8 +1,9 @@
-import { clamp } from "./utils.js?v=20260720-input-latency-r4";
-import { UartBootTimeline } from "./boot-timeline.js?v=20260720-input-latency-r4";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260720-input-latency-r4";
-import { installUartProbe } from "./uart-probe.js?v=20260720-input-latency-r4";
-import { TerminalWriter } from "./terminal-writer.js?v=20260720-input-latency-r4";
+import { clamp } from "./utils.js?v=20260903-webgpu-virtio-r4";
+import { UartBootTimeline } from "./boot-timeline.js?v=20260903-webgpu-virtio-r4";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260903-webgpu-virtio-r4";
+import { installUartProbe } from "./uart-probe.js?v=20260903-webgpu-virtio-r4";
+import { TerminalWriter } from "./terminal-writer.js?v=20260903-webgpu-virtio-r4";
+import { bindRunnerEvents } from "./runner-events.js?v=20260903-webgpu-virtio-r4";
 
 const DEFAULT_STEP_SLICE = 5_000_000;
 const MAX_STEP_SLICE = 50_000_000;
@@ -15,6 +16,7 @@ export class VmRunner {
   #terminalWriter;
   #ui;
   #disk;
+  #display;
   #getEmulator;
   #saveDisk;
   #handleError;
@@ -32,6 +34,7 @@ export class VmRunner {
     term,
     ui,
     disk,
+    display,
     getEmulator,
     saveDisk,
     handleError,
@@ -45,6 +48,7 @@ export class VmRunner {
     });
     this.#ui = ui;
     this.#disk = disk;
+    this.#display = display;
     this.#getEmulator = getEmulator;
     this.#saveDisk = saveDisk;
     this.#handleError = handleError;
@@ -92,7 +96,6 @@ export class VmRunner {
     this.#deactivateBootTracking();
     this.#getEmulator()?.stop();
   }
-
   #bindCurrentEmulator() {
     const emulator = this.#getEmulator();
     if (!emulator || emulator === this.#boundEmulator) {
@@ -100,36 +103,36 @@ export class VmRunner {
     }
 
     const isCurrent = () => this.#acceptingEvents && emulator === this.#getEmulator();
-    emulator.onAutosave = () => {
-      if (!isCurrent() || !this.#disk.shouldAutosave(emulator)) {
-        return;
-      }
-      this.#saveDisk({ quiet: true }).catch(this.#handleError);
-    };
-    emulator.onError = (error) => {
-      if (!isCurrent()) return;
-      this.#acceptingEvents = false;
-      this.#running = false;
-      this.#deactivateBootTracking();
-      this.#handleError(error);
-    };
-    emulator.onMetrics = () => {
-      if (isCurrent()) this.#ui.updateMetrics(emulator, this.#disk);
-    };
-    emulator.onNetwork = (status) => {
-      if (isCurrent()) this.#ui.log(`Network proxy ${status}`);
-    };
-    emulator.onUart = (output) => {
-      if (isCurrent()) this.#writeUart(output);
-    };
+    bindRunnerEvents(emulator, {
+      autosave: () => this.#autosave(emulator),
+      current: isCurrent,
+      error: (error) => this.#workerError(error),
+      frame2d: (packet) => this.#display?.present(packet),
+      frame3d: (packet) => this.#display?.present3d(packet),
+      gpuReset: () => this.#display?.reset(),
+      metrics: () => this.#ui.updateMetrics(emulator, this.#disk),
+      network: (status) => this.#ui.log(`Network proxy ${status}`),
+      uart: (output) => this.#writeUart(output),
+    });
     this.#boundEmulator = emulator;
     return emulator;
   }
 
-  #writeUart(output) {
-    if (!output) {
-      return;
+  #autosave(emulator) {
+    if (this.#disk.shouldAutosave(emulator)) {
+      this.#saveDisk({ quiet: true }).catch(this.#handleError);
     }
+  }
+
+  #workerError(error) {
+    this.#acceptingEvents = false;
+    this.#running = false;
+    this.#deactivateBootTracking();
+    this.#handleError(error);
+  }
+
+  #writeUart(output) {
+    if (!output) return;
     this.#terminalWriter.write(output);
     this.#recordUart(output);
     this.#bootTimeline.observe(output);
@@ -168,9 +171,7 @@ export class VmRunner {
 
   #handleBootMilestone(milestone) {
     this.#onBootTimeline?.(milestone);
-    if (this.#stagedSmp) {
-      this.#parallelTransition.observe(milestone);
-    }
+    if (this.#stagedSmp) this.#parallelTransition.observe(milestone);
   }
 
   #stepSlice() {

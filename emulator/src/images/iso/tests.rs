@@ -1,5 +1,6 @@
 use super::bootargs::{
-    DISK_VIRTIO_MMIO_ARG, ISO_VIRTIO_MMIO_ARG, NET_VIRTIO_MMIO_ARG, ensure_serial_bootargs,
+    DISK_VIRTIO_MMIO_ARG, GPU_VIRTIO_MMIO_ARG, ISO_VIRTIO_MMIO_ARG, NET_VIRTIO_MMIO_ARG,
+    ensure_serial_bootargs,
 };
 use super::images::prepare_kernel_image;
 use super::installer_overlay::build_installer_network_overlay;
@@ -33,6 +34,7 @@ fn appends_serial_bootargs_when_missing() {
     assert!(args.contains(ISO_VIRTIO_MMIO_ARG));
     assert!(args.contains(DISK_VIRTIO_MMIO_ARG));
     assert!(args.contains(NET_VIRTIO_MMIO_ARG));
+    assert!(args.contains(GPU_VIRTIO_MMIO_ARG));
     assert!(args.contains("clocksource.arm_arch_timer.evtstrm=false"));
     assert!(args.contains("auto=false"));
     assert!(args.contains("---"));
@@ -55,6 +57,7 @@ fn inserts_kernel_bootargs_before_debian_separator() {
     assert!(tokens[..separator].contains(&ISO_VIRTIO_MMIO_ARG));
     assert!(tokens[..separator].contains(&DISK_VIRTIO_MMIO_ARG));
     assert!(tokens[..separator].contains(&NET_VIRTIO_MMIO_ARG));
+    assert!(tokens[..separator].contains(&GPU_VIRTIO_MMIO_ARG));
     assert!(tokens[..separator].contains(&"clocksource.arm_arch_timer.evtstrm=false"));
     assert!(tokens[..separator].contains(&"auto=false"));
     assert_eq!(

@@ -14,6 +14,8 @@ export const COOPERATIVE_STEP_SLICE = 500_000;
 export const MAX_FRAME_MS = 32;
 export const MAX_FRAME_BATCHES = 128;
 export const METRICS_INTERVAL_MS = 250;
+export const GPU_SCANOUT_POLL_INTERVAL_MS = 1000 / 60;
+export const GPU_3D_POLL_INTERVAL_MS = 1000 / 60;
 export const DEFAULT_JIT_ENABLED = false;
 export const JIT_HOT_THRESHOLD = 2;
 export const JIT_MAX_HIT_SITES = 1024;
@@ -37,9 +39,12 @@ export const state = {
   jitStatsVersion: 0,
   jitStatePtr: undefined,
   jitStateSize: undefined,
+  gpuResetGeneration: undefined,
   lastAutosaveAt: 0,
   lastAutosaveGeneration: 0n,
   lastAutosavePollAt: 0,
+  lastGpuScanoutPollAt: Number.NEGATIVE_INFINITY,
+  lastGpu3dPollAt: Number.NEGATIVE_INFINITY,
   lastMetricsAt: 0,
   lastNetworkActivityAt: 0,
   lastNetworkTxPollAt: 0,

@@ -6,8 +6,8 @@ import {
   recordJitFallback,
   recordJitReject,
   recordJitSkip,
-} from "./jit-stats.js?v=20260720-input-latency-r4";
-import { resetJitState, state } from "./state.js?v=20260720-input-latency-r4";
+} from "./jit-stats.js?v=20260903-webgpu-virtio-r4";
+import { resetJitState, state } from "./state.js?v=20260903-webgpu-virtio-r4";
 
 test("jit reject logs include parsed current instruction snapshots", () => {
   resetTelemetry();

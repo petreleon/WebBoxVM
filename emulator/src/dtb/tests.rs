@@ -110,6 +110,7 @@ fn dtb_advertises_virtio_network_mmio_device() {
     assert!(text.contains("virtio_blk@a000000"));
     assert!(text.contains("virtio_blk@a001000"));
     assert!(text.contains("virtio_net@a002000"));
+    assert!(text.contains("virtio_gpu@a003000"));
     assert!(text.contains("virtio,mmio"));
 }
 
@@ -121,6 +122,7 @@ fn dtb_can_omit_boot_media_block_device() {
     assert!(!text.contains("virtio_blk@a000000"));
     assert!(text.contains("virtio_blk@a001000"));
     assert!(text.contains("virtio_net@a002000"));
+    assert!(text.contains("virtio_gpu@a003000"));
 }
 
 #[test]

@@ -3,7 +3,7 @@ import {
   INTERACTIVE_STEP_SLICE,
   INTERACTIVE_WINDOW_MS,
   state,
-} from "./state.js?v=20260720-input-latency-r4";
+} from "./state.js?v=20260903-webgpu-virtio-r4";
 
 const INPUT_TYPES = new Set(["sendUartBytes", "sendUartInput"]);
 

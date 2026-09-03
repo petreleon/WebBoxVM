@@ -6,6 +6,8 @@ export const els = {
   clearDisk: document.querySelector("#clearDisk"),
   diskSize: document.querySelector("#diskSize"),
   diskValue: document.querySelector("#diskValue"),
+  displayCanvas: document.querySelector("#displayCanvas"),
+  displayStatus: document.querySelector("#displayStatus"),
   eventLog: document.querySelector("#eventLog"),
   isoFile: document.querySelector("#isoFile"),
   jitStatsValue: document.querySelector("#jitStatsValue"),

@@ -1,7 +1,7 @@
-import { GIB, clamp, nextFrame } from "./utils.js?v=20260720-input-latency-r4";
-import { assertWasm64Supported } from "./wasm64.js?v=20260720-input-latency-r4";
-import { WorkerVm } from "./worker-vm.js?v=20260720-input-latency-r4";
-import { formatBootPhase } from "./boot-timeline.js?v=20260720-input-latency-r4";
+import { GIB, clamp, nextFrame } from "./utils.js?v=20260903-webgpu-virtio-r4";
+import { assertWasm64Supported } from "./wasm64.js?v=20260903-webgpu-virtio-r4";
+import { WorkerVm } from "./worker-vm.js?v=20260903-webgpu-virtio-r4";
+import { formatBootPhase } from "./boot-timeline.js?v=20260903-webgpu-virtio-r4";
 
 const BOOT_KIND_MEDIA = "media";
 const BOOT_KIND_SAVED_DISK = "saved-disk";

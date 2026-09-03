@@ -1,6 +1,8 @@
 use super::*;
 use crate::api::{AccessWidth, PhysAddr};
 
+mod gpu;
+mod gpu3d;
 mod interrupt_poll;
 
 #[test]
@@ -12,6 +14,7 @@ fn device_mmio_windows_are_disjoint() {
         ("virtio_blk", VIRTIO_BLK_BASE, VIRTIO_BLK_END),
         ("virtio_disk", VIRTIO_DISK_BASE, VIRTIO_DISK_END),
         ("virtio_net", VIRTIO_NET_BASE, VIRTIO_NET_END),
+        ("virtio_gpu", VIRTIO_GPU_BASE, VIRTIO_GPU_END),
     ];
 
     for (i, (left_name, left_base, left_end)) in windows.iter().enumerate() {

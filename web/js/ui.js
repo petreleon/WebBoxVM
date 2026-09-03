@@ -1,4 +1,4 @@
-import { formatBytes } from "./utils.js?v=20260720-input-latency-r4";
+import { formatBytes } from "./utils.js?v=20260903-webgpu-virtio-r4";
 
 export class UiController {
   constructor(els) {

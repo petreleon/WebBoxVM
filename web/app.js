@@ -1,32 +1,32 @@
-import { VmBooter } from "./js/boot-vm.js?v=20260720-input-latency-r4";
-import { formatBootMilestone } from "./js/boot-timeline.js?v=20260720-input-latency-r4";
-import { els } from "./js/dom.js?v=20260720-input-latency-r4";
-import { DiskPersistence } from "./js/persistence.js?v=20260720-input-latency-r4";
-import { VmRunner } from "./js/runner.js?v=20260720-input-latency-r4";
+import { VmBooter } from "./js/boot-vm.js?v=20260903-webgpu-virtio-r4";
+import { formatBootMilestone } from "./js/boot-timeline.js?v=20260903-webgpu-virtio-r4";
+import { els } from "./js/dom.js?v=20260903-webgpu-virtio-r4";
+import { DiskPersistence } from "./js/persistence.js?v=20260903-webgpu-virtio-r4";
+import { VmRunner } from "./js/runner.js?v=20260903-webgpu-virtio-r4";
 import {
   extraBootargsFromLocation,
   installedDiskBenchmarkFromLocation,
   stagedSmpRequestedFromLocation,
-} from "./js/boot-args.js?v=20260720-input-latency-r4";
-import { installWebboxVmDevtools } from "./js/devtools.js?v=20260720-input-latency-r4";
+} from "./js/boot-args.js?v=20260903-webgpu-virtio-r4";
+import { installWebboxVmDevtools } from "./js/devtools.js?v=20260903-webgpu-virtio-r4";
 import {
   fetchBundledDebian,
   fetchInstalledDiskBenchmark,
   readSelectedIso,
-} from "./js/sources.js?v=20260720-input-latency-r4";
-import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260720-input-latency-r4";
-import { UiController } from "./js/ui.js?v=20260720-input-latency-r4";
+} from "./js/sources.js?v=20260903-webgpu-virtio-r4";
+import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260903-webgpu-virtio-r4";
+import { UiController } from "./js/ui.js?v=20260903-webgpu-virtio-r4";
+import { GuestDisplay } from "./js/gpu-display.js?v=20260903-webgpu-virtio-r4";
 
 const ui = new UiController(els);
+const display = new GuestDisplay(els.displayCanvas, els.displayStatus);
+void display.acquireWebGpuBackend().catch(() => {});
 const disk = new DiskPersistence();
 const diskBootExtraArgs = extraBootargsFromLocation();
 const installedDiskBenchmark = installedDiskBenchmarkFromLocation();
 const stagedSmpRequested = stagedSmpRequestedFromLocation();
 
-let term;
-let emulator;
-let runner;
-let booter;
+let term, emulator, runner, booter;
 let bootedName = "";
 
 await waitForTerminal();
@@ -37,6 +37,7 @@ runner = new VmRunner({
   term,
   ui,
   disk,
+  display,
   getEmulator: () => emulator,
   saveDisk,
   handleError,
@@ -170,6 +171,7 @@ async function clearDisk() {
 }
 
 function resetEmulatorOnly() {
+  display.reset();
   if (emulator) {
     emulator.free();
     emulator = undefined;

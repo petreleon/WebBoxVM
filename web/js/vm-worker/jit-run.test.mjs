@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { runCachedJitBlock } from "./jit-run.js?v=20260720-input-latency-r4";
-import { resetJitState, state } from "./state.js?v=20260720-input-latency-r4";
+import { runCachedJitBlock } from "./jit-run.js?v=20260903-webgpu-virtio-r4";
+import { resetJitState, state } from "./state.js?v=20260903-webgpu-virtio-r4";
 
 afterEach(() => {
   resetJitState();

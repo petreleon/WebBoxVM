@@ -16,4 +16,8 @@
   .terminal-pane {
     min-height: 58vh;
   }
+
+  .guest-io {
+    grid-template-rows: minmax(220px, 42vh) minmax(58vh, 1fr);
+  }
 }

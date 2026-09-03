@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createPumpTaskScheduler } from "./pump.js?v=20260720-input-latency-r4";
+import { createPumpTaskScheduler } from "./pump.js?v=20260903-webgpu-virtio-r4";
 
 test("pump scheduler uses message channel when available", () => {
   let port1;

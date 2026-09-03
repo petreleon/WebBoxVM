@@ -19,6 +19,8 @@ The emulator compiles to both native code and wasm64 WebAssembly, making it suit
 - **ARM64 ISO terminal boot path** — extracts kernel/initrd from ISO9660 media, attaches the ISO as a read-only VirtIO block device, and boots through the serial terminal path
 - **Persistent install storage** — exposes a second VirtIO block device backed by a sparse writable disk, with browser OPFS save/restore
 - **VirtIO network path** — exposes a VirtIO-net MMIO device, browser WebSocket Ethernet hub, and Linux TAP-backed NAT peer
+- **VirtIO-GPU 2D scanout** — Linux can create, back, transfer, and flush a fixed 1024×768 scanout in CPU-side Rust/Wasm; WebGPU only presents dirty BGRA rectangles on the host, with Canvas2D used when startup WebGPU initialization is unavailable
+- **Experimental guest 3D transport** — [private, bounded capset 7](research/webgpu-acceleration.md) carries `WBG3` indexed geometry through Linux's standard VirtIO-GPU DRM transport to WebGPU; it is not VirGL, Venus, Mesa, OpenGL, or Vulkan compatibility, and the [cube probe](guest/webgpu-demo/README.md) prints an asynchronous submission marker rather than browser-completion proof
 - **Debian installer milestone** — Debian ARM64 netinst reaches the text installer in browser validation, loads installer components from ISO media to 100%, and advances to network hardware detection
 - **Browser terminal app** — wasm64 worker build with xterm.js console, ISO picker, Debian boot target, persistent disk controls, UART keyboard input, and live VM metrics
 - **Parallel vCPU execution** — multicore native boots use one host thread per vCPU; isolated browsers use a persistent Web Worker per vCPU over one shared Memory64 heap
@@ -37,7 +39,7 @@ emulator/src/
 │   ├── interpreter/ # Classic fetch-decode-execute loop
 │   └── jit/         # Native experiments and conservative ARM64→Wasm64 blocks
 ├── efi/             # UEFI tables, trampolines, protocol stubs
-├── devices/         # PL011 UART, GICv3 interrupt controller, VirtIO block storage
+├── devices/         # PL011, GICv3, and VirtIO block, network, and GPU devices
 ├── loader/          # PE/COFF parser, relocation fixup
 ├── dtb.rs           # Device Tree Blob generator
 ├── initrd/          # cpio newc initrd parser and builder
@@ -133,10 +135,8 @@ disk for installer storage. Browser disk contents are saved to Origin Private
 File System storage as compact sparse-disk snapshots and restored on the next
 boot from the same origin.
 
-The browser app loads as wasm64, runs the VM in a module Web Worker, renders the
-xterm.js terminal on the main page, exposes ISO boot and install-disk controls,
-wires UART keyboard input, persists the install disk through OPFS, and has been
-validated past Debian installer component loading.
+The browser app runs the wasm64 VM in a module Web Worker, renders xterm.js and a WebGPU display,
+wires UART input, and persists its sparse install disk through OPFS.
 
 Successful early boot prints lines like:
 
@@ -170,7 +170,7 @@ Detecting network hardware ... 100%
 | Debian component loading in browser | ✅ |
 | Browser network + NAT path | ✅ initial |
 | Exception model + NEON | 📅 planned |
-| Display + input | 📅 planned |
+| Display + input | 🧪 2D scanout; cursor and HID planned |
 | Windows 11 ARM64 | 📅 future |
 
 Full details in [todo.md](todo.md), [sprint-history.md](sprint-history.md), and [future.md](future.md).
