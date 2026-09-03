@@ -1,4 +1,4 @@
-pub(super) const PASS: &str = "VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 buffer=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255";
+pub(super) const PASS: &str = "VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 buffer-copy=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 
 pub(super) fn demo_script(binary: &[u8]) -> String {

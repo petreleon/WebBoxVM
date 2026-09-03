@@ -57,4 +57,23 @@ static inline void virgl_copy_stream(u32 words[VIRGL_COPY_WORDS], u32 destinatio
     words[13] = 1;
 }
 
+static inline void virgl_buffer_copy_stream(
+    u32 words[VIRGL_COPY_WORDS], u32 destination, u32 source)
+{
+    words[0] = VIRGL_HEADER(17, 0, 13);
+    words[1] = destination;
+    words[2] = 0;
+    words[3] = 4;
+    words[4] = 0;
+    words[5] = 0;
+    words[6] = source;
+    words[7] = 0;
+    words[8] = 4;
+    words[9] = 0;
+    words[10] = 0;
+    words[11] = 8;
+    words[12] = 1;
+    words[13] = 1;
+}
+
 #endif

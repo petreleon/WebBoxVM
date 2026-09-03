@@ -9,8 +9,8 @@ the format and limits exercised by this implementation.
 
 This is a real, guest-visible VirGL wire-protocol vertical slice, but it is not
 a claim that Mesa, OpenGL, or arbitrary VirGL workloads work. Its only rendered
-operation is a full-scanout color clear; it also has bounded off-screen copy and
-raw vertex-buffer transfer paths for resource data flow.
+operation is a full-scanout color clear; it also has bounded off-screen color
+and raw vertex-buffer copy paths for resource data flow.
 
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ raw vertex-buffer transfer paths for resource data flow.
 | Resource creation | `RESOURCE_CREATE_3D` accepts four packed 2D color targets and an R8 `PIPE_BUFFER` with vertex binding | Buffer storage only; no vertex input or draw |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer | 2D color and raw R8 vertex-buffer upload/readback use standard 72-byte transfers | No blobs, arrays, mip levels, or explicit strides |
-| Resource copy | `RESOURCE_COPY_REGION` copies one rectangle between attached off-screen, same-format 2D resources | No blit, format conversion, batching, or scanout copy |
+| Resource copy | `RESOURCE_COPY_REGION` copies one 2D rectangle or raw vertex-buffer byte range | No blit, format conversion, batching, or scanout copy |
 | VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, or draws |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
@@ -68,11 +68,13 @@ rectangle, a known surface, and finite RGBA values in `[0, 1]`.
 `RESOURCE_COPY_REGION` is command 17 in the standard VirGL stream. This slice
 accepts one copy per submission only when both resources are attached to the
 capset-1 context, are not the active scanout, have identical formats, and use
-level zero with `z=0` and depth one. The parser validates the complete stream
-before copying, snapshots the source rectangle before writing, and rejects
-clear/copy mixtures. That prevents malformed trailing records from mutating a
-resource and gives defined self-overlap behavior without implying browser-side
-presentation or a general renderer command queue.
+level zero with `z=0` and depth one. Color resources use a 2D rectangle; raw
+buffers instead require `y=0`, height one, and treat source/destination `x` and
+width as byte positions. Resource kinds cannot be mixed. The parser validates
+the complete stream before copying, snapshots the source range before writing,
+and rejects clear/copy mixtures. That prevents malformed trailing records from
+mutating a resource and gives defined self-overlap behavior without implying
+browser-side presentation or a general renderer command queue.
 
 After validation, Rust queues a private `VGC1` delivery envelope to the browser.
 `VGC1` is not a guest ABI and is not a VirGL command: it exists only between the
@@ -106,8 +108,9 @@ geometry pipeline, buffers, or textures.
 
 Rust tests prove the exact capset response, 72-byte bidirectional transfer frames
 for color and byte-buffer resources with context, backing, and layout rejection
-paths without mutation; same-resource overlap and transactional rejection for
-command-17 copy; generic framebuffer and `CLEAR_SURFACE` resource-to-scanout
+paths without mutation; byte-buffer and 2D same-resource overlap with
+transactional rejection for command-17 copy; generic framebuffer and
+`CLEAR_SURFACE` resource-to-scanout
 lifecycles; and deferred mutation until a successful browser acknowledgment.
 Browser tests prove that a `VGC1` clear produces one WebGPU submission, uses the
 requested canvas size and clear color, returns success after queue completion,
@@ -116,9 +119,9 @@ and leaves WBG3 rendering objects unused.
 `scripts/virgl_guest_transport_smoke.sh` adds a native Linux guest proof. It
 builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
 installed Debian fixture, obtains capset 1 through `DRM_IOCTL_VIRTGPU_GET_CAPS`,
-creates an R8 `PIPE_BUFFER` vertex-buffer resource, and performs byte-range
-upload and readback at different backing offsets through the real Linux DRM
-ioctls. It then creates a B8G8R8X8 capset-1 resource, maps its backing with
+creates source and destination R8 `PIPE_BUFFER` vertex-buffer resources, and
+performs byte-range upload, command-17 copy, and readback at different backing
+offsets through the real Linux DRM ioctls. It then creates a B8G8R8X8 capset-1 resource, maps its backing with
 `DRM_IOCTL_VIRTGPU_MAP`, and writes two distinctive BGRX pixels before issuing
 `DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`. It creates two four-pixel off-screen
 resources, uploads two pixels to one, submits ordinary command-17

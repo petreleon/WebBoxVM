@@ -1,4 +1,5 @@
 use super::VirglContext;
+use super::copy_buffer;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::GpuResource;
@@ -38,10 +39,16 @@ impl VirtioGpu {
             || !context.is_attached(copy.dst_resource)
             || !self.is_virgl_resource(copy.src_resource)
             || !self.is_virgl_resource(copy.dst_resource)
-            || !source.is_texture_2d()
-            || !destination.is_texture_2d()
             || uses_scanout
         {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        if source.is_buffer() || destination.is_buffer() {
+            return copy_buffer::valid(source, destination, copy)
+                .then_some(())
+                .ok_or(RESP_ERR_INVALID_PARAMETER);
+        }
+        if !source.is_texture_2d() || !destination.is_texture_2d() {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let destination_rect = Rect {
@@ -65,6 +72,27 @@ impl VirtioGpu {
     }
 
     pub(super) fn apply_virgl_copy(&mut self, copy: CopyRegion) -> Result<(), u32> {
+        if self
+            .resources
+            .get(&copy.src_resource)
+            .is_some_and(GpuResource::is_buffer)
+        {
+            let bytes = copy_buffer::source_bytes(
+                self.resources
+                    .get(&copy.src_resource)
+                    .expect("copy source validated before application"),
+                copy,
+            )
+            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+            return copy_buffer::write_bytes(
+                self.resources
+                    .get_mut(&copy.dst_resource)
+                    .expect("copy destination validated before application"),
+                copy,
+                &bytes,
+            )
+            .ok_or(RESP_ERR_INVALID_PARAMETER);
+        }
         let pixels = source_pixels(
             self.resources
                 .get(&copy.src_resource)

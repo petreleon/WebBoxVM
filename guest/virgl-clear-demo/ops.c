@@ -97,8 +97,11 @@ int virgl_setup(long fd, struct virgl_resources *resources)
     if (create_resource(fd, 4, 1, &resources->copy_destination_bo,
                         &resources->copy_destination_resource) != 0)
         return 4;
-    return create_vertex_buffer(fd, &resources->vertex_buffer_bo,
-                                &resources->vertex_buffer_resource) == 0
+    if (create_vertex_buffer(fd, &resources->vertex_source_bo,
+                             &resources->vertex_source_resource) != 0)
+        return 4;
+    return create_vertex_buffer(fd, &resources->vertex_destination_bo,
+                                &resources->vertex_destination_resource) == 0
                ? 0
                : 4;
 }
@@ -132,6 +135,23 @@ int virgl_submit_copy(long fd, u32 source_bo, u32 source_resource,
     };
 
     virgl_copy_stream(words, destination_resource, source_resource);
+    return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &submit) < 0 ? -1 : 0;
+}
+
+int virgl_submit_buffer_copy(long fd, u32 source_bo, u32 source_resource,
+                             u32 destination_bo, u32 destination_resource)
+{
+    u32 words[VIRGL_COPY_WORDS] = {0};
+    u32 handles[2] = {source_bo, destination_bo};
+    struct drm_virtgpu_execbuffer submit = {
+        .size = sizeof(words),
+        .command = (u64)words,
+        .bo_handles = (u64)handles,
+        .num_bo_handles = 2,
+        .fence_fd = -1,
+    };
+
+    virgl_buffer_copy_stream(words, destination_resource, source_resource);
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &submit) < 0 ? -1 : 0;
 }
 

@@ -7,6 +7,7 @@ mod queue;
 mod three_d;
 mod virgl;
 mod virgl_buffer;
+mod virgl_buffer_copy;
 mod virgl_copy;
 mod virgl_queue;
 mod virgl_readback;

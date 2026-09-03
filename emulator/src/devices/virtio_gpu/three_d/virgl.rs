@@ -1,5 +1,6 @@
 mod context;
 mod copy;
+mod copy_buffer;
 mod resource;
 mod stream;
 
