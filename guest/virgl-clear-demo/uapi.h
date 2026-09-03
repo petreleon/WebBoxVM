@@ -79,6 +79,15 @@ struct drm_virtgpu_3d_transfer_to_host {
     u32 layer_stride;
 };
 
+struct drm_virtgpu_3d_transfer_from_host {
+    u32 bo_handle;
+    struct drm_virtgpu_3d_box box;
+    u32 level;
+    u32 offset;
+    u32 stride;
+    u32 layer_stride;
+};
+
 struct drm_virtgpu_execbuffer {
     u32 flags;
     u32 size;
@@ -121,18 +130,22 @@ struct drm_virtgpu_3d_wait {
     DRM_IOWR(DRM_COMMAND_BASE + 0x01u, struct drm_virtgpu_map)
 #define DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST \
     DRM_IOWR(DRM_COMMAND_BASE + 0x07u, struct drm_virtgpu_3d_transfer_to_host)
+#define DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST \
+    DRM_IOWR(DRM_COMMAND_BASE + 0x06u, struct drm_virtgpu_3d_transfer_from_host)
 
 _Static_assert(sizeof(void *) == 8, "the demo requires AArch64 LP64");
 _Static_assert(sizeof(struct drm_virtgpu_context_init) == 16, "bad context ABI");
 _Static_assert(sizeof(struct drm_virtgpu_map) == 16, "bad map ABI");
 _Static_assert(sizeof(struct drm_virtgpu_resource_create) == 56, "bad resource ABI");
 _Static_assert(sizeof(struct drm_virtgpu_3d_transfer_to_host) == 44, "bad transfer ABI");
+_Static_assert(sizeof(struct drm_virtgpu_3d_transfer_from_host) == 44, "bad readback ABI");
 _Static_assert(sizeof(struct drm_virtgpu_execbuffer) == 64, "bad execbuffer ABI");
 _Static_assert(sizeof(struct drm_virtgpu_get_caps) == 24, "bad caps ABI");
 _Static_assert(DRM_IOCTL_VIRTGPU_CONTEXT_INIT == 0xc010644bu, "bad context ioctl");
 _Static_assert(DRM_IOCTL_VIRTGPU_MAP == 0xc0106441u, "bad map ioctl");
 _Static_assert(DRM_IOCTL_VIRTGPU_RESOURCE_CREATE == 0xc0386444u, "bad resource ioctl");
 _Static_assert(DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST == 0xc02c6447u, "bad transfer ioctl");
+_Static_assert(DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST == 0xc02c6446u, "bad readback ioctl");
 _Static_assert(DRM_IOCTL_VIRTGPU_EXECBUFFER == 0xc0406442u, "bad execbuffer ioctl");
 
 #endif

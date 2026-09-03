@@ -16,7 +16,7 @@ operation is a full-scanout color clear.
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
 | Resource creation | `RESOURCE_CREATE_3D` accepts a B8G8R8A8 2D render target | One target, one level, no multisampling |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
-| Resource upload | `TRANSFER_TO_HOST_3D` uploads a classic capset-1 2D BGRA resource | No readback, blobs, arrays, mip levels, or explicit strides |
+| Resource transfer | `TRANSFER_TO_HOST_3D` uploads and `TRANSFER_FROM_HOST_3D` returns a classic capset-1 2D BGRA resource | No blobs, arrays, mip levels, or explicit strides |
 | VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, or draws |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
@@ -38,12 +38,14 @@ The accepted `RESOURCE_CREATE_3D` shape is deliberately restrictive:
 - depth and array size of one;
 - level zero, zero or one sample, and no resource flags.
 
-`TRANSFER_TO_HOST_3D` is exactly the 72-byte standard wire structure. In this
-slice it requires a live capset-1 context and accepts only a
-zero-mip, `z=0`, `d=1` box with zero stride and layer stride. Its offset names
-the first source pixel in the attached guest backing; rows use the resource's
-native BGRA stride, matching the classic-resource path used by Linux. Uploads
-do not imply a scanout flush or browser submission.
+`TRANSFER_TO_HOST_3D` and `TRANSFER_FROM_HOST_3D` use the exact same 72-byte
+standard wire structure. In this slice each requires a live capset-1 context
+and accepts only a zero-mip, `z=0`, `d=1` box with zero stride and layer stride.
+Its offset names the first source or destination pixel in the attached guest
+backing; rows use the resource's native BGRA stride, matching the classic-resource
+path used by Linux. Reverse transfer validates every scatter-backed destination
+before writing it, so an invalid range cannot cause a partial guest-memory update.
+Neither direction implies a scanout flush or browser submission.
 
 The clear path's resource must additionally be the exact current VirtIO-GPU
 scanout resource. `CLEAR_SURFACE` must use that resource's complete scanout
@@ -68,7 +70,7 @@ It does **not** establish any of the following:
 
 - Mesa's VirGL driver can initialize or render;
 - OpenGL contexts, Gallium state, TGSI, shaders, textures, buffers, blending,
-  depth/stencil, draw calls, readback, or general resource-transfer work;
+  depth/stencil, draw calls, multi-format readback, or general resource-transfer work;
 - capset 2 or capability coverage beyond the conservative v1 response;
 - Vulkan, Venus, blob resources, external memory, or synchronization support.
 
@@ -79,7 +81,7 @@ geometry pipeline, buffers, or textures.
 
 ## Validation retained in the repository
 
-Rust tests prove the exact capset response, the 72-byte upload frame and its
+Rust tests prove the exact capset response, 72-byte bidirectional transfer frames and their
 context, backing, and layout rejection paths without mutation, generic framebuffer
 and `CLEAR_SURFACE` resource-to-scanout lifecycles, and deferred mutation until
 a successful browser acknowledgment. Browser tests prove that a `VGC1` clear
@@ -97,7 +99,8 @@ primary plane, submits the normal surface/framebuffer/`CLEAR` stream through
 `EXECBUFFER`, and waits on the resource fence. The harness first verifies the
 exact two-pixel upload in a full `WBGF`, then validates `VGC1`, captures the
 all-BGRA `[191, 128, 64, 255]` `WBGF` immediately at positive completion, and
-only then accepts the guest's fence-gated PASS marker.
+then accepts the guest's marker only after its
+`DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST` check returned those clear pixels.
 
 That native proof validates Linux DRM/KMS transport and post-ack CPU-side
 readback. It intentionally uses the native completion adapter, not a browser

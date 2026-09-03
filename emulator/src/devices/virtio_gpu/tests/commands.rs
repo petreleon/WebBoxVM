@@ -8,7 +8,8 @@ use crate::memory::PhysicalMemory;
 #[test]
 fn display_info_is_fixed_and_preserves_request_header() {
     let mut gpu = VirtioGpu::new();
-    let response = gpu.execute_command(&PhysicalMemory::new(), &header(CMD_GET_DISPLAY_INFO));
+    let mut mem = PhysicalMemory::new();
+    let response = gpu.execute_command(&mut mem, &header(CMD_GET_DISPLAY_INFO));
     assert_eq!(response.len(), 24 + 16 * 24);
     assert_eq!(response_type(&response), RESP_OK_DISPLAY_INFO);
     assert_eq!(read_u32(&response, 4), Some(1));
@@ -23,17 +24,17 @@ fn display_info_is_fixed_and_preserves_request_header() {
 #[test]
 fn malformed_and_unknown_commands_return_errors_without_mutation() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
+    let mut mem = PhysicalMemory::new();
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &[1, 2, 3])),
+        response_type(&gpu.execute_command(&mut mem, &[1, 2, 3])),
         RESP_ERR_UNSPEC
     );
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &header(CMD_RESOURCE_CREATE_2D))),
+        response_type(&gpu.execute_command(&mut mem, &header(CMD_RESOURCE_CREATE_2D))),
         RESP_ERR_INVALID_PARAMETER
     );
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &header(0xffff))),
+        response_type(&gpu.execute_command(&mut mem, &header(0xffff))),
         RESP_ERR_UNSPEC
     );
     assert!(gpu.resources.is_empty());
@@ -46,11 +47,15 @@ fn command_flow_normalizes_bgrx_and_encodes_damage() {
     let resource_bytes = (SCANOUT_WIDTH * SCANOUT_HEIGHT * 4) as usize;
     assert_ok(
         &mut gpu,
-        &mem,
+        &mut mem,
         &create_2d(1, FORMAT_B8G8R8X8_UNORM, SCANOUT_WIDTH, SCANOUT_HEIGHT),
     );
-    assert_ok(&mut gpu, &mem, &attach(1, RAM_BASE, resource_bytes as u32));
-    assert_ok(&mut gpu, &mem, &full_scanout(1));
+    assert_ok(
+        &mut gpu,
+        &mut mem,
+        &attach(1, RAM_BASE, resource_bytes as u32),
+    );
+    assert_ok(&mut gpu, &mut mem, &full_scanout(1));
 
     let pixel_addr = RAM_BASE + ((2 * SCANOUT_WIDTH + 1) * 4) as u64;
     mem.write_bytes(pixel_addr, &[10, 20, 30, 0, 40, 50, 60, 0])
@@ -62,8 +67,8 @@ fn command_flow_normalizes_bgrx_and_encodes_damage() {
         height: 1,
     };
     let offset = ((2 * SCANOUT_WIDTH + 1) * 4) as u64;
-    assert_ok(&mut gpu, &mem, &transfer(1, rect, offset));
-    assert_ok(&mut gpu, &mem, &flush(1, rect));
+    assert_ok(&mut gpu, &mut mem, &transfer(1, rect, offset));
+    assert_ok(&mut gpu, &mut mem, &flush(1, rect));
 
     let frame = gpu.take_scanout_update();
     assert_eq!(&frame[..4], b"WBGF");
@@ -81,9 +86,9 @@ fn command_flow_normalizes_bgrx_and_encodes_damage() {
 #[test]
 fn flushes_coalesce_to_one_bounding_rectangle() {
     let mut gpu = prepared_gpu();
-    let mem = PhysicalMemory::new();
-    assert_ok(&mut gpu, &mem, &flush(1, rect(2, 3, 2, 2)));
-    assert_ok(&mut gpu, &mem, &flush(1, rect(8, 9, 1, 1)));
+    let mut mem = PhysicalMemory::new();
+    assert_ok(&mut gpu, &mut mem, &flush(1, rect(2, 3, 2, 2)));
+    assert_ok(&mut gpu, &mut mem, &flush(1, rect(8, 9, 1, 1)));
     let frame = gpu.take_scanout_update();
     assert_eq!(read_u32(&frame, 16), Some(2));
     assert_eq!(read_u32(&frame, 20), Some(3));
@@ -95,30 +100,38 @@ fn flushes_coalesce_to_one_bounding_rectangle() {
 #[test]
 fn attach_accepts_one_page_rounded_backing_but_rejects_excess() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_ok(&mut gpu, &mem, &create_2d(1, FORMAT_B8G8R8A8_UNORM, 5, 5));
-    assert_ok(&mut gpu, &mem, &attach(1, RAM_BASE, 4096));
+    let mut mem = PhysicalMemory::new();
+    assert_ok(
+        &mut gpu,
+        &mut mem,
+        &create_2d(1, FORMAT_B8G8R8A8_UNORM, 5, 5),
+    );
+    assert_ok(&mut gpu, &mut mem, &attach(1, RAM_BASE, 4096));
 
-    assert_ok(&mut gpu, &mem, &create_2d(2, FORMAT_B8G8R8A8_UNORM, 5, 5));
+    assert_ok(
+        &mut gpu,
+        &mut mem,
+        &create_2d(2, FORMAT_B8G8R8A8_UNORM, 5, 5),
+    );
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &attach(2, RAM_BASE, 8192))),
+        response_type(&gpu.execute_command(&mut mem, &attach(2, RAM_BASE, 8192))),
         RESP_ERR_INVALID_PARAMETER
     );
 }
 
 fn prepared_gpu() -> VirtioGpu {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
+    let mut mem = PhysicalMemory::new();
     assert_ok(
         &mut gpu,
-        &mem,
+        &mut mem,
         &create_2d(1, FORMAT_B8G8R8A8_UNORM, SCANOUT_WIDTH, SCANOUT_HEIGHT),
     );
-    assert_ok(&mut gpu, &mem, &full_scanout(1));
+    assert_ok(&mut gpu, &mut mem, &full_scanout(1));
     gpu
 }
 
-fn assert_ok(gpu: &mut VirtioGpu, mem: &PhysicalMemory, command: &[u8]) {
+fn assert_ok(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8]) {
     assert_eq!(
         response_type(&gpu.execute_command(mem, command)),
         RESP_OK_NODATA

@@ -8,35 +8,35 @@ use crate::memory::PhysicalMemory;
 #[test]
 fn backing_detach_and_resource_unref_are_checked() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
+    let mut mem = PhysicalMemory::new();
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         create_2d(1, FORMAT_B8G8R8A8_UNORM, 5, 5),
         RESP_OK_NODATA,
     );
-    assert_response(&mut gpu, &mem, attach(1, 4096), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, attach(1, 4096), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         resource(CMD_RESOURCE_DETACH_BACKING, 1),
         RESP_OK_NODATA,
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         resource(CMD_RESOURCE_DETACH_BACKING, 1),
         RESP_ERR_INVALID_PARAMETER,
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         resource(CMD_RESOURCE_UNREF, 1),
         RESP_OK_NODATA,
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         resource(CMD_RESOURCE_UNREF, 1),
         RESP_ERR_INVALID_RESOURCE_ID,
     );
@@ -46,24 +46,24 @@ fn backing_detach_and_resource_unref_are_checked() {
 #[test]
 fn resource_count_and_formats_are_bounded() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
+    let mut mem = PhysicalMemory::new();
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         create_2d(1, 67, 1, 1),
         RESP_ERR_INVALID_PARAMETER,
     );
     for id in 1..=MAX_RESOURCES as u32 {
         assert_response(
             &mut gpu,
-            &mem,
+            &mut mem,
             create_2d(id, FORMAT_B8G8R8A8_UNORM, 1, 1),
             RESP_OK_NODATA,
         );
     }
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         create_2d(10_000, FORMAT_B8G8R8A8_UNORM, 1, 1),
         RESP_ERR_OUT_OF_MEMORY,
     );
@@ -72,14 +72,14 @@ fn resource_count_and_formats_are_bounded() {
 #[test]
 fn unref_selected_resource_discards_pending_damage() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
+    let mut mem = PhysicalMemory::new();
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         create_2d(1, FORMAT_B8G8R8A8_UNORM, SCANOUT_WIDTH, SCANOUT_HEIGHT),
         RESP_OK_NODATA,
     );
-    assert_response(&mut gpu, &mem, full_scanout(1), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, full_scanout(1), RESP_OK_NODATA);
     gpu.add_damage(
         1,
         Rect {
@@ -91,7 +91,7 @@ fn unref_selected_resource_discards_pending_damage() {
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         resource(CMD_RESOURCE_UNREF, 1),
         RESP_OK_NODATA,
     );
@@ -115,6 +115,6 @@ fn resource(command: u32, id: u32) -> Vec<u8> {
     bytes
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &PhysicalMemory, command: Vec<u8>, expected: u32) {
+fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: Vec<u8>, expected: u32) {
     assert_eq!(response_type(&gpu.execute_command(mem, &command)), expected);
 }

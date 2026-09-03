@@ -55,7 +55,7 @@ fn maximum_wbg3_submit_defers_used_ring_until_success_ack() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &context_create())),
+        response_type(&gpu.execute_command(&mut mem, &context_create())),
         RESP_OK_NODATA
     );
     let packet = wbg3_packet(MAX_3D_VERTICES, MAX_3D_INDICES);
@@ -79,7 +79,7 @@ fn maximum_wbg3_submit_defers_used_ring_until_success_ack() {
 fn failed_wbg3_ack_completes_with_error() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
-    gpu.execute_command(&mem, &context_create());
+    gpu.execute_command(&mut mem, &context_create());
     configure_queue(&mut gpu, &mut mem, 0, &submit_3d(&wbg3_packet(3, 3)), 24);
     assert!(!gpu.write(&mut mem, 0x050, 0, 4));
     let packet = gpu.take_3d_update();

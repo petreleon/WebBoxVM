@@ -9,10 +9,10 @@ use crate::memory::PhysicalMemory;
 fn page_sg_backing_larger_than_256_entries_is_accepted() {
     const PAGE_COUNT: u32 = 300;
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
+    let mut mem = PhysicalMemory::new();
     let create = create_2d(1, FORMAT_B8G8R8A8_UNORM, 1024, PAGE_COUNT);
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &create)),
+        response_type(&gpu.execute_command(&mut mem, &create)),
         RESP_OK_NODATA
     );
 
@@ -25,7 +25,7 @@ fn page_sg_backing_larger_than_256_entries_is_accepted() {
         push_u32(&mut attach, 0);
     }
     assert_eq!(
-        response_type(&gpu.execute_command(&mem, &attach)),
+        response_type(&gpu.execute_command(&mut mem, &attach)),
         RESP_OK_NODATA
     );
     assert_eq!(gpu.resources.get(&1).unwrap().backing.len(), 300);

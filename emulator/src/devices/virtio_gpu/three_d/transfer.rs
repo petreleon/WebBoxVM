@@ -41,18 +41,10 @@ impl VirtioGpu {
         header: CtrlHeader,
         input: &[u8],
     ) -> u32 {
-        let Some(transfer) = Transfer3d::decode(input) else {
-            return RESP_ERR_INVALID_PARAMETER;
+        let transfer = match self.virgl_transfer(header, input) {
+            Ok(transfer) => transfer,
+            Err(response) => return response,
         };
-        if !self.resources.contains_key(&transfer.resource_id) {
-            return RESP_ERR_INVALID_RESOURCE_ID;
-        }
-        if self.contexts.get(&header.ctx_id) != Some(&VIRGL_CAPSET_ID) {
-            return RESP_ERR_INVALID_CONTEXT_ID;
-        }
-        if !self.is_virgl_resource(transfer.resource_id) || !transfer.is_classic_2d_layout() {
-            return RESP_ERR_INVALID_PARAMETER;
-        }
         let resource = self
             .resources
             .get_mut(&transfer.resource_id)
@@ -64,5 +56,42 @@ impl VirtioGpu {
             return RESP_ERR_INVALID_PARAMETER;
         }
         RESP_OK_NODATA
+    }
+
+    pub(in crate::devices::virtio_gpu) fn transfer_from_host_3d(
+        &mut self,
+        mem: &mut PhysicalMemory,
+        header: CtrlHeader,
+        input: &[u8],
+    ) -> u32 {
+        let transfer = match self.virgl_transfer(header, input) {
+            Ok(transfer) => transfer,
+            Err(response) => return response,
+        };
+        let resource = self
+            .resources
+            .get(&transfer.resource_id)
+            .expect("resource existence checked above");
+        if resource
+            .transfer_from_host(mem, transfer.rect, transfer.offset)
+            .is_none()
+        {
+            return RESP_ERR_INVALID_PARAMETER;
+        }
+        RESP_OK_NODATA
+    }
+
+    fn virgl_transfer(&self, header: CtrlHeader, input: &[u8]) -> Result<Transfer3d, u32> {
+        let transfer = Transfer3d::decode(input).ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        if !self.resources.contains_key(&transfer.resource_id) {
+            return Err(RESP_ERR_INVALID_RESOURCE_ID);
+        }
+        if self.contexts.get(&header.ctx_id) != Some(&VIRGL_CAPSET_ID) {
+            return Err(RESP_ERR_INVALID_CONTEXT_ID);
+        }
+        if !self.is_virgl_resource(transfer.resource_id) || !transfer.is_classic_2d_layout() {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        Ok(transfer)
     }
 }

@@ -22,7 +22,7 @@ fn features_and_private_capset_remain_advertised_with_exact_structures() {
     let mut info = header(CMD_GET_CAPSET_INFO);
     push_u32(&mut info, 1);
     push_u32(&mut info, 0);
-    let response = gpu.execute_command(&mem, &info);
+    let response = gpu.execute_command(&mut mem, &info);
     assert_eq!(response_type(&response), RESP_OK_CAPSET_INFO);
     assert_eq!(response.len(), 40);
     assert_eq!(read_u32(&response, 24), Some(CAPSET_ID));
@@ -32,7 +32,7 @@ fn features_and_private_capset_remain_advertised_with_exact_structures() {
     let mut get = header(CMD_GET_CAPSET);
     push_u32(&mut get, CAPSET_ID);
     push_u32(&mut get, CAPSET_VERSION);
-    let response = gpu.execute_command(&mem, &get);
+    let response = gpu.execute_command(&mut mem, &get);
     assert_eq!(response_type(&response), RESP_OK_CAPSET);
     assert_eq!(response.len(), 24 + CAPSET_SIZE as usize);
     assert_eq!(&response[24..28], b"WBG3");
@@ -45,33 +45,38 @@ fn features_and_private_capset_remain_advertised_with_exact_structures() {
 #[test]
 fn private_contexts_remain_checked_and_unknown_capsets_reject() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &context_create(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &context_create(), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &context_create(),
         RESP_ERR_INVALID_CONTEXT_ID,
     );
     let destroy = header(CMD_CTX_DESTROY);
-    assert_response(&mut gpu, &mem, &destroy, RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &destroy, RESP_ERR_INVALID_CONTEXT_ID);
+    assert_response(&mut gpu, &mut mem, &destroy, RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &destroy, RESP_ERR_INVALID_CONTEXT_ID);
 
     let mut wrong_capset = context_create();
     wrong_capset[28..32].copy_from_slice(&6u32.to_le_bytes());
-    assert_response(&mut gpu, &mem, &wrong_capset, RESP_ERR_INVALID_PARAMETER);
+    assert_response(
+        &mut gpu,
+        &mut mem,
+        &wrong_capset,
+        RESP_ERR_INVALID_PARAMETER,
+    );
     let mut oversized = context_create();
     oversized.push(0);
-    assert_response(&mut gpu, &mem, &oversized, RESP_ERR_INVALID_PARAMETER);
+    assert_response(&mut gpu, &mut mem, &oversized, RESP_ERR_INVALID_PARAMETER);
 }
 
 #[test]
 fn submit_validates_wbg3_and_overwrites_guest_sequence() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &context_create(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &context_create(), RESP_OK_NODATA);
     let packet = wbg3_packet(3, 3);
-    let result = gpu.execute_queued_command(&mem, &submit_3d(&packet));
+    let result = gpu.execute_queued_command(&mut mem, &submit_3d(&packet));
     assert_eq!(response_type(&result.response), RESP_OK_NODATA);
     assert_eq!(result.deferred.map(|submit| submit.sequence), Some(1));
     let exported = gpu.take_3d_update();
@@ -79,14 +84,14 @@ fn submit_validates_wbg3_and_overwrites_guest_sequence() {
     assert_eq!(&exported[..12], &packet[..12]);
     assert_eq!(&exported[16..], &packet[16..]);
     assert!(gpu.take_3d_update().is_empty());
-    assert_response(&mut gpu, &mem, &header(CMD_CTX_DESTROY), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &header(CMD_CTX_DESTROY), RESP_OK_NODATA);
 }
 
 #[test]
 fn malformed_wbg3_payloads_are_rejected_without_queueing() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &context_create(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &context_create(), RESP_OK_NODATA);
     let base = wbg3_packet(3, 3);
     let mut bad_magic = base.clone();
     bad_magic[0] = b'X';
@@ -99,20 +104,25 @@ fn malformed_wbg3_payloads_are_rejected_without_queueing() {
     for packet in [bad_magic, bad_version, bad_opcode, bad_count] {
         assert_response(
             &mut gpu,
-            &mem,
+            &mut mem,
             &submit_3d(&packet),
             RESP_ERR_INVALID_PARAMETER,
         );
     }
     let mut nan = base.clone();
     nan[32..36].copy_from_slice(&f32::NAN.to_le_bytes());
-    assert_response(&mut gpu, &mem, &submit_3d(&nan), RESP_ERR_INVALID_PARAMETER);
+    assert_response(
+        &mut gpu,
+        &mut mem,
+        &submit_3d(&nan),
+        RESP_ERR_INVALID_PARAMETER,
+    );
     let mut bad_index = base.clone();
     let end = bad_index.len();
     bad_index[end - 2..].copy_from_slice(&3u16.to_le_bytes());
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit_3d(&bad_index),
         RESP_ERR_INVALID_PARAMETER,
     );
@@ -120,7 +130,7 @@ fn malformed_wbg3_payloads_are_rejected_without_queueing() {
     zero_width[16..20].copy_from_slice(&0u32.to_le_bytes());
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit_3d(&zero_width),
         RESP_ERR_INVALID_PARAMETER,
     );
@@ -130,21 +140,21 @@ fn malformed_wbg3_payloads_are_rejected_without_queueing() {
 #[test]
 fn maximum_packet_size_is_exact_and_pending_bytes_are_bounded() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &context_create(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &context_create(), RESP_OK_NODATA);
     let packet = wbg3_packet(MAX_3D_VERTICES, MAX_3D_INDICES);
     assert_eq!(packet.len(), MAX_WBG3_PACKET_BYTES);
     let command = submit_3d(&packet);
     for _ in 0..15 {
-        let result = gpu.execute_queued_command(&mem, &command);
+        let result = gpu.execute_queued_command(&mut mem, &command);
         assert_eq!(response_type(&result.response), RESP_OK_NODATA);
         assert!(result.deferred.is_some());
     }
-    let result = gpu.execute_queued_command(&mem, &command);
+    let result = gpu.execute_queued_command(&mut mem, &command);
     assert_eq!(response_type(&result.response), RESP_ERR_OUT_OF_MEMORY);
     assert!(result.deferred.is_none());
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &PhysicalMemory, command: &[u8], expected: u32) {
+fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
     assert_eq!(response_type(&gpu.execute_command(mem, command)), expected);
 }

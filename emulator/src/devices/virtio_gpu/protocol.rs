@@ -16,6 +16,7 @@ pub(super) const CMD_CTX_ATTACH_RESOURCE: u32 = 0x0202;
 pub(super) const CMD_CTX_DETACH_RESOURCE: u32 = 0x0203;
 pub(super) const CMD_RESOURCE_CREATE_3D: u32 = 0x0204;
 pub(super) const CMD_TRANSFER_TO_HOST_3D: u32 = 0x0205;
+pub(super) const CMD_TRANSFER_FROM_HOST_3D: u32 = 0x0206;
 pub(super) const CMD_SUBMIT_3D: u32 = 0x0207;
 
 pub(super) const RESP_OK_NODATA: u32 = 0x1100;

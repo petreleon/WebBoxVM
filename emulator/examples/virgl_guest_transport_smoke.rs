@@ -1,4 +1,4 @@
-//! Native Linux-driver proof for the standard capset-1 VirGL clear path.
+//! Native Linux-driver proof for standard capset-1 VirGL transfer and clear.
 
 #[path = "virgl_guest_transport_smoke/wire.rs"]
 mod wire;

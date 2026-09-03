@@ -16,10 +16,10 @@ fn transfer_to_host_3d_requires_a_virgl_context_then_uploads() {
     mem.write_bytes(RAM_BASE + offset, &[1, 2, 3, 4, 5, 6, 7, 8])
         .unwrap();
     let command = transfer(1, 1, 0, 2, offset, 0, 0, 0);
-    assert_response(&mut gpu, &mem, &command, RESP_ERR_INVALID_CONTEXT_ID);
+    assert_response(&mut gpu, &mut mem, &command, RESP_ERR_INVALID_CONTEXT_ID);
 
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &command, RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &command, RESP_OK_NODATA);
     assert_eq!(
         &gpu.resources[&RESOURCE_ID].pixels[20..28],
         &[1, 2, 3, 4, 5, 6, 7, 8]
@@ -29,7 +29,7 @@ fn transfer_to_host_3d_requires_a_virgl_context_then_uploads() {
 
 #[test]
 fn transfer_to_host_3d_rejects_nonclassic_layouts_without_mutation() {
-    let (mut gpu, mem) = prepared_gpu();
+    let (mut gpu, mut mem) = prepared_gpu();
     let before = gpu.resources[&RESOURCE_ID].pixels.clone();
     let nonzero_z = transfer(0, 0, 1, 1, 0, 0, 0, 0);
     let mut deep = transfer(0, 0, 0, 1, 0, 0, 0, 0);
@@ -42,19 +42,19 @@ fn transfer_to_host_3d_rejects_nonclassic_layouts_without_mutation() {
         transfer(0, 0, 0, 1, 0, 0, 0, 16),
         header(CMD_TRANSFER_TO_HOST_3D),
     ] {
-        assert_response(&mut gpu, &mem, &command, RESP_ERR_INVALID_PARAMETER);
+        assert_response(&mut gpu, &mut mem, &command, RESP_ERR_INVALID_PARAMETER);
     }
     assert_eq!(gpu.resources[&RESOURCE_ID].pixels, before);
 }
 
 #[test]
 fn transfer_to_host_3d_rejects_a_resource_without_backing() {
-    let (mut gpu, mem) = resource_without_backing();
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
+    let (mut gpu, mut mem) = resource_without_backing();
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
     let before = gpu.resources[&RESOURCE_ID].pixels.clone();
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &transfer(0, 0, 0, 1, 0, 0, 0, 0),
         RESP_ERR_INVALID_PARAMETER,
     );
@@ -62,21 +62,21 @@ fn transfer_to_host_3d_rejects_a_resource_without_backing() {
 }
 
 fn prepared_gpu() -> (VirtioGpu, PhysicalMemory) {
-    let (mut gpu, mem) = resource_with_backing();
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
+    let (mut gpu, mut mem) = resource_with_backing();
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
     (gpu, mem)
 }
 
 fn resource_with_backing() -> (VirtioGpu, PhysicalMemory) {
-    let (mut gpu, mem) = resource_without_backing();
-    assert_response(&mut gpu, &mem, &attach_backing(), RESP_OK_NODATA);
+    let (mut gpu, mut mem) = resource_without_backing();
+    assert_response(&mut gpu, &mut mem, &attach_backing(), RESP_OK_NODATA);
     (gpu, mem)
 }
 
 fn resource_without_backing() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &resource_create(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &resource_create(), RESP_OK_NODATA);
     (gpu, mem)
 }
 
@@ -128,6 +128,6 @@ fn transfer(
     command
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &PhysicalMemory, command: &[u8], expected: u32) {
+fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
     assert_eq!(response_type(&gpu.execute_command(mem, command)), expected);
 }

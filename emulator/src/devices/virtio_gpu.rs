@@ -12,6 +12,7 @@ mod mmio;
 mod protocol;
 mod queue;
 mod resource;
+mod resource_transfer;
 mod three_d;
 
 #[cfg(test)]

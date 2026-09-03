@@ -7,13 +7,14 @@ mod queue;
 mod three_d;
 mod virgl;
 mod virgl_queue;
+mod virgl_readback;
 mod virgl_transfer;
 
 use super::protocol::*;
 use crate::memory::PhysicalMemory;
 
 impl super::VirtioGpu {
-    fn execute_command(&mut self, mem: &PhysicalMemory, input: &[u8]) -> Vec<u8> {
+    fn execute_command(&mut self, mem: &mut PhysicalMemory, input: &[u8]) -> Vec<u8> {
         self.execute_queued_command(mem, input).response
     }
 }

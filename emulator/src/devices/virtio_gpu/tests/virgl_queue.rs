@@ -15,13 +15,13 @@ const RESPONSE: u64 = RAM_BASE + 0x30000;
 fn queued_standard_framebuffer_clear_waits_for_ack_before_mutating_scanout() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &resource_create(4), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &full_scanout(4), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &attach_resource(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &resource_create(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &full_scanout(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &attach_resource(4), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit(&surface_create(9, 4)),
         RESP_OK_NODATA,
     );
@@ -43,26 +43,31 @@ fn queued_standard_framebuffer_clear_waits_for_ack_before_mutating_scanout() {
 #[test]
 fn destroyed_surface_cannot_remain_a_framebuffer_target() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &resource_create(4), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &attach_resource(4), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &resource_create(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &attach_resource(4), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit(&surface_create(9, 4)),
         RESP_OK_NODATA,
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit(&framebuffer_bind(9)),
         RESP_OK_NODATA,
     );
-    assert_response(&mut gpu, &mem, &submit(&surface_destroy(9)), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
+        &submit(&surface_destroy(9)),
+        RESP_OK_NODATA,
+    );
+    assert_response(
+        &mut gpu,
+        &mut mem,
         &submit(&generic_clear()),
         RESP_ERR_INVALID_PARAMETER,
     );
@@ -166,6 +171,6 @@ fn write_desc(mem: &mut PhysicalMemory, base: u64, addr: u64, len: u32, flags: u
         .expect("descriptor next");
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &PhysicalMemory, command: &[u8], expected: u32) {
+fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
     assert_eq!(response_type(&gpu.execute_command(mem, command)), expected);
 }

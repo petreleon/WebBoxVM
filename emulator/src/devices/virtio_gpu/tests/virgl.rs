@@ -9,14 +9,14 @@ const VIRGL_TARGET_TEXTURE_2D: u32 = 2;
 #[test]
 fn virgl_capset_one_is_standard_sized_and_conservative() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    let response = gpu.execute_command(&mem, &capset_info(0));
+    let mut mem = PhysicalMemory::new();
+    let response = gpu.execute_command(&mut mem, &capset_info(0));
     assert_eq!(response_type(&response), RESP_OK_CAPSET_INFO);
     assert_eq!(read_u32(&response, 24), Some(VIRGL_CAPSET_ID));
     assert_eq!(read_u32(&response, 28), Some(1));
     assert_eq!(read_u32(&response, 32), Some(308));
 
-    let response = gpu.execute_command(&mem, &capset(VIRGL_CAPSET_ID, 1));
+    let response = gpu.execute_command(&mut mem, &capset(VIRGL_CAPSET_ID, 1));
     assert_eq!(response_type(&response), RESP_OK_CAPSET);
     assert_eq!(response.len(), 24 + 308);
     assert_eq!(read_u32(&response, 24), Some(1));
@@ -27,25 +27,25 @@ fn virgl_capset_one_is_standard_sized_and_conservative() {
 #[test]
 fn virgl_surface_clear_is_deferred_until_webgpu_ack_effect() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &resource_create(4), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &full_scanout(4), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &resource_create(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &full_scanout(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &context_resource(CMD_CTX_ATTACH_RESOURCE, 4),
         RESP_OK_NODATA,
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit(&surface_create(9, 4)),
         RESP_OK_NODATA,
     );
 
     let color = [0.25, 0.5, 0.75, 1.0];
-    let result = gpu.execute_queued_command(&mem, &submit(&surface_clear(9, color)));
+    let result = gpu.execute_queued_command(&mut mem, &submit(&surface_clear(9, color)));
     assert_eq!(response_type(&result.response), RESP_OK_NODATA);
     assert_eq!(result.deferred.map(|deferred| deferred.sequence), Some(1));
     assert_eq!(&gpu.resources[&4].pixels[..4], &[0, 0, 0, 0]);
@@ -66,12 +66,12 @@ fn virgl_surface_clear_is_deferred_until_webgpu_ack_effect() {
 #[test]
 fn virgl_rejects_unsupported_streams_without_creating_a_surface() {
     let mut gpu = VirtioGpu::new();
-    let mem = PhysicalMemory::new();
-    assert_response(&mut gpu, &mem, &resource_create(4), RESP_OK_NODATA);
-    assert_response(&mut gpu, &mem, &virgl_context(), RESP_OK_NODATA);
+    let mut mem = PhysicalMemory::new();
+    assert_response(&mut gpu, &mut mem, &resource_create(4), RESP_OK_NODATA);
+    assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &context_resource(CMD_CTX_ATTACH_RESOURCE, 4),
         RESP_OK_NODATA,
     );
@@ -79,13 +79,13 @@ fn virgl_rejects_unsupported_streams_without_creating_a_surface() {
     invalid[0] = command_header(1, 6, 5);
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit(&invalid),
         RESP_ERR_INVALID_PARAMETER,
     );
     assert_response(
         &mut gpu,
-        &mem,
+        &mut mem,
         &submit(&surface_clear(9, [0.0; 4])),
         RESP_ERR_INVALID_PARAMETER,
     );
@@ -174,6 +174,6 @@ fn command_header(command: u8, object: u8, length: u16) -> u32 {
     u32::from(command) | (u32::from(object) << 8) | (u32::from(length) << 16)
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &PhysicalMemory, command: &[u8], expected: u32) {
+fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
     assert_eq!(response_type(&gpu.execute_command(mem, command)), expected);
 }
