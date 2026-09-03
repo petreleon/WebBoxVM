@@ -12,8 +12,8 @@ static const char vertex_shader[] =
 static const char fragment_shader[] =
     "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, .25}\n0: MOV OUT[0], IMM[0]\n1: END\n";
 
-static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource);
-static u32 triangle_stream(u32 *words, u32 triangle);
+static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource, u32 index_bo, u32 index_resource);
+static u32 triangle_stream(u32 *words, u32 triangle, u32 index);
 static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes);
 static int upload_triangle(long fd, u32 bo_handle);
 static int readback_triangle(long fd, u32 bo_handle);
@@ -43,30 +43,33 @@ int virgl_run_triangle(long fd, const struct virgl_resources *resources)
 {
     if (upload_triangle(fd, resources->triangle_bo) != 0)
         return 1;
+    if (virgl_upload_index_buffer(fd, resources->index_bo) != 0)
+        return 1;
     if (submit_triangle(fd, resources->scanout_bo, resources->triangle_bo,
-                        resources->triangle_resource) != 0)
+                        resources->triangle_resource, resources->index_bo,
+                        resources->index_resource) != 0)
         return 2;
     if (virgl_wait_for_resource(fd, resources->scanout_bo) != 0)
         return 3;
     return readback_triangle(fd, resources->scanout_bo) == 0 ? 0 : 4;
 }
 
-static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource)
+static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource, u32 index_bo, u32 index_resource)
 {
     u32 words[VIRGL_TRIANGLE_WORDS] = {0};
-    u32 handles[2] = {scanout_bo, triangle_bo};
+    u32 handles[3] = {scanout_bo, triangle_bo, index_bo};
     struct drm_virtgpu_execbuffer submit = {
         .command = (u64)words,
         .bo_handles = (u64)handles,
-        .num_bo_handles = 2,
+        .num_bo_handles = 3,
         .fence_fd = -1,
     };
 
-    submit.size = triangle_stream(words, triangle_resource) * sizeof(u32);
+    submit.size = triangle_stream(words, triangle_resource, index_resource) * sizeof(u32);
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &submit) < 0 ? -1 : 0;
 }
 
-static u32 triangle_stream(u32 *words, u32 triangle)
+static u32 triangle_stream(u32 *words, u32 triangle, u32 index)
 {
     u32 next = 0;
 
@@ -97,6 +100,10 @@ static u32 triangle_stream(u32 *words, u32 triangle)
     words[next++] = 16;
     words[next++] = 0;
     words[next++] = triangle;
+    words[next++] = VIRGL_HEADER(11, 0, 3);
+    words[next++] = index;
+    words[next++] = 2;
+    words[next++] = 0;
     words[next++] = VIRGL_HEADER(7, 0, 8);
     words[next++] = VIRGL_CLEAR_COLOR0;
     words[next++] = 0x3e800000u;
@@ -108,7 +115,7 @@ static u32 triangle_stream(u32 *words, u32 triangle)
     words[next++] = 0;
     words[next++] = 3;
     words[next++] = 4;
-    words[next++] = 0;
+    words[next++] = 1;
     words[next++] = 1;
     next += 5;
     words[next++] = ~0u;

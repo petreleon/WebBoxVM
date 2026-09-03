@@ -2,16 +2,16 @@ use super::{frame_pixels, read_u32, words_are};
 
 pub(super) fn vgd1_sequence(packet: &[u8]) -> Result<u32, String> {
     let vertices = [
-        0,
         0x3f40_0000,
+        0xbf40_0000,
         0,
         0x3f80_0000,
         0xbf40_0000,
         0xbf40_0000,
         0,
         0x3f80_0000,
+        0,
         0x3f40_0000,
-        0xbf40_0000,
         0,
         0x3f80_0000,
     ];

@@ -150,16 +150,16 @@ cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for capset discovery, R8 buffer transfer/copy,
 color transfer/readback, and the standard clear/fence path. It then creates
-the exact R32G32B32A32 VBO, canonical TGSI state, exact type-1 source-over
-blend and type-2 scissor-rasterizer objects, viewport/scissor state, and
-`DRAW_VBO` stream; validates its schema-2 `VGD1` envelope; resolves the
-deferred fence; and reads the blended `143,160,48,255` center plus the clear
+the exact R32G32B32A32 VBO plus a six-byte R8 index buffer, canonical TGSI state,
+exact type-1 source-over blend and type-2 scissor-rasterizer objects, viewport/scissor,
+command-11 `SET_INDEX_BUFFER`, and indexed `DRAW_VBO`; it validates the schema-2
+`VGD1` envelope with the guest's `[2,1,0]` reordered vertices, resolves the
+deferred fence, and reads the blended `143,160,48,255` center plus the clear
 outside-scissor pixel back through the Linux driver. It then creates an attached
 B8G8R8A8 sampler-view texture and 24-byte position/UV VBO, validates schema-3,
 completes it, and reads exact BGRA `10,20,30,255` at the center. Dual-texture
-multiplication and indexed `DRAW_VBO` are covered by Rust stream tests; the
-former also has browser WebGPU validation, while the native guest harness remains
-non-indexed. It does not claim native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
+multiplication remains covered by Rust stream and browser WebGPU tests. This does
+not claim native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 

@@ -107,6 +107,9 @@ int virgl_setup(long fd, struct virgl_resources *resources)
     if (virgl_create_triangle_buffer(fd, &resources->triangle_bo,
                                      &resources->triangle_resource) != 0)
         return 4;
+    if (virgl_create_index_buffer(fd, &resources->index_bo,
+                                  &resources->index_resource) != 0)
+        return 4;
     return virgl_create_textured_resources(fd, resources) == 0 ? 0 : 4;
 }
 
