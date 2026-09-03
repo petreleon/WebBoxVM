@@ -90,7 +90,7 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = VIRGL_HEADER(1, 6, 6);
     words[next++] = 18;
     words[next++] = resources->texture_resource;
-    words[next++] = VIRGL_FORMAT_B8G8R8A8_UNORM;
+    words[next++] = VIRGL_FORMAT_R8G8B8A8_UNORM;
     words[next++] = 0;
     words[next++] = 0;
     words[next++] = 0x688u;

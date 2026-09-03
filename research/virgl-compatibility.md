@@ -16,7 +16,7 @@ with one viewport/scissor.
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
-| Texture resources | Packed 2D render targets and two concurrently bound B8G8R8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
+| Texture resources | Packed 2D targets plus two B8G8R8A8 or R8G8B8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
 | Buffer resources | R8 raw vertex/index storage and R32G32B32A32_FLOAT vertex buffers | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
@@ -27,15 +27,15 @@ with one viewport/scissor.
 ## Advertised and accepted shapes
 
 The capset render-format mask contains only B8G8R8A8, B8G8R8X8, A8R8G8B8,
-and X8R8G8B8. Its vertex-buffer mask contains only
+and X8R8G8B8. Its sampler mask adds B8G8R8A8 (1) and R8G8B8A8 (67); its vertex-buffer mask contains only
 `VIRGL_FORMAT_R32G32_FLOAT` (29) and `VIRGL_FORMAT_R32G32B32A32_FLOAT` (31),
 and its primitive mask contains only `PIPE_PRIM_TRIANGLES` (bit 4). No GLSL
 feature level is advertised.
 
 `RESOURCE_CREATE_3D` accepts only these exact resource forms:
 
-- texture-2D target; one advertised packed color format and render-target bind,
-  or B8G8R8A8 with sampler-view or render-and-sampler bind; depth/array one,
+- texture-2D target; packed render target, B8G8R8A8 sampler-view/render-and-sampler,
+  or R8G8B8A8 sampler-view-only; depth/array one,
   level zero, zero or one sample, and no flags;
 - `PIPE_BUFFER` target; R32G32B32A32_FLOAT with exactly vertex-buffer bind, or
   R8 with exactly vertex- or index-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
@@ -70,8 +70,8 @@ command 15 `SET_SCISSOR_STATE` accepts one slot-zero packed lower-left
 min/max rectangle. A draw requires the blend object, rasterizer, and viewport;
 when the rasterizer has `SCISSOR`, it also requires the nonempty scissor.
 
-Type-6 `VIRGL_OBJECT_SAMPLER_VIEW` accepts one attached B8G8R8A8 sampled
-resource at level/layer zero with identity swizzle `0x688`. Type-7
+Type-6 `VIRGL_OBJECT_SAMPLER_VIEW` accepts one attached B8G8R8A8 or R8G8B8A8 sampled
+resource at level/layer zero with identity swizzle `0x688`; R8G8B8A8 normalizes on transfer before VGD1. Type-7
 `VIRGL_OBJECT_SAMPLER_STATE` accepts only the nine-word `0x1092` nearest,
 clamp-to-edge state. Commands 10 `SET_SAMPLER_VIEWS` and 18
 `BIND_SAMPLER_STATES` bind one or two variable-length handles at fragment
@@ -99,7 +99,7 @@ At draw validation Rust snapshots exactly three positions from the attached VBO,
 directly for non-indexed draws or through three bounded index-buffer lookups. They
 must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and form a
 nondegenerate triangle. Texture routes additionally snapshot three finite UVs in
-`[-8, 8]` and one or two attached B8G8R8A8 sources, each limited to 64×64;
+`[-8, 8]` and one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64;
 feedback into the target is rejected. Later buffer, texture, or state mutation cannot
 alter queued browser work. Solid color and sampled texels use the required source-over blend object.
 
@@ -107,7 +107,7 @@ After validation Rust sends a private `VGD1` envelope to the browser. `VGD1`
 is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
 sequence, canvas size, colors, 48 vertex bytes, viewport, and optional
 canonical top-origin scissor. Schema 3 appends 72 position/UV bytes, one 2D
-texture size, and exact raw BGRA texels; schema 4 appends two sizes and paired
+texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
 texels for the fixed multiply shader. The browser retains schema-1 parsing only
 for old packets, independently validates schemas 2/3/4, converts VirGL `z`
 from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses a
@@ -141,7 +141,7 @@ that this capset deliberately does not advertise.
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4 `VGD1`
-payloads, nonzero-offset u16/u32 index resolution, one- and two-texture snapshot isolation, deferred
+payloads, R8G8B8A8-to-BGRA transfer normalization, nonzero-offset u16/u32 index resolution, deferred
 acknowledgment, CPU clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed state rejection, exact
 WebGPU blend/sampler descriptors, one/two padded BGRA uploads, viewport/scissor calls,
@@ -156,14 +156,14 @@ command-11 `SET_INDEX_BUFFER` at byte offset two, and indexed `DRAW_VBO`; it val
 `VGD1` envelope with the guest's `[2,1,0]` reordered vertices, resolves the
 deferred fence, and reads the blended `143,160,48,255` center plus the clear
 outside-scissor pixel back through the Linux driver. It then creates an attached
-B8G8R8A8 sampler-view texture and 24-byte position/UV VBO, validates schema-3,
+R8G8B8A8 sampler-view texture and 24-byte position/UV VBO, validates transfer-normalized schema-3 BGRA,
 completes it, and reads exact BGRA `10,20,30,255` at the center. Dual-texture
 multiplication remains covered by Rust stream and browser WebGPU tests. This does
 not claim native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 
-1. Expand only after proving additional resource formats and texture-coordinate
+1. Expand only after proving additional sampler behavior, render formats, and texture-coordinate
    behavior with the same native/CPU/WebGPU agreement.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.

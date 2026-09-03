@@ -4,7 +4,6 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{
     RESP_ERR_INVALID_PARAMETER, RESP_ERR_INVALID_RESOURCE_ID,
 };
-use crate::devices::virtio_gpu::resource::FORMAT_B8G8R8A8_UNORM;
 
 pub(super) fn apply(
     gpu: &VirtioGpu,
@@ -24,7 +23,11 @@ pub(super) fn apply(
             .bind_sampler_states(start, &handles)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
-        Command::CreateView { handle, resource } => create_view(gpu, context, handle, resource),
+        Command::CreateView {
+            handle,
+            resource,
+            format,
+        } => create_view(gpu, context, handle, resource, format),
         Command::DestroyView { handle } => context
             .destroy_sampler_view(handle)
             .then_some(())
@@ -41,6 +44,7 @@ fn create_view(
     context: &mut VirglContext,
     handle: u32,
     resource: u32,
+    format: u32,
 ) -> Result<(), u32> {
     let texture = gpu
         .resources
@@ -50,7 +54,7 @@ fn create_view(
         || !gpu.is_virgl_resource(resource)
         || !texture.is_texture_2d()
         || !texture.is_sampled()
-        || texture.format != FORMAT_B8G8R8A8_UNORM
+        || texture.format != format
         || !context.create_sampler_view(handle, resource)
     {
         return Err(RESP_ERR_INVALID_PARAMETER);

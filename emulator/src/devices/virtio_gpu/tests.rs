@@ -17,6 +17,7 @@ mod virgl_dual_texture_draw;
 mod virgl_indexed_draw;
 mod virgl_queue;
 mod virgl_readback;
+mod virgl_rgba_transfer;
 mod virgl_sampler_state;
 mod virgl_shader_state;
 mod virgl_textured_draw;

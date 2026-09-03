@@ -1,6 +1,6 @@
 use super::super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use super::super::super::{VIRGL_OBJECT_SAMPLER_STATE, VIRGL_OBJECT_SAMPLER_VIEW};
-use crate::devices::virtio_gpu::resource::FORMAT_B8G8R8A8_UNORM;
+use crate::devices::virtio_gpu::resource::sampled_texture_format;
 
 const CMD_BIND_SAMPLER_STATES: u8 = 18;
 const CMD_CREATE_OBJECT: u8 = 1;
@@ -25,6 +25,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl::stream) enum Command {
     CreateView {
         handle: u32,
         resource: u32,
+        format: u32,
     },
     DestroyView {
         handle: u32,
@@ -48,17 +49,11 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> 
         (
             CMD_CREATE_OBJECT,
             VIRGL_OBJECT_SAMPLER_VIEW,
-            [
-                handle,
-                resource,
-                FORMAT_B8G8R8A8_UNORM,
-                0,
-                0,
-                IDENTITY_SWIZZLE,
-            ],
-        ) => Some(Command::CreateView {
+            [handle, resource, format, 0, 0, IDENTITY_SWIZZLE],
+        ) if sampled_texture_format(*format) => Some(Command::CreateView {
             handle: *handle,
             resource: *resource,
+            format: *format,
         }),
         (CMD_DESTROY_OBJECT, VIRGL_OBJECT_SAMPLER_VIEW, [handle]) => {
             Some(Command::DestroyView { handle: *handle })

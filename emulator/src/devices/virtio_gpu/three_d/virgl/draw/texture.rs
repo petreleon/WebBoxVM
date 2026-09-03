@@ -1,7 +1,7 @@
 use super::TextureSnapshot;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
-use crate::devices::virtio_gpu::resource::FORMAT_B8G8R8A8_UNORM;
+use crate::devices::virtio_gpu::resource::sampled_texture_format;
 use crate::devices::virtio_gpu::three_d::virgl::VirglContext;
 
 const MAX_TEXTURE_DIMENSION: u32 = 64;
@@ -27,15 +27,16 @@ pub(super) fn snapshot(
         && gpu.is_virgl_resource(resource)
         && texture.is_texture_2d()
         && texture.is_sampled()
-        && texture.format == FORMAT_B8G8R8A8_UNORM
+        && sampled_texture_format(texture.format)
         && texture.width <= MAX_TEXTURE_DIMENSION
         && texture.height <= MAX_TEXTURE_DIMENSION
         && texture.pixels.len() == pixels;
-    valid
-        .then(|| TextureSnapshot {
-            width: texture.width,
-            height: texture.height,
-            bgra: texture.pixels.clone(),
-        })
-        .ok_or(RESP_ERR_INVALID_PARAMETER)
+    if !valid {
+        return Err(RESP_ERR_INVALID_PARAMETER);
+    }
+    Ok(TextureSnapshot {
+        width: texture.width,
+        height: texture.height,
+        bgra: texture.pixels.clone(),
+    })
 }

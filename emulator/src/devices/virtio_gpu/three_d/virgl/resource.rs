@@ -1,7 +1,7 @@
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::{
     BufferBind, FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource,
-    total_resource_limit,
+    sampled_texture_format, total_resource_limit,
 };
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
@@ -62,7 +62,7 @@ fn color_texture(
     flags: u32,
 ) -> Option<bool> {
     (target == VIRGL_TARGET_TEXTURE_2D
-        && GpuResource::supported_format(format)
+        && GpuResource::virgl_texture_format(format)
         && depth == 1
         && array == 1
         && level == 0
@@ -70,11 +70,8 @@ fn color_texture(
         && flags == 0)
         .then(|| match bind {
             VIRGL_BIND_RENDER_TARGET => Some(false),
-            VIRGL_BIND_SAMPLER_VIEW | VIRGL_BIND_RENDER_AND_SAMPLE
-                if format == FORMAT_B8G8R8A8_UNORM =>
-            {
-                Some(true)
-            }
+            VIRGL_BIND_SAMPLER_VIEW if sampled_texture_format(format) => Some(true),
+            VIRGL_BIND_RENDER_AND_SAMPLE if format == FORMAT_B8G8R8A8_UNORM => Some(true),
             _ => None,
         })
         .flatten()

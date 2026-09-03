@@ -53,7 +53,7 @@ static int create_texture(long fd, u32 *bo, u32 *handle)
 {
     struct drm_virtgpu_resource_create resource = {
         .target = VIRGL_TARGET_TEXTURE_2D,
-        .format = VIRGL_FORMAT_B8G8R8A8_UNORM,
+        .format = VIRGL_FORMAT_R8G8B8A8_UNORM,
         .bind = VIRGL_BIND_SAMPLER_VIEW,
         .width = 2,
         .height = 2,
@@ -94,7 +94,7 @@ static int upload_vertices(long fd, u32 bo)
 static int upload_texture(long fd, u32 bo)
 {
     static const u8 data[VIRGL_TEXTURE_BYTES] = {
-        10, 20, 30, 255, 40, 50, 60, 255, 70, 80, 90, 255, 100, 110, 120, 255,
+        30, 20, 10, 255, 60, 50, 40, 255, 90, 80, 70, 255, 120, 110, 100, 255,
     };
     struct drm_virtgpu_3d_transfer_to_host transfer = {
         .bo_handle = bo,

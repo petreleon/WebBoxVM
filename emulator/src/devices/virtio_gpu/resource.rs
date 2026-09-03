@@ -1,11 +1,8 @@
 mod lifecycle;
-
 use super::MAX_RESOURCE_BYTES;
 use super::protocol::{BackingEntry, Rect};
 use crate::memory::PhysicalMemory;
-
 pub(super) use lifecycle::total_resource_limit;
-
 pub(super) const FORMAT_B8G8R8A8_UNORM: u32 = 1;
 pub(super) const FORMAT_B8G8R8X8_UNORM: u32 = 2;
 pub(super) const FORMAT_A8R8G8B8_UNORM: u32 = 3;
@@ -13,19 +10,20 @@ pub(super) const FORMAT_X8R8G8B8_UNORM: u32 = 4;
 pub(super) const FORMAT_R32G32_FLOAT: u32 = 29;
 pub(super) const FORMAT_R32G32B32A32_FLOAT: u32 = 31;
 pub(super) const FORMAT_R8_UNORM: u32 = 64;
-
+pub(super) const FORMAT_R8G8B8A8_UNORM: u32 = 67;
+pub(super) fn sampled_texture_format(format: u32) -> bool {
+    matches!(format, FORMAT_B8G8R8A8_UNORM | FORMAT_R8G8B8A8_UNORM)
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResourceKind {
     ColorTexture2d,
     Buffer,
 }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum BufferBind {
     Vertex,
     Index,
 }
-
 #[derive(Debug, Clone)]
 pub(super) struct GpuResource {
     pub format: u32,
@@ -61,13 +59,19 @@ impl GpuResource {
         )
     }
 
+    pub(super) fn virgl_texture_format(format: u32) -> bool {
+        Self::supported_format(format) || format == FORMAT_R8G8B8A8_UNORM
+    }
+
     pub fn new(format: u32, width: u32, height: u32) -> Option<Self> {
-        Self::new_texture(format, width, height, false)
+        Self::supported_format(format)
+            .then(|| Self::new_texture(format, width, height, false))
+            .flatten()
     }
 
     pub fn new_texture(format: u32, width: u32, height: u32, sampleable: bool) -> Option<Self> {
         let len = Self::byte_len(width, height)?;
-        Self::supported_format(format).then(|| Self {
+        Self::virgl_texture_format(format).then(|| Self {
             format,
             width,
             height,

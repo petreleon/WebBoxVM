@@ -1,16 +1,14 @@
 use super::protocol::Rect;
 use super::resource::{
-    FORMAT_A8R8G8B8_UNORM, FORMAT_B8G8R8A8_UNORM, FORMAT_B8G8R8X8_UNORM, FORMAT_X8R8G8B8_UNORM,
-    GpuResource,
+    FORMAT_A8R8G8B8_UNORM, FORMAT_B8G8R8A8_UNORM, FORMAT_B8G8R8X8_UNORM, FORMAT_R8G8B8A8_UNORM,
+    FORMAT_X8R8G8B8_UNORM, GpuResource,
 };
 use crate::memory::PhysicalMemory;
-
 struct BackingWrite {
     addr: u64,
     source: usize,
     len: usize,
 }
-
 impl GpuResource {
     pub(super) fn transfer(&mut self, mem: &PhysicalMemory, rect: Rect, offset: u64) -> Option<()> {
         if !self.is_texture_2d()
@@ -41,7 +39,6 @@ impl GpuResource {
         }
         Some(())
     }
-
     pub(super) fn transfer_from_host(
         &self,
         mem: &mut PhysicalMemory,
@@ -84,7 +81,6 @@ impl GpuResource {
         }
         Some(())
     }
-
     pub(super) fn transfer_buffer_from_host(
         &self,
         mem: &mut PhysicalMemory,
@@ -141,7 +137,6 @@ impl GpuResource {
         None
     }
 }
-
 fn encode(format: u32, src: &[u8], dst: &mut [u8]) {
     for (source, target) in src.chunks_exact(4).zip(dst.chunks_exact_mut(4)) {
         match format {
@@ -154,6 +149,9 @@ fn encode(format: u32, src: &[u8], dst: &mut [u8]) {
             }
             FORMAT_X8R8G8B8_UNORM => {
                 target.copy_from_slice(&[255, source[2], source[1], source[0]])
+            }
+            FORMAT_R8G8B8A8_UNORM => {
+                target.copy_from_slice(&[source[2], source[1], source[0], source[3]])
             }
             _ => unreachable!("format validated at resource creation"),
         }
@@ -172,6 +170,9 @@ fn normalize(format: u32, src: &[u8], dst: &mut [u8]) {
             }
             FORMAT_X8R8G8B8_UNORM => {
                 target.copy_from_slice(&[source[3], source[2], source[1], 255])
+            }
+            FORMAT_R8G8B8A8_UNORM => {
+                target.copy_from_slice(&[source[2], source[1], source[0], source[3]])
             }
             _ => unreachable!("format validated at resource creation"),
         }
