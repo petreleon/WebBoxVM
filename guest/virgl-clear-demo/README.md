@@ -1,9 +1,9 @@
-# WebBoxVM standard VirGL vertex, buffer, viewport/scissor, and triangle probe
+# WebBoxVM standard VirGL solid and texture triangle probe
 
 This freestanding AArch64 Linux program is a deliberately small guest-side
 proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
-source-over blend, rasterizer, viewport/scissor, triangle, and readback path.
-It is not Mesa, OpenGL, or Vulkan.
+source-over blend, rasterizer, viewport/scissor, solid triangle, sampled texture,
+and readback path. It is not Mesa, OpenGL, or Vulkan.
 
 It opens `/dev/dri/card0`, reads the Linux `virtgpu` capset-1 response, creates
 a B8G8R8X8 render-target resource and two R8 `PIPE_BUFFER` vertex-buffer
@@ -27,7 +27,11 @@ rasterizer, type-4 shader objects, type-5 vertex elements, shader binds, one
 slot-zero viewport, one packed lower-left scissor, a generic clear, and one
 non-indexed `DRAW_VBO`. It waits again and requires the scanout center pixel to
 read back as source-over BGRA (`143,160,48,255`), while a point inside the
-viewport but outside the scissor remains clear (`191,128,64,255`).
+viewport but outside the scissor remains clear (`191,128,64,255`). It then
+reuses the scanout surface, binds distinct persistent-state handles, and creates
+one B8G8R8A8 sampler-view texture plus a 72-byte interleaved position/UV VBO.
+The fixed type-7 nearest/clamp sampler and type-6 identity sampler view feed
+canonical textured TGSI; the center must read back `10,20,30,255` after its fence.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -50,16 +54,16 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=143,160,48,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255
 ```
 
-That marker appears only after both guest fences resolve. The native harness
+That marker appears only after all guest fences resolve. The native harness
 first validates the scanout upload `WBGF`, then validates and completes `VGC1`,
-captures its clear `WBGF`, validates the schema-2 `VGD1` sequence, viewport,
-scissor, and three uploaded vertices, completes it, and requires a triangle
-`WBGF` whose top-left and outside-scissor pixels are clear while its center is
-the blended source-over result. It accepts the marker only after guest-side
-vertex state, byte-buffer copy, color copy, clear, and draw readbacks succeed.
+captures its clear `WBGF`, validates the schema-2 `VGD1` solid sequence,
+viewport, scissor, and three uploaded vertices, and requires a blended triangle
+`WBGF`. It then validates schema-3's position/UV VBO and raw 2×2 BGRA texture,
+completes it, and requires `10,20,30,255` at the center. It accepts the marker
+only after all guest-side buffer, copy, clear, solid, and texture readbacks.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command

@@ -24,7 +24,9 @@ impl ShaderKind {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(in crate::devices::virtio_gpu) enum ShaderProgram {
     VertexPassthrough,
+    VertexTextured,
     FragmentSolid([u32; 4]),
+    FragmentTextured,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

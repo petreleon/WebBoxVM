@@ -14,17 +14,20 @@ use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, V
 use context::DrawState;
 pub(in crate::devices::virtio_gpu) use context::{VertexBuffer, VertexElement, VirglContext};
 pub(super) use copy::CopyRegion;
+pub(super) use draw::DrawMaterial;
 use draw::DrawWork;
 pub(in crate::devices::virtio_gpu) use shader::ShaderKind;
 #[cfg(test)]
 #[allow(unused_imports)]
 pub(in crate::devices::virtio_gpu) use shader::ShaderProgram;
 
-pub(super) const VIRGL_OBJECT_SURFACE: u8 = 7;
 pub(super) const VIRGL_OBJECT_BLEND: u8 = 1;
 pub(super) const VIRGL_OBJECT_RASTERIZER: u8 = 2;
 pub(super) const VIRGL_OBJECT_SHADER: u8 = 4;
 pub(super) const VIRGL_OBJECT_VERTEX_ELEMENTS: u8 = 5;
+pub(super) const VIRGL_OBJECT_SAMPLER_VIEW: u8 = 6;
+pub(super) const VIRGL_OBJECT_SAMPLER_STATE: u8 = 7;
+pub(super) const VIRGL_OBJECT_SURFACE: u8 = 8;
 pub(super) const VIRGL_CMD_CLEAR_SURFACE: u8 = 62;
 pub(super) const MAX_VIRGL_SUBMIT_BYTES: usize = 64 * 1024;
 
@@ -80,7 +83,7 @@ impl VirtioGpu {
                 resource_id,
                 rect,
                 clear_bgra: bgra(clear),
-                draw_color: work.color,
+                material: work.material,
                 vertices: work.vertices,
                 viewport: work.viewport,
                 scissor: work.scissor,

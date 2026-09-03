@@ -59,8 +59,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut steps = 0u64;
     let mut clear_sequence = None;
     let mut draw_sequence = None;
+    let mut texture_sequence = None;
     let mut upload_readback = false;
     let mut clear_completed = false;
+    let mut draw_completed = false;
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result {
             10_000
@@ -105,6 +107,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                             println!("VGD1 validated: sequence {sequence}");
                             draw_sequence = Some(sequence);
                         }
+                        VirglPacket::TexturedDraw(sequence)
+                            if draw_completed && texture_sequence.is_none() =>
+                        {
+                            println!("VGD1 texture validated: sequence {sequence}");
+                            texture_sequence = Some(sequence);
+                        }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -121,30 +129,31 @@ fn main() -> Result<(), Box<dyn Error>> {
             && upload_readback
             && let Some(sequence) = clear_sequence
         {
-            if !vm.machine.bus.complete_gpu_3d(sequence, true) {
-                return Err("standard VirGL completion was rejected".into());
-            }
-            let frame = vm.machine.bus.virtio_gpu.take_scanout_update();
-            if !is_clear_readback(&frame) {
-                return Err("clear did not produce the expected full WBGF readback".into());
-            }
+            complete(&mut vm, sequence, is_clear_readback, "VGC1")?;
             println!("VGC1 completed after upload readback: sequence {sequence}");
             println!("WBGF full-scanout BGRA readback validated");
             clear_completed = true;
         }
         if phase == Phase::Packet
             && clear_completed
+            && !draw_completed
             && let Some(sequence) = draw_sequence
         {
-            if !vm.machine.bus.complete_gpu_3d(sequence, true) {
-                return Err("standard VirGL draw completion was rejected".into());
-            }
-            let frame = vm.machine.bus.virtio_gpu.take_scanout_update();
-            if !is_triangle_readback(&frame) {
-                return Err("draw did not produce the expected triangle WBGF readback".into());
-            }
-            println!("VGD1 completed: sequence {sequence}");
+            complete(&mut vm, sequence, is_triangle_readback, "VGD1")?;
             println!("WBGF triangle BGRA readback validated");
+            draw_completed = true;
+        }
+        if phase == Phase::Packet
+            && draw_completed
+            && let Some(sequence) = texture_sequence
+        {
+            complete(
+                &mut vm,
+                sequence,
+                is_textured_triangle_readback,
+                "VGD1 texture",
+            )?;
+            println!("WBGF textured triangle BGRA readback validated");
             phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {

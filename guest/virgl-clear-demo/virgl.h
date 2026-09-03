@@ -5,10 +5,13 @@
 
 #define VIRGL_TARGET_BUFFER 0u
 #define VIRGL_TARGET_TEXTURE_2D 2u
+#define VIRGL_FORMAT_B8G8R8A8_UNORM 1u
 #define VIRGL_FORMAT_B8G8R8X8_UNORM 2u
+#define VIRGL_FORMAT_R32G32_FLOAT 29u
 #define VIRGL_FORMAT_R32G32B32A32_FLOAT 31u
 #define VIRGL_FORMAT_R8_UNORM 64u
 #define VIRGL_BIND_RENDER_TARGET (1u << 1)
+#define VIRGL_BIND_SAMPLER_VIEW (1u << 3)
 #define VIRGL_BIND_VERTEX_BUFFER (1u << 4)
 #define VIRGL_CLEAR_COLOR0 (1u << 2)
 #define VIRGL_CLEAR_WORDS 19u
@@ -16,6 +19,9 @@
 #define VIRGL_VERTEX_INPUT_WORDS 12u
 #define VIRGL_TRIANGLE_BYTES 48u
 #define VIRGL_TRIANGLE_WORDS 160u
+#define VIRGL_TEXTURED_TRIANGLE_BYTES 72u
+#define VIRGL_TEXTURE_BYTES 16u
+#define VIRGL_TEXTURED_TRIANGLE_WORDS 224u
 #define VIRGL_SOURCE_OVER_BLEND_WORDS 14u
 #define VIRGL_SCISSOR_RASTERIZER_WORDS 12u
 #define VIRGL_VIEWPORT_SCISSOR_WORDS 12u
@@ -67,7 +73,7 @@ static inline u32 virgl_viewport_scissor_stream(u32 *words)
 
 static inline void virgl_clear_stream(u32 words[VIRGL_CLEAR_WORDS], u32 resource)
 {
-    words[0] = VIRGL_HEADER(1, 7, 5);
+    words[0] = VIRGL_HEADER(1, 8, 5);
     words[1] = 1;
     words[2] = resource;
     words[3] = VIRGL_FORMAT_B8G8R8X8_UNORM;

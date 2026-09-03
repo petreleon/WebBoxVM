@@ -65,6 +65,7 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
     scissors: [],
     scopePops: [],
     scopePushes: [],
+    samplers: [],
     submits: 0,
     textures: [],
     viewports: [],
@@ -108,7 +109,10 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
       this.pipelineAsyncCalls += 1;
       return this.createRenderPipeline(descriptor);
     },
-    createSampler: () => ({ kind: "sampler" }),
+    createSampler(descriptor) {
+      this.samplers.push(descriptor);
+      return { kind: "sampler" };
+    },
     createShaderModule: () => ({ kind: "shader" }),
     createTexture(descriptor) {
       const texture = resource(descriptor);

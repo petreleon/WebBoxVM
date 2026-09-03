@@ -1,12 +1,15 @@
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::{
-    FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource, total_resource_limit,
+    FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource,
+    total_resource_limit,
 };
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
 const VIRGL_TARGET_BUFFER: u32 = 0;
 const VIRGL_TARGET_TEXTURE_2D: u32 = 2;
 const VIRGL_BIND_RENDER_TARGET: u32 = 1 << 1;
+const VIRGL_BIND_SAMPLER_VIEW: u32 = 1 << 3;
+const VIRGL_BIND_RENDER_AND_SAMPLE: u32 = VIRGL_BIND_RENDER_TARGET | VIRGL_BIND_SAMPLER_VIEW;
 const VIRGL_BIND_VERTEX_BUFFER: u32 = 1 << 4;
 
 impl VirtioGpu {
@@ -22,8 +25,10 @@ impl VirtioGpu {
         if self.resources.len() >= MAX_RESOURCES {
             return RESP_ERR_OUT_OF_MEMORY;
         }
-        let resource = if color_texture(target, format, bind, depth, array, level, samples, flags) {
-            GpuResource::new(format, width, height)
+        let resource = if let Some(sampleable) =
+            color_texture(target, format, bind, depth, array, level, samples, flags)
+        {
+            GpuResource::new_texture(format, width, height, sampleable)
         } else if vertex_buffer(
             target, format, bind, height, depth, array, level, samples, flags,
         ) {
@@ -54,15 +59,24 @@ fn color_texture(
     level: u32,
     samples: u32,
     flags: u32,
-) -> bool {
-    target == VIRGL_TARGET_TEXTURE_2D
+) -> Option<bool> {
+    (target == VIRGL_TARGET_TEXTURE_2D
         && GpuResource::supported_format(format)
-        && bind == VIRGL_BIND_RENDER_TARGET
         && depth == 1
         && array == 1
         && level == 0
         && matches!(samples, 0 | 1)
-        && flags == 0
+        && flags == 0)
+        .then(|| match bind {
+            VIRGL_BIND_RENDER_TARGET => Some(false),
+            VIRGL_BIND_SAMPLER_VIEW | VIRGL_BIND_RENDER_AND_SAMPLE
+                if format == FORMAT_B8G8R8A8_UNORM =>
+            {
+                Some(true)
+            }
+            _ => None,
+        })
+        .flatten()
 }
 
 fn vertex_buffer(

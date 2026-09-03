@@ -19,7 +19,7 @@ static int virgl_caps(long fd)
 
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_GET_CAPS, &get) < 0 ||
                    caps[0] != 1 || caps[4] != 2 || caps[68] != 30 ||
-                   caps[199] != 128 || caps[288] != 16
+                   caps[199] != 160 || caps[288] != 16
                ? -1
                : 0;
 }
@@ -104,9 +104,10 @@ int virgl_setup(long fd, struct virgl_resources *resources)
     if (create_vertex_buffer(fd, &resources->vertex_destination_bo,
                              &resources->vertex_destination_resource) != 0)
         return 4;
-    return virgl_create_triangle_buffer(fd, &resources->triangle_bo,
-                                        &resources->triangle_resource) == 0
-               ? 0 : 4;
+    if (virgl_create_triangle_buffer(fd, &resources->triangle_bo,
+                                     &resources->triangle_resource) != 0)
+        return 4;
+    return virgl_create_textured_resources(fd, resources) == 0 ? 0 : 4;
 }
 
 int virgl_submit_clear(long fd, u32 bo_handle, u32 resource_handle)

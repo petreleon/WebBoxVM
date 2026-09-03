@@ -44,18 +44,43 @@ fn strip_instruction_id(line: &str) -> &str {
 }
 
 fn vertex(lines: &[&str]) -> Option<ShaderProgram> {
-    (lines
-        == [
+    match lines {
+        [
             "VERT",
             "DCL IN[0]",
             "DCL OUT[0], POSITION",
             "MOV OUT[0], IN[0]",
             "END",
-        ])
-    .then_some(ShaderProgram::VertexPassthrough)
+        ] => Some(ShaderProgram::VertexPassthrough),
+        [
+            "VERT",
+            "DCL IN[0..1]",
+            "DCL OUT[0], POSITION",
+            "DCL OUT[1], GENERIC[0]",
+            "MOV OUT[0], IN[0]",
+            "MOV OUT[1], IN[1]",
+            "END",
+        ] => Some(ShaderProgram::VertexTextured),
+        _ => None,
+    }
 }
 
 fn fragment(lines: &[&str]) -> Option<ShaderProgram> {
+    if lines
+        == [
+            "FRAG",
+            "DCL IN[0], GENERIC[0], LINEAR",
+            "DCL SAMP[0]",
+            "DCL SVIEW[0], 2D, FLOAT",
+            "DCL OUT[0], COLOR[0]",
+            "DCL TEMP[0]",
+            "TEX TEMP[0], IN[0], SAMP[0], 2D",
+            "MOV OUT[0], TEMP[0]",
+            "END",
+        ]
+    {
+        return Some(ShaderProgram::FragmentTextured);
+    }
     if lines.len() != 5
         || lines[0] != "FRAG"
         || lines[1] != "DCL OUT[0], COLOR"

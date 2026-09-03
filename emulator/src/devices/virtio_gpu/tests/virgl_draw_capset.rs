@@ -14,6 +14,6 @@ fn virgl_capset_advertises_the_implemented_triangle_requirements() {
     }
     let response = gpu.execute_command(&mut mem, &request);
     assert_eq!(response_type(&response), RESP_OK_CAPSET);
-    assert_eq!(read_u32(&response, 24 + 196), Some(1 << 31));
+    assert_eq!(read_u32(&response, 24 + 196), Some((1 << 29) | (1 << 31)));
     assert_eq!(read_u32(&response, 24 + 288), Some(1 << 4));
 }

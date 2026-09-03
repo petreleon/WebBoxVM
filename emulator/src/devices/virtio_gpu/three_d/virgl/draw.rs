@@ -1,4 +1,8 @@
+mod packet;
 mod raster;
+mod solid;
+mod texture;
+pub(in crate::devices::virtio_gpu::three_d) use packet::packet;
 
 use super::shader::ShaderProgram;
 use super::{DrawState, VirglContext};
@@ -6,19 +10,33 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 use crate::devices::virtio_gpu::resource::FORMAT_R32G32B32A32_FLOAT;
 
-const TRIANGLE_VERTICES: u32 = 3;
-const VERTEX_BYTES: usize = 16;
+pub(super) const TRIANGLE_VERTICES: u32 = 3;
+const SOLID_VERTEX_BYTES: usize = 16;
+const TEXTURED_VERTEX_BYTES: usize = 24;
 
 #[derive(Clone, Copy)]
 pub(super) struct DrawCall {
     pub start: u32,
 }
 
+#[derive(Clone, Debug)]
+pub(in crate::devices::virtio_gpu) struct TextureSnapshot {
+    pub width: u32,
+    pub height: u32,
+    pub bgra: Vec<u8>,
+}
+
+#[derive(Clone, Debug)]
+pub(in crate::devices::virtio_gpu) enum DrawMaterial {
+    Solid([f32; 4]),
+    Textured(TextureSnapshot),
+}
+
 pub(super) struct DrawWork {
-    pub color: [f32; 4],
-    pub vertices: Vec<u8>,
-    pub viewport: [f32; 6],
-    pub scissor: Option<Rect>,
+    pub(super) material: DrawMaterial,
+    pub(super) vertices: Vec<u8>,
+    pub(super) viewport: [f32; 6],
+    pub(super) scissor: Option<Rect>,
 }
 
 impl VirtioGpu {
@@ -40,7 +58,7 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let color = draw_color(state)?;
+        let (vertex_bytes, material) = material(self, context, resource_id, state)?;
         let viewport = state.viewport;
         let scissor = state.scissor;
         if !viewport.valid_within(rect.width, rect.height)
@@ -48,56 +66,20 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        let scissor = scissor.map(|scissor| Rect {
-            x: scissor.x,
-            y: rect.height - (scissor.y + scissor.height),
-            width: scissor.width,
-            height: scissor.height,
-        });
-        let binding = state.vertex_buffer;
-        let element = state.vertex_element;
-        let source = self
-            .resources
-            .get(&binding.resource)
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let valid = binding.stride == VERTEX_BYTES as u32
-            && binding.offset % VERTEX_BYTES as u32 == 0
-            && element.offset == 0
-            && element.divisor == 0
-            && element.buffer_index == 0
-            && element.format == FORMAT_R32G32B32A32_FLOAT
-            && source.is_buffer()
-            && source.format == FORMAT_R32G32B32A32_FLOAT
-            && context.is_attached(resource_id)
-            && context.is_attached(binding.resource)
-            && self.is_virgl_resource(resource_id)
-            && self.is_virgl_resource(binding.resource);
-        if !valid {
-            return Err(RESP_ERR_INVALID_PARAMETER);
-        }
-        let start = usize::try_from(call.start).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
-        let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
-        let bytes = usize::try_from(TRIANGLE_VERTICES)
-            .ok()
-            .and_then(|count| count.checked_mul(VERTEX_BYTES))
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let start = start
-            .checked_mul(VERTEX_BYTES)
-            .and_then(|value| value.checked_add(offset))
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let vertices = source
-            .pixels
-            .get(start..start.checked_add(bytes).ok_or(RESP_ERR_INVALID_PARAMETER)?)
-            .ok_or(RESP_ERR_INVALID_PARAMETER)?
-            .to_vec();
-        if !raster::valid(&vertices) {
+        let vertices = vertices(self, context, resource_id, state, call, vertex_bytes)?;
+        if !raster::valid(&vertices, &material) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         Ok(DrawWork {
-            color,
+            material,
             vertices,
             viewport: viewport.values(),
-            scissor,
+            scissor: scissor.map(|scissor| Rect {
+                x: scissor.x,
+                y: rect.height - (scissor.y + scissor.height),
+                width: scissor.width,
+                height: scissor.height,
+            }),
         })
     }
 
@@ -106,7 +88,7 @@ impl VirtioGpu {
         resource_id: u32,
         rect: Rect,
         clear: [u8; 4],
-        color: [f32; 4],
+        material: DrawMaterial,
         vertices: &[u8],
         viewport: [f32; 6],
         scissor: Option<Rect>,
@@ -114,9 +96,18 @@ impl VirtioGpu {
         let Some(resource) = self.resources.get_mut(&resource_id) else {
             return false;
         };
-        if resource.clear_bgra(rect, clear).is_none()
-            || !raster::draw(resource, rect, vertices, color, viewport, scissor)
-        {
+        if resource.clear_bgra(rect, clear).is_none() {
+            return false;
+        }
+        let drawn = match &material {
+            DrawMaterial::Solid(color) => {
+                raster::draw_solid(resource, rect, vertices, *color, viewport, scissor)
+            }
+            DrawMaterial::Textured(texture) => {
+                raster::draw_textured(resource, rect, vertices, texture, viewport, scissor)
+            }
+        };
+        if !drawn {
             return false;
         }
         self.add_damage(resource_id, rect);
@@ -124,45 +115,66 @@ impl VirtioGpu {
     }
 }
 
-pub(super) fn packet(
-    sequence: u32,
-    width: u32,
-    height: u32,
-    clear: [f32; 4],
-    work: &DrawWork,
-) -> Vec<u8> {
-    let mut packet = b"VGD1".to_vec();
-    for value in [2, sequence, width, height, TRIANGLE_VERTICES] {
-        packet.extend_from_slice(&value.to_le_bytes());
+fn material(
+    gpu: &VirtioGpu,
+    context: &VirglContext,
+    target: u32,
+    state: DrawState,
+) -> Result<(usize, DrawMaterial), u32> {
+    match (state.vertex_program, state.fragment_program) {
+        (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => {
+            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
+        }
+        (ShaderProgram::VertexTextured, ShaderProgram::FragmentTextured) => Ok((
+            TEXTURED_VERTEX_BYTES,
+            DrawMaterial::Textured(texture::snapshot(
+                gpu,
+                context,
+                target,
+                state.sampled_resource,
+            )?),
+        )),
+        _ => Err(RESP_ERR_INVALID_PARAMETER),
     }
-    for value in clear.into_iter().chain(work.color) {
-        packet.extend_from_slice(&value.to_le_bytes());
-    }
-    packet.extend_from_slice(&work.vertices);
-    for value in work.viewport {
-        packet.extend_from_slice(&value.to_le_bytes());
-    }
-    for value in work
-        .scissor
-        .map(|rect| [rect.x, rect.y, rect.width, rect.height])
-        .unwrap_or([0; 4])
-    {
-        packet.extend_from_slice(&value.to_le_bytes());
-    }
-    packet
 }
 
-fn draw_color(state: DrawState) -> Result<[f32; 4], u32> {
-    if state.vertex_program != ShaderProgram::VertexPassthrough {
+fn vertices(
+    gpu: &VirtioGpu,
+    context: &VirglContext,
+    target: u32,
+    state: DrawState,
+    call: DrawCall,
+    vertex_bytes: usize,
+) -> Result<Vec<u8>, u32> {
+    let binding = state.vertex_buffer;
+    let source = gpu
+        .resources
+        .get(&binding.resource)
+        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    let valid = binding.stride == vertex_bytes as u32
+        && binding.offset % vertex_bytes as u32 == 0
+        && state.vertex_layout.draw_stride() == Some(vertex_bytes as u32)
+        && source.is_buffer()
+        && source.format == FORMAT_R32G32B32A32_FLOAT
+        && context.is_attached(target)
+        && context.is_attached(binding.resource)
+        && gpu.is_virgl_resource(target)
+        && gpu.is_virgl_resource(binding.resource);
+    if !valid {
         return Err(RESP_ERR_INVALID_PARAMETER);
     }
-    let ShaderProgram::FragmentSolid(bits) = state.fragment_program else {
-        return Err(RESP_ERR_INVALID_PARAMETER);
-    };
-    let color = bits.map(f32::from_bits);
-    color
-        .iter()
-        .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
-        .then_some(color)
+    let start = usize::try_from(call.start).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
+    let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
+    let bytes = (TRIANGLE_VERTICES as usize)
+        .checked_mul(vertex_bytes)
+        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    let start = start
+        .checked_mul(vertex_bytes)
+        .and_then(|value| value.checked_add(offset))
+        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    source
+        .pixels
+        .get(start..start.checked_add(bytes).ok_or(RESP_ERR_INVALID_PARAMETER)?)
+        .map(ToOwned::to_owned)
         .ok_or(RESP_ERR_INVALID_PARAMETER)
 }

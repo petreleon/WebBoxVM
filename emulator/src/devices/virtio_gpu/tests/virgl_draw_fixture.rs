@@ -6,10 +6,13 @@ use crate::memory::PhysicalMemory;
 
 pub(super) const BUFFER: u32 = 5;
 pub(super) const TARGET: u32 = 4;
+pub(super) const TEXTURE: u32 = 6;
 pub(super) const VERT: &str =
     "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
 pub(super) const FRAG: &str =
     "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, .25}\n0: MOV OUT[0], IMM[0]\n1: END\n";
+pub(super) const TEXTURED_VERT: &str = "VERT\nDCL IN[0..1]\nDCL OUT[0], POSITION\nDCL OUT[1], GENERIC[0]\nMOV OUT[0], IN[0]\nMOV OUT[1], IN[1]\nEND\n";
+pub(super) const TEXTURED_FRAG: &str = "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nMOV OUT[0], TEMP[0]\nEND\n";
 
 pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
@@ -23,7 +26,13 @@ pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     assert_response(
         &mut gpu,
         &mut mem,
-        &create(BUFFER, 0, 31, 1 << 4, 48, 1),
+        &create(BUFFER, 0, 31, 1 << 4, 72, 1),
+        RESP_OK_NODATA,
+    );
+    assert_response(
+        &mut gpu,
+        &mut mem,
+        &create(TEXTURE, 2, 1, 1 << 3, 2, 2),
         RESP_OK_NODATA,
     );
     assert_response(&mut gpu, &mut mem, &full_scanout(TARGET), RESP_OK_NODATA);
@@ -34,7 +43,7 @@ pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     context.extend_from_slice(b"virgl");
     context.resize(96, 0);
     assert_response(&mut gpu, &mut mem, &context, RESP_OK_NODATA);
-    for resource in [TARGET, BUFFER] {
+    for resource in [TARGET, BUFFER, TEXTURE] {
         let mut attach = header(CMD_CTX_ATTACH_RESOURCE);
         for value in [resource, 0] {
             push_u32(&mut attach, value);
@@ -64,7 +73,7 @@ pub(super) fn submit(words: &[u32]) -> Vec<u8> {
 }
 
 pub(super) fn surface_create(handle: u32, resource: u32) -> Vec<u32> {
-    vec![word(1, 7, 5), handle, resource, 1, 0, 0]
+    vec![word(1, 8, 5), handle, resource, 1, 0, 0]
 }
 
 pub(super) fn framebuffer(handle: u32) -> Vec<u32> {
@@ -76,6 +85,15 @@ pub(super) fn vertex_state() -> Vec<u32> {
         vec![word(1, 5, 5), 9, 0, 0, 0, 31],
         vec![word(2, 5, 1), 9],
         vec![word(6, 0, 3), 16, 0, BUFFER],
+    ]
+    .concat()
+}
+
+pub(super) fn textured_vertex_state() -> Vec<u32> {
+    [
+        vec![word(1, 5, 9), 10, 0, 0, 0, 31, 16, 0, 0, 29],
+        vec![word(2, 5, 1), 10],
+        vec![word(6, 0, 3), 24, 0, BUFFER],
     ]
     .concat()
 }
@@ -123,6 +141,21 @@ pub(super) fn upload_vertices(gpu: &mut VirtioGpu) {
         0.0, 0.75, 0.0, 1.0, -0.75, -0.75, 0.0, 1.0, 0.75, -0.75, 0.0, 1.0,
     ];
     let bytes: Vec<u8> = positions.into_iter().flat_map(f32::to_le_bytes).collect();
+    gpu.resources
+        .get_mut(&BUFFER)
+        .unwrap()
+        .pixels
+        .get_mut(..bytes.len())
+        .unwrap()
+        .copy_from_slice(&bytes);
+}
+
+pub(super) fn upload_textured_vertices(gpu: &mut VirtioGpu) {
+    let vertices = [
+        0.0, 0.75, 0.0, 1.0, 0.0, 1.0, -0.75, -0.75, 0.0, 1.0, 0.0, 1.0, 0.75, -0.75, 0.0, 1.0,
+        0.0, 1.0,
+    ];
+    let bytes: Vec<u8> = vertices.into_iter().flat_map(f32::to_le_bytes).collect();
     gpu.resources
         .get_mut(&BUFFER)
         .unwrap()

@@ -155,7 +155,7 @@ fn submit(words: &[u32]) -> Vec<u8> {
 
 fn surface_create(handle: u32, resource: u32) -> Vec<u32> {
     vec![
-        command_header(1, 7, 5),
+        command_header(1, 8, 5),
         handle,
         resource,
         VIRGL_FORMAT_B8G8R8A8_UNORM,

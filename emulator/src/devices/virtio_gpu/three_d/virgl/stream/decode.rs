@@ -1,5 +1,6 @@
 pub(super) mod blend;
 pub(super) mod draw;
+pub(super) mod sampler;
 pub(super) mod shader;
 pub(super) mod state;
 pub(super) mod vertex;
@@ -46,6 +47,7 @@ pub(super) enum Command {
     Draw(DrawCall),
     Blend(blend::Command),
     Vertex(vertex::Command),
+    Sampler(sampler::Command),
     Shader(shader::Command),
     State(state::Command),
 }
@@ -167,6 +169,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         })),
         _ => vertex::decode(command, object, words)
             .map(Command::Vertex)
+            .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))
             .or_else(|| blend::decode(command, object, words).map(Command::Blend))
             .or_else(|| shader::decode(command, object, words).map(Command::Shader))

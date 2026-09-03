@@ -18,7 +18,7 @@ test -z "$("$nm" -u "$binary")"
 
 size=$(wc -c < "$binary" | tr -d ' ')
 test "$size" -le 65536
-for source in Makefile README.md demo.c draw.c kms.c kms.h link.ld memory.c ops.c ops.h syscall.h transfer.c transfer.h uapi.h virgl.h verify.sh; do
+for source in Makefile README.md demo.c draw.c kms.c kms.h link.ld memory.c ops.c ops.h syscall.h texture.c texture_draw.c transfer.c transfer.h uapi.h virgl.h verify.sh; do
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done

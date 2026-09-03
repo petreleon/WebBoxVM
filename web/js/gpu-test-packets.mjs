@@ -102,6 +102,35 @@ export function virglDrawPacket({
   return packet;
 }
 
+export function virglTexturedPacket({
+  canvasHeight = 768,
+  canvasWidth = 1024,
+  clearColor = [0.1, 0.2, 0.3, 1],
+  scissor = [0, 0, canvasWidth, canvasHeight],
+  sequence = 7,
+  texture = [10, 20, 30, 255, 40, 50, 60, 255, 70, 80, 90, 255, 100, 110, 120, 255],
+  vertices = texturedVirglTriangle(),
+  viewport = [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5],
+} = {}) {
+  const packet = new Uint8Array(176 + texture.length);
+  packet.set([0x56, 0x47, 0x44, 0x31]);
+  const view = new DataView(packet.buffer);
+  view.setUint32(4, 3, true);
+  view.setUint32(8, sequence, true);
+  view.setUint32(12, canvasWidth, true);
+  view.setUint32(16, canvasHeight, true);
+  view.setUint32(20, 3, true);
+  writeFloats(view, 24, clearColor);
+  writeFloats(view, 40, [0, 0, 0, 0]);
+  writeFloats(view, 56, vertices);
+  writeFloats(view, 128, viewport);
+  scissor.forEach((value, index) => view.setUint32(152 + index * 4, value, true));
+  view.setUint32(168, 2, true);
+  view.setUint32(172, 2, true);
+  packet.set(texture, 176);
+  return packet;
+}
+
 function writeFloats(view, offset, values) {
   values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
 }
@@ -120,4 +149,8 @@ function triangleVertices() {
 
 function virglTriangle() {
   return [0, 0.75, 0, 1, -0.75, -0.75, 0, 1, 0.75, -0.75, 0, 1];
+}
+
+function texturedVirglTriangle() {
+  return [0, 0.75, 0, 1, 0, 1, -0.75, -0.75, 0, 1, 0, 1, 0.75, -0.75, 0, 1, 0, 1];
 }

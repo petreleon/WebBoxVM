@@ -109,7 +109,7 @@ fn submit(words: &[u32]) -> Vec<u8> {
 }
 
 fn surface_create(handle: u32, resource: u32) -> Vec<u32> {
-    vec![header_word(1, 7, 5), handle, resource, 1, 0, 0]
+    vec![header_word(1, 8, 5), handle, resource, 1, 0, 0]
 }
 
 fn framebuffer_clear(handle: u32) -> Vec<u32> {
@@ -123,7 +123,7 @@ fn framebuffer_bind(handle: u32) -> Vec<u32> {
 }
 
 fn surface_destroy(handle: u32) -> Vec<u32> {
-    vec![header_word(3, 7, 1), handle]
+    vec![header_word(3, 8, 1), handle]
 }
 
 fn generic_clear() -> Vec<u32> {

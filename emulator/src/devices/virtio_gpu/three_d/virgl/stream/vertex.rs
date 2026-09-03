@@ -1,4 +1,4 @@
-use super::super::{VertexBuffer, VertexElement, VirglContext};
+use super::super::{VertexBuffer, VirglContext, context::VertexLayout};
 use super::decode::vertex::Command;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{
@@ -12,7 +12,7 @@ pub(super) fn apply(
     command: Command,
 ) -> Result<(), u32> {
     match command {
-        Command::Create { handle, element } => create(context, handle, element),
+        Command::Create { handle, layout } => create(context, handle, layout),
         Command::Bind { handle } => context
             .bind_vertex_elements(handle)
             .then_some(())
@@ -25,12 +25,8 @@ pub(super) fn apply(
     }
 }
 
-fn create(context: &mut VirglContext, handle: u32, element: VertexElement) -> Result<(), u32> {
-    let valid = element.offset == 0
-        && element.divisor == 0
-        && element.buffer_index == 0
-        && matches!(element.format, FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT);
-    if !valid || !context.create_vertex_elements(handle, element) {
+fn create(context: &mut VirglContext, handle: u32, layout: VertexLayout) -> Result<(), u32> {
+    if !layout.valid() || !context.create_vertex_elements(handle, layout) {
         return Err(RESP_ERR_INVALID_PARAMETER);
     }
     Ok(())
@@ -59,7 +55,7 @@ fn set_buffer(
     let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
     let shape = matches!(
         (binding.stride, resource.format),
-        (1, FORMAT_R8_UNORM) | (16, FORMAT_R32G32B32A32_FLOAT)
+        (1, FORMAT_R8_UNORM) | (16 | 24, FORMAT_R32G32B32A32_FLOAT)
     );
     if !shape
         || !context.is_attached(binding.resource)

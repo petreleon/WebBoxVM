@@ -50,7 +50,7 @@ fn vertex_buffers_reject_nonbuffer_layouts_and_texture_stream_commands() {
     assert_response(
         &mut gpu,
         &mut mem,
-        &submit(&[command_header(1, 7, 5), 9, BUFFER_ID, 64, 0, 0]),
+        &submit(&[command_header(1, 8, 5), 9, BUFFER_ID, 64, 0, 0]),
         RESP_ERR_INVALID_PARAMETER,
     );
     assert_eq!(gpu.resources[&BUFFER_ID].pixels, before);

@@ -60,6 +60,10 @@ pub(super) struct PipelineState {
     pub(super) bound_rasterizer: Option<u32>,
     pub(super) viewport: Option<Viewport>,
     pub(super) scissor: Option<Rect>,
+    pub(super) sampler_views: HashMap<u32, u32>,
+    pub(super) sampler_states: HashSet<u32>,
+    pub(super) bound_sampler_view: Option<u32>,
+    pub(super) bound_sampler_state: Option<u32>,
 }
 
 impl PipelineState {
@@ -71,6 +75,10 @@ impl PipelineState {
             bound_rasterizer: None,
             viewport: None,
             scissor: None,
+            sampler_views: HashMap::new(),
+            sampler_states: HashSet::new(),
+            bound_sampler_view: None,
+            bound_sampler_state: None,
         }
     }
 }
