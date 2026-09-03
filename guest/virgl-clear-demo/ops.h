@@ -44,6 +44,7 @@ int virgl_run_textured_triangle(long fd, const struct virgl_resources *resources
 int virgl_run_texture_pair(long fd, const struct virgl_resources *resources);
 int virgl_create_vertex_color_resource(long fd, struct virgl_resources *resources);
 int virgl_run_vertex_color_triangle(long fd, const struct virgl_resources *resources);
+int virgl_run_texture_color_triangle(long fd, const struct virgl_resources *resources);
 int virgl_upload_textured_vertices(long fd, u32 bo, u32 u, u32 v);
 int virgl_submit_textured_triangle(
     long fd, const struct virgl_resources *resources, u32 sampler, u32 object_base);

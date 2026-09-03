@@ -59,6 +59,17 @@ fn vertex(lines: &[&str]) -> Option<ShaderProgram> {
             "MOV OUT[1], IN[1]",
             "END",
         ] => Some(ShaderProgram::VertexGeneric),
+        [
+            "VERT",
+            "DCL IN[0..2]",
+            "DCL OUT[0], POSITION",
+            "DCL OUT[1], GENERIC[0]",
+            "DCL OUT[2], GENERIC[1]",
+            "MOV OUT[0], IN[0]",
+            "MOV OUT[1], IN[1]",
+            "MOV OUT[2], IN[2]",
+            "END",
+        ] => Some(ShaderProgram::VertexTextureColor),
         _ => None,
     }
 }
@@ -105,6 +116,22 @@ fn fragment(lines: &[&str]) -> Option<ShaderProgram> {
         ]
     {
         return Some(ShaderProgram::FragmentTexturedMultiply);
+    }
+    if lines
+        == [
+            "FRAG",
+            "DCL IN[0], GENERIC[0], LINEAR",
+            "DCL IN[1], GENERIC[1], LINEAR",
+            "DCL SAMP[0]",
+            "DCL SVIEW[0], 2D, FLOAT",
+            "DCL OUT[0], COLOR[0]",
+            "DCL TEMP[0]",
+            "TEX TEMP[0], IN[1], SAMP[0], 2D",
+            "MUL OUT[0], TEMP[0], IN[0]",
+            "END",
+        ]
+    {
+        return Some(ShaderProgram::FragmentTexturedVertexColor);
     }
     if lines.len() != 5
         || lines[0] != "FRAG"

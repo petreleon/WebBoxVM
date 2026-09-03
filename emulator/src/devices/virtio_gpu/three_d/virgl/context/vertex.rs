@@ -22,30 +22,16 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) enum VertexLayout {
     Single(VertexElement),
     Textured,
     VertexColor,
+    TextureColor,
 }
 
 impl VertexLayout {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn from_elements(elements: &[VertexElement]) -> Option<Self> {
         match elements {
             [element] => Some(Self::Single(*element)),
-            [
-                VertexElement {
-                    offset: 0,
-                    divisor: 0,
-                    buffer_index: 0,
-                    format: FORMAT_R32G32B32A32_FLOAT,
-                },
-                VertexElement {
-                    offset: 16,
-                    divisor: 0,
-                    buffer_index: 0,
-                    format: FORMAT_R32G32_FLOAT,
-                },
-            ] => Some(Self::Textured),
-            [
-                VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT },
-                VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT },
-            ] => Some(Self::VertexColor),
+            [VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32_FLOAT }] => Some(Self::Textured),
+            [VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }] => Some(Self::VertexColor),
+            [VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 32, divisor: 0, buffer_index: 0, format: FORMAT_R32G32_FLOAT }] => Some(Self::TextureColor),
             _ => None,
         }
     }
@@ -53,7 +39,7 @@ impl VertexLayout {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn valid(self) -> bool {
         matches!(
             self,
-            Self::Textured | Self::VertexColor
+            Self::Textured | Self::VertexColor | Self::TextureColor
                 | Self::Single(VertexElement {
                     offset: 0,
                     divisor: 0,
@@ -71,6 +57,7 @@ impl VertexLayout {
             }) => Some(16),
             Self::Textured => Some(24),
             Self::VertexColor => Some(32),
+            Self::TextureColor => Some(40),
             Self::Single(_) => None,
         }
     }
@@ -78,7 +65,7 @@ impl VertexLayout {
     pub(in crate::devices::virtio_gpu) fn first(self) -> VertexElement {
         match self {
             Self::Single(element) => element,
-            Self::Textured | Self::VertexColor => VertexElement {
+            Self::Textured | Self::VertexColor | Self::TextureColor => VertexElement {
                 offset: 0,
                 divisor: 0,
                 buffer_index: 0,

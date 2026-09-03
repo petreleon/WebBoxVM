@@ -94,7 +94,7 @@ fn sample(textures: &[TextureSnapshot], uv: [f32; 2]) -> [f32; 4] {
         })
 }
 
-fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
+pub(super) fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
     let v = 1.0 - v;
     match texture.sampler.filter() {
         SamplerFilter::Nearest => color(

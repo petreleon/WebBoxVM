@@ -1,14 +1,13 @@
 use emulator::boot::BootContext;
-
-pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255";
+pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
-
 pub(super) enum VirglPacket {
     Clear(u32),
     Draw(u32),
     TexturedDraw(u32, TextureMode),
     TexturePairDraw(u32),
     VertexColorDraw(u32),
+    TextureColorDraw(u32),
 }
 
 pub(super) fn demo_script(binary: &[u8]) -> String {
@@ -47,6 +46,7 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
                 .map(|(sequence, mode)| VirglPacket::TexturedDraw(sequence, mode)),
             Some(6) => vtp1_sequence(packet).map(VirglPacket::TexturePairDraw),
             Some(7) => vvc1_sequence(packet).map(VirglPacket::VertexColorDraw),
+            Some(8) => vtc1_sequence(packet).map(VirglPacket::TextureColorDraw),
             _ => Err("guest emitted an unsupported VGD1 packet version".into()),
         },
         _ => Err("guest emitted an unsupported VirGL browser packet".into()),
@@ -164,6 +164,8 @@ mod texture;
 mod texture_pair;
 #[path = "wire/vertex_color.rs"]
 mod vertex_color;
+#[path = "wire/texture_color.rs"]
+mod texture_color;
 
 pub(crate) use draw::is_triangle_readback;
 use draw::vgd1_sequence;
@@ -174,3 +176,5 @@ pub(crate) use texture_pair::is_texture_pair_readback;
 use texture_pair::vtp1_sequence;
 pub(crate) use vertex_color::is_vertex_color_readback;
 use vertex_color::vvc1_sequence;
+pub(crate) use texture_color::is_texture_color_readback;
+use texture_color::vtc1_sequence;

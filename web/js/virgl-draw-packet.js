@@ -1,6 +1,6 @@
 import { parseVirglVertexColorPacket } from "./virgl-vertex-color-packet.js?v=20260903-virgl-viewport-r1";
-const MAGIC = [0x56, 0x47, 0x44, 0x31]; // VGD1
-const LEGACY_BYTES = 104;
+import { parseVirglTextureColorPacket } from "./virgl-texture-color-packet.js?v=20260903-virgl-viewport-r1";
+const MAGIC = [0x56, 0x47, 0x44, 0x31]; const LEGACY_BYTES = 104; // VGD1
 const STATE_BYTES = 144;
 const TEXTURED_BYTES = 176;
 const TEXTURED_PAIR_BYTES = 184;
@@ -25,7 +25,7 @@ export function parseVirglDrawPacket(packet) {
   if (!isVirglDrawPacket(packet)) throw new Error("VirGL draw packet has invalid VGD1 magic");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const version = view.getUint32(4, true);
-  if (version === 7) return parseVirglVertexColorPacket(packet);
+  if (version === 7) return parseVirglVertexColorPacket(packet); if (version === 8) return parseVirglTextureColorPacket(packet);
   const expected = length(view, version);
   if (!expected || packet.byteLength !== expected) throw new Error("VirGL draw packet has invalid length or version");
   const sequence = view.getUint32(8, true);

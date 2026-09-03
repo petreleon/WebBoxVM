@@ -28,10 +28,12 @@ impl ShaderKind {
 pub(in crate::devices::virtio_gpu) enum ShaderProgram {
     VertexPassthrough,
     VertexGeneric,
+    VertexTextureColor,
     FragmentSolid([u32; 4]),
     FragmentVertexColor,
     FragmentTextured,
     FragmentTexturedMultiply,
+    FragmentTexturedVertexColor,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -45,10 +47,12 @@ impl Shader {
         match self.program {
             ShaderProgram::VertexPassthrough => 11,
             ShaderProgram::VertexGeneric => 17,
+            ShaderProgram::VertexTextureColor => 21,
             ShaderProgram::FragmentSolid(_) => 14,
             ShaderProgram::FragmentVertexColor => 11,
             ShaderProgram::FragmentTextured => 25,
             ShaderProgram::FragmentTexturedMultiply => 31,
+            ShaderProgram::FragmentTexturedVertexColor => 30,
         }
     }
 }

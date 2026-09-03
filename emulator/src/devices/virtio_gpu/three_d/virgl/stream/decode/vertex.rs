@@ -54,6 +54,10 @@ fn layout(fields: &[u32]) -> Option<VertexLayout> {
         [o0, d0, i0, f0, o1, d1, i1, f1] => {
             VertexLayout::from_elements(&[element(*o0, *d0, *i0, *f0), element(*o1, *d1, *i1, *f1)])
         }
+        [o0, d0, i0, f0, o1, d1, i1, f1, o2, d2, i2, f2] => VertexLayout::from_elements(&[
+            element(*o0, *d0, *i0, *f0), element(*o1, *d1, *i1, *f1),
+            element(*o2, *d2, *i2, *f2),
+        ]),
         _ => None,
     }
 }

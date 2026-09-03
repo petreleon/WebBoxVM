@@ -70,7 +70,7 @@ Tightly packed BGRA8 pixels follow the header.
 ## Experimental 3D slice
 
 WebBoxVM advertises the standard `VIRTIO_GPU_F_VIRGL` and `VIRTIO_GPU_F_CONTEXT_INIT` bits so the stock Linux 6.12 `virtio_gpu` DRM driver exposes its render ioctl path.
-The device now separately exposes a deliberately narrow standard VirGL capset-1 clear, solid-triangle, generic vertex-color, and fixed sampled-texture path, documented in [VirGL compatibility](virgl-compatibility.md).
+The device now separately exposes a deliberately narrow standard VirGL capset-1 clear, solid-triangle, generic vertex-color, texture-times-vertex-color, and fixed sampled-texture path, documented in [VirGL compatibility](virgl-compatibility.md).
 Capset ID 7 is deliberately private and unregistered, its data starts with
 `WBG3`, and generic Mesa must not select or interpret it.
 
@@ -108,7 +108,7 @@ Venus requires blob/host-visible resources and host Vulkan external memory primi
 
 - Both queues are exposed, but only control-queue commands are implemented; `UPDATE_CURSOR` and `MOVE_CURSOR` on the cursor queue return an error.
 - Feature-selection/status registers are exposed, but guest feature values are not retained or validated and command behavior is not gated on negotiated bits or `FEATURES_OK` yet.
-- WBG3 plus the narrow capset-1 clear, solid, generic vertex-color, and fixed sampled-texture triangles are the only 3D operations; there are no general VirGL/Venus shader, state, blob, host-visible-memory, or compute APIs.
+- WBG3 plus the narrow capset-1 clear, solid, generic vertex-color, texture-times-color, and fixed sampled-texture triangles are the only 3D operations; there are no general VirGL/Venus shader, state, blob, host-visible-memory, or compute APIs.
 
 ## Invariants
 

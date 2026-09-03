@@ -4,7 +4,7 @@
 #include "transfer.h"
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255\n";
+static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
@@ -29,6 +29,7 @@ static const char fail_wait[] = "VIRGL_CLEAR_DEMO_FAIL completion-wait\n";
 static const char fail_readback[] = "VIRGL_CLEAR_DEMO_FAIL transfer-readback\n";
 static const char fail_texture_pair[] = "VIRGL_CLEAR_DEMO_FAIL texture-pair\n";
 static const char fail_vertex_color[] = "VIRGL_CLEAR_DEMO_FAIL vertex-color\n";
+static const char fail_texture_color[] = "VIRGL_CLEAR_DEMO_FAIL texture-color\n";
 static void emit(const char *message, u64 length)
 {
     long fd = sys_open(serial_node, O_WRONLY | O_CLOEXEC);
@@ -78,7 +79,6 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
             stage = 35;
         else {
             int kms = kms_configure_scanout(fd, resources.scanout_bo);
-
             if (kms != 0)
                 stage = 5 - kms;
             else if (virgl_upload_pattern(fd, resources.scanout_bo) != 0)
@@ -113,6 +113,8 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
                     stage += 44;
                 else if ((stage = virgl_run_vertex_color_triangle(fd, &resources)) != 0)
                     stage += 49;
+                else if ((stage = virgl_run_texture_color_triangle(fd, &resources)) != 0)
+                    stage += 53;
             }
         }
     }
@@ -168,6 +170,8 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         EMIT(fail_texture_pair);
     else if (stage >= 50 && stage <= 53)
         EMIT(fail_vertex_color);
+    else if (stage >= 54 && stage <= 57)
+        EMIT(fail_texture_color);
     else
         EMIT(fail_readback);
     if (fd >= 0)

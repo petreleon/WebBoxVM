@@ -23,6 +23,7 @@ mod virgl_sampler_repeat;
 mod virgl_sampler_state;
 mod virgl_shader_state;
 mod virgl_textured_draw;
+mod virgl_texture_color_draw;
 mod virgl_transfer;
 mod virgl_vertex_state;
 mod virgl_vertex_color_draw;

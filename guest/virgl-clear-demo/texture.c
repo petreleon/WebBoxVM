@@ -54,11 +54,11 @@ static int create_buffer(long fd, u32 *bo, u32 *handle)
         .target = VIRGL_TARGET_BUFFER,
         .format = VIRGL_FORMAT_R32G32B32A32_FLOAT,
         .bind = VIRGL_BIND_VERTEX_BUFFER,
-        .width = VIRGL_TEXTURED_TRIANGLE_BYTES,
+        .width = VIRGL_TEXTURE_COLOR_TRIANGLE_BYTES,
         .height = 1,
         .depth = 1,
         .array_size = 1,
-        .size = VIRGL_TEXTURED_TRIANGLE_BYTES,
+        .size = VIRGL_TEXTURE_COLOR_TRIANGLE_BYTES,
     };
 
     if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &resource) < 0 ||

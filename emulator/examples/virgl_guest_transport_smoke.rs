@@ -32,22 +32,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let chunk_steps = setting("VIRGL_SMOKE_CHUNK_STEPS", 2_000_000).max(1) as usize;
     let timeout = Duration::from_secs(setting("VIRGL_SMOKE_TIMEOUT_SECS", 900));
     let binary = fs::read(&demo)?;
-    let mut vm = BootContext::new_from_install_disk_snapshot_with_extra_bootargs(
-        fs::read(&disk)?,
-        1,
-        "init=/bin/sh",
-    )?;
+    let mut vm = BootContext::new_from_install_disk_snapshot_with_extra_bootargs(fs::read(&disk)?, 1, "init=/bin/sh")?;
     vm.run_efi_phase(usize::MAX);
     println!("standard VirGL guest transport smoke: {disk}, {} bytes", binary.len());
     let start = Instant::now();
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
     let mut steps = 0u64;
-    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence) = (None, None, None, None);
+    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence) = (None, None, None, None, None);
     let mut texture_sequence = None;
     let (mut upload_readback, mut clear_completed) = (false, false);
     let mut draw_completed = false;
-    let (mut repeat_completed, mut linear_completed, mut texture_pair_completed) = (false, false, false);
+    let (mut repeat_completed, mut linear_completed, mut texture_pair_completed, mut vertex_color_completed) = (false, false, false, false);
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result { 10_000 } else { chunk_steps };
         let ran = vm.run_kernel_phase(slice.min((max_steps - steps) as usize));
@@ -55,11 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let delta = vm.uart_output_since(uart_offset);
         uart_offset = vm.uart_output_len();
         if !delta.is_empty() {
-            println!(
-                "UART +{} bytes: {:?}",
-                delta.len(),
-                delta.chars().take(240).collect::<String>()
-            );
+            println!("UART +{} bytes: {:?}", delta.len(), delta.chars().take(240).collect::<String>());
         }
         let uart = vm.uart_output();
         if output_starts(&uart, MODULE_FAIL) || output_starts(&uart, FAIL) {
@@ -111,6 +103,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             println!("VGD1 vertex-color validated: sequence {sequence}");
                             vertex_color_sequence = Some(sequence);
                         }
+                        VirglPacket::TextureColorDraw(sequence) if vertex_color_completed && texture_color_sequence.is_none() => { println!("VGD1 texture-color validated: sequence {sequence}"); texture_color_sequence = Some(sequence); }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -162,6 +155,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         if phase == Phase::Packet && texture_pair_completed && let Some(sequence) = vertex_color_sequence.take() {
             complete(&mut vm, sequence, is_vertex_color_readback, "VGD1 vertex-color")?;
             println!("WBGF interpolated vertex-color BGRA readback validated");
+            vertex_color_completed = true;
+        }
+        if phase == Phase::Packet && vertex_color_completed && let Some(sequence) = texture_color_sequence.take() {
+            complete(&mut vm, sequence, is_texture_color_readback, "VGD1 texture-color")?;
+            println!("WBGF texture-modulated vertex-color BGRA readback validated");
             phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {

@@ -1,6 +1,7 @@
 mod geometry;
 mod solid;
 mod textured;
+mod texture_color;
 mod vertex_color;
 
 use super::{DrawMaterial, TextureSnapshot};
@@ -12,6 +13,7 @@ pub(super) fn valid(vertices: &[u8], material: &DrawMaterial) -> bool {
         DrawMaterial::Solid(_) => solid::valid(vertices),
         DrawMaterial::VertexColor => vertex_color::valid(vertices),
         DrawMaterial::Textured(_) | DrawMaterial::TexturedPair(_) => textured::valid(vertices),
+        DrawMaterial::TextureColor(_) => texture_color::valid(vertices),
     }
 }
 
@@ -45,4 +47,15 @@ pub(super) fn draw_vertex_color(
     scissor: Option<Rect>,
 ) -> bool {
     vertex_color::draw(resource, rect, vertices, viewport, scissor)
+}
+
+pub(super) fn draw_texture_color(
+    resource: &mut GpuResource,
+    rect: Rect,
+    vertices: &[u8],
+    texture: &TextureSnapshot,
+    viewport: [f32; 6],
+    scissor: Option<Rect>,
+) -> bool {
+    texture_color::draw(resource, rect, vertices, texture, viewport, scissor)
 }

@@ -25,7 +25,7 @@ pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     assert_response(
         &mut gpu,
         &mut mem,
-        &create(BUFFER, 0, 31, 1 << 4, 96, 1),
+        &create(BUFFER, 0, 31, 1 << 4, 120, 1),
         RESP_OK_NODATA,
     );
     assert_response(

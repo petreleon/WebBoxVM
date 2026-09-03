@@ -34,6 +34,7 @@ pub(in crate::devices::virtio_gpu) enum DrawMaterial {
     VertexColor,
     Textured(TextureSnapshot),
     TexturedPair([TextureSnapshot; 2]),
+    TextureColor(TextureSnapshot),
 }
 
 pub(super) struct DrawWork {
@@ -121,6 +122,9 @@ impl VirtioGpu {
             DrawMaterial::TexturedPair(textures) => {
                 raster::draw_textured(resource, rect, vertices, textures, viewport, scissor)
             }
+            DrawMaterial::TextureColor(texture) => raster::draw_texture_color(
+                resource, rect, vertices, texture, viewport, scissor,
+            ),
         };
         if !drawn {
             return false;
