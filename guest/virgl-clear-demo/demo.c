@@ -5,7 +5,7 @@
 
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 vertex-state=bound buffer-copy=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255\n";
+static const char pass[] = "VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=0,255,0,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
@@ -16,6 +16,10 @@ static const char fail_vertex_wait[] = "VIRGL_CLEAR_DEMO_FAIL vertex-wait\n";
 static const char fail_buffer_copy[] = "VIRGL_CLEAR_DEMO_FAIL buffer-copy\n";
 static const char fail_buffer_wait[] = "VIRGL_CLEAR_DEMO_FAIL buffer-wait\n";
 static const char fail_buffer_readback[] = "VIRGL_CLEAR_DEMO_FAIL buffer-readback\n";
+static const char fail_triangle_upload[] = "VIRGL_CLEAR_DEMO_FAIL triangle-upload\n";
+static const char fail_triangle_submit[] = "VIRGL_CLEAR_DEMO_FAIL triangle-submit\n";
+static const char fail_triangle_wait[] = "VIRGL_CLEAR_DEMO_FAIL triangle-wait\n";
+static const char fail_triangle_readback[] = "VIRGL_CLEAR_DEMO_FAIL triangle-readback\n";
 static const char fail_transfer[] = "VIRGL_CLEAR_DEMO_FAIL transfer-upload\n";
 static const char fail_copy_upload[] = "VIRGL_CLEAR_DEMO_FAIL copy-upload\n";
 static const char fail_copy_submit[] = "VIRGL_CLEAR_DEMO_FAIL copy-submit\n";
@@ -107,6 +111,8 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
                     stage = 21;
                 else if (virgl_readback_clear(fd, resources.scanout_bo) != 0)
                     stage = 22;
+                else if ((stage = virgl_run_triangle(fd, &resources)) != 0)
+                    stage += 35;
             }
         }
     }
@@ -148,6 +154,14 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         EMIT(fail_buffer_wait);
     else if (stage == 35)
         EMIT(fail_buffer_readback);
+    else if (stage == 36)
+        EMIT(fail_triangle_upload);
+    else if (stage == 37)
+        EMIT(fail_triangle_submit);
+    else if (stage == 38)
+        EMIT(fail_triangle_wait);
+    else if (stage == 39)
+        EMIT(fail_triangle_readback);
     else
         EMIT(fail_readback);
     if (fd >= 0)

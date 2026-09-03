@@ -6,6 +6,7 @@
 #define VIRGL_TARGET_BUFFER 0u
 #define VIRGL_TARGET_TEXTURE_2D 2u
 #define VIRGL_FORMAT_B8G8R8X8_UNORM 2u
+#define VIRGL_FORMAT_R32G32B32A32_FLOAT 31u
 #define VIRGL_FORMAT_R8_UNORM 64u
 #define VIRGL_BIND_RENDER_TARGET (1u << 1)
 #define VIRGL_BIND_VERTEX_BUFFER (1u << 4)
@@ -13,6 +14,8 @@
 #define VIRGL_CLEAR_WORDS 19u
 #define VIRGL_COPY_WORDS 14u
 #define VIRGL_VERTEX_INPUT_WORDS 12u
+#define VIRGL_TRIANGLE_BYTES 48u
+#define VIRGL_TRIANGLE_WORDS 128u
 #define VIRGL_HEADER(command, object, length) \
     ((u32)(command) | ((u32)(object) << 8) | ((u32)(length) << 16))
 

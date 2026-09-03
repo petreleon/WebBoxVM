@@ -58,7 +58,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut uart_offset = 0;
     let mut steps = 0u64;
     let mut clear_sequence = None;
+    let mut draw_sequence = None;
     let mut upload_readback = false;
+    let mut clear_completed = false;
     while steps < max_steps && start.elapsed() < timeout {
         let ran = vm.run_kernel_phase(chunk_steps.min((max_steps - steps) as usize));
         steps += ran as u64;
@@ -87,9 +89,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             Phase::Packet => {
                 let packet = vm.machine.bus.virtio_gpu.take_3d_update();
                 if !packet.is_empty() {
-                    let sequence = vgc1_sequence(&packet)?;
-                    println!("VGC1 validated: sequence {sequence}");
-                    clear_sequence = Some(sequence);
+                    match virgl_packet(&packet)? {
+                        VirglPacket::Clear(sequence) if clear_sequence.is_none() => {
+                            println!("VGC1 validated: sequence {sequence}");
+                            clear_sequence = Some(sequence);
+                        }
+                        VirglPacket::Draw(sequence)
+                            if clear_completed && draw_sequence.is_none() =>
+                        {
+                            println!("VGD1 validated: sequence {sequence}");
+                            draw_sequence = Some(sequence);
+                        }
+                        _ => return Err("guest emitted an unexpected VirGL packet".into()),
+                    }
                 }
             }
             _ => {}
@@ -100,6 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("WBGF standard VirGL upload readback validated");
         }
         if phase == Phase::Packet
+            && !clear_completed
             && upload_readback
             && let Some(sequence) = clear_sequence
         {
@@ -112,6 +125,21 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!("VGC1 completed after upload readback: sequence {sequence}");
             println!("WBGF full-scanout BGRA readback validated");
+            clear_completed = true;
+        }
+        if phase == Phase::Packet
+            && clear_completed
+            && let Some(sequence) = draw_sequence
+        {
+            if !vm.machine.bus.complete_gpu_3d(sequence, true) {
+                return Err("standard VirGL draw completion was rejected".into());
+            }
+            let frame = vm.machine.bus.virtio_gpu.take_scanout_update();
+            if !is_triangle_readback(&frame) {
+                return Err("draw did not produce the expected triangle WBGF readback".into());
+            }
+            println!("VGD1 completed: sequence {sequence}");
+            println!("WBGF triangle BGRA readback validated");
             phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {
@@ -134,22 +162,4 @@ fn setting(name: &str, default: u64) -> u64 {
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(default)
-}
-
-fn shell_ready(uart: &str) -> bool {
-    uart.ends_with("# ") || uart.contains("\n# ") || uart.contains("\r\n# ")
-}
-
-fn output_line(uart: &str, marker: &str) -> bool {
-    uart.lines().any(|line| line.trim() == marker)
-}
-
-fn output_starts(uart: &str, marker: &str) -> bool {
-    uart.lines().any(|line| line.trim().starts_with(marker))
-}
-
-fn tail(text: &str) -> String {
-    let mut chars: Vec<_> = text.chars().rev().take(2_000).collect();
-    chars.reverse();
-    chars.into_iter().collect()
 }

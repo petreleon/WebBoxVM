@@ -109,16 +109,17 @@ only after the queue resolves.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for capset discovery, R8 buffer transfer/copy,
-color transfer/readback, and the standard clear/fence path. It does not yet
-claim native Mesa or guest-side triangle coverage.
+color transfer/readback, and the standard clear/fence path. It then creates
+the exact R32G32B32A32 VBO, canonical TGSI state, and `DRAW_VBO` stream;
+validates its `VGD1` envelope; resolves the deferred fence; and reads the
+green center pixel back through the Linux driver. It does not claim native
+Mesa, a native OpenGL context, or a browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 
-1. Add a native guest proof that creates the exact shader/VBO/draw state and
-   validates post-ack triangle readback.
-2. Add one bounded fixed-state object only with matching capability reporting,
+1. Add one bounded fixed-state object only with matching capability reporting,
    browser rendering, CPU mirroring, and negative-path coverage.
-3. Design blob, external-memory, and synchronization contracts before any
+2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 
 ## Sources

@@ -14,7 +14,7 @@
 #define PROT_WRITE 2L
 #define MAP_SHARED 1L
 
-static u8 *mapped_pixels(long fd, u32 bo_handle, u32 bytes)
+u8 *virgl_map_buffer(long fd, u32 bo_handle, u32 bytes)
 {
     struct drm_virtgpu_map map = {.handle = bo_handle};
     u8 *pixels;
@@ -32,7 +32,7 @@ int virgl_upload_pattern(long fd, u32 bo_handle)
         .box = {.x = UPLOAD_X, .y = UPLOAD_Y, .w = UPLOAD_WIDTH, .h = 1, .d = 1},
         .offset = ((UPLOAD_Y * SCANOUT_WIDTH) + UPLOAD_X) * 4u,
     };
-    u8 *pixels = mapped_pixels(fd, bo_handle, SCANOUT_BYTES);
+    u8 *pixels = virgl_map_buffer(fd, bo_handle, SCANOUT_BYTES);
     u32 offset = transfer.offset;
 
     if (!pixels)
@@ -55,7 +55,7 @@ int virgl_readback_clear(long fd, u32 bo_handle)
         .box = {.x = UPLOAD_X, .y = UPLOAD_Y, .w = UPLOAD_WIDTH, .h = 1, .d = 1},
         .offset = ((UPLOAD_Y * SCANOUT_WIDTH) + UPLOAD_X) * 4u,
     };
-    u8 *pixels = mapped_pixels(fd, bo_handle, SCANOUT_BYTES);
+    u8 *pixels = virgl_map_buffer(fd, bo_handle, SCANOUT_BYTES);
     u32 offset = transfer.offset;
 
     if (!pixels)
@@ -77,7 +77,7 @@ int virgl_upload_vertex_buffer(long fd, u32 bo_handle)
         .box = {.x = 4, .w = 8, .h = 1, .d = 1},
         .offset = 4,
     };
-    u8 *bytes = mapped_pixels(fd, bo_handle, VERTEX_BUFFER_BYTES);
+    u8 *bytes = virgl_map_buffer(fd, bo_handle, VERTEX_BUFFER_BYTES);
 
     if (!bytes)
         return -1;
@@ -92,7 +92,7 @@ int virgl_readback_vertex_buffer(long fd, u32 bo_handle)
         .bo_handle = bo_handle,
         .box = {.x = 4, .w = 8, .h = 1, .d = 1},
     };
-    u8 *bytes = mapped_pixels(fd, bo_handle, VERTEX_BUFFER_BYTES);
+    u8 *bytes = virgl_map_buffer(fd, bo_handle, VERTEX_BUFFER_BYTES);
 
     if (!bytes)
         return -1;
@@ -111,7 +111,7 @@ int virgl_upload_copy_source(long fd, u32 bo_handle)
         .box = {.x = 1, .w = 2, .h = 1, .d = 1},
         .offset = COPY_SOURCE_OFFSET,
     };
-    u8 *pixels = mapped_pixels(fd, bo_handle, COPY_BYTES);
+    u8 *pixels = virgl_map_buffer(fd, bo_handle, COPY_BYTES);
 
     if (!pixels)
         return -1;
@@ -132,7 +132,7 @@ int virgl_readback_copy_destination(long fd, u32 bo_handle)
         .bo_handle = bo_handle,
         .box = {.w = 2, .h = 1, .d = 1},
     };
-    u8 *pixels = mapped_pixels(fd, bo_handle, COPY_BYTES);
+    u8 *pixels = virgl_map_buffer(fd, bo_handle, COPY_BYTES);
 
     if (!pixels)
         return -1;

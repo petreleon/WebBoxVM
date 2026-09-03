@@ -1,8 +1,8 @@
-# WebBoxVM standard VirGL vertex, buffer, copy, upload, clear, and readback probe
+# WebBoxVM standard VirGL vertex, buffer, copy, clear, and triangle probe
 
 This freestanding AArch64 Linux program is a deliberately small guest-side
 proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
-and readback path. It is not Mesa, OpenGL, or Vulkan.
+triangle, and readback path. It is not Mesa, OpenGL, or Vulkan.
 
 It opens `/dev/dri/card0`, reads the Linux `virtgpu` capset-1 response, creates
 a B8G8R8X8 render-target resource and two R8 `PIPE_BUFFER` vertex-buffer
@@ -19,7 +19,11 @@ the destination through `DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST`. It then views
 the scanout resource through KMS's XRGB primary plane, submits standard
 `OBJECT_SURFACE`, `SET_FRAMEBUFFER_STATE`, and generic `CLEAR` commands, waits
 for the resource fence, then obtains and checks two clear pixels through
-`DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST` before closing the DRM file.
+`DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST`. Finally it creates a 48-byte
+`R32G32B32A32_FLOAT` vertex buffer, uploads three fixed clip-space vertices,
+and submits standard type-4 shader objects, type-5 vertex elements, shader
+binds, a generic clear, and one non-indexed `DRAW_VBO`. It waits again and
+requires the scanout center pixel to read back as green BGRA (`0,255,0,255`).
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -42,14 +46,16 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 vertex-state=bound buffer-copy=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255
+VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=0,255,0,255
 ```
 
-That marker appears only after the guest fence resolves. The native harness
-first validates the scanout upload `WBGF`, then validates `VGC1`, captures the
-clear `WBGF` at completion before the console can issue a later KMS update, and
-only then accepts the marker emitted after the guest-side vertex-state bind,
-byte-buffer copy, off-screen color copy, and clear readback checks.
+That marker appears only after both guest fences resolve. The native harness
+first validates the scanout upload `WBGF`, then validates and completes `VGC1`,
+captures its clear `WBGF`, validates the exact `VGD1` sequence and its three
+uploaded vertices, completes it, and requires a triangle `WBGF` whose top-left
+pixel is the clear color and whose center is green. It accepts the marker only
+after guest-side vertex state, byte-buffer copy, color copy, clear, and draw
+readbacks all succeed.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command
