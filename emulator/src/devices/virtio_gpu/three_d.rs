@@ -5,6 +5,7 @@ use super::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 mod capset;
 mod context;
 pub(super) mod packet;
+mod transfer;
 mod virgl;
 
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};

@@ -7,6 +7,7 @@ mod queue;
 mod three_d;
 mod virgl;
 mod virgl_queue;
+mod virgl_transfer;
 
 use super::protocol::*;
 use crate::memory::PhysicalMemory;

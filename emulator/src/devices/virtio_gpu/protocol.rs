@@ -15,6 +15,7 @@ pub(super) const CMD_CTX_DESTROY: u32 = 0x0201;
 pub(super) const CMD_CTX_ATTACH_RESOURCE: u32 = 0x0202;
 pub(super) const CMD_CTX_DETACH_RESOURCE: u32 = 0x0203;
 pub(super) const CMD_RESOURCE_CREATE_3D: u32 = 0x0204;
+pub(super) const CMD_TRANSFER_TO_HOST_3D: u32 = 0x0205;
 pub(super) const CMD_SUBMIT_3D: u32 = 0x0207;
 
 pub(super) const RESP_OK_NODATA: u32 = 0x1100;
@@ -88,6 +89,38 @@ impl Rect {
                 .y
                 .checked_add(self.height)
                 .is_some_and(|end| end <= height)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct Box3d {
+    x: u32,
+    y: u32,
+    z: u32,
+    width: u32,
+    height: u32,
+    depth: u32,
+}
+
+impl Box3d {
+    pub fn decode(bytes: &[u8], offset: usize) -> Option<Self> {
+        Some(Self {
+            x: read_u32(bytes, offset)?,
+            y: read_u32(bytes, offset + 4)?,
+            z: read_u32(bytes, offset + 8)?,
+            width: read_u32(bytes, offset + 12)?,
+            height: read_u32(bytes, offset + 16)?,
+            depth: read_u32(bytes, offset + 20)?,
+        })
+    }
+
+    pub fn flat_rect(self) -> Option<Rect> {
+        (self.z == 0 && self.depth == 1).then_some(Rect {
+            x: self.x,
+            y: self.y,
+            width: self.width,
+            height: self.height,
+        })
     }
 }
 

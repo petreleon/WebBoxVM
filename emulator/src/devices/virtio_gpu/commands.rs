@@ -44,6 +44,7 @@ impl VirtioGpu {
                 self.context_resource(header, input)
             }
             CMD_RESOURCE_CREATE_3D => self.create_virgl_resource(input),
+            CMD_TRANSFER_TO_HOST_3D => self.transfer_to_host_3d(mem, header, input),
             CMD_SUBMIT_3D => match self.submit_3d(header, input) {
                 Ok(Some(deferred)) => return deferred_result(header, deferred),
                 Ok(None) => RESP_OK_NODATA,

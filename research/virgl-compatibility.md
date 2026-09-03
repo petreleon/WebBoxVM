@@ -16,7 +16,8 @@ operation is a full-scanout color clear.
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
 | Resource creation | `RESOURCE_CREATE_3D` accepts a B8G8R8A8 2D render target | One target, one level, no multisampling |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
-| VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, draws, or transfers |
+| Resource upload | `TRANSFER_TO_HOST_3D` uploads a classic capset-1 2D BGRA resource | No readback, blobs, arrays, mip levels, or explicit strides |
+| VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, or draws |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
 
@@ -37,9 +38,16 @@ The accepted `RESOURCE_CREATE_3D` shape is deliberately restrictive:
 - depth and array size of one;
 - level zero, zero or one sample, and no resource flags.
 
-The resource must be attached to the capset-1 context and be the exact current
-VirtIO-GPU scanout resource. `CLEAR_SURFACE` must use that resource's complete
-scanout rectangle, a known surface, and finite RGBA values in `[0, 1]`.
+`TRANSFER_TO_HOST_3D` is exactly the 72-byte standard wire structure. In this
+slice it requires a live capset-1 context and accepts only a
+zero-mip, `z=0`, `d=1` box with zero stride and layer stride. Its offset names
+the first source pixel in the attached guest backing; rows use the resource's
+native BGRA stride, matching the classic-resource path used by Linux. Uploads
+do not imply a scanout flush or browser submission.
+
+The clear path's resource must additionally be the exact current VirtIO-GPU
+scanout resource. `CLEAR_SURFACE` must use that resource's complete scanout
+rectangle, a known surface, and finite RGBA values in `[0, 1]`.
 
 After validation, Rust queues a private `VGC1` delivery envelope to the browser.
 `VGC1` is not a guest ABI and is not a VirGL command: it exists only between the
@@ -60,7 +68,7 @@ It does **not** establish any of the following:
 
 - Mesa's VirGL driver can initialize or render;
 - OpenGL contexts, Gallium state, TGSI, shaders, textures, buffers, blending,
-  depth/stencil, draw calls, readback, or general resource transfer work;
+  depth/stencil, draw calls, readback, or general resource-transfer work;
 - capset 2 or capability coverage beyond the conservative v1 response;
 - Vulkan, Venus, blob resources, external memory, or synchronization support.
 
@@ -71,12 +79,13 @@ geometry pipeline, buffers, or textures.
 
 ## Validation retained in the repository
 
-Rust tests prove the exact capset response, generic framebuffer and
-`CLEAR_SURFACE` resource-to-scanout lifecycles, deferred mutation until a
-successful browser acknowledgment, and rejection without mutation for malformed
-or stale-surface streams. Browser tests prove that a `VGC1` clear produces one
-WebGPU submission, uses the requested canvas size and clear color, returns
-success after queue completion, and leaves WBG3 rendering objects unused.
+Rust tests prove the exact capset response, the 72-byte upload frame and its
+context, backing, and layout rejection paths without mutation, generic framebuffer
+and `CLEAR_SURFACE` resource-to-scanout lifecycles, and deferred mutation until
+a successful browser acknowledgment. Browser tests prove that a `VGC1` clear
+produces one WebGPU submission, uses the requested canvas size and clear color,
+returns success after queue completion, and leaves WBG3 rendering objects
+unused.
 
 `scripts/virgl_guest_transport_smoke.sh` adds a native Linux guest proof. It
 builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
@@ -96,8 +105,9 @@ WebGPU device, so it complements rather than replaces the browser queue tests.
 
 The guest-side capset-1/KMS probe prerequisite is complete. Next:
 
-1. Implement enough resource transfer, surface, state, shader, and draw
-   semantics to support a deliberately small Mesa/OpenGL acceptance test.
+1. Add a guest-side proof for the accepted resource upload, then implement
+   enough surface, state, shader, and draw semantics for a deliberately small
+   Mesa/OpenGL acceptance test.
 2. Expand capability reporting only when each advertised feature has matching
    parser, resource-lifetime, browser, and negative-path coverage.
 3. Investigate Venus only after blob-resource, external-memory, and sync
@@ -108,6 +118,7 @@ The guest-side capset-1/KMS probe prerequisite is complete. Next:
 - [VirtIO GPU device specification](https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.pdf)
 - [Linux VirtIO-GPU wire UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h)
 - [Linux VirtIO-GPU DRM UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/drm/virtgpu_drm.h) and [KMS UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/drm/drm_mode.h)
+- [QEMU VirGL transfer implementation](https://github.com/qemu/qemu/blob/master/hw/display/virtio-gpu-virgl.c)
 - [Mesa VirGL clear context](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_context.c) and [encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c)
 - [Mesa VirGL architecture](https://docs.mesa3d.org/drivers/virgl.html)
 - [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
