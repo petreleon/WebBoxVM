@@ -1,9 +1,11 @@
 use crate::devices::virtio_gpu::protocol::*;
-use crate::devices::virtio_gpu::resource::{GpuResource, total_resource_limit};
+use crate::devices::virtio_gpu::resource::{FORMAT_R8_UNORM, GpuResource, total_resource_limit};
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
+const VIRGL_TARGET_BUFFER: u32 = 0;
 const VIRGL_TARGET_TEXTURE_2D: u32 = 2;
 const VIRGL_BIND_RENDER_TARGET: u32 = 1 << 1;
+const VIRGL_BIND_VERTEX_BUFFER: u32 = 1 << 4;
 
 impl VirtioGpu {
     pub(in crate::devices::virtio_gpu) fn create_virgl_resource(&mut self, input: &[u8]) -> u32 {
@@ -18,18 +20,16 @@ impl VirtioGpu {
         if self.resources.len() >= MAX_RESOURCES {
             return RESP_ERR_OUT_OF_MEMORY;
         }
-        if target != VIRGL_TARGET_TEXTURE_2D
-            || !GpuResource::supported_format(format)
-            || bind != VIRGL_BIND_RENDER_TARGET
-            || depth != 1
-            || array != 1
-            || level != 0
-            || !matches!(samples, 0 | 1)
-            || flags != 0
-        {
+        let resource = if color_texture(target, format, bind, depth, array, level, samples, flags) {
+            GpuResource::new(format, width, height)
+        } else if vertex_buffer(
+            target, format, bind, height, depth, array, level, samples, flags,
+        ) {
+            GpuResource::new_buffer(width)
+        } else {
             return RESP_ERR_INVALID_PARAMETER;
-        }
-        let Some(resource) = GpuResource::new(format, width, height) else {
+        };
+        let Some(resource) = resource else {
             return RESP_ERR_INVALID_PARAMETER;
         };
         let bytes = resource.pixels.len();
@@ -41,6 +41,48 @@ impl VirtioGpu {
         self.virgl_resources.insert(id);
         RESP_OK_NODATA
     }
+}
+
+fn color_texture(
+    target: u32,
+    format: u32,
+    bind: u32,
+    depth: u32,
+    array: u32,
+    level: u32,
+    samples: u32,
+    flags: u32,
+) -> bool {
+    target == VIRGL_TARGET_TEXTURE_2D
+        && GpuResource::supported_format(format)
+        && bind == VIRGL_BIND_RENDER_TARGET
+        && depth == 1
+        && array == 1
+        && level == 0
+        && matches!(samples, 0 | 1)
+        && flags == 0
+}
+
+fn vertex_buffer(
+    target: u32,
+    format: u32,
+    bind: u32,
+    height: u32,
+    depth: u32,
+    array: u32,
+    level: u32,
+    samples: u32,
+    flags: u32,
+) -> bool {
+    target == VIRGL_TARGET_BUFFER
+        && format == FORMAT_R8_UNORM
+        && bind == VIRGL_BIND_VERTEX_BUFFER
+        && height == 1
+        && depth == 1
+        && array == 1
+        && level == 0
+        && samples == 0
+        && flags == 0
 }
 
 fn decode_create(input: &[u8]) -> Option<(u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32)> {

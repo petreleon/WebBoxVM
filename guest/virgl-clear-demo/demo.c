@@ -5,11 +5,13 @@
 
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_RESOURCE_COPY_DEMO_PASS card0 capset=1 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255\n";
+static const char pass[] = "VIRGL_BUFFER_COPY_DEMO_PASS card0 capset=1 buffer=9,8,7,6,5,4,3,2 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
 static const char fail_resource[] = "VIRGL_CLEAR_DEMO_FAIL resource-create\n";
+static const char fail_buffer_upload[] = "VIRGL_CLEAR_DEMO_FAIL buffer-upload\n";
+static const char fail_buffer_readback[] = "VIRGL_CLEAR_DEMO_FAIL buffer-readback\n";
 static const char fail_transfer[] = "VIRGL_CLEAR_DEMO_FAIL transfer-upload\n";
 static const char fail_copy_upload[] = "VIRGL_CLEAR_DEMO_FAIL copy-upload\n";
 static const char fail_copy_submit[] = "VIRGL_CLEAR_DEMO_FAIL copy-submit\n";
@@ -56,34 +58,40 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
     if (fd < 0)
         stage = 1;
     else if ((stage = virgl_setup(fd, &resources)) == 0) {
-        int kms = kms_configure_scanout(fd, resources.scanout_bo);
-
-        if (kms != 0)
-            stage = 5 - kms;
-        else if (virgl_upload_pattern(fd, resources.scanout_bo) != 0)
-            stage = 5;
-        else if (virgl_upload_copy_source(fd, resources.copy_source_bo) != 0)
-            stage = 16;
-        else if (virgl_submit_copy(fd, resources.copy_source_bo,
-                                   resources.copy_source_resource,
-                                   resources.copy_destination_bo,
-                                   resources.copy_destination_resource) != 0)
-            stage = 17;
-        else if (virgl_wait_for_resource(fd, resources.copy_destination_bo) != 0)
-            stage = 18;
-        else if (virgl_readback_copy_destination(fd, resources.copy_destination_bo) != 0)
-            stage = 19;
+        if (virgl_upload_vertex_buffer(fd, resources.vertex_buffer_bo) != 0)
+            stage = 30;
+        else if (virgl_readback_vertex_buffer(fd, resources.vertex_buffer_bo) != 0)
+            stage = 31;
         else {
-            kms = kms_configure_scanout(fd, resources.scanout_bo);
+            int kms = kms_configure_scanout(fd, resources.scanout_bo);
+
             if (kms != 0)
                 stage = 5 - kms;
-            else if (virgl_submit_clear(fd, resources.scanout_bo,
-                                        resources.scanout_resource) != 0)
-                stage = 20;
-            else if (virgl_wait_for_resource(fd, resources.scanout_bo) != 0)
-                stage = 21;
-            else if (virgl_readback_clear(fd, resources.scanout_bo) != 0)
-                stage = 22;
+            else if (virgl_upload_pattern(fd, resources.scanout_bo) != 0)
+                stage = 5;
+            else if (virgl_upload_copy_source(fd, resources.copy_source_bo) != 0)
+                stage = 16;
+            else if (virgl_submit_copy(fd, resources.copy_source_bo,
+                                       resources.copy_source_resource,
+                                       resources.copy_destination_bo,
+                                       resources.copy_destination_resource) != 0)
+                stage = 17;
+            else if (virgl_wait_for_resource(fd, resources.copy_destination_bo) != 0)
+                stage = 18;
+            else if (virgl_readback_copy_destination(fd, resources.copy_destination_bo) != 0)
+                stage = 19;
+            else {
+                kms = kms_configure_scanout(fd, resources.scanout_bo);
+                if (kms != 0)
+                    stage = 5 - kms;
+                else if (virgl_submit_clear(fd, resources.scanout_bo,
+                                            resources.scanout_resource) != 0)
+                    stage = 20;
+                else if (virgl_wait_for_resource(fd, resources.scanout_bo) != 0)
+                    stage = 21;
+                else if (virgl_readback_clear(fd, resources.scanout_bo) != 0)
+                    stage = 22;
+            }
         }
     }
     if (stage == 0)
@@ -112,6 +120,10 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         EMIT(fail_submit);
     else if (stage == 21)
         EMIT(fail_wait);
+    else if (stage == 30)
+        EMIT(fail_buffer_upload);
+    else if (stage == 31)
+        EMIT(fail_buffer_readback);
     else
         EMIT(fail_readback);
     if (fd >= 0)

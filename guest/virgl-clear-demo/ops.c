@@ -5,6 +5,7 @@
 #define SCANOUT_WIDTH 1024u
 #define SCANOUT_HEIGHT 768u
 #define SCANOUT_BYTES (SCANOUT_WIDTH * SCANOUT_HEIGHT * 4u)
+#define VERTEX_BUFFER_BYTES 16u
 
 static int virgl_caps(long fd)
 {
@@ -60,6 +61,27 @@ static int create_resource(long fd, u32 width, u32 height, u32 *bo_handle,
     return 0;
 }
 
+static int create_vertex_buffer(long fd, u32 *bo_handle, u32 *resource_handle)
+{
+    struct drm_virtgpu_resource_create resource = {
+        .target = VIRGL_TARGET_BUFFER,
+        .format = VIRGL_FORMAT_R8_UNORM,
+        .bind = VIRGL_BIND_VERTEX_BUFFER,
+        .width = VERTEX_BUFFER_BYTES,
+        .height = 1,
+        .depth = 1,
+        .array_size = 1,
+        .size = VERTEX_BUFFER_BYTES,
+    };
+
+    if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE, &resource) < 0 ||
+        resource.bo_handle == 0 || resource.res_handle == 0)
+        return -1;
+    *bo_handle = resource.bo_handle;
+    *resource_handle = resource.res_handle;
+    return 0;
+}
+
 int virgl_setup(long fd, struct virgl_resources *resources)
 {
     if (virgl_caps(fd) != 0)
@@ -72,8 +94,11 @@ int virgl_setup(long fd, struct virgl_resources *resources)
     if (create_resource(fd, 4, 1, &resources->copy_source_bo,
                         &resources->copy_source_resource) != 0)
         return 4;
-    return create_resource(fd, 4, 1, &resources->copy_destination_bo,
-                           &resources->copy_destination_resource) == 0
+    if (create_resource(fd, 4, 1, &resources->copy_destination_bo,
+                        &resources->copy_destination_resource) != 0)
+        return 4;
+    return create_vertex_buffer(fd, &resources->vertex_buffer_bo,
+                                &resources->vertex_buffer_resource) == 0
                ? 0
                : 4;
 }

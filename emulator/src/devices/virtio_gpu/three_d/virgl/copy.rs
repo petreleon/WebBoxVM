@@ -38,6 +38,8 @@ impl VirtioGpu {
             || !context.is_attached(copy.dst_resource)
             || !self.is_virgl_resource(copy.src_resource)
             || !self.is_virgl_resource(copy.dst_resource)
+            || !source.is_texture_2d()
+            || !destination.is_texture_2d()
             || uses_scanout
         {
             return Err(RESP_ERR_INVALID_PARAMETER);

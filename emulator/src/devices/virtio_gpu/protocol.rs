@@ -123,6 +123,18 @@ impl Box3d {
             height: self.height,
         })
     }
+
+    pub fn buffer_range(self, resource_len: usize) -> Option<(usize, usize)> {
+        if self.y != 0 || self.z != 0 || self.height != 1 || self.depth != 1 || self.width == 0 {
+            return None;
+        }
+        let start = usize::try_from(self.x).ok()?;
+        let len = usize::try_from(self.width).ok()?;
+        start
+            .checked_add(len)
+            .filter(|end| *end <= resource_len)
+            .map(|end| (start, end))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

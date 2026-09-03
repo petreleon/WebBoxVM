@@ -1,12 +1,13 @@
 use super::VIRGL_CAPSET_ID;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
+use crate::devices::virtio_gpu::resource::GpuResource;
 use crate::memory::PhysicalMemory;
 
 const TRANSFER_3D_BYTES: usize = 72;
 
 struct Transfer3d {
-    rect: Rect,
+    box3d: Box3d,
     offset: u64,
     resource_id: u32,
     level: u32,
@@ -20,7 +21,7 @@ impl Transfer3d {
             return None;
         }
         Some(Self {
-            rect: Box3d::decode(input, CTRL_HEADER_LEN)?.flat_rect()?,
+            box3d: Box3d::decode(input, CTRL_HEADER_LEN)?,
             offset: read_u64(input, 48)?,
             resource_id: read_u32(input, 56)?,
             level: read_u32(input, 60)?,
@@ -29,8 +30,16 @@ impl Transfer3d {
         })
     }
 
-    fn is_classic_2d_layout(&self) -> bool {
-        self.level == 0 && self.stride == 0 && self.layer_stride == 0
+    fn texture_rect(&self) -> Option<Rect> {
+        (self.level == 0 && self.stride == 0 && self.layer_stride == 0)
+            .then(|| self.box3d.flat_rect())
+            .flatten()
+    }
+
+    fn buffer_range(&self, resource: &GpuResource) -> Option<(usize, usize)> {
+        (self.level == 0 && self.stride == 0 && self.layer_stride == 0)
+            .then(|| self.box3d.buffer_range(resource.pixels.len()))
+            .flatten()
     }
 }
 
@@ -49,10 +58,18 @@ impl VirtioGpu {
             .resources
             .get_mut(&transfer.resource_id)
             .expect("resource existence checked above");
-        if resource
-            .transfer(mem, transfer.rect, transfer.offset)
-            .is_none()
-        {
+        let transferred = if resource.is_texture_2d() {
+            transfer
+                .texture_rect()
+                .and_then(|rect| resource.transfer(mem, rect, transfer.offset))
+        } else if resource.is_buffer() {
+            transfer.buffer_range(resource).and_then(|(start, end)| {
+                resource.transfer_buffer_to_host(mem, transfer.offset, start, end)
+            })
+        } else {
+            None
+        };
+        if transferred.is_none() {
             return RESP_ERR_INVALID_PARAMETER;
         }
         RESP_OK_NODATA
@@ -72,10 +89,18 @@ impl VirtioGpu {
             .resources
             .get(&transfer.resource_id)
             .expect("resource existence checked above");
-        if resource
-            .transfer_from_host(mem, transfer.rect, transfer.offset)
-            .is_none()
-        {
+        let transferred = if resource.is_texture_2d() {
+            transfer
+                .texture_rect()
+                .and_then(|rect| resource.transfer_from_host(mem, rect, transfer.offset))
+        } else if resource.is_buffer() {
+            transfer.buffer_range(resource).and_then(|(start, end)| {
+                resource.transfer_buffer_from_host(mem, transfer.offset, start, end)
+            })
+        } else {
+            None
+        };
+        if transferred.is_none() {
             return RESP_ERR_INVALID_PARAMETER;
         }
         RESP_OK_NODATA
@@ -89,7 +114,7 @@ impl VirtioGpu {
         if self.contexts.get(&header.ctx_id) != Some(&VIRGL_CAPSET_ID) {
             return Err(RESP_ERR_INVALID_CONTEXT_ID);
         }
-        if !self.is_virgl_resource(transfer.resource_id) || !transfer.is_classic_2d_layout() {
+        if !self.is_virgl_resource(transfer.resource_id) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         Ok(transfer)

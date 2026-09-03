@@ -9,6 +9,13 @@ pub(super) const FORMAT_B8G8R8A8_UNORM: u32 = 1;
 pub(super) const FORMAT_B8G8R8X8_UNORM: u32 = 2;
 pub(super) const FORMAT_A8R8G8B8_UNORM: u32 = 3;
 pub(super) const FORMAT_X8R8G8B8_UNORM: u32 = 4;
+pub(super) const FORMAT_R8_UNORM: u32 = 64;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ResourceKind {
+    ColorTexture2d,
+    Buffer,
+}
 
 #[derive(Debug, Clone)]
 pub(super) struct GpuResource {
@@ -17,6 +24,7 @@ pub(super) struct GpuResource {
     pub height: u32,
     pub pixels: Vec<u8>,
     pub backing: Vec<BackingEntry>,
+    kind: ResourceKind,
 }
 
 impl GpuResource {
@@ -50,38 +58,42 @@ impl GpuResource {
             height,
             pixels: vec![0; len],
             backing: Vec::new(),
+            kind: ResourceKind::ColorTexture2d,
         })
+    }
+
+    pub fn new_buffer(width: u32) -> Option<Self> {
+        let len = Self::buffer_byte_len(width)?;
+        Some(Self {
+            format: FORMAT_R8_UNORM,
+            width,
+            height: 1,
+            pixels: vec![0; len],
+            backing: Vec::new(),
+            kind: ResourceKind::Buffer,
+        })
+    }
+
+    pub fn buffer_byte_len(width: u32) -> Option<usize> {
+        usize::try_from(width)
+            .ok()
+            .filter(|len| *len != 0 && *len <= MAX_RESOURCE_BYTES)
+    }
+
+    pub fn is_texture_2d(&self) -> bool {
+        self.kind == ResourceKind::ColorTexture2d
+    }
+
+    pub fn is_buffer(&self) -> bool {
+        self.kind == ResourceKind::Buffer
     }
 
     pub fn attach(&mut self, entries: Vec<BackingEntry>) {
         self.backing = entries;
     }
 
-    pub fn transfer(&mut self, mem: &PhysicalMemory, rect: Rect, offset: u64) -> Option<()> {
-        if !rect.valid_within(self.width, self.height) || self.backing.is_empty() {
-            return None;
-        }
-        let stride = u64::from(self.width).checked_mul(4)?;
-        let row_len = usize::try_from(u64::from(rect.width).checked_mul(4)?).ok()?;
-        let mut raw = vec![0; row_len];
-        for row in 0..rect.height {
-            let y = u64::from(rect.y.checked_add(row)?);
-            let source = offset.checked_add(u64::from(row).checked_mul(stride)?)?;
-            self.read_backing(mem, source, &mut raw)?;
-            let pixel =
-                usize::try_from(y.checked_mul(u64::from(self.width))?).ok()? + rect.x as usize;
-            let start = pixel.checked_mul(4)?;
-            normalize(
-                self.format,
-                &raw,
-                self.pixels.get_mut(start..start + row_len)?,
-            );
-        }
-        Some(())
-    }
-
     pub fn clear_bgra(&mut self, rect: Rect, color: [u8; 4]) -> Option<()> {
-        if !rect.valid_within(self.width, self.height) {
+        if !self.is_texture_2d() || !rect.valid_within(self.width, self.height) {
             return None;
         }
         for y in rect.y..rect.y.checked_add(rect.height)? {
@@ -94,7 +106,28 @@ impl GpuResource {
         Some(())
     }
 
-    fn read_backing(&self, mem: &PhysicalMemory, offset: u64, dst: &mut [u8]) -> Option<()> {
+    pub(super) fn transfer_buffer_to_host(
+        &mut self,
+        mem: &PhysicalMemory,
+        offset: u64,
+        start: usize,
+        end: usize,
+    ) -> Option<()> {
+        if !self.is_buffer() || self.backing.is_empty() || end <= start || end > self.pixels.len() {
+            return None;
+        }
+        let mut data = vec![0; end.checked_sub(start)?];
+        self.read_backing(mem, offset, &mut data)?;
+        self.pixels.get_mut(start..end)?.copy_from_slice(&data);
+        Some(())
+    }
+
+    pub(super) fn read_backing(
+        &self,
+        mem: &PhysicalMemory,
+        offset: u64,
+        dst: &mut [u8],
+    ) -> Option<()> {
         let mut skip = offset;
         let mut done = 0usize;
         for entry in &self.backing {
@@ -139,22 +172,4 @@ pub(super) fn total_resource_limit(current: usize, added: usize) -> bool {
     current
         .checked_add(added)
         .is_some_and(|total| total <= MAX_TOTAL_RESOURCE_BYTES)
-}
-
-fn normalize(format: u32, src: &[u8], dst: &mut [u8]) {
-    for (source, target) in src.chunks_exact(4).zip(dst.chunks_exact_mut(4)) {
-        match format {
-            FORMAT_B8G8R8A8_UNORM => target.copy_from_slice(source),
-            FORMAT_B8G8R8X8_UNORM => {
-                target.copy_from_slice(&[source[0], source[1], source[2], 255])
-            }
-            FORMAT_A8R8G8B8_UNORM => {
-                target.copy_from_slice(&[source[3], source[2], source[1], source[0]])
-            }
-            FORMAT_X8R8G8B8_UNORM => {
-                target.copy_from_slice(&[source[3], source[2], source[1], 255])
-            }
-            _ => unreachable!("format validated at resource creation"),
-        }
-    }
 }

@@ -10,6 +10,8 @@ struct virgl_resources {
     u32 copy_source_resource;
     u32 copy_destination_bo;
     u32 copy_destination_resource;
+    u32 vertex_buffer_bo;
+    u32 vertex_buffer_resource;
 };
 
 int virgl_setup(long fd, struct virgl_resources *resources);

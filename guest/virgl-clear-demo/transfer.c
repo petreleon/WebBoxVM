@@ -9,6 +9,7 @@
 #define UPLOAD_WIDTH 2u
 #define COPY_BYTES 16u
 #define COPY_SOURCE_OFFSET 4u
+#define VERTEX_BUFFER_BYTES 16u
 #define PROT_READ 1L
 #define PROT_WRITE 2L
 #define MAP_SHARED 1L
@@ -66,6 +67,40 @@ int virgl_readback_clear(long fd, u32 bo_handle)
             pixels[offset + index + 2] != 64 || pixels[offset + index + 3] != 255)
             return -3;
     }
+    return 0;
+}
+
+int virgl_upload_vertex_buffer(long fd, u32 bo_handle)
+{
+    struct drm_virtgpu_3d_transfer_to_host transfer = {
+        .bo_handle = bo_handle,
+        .box = {.x = 4, .w = 8, .h = 1, .d = 1},
+        .offset = 4,
+    };
+    u8 *bytes = mapped_pixels(fd, bo_handle, VERTEX_BUFFER_BYTES);
+
+    if (!bytes)
+        return -1;
+    for (u32 index = 0; index < 8; index++)
+        bytes[transfer.offset + index] = (u8)(9 - index);
+    return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST, &transfer) < 0 ? -2 : 0;
+}
+
+int virgl_readback_vertex_buffer(long fd, u32 bo_handle)
+{
+    struct drm_virtgpu_3d_transfer_from_host transfer = {
+        .bo_handle = bo_handle,
+        .box = {.x = 4, .w = 8, .h = 1, .d = 1},
+    };
+    u8 *bytes = mapped_pixels(fd, bo_handle, VERTEX_BUFFER_BYTES);
+
+    if (!bytes)
+        return -1;
+    if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
+        return -2;
+    for (u32 index = 0; index < 8; index++)
+        if (bytes[index] != 9 - index)
+            return -3;
     return 0;
 }
 

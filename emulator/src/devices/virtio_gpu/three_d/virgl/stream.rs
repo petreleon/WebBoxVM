@@ -100,6 +100,7 @@ impl VirtioGpu {
         };
         if !context.is_attached(resource)
             || !self.is_virgl_resource(resource)
+            || !target.is_texture_2d()
             || target.format != format
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
@@ -118,7 +119,8 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        if !rect.valid_within(target.width, target.height)
+        if !target.is_texture_2d()
+            || !rect.valid_within(target.width, target.height)
             || !matches_scanout(self.scanout, resource, rect)
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
