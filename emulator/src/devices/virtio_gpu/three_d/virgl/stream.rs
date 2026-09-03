@@ -18,6 +18,7 @@ impl VirtioGpu {
             .cloned()
             .ok_or(RESP_ERR_INVALID_CONTEXT_ID)?;
         let mut clear = None;
+        let mut copy = None;
         for command in commands {
             match command {
                 Command::Nop => {}
@@ -41,6 +42,9 @@ impl VirtioGpu {
                     }
                 }
                 Command::Clear { color } => {
+                    if copy.is_some() {
+                        return Err(RESP_ERR_INVALID_PARAMETER);
+                    }
                     let (resource, rect) = self.framebuffer_clear_target(&context, color)?;
                     set_clear(&mut clear, resource, color, rect)?;
                 }
@@ -49,13 +53,25 @@ impl VirtioGpu {
                     color,
                     rect,
                 } => {
+                    if copy.is_some() {
+                        return Err(RESP_ERR_INVALID_PARAMETER);
+                    }
                     let resource = context
                         .surface_resource(handle)
                         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
                     self.validate_clear(resource, color, rect)?;
                     set_clear(&mut clear, resource, color, rect)?;
                 }
+                Command::CopyRegion(region) => {
+                    if clear.is_some() || copy.replace(region).is_some() {
+                        return Err(RESP_ERR_INVALID_PARAMETER);
+                    }
+                    self.validate_virgl_copy(&context, region)?;
+                }
             }
+        }
+        if let Some(region) = copy {
+            self.apply_virgl_copy(region)?;
         }
         let deferred = match clear {
             Some((resource, color, rect)) => {

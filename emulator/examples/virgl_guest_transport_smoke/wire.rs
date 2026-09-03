@@ -1,4 +1,4 @@
-pub(super) const PASS: &str = "VIRGL_TRANSFER_READBACK_DEMO_PASS card0 capset=1 upload=10,20,30,255 clear=64,128,191,255 readback=64,128,191,255";
+pub(super) const PASS: &str = "VIRGL_RESOURCE_COPY_DEMO_PASS card0 capset=1 copy=10,20,30,255:40,50,60,255 clear=64,128,191,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 
 pub(super) fn demo_script(binary: &[u8]) -> String {

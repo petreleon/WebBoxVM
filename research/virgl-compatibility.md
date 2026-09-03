@@ -9,7 +9,8 @@ the format and limits exercised by this implementation.
 
 This is a real, guest-visible VirGL wire-protocol vertical slice, but it is not
 a claim that Mesa, OpenGL, or arbitrary VirGL workloads work. Its only rendered
-operation is a full-scanout color clear.
+operation is a full-scanout color clear; it also has one bounded off-screen copy
+operation for resource data flow.
 
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
@@ -17,6 +18,7 @@ operation is a full-scanout color clear.
 | Resource creation | `RESOURCE_CREATE_3D` accepts a B8G8R8A8 2D render target | One target, one level, no multisampling |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer | `TRANSFER_TO_HOST_3D` uploads and `TRANSFER_FROM_HOST_3D` returns a classic capset-1 2D BGRA resource | No blobs, arrays, mip levels, or explicit strides |
+| Resource copy | `RESOURCE_COPY_REGION` copies one rectangle between attached off-screen, same-format 2D resources | No blit, format conversion, batching, or scanout copy |
 | VirGL stream | surface create/destroy, framebuffer binding, `CLEAR`, and `CLEAR_SURFACE` are decoded | No shaders, state, or draws |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
@@ -51,6 +53,15 @@ The clear path's resource must additionally be the exact current VirtIO-GPU
 scanout resource. `CLEAR_SURFACE` must use that resource's complete scanout
 rectangle, a known surface, and finite RGBA values in `[0, 1]`.
 
+`RESOURCE_COPY_REGION` is command 17 in the standard VirGL stream. This slice
+accepts one copy per submission only when both resources are attached to the
+capset-1 context, are not the active scanout, have identical formats, and use
+level zero with `z=0` and depth one. The parser validates the complete stream
+before copying, snapshots the source rectangle before writing, and rejects
+clear/copy mixtures. That prevents malformed trailing records from mutating a
+resource and gives defined self-overlap behavior without implying browser-side
+presentation or a general renderer command queue.
+
 After validation, Rust queues a private `VGC1` delivery envelope to the browser.
 `VGC1` is not a guest ABI and is not a VirGL command: it exists only between the
 Rust device and browser renderer. The browser emits a WebGPU render pass with
@@ -82,7 +93,8 @@ geometry pipeline, buffers, or textures.
 ## Validation retained in the repository
 
 Rust tests prove the exact capset response, 72-byte bidirectional transfer frames and their
-context, backing, and layout rejection paths without mutation, generic framebuffer
+context, backing, and layout rejection paths without mutation, same-resource
+overlap and transactional rejection for command-17 copy, generic framebuffer
 and `CLEAR_SURFACE` resource-to-scanout lifecycles, and deferred mutation until
 a successful browser acknowledgment. Browser tests prove that a `VGC1` clear
 produces one WebGPU submission, uses the requested canvas size and clear color,
@@ -94,13 +106,16 @@ builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
 installed Debian fixture, obtains capset 1 through `DRM_IOCTL_VIRTGPU_GET_CAPS`,
 creates a capset-1 resource, maps its backing with `DRM_IOCTL_VIRTGPU_MAP`, and
 writes two distinctive BGRA pixels before issuing
-`DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`. It binds the resource to the legacy KMS
-primary plane, submits the normal surface/framebuffer/`CLEAR` stream through
-`EXECBUFFER`, and waits on the resource fence. The harness first verifies the
-exact two-pixel upload in a full `WBGF`, then validates `VGC1`, captures the
-all-BGRA `[191, 128, 64, 255]` `WBGF` immediately at positive completion, and
-then accepts the guest's marker only after its
-`DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST` check returned those clear pixels.
+`DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`. It creates two four-pixel off-screen
+resources, uploads two pixels to one, submits ordinary command-17
+`RESOURCE_COPY_REGION` through `EXECBUFFER`, waits for its destination, and
+checks the copied bytes through `DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST`. It then
+binds the scanout resource to the legacy KMS primary plane, submits the normal
+surface/framebuffer/`CLEAR` stream, and waits for the resource fence. The
+harness first verifies the exact scanout upload in a full `WBGF`, then validates
+`VGC1`, captures the all-BGRA `[191, 128, 64, 255]` `WBGF` immediately at
+positive completion, and accepts the guest marker only after both guest-side
+copy and clear readback checks succeed.
 
 That native proof validates Linux DRM/KMS transport and post-ack CPU-side
 readback. It intentionally uses the native completion adapter, not a browser

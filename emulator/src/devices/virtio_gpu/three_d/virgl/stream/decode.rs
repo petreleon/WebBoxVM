@@ -1,4 +1,6 @@
-use super::super::{MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE};
+use super::super::{
+    CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE,
+};
 use crate::devices::virtio_gpu::protocol::{Rect, read_u32};
 
 const CMD_NOP: u8 = 0;
@@ -6,6 +8,7 @@ const CMD_CREATE_OBJECT: u8 = 1;
 const CMD_DESTROY_OBJECT: u8 = 3;
 const CMD_SET_FRAMEBUFFER_STATE: u8 = 5;
 const CMD_CLEAR: u8 = 7;
+const CMD_RESOURCE_COPY_REGION: u8 = 17;
 const CLEAR_COLOR0: u32 = 1 << 2;
 
 #[derive(Clone, Copy)]
@@ -32,6 +35,7 @@ pub(super) enum Command {
         color: [f32; 4],
         rect: Rect,
     },
+    CopyRegion(CopyRegion),
 }
 
 pub(super) fn decode_stream(input: &[u8]) -> Option<Vec<Command>> {
@@ -114,6 +118,41 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
                 height: *height,
             },
         }),
+        (
+            CMD_RESOURCE_COPY_REGION,
+            0,
+            [
+                dst_resource,
+                dst_level,
+                dst_x,
+                dst_y,
+                dst_z,
+                src_resource,
+                src_level,
+                src_x,
+                src_y,
+                src_z,
+                width,
+                height,
+                depth,
+            ],
+        ) => Some(Command::CopyRegion(CopyRegion {
+            dst_resource: *dst_resource,
+            dst_level: *dst_level,
+            dst_x: *dst_x,
+            dst_y: *dst_y,
+            dst_z: *dst_z,
+            src_resource: *src_resource,
+            src_level: *src_level,
+            src_rect: Rect {
+                x: *src_x,
+                y: *src_y,
+                width: *width,
+                height: *height,
+            },
+            src_z: *src_z,
+            depth: *depth,
+        })),
         _ => None,
     }
 }

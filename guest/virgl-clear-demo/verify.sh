@@ -22,5 +22,5 @@ for source in Makefile README.md demo.c kms.c kms.h link.ld memory.c ops.c ops.h
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done
-printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL upload/readback/clear=%s bytes\n' \
+printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL copy/upload/readback/clear=%s bytes\n' \
     "$binary" "$size"

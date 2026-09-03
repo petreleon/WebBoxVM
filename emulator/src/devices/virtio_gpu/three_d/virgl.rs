@@ -1,4 +1,5 @@
 mod context;
+mod copy;
 mod resource;
 mod stream;
 
@@ -7,6 +8,7 @@ use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
 pub(in crate::devices::virtio_gpu) use context::VirglContext;
+pub(super) use copy::CopyRegion;
 
 pub(super) const VIRGL_OBJECT_SURFACE: u8 = 7;
 pub(super) const VIRGL_CMD_CLEAR_SURFACE: u8 = 62;
