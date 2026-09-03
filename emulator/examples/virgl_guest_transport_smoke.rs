@@ -1,4 +1,4 @@
-//! Native Linux-driver proof for standard capset-1 VirGL transfer and clear.
+//! Native Linux-driver proof for standard capset-1 VirGL transfer, blend, and draw.
 
 #[path = "virgl_guest_transport_smoke/wire.rs"]
 mod wire;
@@ -62,7 +62,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut upload_readback = false;
     let mut clear_completed = false;
     while steps < max_steps && start.elapsed() < timeout {
-        let ran = vm.run_kernel_phase(chunk_steps.min((max_steps - steps) as usize));
+        let slice = if phase == Phase::Result {
+            10_000
+        } else {
+            chunk_steps
+        };
+        let ran = vm.run_kernel_phase(slice.min((max_steps - steps) as usize));
         steps += ran as u64;
         let delta = vm.uart_output_since(uart_offset);
         uart_offset = vm.uart_output_len();

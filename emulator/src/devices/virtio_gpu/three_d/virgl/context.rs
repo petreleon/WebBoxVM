@@ -1,3 +1,4 @@
+mod blend;
 mod draw;
 mod shader;
 
@@ -27,6 +28,8 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     attached: HashSet<u32>,
     framebuffer: Option<u32>,
     surfaces: HashMap<u32, u32>,
+    blend_states: HashSet<u32>,
+    bound_blend_state: Option<u32>,
     vertex_buffer: Option<VertexBuffer>,
     vertex_elements: HashMap<u32, VertexElement>,
     bound_vertex_elements: Option<u32>,
@@ -42,6 +45,8 @@ impl VirglContext {
             attached: HashSet::new(),
             framebuffer: None,
             surfaces: HashMap::new(),
+            blend_states: HashSet::new(),
+            bound_blend_state: None,
             vertex_buffer: None,
             vertex_elements: HashMap::new(),
             bound_vertex_elements: None,

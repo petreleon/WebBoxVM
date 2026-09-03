@@ -15,7 +15,7 @@ pub(super) fn draw(
     resource: &mut GpuResource,
     rect: Rect,
     vertices: &[u8],
-    color: [u8; 4],
+    color: [f32; 4],
 ) -> bool {
     let Some(points) = points(vertices) else {
         return false;
@@ -38,11 +38,24 @@ pub(super) fn draw(
                 let Some(pixel) = resource.pixels.get_mut(index..index + 4) else {
                     return false;
                 };
-                pixel.copy_from_slice(&color);
+                source_over(pixel, color);
             }
         }
     }
     true
+}
+
+fn source_over(destination: &mut [u8], [red, green, blue, alpha]: [f32; 4]) {
+    for (channel, source) in [blue, green, red].into_iter().enumerate() {
+        let value = source * alpha + f32::from(destination[channel]) / 255.0 * (1.0 - alpha);
+        destination[channel] = encode(value);
+    }
+    let value = alpha + f32::from(destination[3]) / 255.0 * (1.0 - alpha);
+    destination[3] = encode(value);
+}
+
+fn encode(value: f32) -> u8 {
+    (value * 255.0).round().clamp(0.0, 255.0) as u8
 }
 
 fn points(vertices: &[u8]) -> Option<[[f32; 4]; VERTICES]> {

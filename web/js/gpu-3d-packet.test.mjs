@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260903-virgl-capset1-r2";
-import { gpu3dPacket, virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-capset1-r2";
+} from "./gpu-3d-packet.js?v=20260903-virgl-blend-r1";
+import { gpu3dPacket, virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-blend-r1";
 
 test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
   const packet = gpu3dPacket({ sequence: 42 });
@@ -78,7 +78,7 @@ test("VirGL draw envelope validates one bounded clip-space triangle", () => {
   assert.equal(frame.protocol, "virgl-draw");
   assert.equal(frame.sequence, 62);
   assert.equal(frame.vertexCount, 3);
-  assert.deepEqual([...frame.drawColor], [0, 1, 0, 1]);
+  assert.deepEqual([...frame.drawColor], [0, 1, 0, 0.25]);
   assert.equal(extractGpu3dSequence(packet), 62);
   const count = packet.slice();
   new DataView(count.buffer).setUint32(20, 2, true);

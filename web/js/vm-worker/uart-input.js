@@ -3,7 +3,7 @@ import {
   INTERACTIVE_STEP_SLICE,
   INTERACTIVE_WINDOW_MS,
   state,
-} from "./state.js?v=20260903-virgl-capset1-r2";
+} from "./state.js?v=20260903-virgl-blend-r1";
 
 const INPUT_TYPES = new Set(["sendUartBytes", "sendUartInput"]);
 

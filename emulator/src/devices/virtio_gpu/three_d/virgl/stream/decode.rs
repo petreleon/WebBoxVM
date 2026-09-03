@@ -1,3 +1,4 @@
+pub(super) mod blend;
 pub(super) mod draw;
 pub(super) mod shader;
 pub(super) mod vertex;
@@ -42,6 +43,7 @@ pub(super) enum Command {
     },
     CopyRegion(CopyRegion),
     Draw(DrawCall),
+    Blend(blend::Command),
     Vertex(vertex::Command),
     Shader(shader::Command),
 }
@@ -164,6 +166,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         _ => vertex::decode(command, object, words)
             .map(Command::Vertex)
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))
+            .or_else(|| blend::decode(command, object, words).map(Command::Blend))
             .or_else(|| shader::decode(command, object, words).map(Command::Shader)),
     }
 }

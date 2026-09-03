@@ -11,6 +11,8 @@ pub(in crate::devices::virtio_gpu) struct DrawState {
 
 impl VirglContext {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn draw_state(&self) -> Option<DrawState> {
+        let blend = self.bound_blend_state?;
+        self.blend_states.contains(&blend).then_some(())?;
         let vertex_element = self
             .bound_vertex_elements
             .and_then(|handle| self.vertex_elements.get(&handle).copied())?;

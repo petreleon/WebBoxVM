@@ -35,10 +35,10 @@ impl VirtioGpu {
                 resource_id,
                 rect,
                 clear_bgra,
-                draw_bgra,
+                draw_color,
                 vertices,
                 ..
-            } => self.apply_virgl_draw(resource_id, rect, clear_bgra, draw_bgra, &vertices),
+            } => self.apply_virgl_draw(resource_id, rect, clear_bgra, draw_color, &vertices),
         }
     }
 }

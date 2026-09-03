@@ -1,6 +1,6 @@
-import { versionedUrl } from "../asset-version.js?v=20260903-virgl-capset1-r2";
-import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260903-virgl-capset1-r2";
-import { state } from "./state.js?v=20260903-virgl-capset1-r2";
+import { versionedUrl } from "../asset-version.js?v=20260903-virgl-blend-r1";
+import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260903-virgl-blend-r1";
+import { state } from "./state.js?v=20260903-virgl-blend-r1";
 
 export let Emulator;
 let wasmInitialization;

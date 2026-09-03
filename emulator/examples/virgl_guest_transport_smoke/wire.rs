@@ -1,4 +1,4 @@
-pub(super) const PASS: &str = "VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=0,255,0,255";
+pub(super) const PASS: &str = "VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=143,160,48,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 
 pub(super) enum VirglPacket {
@@ -67,7 +67,7 @@ fn vgd1_sequence(packet: &[u8]) -> Result<u32, String> {
             24,
             &[0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000],
         )
-        || !words_are(packet, 40, &[0, 0x3f80_0000, 0, 0x3f80_0000])
+        || !words_are(packet, 40, &[0, 0x3f80_0000, 0, 0x3e80_0000])
         || !words_are(packet, 56, &vertices)
     {
         return Err("guest emitted an invalid standard VirGL draw packet".into());
@@ -99,7 +99,7 @@ pub(super) fn is_upload_readback(packet: &[u8]) -> bool {
 pub(super) fn is_triangle_readback(packet: &[u8]) -> bool {
     frame_pixels(packet).is_some_and(|pixels| {
         let center = (384 * 1024 + 512) * 4;
-        pixels[..4] == [191, 128, 64, 255] && pixels[center..center + 4] == [0, 255, 0, 255]
+        pixels[..4] == [191, 128, 64, 255] && pixels[center..center + 4] == [143, 160, 48, 255]
     })
 }
 

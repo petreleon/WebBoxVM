@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-capset1-r2";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-blend-r1";
 
 test("WebGPU scopes close before asynchronous queue work can interleave", async () => {
   const events = [];

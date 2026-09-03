@@ -1,4 +1,4 @@
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260903-virgl-capset1-r2";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260903-virgl-blend-r1";
 
 const SHADER = `
 @group(0) @binding(0) var guest_texture: texture_2d<f32>;

@@ -6,12 +6,12 @@ import {
   extractVirglClearSequence,
   isVirglClearPacket,
   parseVirglClearPacket,
-} from "./virgl-clear-packet.js?v=20260903-virgl-capset1-r2";
+} from "./virgl-clear-packet.js?v=20260903-virgl-blend-r1";
 import {
   extractVirglDrawSequence,
   isVirglDrawPacket,
   parseVirglDrawPacket,
-} from "./virgl-draw-packet.js?v=20260903-virgl-capset1-r2";
+} from "./virgl-draw-packet.js?v=20260903-virgl-blend-r1";
 
 const MAGIC = [0x57, 0x42, 0x47, 0x33]; // WBG3
 const MAX_DIMENSION = 8192;

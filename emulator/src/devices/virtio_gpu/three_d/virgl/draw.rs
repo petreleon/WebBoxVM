@@ -86,7 +86,7 @@ impl VirtioGpu {
         resource_id: u32,
         rect: Rect,
         clear: [u8; 4],
-        color: [u8; 4],
+        color: [f32; 4],
         vertices: &[u8],
     ) -> bool {
         let Some(resource) = self.resources.get_mut(&resource_id) else {

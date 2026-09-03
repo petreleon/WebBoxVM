@@ -1,4 +1,4 @@
-import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260903-virgl-capset1-r2";
+import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260903-virgl-blend-r1";
 
 export class WebGpuSession {
   #adapter;

@@ -22,6 +22,7 @@ pub(in crate::devices::virtio_gpu) use shader::ShaderKind;
 pub(in crate::devices::virtio_gpu) use shader::ShaderProgram;
 
 pub(super) const VIRGL_OBJECT_SURFACE: u8 = 7;
+pub(super) const VIRGL_OBJECT_BLEND: u8 = 1;
 pub(super) const VIRGL_OBJECT_SHADER: u8 = 4;
 pub(super) const VIRGL_OBJECT_VERTEX_ELEMENTS: u8 = 5;
 pub(super) const VIRGL_CMD_CLEAR_SURFACE: u8 = 62;
@@ -79,7 +80,7 @@ impl VirtioGpu {
                 resource_id,
                 rect,
                 clear_bgra: bgra(clear),
-                draw_bgra: bgra(work.color),
+                draw_color: work.color,
                 vertices: work.vertices,
             },
         )

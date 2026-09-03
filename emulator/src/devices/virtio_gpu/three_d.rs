@@ -45,7 +45,7 @@ pub(super) enum Pending3dEffect {
         resource_id: u32,
         rect: Rect,
         clear_bgra: [u8; 4],
-        draw_bgra: [u8; 4],
+        draw_color: [f32; 4],
         vertices: Vec<u8>,
     },
 }

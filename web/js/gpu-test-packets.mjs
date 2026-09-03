@@ -76,7 +76,7 @@ export function virglDrawPacket({
   canvasHeight = 768,
   canvasWidth = 1024,
   clearColor = [0.1, 0.2, 0.3, 1],
-  drawColor = [0, 1, 0, 1],
+  drawColor = [0, 1, 0, 0.25],
   sequence = 7,
   version = 1,
   vertices = virglTriangle(),

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createPumpTaskScheduler } from "./pump.js?v=20260903-virgl-capset1-r2";
+import { createPumpTaskScheduler } from "./pump.js?v=20260903-virgl-blend-r1";
 
 test("pump scheduler uses message channel when available", () => {
   let port1;

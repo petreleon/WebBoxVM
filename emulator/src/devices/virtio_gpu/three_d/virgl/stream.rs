@@ -1,3 +1,4 @@
+mod blend;
 mod clear;
 mod decode;
 mod shader;
@@ -80,6 +81,7 @@ impl VirtioGpu {
                     let (resource, _, rect) = clear.ok_or(RESP_ERR_INVALID_PARAMETER)?;
                     draw = Some(self.prepare_virgl_draw(&context, resource, rect, call)?);
                 }
+                Command::Blend(command) => blend::apply(&mut context, command)?,
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
                 Command::Shader(command) => shader::apply(&mut context, command)?,
             }

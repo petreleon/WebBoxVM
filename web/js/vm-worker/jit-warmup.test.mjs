@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { tryRunOrCompileJitBlock } from "./jit-hot.js?v=20260903-virgl-capset1-r2";
-import { DEFAULT_JIT_ENABLED, JIT_MAX_HIT_SITES, resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r2";
+import { tryRunOrCompileJitBlock } from "./jit-hot.js?v=20260903-virgl-blend-r1";
+import { DEFAULT_JIT_ENABLED, JIT_MAX_HIT_SITES, resetJitState, state } from "./state.js?v=20260903-virgl-blend-r1";
 
 afterEach(() => {
   resetJitState();

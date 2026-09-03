@@ -10,7 +10,7 @@
 static const char vertex_shader[] =
     "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
 static const char fragment_shader[] =
-    "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, 1}\n0: MOV OUT[0], IMM[0]\n1: END\n";
+    "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, .25}\n0: MOV OUT[0], IMM[0]\n1: END\n";
 
 static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource);
 static u32 triangle_stream(u32 *words, u32 triangle);
@@ -82,6 +82,7 @@ static u32 triangle_stream(u32 *words, u32 triangle)
     words[next++] = VIRGL_HEADER(29, 0, 2);
     words[next++] = 12;
     words[next++] = 1;
+    next += virgl_source_over_blend_stream(words + next, 13);
     words[next++] = VIRGL_HEADER(1, 5, 5);
     words[next++] = 10;
     words[next++] = 0;
@@ -164,7 +165,7 @@ static int readback_triangle(long fd, u32 bo_handle)
         return -1;
     if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
         return -2;
-    return pixels[offset] == 0 && pixels[offset + 1] == 255 &&
-                   pixels[offset + 2] == 0 && pixels[offset + 3] == 255
+    return pixels[offset] == 143 && pixels[offset + 1] == 160 &&
+                   pixels[offset + 2] == 48 && pixels[offset + 3] == 255
                ? 0 : -3;
 }

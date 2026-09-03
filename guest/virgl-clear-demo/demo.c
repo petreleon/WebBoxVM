@@ -5,7 +5,7 @@
 
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=0,255,0,255\n";
+static const char pass[] = "VIRGL_TRIANGLE_DEMO_PASS card0 capset=1 triangle=143,160,48,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";

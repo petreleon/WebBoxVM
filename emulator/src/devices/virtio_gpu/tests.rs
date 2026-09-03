@@ -6,6 +6,7 @@ mod lifecycle;
 mod queue;
 mod three_d;
 mod virgl;
+mod virgl_blend_state;
 mod virgl_buffer;
 mod virgl_buffer_copy;
 mod virgl_copy;
@@ -106,4 +107,12 @@ fn wbg3_packet(vertices: u32, indices: u32) -> Vec<u8> {
         packet.extend_from_slice(&((index % vertices.max(1)) as u16).to_le_bytes());
     }
     packet
+}
+
+pub(super) fn virgl_source_over_state(handle: u32) -> Vec<u32> {
+    const SOURCE_OVER: u32 = 1 | (3 << 4) | (19 << 9) | (1 << 17) | (19 << 22) | (15 << 27);
+    let mut words = vec![1 | (1 << 8) | (11 << 16), handle, 0, 0, SOURCE_OVER];
+    words.extend([0; 7]);
+    words.extend([2 | (1 << 8) | (1 << 16), handle]);
+    words
 }

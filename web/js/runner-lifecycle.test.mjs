@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { VmRunner } from "./runner.js?v=20260903-virgl-capset1-r2";
+import { VmRunner } from "./runner.js?v=20260903-virgl-blend-r1";
 
 const previousDocument = globalThis.document;
 

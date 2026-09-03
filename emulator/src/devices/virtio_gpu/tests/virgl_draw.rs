@@ -1,14 +1,15 @@
 use super::super::VirtioGpu;
 use super::super::protocol::*;
 use super::super::three_d::VIRGL_CAPSET_ID;
-use super::{full_scanout, header, response_type};
+use super::{full_scanout, header, response_type, virgl_source_over_state};
 use crate::memory::PhysicalMemory;
 
-const BUFFER: u32 = 5;
-const TARGET: u32 = 4;
-const VERT: &str = "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
-const FRAG: &str =
-    "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, 1}\n0: MOV OUT[0], IMM[0]\n1: END\n";
+pub(super) const BUFFER: u32 = 5;
+pub(super) const TARGET: u32 = 4;
+pub(super) const VERT: &str =
+    "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
+pub(super) const FRAG: &str =
+    "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, .25}\n0: MOV OUT[0], IMM[0]\n1: END\n";
 
 #[test]
 fn standard_draw_vbo_queues_a_webgpu_triangle_after_clear() {
@@ -19,6 +20,7 @@ fn standard_draw_vbo_queues_a_webgpu_triangle_after_clear() {
     state.extend(shader_create(12, 1, FRAG));
     state.extend(shader_bind(11, 0));
     state.extend(shader_bind(12, 1));
+    state.extend(virgl_source_over_state(13));
     state.extend(vertex_state());
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
     upload_vertices(&mut gpu);
@@ -38,18 +40,18 @@ fn standard_draw_vbo_queues_a_webgpu_triangle_after_clear() {
     assert_eq!(packet.len(), 104);
     assert_eq!(read_u32(&packet, 8), Some(1));
     assert_eq!(read_u32(&packet, 20), Some(3));
+    assert_eq!(read_u32(&packet, 52), Some(0.25f32.to_bits()));
     let effect = gpu.pending_3d[0].effect.clone().expect("draw ack effect");
     assert!(gpu.apply_3d_effect(effect));
     assert_eq!(&gpu.resources[&TARGET].pixels[..4], &[77, 51, 26, 255]);
     let middle = ((384 * 1024 + 512) * 4) as usize;
     assert_eq!(
         &gpu.resources[&TARGET].pixels[middle..middle + 4],
-        &[0, 255, 0, 255]
+        &[58, 102, 20, 255]
     );
     assert_eq!(&gpu.take_scanout_update()[..4], b"WBGF");
 }
-
-fn prepared() -> (VirtioGpu, PhysicalMemory) {
+pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mut mem, &texture_create(), RESP_OK_NODATA);
@@ -61,7 +63,6 @@ fn prepared() -> (VirtioGpu, PhysicalMemory) {
     }
     (gpu, mem)
 }
-
 fn texture_create() -> Vec<u8> {
     create(TARGET, 2, 1, 2, 1024, 768)
 }
@@ -76,7 +77,6 @@ fn create(id: u32, target: u32, format: u32, bind: u32, width: u32, height: u32)
     }
     command
 }
-
 fn context() -> Vec<u8> {
     let mut command = header(CMD_CTX_CREATE);
     for value in [5, VIRGL_CAPSET_ID] {
@@ -95,7 +95,7 @@ fn attach(resource: u32) -> Vec<u8> {
     command
 }
 
-fn submit(words: &[u32]) -> Vec<u8> {
+pub(super) fn submit(words: &[u32]) -> Vec<u8> {
     let mut command = header(CMD_SUBMIT_3D);
     for value in [(words.len() * 4) as u32, 0] {
         push_u32(&mut command, value);
@@ -106,13 +106,13 @@ fn submit(words: &[u32]) -> Vec<u8> {
     command
 }
 
-fn surface_create(handle: u32, resource: u32) -> Vec<u32> {
+pub(super) fn surface_create(handle: u32, resource: u32) -> Vec<u32> {
     vec![word(1, 7, 5), handle, resource, 1, 0, 0]
 }
-fn framebuffer(handle: u32) -> Vec<u32> {
+pub(super) fn framebuffer(handle: u32) -> Vec<u32> {
     vec![word(5, 0, 3), 1, 0, handle]
 }
-fn vertex_state() -> Vec<u32> {
+pub(super) fn vertex_state() -> Vec<u32> {
     [
         vec![word(1, 5, 5), 9, 0, 0, 0, 31],
         vec![word(2, 5, 1), 9],
@@ -121,7 +121,7 @@ fn vertex_state() -> Vec<u32> {
     .concat()
 }
 
-fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
+pub(super) fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
     let mut bytes = source.as_bytes().to_vec();
     bytes.push(0);
     let mut words = vec![
@@ -140,25 +140,25 @@ fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
     words
 }
 
-fn shader_bind(handle: u32, kind: u32) -> Vec<u32> {
+pub(super) fn shader_bind(handle: u32, kind: u32) -> Vec<u32> {
     vec![word(29, 0, 2), handle, kind]
 }
 
-fn clear(color: [f32; 4]) -> Vec<u32> {
+pub(super) fn clear(color: [f32; 4]) -> Vec<u32> {
     let mut words = vec![word(7, 0, 8), 4];
     words.extend(color.map(f32::to_bits));
     words.extend([0; 3]);
     words
 }
 
-fn draw() -> Vec<u32> {
+pub(super) fn draw() -> Vec<u32> {
     vec![word(8, 0, 12), 0, 3, 4, 0, 1, 0, 0, 0, 0, 0, u32::MAX, 0]
 }
-fn word(command: u8, object: u8, length: u16) -> u32 {
+pub(super) fn word(command: u8, object: u8, length: u16) -> u32 {
     u32::from(command) | (u32::from(object) << 8) | (u32::from(length) << 16)
 }
 
-fn upload_vertices(gpu: &mut VirtioGpu) {
+pub(super) fn upload_vertices(gpu: &mut VirtioGpu) {
     let positions = [
         0.0, 0.75, 0.0, 1.0, -0.75, -0.75, 0.0, 1.0, 0.75, -0.75, 0.0, 1.0,
     ];
@@ -170,6 +170,11 @@ fn upload_vertices(gpu: &mut VirtioGpu) {
         .copy_from_slice(&bytes);
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
+pub(super) fn assert_response(
+    gpu: &mut VirtioGpu,
+    mem: &mut PhysicalMemory,
+    command: &[u8],
+    expected: u32,
+) {
     assert_eq!(response_type(&gpu.execute_command(mem, command)), expected);
 }

@@ -1,4 +1,4 @@
-import { installTextProbe } from "./uart-probe.js?v=20260903-virgl-capset1-r2";
+import { installTextProbe } from "./uart-probe.js?v=20260903-virgl-blend-r1";
 
 const RENDER_TAIL_LIMIT = 32768;
 

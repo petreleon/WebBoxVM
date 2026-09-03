@@ -1,5 +1,5 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260903-virgl-capset1-r2";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-capset1-r2";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260903-virgl-blend-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-blend-r1";
 
 const SHADER = `
 struct Solid { color: vec4f }
@@ -12,6 +12,10 @@ struct Output { @builtin(position) position: vec4f }
 }
 @fragment fn fragment_main() -> @location(0) vec4f { return solid.color; }
 `;
+const SOURCE_OVER = {
+  alpha: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "one" },
+  color: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "src-alpha" },
+};
 
 export class VirglDrawRenderer {
   #bindGroup;
@@ -69,7 +73,7 @@ export class VirglDrawRenderer {
     }
     const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 triangle shader" });
     this.#pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
-      fragment: { entryPoint: "fragment_main", module, targets: [{ format: backend.format }] },
+      fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
       label: "VirGL capset 1 triangle pipeline", layout: "auto", primitive: { topology: "triangle-list" },
       vertex: { buffers: [{ arrayStride: 16, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }] }], entryPoint: "vertex_main", module },
     }));

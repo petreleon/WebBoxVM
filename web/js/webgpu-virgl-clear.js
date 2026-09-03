@@ -1,4 +1,4 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-capset1-r2";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-blend-r1";
 
 export async function renderVirglClear(session, backend, frame, isCurrent) {
   const { device } = backend;

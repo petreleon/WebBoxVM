@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-capset1-r2";
+import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-blend-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260903-virgl-capset1-r2";
-import { virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-capset1-r2";
+  from "./gpu-test-fakes.mjs?v=20260903-virgl-blend-r1";
+import { virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-blend-r1";
 
 test("standard VirGL capset-one clear renders and acknowledges after WebGPU completion", async () => {
   let finishWork;
@@ -61,6 +61,10 @@ test("standard VirGL capset-one draw renders a cached WebGPU triangle", async ()
   assert.equal(device.buffers.length, 2);
   assert.equal(device.textures.length, 0);
   assert.deepEqual(device.draw, [3]);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets[0].blend, {
+    alpha: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "one" },
+    color: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "src-alpha" },
+  });
   assert.deepEqual(device.renderPasses[0].colorAttachments[0].clearValue, {
     r: Math.fround(0.1), g: Math.fround(0.2), b: Math.fround(0.3), a: 1,
   });

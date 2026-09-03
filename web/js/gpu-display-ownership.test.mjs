@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-capset1-r2";
+import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-blend-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260903-virgl-capset1-r2";
-import { gpu3dPacket, gpuPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-capset1-r2";
+  from "./gpu-test-fakes.mjs?v=20260903-virgl-blend-r1";
+import { gpu3dPacket, gpuPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-blend-r1";
 
 test("a pending WBG3 claim cancels a scanout waiting for WebGPU initialization", async () => {
   let markRequested;

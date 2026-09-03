@@ -1,5 +1,5 @@
-import { OpfsDiskStore } from "./persistence-store.js?v=20260903-virgl-capset1-r2";
-import { formatBytes } from "./utils.js?v=20260903-virgl-capset1-r2";
+import { OpfsDiskStore } from "./persistence-store.js?v=20260903-virgl-blend-r1";
+import { formatBytes } from "./utils.js?v=20260903-virgl-blend-r1";
 
 const AUTOSAVE_INTERVAL_MS = 600_000;
 

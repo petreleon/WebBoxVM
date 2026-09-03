@@ -16,8 +16,23 @@
 #define VIRGL_VERTEX_INPUT_WORDS 12u
 #define VIRGL_TRIANGLE_BYTES 48u
 #define VIRGL_TRIANGLE_WORDS 128u
+#define VIRGL_SOURCE_OVER_BLEND_WORDS 14u
+#define VIRGL_SOURCE_OVER_BLEND_STATE \
+    (1u | (3u << 4) | (19u << 9) | (1u << 17) | (19u << 22) | (15u << 27))
 #define VIRGL_HEADER(command, object, length) \
     ((u32)(command) | ((u32)(object) << 8) | ((u32)(length) << 16))
+
+static inline u32 virgl_source_over_blend_stream(u32 *words, u32 handle)
+{
+    words[0] = VIRGL_HEADER(1, 1, 11);
+    words[1] = handle;
+    for (u32 index = 2; index < 12; index++)
+        words[index] = 0;
+    words[4] = VIRGL_SOURCE_OVER_BLEND_STATE;
+    words[12] = VIRGL_HEADER(2, 1, 1);
+    words[13] = handle;
+    return VIRGL_SOURCE_OVER_BLEND_WORDS;
+}
 
 static inline void virgl_clear_stream(u32 words[VIRGL_CLEAR_WORDS], u32 resource)
 {

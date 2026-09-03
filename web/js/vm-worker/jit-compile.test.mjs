@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { compileJitBlock, compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260903-virgl-capset1-r2";
-import { state } from "./state.js?v=20260903-virgl-capset1-r2";
+import { compileJitBlock, compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260903-virgl-blend-r1";
+import { state } from "./state.js?v=20260903-virgl-blend-r1";
 
 afterEach(() => {
   state.emulator = undefined;

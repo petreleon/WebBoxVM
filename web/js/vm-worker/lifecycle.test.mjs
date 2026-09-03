@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { metrics, restoreInstallDisk } from "./lifecycle.js?v=20260903-virgl-capset1-r2";
-import { resetJitState, state } from "./state.js?v=20260903-virgl-capset1-r2";
+import { metrics, restoreInstallDisk } from "./lifecycle.js?v=20260903-virgl-blend-r1";
+import { resetJitState, state } from "./state.js?v=20260903-virgl-blend-r1";
 
 const previousPostMessage = globalThis.postMessage;
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { interpreterStepSlice } from "./pump.js?v=20260903-virgl-capset1-r2";
+import { interpreterStepSlice } from "./pump.js?v=20260903-virgl-blend-r1";
 import {
   COOPERATIVE_STEP_SLICE,
   DEFAULT_JIT_ENABLED,
@@ -9,7 +9,7 @@ import {
   NETWORK_STEP_SLICE,
   NETWORK_TX_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260903-virgl-capset1-r2";
+} from "./state.js?v=20260903-virgl-blend-r1";
 
 afterEach(() => {
   state.emulator = undefined;
