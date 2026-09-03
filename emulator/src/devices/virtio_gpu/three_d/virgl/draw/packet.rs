@@ -10,6 +10,9 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     match &work.material {
         DrawMaterial::Solid(color) => solid(sequence, width, height, clear, work, *color),
         DrawMaterial::Textured(texture) => textured(sequence, width, height, clear, work, texture),
+        DrawMaterial::TexturedPair(textures) => {
+            textured_pair(sequence, width, height, clear, work, textures)
+        }
     }
 }
 
@@ -44,6 +47,29 @@ fn textured(
         packet.extend_from_slice(&value.to_le_bytes());
     }
     packet.extend_from_slice(&texture.bgra);
+    packet
+}
+
+fn textured_pair(
+    sequence: u32,
+    width: u32,
+    height: u32,
+    clear: [f32; 4],
+    work: &DrawWork,
+    textures: &[super::TextureSnapshot; 2],
+) -> Vec<u8> {
+    let mut packet = header(4, sequence, width, height);
+    floats(&mut packet, clear.into_iter().chain([0.0; 4]));
+    packet.extend_from_slice(&work.vertices);
+    state(&mut packet, work);
+    for texture in textures {
+        for value in [texture.width, texture.height] {
+            packet.extend_from_slice(&value.to_le_bytes());
+        }
+    }
+    for texture in textures {
+        packet.extend_from_slice(&texture.bgra);
+    }
     packet
 }
 

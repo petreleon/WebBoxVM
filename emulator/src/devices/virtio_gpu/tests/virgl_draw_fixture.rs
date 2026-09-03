@@ -3,7 +3,6 @@ use super::super::protocol::*;
 use super::super::three_d::VIRGL_CAPSET_ID;
 use super::{full_scanout, header, response_type};
 use crate::memory::PhysicalMemory;
-
 pub(super) const BUFFER: u32 = 5;
 pub(super) const TARGET: u32 = 4;
 pub(super) const TEXTURE: u32 = 6;
@@ -13,7 +12,7 @@ pub(super) const FRAG: &str =
     "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, .25}\n0: MOV OUT[0], IMM[0]\n1: END\n";
 pub(super) const TEXTURED_VERT: &str = "VERT\nDCL IN[0..1]\nDCL OUT[0], POSITION\nDCL OUT[1], GENERIC[0]\nMOV OUT[0], IN[0]\nMOV OUT[1], IN[1]\nEND\n";
 pub(super) const TEXTURED_FRAG: &str = "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nMOV OUT[0], TEMP[0]\nEND\n";
-
+pub(super) const TEXTURED_MULTIPLY_FRAG: &str = "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0..1]\nDCL SVIEW[0..1], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0..1]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nTEX TEMP[1], IN[0], SAMP[1], 2D\nMUL OUT[0], TEMP[0], TEMP[1]\nEND\n";
 pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
@@ -104,6 +103,7 @@ pub(super) fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
         FRAG => 14,
         TEXTURED_VERT => 17,
         TEXTURED_FRAG => 25,
+        TEXTURED_MULTIPLY_FRAG => 31,
         _ => 8,
     };
     let mut bytes = source.as_bytes().to_vec();

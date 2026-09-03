@@ -20,8 +20,8 @@ pub(super) fn apply(
             .destroy_sampler_state(handle)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
-        Command::BindState { handle } => context
-            .bind_sampler_state(handle)
+        Command::BindState { start, handles } => context
+            .bind_sampler_states(start, &handles)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
         Command::CreateView { handle, resource } => create_view(gpu, context, handle, resource),
@@ -29,8 +29,8 @@ pub(super) fn apply(
             .destroy_sampler_view(handle)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
-        Command::BindView { handle } => context
-            .bind_sampler_view(handle)
+        Command::BindView { start, handles } => context
+            .bind_sampler_views(start, &handles)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
     }

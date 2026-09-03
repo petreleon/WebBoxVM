@@ -1,3 +1,4 @@
+use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use crate::devices::virtio_gpu::protocol::Rect;
 use std::collections::{HashMap, HashSet};
 
@@ -62,8 +63,8 @@ pub(super) struct PipelineState {
     pub(super) scissor: Option<Rect>,
     pub(super) sampler_views: HashMap<u32, u32>,
     pub(super) sampler_states: HashSet<u32>,
-    pub(super) bound_sampler_view: Option<u32>,
-    pub(super) bound_sampler_state: Option<u32>,
+    pub(super) bound_sampler_views: [Option<u32>; MAX_VIRGL_FRAGMENT_SAMPLERS],
+    pub(super) bound_sampler_states: [Option<u32>; MAX_VIRGL_FRAGMENT_SAMPLERS],
 }
 
 impl PipelineState {
@@ -77,8 +78,8 @@ impl PipelineState {
             scissor: None,
             sampler_views: HashMap::new(),
             sampler_states: HashSet::new(),
-            bound_sampler_view: None,
-            bound_sampler_state: None,
+            bound_sampler_views: [None; MAX_VIRGL_FRAGMENT_SAMPLERS],
+            bound_sampler_states: [None; MAX_VIRGL_FRAGMENT_SAMPLERS],
         }
     }
 }

@@ -9,7 +9,7 @@ use crate::devices::virtio_gpu::resource::GpuResource;
 pub(super) fn valid(vertices: &[u8], material: &DrawMaterial) -> bool {
     match material {
         DrawMaterial::Solid(_) => solid::valid(vertices),
-        DrawMaterial::Textured(_) => textured::valid(vertices),
+        DrawMaterial::Textured(_) | DrawMaterial::TexturedPair(_) => textured::valid(vertices),
     }
 }
 
@@ -28,9 +28,9 @@ pub(super) fn draw_textured(
     resource: &mut GpuResource,
     rect: Rect,
     vertices: &[u8],
-    texture: &TextureSnapshot,
+    textures: &[TextureSnapshot],
     viewport: [f32; 6],
     scissor: Option<Rect>,
 ) -> bool {
-    textured::draw(resource, rect, vertices, texture, viewport, scissor)
+    textured::draw(resource, rect, vertices, textures, viewport, scissor)
 }

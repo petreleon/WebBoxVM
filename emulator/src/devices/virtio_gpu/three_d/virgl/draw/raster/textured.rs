@@ -14,10 +14,13 @@ pub(super) fn draw(
     resource: &mut GpuResource,
     rect: Rect,
     vertices: &[u8],
-    texture: &TextureSnapshot,
+    textures: &[TextureSnapshot],
     viewport: [f32; 6],
     scissor: Option<Rect>,
 ) -> bool {
+    if !(1..=2).contains(&textures.len()) {
+        return false;
+    }
     let Some(uvs) = uvs(vertices) else {
         return false;
     };
@@ -39,7 +42,10 @@ pub(super) fn draw(
                 };
                 geometry::source_over(
                     pixel,
-                    sample(texture, interpolate(uvs, geometry::weights(points, px, py))),
+                    sample(
+                        textures,
+                        interpolate(uvs, geometry::weights(points, px, py)),
+                    ),
                 );
             }
         }
@@ -77,7 +83,16 @@ fn interpolate(
     ]
 }
 
-fn sample(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
+fn sample(textures: &[TextureSnapshot], uv: [f32; 2]) -> [f32; 4] {
+    textures
+        .iter()
+        .map(|texture| sample_one(texture, uv))
+        .fold([1.0; 4], |color, sample| {
+            std::array::from_fn(|index| color[index] * sample[index])
+        })
+}
+
+fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
     let x = (u * texture.width as f32)
         .floor()
         .clamp(0.0, texture.width.saturating_sub(1) as f32) as usize;

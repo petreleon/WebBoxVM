@@ -30,6 +30,7 @@ pub(super) const VIRGL_OBJECT_SAMPLER_STATE: u8 = 7;
 pub(super) const VIRGL_OBJECT_SURFACE: u8 = 8;
 pub(super) const VIRGL_CMD_CLEAR_SURFACE: u8 = 62;
 pub(super) const MAX_VIRGL_SUBMIT_BYTES: usize = 64 * 1024;
+pub(super) const MAX_VIRGL_FRAGMENT_SAMPLERS: usize = 2;
 
 impl VirtioGpu {
     pub(super) fn allocate_virgl_context_generation(&mut self) -> u32 {

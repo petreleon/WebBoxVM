@@ -2,6 +2,7 @@ const MAGIC = [0x56, 0x47, 0x44, 0x31]; // VGD1
 const LEGACY_BYTES = 104;
 const STATE_BYTES = 144;
 const TEXTURED_BYTES = 176;
+const TEXTURED_PAIR_BYTES = 184;
 const MAX_DIMENSION = 8192;
 const MAX_TEXTURE_DIMENSION = 64;
 const VERTEX_COUNT = 3;
@@ -34,17 +35,21 @@ export function parseVirglDrawPacket(packet) {
   }
   const clearColor = colors(view, 24, "clear");
   const drawColor = colors(view, 40, "draw");
-  const textured = version === 3;
+  const paired = version === 4;
+  const textured = version === 3 || paired;
   const vertices = textured ? texturedVertices(view) : positions(view);
   const state = version === 1 ? {} : viewportState(
     view, canvasWidth, canvasHeight, textured ? 128 : 104, textured ? 152 : 128,
   );
-  const texture = textured ? textureFrame(view, packet) : {};
+  const texture = textured ? textureFrame(view, packet, paired) : {};
   return {
-    acceleration: textured ? "webgpu-virgl-capset1-texture" : "webgpu-virgl-capset1-draw",
+    acceleration: paired ? "webgpu-virgl-capset1-texture-multiply"
+      : textured ? "webgpu-virgl-capset1-texture" : "webgpu-virgl-capset1-draw",
     canvasHeight, canvasWidth, capsetId: 1, clearColor, drawColor,
-    presentationLabel: textured ? "VirGL capset 1 textured triangle" : "VirGL capset 1 triangle",
-    protocol: textured ? "virgl-texture" : "virgl-draw", sequence, version, vertexCount,
+    presentationLabel: paired ? "VirGL capset 1 dual-texture triangle"
+      : textured ? "VirGL capset 1 textured triangle" : "VirGL capset 1 triangle",
+    protocol: paired ? "virgl-texture-multiply" : textured ? "virgl-texture" : "virgl-draw",
+    sequence, version, vertexCount,
     vertices, ...state, ...texture,
   };
 }
@@ -52,11 +57,13 @@ export function parseVirglDrawPacket(packet) {
 function length(view, version) {
   if (version === 1) return LEGACY_BYTES;
   if (version === 2) return STATE_BYTES;
-  if (version !== 3 || view.byteLength < TEXTURED_BYTES) return 0;
-  const width = view.getUint32(168, true);
-  const height = view.getUint32(172, true);
-  if (!width || !height || width > MAX_TEXTURE_DIMENSION || height > MAX_TEXTURE_DIMENSION) return 0;
-  return TEXTURED_BYTES + width * height * 4;
+  if (version === 3) {
+    return view.byteLength < TEXTURED_BYTES ? 0 : textureLength(view, 168, 172, TEXTURED_BYTES);
+  }
+  if (version !== 4 || view.byteLength < TEXTURED_PAIR_BYTES) return 0;
+  const left = textureBytes(view, 168, 172);
+  const right = textureBytes(view, 176, 180);
+  return left && right ? TEXTURED_PAIR_BYTES + left + right : 0;
 }
 
 function colors(view, offset, label) {
@@ -112,10 +119,29 @@ function viewportState(view, width, height, viewportOffset, scissorOffset) {
   return { viewport, scissor: { x, y, width: scissorWidth, height: scissorHeight } };
 }
 
-function textureFrame(view, packet) {
-  const width = view.getUint32(168, true);
-  const height = view.getUint32(172, true);
-  return { texture: { width, height, pixels: packet.subarray(TEXTURED_BYTES) } };
+function textureLength(view, widthOffset, heightOffset, fixedBytes) {
+  const bytes = textureBytes(view, widthOffset, heightOffset);
+  return bytes ? fixedBytes + bytes : 0;
+}
+
+function textureBytes(view, widthOffset, heightOffset) {
+  const width = view.getUint32(widthOffset, true);
+  const height = view.getUint32(heightOffset, true);
+  return width && height && width <= MAX_TEXTURE_DIMENSION && height <= MAX_TEXTURE_DIMENSION
+    ? width * height * 4 : 0;
+}
+
+function textureFrame(view, packet, paired) {
+  const left = textureAt(view, packet, 168, 172, paired ? TEXTURED_PAIR_BYTES : TEXTURED_BYTES);
+  if (!paired) return { texture: left };
+  const right = textureAt(view, packet, 176, 180, TEXTURED_PAIR_BYTES + left.pixels.byteLength);
+  return { textures: [left, right] };
+}
+
+function textureAt(view, packet, widthOffset, heightOffset, pixelOffset) {
+  const width = view.getUint32(widthOffset, true);
+  const height = view.getUint32(heightOffset, true);
+  return { width, height, pixels: packet.subarray(pixelOffset, pixelOffset + width * height * 4) };
 }
 
 function readFloats(view, offset, count) {

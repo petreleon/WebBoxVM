@@ -4,7 +4,9 @@ import {
   extractGpu3dSequence,
   parseGpu3dPacket,
 } from "./gpu-3d-packet.js?v=20260903-virgl-viewport-r1";
-import { gpu3dPacket, virglClearPacket, virglDrawPacket, virglTexturedPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
+import {
+  gpu3dPacket, virglClearPacket, virglDrawPacket, virglTexturedMultiplyPacket, virglTexturedPacket,
+} from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
 
 test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
   const packet = gpu3dPacket({ sequence: 42 });
@@ -116,6 +118,21 @@ test("VirGL textured envelope snapshots bounded BGRA sampler data", () => {
   const badUv = packet.slice();
   new DataView(badUv.buffer).setFloat32(72, Number.NaN, true);
   assert.throws(() => parseGpu3dPacket(badUv), /textured triangle/);
+});
+
+test("VirGL dual-texture envelope snapshots two bounded sampler slots", () => {
+  const packet = virglTexturedMultiplyPacket({ sequence: 65 });
+  const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.protocol, "virgl-texture-multiply");
+  assert.equal(frame.acceleration, "webgpu-virgl-capset1-texture-multiply");
+  assert.equal(frame.version, 4);
+  assert.equal(frame.textures.length, 2);
+  assert.deepEqual([...frame.textures[0].pixels], [100, 100, 100, 255, 100, 100, 100, 255, 100, 100, 100, 255, 100, 100, 100, 255]);
+  assert.deepEqual([...frame.textures[1].pixels], [128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255]);
+  const badSize = packet.slice();
+  new DataView(badSize.buffer).setUint32(176, 65, true);
+  assert.throws(() => parseGpu3dPacket(badSize), /length or version/);
+  assert.throws(() => parseGpu3dPacket(packet.subarray(0, -1)), /length or version/);
 });
 
 function assertMutation(packet, offset, value, expected) {

@@ -30,6 +30,7 @@ pub(in crate::devices::virtio_gpu) enum ShaderProgram {
     VertexTextured,
     FragmentSolid([u32; 4]),
     FragmentTextured,
+    FragmentTexturedMultiply,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -45,6 +46,7 @@ impl Shader {
             ShaderProgram::VertexTextured => 17,
             ShaderProgram::FragmentSolid(_) => 14,
             ShaderProgram::FragmentTextured => 25,
+            ShaderProgram::FragmentTexturedMultiply => 31,
         }
     }
 }

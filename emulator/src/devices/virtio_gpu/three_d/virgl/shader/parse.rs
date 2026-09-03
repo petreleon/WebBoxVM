@@ -79,6 +79,22 @@ fn fragment(lines: &[&str]) -> Option<ShaderProgram> {
     {
         return Some(ShaderProgram::FragmentTextured);
     }
+    if lines
+        == [
+            "FRAG",
+            "DCL IN[0], GENERIC[0], LINEAR",
+            "DCL SAMP[0..1]",
+            "DCL SVIEW[0..1], 2D, FLOAT",
+            "DCL OUT[0], COLOR[0]",
+            "DCL TEMP[0..1]",
+            "TEX TEMP[0], IN[0], SAMP[0], 2D",
+            "TEX TEMP[1], IN[0], SAMP[1], 2D",
+            "MUL OUT[0], TEMP[0], TEMP[1]",
+            "END",
+        ]
+    {
+        return Some(ShaderProgram::FragmentTexturedMultiply);
+    }
     if lines.len() != 5
         || lines[0] != "FRAG"
         || lines[1] != "DCL OUT[0], COLOR"

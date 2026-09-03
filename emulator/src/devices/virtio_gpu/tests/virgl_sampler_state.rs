@@ -33,7 +33,9 @@ fn sampler_state_rejects_wrong_wire_shape_without_mutating_the_binding() {
     for words in [
         vec![word(1, 7, 9), 19, 0x1093, 0, 0, 0, 0, 0, 0, 0],
         vec![word(10, 0, 3), 0, 0, 18],
-        vec![word(18, 0, 3), 1, 1, 17],
+        vec![word(18, 0, 3), 1, 2, 17],
+        vec![word(10, 0, 4), 1, 1, 18, 18],
+        vec![word(18, 0, 4), 1, 0, 17, 99],
         sampler_view_create(19, TARGET),
     ] {
         assert_response(

@@ -13,6 +13,7 @@ mod virgl_copy;
 mod virgl_draw;
 mod virgl_draw_capset;
 mod virgl_draw_fixture;
+mod virgl_dual_texture_draw;
 mod virgl_queue;
 mod virgl_readback;
 mod virgl_sampler_state;

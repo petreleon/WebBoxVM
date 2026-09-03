@@ -1,18 +1,17 @@
+mod material;
 mod packet;
 mod raster;
 mod solid;
 mod texture;
+use material::material;
 pub(in crate::devices::virtio_gpu::three_d) use packet::packet;
 
-use super::shader::ShaderProgram;
 use super::{DrawState, VirglContext};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 use crate::devices::virtio_gpu::resource::FORMAT_R32G32B32A32_FLOAT;
 
 pub(super) const TRIANGLE_VERTICES: u32 = 3;
-const SOLID_VERTEX_BYTES: usize = 16;
-const TEXTURED_VERTEX_BYTES: usize = 24;
 
 #[derive(Clone, Copy)]
 pub(super) struct DrawCall {
@@ -30,6 +29,7 @@ pub(in crate::devices::virtio_gpu) struct TextureSnapshot {
 pub(in crate::devices::virtio_gpu) enum DrawMaterial {
     Solid([f32; 4]),
     Textured(TextureSnapshot),
+    TexturedPair([TextureSnapshot; 2]),
 }
 
 pub(super) struct DrawWork {
@@ -103,8 +103,16 @@ impl VirtioGpu {
             DrawMaterial::Solid(color) => {
                 raster::draw_solid(resource, rect, vertices, *color, viewport, scissor)
             }
-            DrawMaterial::Textured(texture) => {
-                raster::draw_textured(resource, rect, vertices, texture, viewport, scissor)
+            DrawMaterial::Textured(texture) => raster::draw_textured(
+                resource,
+                rect,
+                vertices,
+                std::slice::from_ref(texture),
+                viewport,
+                scissor,
+            ),
+            DrawMaterial::TexturedPair(textures) => {
+                raster::draw_textured(resource, rect, vertices, textures, viewport, scissor)
             }
         };
         if !drawn {
@@ -112,29 +120,6 @@ impl VirtioGpu {
         }
         self.add_damage(resource_id, rect);
         true
-    }
-}
-
-fn material(
-    gpu: &VirtioGpu,
-    context: &VirglContext,
-    target: u32,
-    state: DrawState,
-) -> Result<(usize, DrawMaterial), u32> {
-    match (state.vertex_program, state.fragment_program) {
-        (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => {
-            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
-        }
-        (ShaderProgram::VertexTextured, ShaderProgram::FragmentTextured) => Ok((
-            TEXTURED_VERTEX_BYTES,
-            DrawMaterial::Textured(texture::snapshot(
-                gpu,
-                context,
-                target,
-                state.sampled_resource,
-            )?),
-        )),
-        _ => Err(RESP_ERR_INVALID_PARAMETER),
     }
 }
 

@@ -1,3 +1,4 @@
+use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use super::{VertexBuffer, VertexLayout, Viewport, VirglContext};
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::three_d::virgl::shader::ShaderProgram;
@@ -10,7 +11,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
     pub fragment_program: ShaderProgram,
     pub viewport: Viewport,
     pub scissor: Option<Rect>,
-    pub sampled_resource: Option<u32>,
+    pub sampled_resources: [Option<u32>; MAX_VIRGL_FRAGMENT_SAMPLERS],
 }
 
 impl VirglContext {
@@ -40,7 +41,7 @@ impl VirglContext {
             fragment_program,
             viewport: self.pipeline.viewport?,
             scissor,
-            sampled_resource: self.sampled_resource(),
+            sampled_resources: self.sampled_resources(),
         })
     }
 }

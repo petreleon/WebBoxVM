@@ -3,7 +3,9 @@ import test from "node:test";
 import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-viewport-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
   from "./gpu-test-fakes.mjs?v=20260903-virgl-viewport-r1";
-import { virglClearPacket, virglDrawPacket, virglTexturedPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
+import {
+  virglClearPacket, virglDrawPacket, virglTexturedMultiplyPacket, virglTexturedPacket,
+} from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
 
 test("standard VirGL capset-one clear renders and acknowledges after WebGPU completion", async () => {
   let finishWork;
@@ -95,4 +97,24 @@ test("standard VirGL sampler texture uploads bounded BGRA data to WebGPU", async
     10, 20, 30, 255, 40, 50, 60, 255, 0, 0, 0, 0, 0, 0, 0, 0,
   ]);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-texture");
+});
+
+test("standard VirGL dual sampler textures bind and upload through WebGPU", async () => {
+  const device = fakeDevice();
+  const status = fakeStatus();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.deepEqual(await display.present3d(virglTexturedMultiplyPacket({ sequence: 46 })), {
+    sequence: 46, success: true,
+  });
+  assert.equal(device.pipelines.length, 1);
+  assert.equal(device.buffers.length, 1);
+  assert.equal(device.textures.length, 2);
+  assert.equal(device.samplers.length, 1);
+  assert.deepEqual(device.draw, [3]);
+  assert.equal(device.bindGroups[0].entries.length, 3);
+  assert.deepEqual([...device.writes[0].data.subarray(0, 4)], [100, 100, 100, 255]);
+  assert.deepEqual([...device.writes[1].data.subarray(0, 4)], [128, 128, 128, 255]);
+  assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-texture-multiply");
 });

@@ -131,6 +131,22 @@ export function virglTexturedPacket({
   return packet;
 }
 
+export function virglTexturedMultiplyPacket({
+  textureLeft = [100, 100, 100, 255, 100, 100, 100, 255, 100, 100, 100, 255, 100, 100, 100, 255],
+  textureRight = [128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255],
+  ...options
+} = {}) {
+  const left = virglTexturedPacket({ ...options, texture: textureLeft });
+  const packet = new Uint8Array(184 + textureLeft.length + textureRight.length);
+  packet.set(left.subarray(0, 168));
+  const view = new DataView(packet.buffer);
+  view.setUint32(4, 4, true);
+  [168, 172, 176, 180].forEach((offset) => view.setUint32(offset, 2, true));
+  packet.set(textureLeft, 184);
+  packet.set(textureRight, 184 + textureLeft.length);
+  return packet;
+}
+
 function writeFloats(view, offset, values) {
   values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
 }
