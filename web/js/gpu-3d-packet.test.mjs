@@ -133,6 +133,13 @@ test("VirGL dual-texture envelope snapshots two bounded sampler slots", () => {
   new DataView(badSize.buffer).setUint32(176, 65, true);
   assert.throws(() => parseGpu3dPacket(badSize), /length or version/);
   assert.throws(() => parseGpu3dPacket(packet.subarray(0, -1)), /length or version/);
+  const sampled = virglTexturedMultiplyPacket({ leftSampler: 0x3292, rightSampler: 0x1080, sequence: 66 });
+  const sampledFrame = parseGpu3dPacket(sampled);
+  assert.equal(sampledFrame.version, 6);
+  assert.deepEqual(sampledFrame.textures.map(({ addressMode, filter }) => [addressMode, filter]), [
+    ["clamp-to-edge", "linear"], ["repeat", "nearest"],
+  ]);
+  assertMutation(sampled, 172, 0x1234, /length or version/);
 });
 
 function assertMutation(packet, offset, value, expected) {

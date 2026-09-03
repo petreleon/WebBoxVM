@@ -20,12 +20,7 @@ const MODULE_COMMAND: &str = concat!(
     "else printf 'VIRGL_SMOKE_MODULE_FAIL:%s\\n' \"$r\"; fi\r"
 );
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Phase {
-    Shell,
-    Module,
-    Packet,
-    Result,
-}
+enum Phase { Shell, Module, Packet, Result }
 fn main() -> Result<(), Box<dyn Error>> {
     let disk = env::args()
         .nth(1)
@@ -43,10 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "init=/bin/sh",
     )?;
     vm.run_efi_phase(usize::MAX);
-    println!(
-        "standard VirGL guest transport smoke: {disk}, {} bytes",
-        binary.len()
-    );
+    println!("standard VirGL guest transport smoke: {disk}, {} bytes", binary.len());
     let start = Instant::now();
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
@@ -54,9 +46,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut clear_sequence = None;
     let mut draw_sequence = None;
     let mut texture_sequence = None;
+    let mut texture_pair_sequence = None;
     let (mut upload_readback, mut clear_completed) = (false, false);
     let mut draw_completed = false;
-    let mut repeat_completed = false;
+    let (mut repeat_completed, mut linear_completed) = (false, false);
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result {
             10_000
@@ -112,6 +105,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                             println!("VGD1 {mode:?} texture validated: sequence {sequence}");
                             texture_sequence = Some((sequence, mode));
                         }
+                        VirglPacket::TexturePairDraw(sequence)
+                            if linear_completed && texture_pair_sequence.is_none() =>
+                        {
+                            println!("VGD1 texture pair validated: sequence {sequence}");
+                            texture_pair_sequence = Some(sequence);
+                        }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -153,10 +152,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 "VGD1 texture",
             )?;
             println!("WBGF {mode:?} textured triangle BGRA readback validated");
-            repeat_completed = mode == TextureMode::Repeat;
-            if !repeat_completed {
-                phase = Phase::Result;
-            }
+            if mode == TextureMode::Repeat { repeat_completed = true; } else { linear_completed = true; }
+        }
+        if phase == Phase::Packet && linear_completed && let Some(sequence) = texture_pair_sequence.take() {
+            complete(&mut vm, sequence, is_texture_pair_readback, "VGD1 texture pair")?;
+            println!("WBGF independent sampler texture-pair BGRA readback validated");
+            phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {
             println!(
@@ -166,11 +167,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             return Ok(());
         }
     }
-    Err(format!(
-        "VirGL smoke timed out in {phase:?} after {steps} steps:\n{}",
-        tail(&vm.uart_output())
-    )
-    .into())
+    Err(format!("VirGL smoke timed out in {phase:?} after {steps} steps:\n{}", tail(&vm.uart_output())).into())
 }
 fn setting(name: &str, default: u64) -> u64 {
     env::var(name)

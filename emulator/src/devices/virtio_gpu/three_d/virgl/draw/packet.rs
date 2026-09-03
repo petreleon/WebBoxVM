@@ -63,10 +63,18 @@ fn textured_pair(
     work: &DrawWork,
     textures: &[super::TextureSnapshot; 2],
 ) -> Vec<u8> {
-    let mut packet = header(4, sequence, width, height);
+    let extended = textures
+        .iter()
+        .any(|texture| texture.sampler != SamplerConfig::CLAMP_NEAREST);
+    let mut packet = header(if extended { 6 } else { 4 }, sequence, width, height);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
+    if extended {
+        for texture in textures {
+            packet.extend_from_slice(&texture.sampler.wire().to_le_bytes());
+        }
+    }
     for texture in textures {
         for value in [texture.width, texture.height] {
             packet.extend_from_slice(&value.to_le_bytes());

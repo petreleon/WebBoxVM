@@ -1,7 +1,7 @@
 CROSS ?= aarch64-elf-
 CC := $(CROSS)gcc
 TARGET := build/virgl-clear-demo
-SOURCES := demo.c draw.c index.c kms.c memory.c ops.c texture.c texture_draw.c transfer.c vertex.c
+SOURCES := demo.c draw.c index.c kms.c memory.c ops.c texture.c texture_draw.c texture_pair.c transfer.c vertex.c
 OBJECTS := $(SOURCES:%.c=build/%.o)
 
 CPPFLAGS := -I.

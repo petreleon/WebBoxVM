@@ -1,13 +1,14 @@
 use emulator::boot::BootContext;
 
 pub(super) const PASS: &str =
-    "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255";
+    "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 
 pub(super) enum VirglPacket {
     Clear(u32),
     Draw(u32),
     TexturedDraw(u32, TextureMode),
+    TexturePairDraw(u32),
 }
 
 pub(super) fn demo_script(binary: &[u8]) -> String {
@@ -44,6 +45,7 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
             Some(2) => vgd1_sequence(packet).map(VirglPacket::Draw),
             Some(5) => vgt1_sequence(packet)
                 .map(|(sequence, mode)| VirglPacket::TexturedDraw(sequence, mode)),
+            Some(6) => vtp1_sequence(packet).map(VirglPacket::TexturePairDraw),
             _ => Err("guest emitted an unsupported VGD1 packet version".into()),
         },
         _ => Err("guest emitted an unsupported VirGL browser packet".into()),
@@ -157,9 +159,13 @@ fn base64_lines(bytes: &[u8]) -> String {
 mod draw;
 #[path = "wire/texture.rs"]
 mod texture;
+#[path = "wire/texture_pair.rs"]
+mod texture_pair;
 
 pub(crate) use draw::is_triangle_readback;
 use draw::vgd1_sequence;
 pub(crate) use texture::TextureMode;
 pub(crate) use texture::is_textured_triangle_readback;
 use texture::vgt1_sequence;
+pub(crate) use texture_pair::is_texture_pair_readback;
+use texture_pair::vtp1_sequence;

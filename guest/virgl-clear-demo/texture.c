@@ -5,7 +5,6 @@
 
 static int create_buffer(long fd, u32 *bo, u32 *resource);
 static int create_texture(long fd, u32 *bo, u32 *resource);
-static int upload_vertices(long fd, u32 bo, u32 u);
 static int upload_texture(long fd, u32 bo);
 static int run_textured_triangle(
     long fd, const struct virgl_resources *resources, u32 object_base, u32 sampler, u32 u,
@@ -14,6 +13,8 @@ static int run_textured_triangle(
 int virgl_create_textured_resources(long fd, struct virgl_resources *resources)
 {
     if (create_texture(fd, &resources->texture_bo, &resources->texture_resource) != 0)
+        return -1;
+    if (create_texture(fd, &resources->texture_pair_bo, &resources->texture_pair_resource) != 0)
         return -1;
     return create_buffer(fd, &resources->textured_bo, &resources->textured_resource);
 }
@@ -38,7 +39,7 @@ static int run_textured_triangle(
     long fd, const struct virgl_resources *resources, u32 object_base, u32 sampler, u32 u,
     const u8 expected[4])
 {
-    if (upload_vertices(fd, resources->textured_bo, u) != 0)
+    if (virgl_upload_textured_vertices(fd, resources->textured_bo, u, 0x3f800000u) != 0)
         return 1;
     if (virgl_submit_textured_triangle(fd, resources, sampler, object_base) != 0)
         return 2;
@@ -90,12 +91,12 @@ static int create_texture(long fd, u32 *bo, u32 *handle)
     return 0;
 }
 
-static int upload_vertices(long fd, u32 bo, u32 u)
+int virgl_upload_textured_vertices(long fd, u32 bo, u32 u, u32 v)
 {
     u32 data[] = {
-        0, 0x3f400000u, 0, 0x3f800000u, u, 0x3f800000u,
-        0xbf400000u, 0xbf400000u, 0, 0x3f800000u, u, 0x3f800000u,
-        0x3f400000u, 0xbf400000u, 0, 0x3f800000u, u, 0x3f800000u,
+        0, 0x3f400000u, 0, 0x3f800000u, u, v,
+        0xbf400000u, 0xbf400000u, 0, 0x3f800000u, u, v,
+        0x3f400000u, 0xbf400000u, 0, 0x3f800000u, u, v,
     };
     struct drm_virtgpu_3d_transfer_to_host transfer = {
         .bo_handle = bo,

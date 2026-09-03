@@ -99,21 +99,26 @@ test("standard VirGL sampler texture uploads bounded BGRA data to WebGPU", async
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-texture");
 });
 
-test("standard VirGL dual sampler textures bind and upload through WebGPU", async () => {
+test("standard VirGL dual sampler textures bind independently through WebGPU", async () => {
   const device = fakeDevice();
   const status = fakeStatus();
   const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
-  assert.deepEqual(await display.present3d(virglTexturedMultiplyPacket({ sequence: 46 })), {
+  assert.deepEqual(await display.present3d(virglTexturedMultiplyPacket({
+    leftSampler: 0x3292, rightSampler: 0x1080, sequence: 46,
+  })), {
     sequence: 46, success: true,
   });
   assert.equal(device.pipelines.length, 1);
   assert.equal(device.buffers.length, 1);
   assert.equal(device.textures.length, 2);
-  assert.equal(device.samplers.length, 1);
+  assert.deepEqual(device.samplers, [
+    { addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge", magFilter: "linear", minFilter: "linear", mipmapFilter: "nearest" },
+    { addressModeU: "repeat", addressModeV: "repeat", magFilter: "nearest", minFilter: "nearest", mipmapFilter: "nearest" },
+  ]);
   assert.deepEqual(device.draw, [3]);
-  assert.equal(device.bindGroups[0].entries.length, 3);
+  assert.equal(device.bindGroups[0].entries.length, 4);
   assert.deepEqual([...device.writes[0].data.subarray(0, 4)], [100, 100, 100, 255]);
   assert.deepEqual([...device.writes[1].data.subarray(0, 4)], [128, 128, 128, 255]);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-texture-multiply");

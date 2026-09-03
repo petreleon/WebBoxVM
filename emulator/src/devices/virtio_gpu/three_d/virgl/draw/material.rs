@@ -1,4 +1,4 @@
-use super::super::{SampledResource, SamplerConfig};
+use super::super::SampledResource;
 use super::{DrawMaterial, DrawState, TextureSnapshot, solid, texture};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
@@ -49,9 +49,5 @@ fn pair(
         snapshot(gpu, context, target, left)?,
         snapshot(gpu, context, target, right)?,
     ];
-    snapshots
-        .iter()
-        .all(|texture| texture.sampler == SamplerConfig::CLAMP_NEAREST)
-        .then_some(snapshots)
-        .ok_or(RESP_ERR_INVALID_PARAMETER)
+    Ok(snapshots)
 }

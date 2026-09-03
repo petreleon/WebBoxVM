@@ -132,18 +132,24 @@ export function virglTexturedPacket({
 }
 
 export function virglTexturedMultiplyPacket({
+  leftSampler = 0x1092,
+  rightSampler = 0x1092,
   textureLeft = [100, 100, 100, 255, 100, 100, 100, 255, 100, 100, 100, 255, 100, 100, 100, 255],
   textureRight = [128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255],
   ...options
 } = {}) {
+  const sampled = leftSampler !== 0x1092 || rightSampler !== 0x1092;
   const left = virglTexturedPacket({ ...options, texture: textureLeft });
-  const packet = new Uint8Array(184 + textureLeft.length + textureRight.length);
+  const offset = sampled ? 192 : 184;
+  const packet = new Uint8Array(offset + textureLeft.length + textureRight.length);
   packet.set(left.subarray(0, 168));
   const view = new DataView(packet.buffer);
-  view.setUint32(4, 4, true);
-  [168, 172, 176, 180].forEach((offset) => view.setUint32(offset, 2, true));
-  packet.set(textureLeft, 184);
-  packet.set(textureRight, 184 + textureLeft.length);
+  view.setUint32(4, sampled ? 6 : 4, true);
+  if (sampled) [leftSampler, rightSampler, 2, 2, 2, 2]
+    .forEach((value, index) => view.setUint32(168 + index * 4, value, true));
+  else [168, 172, 176, 180].forEach((at) => view.setUint32(at, 2, true));
+  packet.set(textureLeft, offset);
+  packet.set(textureRight, offset + textureLeft.length);
   return packet;
 }
 

@@ -45,25 +45,49 @@ fn standard_fragment_two_sampler_slots_multiply_bounded_texture_snapshots() {
 }
 
 #[test]
-fn repeat_sampler_is_rejected_when_the_fixed_dual_texture_path_cannot_serialize_it() {
+fn independent_sampler_states_use_schema_six_and_compose_cpu_pixels() {
     let (mut gpu, mut mem) = prepared();
     attach_right_texture(&mut gpu, &mut mem);
     assert_response(
         &mut gpu,
         &mut mem,
-        &submit(&dual_textured_state(0x1080, 0x1092)),
+        &submit(&dual_textured_state(0x3292, 0x1080)),
         RESP_OK_NODATA,
     );
     upload_textured_vertices(&mut gpu);
+    let left = [
+        10, 20, 30, 255, 40, 50, 60, 255, 70, 80, 90, 255, 100, 110, 120, 255,
+    ];
+    let right = [
+        255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255,
+    ];
+    {
+        let pixels = &mut gpu.resources.get_mut(&BUFFER).unwrap().pixels;
+        for offset in [16, 40, 64] {
+            pixels[offset..offset + 4].copy_from_slice(&1.0f32.to_le_bytes());
+        }
+        for offset in [20, 44, 68] {
+            pixels[offset..offset + 4].copy_from_slice(&0.625f32.to_le_bytes());
+        }
+    }
+    gpu.resources.get_mut(&TEXTURE).unwrap().pixels.copy_from_slice(&left);
+    gpu.resources.get_mut(&RIGHT_TEXTURE).unwrap().pixels.copy_from_slice(&right);
     let mut command = clear([0.1, 0.2, 0.3, 1.0]);
     command.extend(draw());
-    assert_response(
-        &mut gpu,
-        &mut mem,
-        &submit(&command),
-        RESP_ERR_INVALID_PARAMETER,
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let packet = gpu.take_3d_update();
+    assert_eq!(read_u32(&packet, 4), Some(6));
+    assert_eq!(packet.len(), 224);
+    assert_eq!(
+        [168, 172, 176, 180, 184, 188].map(|offset| read_u32(&packet, offset)),
+        [Some(0x3292), Some(0x1080), Some(2), Some(2), Some(2), Some(2)]
     );
-    assert!(gpu.take_3d_update().is_empty());
+    assert_eq!(&packet[192..208], &left);
+    assert_eq!(&packet[208..], &right);
+    let effect = gpu.pending_3d[0].effect.clone().expect("draw ack effect");
+    assert!(gpu.apply_3d_effect(effect));
+    let center = ((384 * 1024 + 512) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[55, 65, 75, 255]);
 }
 
 fn dual_textured_state(left_state: u32, right_state: u32) -> Vec<u32> {

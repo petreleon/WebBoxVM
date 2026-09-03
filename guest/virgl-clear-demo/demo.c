@@ -5,7 +5,7 @@
 
 static const char card_node[] = "/dev/dri/card0";
 static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255\n";
+static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
@@ -28,6 +28,7 @@ static const char fail_copy_readback[] = "VIRGL_CLEAR_DEMO_FAIL copy-readback\n"
 static const char fail_submit[] = "VIRGL_CLEAR_DEMO_FAIL execbuffer\n";
 static const char fail_wait[] = "VIRGL_CLEAR_DEMO_FAIL completion-wait\n";
 static const char fail_readback[] = "VIRGL_CLEAR_DEMO_FAIL transfer-readback\n";
+static const char fail_texture_pair[] = "VIRGL_CLEAR_DEMO_FAIL texture-pair\n";
 
 static void emit(const char *message, u64 length)
 {
@@ -115,6 +116,8 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
                     stage += 35;
                 else if ((stage = virgl_run_textured_triangle(fd, &resources)) != 0)
                     stage += 40;
+                else if ((stage = virgl_run_texture_pair(fd, &resources)) != 0)
+                    stage += 44;
             }
         }
     }
@@ -166,6 +169,8 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         EMIT(fail_triangle_readback);
     else if (stage >= 41 && stage <= 44)
         EMIT(fail_triangle_readback);
+    else if (stage >= 45 && stage <= 49)
+        EMIT(fail_texture_pair);
     else
         EMIT(fail_readback);
     if (fd >= 0)

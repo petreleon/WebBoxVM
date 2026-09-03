@@ -20,6 +20,8 @@ struct virgl_resources {
     u32 index_resource;
     u32 texture_bo;
     u32 texture_resource;
+    u32 texture_pair_bo;
+    u32 texture_pair_resource;
     u32 textured_bo;
     u32 textured_resource;
 };
@@ -37,6 +39,8 @@ int virgl_run_triangle(long fd, const struct virgl_resources *resources);
 int virgl_upload_index_buffer(long fd, u32 bo_handle);
 int virgl_create_textured_resources(long fd, struct virgl_resources *resources);
 int virgl_run_textured_triangle(long fd, const struct virgl_resources *resources);
+int virgl_run_texture_pair(long fd, const struct virgl_resources *resources);
+int virgl_upload_textured_vertices(long fd, u32 bo, u32 u, u32 v);
 int virgl_submit_textured_triangle(
     long fd, const struct virgl_resources *resources, u32 sampler, u32 object_base);
 int virgl_readback_textured_triangle(long fd, u32 bo_handle, const u8 expected[4]);

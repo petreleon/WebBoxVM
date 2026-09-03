@@ -5,7 +5,8 @@ import { padBgraRows } from "./gpu-scanout-packet.js?v=20260903-virgl-viewport-r
 const SHADER = `
 @group(0) @binding(0) var left: texture_2d<f32>;
 @group(0) @binding(1) var right: texture_2d<f32>;
-@group(0) @binding(2) var nearest: sampler;
+@group(0) @binding(2) var leftSampler: sampler;
+@group(0) @binding(3) var rightSampler: sampler;
 struct Output { @builtin(position) position: vec4f, @location(0) uv: vec2f }
 @vertex fn vertex_main(@location(0) position: vec4f, @location(1) uv: vec2f) -> Output {
   var output: Output;
@@ -16,7 +17,7 @@ struct Output { @builtin(position) position: vec4f, @location(0) uv: vec2f }
 }
 @fragment fn fragment_main(input: Output) -> @location(0) vec4f {
   let uv = vec2f(input.uv.x, 1.0 - input.uv.y);
-  return textureSampleLevel(left, nearest, uv, 0.0) * textureSampleLevel(right, nearest, uv, 0.0);
+  return textureSampleLevel(left, leftSampler, uv, 0.0) * textureSampleLevel(right, rightSampler, uv, 0.0);
 }
 `;
 const SOURCE_OVER = {
@@ -30,7 +31,8 @@ export class VirglTextureMultiplyRenderer {
   #generation = 0;
   #pipeline;
   #revision = 0;
-  #sampler;
+  #samplerKeys = [];
+  #samplers = [];
   #session;
   #textureSizes = [];
   #textures = [];
@@ -68,7 +70,8 @@ export class VirglTextureMultiplyRenderer {
     this.#textures.forEach((texture) => texture?.destroy?.());
     this.#bindGroup = undefined;
     this.#pipeline = undefined;
-    this.#sampler = undefined;
+    this.#samplerKeys = [];
+    this.#samplers = [];
     this.#textures = [];
     this.#textureSizes = [];
     this.#generation = 0;
@@ -95,10 +98,6 @@ export class VirglTextureMultiplyRenderer {
       ] }], entryPoint: "vertex_main", module },
     }));
     if (revision !== this.#revision) return false;
-    this.#sampler = device.createSampler({
-      addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge", magFilter: "nearest",
-      minFilter: "nearest", mipmapFilter: "nearest",
-    });
     return revision === this.#revision;
   }
 
@@ -109,6 +108,7 @@ export class VirglTextureMultiplyRenderer {
       device, this.#vertexBuffer, this.#vertexCapacity, frame.vertices.byteLength,
       "VirGL dual-texture positions and UVs", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX,
     );
+    this.#ensureSamplers(device, frame.textures);
     this.#ensureTextures(device, frame.textures);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, frame.vertices);
@@ -142,18 +142,31 @@ export class VirglTextureMultiplyRenderer {
       const size = this.#textureSizes[index];
       return this.#textures[index] && size?.[0] === texture.width && size[1] === texture.height;
     });
-    if (same) return;
-    this.#textures.forEach((texture) => texture.destroy?.());
-    this.#textureSizes = textures.map(({ width, height }) => [width, height]);
-    this.#textures = textures.map(({ width, height }) => device.createTexture({
-      format: "bgra8unorm", label: "VirGL sampled texture", size: { width, height, depthOrArrayLayers: 1 },
-      usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING,
-    }));
+    if (!same) {
+      this.#textures.forEach((texture) => texture.destroy?.());
+      this.#textureSizes = textures.map(({ width, height }) => [width, height]);
+      this.#textures = textures.map(({ width, height }) => device.createTexture({
+        format: "bgra8unorm", label: "VirGL sampled texture", size: { width, height, depthOrArrayLayers: 1 },
+        usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING,
+      }));
+    }
+    if (this.#bindGroup) return;
     this.#bindGroup = device.createBindGroup({ entries: [
       { binding: 0, resource: this.#textures[0].createView() },
       { binding: 1, resource: this.#textures[1].createView() },
-      { binding: 2, resource: this.#sampler },
+      { binding: 2, resource: this.#samplers[0] }, { binding: 3, resource: this.#samplers[1] },
     ], layout: this.#pipeline.getBindGroupLayout(0) });
+  }
+
+  #ensureSamplers(device, textures) {
+    const keys = textures.map(({ addressMode = "clamp-to-edge", filter = "nearest" }) => [addressMode, filter]);
+    if (keys.every(([addressMode, filter], index) => this.#samplerKeys[index]?.[0] === addressMode
+      && this.#samplerKeys[index]?.[1] === filter)) return;
+    this.#samplers = keys.map(([addressMode, filter]) => device.createSampler({
+      addressModeU: addressMode, addressModeV: addressMode, magFilter: filter, minFilter: filter, mipmapFilter: "nearest",
+    }));
+    this.#samplerKeys = keys;
+    this.#bindGroup = undefined;
   }
 }
 
