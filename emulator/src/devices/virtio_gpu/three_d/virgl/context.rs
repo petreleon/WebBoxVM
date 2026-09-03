@@ -1,3 +1,6 @@
+mod shader;
+
+use super::shader::Shader;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -24,6 +27,9 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     vertex_buffer: Option<VertexBuffer>,
     vertex_elements: HashMap<u32, VertexElement>,
     bound_vertex_elements: Option<u32>,
+    shaders: HashMap<u32, Shader>,
+    bound_vertex_shader: Option<u32>,
+    bound_fragment_shader: Option<u32>,
 }
 
 impl VirglContext {
@@ -36,6 +42,9 @@ impl VirglContext {
             vertex_buffer: None,
             vertex_elements: HashMap::new(),
             bound_vertex_elements: None,
+            shaders: HashMap::new(),
+            bound_vertex_shader: None,
+            bound_fragment_shader: None,
         }
     }
 

@@ -1,4 +1,5 @@
 mod decode;
+mod shader;
 mod vertex;
 
 use super::VirglContext;
@@ -70,6 +71,7 @@ impl VirtioGpu {
                     self.validate_virgl_copy(&context, region)?;
                 }
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
+                Command::Shader(command) => shader::apply(&mut context, command)?,
             }
         }
         if let Some(region) = copy {

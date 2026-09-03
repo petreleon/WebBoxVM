@@ -2,6 +2,7 @@ mod context;
 mod copy;
 mod copy_buffer;
 mod resource;
+mod shader;
 mod stream;
 
 use super::{DeferredSubmit, Pending3d, Pending3dEffect};
@@ -10,8 +11,13 @@ use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, V
 
 pub(in crate::devices::virtio_gpu) use context::{VertexBuffer, VertexElement, VirglContext};
 pub(super) use copy::CopyRegion;
+pub(in crate::devices::virtio_gpu) use shader::ShaderKind;
+#[cfg(test)]
+#[allow(unused_imports)]
+pub(in crate::devices::virtio_gpu) use shader::ShaderProgram;
 
 pub(super) const VIRGL_OBJECT_SURFACE: u8 = 7;
+pub(super) const VIRGL_OBJECT_SHADER: u8 = 4;
 pub(super) const VIRGL_OBJECT_VERTEX_ELEMENTS: u8 = 5;
 pub(super) const VIRGL_CMD_CLEAR_SURFACE: u8 = 62;
 pub(super) const MAX_VIRGL_SUBMIT_BYTES: usize = 64 * 1024;

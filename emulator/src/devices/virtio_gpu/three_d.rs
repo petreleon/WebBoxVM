@@ -11,6 +11,8 @@ mod virgl;
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};
 use packet::decode_submit;
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
+#[cfg(test)]
+pub(in crate::devices::virtio_gpu) use virgl::{ShaderKind, ShaderProgram};
 
 pub(super) const CAPSET_ID: u32 = 7;
 pub(super) const CAPSET_VERSION: u32 = 1;

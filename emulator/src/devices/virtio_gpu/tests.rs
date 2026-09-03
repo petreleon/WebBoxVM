@@ -11,6 +11,7 @@ mod virgl_buffer_copy;
 mod virgl_copy;
 mod virgl_queue;
 mod virgl_readback;
+mod virgl_shader_state;
 mod virgl_transfer;
 mod virgl_vertex_state;
 

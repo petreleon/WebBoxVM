@@ -1,3 +1,4 @@
+pub(super) mod shader;
 pub(super) mod vertex;
 
 use super::super::{
@@ -13,7 +14,7 @@ const CMD_CLEAR: u8 = 7;
 const CMD_RESOURCE_COPY_REGION: u8 = 17;
 const CLEAR_COLOR0: u32 = 1 << 2;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(super) enum Command {
     Nop,
     CreateSurface {
@@ -39,6 +40,7 @@ pub(super) enum Command {
     },
     CopyRegion(CopyRegion),
     Vertex(vertex::Command),
+    Shader(shader::Command),
 }
 
 pub(super) fn decode_stream(input: &[u8]) -> Option<Vec<Command>> {
@@ -156,6 +158,8 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
             src_z: *src_z,
             depth: *depth,
         })),
-        _ => vertex::decode(command, object, words).map(Command::Vertex),
+        _ => vertex::decode(command, object, words)
+            .map(Command::Vertex)
+            .or_else(|| shader::decode(command, object, words).map(Command::Shader)),
     }
 }

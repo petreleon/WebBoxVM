@@ -19,7 +19,7 @@ and raw vertex-buffer copy paths for resource data flow.
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer | 2D color and raw R8 vertex-buffer upload/readback use standard 72-byte transfers | No blobs, arrays, mip levels, or explicit strides |
 | Resource copy | `RESOURCE_COPY_REGION` copies one 2D rectangle or raw vertex-buffer byte range | No blit, format conversion, batching, or scanout copy |
-| VirGL stream | clear/surface state plus one `SET_VERTEX_BUFFERS` and `VERTEX_ELEMENTS` chain are decoded | No shaders, fixed state, or draws |
+| VirGL stream | clear/surface state, one vertex-input chain, and canonical TGSI shader state are decoded | No arbitrary TGSI, fixed state, or draws |
 | Presentation | a validated full current scanout clear becomes a WebGPU render-pass clear | No composition or sub-rectangle clear |
 | Completion | Rust applies CPU-side pixels only after browser WebGPU completion | A lost/stale context reports an error |
 
@@ -53,6 +53,14 @@ at byte offset within the resource with stride one, plus one type-5
 uses buffer slot zero. Detach clears the bound buffer and destroying the bound
 object clears its selection. It cannot become a surface, framebuffer, clear
 target, or color-copy operand.
+
+Type-4 `CREATE_OBJECT` and command-29 `BIND_SHADER` now prepare a deliberately
+canonical TGSI-text subset: vertex passthrough (`VERT`, one input, `POSITION`,
+`MOV`, `END`) and fragment solid color (`FRAG`, `COLOR`, normalized finite
+`FLT32`, `MOV`, `END`). Shader continuations, stream output, other stages, and
+unrecognized text fail before the cloned context commits. Binding zero unbinds;
+destroying a bound shader clears its stage. This is state groundwork, not a
+claim that TGSI is compiled or rendered.
 
 `TRANSFER_TO_HOST_3D` and `TRANSFER_FROM_HOST_3D` use the exact same 72-byte
 standard wire structure. In this slice each requires a live capset-1 context
@@ -97,7 +105,7 @@ guest-to-WebGPU path without relabeling private WBG3 packets as VirGL.
 It does **not** establish any of the following:
 
 - Mesa's VirGL driver can initialize or render;
-- OpenGL contexts, actual vertex fetch, Gallium/TGSI shaders, textures, blending,
+- OpenGL contexts, actual vertex fetch, arbitrary Gallium/TGSI shaders, textures, blending,
   depth/stencil, draw calls, multi-format readback, or general transfer work;
 - capset 2 or capability coverage beyond the conservative v1 response;
 - Vulkan, Venus, blob resources, external memory, or synchronization support.
@@ -147,8 +155,8 @@ WebGPU device, so it complements rather than replaces the browser queue tests.
 
 The guest-side capset-1/KMS probe prerequisite is complete. Next:
 
-1. Add fixed state, shader validation, and one bounded draw path on top of the
-   verified vertex-input state.
+1. Add one bounded draw path that consumes the verified vertex-input and
+   canonical shader state, then add fixed state with renderer coverage.
 2. Expand capability reporting only when each advertised feature has matching
    parser, resource-lifetime, browser, and negative-path coverage.
 3. Investigate Venus only after blob-resource, external-memory, and sync
