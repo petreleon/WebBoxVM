@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-blend-r1";
+import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-viewport-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260903-virgl-blend-r1";
-import { virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-blend-r1";
+  from "./gpu-test-fakes.mjs?v=20260903-virgl-viewport-r1";
+import { virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
 
 test("standard VirGL capset-one clear renders and acknowledges after WebGPU completion", async () => {
   let finishWork;
@@ -68,5 +68,7 @@ test("standard VirGL capset-one draw renders a cached WebGPU triangle", async ()
   assert.deepEqual(device.renderPasses[0].colorAttachments[0].clearValue, {
     r: Math.fround(0.1), g: Math.fround(0.2), b: Math.fround(0.3), a: 1,
   });
+  assert.deepEqual(device.viewports, [[0, 0, 1024, 768, 0, 1]]);
+  assert.deepEqual(device.scissors, [[0, 0, 1024, 768]]);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-draw");
 });

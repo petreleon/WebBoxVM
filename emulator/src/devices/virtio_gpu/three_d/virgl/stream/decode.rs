@@ -1,6 +1,7 @@
 pub(super) mod blend;
 pub(super) mod draw;
 pub(super) mod shader;
+pub(super) mod state;
 pub(super) mod vertex;
 
 use super::super::draw::DrawCall;
@@ -46,6 +47,7 @@ pub(super) enum Command {
     Blend(blend::Command),
     Vertex(vertex::Command),
     Shader(shader::Command),
+    State(state::Command),
 }
 
 pub(super) fn decode_stream(input: &[u8]) -> Option<Vec<Command>> {
@@ -167,6 +169,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
             .map(Command::Vertex)
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))
             .or_else(|| blend::decode(command, object, words).map(Command::Blend))
-            .or_else(|| shader::decode(command, object, words).map(Command::Shader)),
+            .or_else(|| shader::decode(command, object, words).map(Command::Shader))
+            .or_else(|| state::decode(command, object, words).map(Command::State)),
     }
 }

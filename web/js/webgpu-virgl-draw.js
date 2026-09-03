@@ -1,5 +1,5 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260903-virgl-blend-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-blend-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260903-virgl-viewport-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-viewport-r1";
 
 const SHADER = `
 struct Solid { color: vec4f }
@@ -8,6 +8,7 @@ struct Output { @builtin(position) position: vec4f }
 @vertex fn vertex_main(@location(0) position: vec4f) -> Output {
   var output: Output;
   output.position = position;
+  output.position.z = (position.z + position.w) * 0.5;
   return output;
 }
 @fragment fn fragment_main() -> @location(0) vec4f { return solid.color; }
@@ -111,9 +112,20 @@ export class VirglDrawRenderer {
     pass.setPipeline(this.#pipeline);
     pass.setBindGroup(0, this.#bindGroup);
     pass.setVertexBuffer(0, this.#vertexBuffer);
+    const viewport = webGpuViewport(frame);
+    if (viewport) pass.setViewport(...viewport);
+    if (frame.scissor) pass.setScissorRect(
+      frame.scissor.x, frame.scissor.y, frame.scissor.width, frame.scissor.height,
+    );
     pass.draw(frame.vertexCount);
     pass.end();
     device.queue.submit([encoder.finish()]);
     return device.queue.onSubmittedWorkDone();
   }
+}
+
+function webGpuViewport(frame) {
+  if (!frame.viewport) return undefined;
+  const [sx, sy, sz, tx, ty, tz] = frame.viewport;
+  return [tx - sx, frame.canvasHeight - ty - sy, sx * 2, sy * 2, tz - sz, tz + sz];
 }

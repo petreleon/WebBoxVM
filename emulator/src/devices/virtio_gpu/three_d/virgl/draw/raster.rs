@@ -16,6 +16,8 @@ pub(super) fn draw(
     rect: Rect,
     vertices: &[u8],
     color: [f32; 4],
+    viewport: [f32; 6],
+    scissor: Option<Rect>,
 ) -> bool {
     let Some(points) = points(vertices) else {
         return false;
@@ -23,11 +25,13 @@ pub(super) fn draw(
     if !resource.is_texture_2d()
         || !rect.valid_within(resource.width, resource.height)
         || !valid(vertices)
+        || !valid_viewport(viewport, rect)
+        || scissor.is_some_and(|scissor| !scissor.valid_within(rect.width, rect.height))
     {
         return false;
     }
-    let points = points.map(|point| screen(point, rect.width, rect.height));
-    let (min_x, max_x, min_y, max_y) = bounds(points, rect);
+    let points = points.map(|point| screen(point, viewport, rect.height));
+    let (min_x, max_x, min_y, max_y) = bounds(points, rect, scissor);
     for y in min_y..max_y {
         for x in min_x..max_x {
             if contains(points, x as f32 + 0.5, y as f32 + 0.5) {
@@ -75,7 +79,7 @@ fn valid_point(point: &[f32; 4]) -> bool {
     point.iter().all(|value| value.is_finite())
         && (-1.0..=1.0).contains(&point[0])
         && (-1.0..=1.0).contains(&point[1])
-        && (0.0..=1.0).contains(&point[2])
+        && (-1.0..=1.0).contains(&point[2])
         && point[3] == 1.0
 }
 
@@ -87,34 +91,55 @@ fn area(points: [[f32; 4]; VERTICES]) -> f32 {
     )
 }
 
-fn screen(point: [f32; 4], width: u32, height: u32) -> [f32; 2] {
+fn screen(point: [f32; 4], viewport: [f32; 6], height: u32) -> [f32; 2] {
     [
-        (point[0] * 0.5 + 0.5) * width as f32,
-        (0.5 - point[1] * 0.5) * height as f32,
+        point[0] * viewport[0] + viewport[3],
+        height as f32 - (point[1] * viewport[1] + viewport[4]),
     ]
 }
 
-fn bounds(points: [[f32; 2]; VERTICES], rect: Rect) -> (u32, u32, u32, u32) {
+fn bounds(points: [[f32; 2]; VERTICES], rect: Rect, scissor: Option<Rect>) -> (u32, u32, u32, u32) {
+    let scissor = scissor.unwrap_or(Rect {
+        x: 0,
+        y: 0,
+        width: rect.width,
+        height: rect.height,
+    });
+    let max_x = (scissor.x + scissor.width) as f32;
+    let max_y = (scissor.y + scissor.height) as f32;
     let xs = points.map(|point| point[0]);
     let ys = points.map(|point| point[1]);
     (
         xs.iter()
             .fold(f32::INFINITY, |min, value| min.min(*value))
             .floor()
-            .clamp(0.0, rect.width as f32) as u32,
+            .clamp(scissor.x as f32, max_x) as u32,
         xs.iter()
             .fold(f32::NEG_INFINITY, |max, value| max.max(*value))
             .ceil()
-            .clamp(0.0, rect.width as f32) as u32,
+            .clamp(scissor.x as f32, max_x) as u32,
         ys.iter()
             .fold(f32::INFINITY, |min, value| min.min(*value))
             .floor()
-            .clamp(0.0, rect.height as f32) as u32,
+            .clamp(scissor.y as f32, max_y) as u32,
         ys.iter()
             .fold(f32::NEG_INFINITY, |max, value| max.max(*value))
             .ceil()
-            .clamp(0.0, rect.height as f32) as u32,
+            .clamp(scissor.y as f32, max_y) as u32,
     )
+}
+
+fn valid_viewport([sx, sy, sz, tx, ty, tz]: [f32; 6], rect: Rect) -> bool {
+    [sx, sy, sz, tx, ty, tz].into_iter().all(f32::is_finite)
+        && sx > 0.0
+        && sy > 0.0
+        && sz >= 0.0
+        && tx - sx >= 0.0
+        && tx + sx <= rect.width as f32
+        && ty - sy >= 0.0
+        && ty + sy <= rect.height as f32
+        && tz - sz >= 0.0
+        && tz + sz <= 1.0
 }
 
 fn contains(points: [[f32; 2]; VERTICES], x: f32, y: f32) -> bool {

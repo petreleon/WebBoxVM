@@ -1,13 +1,13 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-blend-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-viewport-r1";
 import {
   defaultBufferUsage,
   ensureBuffer,
   paddedIndexBytes,
   pipelineDescriptor,
   renderPassDescriptor,
-} from "./webgpu-3d-resources.js?v=20260903-virgl-blend-r1";
-import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-blend-r1";
-import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260903-virgl-blend-r1";
+} from "./webgpu-3d-resources.js?v=20260903-virgl-viewport-r1";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-viewport-r1";
+import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260903-virgl-viewport-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }

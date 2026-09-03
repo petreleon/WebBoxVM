@@ -41,42 +41,6 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
     }
 }
 
-fn vgd1_sequence(packet: &[u8]) -> Result<u32, String> {
-    let vertices = [
-        0,
-        0x3f40_0000,
-        0,
-        0x3f80_0000,
-        0xbf40_0000,
-        0xbf40_0000,
-        0,
-        0x3f80_0000,
-        0x3f40_0000,
-        0xbf40_0000,
-        0,
-        0x3f80_0000,
-    ];
-    if packet.len() != 104
-        || packet.get(..4) != Some(b"VGD1")
-        || [4, 12, 16, 20]
-            .into_iter()
-            .zip([1, 1024, 768, 3])
-            .any(|(at, want)| read_u32(packet, at) != Some(want))
-        || !words_are(
-            packet,
-            24,
-            &[0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000],
-        )
-        || !words_are(packet, 40, &[0, 0x3f80_0000, 0, 0x3e80_0000])
-        || !words_are(packet, 56, &vertices)
-    {
-        return Err("guest emitted an invalid standard VirGL draw packet".into());
-    }
-    read_u32(packet, 8)
-        .filter(|sequence| *sequence != 0)
-        .ok_or_else(|| "VGD1 packet has no nonzero sequence".into())
-}
-
 pub(super) fn is_clear_readback(packet: &[u8]) -> bool {
     frame_pixels(packet).is_some_and(|pixels| {
         pixels
@@ -94,13 +58,6 @@ pub(super) fn is_upload_readback(packet: &[u8]) -> bool {
         && pixels[offset..offset + 4] == [10, 20, 30, 255]
         && pixels[offset + 4..offset + 8] == [40, 50, 60, 255]
         && pixels[offset + 8..].iter().all(|byte| *byte == 0)
-}
-
-pub(super) fn is_triangle_readback(packet: &[u8]) -> bool {
-    frame_pixels(packet).is_some_and(|pixels| {
-        let center = (384 * 1024 + 512) * 4;
-        pixels[..4] == [191, 128, 64, 255] && pixels[center..center + 4] == [143, 160, 48, 255]
-    })
 }
 
 pub(super) fn shell_ready(uart: &str) -> bool {
@@ -169,3 +126,8 @@ fn base64_lines(bytes: &[u8]) -> String {
         .map(|line| format!("{}\r", std::str::from_utf8(line).unwrap()))
         .collect()
 }
+#[path = "wire/draw.rs"]
+mod draw;
+
+pub(crate) use draw::is_triangle_readback;
+use draw::vgd1_sequence;

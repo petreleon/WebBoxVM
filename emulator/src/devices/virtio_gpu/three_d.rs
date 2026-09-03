@@ -47,6 +47,8 @@ pub(super) enum Pending3dEffect {
         clear_bgra: [u8; 4],
         draw_color: [f32; 4],
         vertices: Vec<u8>,
+        viewport: [f32; 6],
+        scissor: Option<Rect>,
     },
 }
 

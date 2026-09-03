@@ -2,6 +2,7 @@ mod blend;
 mod clear;
 mod decode;
 mod shader;
+mod state;
 mod vertex;
 
 use super::VirglContext;
@@ -84,6 +85,7 @@ impl VirtioGpu {
                 Command::Blend(command) => blend::apply(&mut context, command)?,
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
                 Command::Shader(command) => shader::apply(&mut context, command)?,
+                Command::State(command) => state::apply(&mut context, command)?,
             }
         }
         if let Some(region) = copy {

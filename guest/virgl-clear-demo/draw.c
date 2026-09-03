@@ -83,6 +83,8 @@ static u32 triangle_stream(u32 *words, u32 triangle)
     words[next++] = 12;
     words[next++] = 1;
     next += virgl_source_over_blend_stream(words + next, 13);
+    next += virgl_scissor_rasterizer_stream(words + next, 14);
+    next += virgl_viewport_scissor_stream(words + next);
     words[next++] = VIRGL_HEADER(1, 5, 5);
     words[next++] = 10;
     words[next++] = 0;

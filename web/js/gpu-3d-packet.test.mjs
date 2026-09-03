@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260903-virgl-blend-r1";
-import { gpu3dPacket, virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-blend-r1";
+} from "./gpu-3d-packet.js?v=20260903-virgl-viewport-r1";
+import { gpu3dPacket, virglClearPacket, virglDrawPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
 
 test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
   const packet = gpu3dPacket({ sequence: 42 });
@@ -76,16 +76,29 @@ test("VirGL draw envelope validates one bounded clip-space triangle", () => {
   const packet = virglDrawPacket({ sequence: 62 });
   const frame = parseGpu3dPacket(packet);
   assert.equal(frame.protocol, "virgl-draw");
+  assert.equal(frame.version, 2);
   assert.equal(frame.sequence, 62);
   assert.equal(frame.vertexCount, 3);
   assert.deepEqual([...frame.drawColor], [0, 1, 0, 0.25]);
+  assert.deepEqual([...frame.viewport], [512, 384, 0.5, 512, 384, 0.5]);
+  assert.deepEqual(frame.scissor, { x: 0, y: 0, width: 1024, height: 768 });
   assert.equal(extractGpu3dSequence(packet), 62);
+  const legacy = parseGpu3dPacket(virglDrawPacket({ sequence: 63, version: 1 }));
+  assert.equal(legacy.version, 1);
+  assert.equal(legacy.viewport, undefined);
+  assert.equal(legacy.scissor, undefined);
   const count = packet.slice();
   new DataView(count.buffer).setUint32(20, 2, true);
   assert.throws(() => parseGpu3dPacket(count), /one triangle/);
   const position = packet.slice();
   new DataView(position.buffer).setFloat32(56, 2, true);
   assert.throws(() => parseGpu3dPacket(position), /clip-space/);
+  const viewport = packet.slice();
+  new DataView(viewport.buffer).setFloat32(104, Number.NaN, true);
+  assert.throws(() => parseGpu3dPacket(viewport), /viewport/);
+  const scissor = packet.slice();
+  new DataView(scissor.buffer).setUint32(136, 1025, true);
+  assert.throws(() => parseGpu3dPacket(scissor), /scissor/);
 });
 
 function assertMutation(packet, offset, value, expected) {

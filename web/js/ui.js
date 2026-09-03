@@ -1,4 +1,4 @@
-import { formatBytes } from "./utils.js?v=20260903-virgl-blend-r1";
+import { formatBytes } from "./utils.js?v=20260903-virgl-viewport-r1";
 
 export class UiController {
   constructor(els) {

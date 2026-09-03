@@ -37,8 +37,18 @@ impl VirtioGpu {
                 clear_bgra,
                 draw_color,
                 vertices,
+                viewport,
+                scissor,
                 ..
-            } => self.apply_virgl_draw(resource_id, rect, clear_bgra, draw_color, &vertices),
+            } => self.apply_virgl_draw(
+                resource_id,
+                rect,
+                clear_bgra,
+                draw_color,
+                &vertices,
+                viewport,
+                scissor,
+            ),
         }
     }
 }

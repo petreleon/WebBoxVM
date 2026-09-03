@@ -62,10 +62,12 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
     pipelines: [],
     pipelineAsyncCalls: 0,
     renderPasses: [],
+    scissors: [],
     scopePops: [],
     scopePushes: [],
     submits: 0,
     textures: [],
+    viewports: [],
     writes: [],
     createBindGroup(descriptor) {
       this.bindGroups.push(descriptor);
@@ -88,7 +90,9 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
             setBindGroup() {},
             setIndexBuffer() {},
             setPipeline() {},
+            setScissorRect(...args) { device.scissors.push(args); },
             setVertexBuffer() {},
+            setViewport(...args) { device.viewports.push(args); },
           };
           return pass;
         },

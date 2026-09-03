@@ -17,6 +17,8 @@ pub(super) struct DrawCall {
 pub(super) struct DrawWork {
     pub color: [f32; 4],
     pub vertices: Vec<u8>,
+    pub viewport: [f32; 6],
+    pub scissor: Option<Rect>,
 }
 
 impl VirtioGpu {
@@ -39,6 +41,19 @@ impl VirtioGpu {
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
         let color = draw_color(state)?;
+        let viewport = state.viewport;
+        let scissor = state.scissor;
+        if !viewport.valid_within(rect.width, rect.height)
+            || scissor.is_some_and(|scissor| !scissor.valid_within(rect.width, rect.height))
+        {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        let scissor = scissor.map(|scissor| Rect {
+            x: scissor.x,
+            y: rect.height - (scissor.y + scissor.height),
+            width: scissor.width,
+            height: scissor.height,
+        });
         let binding = state.vertex_buffer;
         let element = state.vertex_element;
         let source = self
@@ -78,7 +93,12 @@ impl VirtioGpu {
         if !raster::valid(&vertices) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        Ok(DrawWork { color, vertices })
+        Ok(DrawWork {
+            color,
+            vertices,
+            viewport: viewport.values(),
+            scissor,
+        })
     }
 
     pub(super) fn apply_virgl_draw(
@@ -88,12 +108,14 @@ impl VirtioGpu {
         clear: [u8; 4],
         color: [f32; 4],
         vertices: &[u8],
+        viewport: [f32; 6],
+        scissor: Option<Rect>,
     ) -> bool {
         let Some(resource) = self.resources.get_mut(&resource_id) else {
             return false;
         };
         if resource.clear_bgra(rect, clear).is_none()
-            || !raster::draw(resource, rect, vertices, color)
+            || !raster::draw(resource, rect, vertices, color, viewport, scissor)
         {
             return false;
         }
@@ -110,13 +132,23 @@ pub(super) fn packet(
     work: &DrawWork,
 ) -> Vec<u8> {
     let mut packet = b"VGD1".to_vec();
-    for value in [1, sequence, width, height, TRIANGLE_VERTICES] {
+    for value in [2, sequence, width, height, TRIANGLE_VERTICES] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     for value in clear.into_iter().chain(work.color) {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     packet.extend_from_slice(&work.vertices);
+    for value in work.viewport {
+        packet.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in work
+        .scissor
+        .map(|rect| [rect.x, rect.y, rect.width, rect.height])
+        .unwrap_or([0; 4])
+    {
+        packet.extend_from_slice(&value.to_le_bytes());
+    }
     packet
 }
 

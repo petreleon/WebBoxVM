@@ -12,14 +12,17 @@ mod virgl_buffer_copy;
 mod virgl_copy;
 mod virgl_draw;
 mod virgl_draw_capset;
+mod virgl_draw_fixture;
 mod virgl_queue;
 mod virgl_readback;
 mod virgl_shader_state;
 mod virgl_transfer;
 mod virgl_vertex_state;
+mod virgl_viewport_state;
 
 use super::protocol::*;
 use crate::memory::PhysicalMemory;
+use virgl_draw_fixture::word;
 
 impl super::VirtioGpu {
     fn execute_command(&mut self, mem: &mut PhysicalMemory, input: &[u8]) -> Vec<u8> {
@@ -115,4 +118,35 @@ pub(super) fn virgl_source_over_state(handle: u32) -> Vec<u32> {
     words.extend([0; 7]);
     words.extend([2 | (1 << 8) | (1 << 16), handle]);
     words
+}
+
+pub(super) fn virgl_viewport_scissor_state(handle: u32) -> Vec<u32> {
+    const RASTERIZER: u32 = (1 << 1) | (1 << 14) | (1 << 29) | (1 << 30);
+    [
+        vec![
+            word(1, 2, 9),
+            handle,
+            RASTERIZER,
+            1.0f32.to_bits(),
+            0,
+            0,
+            1.0f32.to_bits(),
+            0,
+            0,
+            0,
+        ],
+        vec![word(2, 2, 1), handle],
+        vec![
+            word(4, 0, 7),
+            0,
+            256.0f32.to_bits(),
+            192.0f32.to_bits(),
+            0.5f32.to_bits(),
+            512.0f32.to_bits(),
+            384.0f32.to_bits(),
+            0.5f32.to_bits(),
+        ],
+        vec![word(15, 0, 3), 0, 448 | (336 << 16), 576 | (432 << 16)],
+    ]
+    .concat()
 }

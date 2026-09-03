@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { tryRunOrCompileJitBlock } from "./jit-hot.js?v=20260903-virgl-blend-r1";
-import { DEFAULT_JIT_ENABLED, resetJitState, state } from "./state.js?v=20260903-virgl-blend-r1";
+import { tryRunOrCompileJitBlock } from "./jit-hot.js?v=20260903-virgl-viewport-r1";
+import { DEFAULT_JIT_ENABLED, resetJitState, state } from "./state.js?v=20260903-virgl-viewport-r1";
 
 afterEach(() => {
   resetJitState();

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260903-virgl-blend-r1";
+import { withEmulatorAccess } from "./access.js?v=20260903-virgl-viewport-r1";
 
 test("emulator access waits for an active worker round", async () => {
   let releaseRound;

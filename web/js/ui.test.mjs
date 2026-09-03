@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { UiController } from "./ui.js?v=20260903-virgl-blend-r1";
+import { UiController } from "./ui.js?v=20260903-virgl-viewport-r1";
 
 test("active metric updates avoid duplicate jit stats reads", () => {
   let jitStatsCalls = 0;

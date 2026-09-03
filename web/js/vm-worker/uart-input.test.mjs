@@ -8,14 +8,14 @@ import {
   markUartGuestServiced,
   resetUartInput,
   responsiveStepSlice,
-} from "./uart-input.js?v=20260903-virgl-blend-r1";
+} from "./uart-input.js?v=20260903-virgl-viewport-r1";
 import {
   COOPERATIVE_STEP_SLICE,
   DEFAULT_STEP_SLICE,
   INTERACTIVE_STEP_SLICE,
   INTERACTIVE_WINDOW_MS,
   state,
-} from "./state.js?v=20260903-virgl-blend-r1";
+} from "./state.js?v=20260903-virgl-viewport-r1";
 
 afterEach(() => {
   resetUartInput();

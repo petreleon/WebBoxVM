@@ -77,11 +77,13 @@ export function virglDrawPacket({
   canvasWidth = 1024,
   clearColor = [0.1, 0.2, 0.3, 1],
   drawColor = [0, 1, 0, 0.25],
+  scissor,
   sequence = 7,
-  version = 1,
+  version = 2,
   vertices = virglTriangle(),
+  viewport,
 } = {}) {
-  const packet = new Uint8Array(104);
+  const packet = new Uint8Array(version === 1 ? 104 : 144);
   packet.set([0x56, 0x47, 0x44, 0x31]);
   const view = new DataView(packet.buffer);
   view.setUint32(4, version, true);
@@ -92,6 +94,11 @@ export function virglDrawPacket({
   writeFloats(view, 24, clearColor);
   writeFloats(view, 40, drawColor);
   writeFloats(view, 56, vertices);
+  if (version === 2) {
+    writeFloats(view, 104, viewport ?? [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5]);
+    const values = scissor ?? [0, 0, canvasWidth, canvasHeight];
+    values.forEach((value, index) => view.setUint32(128 + index * 4, value, true));
+  }
   return packet;
 }
 

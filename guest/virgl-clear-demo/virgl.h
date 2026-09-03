@@ -15,10 +15,14 @@
 #define VIRGL_COPY_WORDS 14u
 #define VIRGL_VERTEX_INPUT_WORDS 12u
 #define VIRGL_TRIANGLE_BYTES 48u
-#define VIRGL_TRIANGLE_WORDS 128u
+#define VIRGL_TRIANGLE_WORDS 160u
 #define VIRGL_SOURCE_OVER_BLEND_WORDS 14u
+#define VIRGL_SCISSOR_RASTERIZER_WORDS 12u
+#define VIRGL_VIEWPORT_SCISSOR_WORDS 12u
 #define VIRGL_SOURCE_OVER_BLEND_STATE \
     (1u | (3u << 4) | (19u << 9) | (1u << 17) | (19u << 22) | (15u << 27))
+#define VIRGL_SCISSOR_RASTERIZER_STATE \
+    ((1u << 1) | (1u << 14) | (1u << 29) | (1u << 30))
 #define VIRGL_HEADER(command, object, length) \
     ((u32)(command) | ((u32)(object) << 8) | ((u32)(length) << 16))
 
@@ -32,6 +36,33 @@ static inline u32 virgl_source_over_blend_stream(u32 *words, u32 handle)
     words[12] = VIRGL_HEADER(2, 1, 1);
     words[13] = handle;
     return VIRGL_SOURCE_OVER_BLEND_WORDS;
+}
+
+static inline u32 virgl_scissor_rasterizer_stream(u32 *words, u32 handle)
+{
+    words[0] = VIRGL_HEADER(1, 2, 9);
+    words[1] = handle;
+    words[2] = VIRGL_SCISSOR_RASTERIZER_STATE;
+    words[3] = 0x3f800000u;
+    words[6] = 0x3f800000u;
+    words[10] = VIRGL_HEADER(2, 2, 1);
+    words[11] = handle;
+    return VIRGL_SCISSOR_RASTERIZER_WORDS;
+}
+
+static inline u32 virgl_viewport_scissor_stream(u32 *words)
+{
+    words[0] = VIRGL_HEADER(4, 0, 7);
+    words[2] = 0x43800000u;
+    words[3] = 0x43400000u;
+    words[4] = 0x3f000000u;
+    words[5] = 0x44000000u;
+    words[6] = 0x43c00000u;
+    words[7] = 0x3f000000u;
+    words[8] = VIRGL_HEADER(15, 0, 3);
+    words[10] = 0x015001c0u;
+    words[11] = 0x01b00240u;
+    return VIRGL_VIEWPORT_SCISSOR_WORDS;
 }
 
 static inline void virgl_clear_stream(u32 words[VIRGL_CLEAR_WORDS], u32 resource)

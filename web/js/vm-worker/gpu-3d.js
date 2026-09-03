@@ -1,4 +1,4 @@
-import { GPU_3D_POLL_INTERVAL_MS, state } from "./state.js?v=20260903-virgl-blend-r1";
+import { GPU_3D_POLL_INTERVAL_MS, state } from "./state.js?v=20260903-virgl-viewport-r1";
 
 export function maybePostGpu3d(
   now,

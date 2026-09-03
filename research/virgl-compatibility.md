@@ -10,7 +10,7 @@ primitive, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, and one deliberately bounded
-clear-plus-triangle draw path.
+clear-plus-triangle draw path with one standard viewport and optional scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
@@ -19,8 +19,8 @@ clear-plus-triangle draw path.
 | Buffer resources | R8 raw storage and R32G32B32A32_FLOAT vertex buffers | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
-| VirGL stream | Surface/framebuffer, canonical TGSI, vertex state, exact type-1 source-over blend, clear, and one `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | A clear or one source-over triangle is rendered through WebGPU | No multi-draw composition, depth, arbitrary blending, or textures |
+| VirGL stream | Surface/framebuffer, canonical TGSI, vertex state, exact type-1 source-over blend, type-2 rasterizer, viewport/scissor, clear, and one `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
+| Presentation | A clear or one source-over triangle is rendered through WebGPU with matching viewport/scissor | No multi-draw composition, depth, arbitrary blending, or textures |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -55,13 +55,21 @@ alpha `ADD, ONE, INV_SRC_ALPHA`. A draw requires that object to be bound.
 Binding zero unbinds it; every other equation, factor, mask, and independent
 blend configuration is rejected.
 
+Type-2 `VIRGL_OBJECT_RASTERIZER` accepts only the normal `DEPTH_CLIP`,
+`HALF_PIXEL_CENTER`, and `BOTTOM_EDGE_RULE` bits, with or without `SCISSOR`,
+plus exact unit point and line sizes. Binding zero unbinds it. Command 4
+`SET_VIEWPORT_STATE` accepts one slot-zero `(scale_xyz, translate_xyz)` state;
+command 15 `SET_SCISSOR_STATE` accepts one slot-zero packed lower-left
+min/max rectangle. A draw requires the blend object, rasterizer, and viewport;
+when the rasterizer has `SCISSOR`, it also requires the nonempty scissor.
+
 ## Clear-plus-draw execution
 
-The guest stream uses ordinary VirGL headers, object types 1, 4, 5, and 7,
-`SET_FRAMEBUFFER_STATE`, generic `CLEAR` or `CLEAR_SURFACE`,
-`SET_VERTEX_BUFFERS`, command 29 `BIND_SHADER`, and command 8 `DRAW_VBO`.
-Parsing is bounded to 64 KiB; all context mutations occur on a clone and the
-clone is committed only after the complete stream validates.
+The guest stream uses ordinary VirGL headers, object types 1, 2, 4, 5, and 7,
+`SET_FRAMEBUFFER_STATE`, `SET_VIEWPORT_STATE`, `SET_SCISSOR_STATE`, generic
+`CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, command 29 `BIND_SHADER`,
+and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
+occur on a clone and the clone is committed only after the complete stream validates.
 
 The single accepted draw has the standard 12-word `DRAW_VBO` payload with a
 non-indexed count of three, one instance, `PIPE_PRIM_TRIANGLES`, zero bias,
@@ -72,19 +80,20 @@ the same full current scanout framebuffer target. Clear/copy and draw/copy
 mixtures, a second clear, or a second draw fail transactionally.
 
 At draw validation Rust snapshots exactly three four-float vertices from the
-attached VBO. Each must be finite, have `x` and `y` in `[-1, 1]`, `z` in
-`[0, 1]`, `w == 1`, and form a nondegenerate triangle. It also snapshots the
-fragment color. Later buffer mutations cannot alter the queued browser work.
-The accepted fragment color is composited over the clear using the required
-source-over blend object; its alpha is therefore semantically significant.
+attached VBO. Each must be finite, have `x`, `y`, and `z` in `[-1, 1]`,
+`w == 1`, and form a nondegenerate triangle. It also snapshots the fragment
+color, viewport, and canonical top-origin scissor. Later buffer mutations or
+state changes cannot alter the queued browser work. The accepted fragment color
+is composited over the clear using the required source-over blend object; its
+alpha is therefore semantically significant.
 
 After validation Rust sends a private `VGD1` envelope to the browser. `VGD1`
-is not a guest ABI or VirGL command; it carries the sequence, canvas size,
-clear RGBA, fragment RGBA, and the 48 vertex bytes. The browser independently
-validates the envelope, reuses a WebGPU `float32x4` triangle pipeline with the
-matching source-over target blend, vertex buffer, uniform buffer, and bind
-group for the device generation, then submits one clear-and-draw render pass
-and waits for `GPUQueue.onSubmittedWorkDone()`.
+is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
+sequence, canvas size, colors, and 48 vertex bytes plus six viewport floats and
+an optional canonical top-origin scissor. The browser retains schema-1 parsing
+only for old packets, independently validates schema 2, converts VirGL `z`
+from `[-w,w]` to WebGPU's `[0,w]`, sets the equivalent viewport/scissor, and
+submits the source-over pass before `GPUQueue.onSubmittedWorkDone()`.
 
 Only a successful browser acknowledgment changes authoritative CPU state. Rust
 rechecks the VirGL context generation, clears the target in its canonical BGRA
@@ -100,8 +109,8 @@ Browser diagnostics distinguish `webgpu-virgl-capset1-clear` from
 ## What this does not establish
 
 This slice does not establish Mesa initialization, an OpenGL context, arbitrary
-Gallium/TGSI, shader compilation, clipping, viewport/scissor state, indexed or
-instanced draws, multiple attributes, arbitrary blending, depth/stencil,
+Gallium/TGSI, shader compilation, clipping, indexed or instanced draws,
+multiple attributes, arbitrary blending, depth/stencil,
 textures, multi-target rendering, general readback, or a broad VirGL renderer.
 
 It also does not establish Vulkan or Venus. Venus needs blob resources,
@@ -111,26 +120,27 @@ that this capset deliberately does not advertise.
 ## Validation retained in the repository
 
 Rust tests prove the capset bits, transactional no-clear rejection, exact
-source-over setup and unbind rejection, one `VGD1` payload, deferred
-acknowledgment, BGRA clear result, CPU source-over raster result, and normal
-`WBGF` damage. Browser tests prove private-envelope framing, malformed
-color/position rejection, the exact WebGPU blend descriptor, one cached
-pipeline, two buffers, no depth texture, a `draw(3)`, and completion only after
-the queue resolves.
+source-over setup, rasterizer unbind rejection, one `VGD1` schema-2 payload,
+viewport/scissor bounds, deferred acknowledgment, CPU clipped source-over
+raster result, and normal `WBGF` damage. Browser tests prove private-envelope
+framing, malformed state rejection, the exact WebGPU blend descriptor, viewport
+and scissor calls, one cached pipeline, two buffers, no depth texture, a
+`draw(3)`, and completion only after the queue resolves.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for capset discovery, R8 buffer transfer/copy,
 color transfer/readback, and the standard clear/fence path. It then creates
 the exact R32G32B32A32 VBO, canonical TGSI state, exact type-1 source-over
-blend object, and `DRAW_VBO` stream; validates its `VGD1` envelope; resolves
-the deferred fence; and reads the blended `143,160,48,255` center pixel back
-through the Linux driver. It does not claim native
+blend and type-2 scissor-rasterizer objects, viewport/scissor state, and
+`DRAW_VBO` stream; validates its schema-2 `VGD1` envelope; resolves the
+deferred fence; and reads the blended `143,160,48,255` center plus the clear
+outside-scissor pixel back through the Linux driver. It does not claim native
 Mesa, a native OpenGL context, or a browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 
-1. Add one bounded viewport/scissor state with matching capability reporting,
-   browser rendering, CPU mirroring, and negative-path coverage.
+1. Add one bounded sampled-texture/sampler path with a matching fixed shader,
+   resource-state validation, CPU mirror, and negative-path coverage.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 
