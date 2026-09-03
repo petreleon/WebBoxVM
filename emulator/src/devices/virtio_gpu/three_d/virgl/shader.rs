@@ -10,7 +10,7 @@ pub(in crate::devices::virtio_gpu) enum ShaderKind {
 
 impl ShaderKind {
     const VERTEX_PIPE_TYPE: u32 = 0;
-    const FRAGMENT_PIPE_TYPE: u32 = 4;
+    const FRAGMENT_PIPE_TYPE: u32 = 1;
 
     pub(in crate::devices::virtio_gpu) fn from_pipe_type(value: u32) -> Option<Self> {
         match value {

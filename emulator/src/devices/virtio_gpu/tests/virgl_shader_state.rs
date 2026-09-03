@@ -13,9 +13,9 @@ const FRAG: &str =
 fn standard_shader_objects_bind_unbind_and_release() {
     let (mut gpu, mut mem) = prepared();
     let mut words = shader_create(11, 0, VERT);
-    words.extend(shader_create(12, 4, FRAG));
+    words.extend(shader_create(12, 1, FRAG));
     words.extend(bind(11, 0));
-    words.extend(bind(12, 4));
+    words.extend(bind(12, 1));
     assert_response(&mut gpu, &mut mem, &submit(&words), RESP_OK_NODATA);
     assert_eq!(
         bound(&gpu, ShaderKind::Vertex),
@@ -51,12 +51,12 @@ fn shader_stream_rejection_is_transactional_and_type_safe() {
     let mut continuation = shader_create(12, 0, VERT);
     continuation[3] |= 1 << 31;
     let mut partial = shader_create(12, 0, VERT);
-    partial.extend(shader_create(13, 4, "FRAG\nDCL OUT[0], COLOR\nEND\n"));
+    partial.extend(shader_create(13, 1, "FRAG\nDCL OUT[0], COLOR\nEND\n"));
     for words in [
-        shader_create(12, 1, FRAG),
+        shader_create(12, 4, FRAG),
         shader_create(12, 0, "VERT\nDCL IN[0]\nEND\n"),
         continuation,
-        bind(11, 4),
+        bind(11, 1),
         bind(99, 0),
         partial,
     ] {
