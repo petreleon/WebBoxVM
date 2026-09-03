@@ -78,26 +78,36 @@ or stale-surface streams. Browser tests prove that a `VGC1` clear produces one
 WebGPU submission, uses the requested canvas size and clear color, returns
 success after queue completion, and leaves WBG3 rendering objects unused.
 
-These tests are host-level protocol evidence. A future guest proof must create
-the standard 3D resource through the Linux `virtgpu` UAPI, attach it through an
-ordinary `EXECBUFFER`, connect it to a KMS scanout, submit the surface clear,
-and verify the browser result. That work is intentionally separate from this
-first compatibility milestone.
+`scripts/virgl_guest_transport_smoke.sh` adds a native Linux guest proof. It
+builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
+installed Debian fixture, obtains capset 1 through `DRM_IOCTL_VIRTGPU_GET_CAPS`,
+creates a capset-1 resource, binds it to the legacy KMS primary plane, submits
+the normal surface/framebuffer/`CLEAR` stream through `EXECBUFFER`, and waits
+on the resource fence. The harness validates the exact `VGC1` packet before it
+returns the positive host completion, then verifies that the resulting full
+`WBGF` readback contains only BGRA `[191, 128, 64, 255]`; only then does it
+accept the guest's fence-gated PASS marker.
+
+That native proof validates Linux DRM/KMS transport and post-ack CPU-side
+readback. It intentionally uses the native completion adapter, not a browser
+WebGPU device, so it complements rather than replaces the browser queue tests.
 
 ## Next compatibility milestones
 
-1. Add a guest-side capset-1/KMS probe with visible and readback verification.
-2. Implement enough resource transfer, surface, state, shader, and draw
+The guest-side capset-1/KMS probe prerequisite is complete. Next:
+
+1. Implement enough resource transfer, surface, state, shader, and draw
    semantics to support a deliberately small Mesa/OpenGL acceptance test.
-3. Expand capability reporting only when each advertised feature has matching
+2. Expand capability reporting only when each advertised feature has matching
    parser, resource-lifetime, browser, and negative-path coverage.
-4. Investigate Venus only after blob-resource, external-memory, and sync
+3. Investigate Venus only after blob-resource, external-memory, and sync
    semantics have a sound browser-compatible design; do not advertise it early.
 
 ## Sources
 
 - [VirtIO GPU device specification](https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.pdf)
 - [Linux VirtIO-GPU wire UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h)
+- [Linux VirtIO-GPU DRM UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/drm/virtgpu_drm.h) and [KMS UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/drm/drm_mode.h)
 - [Mesa VirGL clear context](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_context.c) and [encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c)
 - [Mesa VirGL architecture](https://docs.mesa3d.org/drivers/virgl.html)
 - [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
