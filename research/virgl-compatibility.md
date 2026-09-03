@@ -10,8 +10,8 @@ primitive, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, and deliberately bounded
-solid-color; nearest-clamp/repeat or linear-clamp one-texture; or two-texture
-paths with each sampler from that finite set and one viewport/scissor.
+solid-color; one generic per-vertex-RGBA triangle; nearest-clamp/repeat or
+linear-clamp one-texture; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ paths with each sampler from that finite set and one viewport/scissor.
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear, solid, fixed one- or two-texture sampled triangles through WebGPU | No multi-draw composition, depth, arbitrary blending, or sampler state |
+| Presentation | Clear, solid, fixed vertex-color or one/two-texture sampled triangles through WebGPU | No multi-draw composition, depth, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -40,14 +40,14 @@ feature level is advertised.
 - `PIPE_BUFFER` target; R32G32B32A32_FLOAT with exactly vertex-buffer bind, or
   R8 with exactly vertex- or index-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
 
-R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4
-and accepts aligned byte offsets, including nonzero values. Solid draws require attached format-31 VBOs
-at stride 16; textured draws use stride 24 with type-5 `VERTEX_ELEMENTS`:
-format-31 position at offset zero and format-29 UV at offset 16, both divisor zero in VBO slot zero.
+R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4 and accepts aligned byte offsets.
+Solid draws use an attached format-31 VBO at stride 16; textured draws use stride 24 with type-5 `VERTEX_ELEMENTS`:
+format-31 position at offset zero and format-29 UV at offset 16. Vertex-color draws use stride 32 with
+format-31 position and RGBA at offsets zero and 16; all accepted elements have divisor zero in VBO slot zero.
 
 Type-4 shader objects accept only canonical NUL-terminated TGSI text: the
-solid passthrough/constant-RGBA pair; a one-2D-`TEX` pair; or a two-2D-`TEX`,
-`MUL` pair. The latter has one generic UV input, two sampler/views, and one
+solid passthrough/constant-RGBA pair; a generic RGBA-passthrough fragment pair;
+a one-2D-`TEX` pair; or a two-2D-`TEX`, `MUL` pair. The latter has one generic UV input, two sampler/views, and one
 color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
 source per vertex/fragment stage may be in flight. Chunks must retain handle,
@@ -95,22 +95,19 @@ Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. Each draw follows one clear in the same submission against the current
 full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots exactly three positions from the attached VBO,
-directly for non-indexed draws or through three bounded index-buffer lookups. They
-must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and form a
-nondegenerate triangle. Texture routes additionally snapshot three finite UVs in
-`[-8, 8]` and one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64;
-feedback into the target is rejected. Schema 6 carries independent exact sampler state; schema 4 remains
-the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work. Solid color and sampled texels use
-the required source-over blend object.
+At draw validation Rust snapshots exactly three positions from the attached VBO, directly or through bounded index-buffer lookups.
+They must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and form a nondegenerate triangle.
+Vertex-color routes also snapshot three finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
+one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
+Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.
+Solid color, interpolated vertex color, and sampled texels use the required source-over blend object.
 
 After validation Rust sends a private `VGD1` envelope to the browser. `VGD1`
 is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
 sequence, canvas size, colors, 48 vertex bytes, viewport, and optional
-canonical top-origin scissor. Schema 3 appends 72 position/UV bytes, one 2D
-texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
-texels for legacy nearest-clamp multiplication; schema 5 carries exact one-texture state `0x1080` or `0x3292`, its size, and texels.
-Schema 6 carries two exact sampler words, two sizes, and their texels. The browser retains schema-1 parsing only for old packets, independently validates schemas 2/3/4/5/6,
+canonical top-origin scissor. Schema 3 appends 72 position/UV bytes, one 2D texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
+texels for legacy nearest-clamp multiplication; schema 5 carries exact one-texture state `0x1080` or `0x3292`, its size, and texels. Schema 6 carries two sampler words, sizes, and texels.
+Schema 7 is exactly 192 bytes with three position/RGBA vertices plus viewport/scissor. The browser retains schema-1 parsing only for old packets, independently validates schemas 2/3/4/5/6/7,
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, applies equivalent viewport/scissor, and waits for
 `GPUQueue.onSubmittedWorkDone()`.
@@ -128,7 +125,7 @@ Browser diagnostics distinguish clear, draw, texture, and dual-texture paths fro
 
 This slice does not establish Mesa initialization, an OpenGL context, arbitrary
 Gallium/TGSI, shader compilation, clipping, unbounded or instanced draws,
-multiple vertex attributes beyond the fixed position/UV layout, arbitrary
+multiple vertex attributes beyond fixed position/UV or position/RGBA layouts, arbitrary
 sampling/filtering or blending, depth/stencil, multi-target rendering, general
 readback, or a broad VirGL renderer.
 
@@ -139,11 +136,11 @@ that this capset deliberately does not advertise.
 ## Validation retained in the repository
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
-exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4/5/6 `VGD1`
-payloads, repeat-at-one, clamp-linear midpoint, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
+exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4/5/6/7 `VGD1`
+payloads, normalized per-vertex RGBA interpolation, repeat-at-one, clamp-linear midpoint, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
-independent WebGPU clamp/repeat/linear descriptors, one/two padded BGRA uploads, viewport/scissor calls,
+independent WebGPU clamp/repeat/linear descriptors, fixed RGBA attributes, one/two padded BGRA uploads, viewport/scissor calls,
 cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
@@ -157,14 +154,13 @@ deferred fence, and reads the blended `143,160,48,255` center plus the clear
 outside-scissor pixel back through the Linux driver. It then creates two attached
 R8G8B8A8 sampler-view textures and a 24-byte position/UV VBO. It validates schema-5's
 transfer-normalized BGRA and first `0x1080` at `u == 1`, then `0x3292` at `u == .5`,
-completes both, and reads `10,20,30,255` then `25,35,45,255` at the center. Finally it validates schema-6
-with left clamp-linear and right repeat-nearest at `[u,v] == [1,.625]`, then reads `55,65,75,255`.
+completes both, and reads `10,20,30,255` then `25,35,45,255` at the center. It then validates schema-6
+with left clamp-linear and right repeat-nearest at `[u,v] == [1,.625]`, reads `55,65,75,255`, then validates schema-7's 96-byte position/RGBA VBO and reads `64,64,127,255`.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 
-1. Expand only after proving more render formats and texture coordinates
-   with the same native/CPU/WebGPU agreement.
+1. Expand the generic vertex/fragment contract only with the same native/CPU/WebGPU agreement.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 
@@ -174,7 +170,7 @@ This does not claim native Mesa, a native OpenGL context, or browser WebGPU exec
 - [Linux VirtIO-GPU wire UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h)
 - [VirGL hardware formats and bindings](https://android.googlesource.com/platform/external/virglrenderer/+/68429e8e1106d0861d9f9f180583bd8381b8bf96/src/virgl_hw.h)
 - [VirGL protocol commands](https://android.googlesource.com/platform/external/virglrenderer/+/056b3873e41c015249499dbf9f761c8e9a78b720/src/virgl_protocol.h)
-- [Mesa VirGL encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c) and [VirGL renderer shader decoder](https://gitlab.freedesktop.org/virgl/virglrenderer/-/blob/main/src/vrend/vrend_renderer.c)
+- [Mesa VirGL encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c), [TGSI helper shaders](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/auxiliary/util/u_simple_shaders.c), and [VirGL renderer shader decoder](https://gitlab.freedesktop.org/virgl/virglrenderer/-/blob/main/src/vrend/vrend_renderer.c)
 - [Mesa blend-state definitions](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/util/blend.h)
 - [Mesa VirGL architecture](https://docs.mesa3d.org/drivers/virgl.html)
 - [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)

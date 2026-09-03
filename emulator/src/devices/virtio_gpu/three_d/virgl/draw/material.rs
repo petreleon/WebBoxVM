@@ -7,6 +7,7 @@ use crate::devices::virtio_gpu::three_d::virgl::shader::ShaderProgram;
 
 const SOLID_VERTEX_BYTES: usize = 16;
 const TEXTURED_VERTEX_BYTES: usize = 24;
+const VERTEX_COLOR_BYTES: usize = 32;
 
 pub(super) fn material(
     gpu: &VirtioGpu,
@@ -18,11 +19,14 @@ pub(super) fn material(
         (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => {
             Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
         }
-        (ShaderProgram::VertexTextured, ShaderProgram::FragmentTextured) => Ok((
+        (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {
+            Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor))
+        }
+        (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTextured) => Ok((
             TEXTURED_VERTEX_BYTES,
             DrawMaterial::Textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
         )),
-        (ShaderProgram::VertexTextured, ShaderProgram::FragmentTexturedMultiply) => Ok((
+        (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTexturedMultiply) => Ok((
             TEXTURED_VERTEX_BYTES,
             DrawMaterial::TexturedPair(pair(gpu, context, target, state.sampled_resources)?),
         )),

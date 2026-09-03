@@ -110,7 +110,9 @@ int virgl_setup(long fd, struct virgl_resources *resources)
     if (virgl_create_index_buffer(fd, &resources->index_bo,
                                   &resources->index_resource) != 0)
         return 4;
-    return virgl_create_textured_resources(fd, resources) == 0 ? 0 : 4;
+    if (virgl_create_textured_resources(fd, resources) != 0)
+        return 4;
+    return virgl_create_vertex_color_resource(fd, resources) == 0 ? 0 : 4;
 }
 
 int virgl_submit_clear(long fd, u32 bo_handle, u32 resource_handle)

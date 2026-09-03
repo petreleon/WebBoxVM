@@ -57,7 +57,7 @@ fn set_buffer(
     let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
     let shape = matches!(
         (binding.stride, resource.format),
-        (1, FORMAT_R8_UNORM) | (16 | 24, FORMAT_R32G32B32A32_FLOAT)
+        (1, FORMAT_R8_UNORM) | (16 | 24 | 32, FORMAT_R32G32B32A32_FLOAT)
     );
     if !shape
         || !context.is_attached(binding.resource)

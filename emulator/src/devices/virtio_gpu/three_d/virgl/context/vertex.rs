@@ -1,7 +1,5 @@
 use super::VirglContext;
-use crate::devices::virtio_gpu::resource::{
-    FORMAT_R8_UNORM, FORMAT_R32G32_FLOAT, FORMAT_R32G32B32A32_FLOAT,
-};
+use crate::devices::virtio_gpu::resource::{FORMAT_R8_UNORM, FORMAT_R32G32_FLOAT, FORMAT_R32G32B32A32_FLOAT};
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -23,12 +21,11 @@ pub(in crate::devices::virtio_gpu) struct VertexElement {
 pub(in crate::devices::virtio_gpu::three_d::virgl) enum VertexLayout {
     Single(VertexElement),
     Textured,
+    VertexColor,
 }
 
 impl VertexLayout {
-    pub(in crate::devices::virtio_gpu::three_d::virgl) fn from_elements(
-        elements: &[VertexElement],
-    ) -> Option<Self> {
+    pub(in crate::devices::virtio_gpu::three_d::virgl) fn from_elements(elements: &[VertexElement]) -> Option<Self> {
         match elements {
             [element] => Some(Self::Single(*element)),
             [
@@ -45,6 +42,10 @@ impl VertexLayout {
                     format: FORMAT_R32G32_FLOAT,
                 },
             ] => Some(Self::Textured),
+            [
+                VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT },
+                VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT },
+            ] => Some(Self::VertexColor),
             _ => None,
         }
     }
@@ -52,7 +53,7 @@ impl VertexLayout {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn valid(self) -> bool {
         matches!(
             self,
-            Self::Textured
+            Self::Textured | Self::VertexColor
                 | Self::Single(VertexElement {
                     offset: 0,
                     divisor: 0,
@@ -69,6 +70,7 @@ impl VertexLayout {
                 ..
             }) => Some(16),
             Self::Textured => Some(24),
+            Self::VertexColor => Some(32),
             Self::Single(_) => None,
         }
     }
@@ -76,7 +78,7 @@ impl VertexLayout {
     pub(in crate::devices::virtio_gpu) fn first(self) -> VertexElement {
         match self {
             Self::Single(element) => element,
-            Self::Textured => VertexElement {
+            Self::Textured | Self::VertexColor => VertexElement {
                 offset: 0,
                 divisor: 0,
                 buffer_index: 0,
@@ -125,11 +127,7 @@ impl VirglContext {
         self.vertex.buffer
     }
 
-    pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_vertex_elements(
-        &mut self,
-        handle: u32,
-        layout: VertexLayout,
-    ) -> bool {
+    pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_vertex_elements(&mut self, handle: u32, layout: VertexLayout) -> bool {
         handle != 0 && self.vertex.layouts.insert(handle, layout).is_none()
     }
 

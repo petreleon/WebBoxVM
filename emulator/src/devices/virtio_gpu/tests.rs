@@ -25,6 +25,7 @@ mod virgl_shader_state;
 mod virgl_textured_draw;
 mod virgl_transfer;
 mod virgl_vertex_state;
+mod virgl_vertex_color_draw;
 mod virgl_viewport_state;
 
 use super::protocol::*;

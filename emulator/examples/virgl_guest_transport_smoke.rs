@@ -43,19 +43,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
     let mut steps = 0u64;
-    let mut clear_sequence = None;
-    let mut draw_sequence = None;
+    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence) = (None, None, None, None);
     let mut texture_sequence = None;
-    let mut texture_pair_sequence = None;
     let (mut upload_readback, mut clear_completed) = (false, false);
     let mut draw_completed = false;
-    let (mut repeat_completed, mut linear_completed) = (false, false);
+    let (mut repeat_completed, mut linear_completed, mut texture_pair_completed) = (false, false, false);
     while steps < max_steps && start.elapsed() < timeout {
-        let slice = if phase == Phase::Result {
-            10_000
-        } else {
-            chunk_steps
-        };
+        let slice = if phase == Phase::Result { 10_000 } else { chunk_steps };
         let ran = vm.run_kernel_phase(slice.min((max_steps - steps) as usize));
         steps += ran as u64;
         let delta = vm.uart_output_since(uart_offset);
@@ -111,6 +105,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                             println!("VGD1 texture pair validated: sequence {sequence}");
                             texture_pair_sequence = Some(sequence);
                         }
+                        VirglPacket::VertexColorDraw(sequence)
+                            if texture_pair_completed && vertex_color_sequence.is_none() =>
+                        {
+                            println!("VGD1 vertex-color validated: sequence {sequence}");
+                            vertex_color_sequence = Some(sequence);
+                        }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -157,13 +157,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         if phase == Phase::Packet && linear_completed && let Some(sequence) = texture_pair_sequence.take() {
             complete(&mut vm, sequence, is_texture_pair_readback, "VGD1 texture pair")?;
             println!("WBGF independent sampler texture-pair BGRA readback validated");
+            texture_pair_completed = true;
+        }
+        if phase == Phase::Packet && texture_pair_completed && let Some(sequence) = vertex_color_sequence.take() {
+            complete(&mut vm, sequence, is_vertex_color_readback, "VGD1 vertex-color")?;
+            println!("WBGF interpolated vertex-color BGRA readback validated");
             phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {
-            println!(
-                "PASS: {PASS}; steps={steps}; seconds={:.3}",
-                start.elapsed().as_secs_f64()
-            );
+            println!("PASS: {PASS}; steps={steps}; seconds={:.3}", start.elapsed().as_secs_f64());
             return Ok(());
         }
     }

@@ -45,7 +45,7 @@ static int run_textured_triangle(
         return 2;
     if (virgl_wait_for_resource(fd, resources->scanout_bo) != 0)
         return 3;
-    return virgl_readback_textured_triangle(fd, resources->scanout_bo, expected) == 0 ? 0 : 4;
+    return virgl_readback_scanout_pixel(fd, resources->scanout_bo, expected) == 0 ? 0 : 4;
 }
 
 static int create_buffer(long fd, u32 *bo, u32 *handle)

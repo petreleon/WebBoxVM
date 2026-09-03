@@ -10,6 +10,7 @@ import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-viewp
 import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260903-virgl-viewport-r1";
 import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260903-virgl-viewport-r1";
 import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260903-virgl-viewport-r1";
+import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260903-virgl-viewport-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
@@ -43,17 +44,16 @@ export class ExperimentalWebGpu3dRenderer {
   #uniformBuffer;
   #vertexBuffer;
   #vertexCapacity = 0;
-  #virglDraw;
-  #virglTexture;
-  #virglTextureMultiply;
+  #virglDraw; #virglTexture; #virglTextureMultiply; #virglVertexColor;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
     this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
-    this.#virglDraw = new VirglDrawRenderer(session, options);
-    this.#virglTexture = new VirglTextureRenderer(session, options);
-    this.#virglTextureMultiply = new VirglTextureMultiplyRenderer(session, options);
+    [this.#virglDraw, this.#virglTexture, this.#virglTextureMultiply, this.#virglVertexColor] = [
+      new VirglDrawRenderer(session, options), new VirglTextureRenderer(session, options),
+      new VirglTextureMultiplyRenderer(session, options), new VirglVertexColorRenderer(session, options),
+    ];
   }
 
   async render(backend, frame, isCurrent = () => true) {
@@ -63,6 +63,7 @@ export class ExperimentalWebGpu3dRenderer {
     if (frame.protocol === "virgl-draw") return this.#virglDraw.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture") return this.#virglTexture.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture-multiply") return this.#virglTextureMultiply.render(backend, frame, isCurrent);
+    if (frame.protocol === "virgl-vertex-color") return this.#virglVertexColor.render(backend, frame, isCurrent);
     const { device } = backend;
     if (typeof device.queue.onSubmittedWorkDone !== "function") {
       throw new Error("WebGPU queue completion tracking is unavailable");
@@ -80,9 +81,7 @@ export class ExperimentalWebGpu3dRenderer {
 
   invalidate() {
     this.#revision += 1;
-    this.#virglDraw.invalidate();
-    this.#virglTexture.invalidate();
-    this.#virglTextureMultiply.invalidate();
+    this.#virglDraw.invalidate(); this.#virglTexture.invalidate(); this.#virglTextureMultiply.invalidate(); this.#virglVertexColor.invalidate();
     this.#uniformBuffer?.destroy?.();
     this.#vertexBuffer?.destroy?.();
     this.#indexBuffer?.destroy?.();

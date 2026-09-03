@@ -31,6 +31,7 @@ pub(in crate::devices::virtio_gpu) struct TextureSnapshot {
 #[derive(Clone, Debug)]
 pub(in crate::devices::virtio_gpu) enum DrawMaterial {
     Solid([f32; 4]),
+    VertexColor,
     Textured(TextureSnapshot),
     TexturedPair([TextureSnapshot; 2]),
 }
@@ -105,6 +106,9 @@ impl VirtioGpu {
         let drawn = match &material {
             DrawMaterial::Solid(color) => {
                 raster::draw_solid(resource, rect, vertices, *color, viewport, scissor)
+            }
+            DrawMaterial::VertexColor => {
+                raster::draw_vertex_color(resource, rect, vertices, viewport, scissor)
             }
             DrawMaterial::Textured(texture) => raster::draw_textured(
                 resource,

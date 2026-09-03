@@ -32,7 +32,7 @@ int virgl_submit_textured_triangle(
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &exec) < 0 ? -1 : 0;
 }
 
-int virgl_readback_textured_triangle(long fd, u32 bo, const u8 expected[4])
+int virgl_readback_scanout_pixel(long fd, u32 bo, const u8 expected[4])
 {
     const u32 x = SCANOUT_WIDTH / 2u;
     const u32 y = SCANOUT_HEIGHT / 2u;

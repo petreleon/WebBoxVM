@@ -10,11 +10,26 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
 ) -> Vec<u8> {
     match &work.material {
         DrawMaterial::Solid(color) => solid(sequence, width, height, clear, work, *color),
+        DrawMaterial::VertexColor => vertex_color(sequence, width, height, clear, work),
         DrawMaterial::Textured(texture) => textured(sequence, width, height, clear, work, texture),
         DrawMaterial::TexturedPair(textures) => {
             textured_pair(sequence, width, height, clear, work, textures)
         }
     }
+}
+
+fn vertex_color(
+    sequence: u32,
+    width: u32,
+    height: u32,
+    clear: [f32; 4],
+    work: &DrawWork,
+) -> Vec<u8> {
+    let mut packet = header(7, sequence, width, height);
+    floats(&mut packet, clear.into_iter().chain([0.0; 4]));
+    packet.extend_from_slice(&work.vertices);
+    state(&mut packet, work);
+    packet
 }
 
 fn solid(

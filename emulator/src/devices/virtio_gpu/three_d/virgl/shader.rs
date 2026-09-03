@@ -27,8 +27,9 @@ impl ShaderKind {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(in crate::devices::virtio_gpu) enum ShaderProgram {
     VertexPassthrough,
-    VertexTextured,
+    VertexGeneric,
     FragmentSolid([u32; 4]),
+    FragmentVertexColor,
     FragmentTextured,
     FragmentTexturedMultiply,
 }
@@ -43,8 +44,9 @@ impl Shader {
     pub(super) const fn tgsi_token_count(self) -> u32 {
         match self.program {
             ShaderProgram::VertexPassthrough => 11,
-            ShaderProgram::VertexTextured => 17,
+            ShaderProgram::VertexGeneric => 17,
             ShaderProgram::FragmentSolid(_) => 14,
+            ShaderProgram::FragmentVertexColor => 11,
             ShaderProgram::FragmentTextured => 25,
             ShaderProgram::FragmentTexturedMultiply => 31,
         }

@@ -24,6 +24,8 @@ struct virgl_resources {
     u32 texture_pair_resource;
     u32 textured_bo;
     u32 textured_resource;
+    u32 vertex_color_bo;
+    u32 vertex_color_resource;
 };
 
 int virgl_setup(long fd, struct virgl_resources *resources);
@@ -40,10 +42,12 @@ int virgl_upload_index_buffer(long fd, u32 bo_handle);
 int virgl_create_textured_resources(long fd, struct virgl_resources *resources);
 int virgl_run_textured_triangle(long fd, const struct virgl_resources *resources);
 int virgl_run_texture_pair(long fd, const struct virgl_resources *resources);
+int virgl_create_vertex_color_resource(long fd, struct virgl_resources *resources);
+int virgl_run_vertex_color_triangle(long fd, const struct virgl_resources *resources);
 int virgl_upload_textured_vertices(long fd, u32 bo, u32 u, u32 v);
 int virgl_submit_textured_triangle(
     long fd, const struct virgl_resources *resources, u32 sampler, u32 object_base);
-int virgl_readback_textured_triangle(long fd, u32 bo_handle, const u8 expected[4]);
+int virgl_readback_scanout_pixel(long fd, u32 bo_handle, const u8 expected[4]);
 int virgl_wait_for_resource(long fd, u32 bo_handle);
 
 #endif

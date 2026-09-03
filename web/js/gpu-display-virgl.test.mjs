@@ -6,6 +6,7 @@ import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
 import {
   virglClearPacket, virglDrawPacket, virglTexturedMultiplyPacket, virglTexturedPacket,
 } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260903-virgl-viewport-r1";
 
 test("standard VirGL capset-one clear renders and acknowledges after WebGPU completion", async () => {
   let finishWork;
@@ -122,4 +123,26 @@ test("standard VirGL dual sampler textures bind independently through WebGPU", a
   assert.deepEqual([...device.writes[0].data.subarray(0, 4)], [100, 100, 100, 255]);
   assert.deepEqual([...device.writes[1].data.subarray(0, 4)], [128, 128, 128, 255]);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-texture-multiply");
+});
+
+test("standard VirGL generic vertex colors use a no-uniform WebGPU interpolation pipeline", async () => {
+  const device = fakeDevice();
+  const status = fakeStatus();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.deepEqual(await display.present3d(virglVertexColorPacket({ sequence: 47 })), {
+    sequence: 47, success: true,
+  });
+  assert.equal(device.pipelines.length, 1);
+  assert.equal(device.buffers.length, 1);
+  assert.equal(device.textures.length, 0);
+  assert.equal(device.bindGroups.length, 0);
+  assert.equal(device.pipelines[0].descriptor.vertex.buffers[0].arrayStride, 32);
+  assert.deepEqual(device.pipelines[0].descriptor.vertex.buffers[0].attributes, [
+    { format: "float32x4", offset: 0, shaderLocation: 0 },
+    { format: "float32x4", offset: 16, shaderLocation: 1 },
+  ]);
+  assert.deepEqual(device.draw, [3]);
+  assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-vertex-color");
 });

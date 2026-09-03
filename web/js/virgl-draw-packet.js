@@ -1,3 +1,4 @@
+import { parseVirglVertexColorPacket } from "./virgl-vertex-color-packet.js?v=20260903-virgl-viewport-r1";
 const MAGIC = [0x56, 0x47, 0x44, 0x31]; // VGD1
 const LEGACY_BYTES = 104;
 const STATE_BYTES = 144;
@@ -14,18 +15,17 @@ const VERTEX_COUNT = 3;
 export function isVirglDrawPacket(packet) {
   return packet instanceof Uint8Array && MAGIC.every((byte, index) => packet[index] === byte);
 }
-
 export function extractVirglDrawSequence(packet) {
   if (!isVirglDrawPacket(packet) || packet.byteLength < 12) return undefined;
   const sequence = new DataView(packet.buffer, packet.byteOffset, 12).getUint32(8, true);
   return sequence === 0 ? undefined : sequence;
 }
-
 export function parseVirglDrawPacket(packet) {
   if (!(packet instanceof Uint8Array)) throw new TypeError("VirGL draw packet must be a Uint8Array");
   if (!isVirglDrawPacket(packet)) throw new Error("VirGL draw packet has invalid VGD1 magic");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const version = view.getUint32(4, true);
+  if (version === 7) return parseVirglVertexColorPacket(packet);
   const expected = length(view, version);
   if (!expected || packet.byteLength !== expected) throw new Error("VirGL draw packet has invalid length or version");
   const sequence = view.getUint32(8, true);

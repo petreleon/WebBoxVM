@@ -1,8 +1,8 @@
-# WebBoxVM standard VirGL solid and texture triangle probe
+# WebBoxVM standard VirGL solid, texture, and vertex-color triangle probe
 
 This freestanding AArch64 Linux program is a deliberately small guest-side
 proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
-source-over blend, rasterizer, viewport/scissor, solid triangle, sampled texture,
+source-over blend, rasterizer, viewport/scissor, solid triangle, interpolated vertex color, sampled texture,
 and readback path. It is not Mesa, OpenGL, or Vulkan.
 
 It opens `/dev/dri/card0`, reads the Linux `virtgpu` capset-1 response, creates
@@ -35,7 +35,8 @@ view must wrap to the first canonical BGRA texel. It then switches to standard
 clamp/linear at `u == .5`, whose exact 2×2 midpoint must read `25,35,45,255`.
 Finally it binds left clamp/linear and right repeat/nearest views at `[u,v] ==
 `[1,.625]`; the distinct right texture proves wrap while the left interpolates
-to `55,65,75,255` after its fence.
+to `55,65,75,255` after its fence. A final 96-byte position/RGBA VBO uses a
+generic TGSI varying, and its barycentric center reads `64,64,127,255` in BGRA.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -58,7 +59,7 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness
@@ -68,7 +69,8 @@ viewport, scissor, and its indexed solid triangle, then requires its blended `WB
 It next validates two schema-5 packets: repeat at `u == 1`, then clamp/linear at
 `u == .5`, each with its position/UV VBO and normalized 2×2 BGRA snapshot from raw
 RGBA. Schema 6 then verifies independent left-linear/right-repeat sampling at `[1,.625]`
-and requires `55,65,75,255` at the center before accepting the marker.
+and requires `55,65,75,255` at the center. Schema 7 then checks the generic
+position/RGBA VBO and requires interpolated `64,64,127,255` before the marker.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command

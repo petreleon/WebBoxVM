@@ -25,7 +25,7 @@ pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     assert_response(
         &mut gpu,
         &mut mem,
-        &create(BUFFER, 0, 31, 1 << 4, 72, 1),
+        &create(BUFFER, 0, 31, 1 << 4, 96, 1),
         RESP_OK_NODATA,
     );
     assert_response(
@@ -142,7 +142,6 @@ pub(super) fn draw() -> Vec<u32> {
 pub(super) fn word(command: u8, object: u8, length: u16) -> u32 {
     u32::from(command) | (u32::from(object) << 8) | (u32::from(length) << 16)
 }
-
 pub(super) fn upload_vertices(gpu: &mut VirtioGpu) {
     let positions = [
         0.0, 0.75, 0.0, 1.0, -0.75, -0.75, 0.0, 1.0, 0.75, -0.75, 0.0, 1.0,
@@ -156,7 +155,6 @@ pub(super) fn upload_vertices(gpu: &mut VirtioGpu) {
         .unwrap()
         .copy_from_slice(&bytes);
 }
-
 pub(super) fn upload_textured_vertices(gpu: &mut VirtioGpu) {
     let vertices = [
         0.0, 0.75, 0.0, 1.0, 0.0, 1.0, -0.75, -0.75, 0.0, 1.0, 0.0, 1.0, 0.75, -0.75, 0.0, 1.0,
@@ -167,6 +165,8 @@ pub(super) fn upload_textured_vertices(gpu: &mut VirtioGpu) {
         .get_mut(&BUFFER)
         .unwrap()
         .pixels
+        .get_mut(..bytes.len())
+        .unwrap()
         .copy_from_slice(&bytes);
 }
 

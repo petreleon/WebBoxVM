@@ -7,6 +7,7 @@ import {
 import {
   gpu3dPacket, virglClearPacket, virglDrawPacket, virglTexturedMultiplyPacket, virglTexturedPacket,
 } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260903-virgl-viewport-r1";
 
 test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
   const packet = gpu3dPacket({ sequence: 42 });
@@ -140,6 +141,23 @@ test("VirGL dual-texture envelope snapshots two bounded sampler slots", () => {
     ["clamp-to-edge", "linear"], ["repeat", "nearest"],
   ]);
   assertMutation(sampled, 172, 0x1234, /length or version/);
+});
+
+test("VirGL vertex-color envelope validates fixed generic RGBA interpolation data", () => {
+  const packet = virglVertexColorPacket({ sequence: 67 });
+  const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.protocol, "virgl-vertex-color");
+  assert.equal(frame.acceleration, "webgpu-virgl-capset1-vertex-color");
+  assert.equal(frame.version, 7);
+  assert.equal(frame.vertices.length, 24);
+  assert.deepEqual([...frame.vertices.slice(4, 8)], [1, 0, 0, 1]);
+  const reserved = packet.slice();
+  new DataView(reserved.buffer).setFloat32(40, 0.25, true);
+  assert.throws(() => parseGpu3dPacket(reserved), /reserved color/);
+  const color = packet.slice();
+  new DataView(color.buffer).setFloat32(72, Number.NaN, true);
+  assert.throws(() => parseGpu3dPacket(color), /positions and normalized colors/);
+  assert.throws(() => parseGpu3dPacket(packet.subarray(0, -1)), /invalid VGD1 framing/);
 });
 
 function assertMutation(packet, offset, value, expected) {
