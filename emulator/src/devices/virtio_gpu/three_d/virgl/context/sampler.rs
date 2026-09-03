@@ -105,7 +105,7 @@ impl VirglContext {
                 .and_then(|handle| self.pipeline.sampler_views.get(&handle).copied())?;
             Some(SampledResource {
                 resource,
-                address_mode: state.address_mode,
+                config: state.config,
             })
         })
     }

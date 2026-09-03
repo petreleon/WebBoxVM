@@ -1,15 +1,12 @@
 //! Native Linux-driver proof for standard capset-1 VirGL transfer, blend, and draw.
-
 #[path = "virgl_guest_transport_smoke/wire.rs"]
 mod wire;
-
 use emulator::boot::BootContext;
 use std::env;
 use std::error::Error;
 use std::fs;
 use std::time::{Duration, Instant};
 use wire::*;
-
 const MODULE_OK: &str = "VIRGL_SMOKE_MODULE_OK";
 const MODULE_FAIL: &str = "VIRGL_SMOKE_MODULE_FAIL";
 const MODULE_COMMAND: &str = concat!(
@@ -22,7 +19,6 @@ const MODULE_COMMAND: &str = concat!(
     "if test \"$r\" -eq 0 && test -c /dev/dri/card0; then printf 'VIRGL_SMOKE_MODULE_OK\\n'; ",
     "else printf 'VIRGL_SMOKE_MODULE_FAIL:%s\\n' \"$r\"; fi\r"
 );
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Phase {
     Shell,
@@ -30,7 +26,6 @@ enum Phase {
     Packet,
     Result,
 }
-
 fn main() -> Result<(), Box<dyn Error>> {
     let disk = env::args()
         .nth(1)
@@ -48,7 +43,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         "init=/bin/sh",
     )?;
     vm.run_efi_phase(usize::MAX);
-
     println!(
         "standard VirGL guest transport smoke: {disk}, {} bytes",
         binary.len()
@@ -60,9 +54,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut clear_sequence = None;
     let mut draw_sequence = None;
     let mut texture_sequence = None;
-    let mut upload_readback = false;
-    let mut clear_completed = false;
+    let (mut upload_readback, mut clear_completed) = (false, false);
     let mut draw_completed = false;
+    let mut repeat_completed = false;
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result {
             10_000
@@ -107,11 +101,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                             println!("VGD1 validated: sequence {sequence}");
                             draw_sequence = Some(sequence);
                         }
-                        VirglPacket::TexturedDraw(sequence)
+                        VirglPacket::TexturedDraw(sequence, mode)
                             if draw_completed && texture_sequence.is_none() =>
                         {
-                            println!("VGD1 texture validated: sequence {sequence}");
-                            texture_sequence = Some(sequence);
+                            let expected = [TextureMode::Repeat, TextureMode::Linear]
+                                [repeat_completed as usize];
+                            if mode != expected {
+                                return Err("guest emitted textured samplers out of order".into());
+                            }
+                            println!("VGD1 {mode:?} texture validated: sequence {sequence}");
+                            texture_sequence = Some((sequence, mode));
                         }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
@@ -145,16 +144,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         if phase == Phase::Packet
             && draw_completed
-            && let Some(sequence) = texture_sequence
+            && let Some((sequence, mode)) = texture_sequence.take()
         {
             complete(
                 &mut vm,
                 sequence,
-                is_textured_triangle_readback,
+                |frame| is_textured_triangle_readback(frame, mode),
                 "VGD1 texture",
             )?;
-            println!("WBGF textured triangle BGRA readback validated");
-            phase = Phase::Result;
+            println!("WBGF {mode:?} textured triangle BGRA readback validated");
+            repeat_completed = mode == TextureMode::Repeat;
+            if !repeat_completed {
+                phase = Phase::Result;
+            }
         }
         if phase == Phase::Result && uart.contains(PASS) {
             println!(
@@ -170,7 +172,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     )
     .into())
 }
-
 fn setting(name: &str, default: u64) -> u64 {
     env::var(name)
         .ok()

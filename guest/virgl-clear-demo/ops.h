@@ -37,8 +37,9 @@ int virgl_run_triangle(long fd, const struct virgl_resources *resources);
 int virgl_upload_index_buffer(long fd, u32 bo_handle);
 int virgl_create_textured_resources(long fd, struct virgl_resources *resources);
 int virgl_run_textured_triangle(long fd, const struct virgl_resources *resources);
-int virgl_submit_textured_triangle(long fd, const struct virgl_resources *resources);
-int virgl_readback_textured_triangle(long fd, u32 bo_handle);
+int virgl_submit_textured_triangle(
+    long fd, const struct virgl_resources *resources, u32 sampler, u32 object_base);
+int virgl_readback_textured_triangle(long fd, u32 bo_handle, const u8 expected[4]);
 int virgl_wait_for_resource(long fd, u32 bo_handle);
 
 #endif

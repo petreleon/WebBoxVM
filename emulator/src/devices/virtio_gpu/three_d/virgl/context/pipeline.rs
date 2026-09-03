@@ -13,15 +13,65 @@ pub(in crate::devices::virtio_gpu) enum SamplerAddressMode {
     Repeat,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::devices::virtio_gpu) enum SamplerFilter {
+    Nearest,
+    Linear,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::devices::virtio_gpu) enum SamplerConfig {
+    ClampNearest,
+    RepeatNearest,
+    ClampLinear,
+}
+
+impl SamplerConfig {
+    pub const CLAMP_NEAREST: Self = Self::ClampNearest;
+    pub const REPEAT_NEAREST: Self = Self::RepeatNearest;
+    pub const CLAMP_LINEAR: Self = Self::ClampLinear;
+
+    pub const fn from_wire(word: u32) -> Option<Self> {
+        match word {
+            0x1092 => Some(Self::CLAMP_NEAREST),
+            0x1080 => Some(Self::REPEAT_NEAREST),
+            0x3292 => Some(Self::CLAMP_LINEAR),
+            _ => None,
+        }
+    }
+
+    pub const fn wire(self) -> u32 {
+        match self {
+            Self::CLAMP_NEAREST => 0x1092,
+            Self::REPEAT_NEAREST => 0x1080,
+            Self::CLAMP_LINEAR => 0x3292,
+        }
+    }
+
+    pub const fn address_mode(self) -> SamplerAddressMode {
+        match self {
+            Self::CLAMP_NEAREST | Self::CLAMP_LINEAR => SamplerAddressMode::ClampToEdge,
+            Self::REPEAT_NEAREST => SamplerAddressMode::Repeat,
+        }
+    }
+
+    pub const fn filter(self) -> SamplerFilter {
+        match self {
+            Self::CLAMP_NEAREST | Self::REPEAT_NEAREST => SamplerFilter::Nearest,
+            Self::CLAMP_LINEAR => SamplerFilter::Linear,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) struct SamplerState {
-    pub address_mode: SamplerAddressMode,
+    pub config: SamplerConfig,
 }
 
 #[derive(Clone, Copy)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) struct SampledResource {
     pub resource: u32,
-    pub address_mode: SamplerAddressMode,
+    pub config: SamplerConfig,
 }
 
 #[derive(Clone, Copy, Debug)]

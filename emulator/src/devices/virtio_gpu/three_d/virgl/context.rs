@@ -13,7 +13,7 @@ use std::collections::{HashMap, HashSet};
 pub(super) use draw::DrawState;
 use pipeline::PipelineState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
-    SampledResource, SamplerAddressMode, SamplerState, Viewport,
+    SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState, Viewport,
 };
 use shader::PendingShader;
 

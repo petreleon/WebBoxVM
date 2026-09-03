@@ -1,7 +1,9 @@
 use super::geometry;
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::resource::GpuResource;
-use crate::devices::virtio_gpu::three_d::virgl::{SamplerAddressMode, draw::TextureSnapshot};
+use crate::devices::virtio_gpu::three_d::virgl::{
+    SamplerAddressMode, SamplerFilter, draw::TextureSnapshot,
+};
 
 const STRIDE: usize = 24;
 
@@ -93,8 +95,47 @@ fn sample(textures: &[TextureSnapshot], uv: [f32; 2]) -> [f32; 4] {
 }
 
 fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
-    let x = texel(u, texture.width, texture.address_mode);
-    let y = texel(1.0 - v, texture.height, texture.address_mode);
+    let v = 1.0 - v;
+    match texture.sampler.filter() {
+        SamplerFilter::Nearest => color(
+            texture,
+            texel(u, texture.width, texture.sampler.address_mode()),
+            texel(v, texture.height, texture.sampler.address_mode()),
+        ),
+        SamplerFilter::Linear => linear(texture, u, v),
+    }
+}
+
+fn linear(texture: &TextureSnapshot, u: f32, v: f32) -> [f32; 4] {
+    let (left, right, horizontal) = linear_texels(u, texture.width);
+    let (top, bottom, vertical) = linear_texels(v, texture.height);
+    mix(
+        mix(
+            color(texture, left, top),
+            color(texture, right, top),
+            horizontal,
+        ),
+        mix(
+            color(texture, left, bottom),
+            color(texture, right, bottom),
+            horizontal,
+        ),
+        vertical,
+    )
+}
+
+fn linear_texels(value: f32, size: u32) -> (usize, usize, f32) {
+    let position = value * size as f32 - 0.5;
+    let lower = position.floor();
+    let last = size.saturating_sub(1) as f32;
+    (
+        lower.clamp(0.0, last) as usize,
+        (lower + 1.0).clamp(0.0, last) as usize,
+        position - lower,
+    )
+}
+
+fn color(texture: &TextureSnapshot, x: usize, y: usize) -> [f32; 4] {
     let index = (y * texture.width as usize + x) * 4;
     let pixel = &texture.bgra[index..index + 4];
     [
@@ -103,6 +144,10 @@ fn sample_one(texture: &TextureSnapshot, [u, v]: [f32; 2]) -> [f32; 4] {
         pixel[0] as f32 / 255.0,
         pixel[3] as f32 / 255.0,
     ]
+}
+
+fn mix(left: [f32; 4], right: [f32; 4], amount: f32) -> [f32; 4] {
+    std::array::from_fn(|channel| left[channel] + (right[channel] - left[channel]) * amount)
 }
 
 fn texel(value: f32, size: u32, mode: SamplerAddressMode) -> usize {

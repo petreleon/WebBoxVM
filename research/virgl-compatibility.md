@@ -10,7 +10,7 @@ primitive, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, and deliberately bounded
-solid-color, nearest clamp/repeat texture, or fixed two-texture multiplication
+solid-color, nearest clamp/repeat or linear-clamp texture, or fixed two-texture
 paths with one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -21,7 +21,7 @@ paths with one viewport/scissor.
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear, solid, nearest clamp/repeat texture, or fixed texture-multiply triangle through WebGPU | No multi-draw composition, depth, arbitrary blending, or filtering |
+| Presentation | Clear, solid, nearest clamp/repeat or linear-clamp texture, or fixed texture-multiply triangle through WebGPU | No multi-draw composition, depth, arbitrary blending, or sampler combinations |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -72,8 +72,8 @@ when the rasterizer has `SCISSOR`, it also requires the nonempty scissor.
 
 Type-6 `VIRGL_OBJECT_SAMPLER_VIEW` accepts one attached B8G8R8A8 or R8G8B8A8 sampled
 resource at level/layer zero with identity swizzle `0x688`; R8G8B8A8 normalizes on transfer before VGD1. Type-7
-`VIRGL_OBJECT_SAMPLER_STATE` accepts exact nine-word `0x1092` nearest clamp or
-`0x1080` nearest S/T-repeat (R remains clamp); repeat is one-texture-only. Commands 10
+`VIRGL_OBJECT_SAMPLER_STATE` accepts exact nine-word `0x1092` nearest clamp, `0x1080` nearest
+S/T-repeat (R remains clamp), or `0x3292` linear clamp; non-clamp is one-texture-only. Commands 10
 `SET_SAMPLER_VIEWS` and 18 `BIND_SAMPLER_STATES` bind one or two variable-length handles at
 fragment stage 1, starting at slot zero or one; the implementation caps the range at two
 slots. Type 8, rather than type 7, is the standard surface object type.
@@ -100,7 +100,7 @@ directly for non-indexed draws or through three bounded index-buffer lookups. Th
 must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and form a
 nondegenerate triangle. Texture routes additionally snapshot three finite UVs in
 `[-8, 8]` and one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64;
-feedback into the target is rejected. Repeat is one-texture-only so schema 4 multiplication stays clamp.
+feedback into the target is rejected. Non-clamp sampling is one-texture-only so schema 4 multiplication stays nearest clamp.
 Later buffer, texture, or state mutation cannot alter queued browser work. Solid color and sampled texels use
 the required source-over blend object.
 
@@ -109,10 +109,10 @@ is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
 sequence, canvas size, colors, 48 vertex bytes, viewport, and optional
 canonical top-origin scissor. Schema 3 appends 72 position/UV bytes, one 2D
 texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
-texels for fixed clamp multiplication; schema 5 carries standard `0x1080`, one size, and texels.
+texels for fixed nearest-clamp multiplication; schema 5 carries exact one-texture state `0x1080` or `0x3292`, its size, and texels.
 The browser retains schema-1 parsing only for old packets, independently validates schemas 2/3/4/5,
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
-a matching nearest clamp/repeat sampler, applies equivalent viewport/scissor, and waits for
+a matching address/filter sampler, applies equivalent viewport/scissor, and waits for
 `GPUQueue.onSubmittedWorkDone()`.
 
 Only a successful browser acknowledgment changes authoritative CPU state. Rust
@@ -122,8 +122,7 @@ scanout damage. Thus `TRANSFER_FROM_HOST_3D` sees a defined result after complet
 failed, stale, or unacknowledged browser work changes no guest pixels.
 
 The clear-only route remains a smaller private `VGC1` envelope with the same deferred completion rule but no pipeline, buffers, or textures.
-Browser diagnostics distinguish clear, draw, texture, and dual-texture paths
-from private capset-7 WBG3 geometry.
+Browser diagnostics distinguish clear, draw, texture, and dual-texture paths from private capset-7 WBG3 geometry.
 
 ## What this does not establish
 
@@ -141,10 +140,10 @@ that this capset deliberately does not advertise.
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4/5 `VGD1`
-payloads, repeat-at-one CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
+payloads, repeat-at-one and clamp-linear midpoint CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
-WebGPU clamp/repeat descriptors, one/two padded BGRA uploads, viewport/scissor calls,
+WebGPU clamp/repeat/linear descriptors, one/two padded BGRA uploads, viewport/scissor calls,
 cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
@@ -156,14 +155,15 @@ command-11 `SET_INDEX_BUFFER` at byte offset two, and indexed `DRAW_VBO`; it val
 `VGD1` envelope with the guest's `[2,1,0]` reordered vertices, resolves the
 deferred fence, and reads the blended `143,160,48,255` center plus the clear
 outside-scissor pixel back through the Linux driver. It then creates an attached
-R8G8B8A8 sampler-view texture and 24-byte position/UV VBO with `u == 1`, validates schema-5's
-transfer-normalized BGRA plus `0x1080`, completes it, and reads wrapped `10,20,30,255` at the center.
+R8G8B8A8 sampler-view texture and 24-byte position/UV VBO. It validates schema-5's
+transfer-normalized BGRA and first `0x1080` at `u == 1`, then `0x3292` at `u == .5`,
+completes both, and reads `10,20,30,255` then `25,35,45,255` at the center.
 Dual-texture multiplication remains covered by Rust stream and browser WebGPU tests. This does not claim
 native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
 
 ## Next compatibility milestones
 
-1. Expand only after proving filtering, multi-sampler behavior, render formats, and texture coordinates
+1. Expand only after proving multi-sampler behavior, render formats, and texture coordinates
    with the same native/CPU/WebGPU agreement.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.

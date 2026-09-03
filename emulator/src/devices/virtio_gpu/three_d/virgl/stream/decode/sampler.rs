@@ -1,6 +1,6 @@
 use super::super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use super::super::super::{
-    SamplerAddressMode, SamplerState, VIRGL_OBJECT_SAMPLER_STATE, VIRGL_OBJECT_SAMPLER_VIEW,
+    SamplerConfig, SamplerState, VIRGL_OBJECT_SAMPLER_STATE, VIRGL_OBJECT_SAMPLER_VIEW,
 };
 use crate::devices::virtio_gpu::resource::sampled_texture_format;
 
@@ -9,9 +9,7 @@ const CMD_CREATE_OBJECT: u8 = 1;
 const CMD_DESTROY_OBJECT: u8 = 3;
 const CMD_SET_SAMPLER_VIEWS: u8 = 10;
 const FRAGMENT_SHADER: u32 = 1;
-const CLAMP_NEAREST_SAMPLER_STATE: u32 = 0x1092;
 const IDENTITY_SWIZZLE: u32 = 0x688;
-const REPEAT_NEAREST_SAMPLER_STATE: u32 = 0x1080;
 
 #[derive(Clone)]
 pub(in crate::devices::virtio_gpu::three_d::virgl::stream) enum Command {
@@ -74,12 +72,9 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> 
 }
 
 fn sampler_state(word: u32) -> Option<SamplerState> {
-    let address_mode = match word {
-        CLAMP_NEAREST_SAMPLER_STATE => SamplerAddressMode::ClampToEdge,
-        REPEAT_NEAREST_SAMPLER_STATE => SamplerAddressMode::Repeat,
-        _ => return None,
-    };
-    Some(SamplerState { address_mode })
+    Some(SamplerState {
+        config: SamplerConfig::from_wire(word)?,
+    })
 }
 
 fn bindings(start: u32, handles: &[u32]) -> Option<(usize, Vec<Option<u32>>)> {

@@ -31,9 +31,11 @@ and requires the scanout center pixel to read back as source-over BGRA
 reuses the scanout surface, binds distinct persistent-state handles, and creates
 one R8G8B8A8 sampler-view texture plus a 72-byte interleaved position/UV VBO.
 The type-7 nearest S/T-repeat sampler uses `u == 1`, so the type-6 identity
-view must wrap to the first canonical BGRA texel. The solid pair declares 11/14
-TGSI words and the texture pair 17/25, so virglrenderer's text translator gets
-real capacity. The center must read back `10,20,30,255` after its fence.
+view must wrap to the first canonical BGRA texel. It then switches to standard
+clamp/linear at `u == .5`, whose exact 2×2 midpoint must read `25,35,45,255`.
+The solid pair declares 11/14 TGSI words and the texture pair 17/25, so
+virglrenderer's text translator gets real capacity. It first requires
+`10,20,30,255`, then `25,35,45,255` after their fences.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -56,15 +58,16 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness
 first validates the scanout upload `WBGF`, then validates and completes `VGC1`,
 captures its clear `WBGF`, validates schema-2 `VGD1` with three reordered vertices,
 viewport, scissor, and its indexed solid triangle, then requires its blended `WBGF`.
-It next validates schema-5's repeat sampler, position/UV VBO, and normalized 2×2
-BGRA snapshot from raw RGBA, completes it, and requires `10,20,30,255` at the center.
+It next validates two schema-5 packets: repeat at `u == 1`, then clamp/linear at
+`u == .5`, each with its position/UV VBO and normalized 2×2 BGRA snapshot from raw
+RGBA. It completes them in order and requires `10,20,30,255` then `25,35,45,255` at the center.
 It accepts the marker only after all guest-side buffer, copy, clear, indexed solid, and texture readbacks.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small

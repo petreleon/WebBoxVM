@@ -1,12 +1,13 @@
 use emulator::boot::BootContext;
 
-pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255";
+pub(super) const PASS: &str =
+    "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 texture=10,20,30,255 linear=25,35,45,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 
 pub(super) enum VirglPacket {
     Clear(u32),
     Draw(u32),
-    TexturedDraw(u32),
+    TexturedDraw(u32, TextureMode),
 }
 
 pub(super) fn demo_script(binary: &[u8]) -> String {
@@ -41,7 +42,8 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
         Some(magic) if magic == b"VGC1" => vgc1_sequence(packet).map(VirglPacket::Clear),
         Some(magic) if magic == b"VGD1" => match read_u32(packet, 4) {
             Some(2) => vgd1_sequence(packet).map(VirglPacket::Draw),
-            Some(5) => vgt1_sequence(packet).map(VirglPacket::TexturedDraw),
+            Some(5) => vgt1_sequence(packet)
+                .map(|(sequence, mode)| VirglPacket::TexturedDraw(sequence, mode)),
             _ => Err("guest emitted an unsupported VGD1 packet version".into()),
         },
         _ => Err("guest emitted an unsupported VirGL browser packet".into()),
@@ -70,7 +72,7 @@ pub(super) fn is_upload_readback(packet: &[u8]) -> bool {
 pub(super) fn complete(
     vm: &mut BootContext,
     sequence: u32,
-    expected: fn(&[u8]) -> bool,
+    expected: impl FnOnce(&[u8]) -> bool,
     label: &str,
 ) -> Result<(), String> {
     if !vm.machine.bus.complete_gpu_3d(sequence, true) {
@@ -158,5 +160,6 @@ mod texture;
 
 pub(crate) use draw::is_triangle_readback;
 use draw::vgd1_sequence;
+pub(crate) use texture::TextureMode;
 pub(crate) use texture::is_textured_triangle_readback;
 use texture::vgt1_sequence;

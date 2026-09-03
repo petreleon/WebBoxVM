@@ -12,10 +12,12 @@ static const char vertex_shader[] =
 static const char fragment_shader[] =
     "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nMOV OUT[0], TEMP[0]\nEND\n";
 
-static u32 stream(u32 *words, const struct virgl_resources *resources);
+static u32 stream(
+    u32 *words, const struct virgl_resources *resources, u32 sampler, u32 object_base);
 static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes);
 
-int virgl_submit_textured_triangle(long fd, const struct virgl_resources *resources)
+int virgl_submit_textured_triangle(
+    long fd, const struct virgl_resources *resources, u32 sampler, u32 object_base)
 {
     u32 words[VIRGL_TEXTURED_TRIANGLE_WORDS] = {0};
     u32 handles[3] = {resources->scanout_bo, resources->texture_bo, resources->textured_bo};
@@ -26,11 +28,11 @@ int virgl_submit_textured_triangle(long fd, const struct virgl_resources *resour
         .fence_fd = -1,
     };
 
-    exec.size = stream(words, resources) * sizeof(u32);
+    exec.size = stream(words, resources, sampler, object_base) * sizeof(u32);
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &exec) < 0 ? -1 : 0;
 }
 
-int virgl_readback_textured_triangle(long fd, u32 bo)
+int virgl_readback_textured_triangle(long fd, u32 bo, const u8 expected[4])
 {
     const u32 x = SCANOUT_WIDTH / 2u;
     const u32 y = SCANOUT_HEIGHT / 2u;
@@ -45,12 +47,13 @@ int virgl_readback_textured_triangle(long fd, u32 bo)
         return -1;
     if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
         return -2;
-    return pixels[transfer.offset] == 10 && pixels[transfer.offset + 1] == 20 &&
-                   pixels[transfer.offset + 2] == 30 && pixels[transfer.offset + 3] == 255
+    return pixels[transfer.offset] == expected[0] && pixels[transfer.offset + 1] == expected[1] &&
+                   pixels[transfer.offset + 2] == expected[2] && pixels[transfer.offset + 3] == expected[3]
                ? 0 : -3;
 }
 
-static u32 stream(u32 *words, const struct virgl_resources *resources)
+static u32 stream(
+    u32 *words, const struct virgl_resources *resources, u32 sampler, u32 object_base)
 {
     u32 next = 0;
 
@@ -58,19 +61,19 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = 1;
     words[next++] = 0;
     words[next++] = 1;
-    next += append_shader(words + next, 21, 0, 17, vertex_shader, sizeof(vertex_shader));
-    next += append_shader(words + next, 22, 1, 25, fragment_shader, sizeof(fragment_shader));
+    next += append_shader(words + next, object_base + 21, 0, 17, vertex_shader, sizeof(vertex_shader));
+    next += append_shader(words + next, object_base + 22, 1, 25, fragment_shader, sizeof(fragment_shader));
     words[next++] = VIRGL_HEADER(29, 0, 2);
-    words[next++] = 21;
+    words[next++] = object_base + 21;
     words[next++] = 0;
     words[next++] = VIRGL_HEADER(29, 0, 2);
-    words[next++] = 22;
+    words[next++] = object_base + 22;
     words[next++] = 1;
-    next += virgl_source_over_blend_stream(words + next, 23);
-    next += virgl_scissor_rasterizer_stream(words + next, 24);
+    next += virgl_source_over_blend_stream(words + next, object_base + 23);
+    next += virgl_scissor_rasterizer_stream(words + next, object_base + 24);
     next += virgl_viewport_scissor_stream(words + next);
     words[next++] = VIRGL_HEADER(1, 5, 9);
-    words[next++] = 20;
+    words[next++] = object_base + 20;
     words[next++] = 0;
     next += 2;
     words[next++] = VIRGL_FORMAT_R32G32B32A32_FLOAT;
@@ -78,17 +81,17 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     next += 2;
     words[next++] = VIRGL_FORMAT_R32G32_FLOAT;
     words[next++] = VIRGL_HEADER(2, 5, 1);
-    words[next++] = 20;
+    words[next++] = object_base + 20;
     words[next++] = VIRGL_HEADER(6, 0, 3);
     words[next++] = 24;
     words[next++] = 0;
     words[next++] = resources->textured_resource;
     words[next++] = VIRGL_HEADER(1, 7, 9);
-    words[next++] = 17;
-    words[next++] = VIRGL_REPEAT_NEAREST_SAMPLER_STATE;
+    words[next++] = object_base + 17;
+    words[next++] = sampler;
     next += 7;
     words[next++] = VIRGL_HEADER(1, 6, 6);
-    words[next++] = 18;
+    words[next++] = object_base + 18;
     words[next++] = resources->texture_resource;
     words[next++] = VIRGL_FORMAT_R8G8B8A8_UNORM;
     words[next++] = 0;
@@ -97,11 +100,11 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = VIRGL_HEADER(10, 0, 3);
     words[next++] = 1;
     words[next++] = 0;
-    words[next++] = 18;
+    words[next++] = object_base + 18;
     words[next++] = VIRGL_HEADER(18, 0, 3);
     words[next++] = 1;
     words[next++] = 0;
-    words[next++] = 17;
+    words[next++] = object_base + 17;
     words[next++] = VIRGL_HEADER(7, 0, 8);
     words[next++] = VIRGL_CLEAR_COLOR0;
     words[next++] = 0x3e800000u;

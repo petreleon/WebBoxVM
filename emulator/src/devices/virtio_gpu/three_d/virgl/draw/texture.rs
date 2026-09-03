@@ -39,6 +39,6 @@ pub(super) fn snapshot(
         width: texture.width,
         height: texture.height,
         bgra: texture.pixels.clone(),
-        address_mode: resource.address_mode,
+        sampler: resource.config,
     })
 }

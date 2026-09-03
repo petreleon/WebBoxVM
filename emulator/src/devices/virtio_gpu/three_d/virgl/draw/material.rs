@@ -1,4 +1,4 @@
-use super::super::{SampledResource, SamplerAddressMode};
+use super::super::{SampledResource, SamplerConfig};
 use super::{DrawMaterial, DrawState, TextureSnapshot, solid, texture};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
@@ -51,7 +51,7 @@ fn pair(
     ];
     snapshots
         .iter()
-        .all(|texture| texture.address_mode == SamplerAddressMode::ClampToEdge)
+        .all(|texture| texture.sampler == SamplerConfig::CLAMP_NEAREST)
         .then_some(snapshots)
         .ok_or(RESP_ERR_INVALID_PARAMETER)
 }

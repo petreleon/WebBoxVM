@@ -30,6 +30,7 @@ export class VirglTextureRenderer {
   #revision = 0;
   #sampler;
   #samplerAddressMode;
+  #samplerFilter;
   #session;
   #texture;
   #textureHeight = 0;
@@ -70,6 +71,7 @@ export class VirglTextureRenderer {
     this.#pipeline = undefined;
     this.#sampler = undefined;
     this.#samplerAddressMode = undefined;
+    this.#samplerFilter = undefined;
     this.#texture = undefined;
     this.#generation = 0;
     this.#textureHeight = 0;
@@ -106,7 +108,7 @@ export class VirglTextureRenderer {
       device, this.#vertexBuffer, this.#vertexCapacity, frame.vertices.byteLength,
       "VirGL textured positions and UVs", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX,
     );
-    this.#ensureSampler(device, frame.texture.addressMode ?? "clamp-to-edge");
+    this.#ensureSampler(device, frame.texture);
     this.#ensureTexture(device, frame.texture);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, frame.vertices);
@@ -147,13 +149,16 @@ export class VirglTextureRenderer {
     ], layout: this.#pipeline.getBindGroupLayout(0) });
   }
 
-  #ensureSampler(device, addressMode) {
-    if (this.#sampler && this.#samplerAddressMode === addressMode) return;
+  #ensureSampler(device, texture) {
+    const addressMode = texture.addressMode ?? "clamp-to-edge";
+    const filter = texture.filter ?? "nearest";
+    if (this.#sampler && this.#samplerAddressMode === addressMode && this.#samplerFilter === filter) return;
     this.#sampler = device.createSampler({
-      addressModeU: addressMode, addressModeV: addressMode, magFilter: "nearest",
-      minFilter: "nearest", mipmapFilter: "nearest",
+      addressModeU: addressMode, addressModeV: addressMode, magFilter: filter,
+      minFilter: filter, mipmapFilter: "nearest",
     });
     this.#samplerAddressMode = addressMode;
+    this.#samplerFilter = filter;
     this.#bindGroup = undefined;
   }
 }

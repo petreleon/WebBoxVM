@@ -16,7 +16,7 @@ pub(in crate::devices::virtio_gpu) use context::{
     IndexBuffer, VertexBuffer, VertexElement, VirglContext,
 };
 pub(in crate::devices::virtio_gpu::three_d::virgl) use context::{
-    SampledResource, SamplerAddressMode, SamplerState,
+    SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState,
 };
 pub(super) use copy::CopyRegion;
 pub(super) use draw::DrawMaterial;
