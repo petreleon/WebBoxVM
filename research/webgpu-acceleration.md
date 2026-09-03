@@ -107,7 +107,7 @@ Venus requires blob/host-visible resources and host Vulkan external memory primi
 ## Known transport limitations
 
 - Both queues are exposed, but only control-queue commands are implemented; `UPDATE_CURSOR` and `MOVE_CURSOR` on the cursor queue return an error.
-- Feature-selection/status registers are exposed, but guest feature values are not retained or validated and command behavior is not gated on negotiated bits or `FEATURES_OK` yet.
+- Feature pages retain the driver's 64-bit selection. `FEATURES_OK` clears for an unsupported mask or a missing `VERSION_1`; command-level feature gating remains a future transport hardening step.
 - WBG3 plus the narrow capset-1 clear, solid, generic vertex-color, texture-times-color, and fixed sampled-texture triangles are the only 3D operations; there are no general VirGL/Venus shader, state, blob, host-visible-memory, or compute APIs.
 
 ## Invariants

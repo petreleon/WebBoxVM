@@ -7,6 +7,7 @@
 mod backing;
 mod commands;
 mod completion;
+mod feature;
 mod frame;
 mod mmio;
 mod protocol;
@@ -64,6 +65,7 @@ pub(super) struct Scanout {
 pub struct VirtioGpu {
     device_features_sel: u32,
     driver_features_sel: u32,
+    driver_features: [u32; 2],
     queue_sel: u32,
     queues: [VirtQueue; QUEUE_COUNT],
     interrupt_status: u32,
@@ -87,6 +89,7 @@ impl VirtioGpu {
         Self {
             device_features_sel: 0,
             driver_features_sel: 0,
+            driver_features: [0; 2],
             queue_sel: 0,
             queues: [VirtQueue::default(); QUEUE_COUNT],
             interrupt_status: 0,

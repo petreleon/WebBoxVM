@@ -46,7 +46,7 @@ impl VirtioGpu {
     ) -> bool {
         match offset {
             0x014 => self.device_features_sel = value as u32,
-            0x020 => {}
+            0x020 => self.write_driver_features(value as u32),
             0x024 => self.driver_features_sel = value as u32,
             0x030 => self.queue_sel = value as u32,
             0x038 => {
@@ -65,12 +65,7 @@ impl VirtioGpu {
             0x050 => return self.notify_queue(mem, value as u32),
             0x060 => {}
             0x064 => self.interrupt_status &= !(value as u32),
-            0x070 => {
-                self.status = value as u32;
-                if value == 0 {
-                    self.cold_reset();
-                }
-            }
+            0x070 => self.write_status(value as u32),
             0x080 => set_low(
                 &mut self.selected_queue_mut().map(|queue| &mut queue.desc),
                 value,
@@ -100,15 +95,6 @@ impl VirtioGpu {
             _ => {}
         }
         false
-    }
-
-    fn selected_device_features(&self) -> u64 {
-        let features = VIRTIO_F_VERSION_1 | VIRTIO_GPU_F_VIRGL | VIRTIO_GPU_F_CONTEXT_INIT;
-        match self.device_features_sel {
-            0 => features & 0xffff_ffff,
-            1 => features >> 32,
-            _ => 0,
-        }
     }
 }
 

@@ -2,6 +2,7 @@ mod backing_many;
 mod bounds;
 mod commands;
 mod context;
+mod features;
 mod lifecycle;
 mod queue;
 mod three_d;
