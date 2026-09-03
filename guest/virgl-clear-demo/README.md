@@ -5,8 +5,8 @@ proof for a conservative standard capset-1 copy, upload, clear, and readback pat
 Mesa, OpenGL, or Vulkan.
 
 It opens `/dev/dri/card0`, reads the Linux `virtgpu` capset-1 response, creates
-a B8G8R8A8 render-target resource, maps its backing with `DRM_IOCTL_VIRTGPU_MAP`,
-writes two BGRA pixels, transfers them with `DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`,
+a B8G8R8X8 render-target resource, maps its backing with `DRM_IOCTL_VIRTGPU_MAP`,
+writes two BGRX pixels, transfers them with `DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`,
 then uploads two pixels into a four-pixel off-screen source, submits standard
 VirGL `RESOURCE_COPY_REGION`, waits for the destination resource, and verifies
 the destination through `DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST`. It then views

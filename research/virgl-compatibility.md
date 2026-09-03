@@ -15,7 +15,7 @@ operation for resource data flow.
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
-| Resource creation | `RESOURCE_CREATE_3D` accepts a B8G8R8A8 2D render target | One target, one level, no multisampling |
+| Resource creation | `RESOURCE_CREATE_3D` accepts B8G8R8A8, B8G8R8X8, A8R8G8B8, and X8R8G8B8 2D render targets | One target, one level, no multisampling |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer | `TRANSFER_TO_HOST_3D` uploads and `TRANSFER_FROM_HOST_3D` returns a classic capset-1 2D BGRA resource | No blobs, arrays, mip levels, or explicit strides |
 | Resource copy | `RESOURCE_COPY_REGION` copies one rectangle between attached off-screen, same-format 2D resources | No blit, format conversion, batching, or scanout copy |
@@ -35,7 +35,7 @@ leave a dangling framebuffer binding, or modify scanout pixels.
 The accepted `RESOURCE_CREATE_3D` shape is deliberately restrictive:
 
 - texture-2D target;
-- VirGL B8G8R8A8 format;
+- VirGL B8G8R8A8, B8G8R8X8, A8R8G8B8, or X8R8G8B8 format;
 - render-target binding;
 - depth and array size of one;
 - level zero, zero or one sample, and no resource flags.
@@ -44,10 +44,11 @@ The accepted `RESOURCE_CREATE_3D` shape is deliberately restrictive:
 standard wire structure. In this slice each requires a live capset-1 context
 and accepts only a zero-mip, `z=0`, `d=1` box with zero stride and layer stride.
 Its offset names the first source or destination pixel in the attached guest
-backing; rows use the resource's native BGRA stride, matching the classic-resource
-path used by Linux. Reverse transfer validates every scatter-backed destination
-before writing it, so an invalid range cannot cause a partial guest-memory update.
-Neither direction implies a scanout flush or browser submission.
+backing; rows use the resource's native packed-32-bit stride, matching the
+classic-resource path used by Linux. Reverse transfer validates every
+scatter-backed destination before writing it, so an invalid range cannot cause a
+partial guest-memory update. Neither direction implies a scanout flush or browser
+submission.
 
 The clear path's resource must additionally be the exact current VirtIO-GPU
 scanout resource. `CLEAR_SURFACE` must use that resource's complete scanout
@@ -104,8 +105,8 @@ unused.
 `scripts/virgl_guest_transport_smoke.sh` adds a native Linux guest proof. It
 builds `guest/virgl-clear-demo`, loads the real `virtio_gpu` driver in the
 installed Debian fixture, obtains capset 1 through `DRM_IOCTL_VIRTGPU_GET_CAPS`,
-creates a capset-1 resource, maps its backing with `DRM_IOCTL_VIRTGPU_MAP`, and
-writes two distinctive BGRA pixels before issuing
+creates a B8G8R8X8 capset-1 resource, maps its backing with
+`DRM_IOCTL_VIRTGPU_MAP`, and writes two distinctive BGRX pixels before issuing
 `DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST`. It creates two four-pixel off-screen
 resources, uploads two pixels to one, submits ordinary command-17
 `RESOURCE_COPY_REGION` through `EXECBUFFER`, waits for its destination, and

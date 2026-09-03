@@ -21,7 +21,7 @@ fn virgl_capset_one_is_standard_sized_and_conservative() {
     assert_eq!(response.len(), 24 + 308);
     assert_eq!(read_u32(&response, 24), Some(1));
     assert_eq!(read_u32(&response, 28), Some(2));
-    assert_eq!(read_u32(&response, 92), Some(2));
+    assert_eq!(read_u32(&response, 92), Some(30));
     assert_eq!(read_u32(&response, 304), Some(1));
 }
 #[test]

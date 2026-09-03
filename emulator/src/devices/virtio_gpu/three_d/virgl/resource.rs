@@ -1,7 +1,5 @@
 use crate::devices::virtio_gpu::protocol::*;
-use crate::devices::virtio_gpu::resource::{
-    FORMAT_B8G8R8A8_UNORM, GpuResource, total_resource_limit,
-};
+use crate::devices::virtio_gpu::resource::{GpuResource, total_resource_limit};
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
 const VIRGL_TARGET_TEXTURE_2D: u32 = 2;
@@ -20,19 +18,15 @@ impl VirtioGpu {
         if self.resources.len() >= MAX_RESOURCES {
             return RESP_ERR_OUT_OF_MEMORY;
         }
-        if !matches!(
-            (target, format, bind, depth, array, level, samples, flags),
-            (
-                VIRGL_TARGET_TEXTURE_2D,
-                FORMAT_B8G8R8A8_UNORM,
-                VIRGL_BIND_RENDER_TARGET,
-                1,
-                1,
-                0,
-                0 | 1,
-                0
-            )
-        ) {
+        if target != VIRGL_TARGET_TEXTURE_2D
+            || !GpuResource::supported_format(format)
+            || bind != VIRGL_BIND_RENDER_TARGET
+            || depth != 1
+            || array != 1
+            || level != 0
+            || !matches!(samples, 0 | 1)
+            || flags != 0
+        {
             return RESP_ERR_INVALID_PARAMETER;
         }
         let Some(resource) = GpuResource::new(format, width, height) else {

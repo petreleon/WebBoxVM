@@ -17,7 +17,7 @@ static int virgl_caps(long fd)
     };
 
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_GET_CAPS, &get) < 0 ||
-                   caps[0] != 1 || caps[4] != 2 || caps[68] != 2
+                   caps[0] != 1 || caps[4] != 2 || caps[68] != 30
                ? -1
                : 0;
 }
@@ -41,7 +41,7 @@ static int create_resource(long fd, u32 width, u32 height, u32 *bo_handle,
 {
     struct drm_virtgpu_resource_create resource = {
         .target = VIRGL_TARGET_TEXTURE_2D,
-        .format = VIRGL_FORMAT_B8G8R8A8_UNORM,
+        .format = VIRGL_FORMAT_B8G8R8X8_UNORM,
         .bind = VIRGL_BIND_RENDER_TARGET,
         .width = width,
         .height = height,

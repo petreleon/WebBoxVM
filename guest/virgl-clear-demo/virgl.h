@@ -4,7 +4,7 @@
 #include "uapi.h"
 
 #define VIRGL_TARGET_TEXTURE_2D 2u
-#define VIRGL_FORMAT_B8G8R8A8_UNORM 1u
+#define VIRGL_FORMAT_B8G8R8X8_UNORM 2u
 #define VIRGL_BIND_RENDER_TARGET (1u << 1)
 #define VIRGL_CLEAR_COLOR0 (1u << 2)
 #define VIRGL_CLEAR_WORDS 19u
@@ -17,7 +17,7 @@ static inline void virgl_clear_stream(u32 words[VIRGL_CLEAR_WORDS], u32 resource
     words[0] = VIRGL_HEADER(1, 7, 5);
     words[1] = 1;
     words[2] = resource;
-    words[3] = VIRGL_FORMAT_B8G8R8A8_UNORM;
+    words[3] = VIRGL_FORMAT_B8G8R8X8_UNORM;
     words[4] = 0;
     words[5] = 0;
     words[6] = VIRGL_HEADER(5, 0, 3);

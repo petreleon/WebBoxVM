@@ -7,6 +7,7 @@ pub(in crate::devices::virtio_gpu) const VIRGL_CAPSET_ID: u32 = 1;
 const VIRGL_CAPSET_VERSION: u32 = 1;
 const VIRGL_CAPSET_SIZE: u32 = 308;
 pub(in crate::devices::virtio_gpu) const CAPSET_COUNT: u32 = 2;
+const VIRGL_COLOR_RENDER_FORMATS: u32 = 0b1_1110;
 
 pub(super) struct Capset {
     pub id: u32,
@@ -48,9 +49,8 @@ pub(super) fn data(id: u32, version: u32) -> Option<Vec<u8>> {
 fn virgl_caps() -> Vec<u8> {
     let mut caps = vec![0; VIRGL_CAPSET_SIZE as usize];
     write_u32(&mut caps, 0, VIRGL_CAPSET_VERSION);
-    for offset in [4, 68] {
-        write_u32(&mut caps, offset, 1 << 1);
-    }
+    write_u32(&mut caps, 4, 1 << 1);
+    write_u32(&mut caps, 68, VIRGL_COLOR_RENDER_FORMATS);
     write_u32(&mut caps, 268, 1);
     write_u32(&mut caps, 280, 1);
     write_u32(&mut caps, 284, 1);
