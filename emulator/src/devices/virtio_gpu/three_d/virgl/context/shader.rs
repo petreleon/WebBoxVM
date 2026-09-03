@@ -1,7 +1,11 @@
+mod chunks;
+
 use super::VirglContext;
 #[cfg(test)]
 use crate::devices::virtio_gpu::three_d::virgl::shader::ShaderProgram;
 use crate::devices::virtio_gpu::three_d::virgl::shader::{Shader, ShaderKind};
+
+pub(in crate::devices::virtio_gpu::three_d::virgl::context) use chunks::PendingShader;
 
 impl VirglContext {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_shader(
@@ -9,7 +13,7 @@ impl VirglContext {
         handle: u32,
         shader: Shader,
     ) -> bool {
-        if handle == 0 || self.shaders.contains_key(&handle) {
+        if handle == 0 || self.shaders.contains_key(&handle) || self.has_pending_handle(handle) {
             return false;
         }
         self.shaders.insert(handle, shader);
@@ -37,6 +41,9 @@ impl VirglContext {
         &mut self,
         handle: u32,
     ) -> bool {
+        if self.has_pending_handle(handle) {
+            return false;
+        }
         let Some(shader) = self.shaders.remove(&handle) else {
             return false;
         };

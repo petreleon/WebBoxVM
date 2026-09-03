@@ -47,9 +47,13 @@ and format 29 UV at offset 16; both use divisor zero and VBO slot zero.
 Type-4 shader objects accept only canonical NUL-terminated TGSI text: the
 solid passthrough/constant-RGBA pair, or the textured passthrough/one 2D
 `TEX` pair. The latter has one generic UV input, one sampler/view, and one
-color output. Continuations, stream output, unknown stages, and unrecognized
-text fail before the cloned context commits. Binding zero unbinds, and
-destroying a bound shader clears its stage.
+color output. Initial `OFFSET` is the total text-byte count; a continuation
+has its high bit set and names the exact next byte offset. One bounded 4 KiB
+source per vertex/fragment stage may be in flight. Chunks must retain handle,
+stage, and token count; parser failure leaves the cloned context unchanged.
+The declared token capacity plus virglrenderer’s translation slack must fit
+the recognized TGSI. Stream output, unknown stages, and unrecognized text fail.
+Binding zero unbinds, and destroying a bound shader clears its stage.
 
 Type-1 `VIRGL_OBJECT_BLEND` accepts one exact 11-word `pipe_blend_state`:
 blend enabled; an RGBA color mask; RGB `ADD, SRC_ALPHA, INV_SRC_ALPHA`; and
@@ -166,7 +170,7 @@ that harness.
 - [Linux VirtIO-GPU wire UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h)
 - [VirGL hardware formats and bindings](https://android.googlesource.com/platform/external/virglrenderer/+/68429e8e1106d0861d9f9f180583bd8381b8bf96/src/virgl_hw.h)
 - [VirGL protocol commands](https://android.googlesource.com/platform/external/virglrenderer/+/056b3873e41c015249499dbf9f761c8e9a78b720/src/virgl_protocol.h)
-- [Mesa VirGL encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c)
+- [Mesa VirGL encoder](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/virgl/virgl_encode.c) and [VirGL renderer shader decoder](https://gitlab.freedesktop.org/virgl/virglrenderer/-/blob/main/src/vrend/vrend_renderer.c)
 - [Mesa blend-state definitions](https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/util/blend.h)
 - [Mesa VirGL architecture](https://docs.mesa3d.org/drivers/virgl.html)
 - [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)

@@ -14,7 +14,7 @@ static const char fragment_shader[] =
 
 static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource);
 static u32 triangle_stream(u32 *words, u32 triangle);
-static u32 append_shader(u32 *words, u32 handle, u32 kind, const char *text, u32 bytes);
+static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes);
 static int upload_triangle(long fd, u32 bo_handle);
 static int readback_triangle(long fd, u32 bo_handle);
 
@@ -74,8 +74,8 @@ static u32 triangle_stream(u32 *words, u32 triangle)
     words[next++] = 1;
     words[next++] = 0;
     words[next++] = 1;
-    next += append_shader(words + next, 11, 0, vertex_shader, sizeof(vertex_shader));
-    next += append_shader(words + next, 12, 1, fragment_shader, sizeof(fragment_shader));
+    next += append_shader(words + next, 11, 0, 11, vertex_shader, sizeof(vertex_shader));
+    next += append_shader(words + next, 12, 1, 14, fragment_shader, sizeof(fragment_shader));
     words[next++] = VIRGL_HEADER(29, 0, 2);
     words[next++] = 11;
     words[next++] = 0;
@@ -116,7 +116,7 @@ static u32 triangle_stream(u32 *words, u32 triangle)
     return next;
 }
 
-static u32 append_shader(u32 *words, u32 handle, u32 kind, const char *text, u32 bytes)
+static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes)
 {
     u32 dwords = (bytes + 3u) / 4u;
 
@@ -124,7 +124,7 @@ static u32 append_shader(u32 *words, u32 handle, u32 kind, const char *text, u32
     words[1] = handle;
     words[2] = kind;
     words[3] = bytes;
-    words[4] = 8;
+    words[4] = tokens;
     words[5] = 0;
     for (u32 index = 0; index < bytes; index++)
         words[6 + index / 4u] |= (u32)(u8)text[index] << ((index % 4u) * 8u);

@@ -12,6 +12,7 @@ use std::collections::{HashMap, HashSet};
 pub(super) use draw::DrawState;
 use pipeline::PipelineState;
 pub(super) use pipeline::Viewport;
+use shader::PendingShader;
 
 pub(super) use vertex::VertexLayout;
 use vertex::VertexState;
@@ -26,6 +27,8 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     pipeline: PipelineState,
     vertex: VertexState,
     shaders: HashMap<u32, Shader>,
+    pending_vertex_shader: Option<PendingShader>,
+    pending_fragment_shader: Option<PendingShader>,
     bound_vertex_shader: Option<u32>,
     bound_fragment_shader: Option<u32>,
 }
@@ -40,6 +43,8 @@ impl VirglContext {
             pipeline: PipelineState::new(),
             vertex: VertexState::new(),
             shaders: HashMap::new(),
+            pending_vertex_shader: None,
+            pending_fragment_shader: None,
             bound_vertex_shader: None,
             bound_fragment_shader: None,
         }

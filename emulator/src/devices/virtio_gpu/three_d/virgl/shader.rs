@@ -2,6 +2,9 @@ mod parse;
 
 pub(in crate::devices::virtio_gpu::three_d::virgl) use parse::parse;
 
+pub(super) const MAX_SHADER_TEXT_BYTES: usize = 4 * 1024;
+pub(super) const MAX_TGSI_TOKENS: u32 = 256;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(in crate::devices::virtio_gpu) enum ShaderKind {
     Vertex,
@@ -33,4 +36,15 @@ pub(in crate::devices::virtio_gpu) enum ShaderProgram {
 pub(super) struct Shader {
     pub kind: ShaderKind,
     pub program: ShaderProgram,
+}
+
+impl Shader {
+    pub(super) const fn tgsi_token_count(self) -> u32 {
+        match self.program {
+            ShaderProgram::VertexPassthrough => 11,
+            ShaderProgram::VertexTextured => 17,
+            ShaderProgram::FragmentSolid(_) => 14,
+            ShaderProgram::FragmentTextured => 25,
+        }
+    }
 }

@@ -31,7 +31,9 @@ viewport but outside the scissor remains clear (`191,128,64,255`). It then
 reuses the scanout surface, binds distinct persistent-state handles, and creates
 one B8G8R8A8 sampler-view texture plus a 72-byte interleaved position/UV VBO.
 The fixed type-7 nearest/clamp sampler and type-6 identity sampler view feed
-canonical textured TGSI; the center must read back `10,20,30,255` after its fence.
+canonical textured TGSI; the solid pair declares 11/14 TGSI words and the
+texture pair 17/25, so virglrenderer's text translator receives real capacity.
+The center must read back `10,20,30,255` after its fence.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point

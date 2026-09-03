@@ -8,6 +8,7 @@ const CONTEXT_ID: u32 = 7;
 const VERT: &str = "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
 const FRAG: &str =
     "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0x3f800000, 0, 0, 1}\n0: MOV OUT[0], IMM[0]\n1: END\n";
+const TEXTURED_FRAG: &str = "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nMOV OUT[0], TEMP[0]\nEND\n";
 
 #[test]
 fn standard_shader_objects_bind_unbind_and_release() {
@@ -50,10 +51,13 @@ fn shader_stream_rejection_is_transactional_and_type_safe() {
     assert_response(&mut gpu, &mut mem, &submit(&initial), RESP_OK_NODATA);
     let mut continuation = shader_create(12, 0, VERT);
     continuation[3] |= 1 << 31;
+    let mut too_small = shader_create(12, 1, TEXTURED_FRAG);
+    too_small[4] = 14;
     let mut partial = shader_create(12, 0, VERT);
     partial.extend(shader_create(13, 1, "FRAG\nDCL OUT[0], COLOR\nEND\n"));
     for words in [
         shader_create(12, 4, FRAG),
+        too_small,
         shader_create(12, 0, "VERT\nDCL IN[0]\nEND\n"),
         continuation,
         bind(11, 1),
@@ -80,6 +84,35 @@ fn shader_stream_rejection_is_transactional_and_type_safe() {
     );
 }
 
+#[test]
+fn shader_continuations_join_canonical_text_transactionally() {
+    let (mut gpu, mut mem) = prepared();
+    let mut initial = shader_create(21, 0, VERT);
+    let source_bytes = initial[3];
+    let tail = initial.split_off(10);
+    initial[0] = command_header(1, 4, 9);
+    assert_response(&mut gpu, &mut mem, &submit(&initial), RESP_OK_NODATA);
+    let mut wrong_offset = vec![command_header(1, 4, (5 + tail.len()) as u16), 21, 0];
+    wrong_offset.extend([12 | (1 << 31), 11, 0]);
+    wrong_offset.extend(tail.clone());
+    assert_response(
+        &mut gpu,
+        &mut mem,
+        &submit(&wrong_offset),
+        RESP_ERR_INVALID_PARAMETER,
+    );
+    let mut continuation = vec![command_header(1, 4, (5 + tail.len()) as u16), 21, 0];
+    continuation.extend([16 | (1 << 31), 11, 0]);
+    continuation.extend(tail);
+    continuation.extend(bind(21, 0));
+    assert_response(&mut gpu, &mut mem, &submit(&continuation), RESP_OK_NODATA);
+    assert_eq!(source_bytes, VERT.len() as u32 + 1);
+    assert_eq!(
+        bound(&gpu, ShaderKind::Vertex),
+        Some(ShaderProgram::VertexPassthrough)
+    );
+}
+
 fn prepared() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
@@ -103,6 +136,7 @@ fn submit(words: &[u32]) -> Vec<u8> {
 }
 
 fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
+    let tokens = if kind == 0 { 11 } else { 14 };
     let mut bytes = source.as_bytes().to_vec();
     bytes.push(0);
     let mut words = vec![
@@ -110,7 +144,7 @@ fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
         handle,
         kind,
         bytes.len() as u32,
-        8,
+        tokens,
         0,
     ];
     for bytes in bytes.chunks(4) {

@@ -99,6 +99,13 @@ pub(super) fn textured_vertex_state() -> Vec<u32> {
 }
 
 pub(super) fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
+    let tokens = match source {
+        VERT => 11,
+        FRAG => 14,
+        TEXTURED_VERT => 17,
+        TEXTURED_FRAG => 25,
+        _ => 8,
+    };
     let mut bytes = source.as_bytes().to_vec();
     bytes.push(0);
     let mut words = vec![
@@ -106,7 +113,7 @@ pub(super) fn shader_create(handle: u32, kind: u32, source: &str) -> Vec<u32> {
         handle,
         kind,
         bytes.len() as u32,
-        8,
+        tokens,
         0,
     ];
     for chunk in bytes.chunks(4) {

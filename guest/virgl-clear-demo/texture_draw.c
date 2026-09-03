@@ -13,7 +13,7 @@ static const char fragment_shader[] =
     "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nMOV OUT[0], TEMP[0]\nEND\n";
 
 static u32 stream(u32 *words, const struct virgl_resources *resources);
-static u32 append_shader(u32 *words, u32 handle, u32 kind, const char *text, u32 bytes);
+static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes);
 
 int virgl_submit_textured_triangle(long fd, const struct virgl_resources *resources)
 {
@@ -58,8 +58,8 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = 1;
     words[next++] = 0;
     words[next++] = 1;
-    next += append_shader(words + next, 21, 0, vertex_shader, sizeof(vertex_shader));
-    next += append_shader(words + next, 22, 1, fragment_shader, sizeof(fragment_shader));
+    next += append_shader(words + next, 21, 0, 17, vertex_shader, sizeof(vertex_shader));
+    next += append_shader(words + next, 22, 1, 25, fragment_shader, sizeof(fragment_shader));
     words[next++] = VIRGL_HEADER(29, 0, 2);
     words[next++] = 21;
     words[next++] = 0;
@@ -121,7 +121,7 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     return next;
 }
 
-static u32 append_shader(u32 *words, u32 handle, u32 kind, const char *text, u32 bytes)
+static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes)
 {
     u32 dwords = (bytes + 3u) / 4u;
 
@@ -129,7 +129,7 @@ static u32 append_shader(u32 *words, u32 handle, u32 kind, const char *text, u32
     words[1] = handle;
     words[2] = kind;
     words[3] = bytes;
-    words[4] = 8;
+    words[4] = tokens;
     words[5] = 0;
     for (u32 index = 0; index < bytes; index++)
         words[6 + index / 4u] |= (u32)(u8)text[index] << ((index % 4u) * 8u);

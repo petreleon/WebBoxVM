@@ -1,6 +1,4 @@
-use super::{Shader, ShaderKind, ShaderProgram};
-
-const MAX_SHADER_SOURCE_BYTES: usize = 4 * 1024;
+use super::{MAX_SHADER_TEXT_BYTES, Shader, ShaderKind, ShaderProgram};
 
 pub(in crate::devices::virtio_gpu::three_d::virgl) fn parse(
     kind: ShaderKind,
@@ -15,7 +13,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) fn parse(
 }
 
 fn lines(source: &[u8]) -> Option<Vec<&str>> {
-    if source.len() < 2 || source.len() > MAX_SHADER_SOURCE_BYTES || *source.last()? != 0 {
+    if source.len() < 2 || source.len() > MAX_SHADER_TEXT_BYTES || *source.last()? != 0 {
         return None;
     }
     let text = std::str::from_utf8(&source[..source.len() - 1]).ok()?;
