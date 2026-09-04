@@ -43,4 +43,13 @@ impl SystemBus {
         self.gic.set_pending(VIRTIO_GPU_IRQ_ID);
         true
     }
+
+    pub fn complete_gpu_3d_readback(&mut self, sequence: u32, format: u32, pixels: &[u8]) -> bool {
+        if !self.virtio_gpu.complete_3d_readback(&mut self.mem, sequence, format, pixels) {
+            return false;
+        }
+        self.record_external_dma_write();
+        self.gic.set_pending(VIRTIO_GPU_IRQ_ID);
+        true
+    }
 }

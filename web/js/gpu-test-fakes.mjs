@@ -47,7 +47,7 @@ export function fakeAdapter(device, isFallbackAdapter = false, info) {
   return { info, isFallbackAdapter, requestDevice: async () => device };
 }
 
-export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = {}) {
+export function fakeDevice({ readbackBytes = new Uint8Array(), scopeErrors = [], workDone = Promise.resolve() } = {}) {
   let lose;
   const lost = new Promise((resolve) => { lose = resolve; });
   const scopeStack = [];
@@ -69,6 +69,7 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
     samplers: [],
     submits: 0,
     textures: [],
+    textureCopies: [],
     viewports: [],
     writes: [],
     createBindGroup(descriptor) {
@@ -77,11 +78,19 @@ export function fakeDevice({ scopeErrors = [], workDone = Promise.resolve() } = 
     },
     createBuffer(descriptor) {
       const buffer = resource(descriptor);
+      const mapped = new Uint8Array(descriptor.size);
+      buffer.getMappedRange = () => mapped.buffer;
+      buffer.mapAsync = () => workDone;
+      buffer.mapped = mapped;
       this.buffers.push(buffer);
       return buffer;
     },
     createCommandEncoder() {
       return {
+        copyTextureToBuffer(source, destination, size) {
+          device.textureCopies.push({ destination, size, source });
+          destination.buffer.mapped.set(readbackBytes.subarray(0, destination.buffer.mapped.byteLength));
+        },
         beginRenderPass(descriptor) {
           device.renderPasses.push(descriptor);
           const pass = {

@@ -1,4 +1,4 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-material-batch-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-gpu-readback-r1";
 
 export async function renderVirglClear(session, backend, frame, isCurrent) {
   const { device } = backend;

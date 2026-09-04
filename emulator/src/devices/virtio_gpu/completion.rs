@@ -2,6 +2,8 @@ use super::VirtioGpu;
 use super::protocol::{CtrlHeader, RESP_ERR_UNSPEC, RESP_OK_NODATA};
 use crate::memory::PhysicalMemory;
 
+mod readback;
+
 #[derive(Clone, Copy, Debug)]
 pub(super) struct WritableRegion {
     pub addr: u64,

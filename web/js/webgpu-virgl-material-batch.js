@@ -1,7 +1,8 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-material-batch-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-material-batch-r1";
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-material-batch-r1";
-import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-material-batch-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-gpu-readback-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-gpu-readback-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-gpu-readback-r1";
+import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-gpu-readback-r1";
+import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-gpu-readback-r1";
 
 export class VirglMaterialBatchRenderer {
   #bufferUsage; #depthTexture; #generation = 0; #height = 0; #pipelines = new Map(); #revision = 0;
@@ -19,8 +20,8 @@ export class VirglMaterialBatchRenderer {
     if (!isCurrent()) return false;
     try {
       if (!await this.#ensurePipelines(backend, frame) || !isCurrent()) return false;
-      const revision = this.#revision; await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
-      return revision === this.#revision && isCurrent();
+      const revision = this.#revision; const readback = await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
+      return revision === this.#revision && isCurrent() && (readback ? { readback } : true);
     } catch (error) { this.invalidate(); throw error; }
   }
 
@@ -59,9 +60,9 @@ export class VirglMaterialBatchRenderer {
     this.#session.configure(frame.canvasWidth, frame.canvasHeight); device.queue.writeBuffer(this.#vertexBuffer, 0, packed.bytes);
     const owned = []; const draws = frame.draws.map((draw, index) => ({ ...draw, ...packed.draws[index] }));
     for (const draw of draws) draw.bindGroup = this.#bindGroup(device, this.#pipelines.get(key(frame, draw)), draw, owned);
-    const encoder = device.createCommandEncoder({ label: "VirGL capset 1 material-batch encoder" });
+    const encoder = device.createCommandEncoder({ label: "VirGL capset 1 material-batch encoder" }); const target = backend.canvasContext.getCurrentTexture();
     const pass = encoder.beginRenderPass({
-      colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: backend.canvasContext.getCurrentTexture().createView() }],
+      colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
       depthStencilAttachment: frame.depth ? this.#depthAttachment(backend, frame) : undefined,
       label: "VirGL capset 1 material-batch pass",
     });
@@ -72,8 +73,9 @@ export class VirglMaterialBatchRenderer {
       const scissor = draw.scissor ?? { x: 0, y: 0, width: frame.canvasWidth, height: frame.canvasHeight };
       pass.setScissorRect(scissor.x, scissor.y, scissor.width, scissor.height); pass.draw(draw.vertexCount);
     }
-    pass.end(); device.queue.submit([encoder.finish()]);
-    return Promise.resolve(device.queue.onSubmittedWorkDone()).finally(() => owned.forEach((texture) => texture.destroy?.()));
+    pass.end();
+    return submitTextureReadback(device, encoder, target, frame.canvasWidth, frame.canvasHeight, backend.format)
+      .finally(() => owned.forEach((texture) => texture.destroy?.()));
   }
 
   #bindGroup(device, pipeline, draw, owned) {

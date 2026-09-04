@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-material-batch-r1";
-import { bindRunnerEvents } from "./runner-events.js?v=20260904-virgl-material-batch-r1";
-import { fakeCanvas, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-material-batch-r1";
-import { gpu3dPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-material-batch-r1";
+import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-gpu-readback-r1";
+import { bindRunnerEvents } from "./runner-events.js?v=20260904-virgl-gpu-readback-r1";
+import { fakeCanvas, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-gpu-readback-r1";
+import { gpu3dPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-gpu-readback-r1";
 
 test("3D acknowledgment waits for completion and is suppressed after VM replacement", async () => {
   let current = true;
@@ -58,4 +58,15 @@ test("malformed WBG3 geometry is negatively acknowledged by device sequence", as
   await Promise.resolve();
   await Promise.resolve();
   assert.deepEqual(acknowledgments, [[88, false]]);
+});
+
+test("GPU readback follows the matching 3D acknowledgment", async () => {
+  const acknowledgments = []; const pixels = new Uint8Array([1, 2, 3, 4]);
+  const emulator = { gpu3d_ack: (...values) => acknowledgments.push(values) };
+  bindRunnerEvents(emulator, {
+    autosave() {}, current: () => true, error() {}, frame2d() {}, metrics() {}, network() {}, uart() {},
+    frame3d: () => ({ readback: { format: 1, pixels }, sequence: 9, success: true }),
+  });
+  emulator.onGpu3dFrame(new Uint8Array([1])); await Promise.resolve();
+  assert.deepEqual(acknowledgments, [[9, true, { format: 1, pixels }]]);
 });

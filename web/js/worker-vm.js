@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-material-batch-r1";
-import { versionedUrl } from "./asset-version.js?v=20260904-virgl-material-batch-r1";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-material-batch-r1";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-gpu-readback-r1";
+import { versionedUrl } from "./asset-version.js?v=20260904-virgl-gpu-readback-r1";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-gpu-readback-r1";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);
@@ -101,8 +101,15 @@ export class WorkerVm {
     this.#channel.post("sendUartBytes", { input: bytes }, [bytes.buffer]);
   }
 
-  gpu3d_ack(sequence, success) {
-    this.#channel.post("gpu3dAck", { sequence, success: Boolean(success) });
+  gpu3d_ack(sequence, success, readback) {
+    if (!(readback?.pixels instanceof Uint8Array)) {
+      this.#channel.post("gpu3dAck", { sequence, success: Boolean(success) });
+      return;
+    }
+    const pixels = transferableBytes(readback.pixels);
+    this.#channel.post("gpu3dAck", {
+      readback: { format: readback.format, pixels }, sequence, success: Boolean(success),
+    }, [pixels.buffer]);
   }
 
   start(stepSlice) {

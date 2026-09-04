@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260904-virgl-material-batch-r1";
-import { handleMessage } from "./messages.js?v=20260904-virgl-material-batch-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-material-batch-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-gpu-readback-r1";
+import { handleMessage } from "./messages.js?v=20260904-virgl-gpu-readback-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
 
 afterEach(() => {
   state.emulator = undefined;
@@ -45,18 +45,23 @@ test("setJitEnabled resets cached jit state and stale telemetry", async () => {
   assert.deepEqual(messages, [{ id: 7, ok: true, value: {} }]);
 });
 
-test("gpu3dAck reaches the actual gpu_3d_complete wasm boundary", async () => {
+test("gpu3dAck reaches its normal and readback wasm completion boundaries", async () => {
   const acknowledgments = [];
-  state.emulator = {
-    gpu_3d_complete: (...values) => {
-      acknowledgments.push(values);
-      return true;
-    },
-  };
+  state.emulator = { gpu_3d_complete: (...values) => { acknowledgments.push(values); return true; } };
   await withPostMessage([], () =>
     handleMessage({ payload: { sequence: 19, success: false }, type: "gpu3dAck" }),
   );
   assert.deepEqual(acknowledgments, [[19, false]]);
+  const pixels = new Uint8Array([1, 2, 3, 4]);
+  await withPostMessage([], () => handleMessage({
+    payload: { readback: { format: 1, pixels }, sequence: 20, success: true }, type: "gpu3dAck",
+  }));
+  assert.deepEqual(acknowledgments, [[19, false], [20, true]]);
+  state.emulator.gpu_3d_complete_readback = (...values) => { acknowledgments.push(values); return true; };
+  await withPostMessage([], () => handleMessage({
+    payload: { readback: { format: 1, pixels }, sequence: 21, success: true }, type: "gpu3dAck",
+  }));
+  assert.deepEqual(acknowledgments, [[19, false], [20, true], [21, 1, pixels]]);
 });
 
 test("gpu3dAck reports an unaccepted completion without mutating Rust state", async () => {

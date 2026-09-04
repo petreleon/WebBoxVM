@@ -46,6 +46,7 @@ fn gpu_3d_export_and_completion_are_empty_without_a_submission() {
     assert_eq!(emulator.gpu_reset_generation(), 0);
     assert!(emulator.gpu_3d_update().is_empty());
     assert!(!emulator.gpu_3d_complete(1, true));
+    assert!(!emulator.gpu_3d_complete_readback(1, 1, vec![0; 4]));
     emulator.boot = Some(Box::new(BootContext {
         machine: Machine::new(1),
         dtb_addr: 0,
@@ -53,4 +54,5 @@ fn gpu_3d_export_and_completion_are_empty_without_a_submission() {
     assert_eq!(emulator.gpu_reset_generation(), 0);
     assert!(emulator.gpu_3d_update().is_empty());
     assert!(!emulator.gpu_3d_complete(1, false));
+    assert!(!emulator.gpu_3d_complete_readback(1, 2, vec![0; 4]));
 }

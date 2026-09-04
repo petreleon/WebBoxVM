@@ -8,18 +8,18 @@ import {
   restoreInstallDisk,
   setStepSlice,
   transitionToParallel,
-} from "./lifecycle.js?v=20260904-virgl-material-batch-r1";
-import { withEmulatorAccess } from "./access.js?v=20260904-virgl-material-batch-r1";
-import { compileJitBlock } from "./jit-compile.js?v=20260904-virgl-material-batch-r1";
-import { errorMessage } from "./errors.js?v=20260904-virgl-material-batch-r1";
-import { runJitBlock } from "./jit-run.js?v=20260904-virgl-material-batch-r1";
-import { schedulePump } from "./pump.js?v=20260904-virgl-material-batch-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-material-batch-r1";
+} from "./lifecycle.js?v=20260904-virgl-gpu-readback-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-gpu-readback-r1";
+import { compileJitBlock } from "./jit-compile.js?v=20260904-virgl-gpu-readback-r1";
+import { errorMessage } from "./errors.js?v=20260904-virgl-gpu-readback-r1";
+import { runJitBlock } from "./jit-run.js?v=20260904-virgl-gpu-readback-r1";
+import { schedulePump } from "./pump.js?v=20260904-virgl-gpu-readback-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
 import {
   beginUrgentUartMessage,
   finishUrgentUartMessage,
   injectUartMessage,
-} from "./uart-input.js?v=20260904-virgl-material-batch-r1";
+} from "./uart-input.js?v=20260904-virgl-gpu-readback-r1";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;
@@ -71,6 +71,15 @@ async function handleRequest(type, payload) {
       return {};
     case "gpu3dAck": {
       const emulator = requireEmulator();
+      if (payload.success && payload.readback) {
+        const { format, pixels } = payload.readback;
+        if (!(pixels instanceof Uint8Array) || !Number.isInteger(format)) {
+          throw new Error("GPU 3D readback acknowledgment is malformed");
+        }
+        if (typeof emulator.gpu_3d_complete_readback === "function") {
+          return { accepted: emulator.gpu_3d_complete_readback(payload.sequence, format, pixels) };
+        }
+      }
       if (typeof emulator.gpu_3d_complete !== "function") {
         throw new Error("Worker VM wasm export gpu_3d_complete is unavailable");
       }

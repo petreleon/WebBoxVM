@@ -16,7 +16,8 @@ export function bindRunnerEvents(emulator, handlers) {
     if (!current()) return;
     Promise.resolve(handlers.frame3d(packet)).then((result) => {
       if (current() && result?.sequence !== undefined) {
-        emulator.gpu3d_ack?.(result.sequence, result.success);
+        result.readback ? emulator.gpu3d_ack?.(result.sequence, result.success, result.readback)
+          : emulator.gpu3d_ack?.(result.sequence, result.success);
       }
     });
   };

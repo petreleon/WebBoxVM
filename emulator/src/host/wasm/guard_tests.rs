@@ -49,6 +49,9 @@ fn active_parallel_run_rejects_machine_exports_before_access() {
     assert_rejected(|| {
         let _ = emulator.gpu_3d_complete(1, true);
     });
+    assert_rejected(|| {
+        let _ = emulator.gpu_3d_complete_readback(1, 1, vec![0; 4]);
+    });
 
     let machine = &emulator.boot.as_ref().unwrap().machine;
     assert_eq!(machine.cpus[0].regs.pc, pc);

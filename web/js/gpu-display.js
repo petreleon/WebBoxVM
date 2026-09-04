@@ -1,19 +1,19 @@
-import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260904-virgl-material-batch-r1";
+import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260904-virgl-gpu-readback-r1";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260904-virgl-material-batch-r1";
-import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260904-virgl-material-batch-r1";
-import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260904-virgl-material-batch-r1";
-import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260904-virgl-material-batch-r1";
-import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260904-virgl-material-batch-r1";
-import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260904-virgl-material-batch-r1";
-import { WebGpuSession } from "./webgpu-session.js?v=20260904-virgl-material-batch-r1";
+} from "./gpu-3d-packet.js?v=20260904-virgl-gpu-readback-r1";
+import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260904-virgl-gpu-readback-r1";
+import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260904-virgl-gpu-readback-r1";
+import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260904-virgl-gpu-readback-r1";
+import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260904-virgl-gpu-readback-r1";
+import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260904-virgl-gpu-readback-r1";
+import { WebGpuSession } from "./webgpu-session.js?v=20260904-virgl-gpu-readback-r1";
 
 export { extractGpu3dSequence, parseGpu3dPacket }
-  from "./gpu-3d-packet.js?v=20260904-virgl-material-batch-r1";
+  from "./gpu-3d-packet.js?v=20260904-virgl-gpu-readback-r1";
 export { padBgraRows, paddedBytesPerRow, parseGpuScanoutPacket }
-  from "./gpu-scanout-packet.js?v=20260904-virgl-material-batch-r1";
+  from "./gpu-scanout-packet.js?v=20260904-virgl-gpu-readback-r1";
 
 export class GuestDisplay {
   #canvas2d;
@@ -152,7 +152,7 @@ export class GuestDisplay {
       return { sequence: frame.sequence, success: false };
     }
     this.#diagnostics.drew3d(frame);
-    return { sequence: frame.sequence, success: true };
+    return { sequence: frame.sequence, success: true, ...(rendered.readback && { readback: rendered.readback }) };
   }
 
   #settle3d(result, claim) {

@@ -1,4 +1,4 @@
-import { formatBytes } from "./utils.js?v=20260904-virgl-material-batch-r1";
+import { formatBytes } from "./utils.js?v=20260904-virgl-gpu-readback-r1";
 
 export class UiController {
   constructor(els) {

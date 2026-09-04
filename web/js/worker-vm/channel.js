@@ -1,4 +1,4 @@
-import { initialMetrics } from "./channel-state.js?v=20260904-virgl-material-batch-r1";
+import { initialMetrics } from "./channel-state.js?v=20260904-virgl-gpu-readback-r1";
 
 export class WorkerChannel {
   #callbacks;

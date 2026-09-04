@@ -93,8 +93,8 @@ Current hard bounds are a 256-entry queue, one fixed 1024x768 scanout, at most 6
 WBG3 additionally allows at most 16 pending submissions and 2 MiB of pending packet bytes, an 8192x8192 canvas, 4,096 vertices, and 12,288 `u16` indices.
 
 Every accepted WBG3 `SUBMIT_3D` descriptor stays out of the used ring until its host acknowledgment.
-In the browser, success follows `GPUQueue.onSubmittedWorkDone()`; the VM worker then completes the saved virtqueue response and raises the GPU interrupt.
-Unsupported or failed draws receive a negative acknowledgment and complete with an error.
+Private WBG3 success follows `GPUQueue.onSubmittedWorkDone()`; bounded standard-VirGL `VGM1` batches additionally map a `COPY_SRC` texture-to-buffer copy before their color completion, as documented in [GPU readback](virgl-gpu-readback.md).
+Unsupported or failed draws receive a negative acknowledgment and complete with an error; missing readback capability retains the bounded CPU-replay path.
 
 The guest demo requests no fence or sync objects, so its `EXECBUFFER` ioctl and PASS marker are asynchronous submission evidence and can precede the browser acknowledgment.
 Browser draw telemetry and a pixel check remain necessary to prove WebGPU execution and visible output.

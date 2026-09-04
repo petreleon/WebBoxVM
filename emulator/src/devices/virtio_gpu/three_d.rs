@@ -31,6 +31,7 @@ pub(super) struct Pending3d {
     pub packet: Option<Vec<u8>>,
     pub completion: Option<PendingCompletion>,
     pub effect: Option<Pending3dEffect>,
+    pub webgpu_readback: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -144,6 +145,7 @@ impl VirtioGpu {
             packet: Some(packet),
             completion: None,
             effect: None,
+            webgpu_readback: false,
         });
         Ok(DeferredSubmit { sequence, header })
     }

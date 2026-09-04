@@ -1,4 +1,5 @@
-import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-material-batch-r1";
+import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-gpu-readback-r1";
+import { canvasConfiguration } from "./webgpu-readback.js?v=20260904-virgl-gpu-readback-r1";
 
 export class WebGpuSession {
   #adapter;
@@ -59,7 +60,7 @@ export class WebGpuSession {
     ) return;
     if (this.#canvas.width !== width) this.#canvas.width = width;
     if (this.#canvas.height !== height) this.#canvas.height = height;
-    this.#context.configure({ alphaMode: "opaque", device: this.#device, format: this.#format });
+    this.#context.configure(canvasConfiguration(this.#device, this.#format));
     this.#configuredGeneration = this.#generation;
   }
 

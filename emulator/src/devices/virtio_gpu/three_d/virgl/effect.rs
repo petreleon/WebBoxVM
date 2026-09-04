@@ -1,6 +1,8 @@
 use super::super::Pending3dEffect;
 use crate::devices::virtio_gpu::VirtioGpu;
 
+mod readback;
+
 impl VirtioGpu {
     pub(in crate::devices::virtio_gpu) fn apply_3d_effect(
         &mut self,
@@ -70,6 +72,7 @@ impl VirtioGpu {
             } => self.apply_virgl_depth_batch(resource_id, depth_resource, rect, clear_bgra, works),
         }
     }
+
 }
 
 fn effect_context(effect: &Pending3dEffect) -> (u32, u32) {

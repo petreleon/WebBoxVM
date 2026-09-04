@@ -1,5 +1,7 @@
 use super::super::protocol::*;
+use super::super::completion::{PendingCompletion, WritableRegion};
 use super::{header, virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_scissor_state};
+use crate::constants::RAM_BASE;
 
 const TEXTURE_BUFFER: u32 = 8;
 const UNIFORM: u32 = 9;
@@ -24,6 +26,8 @@ fn standard_mixed_material_draws_share_one_ordered_batch() {
     assert_eq!(packet.len(), 364);
     gpu.resources.get_mut(&TEXTURE_BUFFER).unwrap().pixels.fill(0); gpu.resources.get_mut(&TEXTURE).unwrap().pixels.fill(0);
     let effect = gpu.pending_3d[0].effect.clone().expect("mixed material batch effect");
+    assert!(!gpu.apply_3d_readback(effect.clone(), 1, &[]));
+    assert_eq!(&gpu.resources[&TARGET].pixels[..4], &[0, 0, 0, 0]);
     assert!(gpu.apply_3d_effect(effect));
     let center = ((384 * 1024 + 512) * 4) as usize;
     assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[32, 32, 64, 255]);
@@ -37,14 +41,16 @@ fn depth_mixed_material_draws_preserve_depth_order_in_one_batch() {
     store_vertex_offset(&mut gpu);
     gpu.resources.get_mut(&TEXTURE).unwrap().pixels.chunks_exact_mut(4).for_each(|pixel| pixel.copy_from_slice(&[128, 128, 128, 255]));
     let mut command = depth_clear(); command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw()); command.extend(texture_constant_state()); command.extend(draw());
-    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("depth batch defers");
+    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
     let packet = gpu.take_3d_update(); assert_eq!(&packet[..4], b"VGM1");
     assert_eq!([4, 12, 16, 20, 24, 44, 52, 100, 104, 108, 112, 168, 244, 260].map(|at| read_u32(&packet, at)), [Some(1), Some(1024), Some(768), Some(2), Some(1), Some(1.0f32.to_bits()), Some(7), Some(1.0f32.to_bits()), Some(0), Some(0), Some(0.5f32.to_bits()), Some(7), Some((-0.015625f32).to_bits()), Some(0.5f32.to_bits())]);
     gpu.resources.get_mut(&BUFFER).unwrap().pixels.fill(0); gpu.resources.get_mut(&TEXTURE_BUFFER).unwrap().pixels.fill(0); gpu.resources.get_mut(&TEXTURE).unwrap().pixels.fill(0);
-    let effect = gpu.pending_3d[0].effect.clone().expect("depth mixed material batch effect"); assert!(gpu.apply_3d_effect(effect));
+    let pixels = [3, 2, 1, 255].repeat(1024 * 768); assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 2, &pixels));
     let center = ((384 * 1024 + 512) * 4) as usize;
-    assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[64, 64, 64, 255]);
+    assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[1, 2, 3, 255]);
     assert_eq!(f32::from_le_bytes(gpu.resources[&DEPTH].pixels[center..center + 4].try_into().unwrap()), 0.25);
+    assert_eq!(mem.read(RAM_BASE + 0x7000, 4), Some(RESP_OK_NODATA as u64));
 }
 
 fn add_texture_buffer(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {

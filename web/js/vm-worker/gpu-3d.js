@@ -1,4 +1,4 @@
-import { GPU_3D_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-material-batch-r1";
+import { GPU_3D_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
 
 export function maybePostGpu3d(
   now,

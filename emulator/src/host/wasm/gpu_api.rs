@@ -45,4 +45,14 @@ impl Emulator {
             self.machine.bus.complete_gpu_3d(sequence, success)
         }
     }
+
+    /// Complete a VGM1 submission with a bounded browser WebGPU color readback.
+    pub fn gpu_3d_complete_readback(&mut self, sequence: u32, format: u32, pixels: Vec<u8>) -> bool {
+        let _access = self.require_parallel_idle();
+        if let Some(ref mut boot) = self.boot {
+            boot.machine.bus.complete_gpu_3d_readback(sequence, format, &pixels)
+        } else {
+            self.machine.bus.complete_gpu_3d_readback(sequence, format, &pixels)
+        }
+    }
 }

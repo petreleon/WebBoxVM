@@ -1,6 +1,6 @@
-import { versionedUrl } from "../asset-version.js?v=20260904-virgl-material-batch-r1";
-import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260904-virgl-material-batch-r1";
-import { state } from "./state.js?v=20260904-virgl-material-batch-r1";
+import { versionedUrl } from "../asset-version.js?v=20260904-virgl-gpu-readback-r1";
+import { assertWasm64Supported, wasm64ThreadsSupported } from "../wasm64.js?v=20260904-virgl-gpu-readback-r1";
+import { state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
 
 export let Emulator;
 let wasmInitialization;

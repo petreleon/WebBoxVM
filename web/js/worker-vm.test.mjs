@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js?v=20260904-virgl-material-batch-r1";
+import { WorkerVm } from "./worker-vm.js?v=20260904-virgl-gpu-readback-r1";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;
@@ -149,6 +149,10 @@ test("GPU events and 3D acknowledgments preserve transferable packets", () => {
   assert.deepEqual(FakeWorker.instances[0].lastMessage, {
     payload: { sequence: 17, success: true },
     type: "gpu3dAck",
+  });
+  const pixels = new Uint8Array([1, 2, 3, 4]); vm.gpu3d_ack(18, true, { format: 1, pixels });
+  assert.deepEqual(FakeWorker.instances[0].lastMessage, {
+    payload: { readback: { format: 1, pixels }, sequence: 18, success: true }, type: "gpu3dAck",
   });
 });
 
