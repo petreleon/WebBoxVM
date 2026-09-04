@@ -75,7 +75,7 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255 depth-equal-batch=128,0,64,255 depth-mixed-batch=0,128,64,255 depth-write-mask-batch=0,128,64,255 depth-vertex-color=64,64,127,255 depth-texture=10,20,30,255 depth-texture-color=32,32,64,255 depth-material-constant=64,64,64,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255 depth-equal-batch=128,0,64,255 depth-mixed-batch=0,128,64,255 depth-write-mask-batch=0,128,64,255 depth-vertex-color=64,64,127,255 depth-texture=10,20,30,255 depth-texture-color=32,32,64,255 depth-material-constant-offset=64,64,64,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness
@@ -92,7 +92,7 @@ schema-2 packet only with the offset-four UBO color and shifted vertex positions
 then accepts schema 9 only with Z32 depth state, clear-one, and near-before-far
 vertices. It requires the one-blend `58,102,20,255` center, then validates the
 private `VGB1` envelope from the two standard draws and its ordered
-`0,128,64,255` center, then validates VGB1 v2 with standard clear-one depth and near-before-far records, requiring the `0,0,128,255` center. It then validates schema 10 with standard `EQUAL`, z=1 vertices, black clear, and `128,0,0,255` BGRA, followed by VGB1 v3 shared-`EQUAL` red/blue records and `128,0,64,255`, VGB1 v4 `LESS`/`GREATER`, VGB1 v5 canonical words `7`/`17`, schema 12 position/RGBA depth state `5` and `64,64,127,255`, schema 13 position/UV clear-one DSA `7` and `10,20,30,255`, then schema 14 position/RGBA/UV clear-one DSA `7` and `32,32,64,255`, followed by the exact 364-byte depth-tested `VGM1` solid/texture-constant sequence and its `64,64,64,255` center before PASS.
+`0,128,64,255` center, then validates VGB1 v2 with standard clear-one depth and near-before-far records, requiring the `0,0,128,255` center. It then validates schema 10 with standard `EQUAL`, z=1 vertices, black clear, and `128,0,0,255` BGRA, followed by VGB1 v3 shared-`EQUAL` red/blue records and `128,0,64,255`, VGB1 v4 `LESS`/`GREATER`, VGB1 v5 canonical words `7`/`17`, schema 12 position/RGBA depth state `5` and `64,64,127,255`, schema 13 position/UV clear-one DSA `7` and `10,20,30,255`, then schema 14 position/RGBA/UV clear-one DSA `7` and `32,32,64,255`, followed by the exact 364-byte depth-tested `VGM1` solid/texture-constant sequence translated by its stage-0 UBO and its `64,64,64,255` center before PASS.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command

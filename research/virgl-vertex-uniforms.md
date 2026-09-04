@@ -42,7 +42,9 @@ stage one at byte four. The host harness checks the transformed schema-2 vertex
 bits, completes the queue, and requires source-over BGRA triangle samples of
 `147,141,58,255`. A direct Rust standard-stream regression separately checks
 the generic form with texture×fragment-constant, including its translated
-schema-8 position and constant-color fields.
+schema-8 position and constant-color fields. The later guest `VGM1` phase
+reuses that stage-0 range for its generic position/UV texture-constant record;
+its native execution remains subject to the same boot-time evidence limit.
 
 ## Deliberate limits
 
