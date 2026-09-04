@@ -6,7 +6,9 @@ export class VirglResidentOutputTargets {
   #outputs = new Map();
 
   acquire(backend, frame) {
-    if (!frame.residentCandidate || !this.#ready(backend) || this.#outputs.size >= MAX_OUTPUTS) return undefined;
+    if (!frame.residentCandidate || !this.#ready(backend)) return undefined;
+    if (frame.residentPreviousProducer) return this.#replacement(frame);
+    if (this.#outputs.size >= MAX_OUTPUTS) return undefined;
     const bytes = checkedBytes(frame.canvasWidth, frame.canvasHeight);
     if (!bytes || bytes > MAX_OUTPUT_BYTES) return undefined;
     const texture = backend.device.createTexture({
@@ -19,9 +21,11 @@ export class VirglResidentOutputTargets {
   }
 
   publish(backend, output) {
-    if (!output || this.#generation !== backend.deviceGeneration || this.#outputs.has(output.sequence)) {
-      this.discard(output); return false;
+    if (!output || this.#generation !== backend.deviceGeneration) {
+      this.abandon(output); return false;
     }
+    if (output.previousSequence) return this.#publishReplacement(output);
+    if (this.#outputs.has(output.sequence)) { this.discard(output); return false; }
     this.#outputs.set(output.sequence, output);
     return true;
   }
@@ -38,6 +42,11 @@ export class VirglResidentOutputTargets {
     this.discard(output);
   }
 
+  abandon(output) {
+    if (output?.previousSequence) this.release(output.previousSequence);
+    else this.discard(output);
+  }
+
   discard(output) { output?.texture?.destroy?.(); }
 
   invalidate() {
@@ -48,6 +57,23 @@ export class VirglResidentOutputTargets {
   #ready(backend) {
     if (this.#generation === backend.deviceGeneration) return true;
     this.invalidate(); this.#generation = backend.deviceGeneration;
+    return true;
+  }
+
+  #replacement(frame) {
+    const output = this.#outputs.get(frame.residentPreviousProducer);
+    if (!output || output.width !== frame.canvasWidth || output.height !== frame.canvasHeight) return undefined;
+    return { ...output, previousSequence: frame.residentPreviousProducer, sequence: frame.sequence };
+  }
+
+  #publishReplacement(output) {
+    const previous = this.#outputs.get(output.previousSequence);
+    if (!previous || previous.texture !== output.texture || this.#outputs.has(output.sequence)) {
+      this.abandon(output); return false;
+    }
+    this.#outputs.delete(output.previousSequence);
+    previous.sequence = output.sequence;
+    this.#outputs.set(output.sequence, previous);
     return true;
   }
 }

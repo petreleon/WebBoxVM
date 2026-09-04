@@ -34,8 +34,8 @@ impl VirtioGpu {
     ) -> bool {
         let Some(resource) = self.resources.get(&resource_id) else { return false; };
         let full = rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height;
-        let room = !self.resident_resources.contains_key(&resource_id)
-            && self.resident_resources.len() < MAX_RESIDENT_RESOURCES;
+        let room = self.resident_resources.contains_key(&resource_id)
+            || self.resident_resources.len() < MAX_RESIDENT_RESOURCES;
         full && room && resource.is_texture_2d() && resource.pixels.len() <= MAX_RESIDENT_BYTES
             && (resource.width > MAX_SNAPSHOT_DIMENSION || resource.height > MAX_SNAPSHOT_DIMENSION)
     }
@@ -55,7 +55,9 @@ impl VirtioGpu {
         effect: Pending3dEffect,
     ) -> bool {
         if !self.resident_effect_valid(&effect) { return false; }
-        let Pending3dEffect::VirglBatch { context_id, generation, resource_id, .. } = effect else { return false; };
+        let Pending3dEffect::VirglBatch { context_id, generation, resource_id, .. } = effect else {
+            return false;
+        };
         self.resident_resources.insert(resource_id, ResidentResource {
             context_id, generation, producer_sequence: sequence,
         });
@@ -66,9 +68,14 @@ impl VirtioGpu {
     }
 
     pub(in crate::devices::virtio_gpu) fn forget_resident(&mut self, resource_id: u32) {
+        self.advance_resident_epoch();
         let Some(resident) = self.resident_resources.remove(&resource_id) else { return; };
+        self.queue_resident_release(resident.producer_sequence);
+    }
+
+    pub(in crate::devices::virtio_gpu) fn queue_resident_release(&mut self, producer_sequence: u32) {
         if self.resident_releases.len() < MAX_RESIDENT_RELEASES {
-            self.resident_releases.push_back(resident.producer_sequence);
+            self.resident_releases.push_back(producer_sequence);
         }
     }
 
@@ -128,23 +135,34 @@ impl VirtioGpu {
             || !self.write_gpu_readback(resource_id, source_rect, format, pixels) {
             return false;
         }
+        self.advance_resident_epoch();
         self.resident_resources.remove(&resource_id);
         self.resources.get(&resource_id).is_some_and(|resource|
             resource.transfer_from_host(mem, transfer_rect, transfer_offset).is_some())
     }
 
     fn resident_effect_valid(&self, effect: &Pending3dEffect) -> bool {
-        let Pending3dEffect::VirglBatch { context_id, generation, resource_id, rect, .. } = effect else {
+        let Pending3dEffect::VirglBatch {
+            context_id, generation, resource_id, rect, resident_epoch, resident_predecessor, ..
+        } = effect else {
             return false;
         };
         let context_valid = self.virgl_contexts.get(context_id)
             .is_some_and(|context| context.generation == *generation);
-        context_valid && self.resident_target_eligible(*resource_id, *rect)
+        context_valid
+            && self.resident_target_eligible(*resource_id, *rect)
+            && self.resident_epoch == *resident_epoch
+            && self.resident_resources.get(resource_id).map(|resident| resident.producer_sequence)
+                == *resident_predecessor
     }
 
     fn resident_context_valid(&self, resident: ResidentResource) -> bool {
         self.virgl_contexts.get(&resident.context_id)
             .is_some_and(|context| context.generation == resident.generation)
+    }
+
+    fn advance_resident_epoch(&mut self) {
+        self.resident_epoch = self.resident_epoch.wrapping_add(1);
     }
 }
 

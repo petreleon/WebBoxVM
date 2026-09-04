@@ -23,6 +23,9 @@ impl VirtioGpu {
         let completion = pending.completion.expect("completion checked above");
         let success = pending.browser_completion == BrowserCompletion::Resident
             && pending.effect.is_some_and(|effect| self.promote_resident(sequence, effect));
+        if !success && pending.browser_completion == BrowserCompletion::Resident {
+            self.queue_resident_release(sequence);
+        }
         let response = completion.header.encode(if success { RESP_OK_NODATA } else { RESP_ERR_UNSPEC });
         let written = write_response(mem, &completion.output, &response).unwrap_or(0);
         push_used(mem, completion.used, completion.queue_size, completion.head, written as u32);

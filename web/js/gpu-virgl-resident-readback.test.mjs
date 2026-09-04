@@ -61,3 +61,21 @@ test("VirGL resident release drops an unread browser target without an acknowled
   assert.equal(device.textures[0].destroyed, true);
   assert.deepEqual(await display.present3d(virglResidentReadbackPacket()), { sequence: 76, success: false });
 });
+
+test("VirGL resident redraw rekeys one browser texture instead of allocating another", async () => {
+  const device = fakeDevice();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  await display.present3d(virglSolidBatchPacket({ sequence: 75, version: 6 }));
+  assert.deepEqual(await display.present3d(virglSolidBatchPacket({
+    residentPreviousProducer: 75, sequence: 76, version: 7,
+  })), { resident: true, sequence: 76, success: true });
+  assert.equal(device.textures.length, 1);
+  assert.deepEqual(await display.present3d(virglResidentReleasePacket({ producerSequence: 75 })), {});
+  assert.equal(device.textures[0].destroyed, undefined);
+  assert.equal((await display.present3d(virglResidentReadbackPacket({
+    producerSequence: 76, sequence: 77,
+  }))).success, true);
+  assert.equal(device.textures[0].destroyed, true);
+});

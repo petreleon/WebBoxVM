@@ -11,8 +11,9 @@ Normal `VGB1` and `VGM1` packets render to the transient canvas texture, map a
 full BGRA or RGBA readback, and replace the Rust resource shadow. The first
 resident `VGB1` form is version 6: it renders to a bounded offscreen texture,
 copies that texture to the canvas, and acknowledges the producer without a
-pixel mapping. That avoids the GPU-to-CPU copy, mapping latency, worker
-transfer, and copy into `GpuResource::pixels` on the draw path.
+pixel mapping. Version 7 names an existing producer and repaints that same
+texture for a later full redraw. Both avoid the GPU-to-CPU copy, mapping
+latency, worker transfer, and copy into `GpuResource::pixels` on the draw path.
 
 WebGPU textures are device resources, while a canvas current texture is not a
 durable guest resource. A real resident path therefore needs a bounded offscreen
@@ -33,7 +34,7 @@ one exact readback; no second transfer or mutation may consume an older shadow.
 ## Required invariants
 
 1. A successful GPU completion can promote only the exact pending resource,
-   context generation, full target rectangle, and producer sequence.
+   context generation, full target rectangle, and expected predecessor sequence.
 2. A guest-visible readback must resolve the matching producer before backing
    memory is written. Failure returns an error; it never writes stale bytes.
 3. Partial guest uploads and copies cannot mutate a resident shadow. A full CPU
@@ -44,6 +45,9 @@ one exact readback; no second transfer or mutation may consume an older shadow.
    resolves it before taking a CPU snapshot. It may not snapshot stale pixels.
 5. Deferred acknowledgments preserve a resource's submission order as well as
    the existing VirtIO fence timeline order.
+6. Each candidate captures a conservative CPU-authority epoch. Any later CPU
+   replacement invalidates an unresolved candidate before it can become GPU
+   authority.
 
 ## First safe subset
 
@@ -62,17 +66,20 @@ are admitted to the resident path.
 
 1. Eligible version-6 batches render into one of at most four 4 MiB persistent
    textures, present through a GPU copy, and return a resident completion.
-2. Rust stores the producer sequence only after the matching completion
+2. An eligible version-7 full redraw names its prior producer. The browser
+   repaints and rekeys that exact texture only after GPU completion; Rust accepts
+   it only while the resource still names the same predecessor.
+3. Rust stores the producer sequence only after the matching completion
    validates the pending effect and context generation.
-3. `TRANSFER_FROM_HOST_3D` emits a private deferred `VGR1` request naming that
+4. `TRANSFER_FROM_HOST_3D` emits a private deferred `VGR1` request naming that
    producer. The browser maps the persistent texture; Rust validates the full
    image, refreshes its shadow, and only then writes the requested backing range
    and completion response.
-4. When a full CPU replacement or a new CPU-synchronized render ends residency,
+5. When a full CPU replacement or a new CPU-synchronized render ends residency,
    Rust emits a no-ack `VGL1` release for the old producer. The browser destroys
    that cached texture; duplicate or delayed releases are harmless.
    Context and resource teardown use the same release path.
-5. Add GPU source references and copy continuations before expanding eligibility
+6. Add GPU source references and copy continuations before expanding eligibility
    to sampled targets or general VirGL streams.
 
 ## Cost model
@@ -80,6 +87,7 @@ are admitted to the resident path.
 | Operation | Current | Resident path |
 | --- | --- | --- |
 | Eligible draw completion | O(W×H) readback and transfer | O(1) host control; GPU presentation copy |
+| Repeated full eligible draw | O(W×H) readback and transfer | Repaint and rekey one persistent GPU texture |
 | First guest CPU read | Already paid per draw | O(W×H), once at the synchronization boundary |
 | Resident lookup | — | O(1) keyed by resource ID |
 | Browser memory | Transient target | Explicit bounded texture budget |

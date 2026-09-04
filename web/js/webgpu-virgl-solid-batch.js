@@ -36,7 +36,7 @@ export class VirglSolidBatchRenderer {
       if (!await this.#ensurePipeline(backend) || !isCurrent()) return false;
       const revision = this.#revision; const output = this.#outputs.acquire(backend, frame);
       const readback = await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame, output));
-      if (revision !== this.#revision || !isCurrent()) { this.#outputs.discard(output); return false; }
+      if (revision !== this.#revision || !isCurrent()) { this.#outputs.abandon(output); return false; }
       return output ? this.#outputs.publish(backend, output) && { resident: true } : readback ? { readback } : true;
     } catch (error) { this.invalidate(); throw error; }
   }

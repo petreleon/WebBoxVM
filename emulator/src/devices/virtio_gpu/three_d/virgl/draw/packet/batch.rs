@@ -11,8 +11,9 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     clear: [f32; 4],
     works: &[DrawWork],
     resident: bool,
+    resident_predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
-    encode(sequence, width, height, clear, works, None, false, resident)
+    encode(sequence, width, height, clear, works, None, false, resident, resident_predecessor)
 }
 
 pub(in crate::devices::virtio_gpu::three_d) fn depth_packet(
@@ -23,7 +24,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn depth_packet(
     works: &[DrawWork],
 ) -> Option<Vec<u8>> {
     let state = works.first()?.depth_state?;
-    encode(sequence, width, height, clear, works, Some(state), works.iter().any(|work| work.depth_state != Some(state)), false)
+    encode(sequence, width, height, clear, works, Some(state), works.iter().any(|work| work.depth_state != Some(state)), false, None)
 }
 
 fn encode(
@@ -35,18 +36,20 @@ fn encode(
     depth: Option<DepthState>,
     mixed: bool,
     resident: bool,
+    resident_predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
     if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS {
         return None;
     }
     let read_only = works.iter().any(|work| work.depth_state.is_some_and(|state| !state.write));
-    let version = match (depth, mixed, read_only, resident) {
-        (None, false, false, true) => 6,
-        (None, false, false, false) => 1,
-        (Some(DepthState { compare: DepthCompare::Less, write: true }), false, false, false) => 2,
-        (Some(DepthState { write: true, .. }), false, false, false) => 3,
-        (Some(_), true, false, false) => 4,
-        (Some(_), _, true, false) => 5,
+    let version = match (depth, mixed, read_only, resident, resident_predecessor) {
+        (None, false, false, true, None) => 6,
+        (None, false, false, true, Some(_)) => 7,
+        (None, false, false, false, _) => 1,
+        (Some(DepthState { compare: DepthCompare::Less, write: true }), false, false, false, _) => 2,
+        (Some(DepthState { write: true, .. }), false, false, false, _) => 3,
+        (Some(_), true, false, false, _) => 4,
+        (Some(_), _, true, false, _) => 5,
         _ => return None,
     };
     let per_draw_depth = matches!(version, 4 | 5);
@@ -60,14 +63,16 @@ fn encode(
             && work.vertices.len() == bytes)
             .then(|| total.checked_add(DRAW_STATE_BYTES + if per_draw_depth { 4 } else { 0 } + bytes))?
     })?;
-    let mut packet = Vec::with_capacity(HEADER_BYTES.checked_add(body)?);
+    let header_bytes = HEADER_BYTES.checked_add(if version == 7 { 4 } else { 0 })?;
+    let mut packet = Vec::with_capacity(header_bytes.checked_add(body)?);
     packet.extend_from_slice(b"VGB1");
-    let flags = match depth { Some(state) if version == 3 => state.compare.wire(), _ if version == 6 => 1, _ => 0 };
+    let flags = match depth { Some(state) if version == 3 => state.compare.wire(), _ if matches!(version, 6 | 7) => 1, _ => 0 };
     for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     floats(&mut packet, clear);
     packet.extend_from_slice(&(if depth.is_some() { 1.0f32 } else { 0.0 }).to_le_bytes());
+    if version == 7 { packet.extend_from_slice(&resident_predecessor?.to_le_bytes()); }
     for work in works {
         let DrawMaterial::Solid(color) = work.material else { return None; };
         packet.extend_from_slice(&work.vertex_count.to_le_bytes());

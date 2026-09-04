@@ -70,6 +70,66 @@ fn solid_batch_accepts_a_bounded_gpu_resident_completion() {
 }
 
 #[test]
+fn resident_solid_batch_reuses_its_browser_target_on_the_next_full_redraw() {
+    let (mut gpu, mut mem) = prepared();
+    configure(&mut gpu, &mut mem);
+    let mut command = clear([0.0, 0.0, 0.0, 1.0]);
+    command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend(constants([0.0, 1.0, 0.0, 0.5])); command.extend(draw());
+    let first = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("first batch");
+    attach(&mut gpu, first.sequence, first.header, RAM_BASE + 0x7000, 1);
+    assert_eq!(read_u32(&gpu.take_3d_update(), 4), Some(6));
+    assert!(gpu.complete_3d_resident(&mut mem, first.sequence));
+    let second = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("replacement batch");
+    attach(&mut gpu, second.sequence, second.header, RAM_BASE + 0x7100, 2);
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Resident);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 48].map(|offset| read_u32(&packet, offset)), [Some(7), Some(first.sequence)]);
+    assert_eq!(packet.len(), 268);
+    assert!(gpu.complete_3d_resident(&mut mem, second.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, second.sequence);
+    assert!(gpu.take_3d_update().is_empty());
+}
+
+#[test]
+fn cpu_authority_epoch_rejects_an_unresolved_resident_batch() {
+    let (mut gpu, mut mem) = prepared();
+    configure(&mut gpu, &mut mem);
+    let mut command = clear([0.0, 0.0, 0.0, 1.0]);
+    command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend(constants([0.0, 1.0, 0.0, 0.5])); command.extend(draw());
+    let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("resident batch");
+    attach(&mut gpu, deferred.sequence, deferred.header, RAM_BASE + 0x7000, 1);
+    let _ = gpu.take_3d_update();
+    gpu.forget_resident(TARGET);
+    assert!(gpu.complete_3d_resident(&mut mem, deferred.sequence));
+    assert!(!gpu.resident_resources.contains_key(&TARGET));
+    assert_eq!(read_u32(&gpu.take_3d_update(), 8), Some(deferred.sequence));
+    assert_eq!(mem.read(RAM_BASE + 0x7000, 4), Some(RESP_ERR_UNSPEC as u64));
+}
+
+#[test]
+fn stale_resident_redraw_releases_its_new_browser_target_fail_closed() {
+    let (mut gpu, mut mem) = prepared();
+    configure(&mut gpu, &mut mem);
+    let mut command = clear([0.0, 0.0, 0.0, 1.0]);
+    command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend(constants([0.0, 1.0, 0.0, 0.5])); command.extend(draw());
+    let first = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("first batch");
+    attach(&mut gpu, first.sequence, first.header, RAM_BASE + 0x7000, 1);
+    let _ = gpu.take_3d_update();
+    assert!(gpu.complete_3d_resident(&mut mem, first.sequence));
+    let second = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("replacement batch");
+    attach(&mut gpu, second.sequence, second.header, RAM_BASE + 0x7100, 2);
+    let _ = gpu.take_3d_update();
+    gpu.forget_resident(TARGET);
+    assert!(gpu.complete_3d_resident(&mut mem, second.sequence));
+    assert_eq!(read_u32(&gpu.take_3d_update(), 8), Some(first.sequence));
+    assert_eq!(read_u32(&gpu.take_3d_update(), 8), Some(second.sequence));
+    assert_eq!(mem.read(RAM_BASE + 0x7100, 4), Some(RESP_ERR_UNSPEC as u64));
+}
+
+#[test]
 fn solid_batch_caps_draw_count_without_committing_a_packet() {
     let (mut gpu, mut mem) = prepared();
     configure(&mut gpu, &mut mem);
@@ -93,6 +153,13 @@ fn configure(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::Physica
     state.extend(vertex_state());
     assert_response(gpu, mem, &submit(&state), RESP_OK_NODATA);
     upload_vertices(gpu);
+}
+
+fn attach(gpu: &mut super::super::VirtioGpu, sequence: u32, header: CtrlHeader, address: u64, head: u16) {
+    assert!(gpu.attach_3d_completion(sequence, PendingCompletion {
+        header, output: vec![WritableRegion { addr: address, len: 24 }], used: RAM_BASE + 0x7200,
+        queue_size: 8, head,
+    }));
 }
 
 fn constants(color: [f32; 4]) -> Vec<u32> {

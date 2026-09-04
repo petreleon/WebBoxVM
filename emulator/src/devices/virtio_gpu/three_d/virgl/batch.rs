@@ -15,7 +15,12 @@ impl VirtioGpu {
     ) -> Result<DeferredSubmit, u32> {
         let sequence = self.virgl_sequence()?;
         let resident = self.resident_target_eligible(resource_id, rect);
-        let packet = super::draw::batch_packet(sequence, rect.width, rect.height, clear, &works, resident)
+        let resident_epoch = self.resident_epoch;
+        let resident_predecessor = resident.then(|| self.resident_resources.get(&resource_id)
+            .map(|resource| resource.producer_sequence)).flatten();
+        let packet = super::draw::batch_packet(
+            sequence, rect.width, rect.height, clear, &works, resident, resident_predecessor,
+        )
             .or_else(|| super::draw::material_batch_packet(sequence, rect.width, rect.height, clear, &works, false))
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
         self.queue_virgl_packet(
@@ -27,6 +32,8 @@ impl VirtioGpu {
                 generation,
                 resource_id,
                 rect,
+                resident_epoch,
+                resident_predecessor,
                 clear_bgra: super::bgra(clear),
                 works,
             },
