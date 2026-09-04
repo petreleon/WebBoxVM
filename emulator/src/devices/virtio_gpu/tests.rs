@@ -22,7 +22,7 @@ mod virgl_draw_capset;
 mod virgl_depth_batch;
 mod virgl_depth_draw;
 mod virgl_depth_textured_draw;
-mod virgl_material_batch; mod virgl_matrix_draw; mod virgl_matrix_texture_draw; mod virgl_matrix_uniform_draw;
+mod virgl_material_batch; mod virgl_matrix_draw; mod virgl_matrix_texture_draw; mod virgl_matrix_uniform_draw; mod virgl_matrix_vertex_color_draw;
 mod virgl_draw_fixture;
 mod virgl_dual_texture_draw;
 mod virgl_indexed_draw;

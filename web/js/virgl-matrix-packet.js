@@ -6,37 +6,44 @@ const STATE_BYTES = 40;
 
 export function parseVirglMatrixPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
-  if (packet.byteLength < VERTEX_OFFSET || view.getUint32(4, true) !== 15) throw new Error("VirGL matrix packet has invalid version or length");
+  const version = view.getUint32(4, true);
+  if (packet.byteLength < VERTEX_OFFSET || ![15, 16].includes(version)) throw new Error("VirGL matrix packet has invalid version or length");
   const sequence = view.getUint32(8, true); const canvasWidth = view.getUint32(12, true);
   const canvasHeight = view.getUint32(16, true); const vertexCount = view.getUint32(20, true);
   if (!sequence) throw new Error("VirGL matrix packet sequence must be nonzero");
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) throw new Error("VirGL matrix dimensions must fit the bounded target");
   if (vertexCount < 3 || vertexCount > MAX_VERTEX_COUNT || vertexCount % 3) throw new Error("VirGL matrix vertex count must be 3..3063 and divisible by 3");
-  const state = VERTEX_OFFSET + vertexCount * 16;
+  const vertexColor = version === 16; const stride = vertexColor ? 8 : 4;
+  const state = VERTEX_OFFSET + vertexCount * stride * 4;
   if (packet.byteLength !== state + STATE_BYTES) throw new Error("VirGL matrix packet has invalid length");
   const clearColor = color(view, 24, "clear"); const drawColor = color(view, 40, "draw");
+  if (vertexColor && ![...drawColor].every((value) => value === 0)) throw new Error("VirGL matrix vertex-color reserved color must be zero");
   const matrix = floats(view, MATRIX_OFFSET, 16);
   if (![...matrix].every(Number.isFinite)) throw new Error("VirGL matrix rows must be finite");
-  const vertices = floats(view, VERTEX_OFFSET, vertexCount * 4);
-  if (!validProjected(vertices, matrix)) throw new Error("VirGL matrix projection is invalid");
+  const vertices = floats(view, VERTEX_OFFSET, vertexCount * stride);
+  if (!validProjected(vertices, matrix, stride) || vertexColor && !validColors(vertices)) throw new Error("VirGL matrix projection is invalid");
   return {
-    acceleration: "webgpu-virgl-capset1-matrix", canvasHeight, canvasWidth, capsetId: 1,
-    clearColor, drawColor, matrix, presentationLabel: "VirGL capset 1 GPU matrix triangles",
-    protocol: "virgl-draw", sequence, version: 15, vertexCount, vertices,
+    acceleration: vertexColor ? "webgpu-virgl-capset1-matrix-vertex-color" : "webgpu-virgl-capset1-matrix", canvasHeight, canvasWidth, capsetId: 1,
+    clearColor, drawColor, matrix, presentationLabel: vertexColor ? "VirGL capset 1 GPU matrix vertex-color triangles" : "VirGL capset 1 GPU matrix triangles",
+    protocol: vertexColor ? "virgl-matrix-vertex-color" : "virgl-draw", sequence, version, vertexCount, vertices,
     ...viewportState(view, canvasWidth, canvasHeight, state),
   };
 }
 
-function validProjected(vertices, matrix) {
-  const projected = new Float32Array(vertices.length);
-  for (let base = 0; base < vertices.length; base += 4) {
+function validProjected(vertices, matrix, stride) {
+  const projected = new Float32Array(vertices.length / stride * 4);
+  for (let base = 0, outputBase = 0; base < vertices.length; base += stride, outputBase += 4) {
     const input = vertices.subarray(base, base + 4);
     const output = [0, 1, 2, 3].map((row) => dot(matrix.subarray(row * 4, row * 4 + 4), input));
     const w = output[3]; const normal = output.slice(0, 3).map((value) => Math.fround(value / w));
     if (!Number.isFinite(w) || w <= 0 || !normal.every((value) => Number.isFinite(value) && value >= -1 && value <= 1)) return false;
-    projected.set([...normal, 1], base);
+    projected.set([...normal, 1], outputBase);
   }
   return validPositions(projected);
+}
+
+function validColors(vertices) {
+  return vertices.every((value, index) => index % 8 < 4 || Number.isFinite(value) && value >= 0 && value <= 1);
 }
 
 function dot(row, input) {

@@ -47,13 +47,15 @@ the matrix transform.
 Rust always applies the matrix to a bounded copied vertex snapshot for deferred
 CPU replay. A finite positive homogeneous `w` is divided into canonical clip
 coordinates; every resulting vertex must remain inside the already supported
-clip volume. For the exact non-depth solid form that reaches a nonresident
-singleton, private `VGD1` v15 additionally carries the original 16-byte
-positions and the row-major 64-byte matrix. The browser rechecks the projected
-bounds, writes the rows plus solid color into an 80-byte WebGPU uniform, and
-uses four row-dot-products in the vertex shader. Generic-varying, texture, and
-depth forms retain the transformed CPU-packet route. This preserves the
-no-clipping boundary without claiming a general shader compiler.
+clip volume. The exact non-depth solid singleton uses private `VGD1` v15 with
+the original 16-byte positions and row-major 64-byte matrix. The exact
+non-depth generic-RGBA passthrough singleton, without a fragment-constant
+multiply, uses v16 with original 32-byte position/RGBA vertices and the same
+rows. The browser rechecks projection (and v16 normalized finite RGBA), then
+uses four matrix row-dot-products in a WebGPU vertex shader. Textured,
+constant-modulated, and depth forms retain the transformed CPU-packet route.
+This preserves the no-clipping boundary without claiming a general shader
+compiler.
 
 ## Invariants
 
@@ -66,9 +68,9 @@ no-clipping boundary without claiming a general shader compiler.
    widen this path.
 4. A matrix may not produce a non-finite, zero/negative-`w`, or out-of-clip
    vertex. Failure leaves the transactional stream unchanged.
-5. Matrix work is O(V) for at most 3,063 normalized list vertices; the GPU lane
-   retains one bounded raw snapshot for browser presentation and never opens an
-   unbounded guest command path.
+5. Matrix work is O(V) for at most 3,063 normalized list vertices; the two GPU
+   lanes retain one bounded raw snapshot for browser presentation and never
+   open an unbounded guest command path.
 
 ## Boundary
 
@@ -84,9 +86,9 @@ memory and synchronization that browser WebGPU does not expose.
 - Reject duplicate output components, a non-matrix source, and incomplete
   constant ranges.
 - Submit ordinary shader-object, inline or resource-backed vertex matrix
-  bindings, solid, and textured draw commands; verify v15 raw matrix/vertex
-  snapshots, browser WebGPU uniform rows, transformed packet coordinates, and
-  raster results.
+  bindings, solid, generic-RGBA, and textured draw commands; verify v15/v16 raw
+  matrix/vertex snapshots, browser WebGPU rows and RGBA attributes, transformed
+  packet coordinates, and raster results.
 - Keep the source-file limit, Rust suite, browser suite, and wasm packages
   green before advertising the increment.
 

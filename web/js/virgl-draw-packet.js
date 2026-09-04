@@ -33,7 +33,7 @@ export function parseVirglDrawPacket(packet) {
   if (version === 9 || version === 10 || version === 11) return parseVirglDepthPacket(packet);
   if (version === 13) return parseVirglDepthTexturePacket(packet);
   if (version === 14) return parseVirglDepthTextureColorPacket(packet);
-  if (version === 15) return parseVirglMatrixPacket(packet);
+  if (version === 15 || version === 16) return parseVirglMatrixPacket(packet);
   const sequence = view.getUint32(8, true);
   const canvasWidth = view.getUint32(12, true);
   const canvasHeight = view.getUint32(16, true);

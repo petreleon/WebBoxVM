@@ -43,10 +43,11 @@ draw contract; `research/virgl-inline-writes.md` records its exact limits.
 
 Invalid wire shapes, stage/index choices, attachment, resource kind, alignment,
 or range reject the cloned stream without replacing a prior binding. Detaching a
-bound resource clears the source. Nonmatrix material remains schema-2 `VGD1`;
-the exact non-depth solid DP4 form may instead use private schema 15 with a
-matrix uniform for WebGPU presentation, while CPU replay keeps the same guest
-color contract.
+bound resource clears the source. Nonmatrix material remains on its existing
+private schemas. Exact non-depth solid DP4 presentation uses schema 15, while
+exact generic-RGBA passthrough without fragment-constant multiplication uses
+schema 16 with raw RGBA attributes. CPU replay keeps the guest color contract
+for both lanes.
 
 ## Evidence and limits
 
@@ -69,9 +70,12 @@ proves clear/detach invalidation. The native guest uses two command-9 writes:
 fragment RGBA at byte four and a `-0.015625` X offset at byte 20.
 
 `virgl_matrix_uniform_draw.rs` proves that a command-27 64-byte vertex binding
-snapshots the canonical `DP4` matrix into a private raw-vertex v15 packet before
-later resource mutation, retains transformed CPU replay, and rejects an
+snapshots the canonical `DP4` matrix into a private raw-position v15 packet
+before later resource mutation, retains transformed CPU replay, and rejects an
 unaligned, short, or out-of-range matrix range transactionally.
+`virgl_matrix_vertex_color_draw.rs` separately proves an inline DP4 matrix with
+an exact generic-RGBA passthrough preserves raw attributes in v16 and retains
+the transformed CPU replay result.
 
 That establishes this bounded guest-driver transport route alongside Rust and
 browser WebGPU-unit tests; it does not establish native guest-to-browser

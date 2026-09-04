@@ -1,7 +1,6 @@
 mod batch; mod material_batch; mod matrix;
 
-use super::super::SamplerConfig;
-use super::super::{DepthCompare, DepthState};
+use super::super::{DepthCompare, DepthState, SamplerConfig};
 use super::{DrawMaterial, DrawWork};
 
 pub(in crate::devices::virtio_gpu::three_d) use batch::{packet as batch_packet, depth_packet as depth_batch_packet};
@@ -31,6 +30,7 @@ fn vertex_color(
     clear: [f32; 4],
     work: &DrawWork,
 ) -> Vec<u8> {
+    if work.depth_state.is_none() && let Some(matrix) = &work.gpu_matrix { return matrix::vertex_color(sequence, width, height, clear, work, matrix); }
     let version = if work.depth_state.is_some() { 12 } else { 7 };
     let mut packet = header(version, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
