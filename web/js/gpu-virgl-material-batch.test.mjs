@@ -37,6 +37,27 @@ test("VirGL material batches reuse byte-identical texture snapshots", async () =
   assert.equal(device.writes.length, 1); assert.equal(device.bufferWrites.length, 1); assert.equal(device.bindGroups.length, 1);
 });
 
+test("VirGL material batches elide unchanged pass state", async () => {
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  const draw = textureColorDraw();
+  await display.present3d(virglMaterialBatchPacket({ depth: false, draws: [draw, { ...draw, vertices: [...draw.vertices] }], sequence: 96 }));
+  assert.equal(device.pipelineBinds.length, 1); assert.equal(device.bindGroupBinds.length, 1);
+  assert.equal(device.viewports.length, 1); assert.equal(device.scissors.length, 1); assert.deepEqual(device.draw, [3, 3]);
+});
+
+test("VirGL material batches rebind after a pipeline transition", async () => {
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  const texture = textureColorDraw();
+  await display.present3d(virglMaterialBatchPacket({
+    depth: false, draws: [texture, solidDraw(), { ...texture, vertices: [...texture.vertices] }], sequence: 97,
+  }));
+  assert.equal(device.pipelineBinds.length, 3); assert.equal(device.bindGroupBinds.length, 2); assert.deepEqual(device.draw, [3, 3, 3]);
+});
+
 test("VirGL material-batch parser rejects a noncanonical depth state", () => {
   const packet = virglMaterialBatchPacket(); new DataView(packet.buffer).setUint32(52, 2, true);
   assert.throws(() => parseGpu3dPacket(packet), /depth state/);
@@ -89,3 +110,13 @@ test("material pipeline setup preserves a shared resident clear target", async (
   }))).success, true);
   assert.equal(outputs[0].destroyed, true);
 });
+
+function textureColorDraw() {
+  const texture = { addressMode: "clamp-to-edge", filter: "nearest", height: 2, pixels: new Uint8Array(16).fill(128), width: 2 };
+  const vertices = [0, .75, 0, 1, 1, 1, 1, 1, .5, 0, -.75, -.75, 0, 1, 1, 1, 1, 1, 0, 1, .75, -.75, 0, 1, 1, 1, 1, 1, 1, 1];
+  return { material: "texture-color", scissor: [0, 0, 1024, 768], texture, vertices, viewport: [512, 384, .5, 512, 384, .5] };
+}
+
+function solidDraw() {
+  return { drawColor: [1, 0, 0, 1], material: "solid", scissor: [0, 0, 1024, 768], vertices: [0, .75, 0, 1, -.75, -.75, 0, 1, .75, -.75, 0, 1], viewport: [512, 384, .5, 512, 384, .5] };
+}

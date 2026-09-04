@@ -79,12 +79,18 @@ export class VirglMaterialBatchRenderer {
       depthStencilAttachment: frame.depth ? this.#depthAttachment(backend, frame) : undefined,
       label: "VirGL capset 1 material-batch pass",
     });
+    const fullScissor = [0, 0, frame.canvasWidth, frame.canvasHeight];
+    let activeBindGroup; let activePipeline; let activeScissor; let activeViewport;
     for (const draw of draws) {
       const pipeline = this.#pipelines.get(key(frame, draw)); if (!pipeline) throw new Error("VirGL material-batch pipeline is unavailable");
-      pass.setPipeline(pipeline); if (draw.bindGroup) pass.setBindGroup(0, draw.bindGroup);
-      pass.setVertexBuffer(0, this.#vertexBuffer, draw.offset, draw.bytes); pass.setViewport(...viewport(draw, frame.canvasHeight));
-      const scissor = draw.scissor ?? { x: 0, y: 0, width: frame.canvasWidth, height: frame.canvasHeight };
-      pass.setScissorRect(scissor.x, scissor.y, scissor.width, scissor.height); pass.draw(draw.vertexCount);
+      if (pipeline !== activePipeline) { pass.setPipeline(pipeline); activePipeline = pipeline; activeBindGroup = undefined; }
+      if (draw.bindGroup && draw.bindGroup !== activeBindGroup) { pass.setBindGroup(0, draw.bindGroup); activeBindGroup = draw.bindGroup; }
+      pass.setVertexBuffer(0, this.#vertexBuffer, draw.offset, draw.bytes);
+      const drawViewport = viewport(draw, frame.canvasHeight);
+      if (!sameState(activeViewport, drawViewport)) { pass.setViewport(...drawViewport); activeViewport = drawViewport; }
+      const scissor = draw.scissor ? [draw.scissor.x, draw.scissor.y, draw.scissor.width, draw.scissor.height] : fullScissor;
+      if (!sameState(activeScissor, scissor)) { pass.setScissorRect(...scissor); activeScissor = scissor; }
+      pass.draw(draw.vertexCount);
     }
     pass.end();
     if (output) {
@@ -132,4 +138,8 @@ function rawBytes(values) { return new Uint8Array(values.buffer, values.byteOffs
 
 function viewport(draw, height) {
   const [sx, sy, sz, tx, ty, tz] = draw.viewport; return [tx - sx, height - ty - sy, sx * 2, sy * 2, tz - sz, tz + sz];
+}
+
+function sameState(previous, next) {
+  return previous?.length === next.length && previous.every((value, index) => value === next[index]);
 }
