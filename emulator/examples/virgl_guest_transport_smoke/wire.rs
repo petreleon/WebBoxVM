@@ -1,7 +1,7 @@
 use emulator::boot::BootContext;
-pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255 depth-equal-batch=128,0,64,255 depth-mixed-batch=0,128,64,255 depth-write-mask-batch=0,128,64,255 depth-vertex-color=64,64,127,255";
+pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255 depth-equal-batch=128,0,64,255 depth-mixed-batch=0,128,64,255 depth-write-mask-batch=0,128,64,255 depth-vertex-color=64,64,127,255 depth-texture=10,20,30,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
-pub(super) enum VirglPacket { Clear(u32), Draw(u32), UniformDraw(u32), DepthDraw(u32), DepthEqualDraw(u32), DepthEqualBatch(u32), DepthMixedBatch(u32), DepthWriteMaskBatch(u32), DepthVertexColorDraw(u32), SolidBatch(u32), DepthBatch(u32), TexturedDraw(u32, TextureMode), TexturePairDraw(u32), VertexColorDraw(u32), TextureColorDraw(u32) }
+pub(super) enum VirglPacket { Clear(u32), Draw(u32), UniformDraw(u32), DepthDraw(u32), DepthEqualDraw(u32), DepthEqualBatch(u32), DepthMixedBatch(u32), DepthWriteMaskBatch(u32), DepthVertexColorDraw(u32), DepthTextureDraw(u32), SolidBatch(u32), DepthBatch(u32), TexturedDraw(u32, TextureMode), TexturePairDraw(u32), VertexColorDraw(u32), TextureColorDraw(u32) }
 pub(super) fn demo_script(binary: &[u8]) -> String {
     let mut script = String::from("base64 -d >/tmp/virgl-clear-demo <<'WEBBOXVM_VIRGL_EOF'\r");
     script.push_str(&base64_lines(binary));
@@ -46,6 +46,7 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
             Some(9) => depth_sequence(packet).map(VirglPacket::DepthDraw),
             Some(10) => depth_equal_sequence(packet).map(VirglPacket::DepthEqualDraw),
             Some(12) => depth_vertex_color_sequence(packet).map(VirglPacket::DepthVertexColorDraw),
+            Some(13) => depth_texture_sequence(packet).map(VirglPacket::DepthTextureDraw),
             _ => Err("guest emitted an unsupported VGD1 packet version".into()),
         },
         _ => Err("guest emitted an unsupported VirGL browser packet".into()),
@@ -151,7 +152,7 @@ fn base64_lines(bytes: &[u8]) -> String {
         .collect()
 }
 #[path = "wire/batch.rs"] mod batch; #[path = "wire/draw.rs"] mod draw;
-#[path = "wire/depth.rs"] mod depth; #[path = "wire/depth_equal.rs"] mod depth_equal;
+#[path = "wire/depth.rs"] mod depth; #[path = "wire/depth_texture.rs"] mod depth_texture; #[path = "wire/depth_equal.rs"] mod depth_equal;
 #[path = "wire/depth_equal_batch.rs"] mod depth_equal_batch; #[path = "wire/depth_vertex_color.rs"] mod depth_vertex_color;
 #[path = "wire/texture.rs"] mod texture; #[path = "wire/texture_pair.rs"] mod texture_pair;
 #[path = "wire/vertex_color.rs"] mod vertex_color; #[path = "wire/texture_color.rs"] mod texture_color;
@@ -162,13 +163,14 @@ pub(crate) use draw::{is_triangle_readback, is_uniform_readback};
 use draw::{uniform_sequence, vgd1_sequence};
 pub(crate) use depth::is_depth_readback;
 use depth::depth_sequence;
+pub(crate) use depth_texture::is_depth_texture_readback;
+use depth_texture::depth_texture_sequence;
 pub(crate) use depth_equal::is_depth_equal_readback;
 use depth_equal::depth_equal_sequence;
 use depth_vertex_color::depth_vertex_color_sequence;
 pub(crate) use depth_equal_batch::{is_depth_equal_batch_readback, is_depth_mixed_batch_readback, is_depth_write_mask_batch_readback};
 use depth_equal_batch::{depth_equal_batch_sequence, depth_mixed_batch_sequence, depth_write_mask_batch_sequence};
-pub(crate) use texture::TextureMode;
-pub(crate) use texture::is_textured_triangle_readback;
+pub(crate) use texture::{TextureMode, is_textured_triangle_readback};
 use texture::vgt1_sequence;
 pub(crate) use texture_pair::is_texture_pair_readback;
 use texture_pair::vtp1_sequence;

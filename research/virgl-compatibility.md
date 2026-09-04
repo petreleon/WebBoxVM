@@ -150,10 +150,10 @@ cached pipelines, standard singleton solid/vertex-color/one-texture and shared/p
 
 `scripts/virgl_guest_transport_smoke.sh` provides a native Linux transport harness for
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
-clear/fence, indexed inline-constant, texture, vertex-color, texture-color, solid/vertex-color depth state, and ordered solid-batch paths.
+clear/fence, indexed inline-constant, texture, vertex-color, texture-color, solid/vertex-color/one-texture depth state, and ordered solid-batch paths.
 It also creates a 36-byte R8 constant buffer, populates its color at byte offset
 four and `[dx,dy,0,0]` at byte offset 20 through two isolated standard command-9 writes plus readback, sends stage-0 and stage-1 command 27 bindings, validates distinct schema-2 `VGD1` color and translated vertices,
-completes that effect, reads both `147,141,58,255` triangles through Linux, then expects one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS`, VGD1 schema 10 `EQUAL`, VGB1 v3 shared-`EQUAL`, v4 `LESS`/`GREATER`, v5 canonical state words `7`/`17`, and schema 12 vertex-color DSA word `5`. The latest full native run timed out during boot before guest graphics, so it is inconclusive for these newest paths.
+completes that effect, reads both `147,141,58,255` triangles through Linux, then expects one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS`, VGD1 schema 10 `EQUAL`, VGB1 v3 shared-`EQUAL`, v4 `LESS`/`GREATER`, v5 canonical state words `7`/`17`, schema 12 vertex-color DSA word `5`, and schema 13 one-texture DSA word `7`. The latest full native run timed out during boot before guest graphics, so it is inconclusive for these newest paths.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
 from that harness.
 
