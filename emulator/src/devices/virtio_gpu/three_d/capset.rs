@@ -11,7 +11,7 @@ const VIRGL_SAMPLER_FORMATS_0: u32 = 1 << 1;
 const VIRGL_SAMPLER_FORMATS_2: u32 = 1 << 3;
 const VIRGL_COLOR_RENDER_FORMATS: u32 = 0b1_1110;
 const VIRGL_VERTEX_FORMATS: u32 = (1 << 29) | (1 << 31);
-const VIRGL_PRIMITIVES: u32 = (1 << 4) | (1 << 5);
+const VIRGL_PRIMITIVES: u32 = (1 << 4) | (1 << 5) | (1 << 6);
 
 pub(super) struct Capset {
     pub id: u32,

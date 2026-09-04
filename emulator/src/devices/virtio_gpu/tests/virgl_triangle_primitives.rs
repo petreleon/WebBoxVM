@@ -11,8 +11,7 @@ fn standard_triangle_strip_normalizes_to_a_bounded_triangle_list() {
     configure(&mut gpu, &mut mem);
     let bytes = upload(&mut gpu);
     let mut strip = draw();
-    strip[2] = 4;
-    strip[3] = 5;
+    strip[2..4].copy_from_slice(&[4, 5]);
     let mut command = clear([0.1, 0.2, 0.3, 1.0]);
     command.extend(strip);
     assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
@@ -21,12 +20,24 @@ fn standard_triangle_strip_normalizes_to_a_bounded_triangle_list() {
     assert_eq!(packet.len(), 192);
     assert_eq!(&packet[56..104], &bytes[..48]);
     assert_eq!(&packet[104..152], [&bytes[32..48], &bytes[16..32], &bytes[48..64]].concat());
-    let effect = gpu.pending_3d[0].effect.clone().expect("triangle-strip draw effect");
-    assert!(gpu.apply_3d_effect(effect));
-    assert!(gpu.resources[&TARGET]
-        .pixels
-        .chunks_exact(4)
-        .any(|pixel| pixel == [58, 102, 20, 255]));
+    assert_drawn(&mut gpu);
+}
+
+#[test]
+fn standard_triangle_fan_retains_its_first_spoke() {
+    let (mut gpu, mut mem) = prepared();
+    configure(&mut gpu, &mut mem);
+    let bytes = upload(&mut gpu);
+    let mut fan = draw();
+    fan[2..4].copy_from_slice(&[4, 6]);
+    let mut command = clear([0.1, 0.2, 0.3, 1.0]);
+    command.extend(fan);
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 20].map(|offset| read_u32(&packet, offset)), [Some(2), Some(6)]);
+    assert_eq!(&packet[56..104], &bytes[..48]);
+    assert_eq!(&packet[104..152], [&bytes[..16], &bytes[32..48], &bytes[48..64]].concat());
+    assert_drawn(&mut gpu);
 }
 
 #[test]
@@ -83,6 +94,15 @@ fn upload(gpu: &mut super::super::VirtioGpu) -> Vec<u8> {
         .pixels[..bytes.len()]
         .copy_from_slice(&bytes);
     bytes
+}
+
+fn assert_drawn(gpu: &mut super::super::VirtioGpu) {
+    let effect = gpu.pending_3d[0].effect.clone().expect("triangle draw effect");
+    assert!(gpu.apply_3d_effect(effect));
+    assert!(gpu.resources[&TARGET]
+        .pixels
+        .chunks_exact(4)
+        .any(|pixel| pixel == [58, 102, 20, 255]));
 }
 
 fn attach_index_buffer(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {

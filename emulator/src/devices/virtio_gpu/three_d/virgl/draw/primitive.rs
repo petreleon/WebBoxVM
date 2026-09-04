@@ -2,11 +2,13 @@ use super::{MAX_VIRGL_DRAW_INPUT_VERTICES, MAX_VIRGL_DRAW_VERTICES, TRIANGLE_VER
 
 const PIPE_PRIM_TRIANGLES: u32 = 4;
 const PIPE_PRIM_TRIANGLE_STRIP: u32 = 5;
+const PIPE_PRIM_TRIANGLE_FAN: u32 = 6;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) enum Primitive {
     Triangles,
     TriangleStrip,
+    TriangleFan,
 }
 
 impl Primitive {
@@ -14,6 +16,7 @@ impl Primitive {
         match value {
             PIPE_PRIM_TRIANGLES => Some(Self::Triangles),
             PIPE_PRIM_TRIANGLE_STRIP => Some(Self::TriangleStrip),
+            PIPE_PRIM_TRIANGLE_FAN => Some(Self::TriangleFan),
             _ => None,
         }
     }
@@ -29,7 +32,7 @@ impl Primitive {
         }
         let output = match self {
             Self::Triangles => Some(count),
-            Self::TriangleStrip => count
+            Self::TriangleStrip | Self::TriangleFan => count
                 .checked_sub(TRIANGLE_VERTICES - 1)?
                 .checked_mul(TRIANGLE_VERTICES),
         }?;
@@ -51,6 +54,11 @@ impl Primitive {
                         [second, first, indices[current]]
                     };
                     output.extend(triangle);
+                }
+            }
+            Self::TriangleFan => {
+                for current in 2..indices.len() {
+                    output.extend([indices[0], indices[current - 1], indices[current]]);
                 }
             }
         }
@@ -75,5 +83,13 @@ mod tests {
         assert_eq!(Primitive::TriangleStrip.output_count(3), Some(3));
         assert_eq!(Primitive::TriangleStrip.output_count(1023), Some(MAX_VIRGL_DRAW_VERTICES));
         assert_eq!(Primitive::TriangleStrip.output_count(1024), None);
+    }
+
+    #[test]
+    fn triangle_fan_expansion_keeps_the_first_vertex_as_its_spoke() {
+        assert_eq!(
+            Primitive::TriangleFan.expand(&[0, 1, 2, 3, 4]),
+            Some(vec![0, 1, 2, 0, 2, 3, 0, 3, 4])
+        );
     }
 }

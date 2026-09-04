@@ -16,5 +16,5 @@ fn virgl_capset_advertises_the_implemented_triangle_requirements() {
     assert_eq!(response_type(&response), RESP_OK_CAPSET);
     assert_eq!(read_u32(&response, 24 + 12), Some(1 << 3));
     assert_eq!(read_u32(&response, 24 + 196), Some((1 << 29) | (1 << 31)));
-    assert_eq!(read_u32(&response, 24 + 288), Some((1 << 4) | (1 << 5)));
+    assert_eq!(read_u32(&response, 24 + 288), Some((1 << 4) | (1 << 5) | (1 << 6)));
 }

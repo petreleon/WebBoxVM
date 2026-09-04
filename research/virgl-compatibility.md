@@ -29,7 +29,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 The capset render-format mask contains only B8G8R8A8, B8G8R8X8, A8R8G8B8,
 and X8R8G8B8. Its sampler mask adds B8G8R8A8 (1) and R8G8B8A8 (67); its vertex-buffer mask contains only
 `VIRGL_FORMAT_R32G32_FLOAT` (29) and `VIRGL_FORMAT_R32G32B32A32_FLOAT` (31),
-and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4) and `PIPE_PRIM_TRIANGLE_STRIP` (bit 5). No GLSL feature level is advertised.
+and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4), `PIPE_PRIM_TRIANGLE_STRIP` (bit 5), and `PIPE_PRIM_TRIANGLE_FAN` (bit 6). No GLSL feature level is advertised.
 
 `RESOURCE_CREATE_3D` accepts only these exact resource forms:
 
@@ -87,17 +87,17 @@ and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
 occur on a clone and commit only after the complete stream validates.
 
 The accepted standard 12-word `DRAW_VBO` has a source count from three through 1023, one instance,
-`PIPE_PRIM_TRIANGLES` (a multiple of three) or `PIPE_PRIM_TRIANGLE_STRIP`, zero
-bias/start-instance/restart, and no stream-output count. A strip becomes a
-triangle list with alternating first-two-vertex winding, so at most 1,023 input
-vertices become at most 3,063 normalized output vertices.
+`PIPE_PRIM_TRIANGLES` (a multiple of three), `PIPE_PRIM_TRIANGLE_STRIP`, or
+`PIPE_PRIM_TRIANGLE_FAN`, zero bias/start-instance/restart, and no stream-output
+count. A strip alternates its first two vertices; a fan retains its first spoke,
+so at most 1,023 input vertices become at most 3,063 normalized output vertices.
 Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. Each draw follows one clear in the same submission against the current
 full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots the bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip before validation and packet construction.
+At draw validation Rust snapshots the bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
 Each position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
@@ -139,7 +139,7 @@ and a matching capset that this renderer does not advertise.
 ## Validation retained in the repository
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
-exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle and alternating strip expansion, schema-2/3/4/5/6/7/8 `VGD1`
+exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schema-2/3/4/5/6/7/8 `VGD1`
 payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
