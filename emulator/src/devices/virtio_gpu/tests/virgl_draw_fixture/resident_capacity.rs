@@ -6,7 +6,7 @@ use crate::memory::PhysicalMemory;
 pub(crate) fn prepared_nonresident() -> (VirtioGpu, PhysicalMemory) {
     let (mut gpu, mut mem) = prepared();
     let generation = gpu.virgl_contexts[&7].generation;
-    for id in 100..104 {
+    for id in 100..116 {
         assert_response(&mut gpu, &mut mem, &create(id, 2, 1, 2, 1, 1), RESP_OK_NODATA);
         let mut attach = header(CMD_CTX_ATTACH_RESOURCE);
         for value in [id, 0] { push_u32(&mut attach, value); }

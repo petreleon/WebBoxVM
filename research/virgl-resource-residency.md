@@ -69,8 +69,9 @@ are admitted to the resident path.
 ## Protocol phases
 
 1. Eligible version-6 `VGB1`, version-2 `VGM1`, and version-2 clear packets
-   render into one of at most four 4 MiB persistent textures, present through a
-   GPU copy, and return a resident completion.
+   render into one of at most 16 persistent textures totaling 16 MiB, with an
+   individual texture capped at 4 MiB, present through a GPU copy, and return a
+   resident completion.
 2. An eligible version-7 `VGB1`, version-3 `VGM1`, or version-2 clear with a
    nonzero predecessor repaints and rekeys that exact texture only after GPU
    completion; Rust accepts it only while the resource still names that predecessor.

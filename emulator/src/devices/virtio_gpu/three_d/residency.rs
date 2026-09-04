@@ -5,7 +5,8 @@ use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS};
 use crate::memory::PhysicalMemory;
 
 const MAX_RESIDENT_BYTES: usize = 4 * 1024 * 1024;
-const MAX_RESIDENT_RESOURCES: usize = 4;
+const MAX_RESIDENT_RESOURCES: usize = 16;
+const MAX_RESIDENT_TOTAL_BYTES: usize = 16 * 1024 * 1024;
 const MAX_RESIDENT_RELEASES: usize = 16;
 const MAX_SNAPSHOT_DIMENSION: u32 = 64;
 
@@ -26,10 +27,18 @@ impl VirtioGpu {
     ) -> bool {
         let Some(resource) = self.resources.get(&resource_id) else { return false; };
         let full = rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height;
-        let room = self.resident_resources.contains_key(&resource_id)
-            || self.resident_resources.len() < MAX_RESIDENT_RESOURCES;
+        let existing = self.resident_resources.contains_key(&resource_id);
+        let room = existing || (self.resident_resources.len() < MAX_RESIDENT_RESOURCES
+            && self.resident_bytes().and_then(|total| total.checked_add(resource.pixels.len()))
+                .is_some_and(|total| total <= MAX_RESIDENT_TOTAL_BYTES));
         full && room && resource.is_texture_2d() && resource.pixels.len() <= MAX_RESIDENT_BYTES
             && (resource.width > MAX_SNAPSHOT_DIMENSION || resource.height > MAX_SNAPSHOT_DIMENSION)
+    }
+
+    fn resident_bytes(&self) -> Option<usize> {
+        self.resident_resources.keys().try_fold(0usize, |total, resource_id| {
+            self.resources.get(resource_id)?.pixels.len().checked_add(total)
+        })
     }
 
     pub(in crate::devices::virtio_gpu) fn resident_overwrite_allowed(

@@ -1,6 +1,6 @@
 use super::super::completion::{PendingCompletion, WritableRegion};
 use super::super::protocol::*;
-use super::super::three_d::BrowserCompletion;
+use super::super::three_d::{BrowserCompletion, ResidentResource};
 use super::{virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_scissor_state};
 use crate::constants::RAM_BASE;
 
@@ -41,6 +41,18 @@ fn singleton_textured_redraw_rekeys_a_resident_material_target() {
     assert_eq!([4, 48].map(|at| read_u32(&packet, at)), [Some(3), Some(first.sequence)]);
     assert!(gpu.complete_3d_resident(&mut mem, second.sequence));
     assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, second.sequence);
+}
+
+#[test]
+fn resident_target_budget_rejects_a_fifth_four_mebibyte_target() {
+    let (mut gpu, mut mem) = prepared();
+    let generation = gpu.virgl_contexts[&7].generation;
+    for id in 100..104 {
+        assert_response(&mut gpu, &mut mem, &create(id, 2, 1, 2, 1024, 1024), RESP_OK_NODATA);
+        gpu.resident_resources.insert(id, ResidentResource { context_id: 7, generation, producer_sequence: id });
+    }
+    assert_response(&mut gpu, &mut mem, &create(104, 2, 1, 2, 1024, 1024), RESP_OK_NODATA);
+    assert!(!gpu.resident_target_eligible(104, Rect { x: 0, y: 0, width: 1024, height: 1024 }));
 }
 
 fn configure_solid(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {

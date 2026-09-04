@@ -1,23 +1,28 @@
 const MAX_OUTPUT_BYTES = 4 * 1024 * 1024;
-const MAX_OUTPUTS = 4;
+const MAX_OUTPUTS = 16;
+const MAX_OUTPUT_TOTAL_BYTES = 16 * 1024 * 1024;
 
 export class VirglResidentOutputTargets {
+  #bytes = 0;
   #generation = 0;
   #outputs = new Map();
+  #reserved = new Map();
 
   acquire(backend, frame) {
     if (!frame.residentCandidate || !this.#ready(backend)) return undefined;
     if (frame.residentPreviousProducer) return this.#replacement(frame);
-    if (this.#outputs.size >= MAX_OUTPUTS) return undefined;
+    if (this.#reserved.size >= MAX_OUTPUTS) return undefined;
     const bytes = checkedBytes(frame.canvasWidth, frame.canvasHeight);
-    if (!bytes || bytes > MAX_OUTPUT_BYTES) return undefined;
+    if (!bytes || bytes > MAX_OUTPUT_BYTES || this.#bytes + bytes > MAX_OUTPUT_TOTAL_BYTES) return undefined;
     const texture = backend.device.createTexture({
       format: backend.format,
       label: `VirGL resident output ${frame.sequence}`,
       size: { depthOrArrayLayers: 1, height: frame.canvasHeight, width: frame.canvasWidth },
       usage: textureUsage().COPY_SRC | textureUsage().RENDER_ATTACHMENT,
     });
-    return { height: frame.canvasHeight, sequence: frame.sequence, texture, width: frame.canvasWidth };
+    const output = { bytes, height: frame.canvasHeight, sequence: frame.sequence, texture, width: frame.canvasWidth };
+    this.#reserved.set(texture, bytes); this.#bytes += bytes;
+    return output;
   }
 
   publish(backend, output) {
@@ -47,11 +52,15 @@ export class VirglResidentOutputTargets {
     else this.discard(output);
   }
 
-  discard(output) { output?.texture?.destroy?.(); }
+  discard(output) {
+    const bytes = this.#reserved.get(output?.texture);
+    if (bytes !== undefined) { this.#reserved.delete(output.texture); this.#bytes -= bytes; }
+    output?.texture?.destroy?.();
+  }
 
   invalidate() {
-    for (const output of this.#outputs.values()) this.discard(output);
-    this.#outputs.clear(); this.#generation = 0;
+    for (const texture of this.#reserved.keys()) texture.destroy?.();
+    this.#bytes = 0; this.#outputs.clear(); this.#reserved.clear(); this.#generation = 0;
   }
 
   #ready(backend) {
