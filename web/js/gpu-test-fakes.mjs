@@ -68,6 +68,7 @@ export function fakeDevice({ readbackBytes = new Uint8Array(), scopeErrors = [],
     scopePops: [],
     scopePushes: [],
     samplers: [],
+    shaderModules: [],
     submits: 0,
     textures: [],
     textureCopies: [],
@@ -128,7 +129,7 @@ export function fakeDevice({ readbackBytes = new Uint8Array(), scopeErrors = [],
       this.samplers.push(descriptor);
       return { kind: "sampler" };
     },
-    createShaderModule: () => ({ kind: "shader" }),
+    createShaderModule(descriptor) { this.shaderModules.push(descriptor); return { kind: "shader" }; },
     createTexture(descriptor) {
       const texture = resource(descriptor);
       texture.createView = () => {

@@ -1,5 +1,4 @@
-mod batch;
-mod material_batch;
+mod batch; mod material_batch; mod matrix;
 
 use super::super::SamplerConfig;
 use super::super::{DepthCompare, DepthState};
@@ -52,6 +51,7 @@ fn solid(
     work: &DrawWork,
     color: [f32; 4],
 ) -> Vec<u8> {
+    if work.depth_state.is_none() && let Some(matrix) = &work.gpu_matrix { return matrix::packet(sequence, width, height, clear, work, matrix, color); }
     let version = match work.depth_state {
         None => 2,
         Some(DepthState { compare: DepthCompare::Less, write: true }) => 9,

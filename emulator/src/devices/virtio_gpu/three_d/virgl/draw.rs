@@ -60,9 +60,16 @@ pub(in crate::devices::virtio_gpu) enum DrawMaterial {
 }
 
 #[derive(Clone, Debug)]
+pub(super) struct GpuMatrix {
+    pub(super) rows: [f32; 16],
+    pub(super) raw_vertices: Vec<u8>,
+}
+
+#[derive(Clone, Debug)]
 pub(in crate::devices::virtio_gpu) struct DrawWork {
     pub(super) blend: BlendMode,
     pub(super) material: DrawMaterial,
+    pub(super) gpu_matrix: Option<GpuMatrix>,
     pub(super) vertices: Vec<u8>,
     pub(super) vertex_count: u32,
     pub(super) viewport: [f32; 6],
@@ -137,6 +144,10 @@ impl VirtioGpu {
         if vertices.len() != expected_bytes {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
+        let gpu_matrix = transform
+            .and_then(|transform| transform.matrix.map(|(rows, _)| rows))
+            .filter(|_| state.depth.is_none() && matches!(&material, DrawMaterial::Solid(_)))
+            .map(|rows| GpuMatrix { rows, raw_vertices: vertices.clone() });
         if let Some(transform) = transform {
             if !transform::apply(&mut vertices, transform) {
                 return Err(RESP_ERR_INVALID_PARAMETER);
@@ -148,6 +159,7 @@ impl VirtioGpu {
         Ok(DrawWork {
             blend: state.blend,
             material,
+            gpu_matrix,
             vertices,
             vertex_count,
             viewport: viewport.values(),

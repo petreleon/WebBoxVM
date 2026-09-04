@@ -43,8 +43,10 @@ draw contract; `research/virgl-inline-writes.md` records its exact limits.
 
 Invalid wire shapes, stage/index choices, attachment, resource kind, alignment,
 or range reject the cloned stream without replacing a prior binding. Detaching a
-bound resource clears the source. The resolved material remains schema-2 `VGD1`,
-so CPU rasterization and WebGPU presentation retain one exact color contract.
+bound resource clears the source. Nonmatrix material remains schema-2 `VGD1`;
+the exact non-depth solid DP4 form may instead use private schema 15 with a
+matrix uniform for WebGPU presentation, while CPU replay keeps the same guest
+color contract.
 
 ## Evidence and limits
 
@@ -67,11 +69,13 @@ proves clear/detach invalidation. The native guest uses two command-9 writes:
 fragment RGBA at byte four and a `-0.015625` X offset at byte 20.
 
 `virgl_matrix_uniform_draw.rs` proves that a command-27 64-byte vertex binding
-transforms the canonical `DP4` packet before later resource mutation, and
-rejects an unaligned, short, or out-of-range matrix range transactionally.
+snapshots the canonical `DP4` matrix into a private raw-vertex v15 packet before
+later resource mutation, retains transformed CPU replay, and rejects an
+unaligned, short, or out-of-range matrix range transactionally.
 
-That establishes this bounded guest-driver transport route alongside Rust tests;
-it does not establish browser execution from the native harness. There is no
+That establishes this bounded guest-driver transport route alongside Rust and
+browser WebGPU-unit tests; it does not establish native guest-to-browser
+execution from the harness. There is no
 general vertex UBO, nonzero slot, arbitrary range (only exact 16- and 64-byte
 forms), uniform array, arbitrary TGSI, generic UBO schema, external memory,
 synchronization protocol, or Venus capset claim.

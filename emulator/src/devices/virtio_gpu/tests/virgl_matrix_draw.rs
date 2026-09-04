@@ -19,10 +19,12 @@ fn vertex_dp4_matrix_transforms_standard_virgl_vertices() {
     upload_vertices(&mut gpu);
     assert_response(&mut gpu, &mut mem, &submit(&matrix(MATRIX)), RESP_OK_NODATA);
     let packet = render(&mut gpu, &mut mem).expect("matrix draw");
+    assert_eq!(read_u32(&packet, 4), Some(15));
     assert_eq!(
         [56, 60, 64, 68].map(|offset| read_u32(&packet, offset)),
-        [0.25, 0.375, 0.0, 1.0].map(f32::to_bits).map(Some),
+        [MATRIX[0], MATRIX[1], MATRIX[2], MATRIX[3]].map(f32::to_bits).map(Some),
     );
+    assert_eq!([120, 124, 128, 132].map(|offset| read_u32(&packet, offset)), [0.0, 0.75, 0.0, 1.0].map(f32::to_bits).map(Some));
     let effect = gpu.pending_3d[0].effect.clone().expect("matrix effect");
     assert!(gpu.apply_3d_effect(effect));
     let center = ((384 * 1024 + 512) * 4) as usize;

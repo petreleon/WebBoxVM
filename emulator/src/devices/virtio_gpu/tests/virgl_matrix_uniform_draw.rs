@@ -19,7 +19,9 @@ fn vertex_matrix_uniform_buffer_snapshots_the_standard_64_byte_range() {
     attach(&mut gpu, &mut mem); configure(&mut gpu, &mut mem); upload_vertices(&mut gpu); store(&mut gpu, MATRIX);
     assert_response(&mut gpu, &mut mem, &submit(&uniform(0, 64)), RESP_OK_NODATA);
     let packet = render(&mut gpu, &mut mem).expect("matrix uniform draw");
-    assert_eq!([56, 60, 64, 68].map(|at| read_u32(&packet, at)), [0.25, 0.375, 0.0, 1.0].map(f32::to_bits).map(Some));
+    assert_eq!(read_u32(&packet, 4), Some(15));
+    assert_eq!([56, 60, 64, 68].map(|at| read_u32(&packet, at)), [MATRIX[0], MATRIX[1], MATRIX[2], MATRIX[3]].map(f32::to_bits).map(Some));
+    assert_eq!([120, 124, 128, 132].map(|at| read_u32(&packet, at)), [0.0, 0.75, 0.0, 1.0].map(f32::to_bits).map(Some));
     gpu.resources.get_mut(&UNIFORM).unwrap().pixels.fill(0);
     let effect = gpu.pending_3d[0].effect.clone().expect("matrix uniform effect"); assert!(gpu.apply_3d_effect(effect));
     let center = ((384 * 1024 + 512) * 4) as usize; let transformed = ((400 * 1024 + 540) * 4) as usize;
@@ -36,7 +38,7 @@ fn malformed_matrix_uniform_binding_preserves_the_prior_matrix() {
         assert_response(&mut gpu, &mut mem, &submit(&words), RESP_ERR_INVALID_PARAMETER);
     }
     let packet = render(&mut gpu, &mut mem).expect("preserved matrix uniform");
-    assert_eq!(read_u32(&packet, 56), Some(0.25f32.to_bits()));
+    assert_eq!([4, 56].map(|at| read_u32(&packet, at)), [Some(15), Some(MATRIX[0].to_bits())]);
 }
 
 fn attach(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {

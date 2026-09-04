@@ -18,6 +18,7 @@ fn work(blend: BlendMode) -> DrawWork {
     DrawWork {
         blend,
         material: DrawMaterial::VertexColor,
+        gpu_matrix: None,
         vertices: vec![0; 3 * 32],
         vertex_count: 3,
         viewport: [2.0, 2.0, 0.5, 2.0, 2.0, 0.5],
