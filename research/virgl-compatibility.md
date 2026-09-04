@@ -129,10 +129,10 @@ multiple vertex attributes beyond fixed position/UV, position/RGBA, or position/
 sampling/filtering or blending, depth/stencil, multi-target rendering, general
 readback, or a broad VirGL renderer.
 
-It also does not establish Vulkan or Venus. Guest-only blobs and a bounded
-host-visible staging map profile exist, but Venus needs guest-shadow blobs,
-external-memory semantics, synchronization, and a matching capset that this
-renderer does not advertise.
+It also does not establish Vulkan or Venus. Guest-only blobs, host-only mapped
+staging, and default guest-shadow transfers exist, but Venus still needs
+renderer-local blob allocation, external-memory semantics, synchronization, and
+a matching capset that this renderer does not advertise.
 
 ## Validation retained in the repository
 
@@ -145,7 +145,7 @@ independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attri
 cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
-VirtIO-GPU/DRM/KMS transport for capset discovery, R8 buffer transfer/copy,
+VirtIO-GPU/DRM/KMS transport for all three blob profiles, capset discovery, R8 buffer transfer/copy,
 color transfer/readback, and the standard clear/fence path. It then creates
 the exact R32G32B32A32 VBO plus an eight-byte R8 index buffer, canonical TGSI state,
 exact type-1 source-over blend and type-2 scissor-rasterizer objects, viewport/scissor,

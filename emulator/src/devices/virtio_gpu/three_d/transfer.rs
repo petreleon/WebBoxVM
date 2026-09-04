@@ -1,4 +1,5 @@
 use super::VIRGL_CAPSET_ID;
+use crate::devices::virtio_gpu::blob::BlobMemory;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::GpuResource;
@@ -41,6 +42,12 @@ impl Transfer3d {
             .then(|| self.box3d.buffer_range(resource.pixels.len()))
             .flatten()
     }
+
+    fn blob_range(&self, size: usize) -> Option<(usize, usize)> {
+        (self.level == 0 && self.stride == 0 && self.layer_stride == 0)
+            .then(|| self.box3d.buffer_range(size))
+            .flatten()
+    }
 }
 
 impl VirtioGpu {
@@ -54,20 +61,26 @@ impl VirtioGpu {
             Ok(transfer) => transfer,
             Err(response) => return response,
         };
-        let resource = self
-            .resources
-            .get_mut(&transfer.resource_id)
-            .expect("resource existence checked above");
-        let transferred = if resource.is_texture_2d() {
-            transfer
-                .texture_rect()
-                .and_then(|rect| resource.transfer(mem, rect, transfer.offset))
-        } else if resource.is_buffer() {
-            transfer.buffer_range(resource).and_then(|(start, end)| {
-                resource.transfer_buffer_to_host(mem, transfer.offset, start, end)
-            })
+        let transferred = if let Some(resource) = self.resources.get_mut(&transfer.resource_id) {
+            if resource.is_texture_2d() {
+                transfer
+                    .texture_rect()
+                    .and_then(|rect| resource.transfer(mem, rect, transfer.offset))
+            } else if resource.is_buffer() {
+                transfer.buffer_range(resource).and_then(|(start, end)| {
+                    resource.transfer_buffer_to_host(mem, transfer.offset, start, end)
+                })
+            } else {
+                None
+            }
         } else {
-            None
+            let blob = self
+                .blobs
+                .get_mut(&transfer.resource_id)
+                .expect("default blob checked above");
+            transfer.blob_range(blob.size).and_then(|(start, end)| {
+                blob.transfer_shadow_to_host(mem, transfer.offset, start, end)
+            })
         };
         if transferred.is_none() {
             return RESP_ERR_INVALID_PARAMETER;
@@ -85,20 +98,26 @@ impl VirtioGpu {
             Ok(transfer) => transfer,
             Err(response) => return response,
         };
-        let resource = self
-            .resources
-            .get(&transfer.resource_id)
-            .expect("resource existence checked above");
-        let transferred = if resource.is_texture_2d() {
-            transfer
-                .texture_rect()
-                .and_then(|rect| resource.transfer_from_host(mem, rect, transfer.offset))
-        } else if resource.is_buffer() {
-            transfer.buffer_range(resource).and_then(|(start, end)| {
-                resource.transfer_buffer_from_host(mem, transfer.offset, start, end)
-            })
+        let transferred = if let Some(resource) = self.resources.get(&transfer.resource_id) {
+            if resource.is_texture_2d() {
+                transfer
+                    .texture_rect()
+                    .and_then(|rect| resource.transfer_from_host(mem, rect, transfer.offset))
+            } else if resource.is_buffer() {
+                transfer.buffer_range(resource).and_then(|(start, end)| {
+                    resource.transfer_buffer_from_host(mem, transfer.offset, start, end)
+                })
+            } else {
+                None
+            }
         } else {
-            None
+            let blob = self
+                .blobs
+                .get(&transfer.resource_id)
+                .expect("default blob checked above");
+            transfer.blob_range(blob.size).and_then(|(start, end)| {
+                blob.transfer_shadow_from_host(mem, transfer.offset, start, end)
+            })
         };
         if transferred.is_none() {
             return RESP_ERR_INVALID_PARAMETER;
@@ -108,13 +127,24 @@ impl VirtioGpu {
 
     fn virgl_transfer(&self, header: CtrlHeader, input: &[u8]) -> Result<Transfer3d, u32> {
         let transfer = Transfer3d::decode(input).ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        if !self.resources.contains_key(&transfer.resource_id) {
+        let resource = self.resources.contains_key(&transfer.resource_id);
+        let shadow_blob = self
+            .blobs
+            .get(&transfer.resource_id)
+            .is_some_and(|blob| {
+                blob.memory == BlobMemory::Host3dGuest
+                    && blob
+                        .host
+                        .as_ref()
+                        .is_some_and(|host| host.owner_context == header.ctx_id)
+            });
+        if !resource && !self.blobs.contains_key(&transfer.resource_id) {
             return Err(RESP_ERR_INVALID_RESOURCE_ID);
         }
         if self.contexts.get(&header.ctx_id) != Some(&VIRGL_CAPSET_ID) {
             return Err(RESP_ERR_INVALID_CONTEXT_ID);
         }
-        if !self.is_virgl_resource(transfer.resource_id) {
+        if !self.is_virgl_resource(transfer.resource_id) && !shadow_blob {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         Ok(transfer)

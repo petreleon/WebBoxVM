@@ -2,10 +2,11 @@
 
 ## Scope boundary
 
-WebBoxVM now implements one real, deliberately small prerequisite from the
-VirtIO-GPU resource-blob ABI: a negotiated `BLOB_MEM_GUEST` resource. This is
-not a Venus capset, a Vulkan implementation, or a promise that Mesa can create
-a Vulkan device.
+WebBoxVM implements a deliberately small resource-blob subset: negotiated
+`BLOB_MEM_GUEST`, a bounded mapped `BLOB_MEM_HOST3D` staging object, and a
+`BLOB_MEM_HOST3D_GUEST` default blob with explicit guest-shadow transfers. This
+is not a Venus capset, a Vulkan implementation, or a promise that Mesa can
+create a Vulkan device.
 
 The current Linux wire ABI assigns `VIRTIO_GPU_F_RESOURCE_BLOB` to feature bit
 3 and `RESOURCE_CREATE_BLOB` to control command `0x010c`. The command carries
@@ -18,11 +19,12 @@ trailing list of guest physical-memory entries. [Linux UAPI](https://github.com/
 | --- | --- | --- |
 | Feature negotiation | bit 3 plus `VIRTIO_F_VERSION_1` and `FEATURES_OK`; bit 5 when selected | Blob creation never activates from an unnegotiated resource-blob feature mask. |
 | Guest `blob_mem` / flags | `BLOB_MEM_GUEST` (1), zero flags | Guest pages retain their defined ownership. |
-| Host staging `blob_mem` / flags | `BLOB_MEM_HOST3D` (2), `BLOB_FLAG_USE_MAPPABLE` | A live VirGL context owns one bounded CPU-visible staging allocation. |
+| Host staging `blob_mem` / flags | `BLOB_MEM_HOST3D` (2), `BLOB_FLAG_USE_MAPPABLE` | Creation requires a live VirGL context and creates one bounded CPU-visible staging allocation. |
+| Default shadow `blob_mem` / flags | `BLOB_MEM_HOST3D_GUEST` (3), zero flags | Creation records a live VirGL context and retains host bytes plus an explicitly synchronized guest shadow. |
 | `blob_id` | zero | Neither profile exposes an external or renderer-local object identity. |
-| Guest backing entries | 0–16,384 valid physical ranges covering `size` when present | Later attach/detach supports swap-style guest-page lifetime. |
+| Guest backing entries | 0–16,384 valid physical ranges covering `size` when present | Guest/default blobs may attach or detach their shadow pages later. |
 | Host staging backing entries | zero | The profile retains its bounded bytes internally, without a guest shadow buffer. |
-| Context association | lifecycle attachment only | A live VirGL context owns host staging lifetime, but draw-state validation still rejects it. |
+| Context association | creation-time owner plus lifecycle attachment | Default 3D transfers require their recorded capset-1 owner; draw-state validation still rejects blobs. |
 | Lifetime | normal `RESOURCE_UNREF` | IDs share one namespace and accounting budget with 2D and bounded VirGL resources. |
 
 The device also implements a tightly scoped host-visible map profile. The
@@ -35,10 +37,16 @@ overlap or a duplicate mapping. `RESOURCE_UNMAP_BLOB` copies the aperture back
 to the bounded host allocation and discards the sparse pages. Unref and device
 reset also discard live mappings, preventing data leakage on aperture reuse.
 
-It does not accept `BLOB_MEM_HOST3D_GUEST`, shareable/cross-device flags, or
-any Vulkan external-memory handle. The mappable `HOST3D` profile is a
-CPU-visible staging allocation: it has no renderer-local object validation,
-GPU command interpretation, fence export, or Vulkan ownership transfer.
+Default blobs are deliberately not aperture-mapped: map/unmap remains exclusive
+to the host-only profile. With valid guest backing installed, a 3D
+transfer-to-host copies a bounded range into retained host bytes, and the
+inverse transfer restores that range to guest memory. An unattached or detached
+default shadow rejects either transfer without changing retained host bytes.
+
+It does not accept shareable/cross-device flags, a renderer-local nonzero
+`blob_id`, a renderer allocation command stream, or any Vulkan external-memory
+handle. The profiles have no GPU command interpretation, fence export, or
+Vulkan ownership transfer.
 
 ## Safety invariant
 
@@ -55,17 +63,21 @@ aperture; unmap performs the inverse copy before dropping sparse pages. Thus a
 mapping round trip preserves bytes while an ID's release makes its aperture
 range read as zero.
 
+Default-shadow transfers require level/stride zero, a nonempty bounded range,
+and complete validated backing. They copy only that range between the retained
+host shadow and guest memory; a rejected request leaves the host shadow intact.
+
 ## Why this precedes Venus
 
 Mesa documents Venus as a VirtIO-GPU Vulkan command-serialization path that
 requires resource blobs, host-visible memory, and host Vulkan/external-memory
-support. The current profile now supplies the first two resource-lifecycle
-layers, but WebGPU does not itself provide the host Vulkan external-memory
-primitives Venus needs. [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
+support. The current profile supplies guest ownership, host staging, and
+default-shadow coherence, but WebGPU does not itself provide the host Vulkan
+external-memory primitives Venus needs. [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
 
 The next truthful layers are:
 
-1. `HOST3D_GUEST` ownership and synchronization semantics;
+1. renderer-local blob allocation through `SUBMIT_3D` and a nonzero `blob_id`;
 2. a Vulkan-capable host boundary, only if it can preserve external-memory and
    fence behavior; and finally
 3. a Venus capset whose queried properties match those completed layers.

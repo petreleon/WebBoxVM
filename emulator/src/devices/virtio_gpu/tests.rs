@@ -3,6 +3,7 @@ mod blob;
 mod bounds;
 mod commands;
 mod context;
+mod default_blob;
 mod features;
 mod host_visible;
 mod lifecycle;

@@ -2,7 +2,8 @@ use super::super::backing::decode_entries;
 use super::super::protocol::*;
 use super::super::resource::total_resource_limit;
 use super::super::{
-    MAX_BACKING_ENTRIES, MAX_RESOURCE_BYTES, MAX_RESOURCES, VIRTIO_GPU_F_RESOURCE_BLOB, VirtioGpu,
+    MAX_BACKING_ENTRIES, MAX_RESOURCE_BYTES, MAX_RESOURCES, VIRTIO_GPU_F_RESOURCE_BLOB,
+    VIRTIO_GPU_F_VIRGL, VirtioGpu,
 };
 use super::BlobResource;
 use crate::constants::PAGE_SIZE;
@@ -10,6 +11,7 @@ use crate::memory::PhysicalMemory;
 
 const BLOB_MEM_GUEST: u32 = 1;
 const BLOB_MEM_HOST3D: u32 = 2;
+const BLOB_MEM_HOST3D_GUEST: u32 = 3;
 const BLOB_FLAG_USE_MAPPABLE: u32 = 1;
 
 impl VirtioGpu {
@@ -40,10 +42,27 @@ impl VirtioGpu {
                 None => return RESP_ERR_INVALID_PARAMETER,
             },
             BlobKind::Host3d => {
-                if !self.virgl_contexts.contains_key(&header.ctx_id) {
+                if !self.feature_enabled(VIRTIO_GPU_F_VIRGL)
+                    || !self.virgl_contexts.contains_key(&header.ctx_id)
+                {
                     return RESP_ERR_INVALID_PARAMETER;
                 }
-                let Some(blob) = BlobResource::host_visible(create.size, header.ctx_id) else {
+                let Some(blob) = BlobResource::host_only(create.size, header.ctx_id) else {
+                    return RESP_ERR_OUT_OF_MEMORY;
+                };
+                blob
+            }
+            BlobKind::Host3dGuest => {
+                if !self.feature_enabled(VIRTIO_GPU_F_VIRGL)
+                    || !self.virgl_contexts.contains_key(&header.ctx_id)
+                {
+                    return RESP_ERR_INVALID_PARAMETER;
+                }
+                let Some(backing) = blob_backing(mem, input, create.entries, create.size) else {
+                    return RESP_ERR_INVALID_PARAMETER;
+                };
+                let Some(blob) = BlobResource::host_shadowed(create.size, header.ctx_id, backing)
+                else {
                     return RESP_ERR_OUT_OF_MEMORY;
                 };
                 blob
@@ -59,6 +78,7 @@ impl VirtioGpu {
 enum BlobKind {
     Guest,
     Host3d,
+    Host3dGuest,
 }
 
 struct BlobCreate {
@@ -93,6 +113,9 @@ impl BlobCreate {
                 if entries == 0 && size % PAGE_SIZE as usize == 0 =>
             {
                 BlobKind::Host3d
+            }
+            (BLOB_MEM_HOST3D_GUEST, 0, 0) if size % PAGE_SIZE as usize == 0 => {
+                BlobKind::Host3dGuest
             }
             _ => return None,
         };

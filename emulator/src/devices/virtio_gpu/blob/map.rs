@@ -1,5 +1,6 @@
 use super::super::protocol::*;
 use super::super::{VIRTIO_GPU_F_RESOURCE_BLOB, VirtioGpu};
+use super::BlobMemory;
 use crate::constants::{PAGE_SIZE, VIRTIO_GPU_HOST_VISIBLE_BASE, VIRTIO_GPU_HOST_VISIBLE_SIZE};
 use crate::memory::PhysicalMemory;
 
@@ -36,6 +37,9 @@ impl VirtioGpu {
         let Some(blob) = self.blobs.get_mut(&resource_id) else {
             return RESP_ERR_INVALID_RESOURCE_ID;
         };
+        if blob.memory != BlobMemory::Host3d {
+            return RESP_ERR_INVALID_PARAMETER;
+        }
         let Some(host) = blob.host.as_mut() else {
             return RESP_ERR_INVALID_PARAMETER;
         };
@@ -64,6 +68,9 @@ impl VirtioGpu {
         let Some(blob) = self.blobs.get(&resource_id) else {
             return Err(RESP_ERR_INVALID_RESOURCE_ID);
         };
+        if blob.memory != BlobMemory::Host3d {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         let Some(host) = blob.host.as_ref() else {
             return Err(RESP_ERR_INVALID_PARAMETER);
         };

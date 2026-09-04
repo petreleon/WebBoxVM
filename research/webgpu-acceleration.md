@@ -69,7 +69,7 @@ Tightly packed BGRA8 pixels follow the header.
 
 ## Experimental 3D slice
 
-WebBoxVM advertises `VIRTIO_GPU_F_VIRGL`, `VIRTIO_GPU_F_RESOURCE_BLOB`, `VIRTIO_GPU_F_BLOB_ALIGNMENT`, and `VIRTIO_GPU_F_CONTEXT_INIT`. It exposes a bounded host-visible blob aperture and a guest-memory profile, separately documented in [Venus foundations](venus-foundations.md).
+WebBoxVM advertises `VIRTIO_GPU_F_VIRGL`, `VIRTIO_GPU_F_RESOURCE_BLOB`, `VIRTIO_GPU_F_BLOB_ALIGNMENT`, and `VIRTIO_GPU_F_CONTEXT_INIT`. It exposes a bounded host-visible aperture plus guest-only and default guest-shadow blob profiles, separately documented in [Venus foundations](venus-foundations.md).
 The device now separately exposes a deliberately narrow standard VirGL capset-1 clear, solid-triangle, generic vertex-color, texture-times-vertex-color, and fixed sampled-texture path, documented in [VirGL compatibility](virgl-compatibility.md).
 Capset ID 7 is deliberately private and unregistered, its data starts with
 `WBG3`, and generic Mesa must not select or interpret it.
@@ -108,7 +108,7 @@ Venus still requires host-3D/host-visible synchronization and host Vulkan extern
 
 - Both queues are exposed, but only control-queue commands are implemented; `UPDATE_CURSOR` and `MOVE_CURSOR` on the cursor queue return an error.
 - Feature pages retain the driver's 64-bit selection. `FEATURES_OK` clears for an unsupported mask or a missing `VERSION_1`; resource-blob creation is gated on that accepted feature.
-- Guest-only blobs and a mappable, host-only staging profile coexist with WBG3 plus the narrow capset-1 triangles. There are no host-3D guest-shadow blobs, external-memory sharing, general VirGL/Venus shader/state, or compute APIs.
+- Guest-only, host-only mapped staging, and default guest-shadow blobs coexist with WBG3 plus narrow capset-1 triangles. There is no renderer-local blob object, external-memory sharing, general VirGL/Venus shader/state, or compute API.
 
 ## Invariants
 

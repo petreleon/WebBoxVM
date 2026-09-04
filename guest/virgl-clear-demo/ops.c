@@ -112,9 +112,7 @@ int virgl_setup(long fd, struct virgl_resources *resources)
         return 4;
     if (virgl_create_textured_resources(fd, resources) != 0)
         return 4;
-    if (virgl_create_guest_blob(fd) != 0)
-        return 4;
-    if (virgl_create_host_blob(fd) != 0)
+    if (virgl_verify_blob_profiles(fd) != 0)
         return 4;
     return virgl_create_vertex_color_resource(fd, resources) == 0 ? 0 : 4;
 }
