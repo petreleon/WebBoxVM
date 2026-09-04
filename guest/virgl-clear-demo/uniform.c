@@ -15,8 +15,12 @@ static const char vertex_shader[] =
     "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
 static const char fragment_shader[] =
     "FRAG\nDCL CONST[0][0]\nDCL OUT[0], COLOR\nMOV OUT[0], CONST[0][0]\nEND\n";
+static const u32 uniform_values[] = {
+    0, 0x3e4ccccdu, 0x3f19999au, 0x3ecccccdU, 0x3f000000u,
+};
 
-static int upload(long fd, u32 bo);
+static int inline_write(long fd, u32 bo, u32 resource);
+static int uniform_readback(long fd, u32 bo);
 static int readback(long fd, u32 bo);
 static int submit(long fd, const struct virgl_resources *resources);
 static u32 stream(u32 *words, const struct virgl_resources *resources);
@@ -45,30 +49,48 @@ int virgl_create_uniform_buffer(long fd, u32 *bo_handle, u32 *resource_handle)
 
 int virgl_run_uniform_triangle(long fd, const struct virgl_resources *resources)
 {
-    if (upload(fd, resources->uniform_bo) != 0)
+    if (inline_write(fd, resources->uniform_bo, resources->uniform_resource) != 0)
         return 1;
-    if (submit(fd, resources) != 0)
+    if (uniform_readback(fd, resources->uniform_bo) != 0)
         return 2;
-    if (virgl_wait_for_resource(fd, resources->scanout_bo) != 0)
+    if (submit(fd, resources) != 0)
         return 3;
-    return readback(fd, resources->scanout_bo) == 0 ? 0 : 4;
+    if (virgl_wait_for_resource(fd, resources->scanout_bo) != 0)
+        return 4;
+    return readback(fd, resources->scanout_bo) == 0 ? 0 : 5;
 }
 
-static int upload(long fd, u32 bo)
+static int inline_write(long fd, u32 bo, u32 resource)
 {
-    static const u32 values[] = {
-        0, 0x3e4ccccdu, 0x3f19999au, 0x3ecccccdU, 0x3f000000u,
+    u32 words[VIRGL_RESOURCE_INLINE_WRITE_WORDS] = {0};
+    u32 handles[] = {bo};
+    struct drm_virtgpu_execbuffer exec = {
+        .command = (u64)words, .bo_handles = (u64)handles, .num_bo_handles = 1, .fence_fd = -1,
     };
-    struct drm_virtgpu_3d_transfer_to_host transfer = {
+
+    words[0] = VIRGL_HEADER(VIRGL_CCMD_RESOURCE_INLINE_WRITE, 0, 16);
+    words[1] = resource; words[9] = UNIFORM_STORAGE_BYTES; words[10] = 1; words[11] = 1;
+    for (u32 index = 0; index < sizeof(uniform_values) / sizeof(uniform_values[0]); index++)
+        words[12 + index] = uniform_values[index];
+    exec.size = sizeof(words);
+    return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &exec) < 0 ? -1 : 0;
+}
+
+static int uniform_readback(long fd, u32 bo)
+{
+    struct drm_virtgpu_3d_transfer_from_host transfer = {
         .bo_handle = bo, .box = {.w = UNIFORM_STORAGE_BYTES, .h = 1, .d = 1},
     };
     u32 *mapped = (u32 *)virgl_map_buffer(fd, bo, UNIFORM_STORAGE_BYTES);
 
     if (!mapped)
         return -1;
-    for (u32 index = 0; index < sizeof(values) / sizeof(values[0]); index++)
-        mapped[index] = values[index];
-    return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_TO_HOST, &transfer) < 0 ? -2 : 0;
+    if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
+        return -2;
+    for (u32 index = 0; index < sizeof(uniform_values) / sizeof(uniform_values[0]); index++)
+        if (mapped[index] != uniform_values[index])
+            return -3;
+    return 0;
 }
 
 static int readback(long fd, u32 bo)

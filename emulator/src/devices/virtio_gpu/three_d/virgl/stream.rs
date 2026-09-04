@@ -32,9 +32,22 @@ impl VirtioGpu {
             return Ok(None);
         }
         let commands = decode_stream(input).ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        let inline_writes = commands
+            .iter()
+            .filter(|command| matches!(command, Command::InlineWrite(_)))
+            .count();
+        if inline_writes != 0
+            && (inline_writes != 1
+                || commands
+                    .iter()
+                    .any(|command| !matches!(command, Command::Nop | Command::InlineWrite(_))))
+        {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         let mut clear = None;
         let mut copy = None;
         let mut draw = None;
+        let mut inline_write = None;
         for command in commands {
             match command {
                 Command::Nop => {}
@@ -84,6 +97,10 @@ impl VirtioGpu {
                     }
                     self.validate_virgl_copy(&context, region)?;
                 }
+                Command::InlineWrite(write) => {
+                    self.validate_virgl_inline_write(&context, &write)?;
+                    inline_write = Some(write);
+                }
                 Command::Draw(call) => {
                     if copy.is_some() || draw.is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
@@ -103,6 +120,9 @@ impl VirtioGpu {
         }
         if let Some(region) = copy {
             self.apply_virgl_copy(region)?;
+        }
+        if let Some(write) = inline_write {
+            self.apply_virgl_inline_write(write)?;
         }
         let deferred = match (clear, draw) {
             (Some((resource, color, rect)), Some(work)) => Some(self.queue_virgl_draw(

@@ -32,6 +32,11 @@ f32 words. The existing solid-material validator still requires finite,
 normalized RGBA before a draw is queued; raw uniform bytes are not reinterpreted
 after that snapshot.
 
+The companion command-9 inline-write path can populate this same attached
+buffer in an isolated submission. It copies only a validated byte range after
+the entire stream validates, leaving command 27 as the separate binding and
+draw contract; `research/virgl-inline-writes.md` records its exact limits.
+
 Invalid wire shapes, stage/index choices, attachment, resource kind, alignment,
 or range reject the cloned stream without replacing a prior binding. Detaching a
 bound resource clears the source. The resolved material remains schema-2 `VGD1`,
@@ -45,9 +50,9 @@ the deferred work retained its snapshot. It also proves malformed, wrong-bind,
 unaligned, out-of-range, and missing-resource rejection, standard unbind, and
 detach clearing.
 
-The native Linux DRM guest probe creates a 20-byte R8 constant buffer, transfers
-a zero prefix plus RGBA at byte offset four, and emits command 27 with the exact
-fragment-slot-zero 16-byte range. Its host smoke accepts the resulting schema-2
+The native Linux DRM guest probe creates a 20-byte R8 constant buffer, writes a
+zero prefix plus RGBA through command 9, reads it back, and emits command 27
+with the exact fragment-slot-zero 16-byte range. Its host smoke accepts the resulting schema-2
 color only when it is the distinct offset-four RGBA and, after deferred completion,
 requires both source-over BGRA triangle samples to be `147,141,58,255`.
 

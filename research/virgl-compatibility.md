@@ -19,7 +19,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 | Texture resources | Packed 2D targets plus two B8G8R8A8 or R8G8B8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
 | Buffer resources | R8 raw vertex/index/constant plus R32G32/R32G32B32A32 float vertex storage | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
-| Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
+| Resource transfer/copy | 72-byte transfers, one command-9 uniform inline write, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
 | Presentation | Clear, solid, fixed vertex-color, texture-times-color, or one/two-texture sampled triangle lists through WebGPU | No multi-command composition, depth, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
@@ -39,7 +39,7 @@ and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4), `PIPE_PRIM_TRIANG
 - `PIPE_BUFFER` target; R32G32B32A32_FLOAT with exactly vertex-buffer bind, or
   R8 with exactly vertex-, index-, or constant-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
 
-R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4 and accepts aligned byte offsets; R8 constant storage uses one aligned 16-byte command-27 range.
+R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4 and accepts aligned byte offsets; R8 constant storage uses one aligned 16-byte command-27 range and an isolated command-9 byte upload with zero dword padding.
 `SET_VERTEX_BUFFERS` accepts zero through three standard `(stride, offset, resource)` triples, resetting omitted slots.
 Solid draws use a format-31 position source at stride 16; textured, vertex-color, and texture-color inputs may stay
 interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes across slots 0–2; every divisor is zero.
@@ -82,7 +82,7 @@ slots. Type 8, rather than type 7, is the standard surface object type.
 
 The guest stream uses ordinary VirGL headers, object types 1, 2, 4, 5, 6, 7,
 and 8; `SET_FRAMEBUFFER_STATE`, `SET_VIEWPORT_STATE`, `SET_SCISSOR_STATE`,
-generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, commands 11/12/27
+generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, commands 9/11/12/27
 `SET_INDEX_BUFFER`/`SET_CONSTANT_BUFFER`/`SET_UNIFORM_BUFFER`, command 29 `BIND_SHADER`, commands 10/18 sampler bindings,
 and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
 occur on a clone and commit only after the complete stream validates.
@@ -150,8 +150,8 @@ cached pipelines, no depth texture, bounded `draw(N)`, and queue-gated completio
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
 clear/fence, indexed inline-constant, texture, vertex-color, and texture-color paths.
-It also creates a 20-byte R8 constant buffer, transfers its color at byte offset
-four, sends standard command 27, validates a distinct schema-2 `VGD1` color,
+It also creates a 20-byte R8 constant buffer, populates its color at byte offset
+four through isolated standard command 9 plus readback, sends command 27, validates a distinct schema-2 `VGD1` color,
 completes that effect, and reads both `147,141,58,255` triangles through Linux.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
 from that harness.

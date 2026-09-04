@@ -2,16 +2,16 @@ pub(super) mod blend;
 pub(super) mod constant;
 pub(super) mod draw;
 pub(super) mod index;
+pub(super) mod inline;
 pub(super) mod sampler;
 pub(super) mod shader;
 pub(super) mod state;
 pub(super) mod uniform;
 pub(super) mod vertex;
-
 use super::super::draw::DrawCall;
+use super::super::inline::InlineWrite;
 use super::super::{CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE};
 use crate::devices::virtio_gpu::protocol::{Rect, read_u32};
-
 const CMD_NOP: u8 = 0;
 const CMD_CREATE_OBJECT: u8 = 1;
 const CMD_DESTROY_OBJECT: u8 = 3;
@@ -32,15 +32,14 @@ pub(super) enum Command {
     },
     DestroySurface { handle: u32 },
     SetFramebuffer { surface: Option<u32> },
-    Clear {
-        color: [f32; 4],
-    },
+    Clear { color: [f32; 4] },
     ClearSurface {
         handle: u32,
         color: [f32; 4],
         rect: Rect,
     },
     CopyRegion(CopyRegion),
+    InlineWrite(InlineWrite),
     Draw(DrawCall),
     Blend(blend::Command),
     Constant(constant::Command),
@@ -170,6 +169,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
             .map(Command::Vertex)
             .or_else(|| constant::decode(command, object, words).map(Command::Constant))
             .or_else(|| uniform::decode(command, object, words).map(Command::Uniform))
+            .or_else(|| inline::decode(command, object, words).map(Command::InlineWrite))
             .or_else(|| index::decode(command, object, words).map(Command::Index))
             .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))

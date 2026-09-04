@@ -31,6 +31,39 @@ fn fragment_uniform_buffer_renders_and_snapshots_a_nonzero_offset() {
 }
 
 #[test]
+fn inline_write_populates_an_attached_uniform_buffer_before_draw() {
+    let (mut gpu, mut mem) = prepared();
+    attach_uniform(&mut gpu, &mut mem);
+    configure(&mut gpu, &mut mem);
+    assert_response(&mut gpu, &mut mem, &submit(&inline(UNIFORM, 4, COLOR)), RESP_OK_NODATA);
+    let expected: Vec<u8> = COLOR.into_iter().flat_map(f32::to_le_bytes).collect();
+    assert_eq!(&gpu.resources[&UNIFORM].pixels[4..20], expected.as_slice());
+    assert!(gpu.pending_3d.is_empty());
+    assert_response(&mut gpu, &mut mem, &submit(&uniform(UNIFORM, 4)), RESP_OK_NODATA);
+    let packet = render(&mut gpu, &mut mem).expect("inline uniform draw");
+    assert_eq!(read_u32(&packet, 40), Some(COLOR[0].to_bits()));
+}
+
+#[test]
+fn inline_write_rejects_bad_or_mixed_streams_without_mutation() {
+    let (mut gpu, mut mem) = prepared();
+    attach_uniform(&mut gpu, &mut mem);
+    store(&mut gpu, 4, [0.1, 0.2, 0.3, 1.0]);
+    let before = gpu.resources[&UNIFORM].pixels.clone();
+    let mut mixed = inline(UNIFORM, 4, COLOR);
+    mixed.extend(clear([0.1, 0.2, 0.3, 1.0]));
+    for words in [
+        inline(BUFFER, 4, COLOR),
+        inline(UNIFORM, 20, COLOR),
+        vec![word(9, 0, 12), UNIFORM, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0xffff_0000],
+        mixed,
+    ] {
+        assert_response(&mut gpu, &mut mem, &submit(&words), RESP_ERR_INVALID_PARAMETER);
+    }
+    assert_eq!(gpu.resources[&UNIFORM].pixels, before);
+}
+
+#[test]
 fn uniform_binding_rejects_bad_shapes_transactionally_and_can_unbind() {
     let (mut gpu, mut mem) = prepared();
     attach_uniform(&mut gpu, &mut mem);
@@ -102,6 +135,12 @@ fn store(gpu: &mut super::super::VirtioGpu, offset: usize, color: [f32; 4]) {
 
 fn uniform(resource: u32, offset: u32) -> Vec<u32> {
     vec![word(27, 0, 5), 1, 0, offset, 16, resource]
+}
+
+fn inline(resource: u32, offset: u32, color: [f32; 4]) -> Vec<u32> {
+    let mut words = vec![word(9, 0, 15), resource, 0, 0, 0, 0, offset, 0, 0, 16, 1, 1];
+    words.extend(color.map(f32::to_bits));
+    words
 }
 
 fn clear_uniform() -> Vec<u32> {

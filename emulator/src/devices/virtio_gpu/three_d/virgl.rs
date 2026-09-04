@@ -4,6 +4,7 @@ mod copy;
 mod copy_buffer;
 mod draw;
 mod effect;
+mod inline;
 mod resource;
 mod shader;
 mod stream;
