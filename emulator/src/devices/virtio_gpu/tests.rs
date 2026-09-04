@@ -38,7 +38,7 @@ mod virgl_shader_shapes;
 mod virgl_split_vertex_draw;
 mod virgl_split_texture_draw;
 mod virgl_textured_draw;
-mod virgl_texture_constant_draw;
+mod virgl_texture_constant_draw; mod virgl_texture_vertex_uniform_draw;
 mod virgl_triangle_primitives;
 mod virgl_texture_color_draw;
 mod virgl_transfer;

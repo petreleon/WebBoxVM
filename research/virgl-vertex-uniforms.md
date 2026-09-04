@@ -7,7 +7,9 @@ claiming generic vertex UBOs, TGSI, OpenGL, Vulkan, or Venus support?
 
 ## Applied contract
 
-WebBoxVM recognizes exactly this vertex program:
+WebBoxVM recognizes the planar form below, plus one fixed generic-varying form
+that declares `IN[1]`/`OUT[1]` as `GENERIC[0]` and appends
+`MOV OUT[1], IN[1]` after the same position addition:
 
 ```text
 VERT
@@ -25,8 +27,11 @@ preparation it snapshots `[dx,dy,z,w]`. `dx` and `dy` must be finite and in
 
 The renderer first validates every source position and triangle. It adds the
 offset only to local copied X/Y components, then validates the resulting
-positions and triangles again before generating schema-2 `VGD1`. Consequently,
-post-queue resource mutation cannot change the deferred CPU/WebGPU work.
+positions and triangles again before generating the existing solid or texture
+material packet. The generic form retains fixed position/UV input; when paired
+with texture×fragment-constant, it translates before expanding the local copy
+to the existing 40-byte texture-color snapshot. Consequently, post-queue
+resource mutation cannot change deferred CPU/WebGPU work.
 
 ## Native proof
 
@@ -35,13 +40,16 @@ command-9 writes for fragment RGBA at byte four and `[-.015625,0,0,0]` at byte
 20, reads all 36 bytes back, then binds command-27 stage zero at byte 20 and
 stage one at byte four. The host harness checks the transformed schema-2 vertex
 bits, completes the queue, and requires source-over BGRA triangle samples of
-`147,141,58,255`.
+`147,141,58,255`. A direct Rust standard-stream regression separately checks
+the generic form with texture×fragment-constant, including its translated
+schema-8 position and constant-color fields.
 
 ## Deliberate limits
 
 There is no matrix, array, arbitrary instruction, generic vertex constant,
-second slot, non-16-byte range, clip-space repair, or fallback transform. This
-is one vertical compatibility seam, not a broad shader implementation.
+second UBO slot, non-16-byte range, clip-space repair, or fallback transform.
+The one optional generic varying is fixed to the existing position/UV material
+layouts; this remains a vertical seam, not a broad shader implementation.
 
 ## Sources
 

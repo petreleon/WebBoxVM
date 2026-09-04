@@ -48,7 +48,7 @@ Type-4 shader objects accept only bounded NUL-terminated TGSI shapes: solid or
 `CONST[0][0]` passthrough/fragment-color pairs; generic RGBA passthrough or generic-RGBA-times-fragment-constant pairs; a two-generic texture-times-color pair;
 a one-2D-`TEX` passthrough or texture-times-`CONST[0][0]` pair; or a two-2D-`TEX`, `MUL` pair. Declaration order and full-vector `.xyzw` spellings normalize for those forms, while unknown operations, repeated/overlapping declarations, and ambiguous immediates fail. The latter pair has one generic UV input, two sampler/views, and one color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
-source per vertex/fragment stage may be in flight. The only vertex-constant form adds `CONST[0][0]` to `IN[0]`; chunks must retain handle,
+source per vertex/fragment stage may be in flight. Vertex-constant forms add `CONST[0][0]` to `IN[0]`, optionally preserving one `GENERIC[0]` varying; chunks must retain handle,
 stage, and token count; parser failure leaves the cloned context unchanged.
 The declared token capacity plus virglrenderer’s translation slack must fit
 the recognized shape. Stream output, unknown stages, and unrecognized text fail.
@@ -99,7 +99,7 @@ renderer. One clear may precede one through 16 draws against the current full-sc
 framebuffer. A singleton uses `VGD1` material routes; a solid-only 2–16 sequence uses `VGB1` v1 when non-depth, legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with per-record comparisons, or v5 with per-record canonical DSA state. Other supported 2–16 sequences use `VGM1`. Clear/copy mixing, repeat clear, and mixed depth attachments fail transactionally.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
-Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. The one vertex UBO form additionally snapshots `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translates local copied vertices, and repeats that validation before packet construction.
+Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.

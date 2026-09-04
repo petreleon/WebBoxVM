@@ -9,9 +9,9 @@ pub(super) fn parse(lines: &[&str]) -> Option<ShaderProgram> {
         {
             Some(ShaderProgram::VertexPassthrough)
         }
-        [Operation::Add(output, input, constant), Operation::End]
+        [Operation::Add(output, left, right), Operation::End]
             if position(&shape) && shape.has_register("CONST[0][0]")
-                && shape::same(output, "OUT[0]") && shape::same(input, "IN[0]") && shape::same(constant, "CONST[0][0]") =>
+                && shape::same(output, "OUT[0]") && sum(left, right, "IN[0]", "CONST[0][0]") =>
         {
             Some(ShaderProgram::VertexUniformOffset)
         }
@@ -20,6 +20,13 @@ pub(super) fn parse(lines: &[&str]) -> Option<ShaderProgram> {
                 && shape::same(generic_output, "OUT[1]") && shape::same(varying, "IN[1]") =>
         {
             Some(ShaderProgram::VertexGeneric)
+        }
+        [Operation::Add(position, left, right), Operation::Mov(generic_output, varying), Operation::End]
+            if generic(&shape, 1) && shape.has_register("CONST[0][0]") && shape::same(position, "OUT[0]")
+                && sum(left, right, "IN[0]", "CONST[0][0]") && shape::same(generic_output, "OUT[1]")
+                && shape::same(varying, "IN[1]") =>
+        {
+            Some(ShaderProgram::VertexGenericUniformOffset)
         }
         [Operation::Mov(position, input), Operation::Mov(generic0, varying0), Operation::Mov(generic1, varying1), Operation::End]
             if generic(&shape, 2) && shape::same(position, "OUT[0]") && shape::same(input, "IN[0]")
@@ -41,4 +48,9 @@ fn generic(shape: &shape::Shape<'_>, count: u32) -> bool {
         shape.has_optional_semantic(&format!("IN[{index}]"), &format!("GENERIC[{}]", index - 1))
             && shape.has_semantic(&format!("OUT[{index}]"), &format!("GENERIC[{}]", index - 1))
     })
+}
+
+fn sum(left: &str, right: &str, first: &str, second: &str) -> bool {
+    (shape::same(left, first) && shape::same(right, second))
+        || (shape::same(left, second) && shape::same(right, first))
 }

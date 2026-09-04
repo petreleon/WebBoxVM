@@ -1,4 +1,4 @@
-use super::material::VertexTransform;
+use super::material::{ColorTransform, VertexTransform};
 
 const POSITION_BYTES: usize = 16;
 const TEXTURED_BYTES: usize = 24;
@@ -6,18 +6,23 @@ const VERTEX_COLOR_BYTES: usize = 32;
 const TEXTURE_COLOR_BYTES: usize = 40;
 
 pub(super) fn apply(vertices: &mut Vec<u8>, transform: VertexTransform) -> bool {
-    match transform {
-        VertexTransform::Offset(offset) => translate(vertices, offset),
-        VertexTransform::MultiplyColor(color) => multiply_color(vertices, color),
-        VertexTransform::TextureColor(color) => add_constant_color(vertices, color),
+    if let Some((offset, stride)) = transform.offset {
+        if !translate(vertices, offset, stride) {
+            return false;
+        }
+    }
+    match transform.color {
+        None => true,
+        Some(ColorTransform::Multiply(color)) => multiply_color(vertices, color),
+        Some(ColorTransform::TextureColor(color)) => add_constant_color(vertices, color),
     }
 }
 
-fn translate(vertices: &mut [u8], [x, y]: [f32; 2]) -> bool {
-    if !vertices.len().is_multiple_of(POSITION_BYTES) {
+fn translate(vertices: &mut [u8], [x, y]: [f32; 2], stride: usize) -> bool {
+    if stride < POSITION_BYTES || !vertices.len().is_multiple_of(stride) {
         return false;
     }
-    for vertex in vertices.chunks_exact_mut(POSITION_BYTES) {
+    for vertex in vertices.chunks_exact_mut(stride) {
         for (offset, delta) in [(0, x), (4, y)] {
             let Some(bytes) = vertex.get_mut(offset..offset + 4) else {
                 return false;
