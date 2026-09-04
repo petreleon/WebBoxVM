@@ -1,4 +1,5 @@
 use super::{push_used, write_response};
+use crate::devices::virtio_gpu::three_d::BrowserCompletion;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_UNSPEC, RESP_OK_NODATA};
 use crate::memory::PhysicalMemory;
@@ -26,7 +27,7 @@ impl VirtioGpu {
         let pending = self.pending_3d.remove(index);
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");
-        let success = pending.webgpu_readback
+        let success = pending.browser_completion == BrowserCompletion::Readback
             && pending.effect.is_some_and(|effect| self.apply_3d_readback(effect, format, pixels));
         let response = completion.header.encode(if success { RESP_OK_NODATA } else { RESP_ERR_UNSPEC });
         let written = write_response(mem, &completion.output, &response).unwrap_or(0);

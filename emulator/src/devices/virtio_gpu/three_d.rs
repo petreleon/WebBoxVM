@@ -1,17 +1,16 @@
-use super::completion::PendingCompletion;
-use super::fence::FenceTimeline;
 use super::protocol::*;
 use super::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
 mod capset;
 mod context;
 pub(super) mod packet;
+mod pending;
 mod transfer;
 mod virgl;
 
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID, VIRGL2_CAPSET_ID};
 use packet::decode_submit;
-use virgl::{DepthState, DrawMaterial, DrawWork};
+pub(super) use pending::{BrowserCompletion, DeferredSubmit, Pending3d, Pending3dEffect};
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
 #[cfg(test)]
 pub(in crate::devices::virtio_gpu) use virgl::{ShaderKind, ShaderProgram};
@@ -22,64 +21,6 @@ pub(super) const CAPSET_SIZE: u32 = 32;
 pub(super) const MAX_3D_DIMENSION: u32 = 8192;
 pub(super) const MAX_3D_VERTICES: u32 = 4096;
 pub(super) const MAX_3D_INDICES: u32 = 12288;
-
-#[derive(Debug, Clone)]
-pub(super) struct Pending3d {
-    pub sequence: u32,
-    pub timeline: FenceTimeline,
-    pub bytes: usize,
-    pub packet: Option<Vec<u8>>,
-    pub completion: Option<PendingCompletion>,
-    pub effect: Option<Pending3dEffect>,
-    pub webgpu_readback: bool,
-}
-
-#[derive(Debug, Clone)]
-pub(super) enum Pending3dEffect {
-    VirglClear {
-        context_id: u32,
-        generation: u32,
-        resource_id: u32,
-        rect: Rect,
-        bgra: [u8; 4],
-    },
-    VirglDraw {
-        context_id: u32,
-        generation: u32,
-        resource_id: u32,
-        depth_resource: Option<u32>,
-        depth_state: Option<DepthState>,
-        rect: Rect,
-        clear_bgra: [u8; 4],
-        material: DrawMaterial,
-        vertices: Vec<u8>,
-        viewport: [f32; 6],
-        scissor: Option<Rect>,
-    },
-    VirglBatch {
-        context_id: u32,
-        generation: u32,
-        resource_id: u32,
-        rect: Rect,
-        clear_bgra: [u8; 4],
-        works: Vec<DrawWork>,
-    },
-    VirglDepthBatch {
-        context_id: u32,
-        generation: u32,
-        resource_id: u32,
-        depth_resource: u32,
-        rect: Rect,
-        clear_bgra: [u8; 4],
-        works: Vec<DrawWork>,
-    },
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(super) struct DeferredSubmit {
-    pub sequence: u32,
-    pub header: CtrlHeader,
-}
 
 impl VirtioGpu {
     pub(super) fn capset_info_response(&self, header: CtrlHeader, input: &[u8]) -> Vec<u8> {
@@ -147,7 +88,7 @@ impl VirtioGpu {
             packet: Some(packet),
             completion: None,
             effect: None,
-            webgpu_readback: false,
+            browser_completion: BrowserCompletion::Standard,
         });
         Ok(DeferredSubmit { sequence, header })
     }

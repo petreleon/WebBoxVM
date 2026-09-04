@@ -11,7 +11,7 @@ mod shader;
 mod stream;
 mod uniform;
 
-use super::{DeferredSubmit, Pending3d, Pending3dEffect};
+use super::{BrowserCompletion, DeferredSubmit, Pending3d, Pending3dEffect};
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
@@ -126,7 +126,9 @@ impl VirtioGpu {
             return Err(RESP_ERR_OUT_OF_MEMORY);
         }
         let timeline = self.fence_timeline(header);
-        let webgpu_readback = matches!(packet.get(..4), Some(b"VGB1" | b"VGM1"));
+        let browser_completion = matches!(packet.get(..4), Some(b"VGB1" | b"VGM1"))
+            .then_some(BrowserCompletion::Readback)
+            .unwrap_or(BrowserCompletion::Standard);
         self.pending_3d_bytes += packet.len();
         self.pending_3d.push(Pending3d {
             sequence,
@@ -135,7 +137,7 @@ impl VirtioGpu {
             packet: Some(packet),
             completion: None,
             effect: Some(effect),
-            webgpu_readback,
+            browser_completion,
         });
         Ok(DeferredSubmit { sequence, header })
     }
