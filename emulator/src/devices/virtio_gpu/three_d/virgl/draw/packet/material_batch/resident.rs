@@ -18,13 +18,17 @@ pub(super) fn packet(
         return None;
     };
     let (kind, texture, stride) = source(&work.material)?;
+    let (version, flags) = match work.blend {
+        BlendMode::SourceOver => (12, 2),
+        direct if direct.is_replace() => (13, u32::from(direct.replace_mask()?)),
+        _ => return None,
+    };
     let bytes = usize::try_from(work.vertex_count)
         .ok()?
         .checked_mul(stride)?;
     if depth
         || !resident
         || predecessor.is_some()
-        || work.blend != BlendMode::SourceOver
         || work.depth_resource.is_some()
         || work.depth_state.is_some()
         || !width_checked(width, height)
@@ -40,7 +44,7 @@ pub(super) fn packet(
             .checked_add(bytes)?,
     );
     packet.extend_from_slice(b"VGM1");
-    for value in [12, sequence, width, height, 1, 2] {
+    for value in [version, sequence, width, height, 1, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     floats(&mut packet, clear);

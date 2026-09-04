@@ -14,6 +14,25 @@ test("VirGL resident-sample packets validate a source producer without pixel pay
   assert.throws(() => parseGpu3dPacket(packet), /resident texture framing/);
 });
 
+test("VirGL opaque resident samples preserve their exact replacement mask", () => {
+  const frame = parseGpu3dPacket(virglResidentSamplePacket({ version: 13, writeMask: 9 }));
+  assert.equal(frame.residentCandidate, true); assert.equal(frame.residentSource, true);
+  assert.equal(frame.blend, "replace"); assert.equal(frame.writeMask, 9);
+});
+
+test("VirGL opaque resident samples bind their durable source without blending", async () => {
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  await display.present3d(virglMaterialBatchPacket({ canvasHeight: 65, canvasWidth: 65, drawCount: 1, sequence: 90, version: 2 }));
+  assert.deepEqual(await display.present3d(virglResidentSamplePacket({ version: 13, writeMask: 9 })), {
+    resident: true, sequence: 91, success: true,
+  });
+  const target = device.pipelines.at(-1).descriptor.fragment.targets[0];
+  assert.equal(target.writeMask, 9); assert.equal("blend" in target, false);
+  assert.equal(device.writes.length, 0); assert.equal(device.textureCopies.length, 0);
+});
+
 test("VirGL resident samples stay on WebGPU and release each durable target independently", async () => {
   const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },

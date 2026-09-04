@@ -23,12 +23,12 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  const residentCandidate = [2, 3, 10, 11, 12].includes(version); const residentSource = version === 12;
-  const replace = [4, 5, 6, 7, 8, 9, 10, 11].includes(version);
-  const masked = [8, 9, 10, 11].includes(version); const replacement = [3, 11].includes(version);
+  const residentCandidate = [2, 3, 10, 11, 12, 13].includes(version); const residentSource = [12, 13].includes(version);
+  const replace = [4, 5, 6, 7, 8, 9, 10, 11, 13].includes(version);
+  const masked = [8, 9, 10, 11, 13].includes(version); const replacement = [3, 11].includes(version);
   const depth = version === 1 ? flags === 1 : [5, 7, 9].includes(version);
   const writeMask = masked ? flags : [6, 7].includes(version) ? RGB_WRITE_MASK : 0xF;
-  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (version === 1 && drawCount < 2)
     || (residentSource && drawCount !== 1)
     || (masked ? flags < 1 || flags > 0xF : version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== (depth ? 1 : 0))
@@ -84,7 +84,7 @@ function draw(view, packet, offset, width, height, depth, version, sequence) {
 function materialData(view, packet, offset, material, version, sequence) {
   if (material === "solid") return { drawColor: colors(view, offset, "draw"), next: offset + 16 };
   if (material === "vertex-color") return { next: offset };
-  if (version === 12) {
+  if ([12, 13].includes(version)) {
     if (!["texture", "texture-color"].includes(material)) throw new Error("VirGL resident texture material is invalid");
     const source = residentTexture(view, packet, offset, sequence);
     return { next: source.next, texture: source.texture };

@@ -82,7 +82,26 @@ fn stale_resident_texture_sample_releases_only_its_new_target() {
     assert_eq!(mem.read(RAM_BASE + 0x7100, 4), Some(RESP_ERR_UNSPEC as u64));
 }
 
+#[test]
+fn opaque_resident_texture_sample_preserves_its_write_mask() {
+    let (mut gpu, mut mem) = prepared_opaque_sample();
+    let deferred = gpu.execute_queued_command(&mut mem, &submit(&draw_command())).deferred.expect("opaque resident sample");
+    attach(&mut gpu, deferred.sequence, deferred.header, 1);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 20, 24].map(|at| read_u32(&packet, at)), [Some(13), Some(1), Some(9)]);
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Resident);
+    assert!(gpu.complete_3d_resident(&mut mem, deferred.sequence));
+}
+
 fn prepared_sample() -> (super::super::VirtioGpu, crate::memory::PhysicalMemory) {
+    prepared_sample_with(virgl_source_over_state(13))
+}
+
+fn prepared_opaque_sample() -> (super::super::VirtioGpu, crate::memory::PhysicalMemory) {
+    prepared_sample_with(opaque_state(13))
+}
+
+fn prepared_sample_with(blend: Vec<u32>) -> (super::super::VirtioGpu, crate::memory::PhysicalMemory) {
     let (mut gpu, mut mem) = prepared();
     assert_response(
         &mut gpu,
@@ -110,7 +129,7 @@ fn prepared_sample() -> (super::super::VirtioGpu, crate::memory::PhysicalMemory)
     state.extend(shader_create(12, 1, TEXTURED_FRAG));
     state.extend(shader_bind(11, 0));
     state.extend(shader_bind(12, 1));
-    state.extend(virgl_source_over_state(13));
+    state.extend(blend);
     state.extend(virgl_viewport_scissor_state(14));
     state.extend(textured_vertex_state());
     state.extend(
@@ -125,6 +144,11 @@ fn prepared_sample() -> (super::super::VirtioGpu, crate::memory::PhysicalMemory)
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);
     (gpu, mem)
+}
+
+fn opaque_state(handle: u32) -> Vec<u32> {
+    let mut words = vec![word(1, 1, 11), handle, 0, 0, 9 << 27];
+    words.extend([0; 7]); words.extend([word(2, 1, 1), handle]); words
 }
 
 fn draw_command() -> Vec<u32> {

@@ -28,13 +28,13 @@ partial/overlapping copies, cross-context sources, and a destination that is
 already resident.
 
 A fresh full-target non-depth one-texture or texture-color draw can name one
-same-context, non-scanout resident source through `VGM1` v12. Its 16-byte source
-record contains only canonical sampler state, dimensions, and producer sequence;
-it carries no stale CPU pixels. The browser resolves that producer to an existing
-durable texture and binds it with `TEXTURE_BINDING` while creating a fresh durable
-output. A pending sample locks its source against transfer, copy, detach, and
-unref until completion; missing or stale producers fail closed and release only
-the new target.
+same-context, non-scanout resident source through `VGM1` v12 source-over or v13
+opaque replacement. Its 16-byte source record contains only canonical sampler
+state, dimensions, and producer sequence; it carries no stale CPU pixels. The
+browser resolves that producer to an existing durable texture and binds it with
+`TEXTURE_BINDING` while creating a fresh durable output. A pending sample locks
+its source against transfer, copy, detach, and unref until completion; missing or
+stale producers fail closed and release only the new target.
 
 WebGPU textures are device resources, while a canvas current texture is not a
 durable guest resource. A real resident path therefore needs a bounded offscreen
@@ -94,9 +94,10 @@ accepted batch as a sampled CPU texture. Depth batches remain CPU-synchronized
 because later depth tests need their CPU depth shadow.
 
 One additional fresh-target singleton is accepted: a one-texture or
-texture-color source-over draw may reference one resident sampled color resource
-instead of the normal `<=64x64` CPU snapshot. It cannot rekey its destination,
-combine two textures, use depth, sample scanout, or share a batch.
+texture-color source-over or opaque replacement draw may reference one resident
+sampled color resource instead of the normal `<=64x64` CPU snapshot. It cannot
+rekey its destination, combine two textures, use depth, sample scanout, or share
+a batch.
 
 This is an eligibility boundary, not a promise of general resource residency.
 Only a same-context, non-scanout, full copy between equal-size color targets is
@@ -130,10 +131,10 @@ remain on the CPU path.
    The browser copies the source texture into a fresh bounded target without a
    canvas transfer or pixel map. Rust validates the source owner and promotes
    only the destination; a stale completion emits `VGL1` for that new sequence.
-7. `VGM1` v12 accepts one resident sampled source for a fresh non-depth
-   singleton. Both Rust and the browser revalidate its producer, dimensions,
-   context attachment, and bounded durable texture; only the new target is
-   released after a stale completion.
+7. `VGM1` v12 source-over and v13 opaque replacement accept one resident sampled
+   source for a fresh non-depth singleton. Both Rust and the browser revalidate
+   its producer, dimensions, context attachment, and bounded durable texture;
+   only the new target is released after a stale completion.
 
 ## Cost model
 
@@ -168,8 +169,9 @@ guest-visible readback.
   exact WebGPU write mask, and do not issue a mapped GPU readback.
 - Prove a `VRC1` completion retains its source, promotes only its fresh target,
   uses `COPY_SRC`/`COPY_DST` texture usage, and releases a stale target alone.
-- Prove `VGM1` v12 binds only an existing producer with `TEXTURE_BINDING`, maps
-  no pixels, locks its source, and releases a stale new target alone.
+- Prove `VGM1` v12/v13 bind only an existing producer with `TEXTURE_BINDING`, map
+  no pixels, preserve the requested opaque mask, lock the source, and release a
+  stale new target alone.
 - Measure mapped readbacks per N eligible draws and report browser/device data
   separately from guest protocol correctness.
 

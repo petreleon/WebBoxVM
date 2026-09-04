@@ -86,7 +86,9 @@ impl DrawWork {
     }
 
     pub(in crate::devices::virtio_gpu) fn resident_sample_source(&self) -> Option<ResidentTexture> {
-        (self.blend == BlendMode::SourceOver && self.depth_resource.is_none() && self.depth_state.is_none())
+        ((self.blend == BlendMode::SourceOver || self.blend.is_replace())
+            && self.depth_resource.is_none()
+            && self.depth_state.is_none())
             .then(|| self.resident_texture())
             .flatten()
     }

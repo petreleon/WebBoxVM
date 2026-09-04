@@ -22,7 +22,7 @@ nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated te
 | Context lifecycle | capset-1/2 create, destroy, attach, and detach share bounded state | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, one bounded copy per submit, strict full resident copies, and one locked resident texture source | No explicit strides, blit, format conversion, partial resident copy, or scanout copy |
 | VirGL stream | Surface/framebuffer, bounded normalized TGSI shapes, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear; singleton shapes plus 2–16 ordered solid/vertex-color/one-/two-texture/texture-color snapshots, plus a fresh one-texture resident-source singleton, through one WebGPU pass; `VGB1`/`VGM1` can map final GPU color | No arbitrary shader/state, blending, or sampler state |
+| Presentation | Clear; singleton shapes plus 2–16 ordered solid/vertex-color/one-/two-texture/texture-color snapshots, plus a fresh one-texture resident-source singleton with source-over or exact opaque replacement, through one WebGPU pass; `VGB1`/`VGM1` can map final GPU color | No arbitrary shader/state, blending, or sampler state |
 | Completion | `VGB1`/`VGM1` color changes after mapped GPU payload validation; other paths retain deferred CPU replay | Lost, stale, malformed, or unsupported payloads report an error/fallback |
 
 ## Advertised and accepted shapes
@@ -105,9 +105,10 @@ Nonresident or depth direct work uses readback `VGB1` v8–v13 or `VGM1` v4–v9
 legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with
 per-record comparisons, or v5 with per-record canonical DSA state. Other
 supported source-over 2–16 sequences use `VGM1`; blend-mixed batches fail transactionally.
-`VGM1` v12 is deliberately narrower: one fresh non-depth source-over texture or
-texture-color singleton binds one same-context non-scanout resident producer by
-sequence, dimensions, and sampler state rather than embedding texels.
+`VGM1` v12/v13 are deliberately narrower: one fresh non-depth source-over or
+opaque texture or texture-color singleton binds one same-context non-scanout
+resident producer by sequence, dimensions, and sampler state rather than
+embedding texels; v13 carries one exact nonzero replacement mask.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
 Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying.
@@ -129,11 +130,11 @@ a matching address/filter sampler, and waits for queue completion. `VGB1` remain
 
 Nonresident `VGB1`/`VGM1` passes use a `COPY_SRC` canvas target, then copy to a padded `MAP_READ` buffer, strip padding after `mapAsync`, and send a sequence-tagged BGRA/RGBA payload. Resident versions render to a bounded durable output texture, copy it only to the canvas for presentation, and retain it until an explicit guest transfer asks for the same producer. A strict same-context full resident `RESOURCE_COPY_REGION` instead uses private `VRC1` to issue `copyTextureToTexture` into a fresh durable target, retaining the source and never mapping either texture. Rust accepts only the exact in-flight envelope target/rect/format/byte count and context generation before writing a mapped result to canonical BGRA storage and damage. Depth batches retain their bounded CPU depth update before color replacement. Other envelopes still replay only after a successful Boolean acknowledgment. Failed, stale, malformed, or unacknowledged work changes no guest pixels. See [bounded GPU readback](virgl-gpu-readback.md).
 
-`VGM1` v12 instead binds one retained output as a WebGPU sampled texture and
-creates a distinct fresh output. It requires `TEXTURE_BINDING` on durable output
-textures, never maps or uploads the source pixels, and rejects a missing,
-detached, stale, scanout, or in-flight producer. This remains a private bounded
-residency protocol, not general texture interop.
+`VGM1` v12/v13 instead bind one retained output as a WebGPU sampled texture and
+create a distinct fresh output. They require `TEXTURE_BINDING` on durable output
+textures, never map or upload the source pixels, preserve v13's exact opaque
+mask, and reject a missing, detached, stale, scanout, or in-flight producer.
+This remains a private bounded residency protocol, not general texture interop.
 
 The clear-only route remains a smaller private `VGC1` envelope with the same deferred completion rule but no pipeline, buffers, or textures.
 Browser diagnostics distinguish clear, draw, texture, and dual-texture paths from private capset-7 WBG3 geometry.

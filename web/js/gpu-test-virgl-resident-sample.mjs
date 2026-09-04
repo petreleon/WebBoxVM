@@ -8,11 +8,13 @@ export function virglResidentSamplePacket({
   sequence = 91,
   sourceHeight = 65,
   sourceWidth = 65,
+  version = 12,
+  writeMask = 0xF,
 } = {}) {
   const vertices = material === "texture-color" ? colorVertices() : textureVertices();
   const bytes = 48 + 52 + 16 + vertices.length * 4; const packet = new Uint8Array(bytes); const view = new DataView(packet.buffer);
   packet.set([0x56, 0x47, 0x4d, 0x31]);
-  [12, sequence, canvasWidth, canvasHeight, 1, 2].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
+  [version, sequence, canvasWidth, canvasHeight, 1, version === 12 ? 2 : writeMask].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
   floats(view, 28, clearColor); view.setFloat32(44, 0, true);
   view.setUint32(48, material === "texture-color" ? 5 : 3, true); view.setUint32(56, vertices.length / (material === "texture-color" ? 10 : 6), true);
   floats(view, 60, [canvasWidth / 2, canvasHeight / 2, .5, canvasWidth / 2, canvasHeight / 2, .5]);

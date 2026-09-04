@@ -12,7 +12,7 @@ impl VirtioGpu {
         let supported = match effect {
             Pending3dEffect::VirglClear { .. } => version(packet, b"VGC1") == Some(2),
             Pending3dEffect::VirglBatch { .. } => matches!(version(packet, b"VGB1"), Some(6 | 7 | 14 | 15))
-                || matches!(version(packet, b"VGM1"), Some(2 | 3 | 10 | 11 | 12)),
+                || matches!(version(packet, b"VGM1"), Some(2 | 3 | 10 | 11 | 12 | 13)),
             _ => false,
         };
         supported && self.resident_effect_valid(effect)
