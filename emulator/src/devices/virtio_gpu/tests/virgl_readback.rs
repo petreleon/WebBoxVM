@@ -65,6 +65,7 @@ fn resident_transfer_defers_a_full_readback_before_scattering_guest_pixels() {
     let pixels: Vec<u8> = (0..WIDTH * HEIGHT * 4).map(|value| value as u8).collect();
     assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 1, &pixels));
     assert!(!gpu.resident_resources.contains_key(&RESOURCE_ID));
+    assert!(gpu.take_3d_update().is_empty());
     assert_eq!(read(&mem, RAM_BASE + 4, 8), pixels[4..12]);
     assert_eq!(read(&mem, RAM_BASE + 20, 4), pixels[20..24]);
     assert_eq!(read(&mem, SECOND_BACKING, 4), pixels[24..28]);
@@ -82,6 +83,9 @@ fn resident_resource_requires_a_full_cpu_upload_before_abandoning_gpu_authority(
     assert!(gpu.resident_resources.contains_key(&RESOURCE_ID));
     assert_response(&mut gpu, &mut mem, &transfer_to(0, 0, WIDTH, HEIGHT, 0), RESP_OK_NODATA);
     assert!(!gpu.resident_resources.contains_key(&RESOURCE_ID));
+    let release = gpu.take_3d_update();
+    assert_eq!(&release[..4], b"VGL1");
+    assert_eq!(read_u32(&release, 8), Some(71));
 }
 
 #[test]

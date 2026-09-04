@@ -10,7 +10,6 @@ import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl
 import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-readback-pool-r1";
 import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-readback-pool-r1";
 import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-readback-pool-r1";
-
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
 @group(0) @binding(0) var<uniform> scene: Scene;
@@ -102,6 +101,8 @@ export class ExperimentalWebGpu3dRenderer {
     this.#canvasWidth = 0;
     this.#canvasHeight = 0;
   }
+
+  release(frame) { this.#virglSolidBatch.release(frame); }
 
   async #ensurePipeline(backend) {
     if (this.#generation === backend.deviceGeneration && this.#pipeline) return true;

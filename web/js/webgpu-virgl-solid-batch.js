@@ -55,6 +55,8 @@ export class VirglSolidBatchRenderer {
     } catch (error) { this.#outputs.release(frame.producerSequence); this.invalidate(); throw error; }
   }
 
+  release(frame) { this.#outputs.release(frame.producerSequence); }
+
   invalidate() {
     this.#revision += 1;
     this.#outputs.invalidate();

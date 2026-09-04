@@ -12,7 +12,7 @@ mod virgl;
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID, VIRGL2_CAPSET_ID};
 use packet::decode_submit;
 pub(super) use pending::{BrowserCompletion, DeferredSubmit, Pending3d, Pending3dEffect};
-pub(super) use residency::ResidentResource;
+pub(super) use residency::{release_packet, ResidentResource};
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
 #[cfg(test)]
 pub(in crate::devices::virtio_gpu) use virgl::{ShaderKind, ShaderProgram};
@@ -99,6 +99,7 @@ impl VirtioGpu {
         self.pending_3d
             .iter_mut()
             .find_map(|pending| pending.packet.take())
+            .or_else(|| self.resident_releases.pop_front().map(release_packet))
             .unwrap_or_default()
     }
 

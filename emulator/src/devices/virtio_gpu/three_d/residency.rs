@@ -6,6 +6,7 @@ use crate::memory::PhysicalMemory;
 
 const MAX_RESIDENT_BYTES: usize = 4 * 1024 * 1024;
 const MAX_RESIDENT_RESOURCES: usize = 4;
+const MAX_RESIDENT_RELEASES: usize = 16;
 const MAX_SNAPSHOT_DIMENSION: u32 = 64;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -65,7 +66,10 @@ impl VirtioGpu {
     }
 
     pub(in crate::devices::virtio_gpu) fn forget_resident(&mut self, resource_id: u32) {
-        self.resident_resources.remove(&resource_id);
+        let Some(resident) = self.resident_resources.remove(&resource_id) else { return; };
+        if self.resident_releases.len() < MAX_RESIDENT_RELEASES {
+            self.resident_releases.push_back(resident.producer_sequence);
+        }
     }
 
     pub(in crate::devices::virtio_gpu) fn queue_resident_readback(
@@ -118,7 +122,7 @@ impl VirtioGpu {
             || !self.write_gpu_readback(resource_id, source_rect, format, pixels) {
             return false;
         }
-        self.forget_resident(resource_id);
+        self.resident_resources.remove(&resource_id);
         self.resources.get(&resource_id).is_some_and(|resource|
             resource.transfer_from_host(mem, transfer_rect, transfer_offset).is_some())
     }
@@ -141,5 +145,11 @@ impl VirtioGpu {
 fn readback_packet(sequence: u32, producer: u32, width: u32, height: u32) -> Vec<u8> {
     let mut packet = b"VGR1".to_vec();
     for value in [1, sequence, producer, width, height] { packet.extend_from_slice(&value.to_le_bytes()); }
+    packet
+}
+
+pub(in crate::devices::virtio_gpu) fn release_packet(producer: u32) -> Vec<u8> {
+    let mut packet = b"VGL1".to_vec();
+    for value in [1, producer] { packet.extend_from_slice(&value.to_le_bytes()); }
     packet
 }

@@ -68,7 +68,10 @@ are admitted to the resident path.
    producer. The browser maps the persistent texture; Rust validates the full
    image, refreshes its shadow, and only then writes the requested backing range
    and completion response.
-4. Add GPU source references and copy continuations before expanding eligibility
+4. When a full CPU replacement or a new CPU-synchronized render ends residency,
+   Rust emits a no-ack `VGL1` release for the old producer. The browser destroys
+   that cached texture; duplicate or delayed releases are harmless.
+5. Add GPU source references and copy continuations before expanding eligibility
    to sampled targets or general VirGL streams.
 
 ## Cost model

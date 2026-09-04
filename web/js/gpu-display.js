@@ -9,7 +9,6 @@ import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260904-virgl-readbac
 import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260904-virgl-readback-pool-r1";
 import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260904-virgl-readback-pool-r1";
 import { WebGpuSession } from "./webgpu-session.js?v=20260904-virgl-readback-pool-r1";
-
 export { extractGpu3dSequence, parseGpu3dPacket }
   from "./gpu-3d-packet.js?v=20260904-virgl-readback-pool-r1";
 export { padBgraRows, paddedBytesPerRow, parseGpuScanoutPacket }
@@ -60,6 +59,7 @@ export class GuestDisplay {
       this.#diagnostics.error3d(error, "Invalid guest 3D frame");
       return Promise.resolve({ sequence: extractGpu3dSequence(packet), success: false });
     }
+    if (frame.protocol === "virgl-resident-release") { this.#gpu3d.release(frame); return Promise.resolve({}); }
     this.#diagnostics.received3d(frame.sequence);
     const claim = ++this.#presentationClaim;
     this.#presentationMode = "guest-3d-pending";
