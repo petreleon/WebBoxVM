@@ -10,8 +10,8 @@ primitive, one UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, deliberately bounded single
-solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid, interpolated or constant-modulated vertex-color, one-texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
-nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
+solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
+nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
@@ -46,13 +46,13 @@ interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes
 
 Type-4 shader objects accept only bounded NUL-terminated TGSI shapes: solid or
 `CONST[0][0]` passthrough/fragment-color pairs; generic RGBA passthrough or generic-RGBA-times-fragment-constant pairs; a two-generic texture-times-color pair;
-a one-2D-`TEX` pair; or a two-2D-`TEX`, `MUL` pair. Declaration order and full-vector `.xyzw` spellings normalize for those forms, while unknown operations, repeated/overlapping declarations, and ambiguous immediates fail. The latter pair has one generic UV input, two sampler/views, and one color output. Initial `OFFSET` is the total text-byte count; a continuation
+a one-2D-`TEX` passthrough or texture-times-`CONST[0][0]` pair; or a two-2D-`TEX`, `MUL` pair. Declaration order and full-vector `.xyzw` spellings normalize for those forms, while unknown operations, repeated/overlapping declarations, and ambiguous immediates fail. The latter pair has one generic UV input, two sampler/views, and one color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
 source per vertex/fragment stage may be in flight. The only vertex-constant form adds `CONST[0][0]` to `IN[0]`; chunks must retain handle,
 stage, and token count; parser failure leaves the cloned context unchanged.
 The declared token capacity plus virglrenderer’s translation slack must fit
 the recognized shape. Stream output, unknown stages, and unrecognized text fail.
-The vertex-color constant form resolves normalized inline or resource-backed values once while assembling `DrawWork`, multiplies each normalized vertex channel once, and reuses the standard vertex-color `VGD1`/`VGM1` route without a new browser pipeline.
+The vertex-color constant form resolves normalized inline or resource-backed values once while assembling `DrawWork`, multiplies each normalized vertex channel once, and reuses the standard vertex-color `VGD1`/`VGM1` route without a new browser pipeline. The textured constant form instead turns each fixed position/UV snapshot into a constant-RGBA texture-color snapshot, preserving the existing filtered texture route and schemas 8/14 or `VGM1` without pre-quantizing texels.
 Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
 `SET_CONSTANT_BUFFER` accepts only fragment stage 1, slot zero, and exactly four finite normalized inline f32 values (or an empty binding to clear it); command 27 accepts vertex stage 0 or fragment stage 1 at slot zero with one attached R8 constant buffer, aligned offset, exact 16-byte range, and a zero range to clear.
 

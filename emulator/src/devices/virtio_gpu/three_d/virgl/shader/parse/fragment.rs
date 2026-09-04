@@ -26,6 +26,13 @@ pub(super) fn parse(lines: &[&str]) -> Option<ShaderProgram> {
         {
             Some(ShaderProgram::FragmentTextured)
         }
+        [Operation::Tex(temp, coordinates, sampler, target), Operation::Mul(output, left, right), Operation::End]
+            if texture(&shape, 0) && shape.has_register("CONST[0][0]") && shape::same(temp, "TEMP[0]")
+                && shape::same(coordinates, "IN[0]") && shape::same(sampler, "SAMP[0]") && target == &"2D"
+                && color_output(&shape, output) && product(left, right, "TEMP[0]", "CONST[0][0]") =>
+        {
+            Some(ShaderProgram::FragmentTexturedConstant)
+        }
         [Operation::Tex(left, coordinates0, sampler0, target0), Operation::Tex(right, coordinates1, sampler1, target1), Operation::Mul(output, source0, source1), Operation::End]
             if texture_pair(&shape) && shape::same(left, "TEMP[0]") && shape::same(coordinates0, "IN[0]")
                 && shape::same(sampler0, "SAMP[0]") && target0 == &"2D" && shape::same(right, "TEMP[1]")

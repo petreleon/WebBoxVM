@@ -15,6 +15,7 @@ const TEXTURE_COLOR_VERTEX_BYTES: usize = 40;
 pub(super) enum VertexTransform {
     Offset([f32; 2]),
     MultiplyColor([f32; 4]),
+    TextureColor([f32; 4]),
 }
 
 pub(super) fn material(
@@ -54,6 +55,14 @@ pub(super) fn material(
             DrawMaterial::Textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
             None,
         )),
+        (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTexturedConstant) => {
+            let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
+            Ok((
+                TEXTURED_VERTEX_BYTES,
+                DrawMaterial::TextureColor(snapshot(gpu, context, target, state.sampled_resources[0])?),
+                Some(VertexTransform::TextureColor(color)),
+            ))
+        }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTexturedMultiply) => Ok((
             TEXTURED_VERTEX_BYTES,
             DrawMaterial::TexturedPair(pair(gpu, context, target, state.sampled_resources)?),

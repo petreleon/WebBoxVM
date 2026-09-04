@@ -35,6 +35,7 @@ pub(in crate::devices::virtio_gpu) enum ShaderProgram {
     FragmentVertexColor,
     FragmentVertexColorConstant,
     FragmentTextured,
+    FragmentTexturedConstant,
     FragmentTexturedMultiply,
     FragmentTexturedVertexColor,
 }
@@ -57,6 +58,7 @@ impl Shader {
             ShaderProgram::FragmentVertexColor => 11,
             ShaderProgram::FragmentVertexColorConstant => 12,
             ShaderProgram::FragmentTextured => 25,
+            ShaderProgram::FragmentTexturedConstant => 30,
             ShaderProgram::FragmentTexturedMultiply => 31,
             ShaderProgram::FragmentTexturedVertexColor => 30,
         }
