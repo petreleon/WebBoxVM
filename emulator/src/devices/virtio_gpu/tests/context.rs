@@ -2,7 +2,7 @@ use super::super::VirtioGpu;
 use super::super::completion::{PendingCompletion, WritableRegion};
 use super::super::protocol::*;
 use super::super::resource::FORMAT_B8G8R8A8_UNORM;
-use super::super::three_d::CAPSET_ID;
+use super::super::three_d::{CAPSET_ID, ResidentResource};
 use super::{context_create, create_2d, header, response_type, submit_3d, wbg3_packet};
 use crate::constants::RAM_BASE;
 use crate::memory::PhysicalMemory;
@@ -79,6 +79,20 @@ fn device_reset_does_not_reuse_an_inflight_browser_sequence() {
     assert!(!gpu.complete_3d(&mut mem, old.sequence, true));
     assert_eq!(gpu.pending_3d.len(), 1);
     assert_eq!(gpu.pending_3d[0].sequence, new.sequence);
+}
+
+#[test]
+fn context_destroy_releases_its_resident_browser_target() {
+    let mut gpu = VirtioGpu::new();
+    let mut mem = PhysicalMemory::new();
+    let mut virgl = context_create();
+    virgl[28..32].copy_from_slice(&1u32.to_le_bytes());
+    assert_response(&mut gpu, &mut mem, &virgl, RESP_OK_NODATA);
+    let generation = gpu.virgl_contexts[&7].generation;
+    gpu.resident_resources.insert(1, ResidentResource { context_id: 7, generation, producer_sequence: 44 });
+    assert_response(&mut gpu, &mut mem, &header(CMD_CTX_DESTROY), RESP_OK_NODATA);
+    assert!(!gpu.resident_resources.contains_key(&1));
+    assert_eq!(&gpu.take_3d_update()[..4], b"VGL1");
 }
 
 fn deferred_submit(

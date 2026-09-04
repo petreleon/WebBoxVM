@@ -72,6 +72,12 @@ impl VirtioGpu {
         }
     }
 
+    pub(in crate::devices::virtio_gpu) fn forget_resident_context(&mut self, context_id: u32) {
+        let resources: Vec<u32> = self.resident_resources.iter().filter_map(|(&resource_id, resident)|
+            (resident.context_id == context_id).then_some(resource_id)).collect();
+        for resource_id in resources { self.forget_resident(resource_id); }
+    }
+
     pub(in crate::devices::virtio_gpu) fn queue_resident_readback(
         &mut self,
         header: CtrlHeader,

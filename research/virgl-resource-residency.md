@@ -71,6 +71,7 @@ are admitted to the resident path.
 4. When a full CPU replacement or a new CPU-synchronized render ends residency,
    Rust emits a no-ack `VGL1` release for the old producer. The browser destroys
    that cached texture; duplicate or delayed releases are harmless.
+   Context and resource teardown use the same release path.
 5. Add GPU source references and copy continuations before expanding eligibility
    to sampled targets or general VirGL streams.
 

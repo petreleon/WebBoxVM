@@ -44,6 +44,7 @@ impl VirtioGpu {
         if !self.contexts.contains_key(&header.ctx_id) {
             return RESP_ERR_INVALID_CONTEXT_ID;
         }
+        self.forget_resident_context(header.ctx_id);
         self.contexts.remove(&header.ctx_id);
         self.context_generations.remove(&header.ctx_id);
         self.virgl_contexts.remove(&header.ctx_id);
