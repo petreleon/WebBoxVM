@@ -35,6 +35,9 @@ impl VirtioGpu {
     }
 
     fn resident_effect_valid(&self, effect: &Pending3dEffect) -> bool {
+        if matches!(effect, Pending3dEffect::VirglResidentCopy { .. }) {
+            return self.resident_copy_effect_valid(effect);
+        }
         let Some((context_id, generation, resource_id, rect, epoch, predecessor)) = target(effect) else {
             return false;
         };
@@ -53,6 +56,9 @@ fn target(effect: &Pending3dEffect) -> Option<(u32, u32, u32, Rect, u64, Option<
         | Pending3dEffect::VirglBatch {
             context_id, generation, resource_id, rect, resident_epoch, resident_predecessor, ..
         } => Some((*context_id, *generation, *resource_id, *rect, *resident_epoch, *resident_predecessor)),
+        Pending3dEffect::VirglResidentCopy {
+            context_id, generation, resource_id, rect, resident_epoch, ..
+        } => Some((*context_id, *generation, *resource_id, *rect, *resident_epoch, None)),
         _ => None,
     }
 }

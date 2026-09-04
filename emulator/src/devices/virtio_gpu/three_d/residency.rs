@@ -9,6 +9,7 @@ const MAX_SNAPSHOT_DIMENSION: u32 = 64;
 
 mod promotion;
 mod readback;
+mod copy;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(in crate::devices::virtio_gpu) struct ResidentResource {
@@ -44,8 +45,9 @@ impl VirtioGpu {
         resource_id: u32,
         rect: Rect,
     ) -> bool {
-        !self.resident_resources.contains_key(&resource_id) || self.resources.get(&resource_id)
-            .is_some_and(|resource| rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height)
+        !self.resident_copy_in_flight(resource_id)
+            && (!self.resident_resources.contains_key(&resource_id) || self.resources.get(&resource_id)
+                .is_some_and(|resource| rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height))
     }
 
     pub(in crate::devices::virtio_gpu) fn forget_resident(&mut self, resource_id: u32) {

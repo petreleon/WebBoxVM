@@ -62,8 +62,9 @@ impl VirtioGpu {
             Ok(transfer) => transfer,
             Err(response) => return response,
         };
-        if self.resident_resources.contains_key(&transfer.resource_id)
-            && !transfer.texture_rect().is_some_and(|rect| self.resident_overwrite_allowed(transfer.resource_id, rect))
+        if self.resident_copy_in_flight(transfer.resource_id)
+            || (self.resident_resources.contains_key(&transfer.resource_id)
+                && !transfer.texture_rect().is_some_and(|rect| self.resident_overwrite_allowed(transfer.resource_id, rect)))
         {
             return RESP_ERR_INVALID_PARAMETER;
         }
@@ -102,6 +103,7 @@ impl VirtioGpu {
         input: &[u8],
     ) -> Result<Option<DeferredSubmit>, u32> {
         let transfer = self.virgl_transfer(header, input)?;
+        if self.resident_copy_in_flight(transfer.resource_id) { return Err(RESP_ERR_INVALID_PARAMETER); }
         if self.resident_resources.contains_key(&transfer.resource_id) {
             let rect = transfer.texture_rect().ok_or(RESP_ERR_INVALID_PARAMETER)?;
             return self.queue_resident_readback(header, transfer.resource_id, rect, transfer.offset).map(Some);

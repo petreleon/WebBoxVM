@@ -75,6 +75,7 @@ impl VirtioGpu {
             }
             Pending3dEffect::VirglDepthBatch { .. } => false,
             Pending3dEffect::VirglResidentReadback { .. } => false,
+            Pending3dEffect::VirglResidentCopy { .. } => false,
         }
     }
 
@@ -103,6 +104,11 @@ fn effect_context(effect: &Pending3dEffect) -> (u32, u32) {
             ..
         }
         | Pending3dEffect::VirglResidentReadback {
+            context_id,
+            generation,
+            ..
+        }
+        | Pending3dEffect::VirglResidentCopy {
             context_id,
             generation,
             ..

@@ -28,6 +28,11 @@ import {
   parseVirglResidentReadbackPacket,
 } from "./virgl-resident-readback-packet.js?v=20260904-virgl-readback-pool-r1";
 import {
+  extractVirglResidentCopySequence,
+  isVirglResidentCopyPacket,
+  parseVirglResidentCopyPacket,
+} from "./virgl-resident-copy-packet.js?v=20260904-virgl-readback-pool-r1";
+import {
   isVirglResidentReleasePacket,
   parseVirglResidentReleasePacket,
 } from "./virgl-resident-release-packet.js?v=20260904-virgl-readback-pool-r1";
@@ -42,6 +47,7 @@ const FIXED_BYTES = GPU_3D_HEADER_BYTES + MVP_FLOATS * 4;
 
 export function extractGpu3dSequence(packet) {
   if (isVirglResidentReleasePacket(packet)) return undefined;
+  if (isVirglResidentCopyPacket(packet)) return extractVirglResidentCopySequence(packet);
   if (isVirglResidentReadbackPacket(packet)) return extractVirglResidentReadbackSequence(packet);
   if (isVirglMaterialBatchPacket(packet)) return extractVirglMaterialBatchSequence(packet);
   if (isVirglSolidBatchPacket(packet)) return extractVirglSolidBatchSequence(packet);
@@ -57,6 +63,7 @@ export function extractGpu3dSequence(packet) {
 
 export function parseGpu3dPacket(packet) {
   if (isVirglResidentReleasePacket(packet)) return parseVirglResidentReleasePacket(packet);
+  if (isVirglResidentCopyPacket(packet)) return parseVirglResidentCopyPacket(packet);
   if (isVirglResidentReadbackPacket(packet)) return parseVirglResidentReadbackPacket(packet);
   if (isVirglMaterialBatchPacket(packet)) return parseVirglMaterialBatchPacket(packet);
   if (isVirglSolidBatchPacket(packet)) return parseVirglSolidBatchPacket(packet);

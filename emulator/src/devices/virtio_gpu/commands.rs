@@ -135,6 +135,7 @@ impl VirtioGpu {
         if !rect.valid_within(resource.width, resource.height) {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        if self.resident_copy_in_flight(resource_id) { return RESP_ERR_INVALID_PARAMETER; }
         if self.resident_resources.contains_key(&resource_id) { return RESP_OK_NODATA; }
         self.add_damage(resource_id, rect);
         RESP_OK_NODATA

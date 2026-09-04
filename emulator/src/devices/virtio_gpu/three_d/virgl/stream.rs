@@ -98,7 +98,7 @@ impl VirtioGpu {
                     if clear.is_some() || !draws.is_empty() || copy.replace(region).is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
-                    self.validate_virgl_copy(&context, region)?;
+                    self.validate_virgl_copy(header.ctx_id, &context, region)?;
                 }
                 Command::InlineWrite(write) => {
                     self.validate_virgl_inline_write(&context, &write)?;
@@ -124,13 +124,14 @@ impl VirtioGpu {
                 Command::State(command) => state::apply(&mut context, command)?,
             }
         }
-        if let Some(region) = copy {
-            self.apply_virgl_copy(region)?;
-        }
+        let copy_deferred = copy
+            .map(|region| self.queue_virgl_copy(header, context.generation, region))
+            .transpose()?
+            .flatten();
         if let Some(write) = inline_write {
             self.apply_virgl_inline_write(write)?;
         }
-        let deferred = batch::deferred(self, header, context.generation, clear, draws)?;
+        let deferred = copy_deferred.or(batch::deferred(self, header, context.generation, clear, draws)?);
         self.virgl_contexts.insert(header.ctx_id, context);
         Ok(deferred)
     }

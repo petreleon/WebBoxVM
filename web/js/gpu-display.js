@@ -61,18 +61,18 @@ export class GuestDisplay {
     }
     if (frame.protocol === "virgl-resident-release") { this.#gpu3d.release(frame); return Promise.resolve({}); }
     this.#diagnostics.received3d(frame.sequence);
-    const claim = ++this.#presentationClaim;
-    this.#presentationMode = "guest-3d-pending";
+    const presenting = !frame.offscreen; const claim = presenting ? ++this.#presentationClaim : this.#presentationClaim;
+    if (presenting) this.#presentationMode = "guest-3d-pending";
     const epoch = this.#epoch;
     const previous = this.#gpu3dPromise ?? Promise.resolve();
     const scheduled = previous.then(() => this.#draw3d(frame, epoch));
     const tracked = scheduled
-      .then((result) => this.#settle3d(result, claim))
+      .then((result) => this.#settle3d(result, claim, presenting))
       .catch((error) => {
         if (epoch === this.#epoch && claim === this.#presentationClaim) {
           this.#diagnostics.error3d(error, "Guest 3D draw failed");
         }
-        return this.#settle3d({ sequence: frame.sequence, success: false }, claim);
+        return this.#settle3d({ sequence: frame.sequence, success: false }, claim, presenting);
       })
       .finally(() => {
         if (this.#gpu3dPromise === tracked) this.#gpu3dPromise = undefined;
@@ -155,8 +155,8 @@ export class GuestDisplay {
     return { sequence: frame.sequence, success: true, ...(rendered.readback && { readback: rendered.readback }), ...(rendered.resident && { resident: true }) };
   }
 
-  #settle3d(result, claim) {
-    if (claim !== this.#presentationClaim) return result;
+  #settle3d(result, claim, presenting) {
+    if (!presenting || claim !== this.#presentationClaim) return result;
     if (result.success) {
       this.#presentationMode = "guest-3d-active";
     } else {

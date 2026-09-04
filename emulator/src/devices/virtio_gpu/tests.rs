@@ -28,7 +28,7 @@ mod virgl_dual_texture_draw;
 mod virgl_indexed_draw;
 mod virgl_queue;
 mod virgl_readback;
-mod virgl_resident_partial_readback;
+mod virgl_resident_partial_readback; mod virgl_resident_copy;
 mod virgl_rgba_transfer;
 mod virgl_sampler_linear;
 mod virgl_sampler_repeat;

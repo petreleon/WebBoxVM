@@ -5,7 +5,7 @@ import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-rea
 import { VirglDepthTextureRenderer } from "./webgpu-virgl-depth-texture.js?v=20260904-virgl-readback-pool-r1"; import { VirglDepthTextureColorRenderer } from "./webgpu-virgl-depth-texture-color.js?v=20260904-virgl-readback-pool-r1";
 import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-readback-pool-r1";
 import { VirglMaterialBatchRenderer } from "./webgpu-virgl-material-batch.js?v=20260904-virgl-readback-pool-r1";
-import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1"; import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-readback-pool-r1";
+import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1"; import { renderVirglResidentCopy } from "./webgpu-virgl-resident-copy.js?v=20260904-virgl-readback-pool-r1"; import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-readback-pool-r1";
 import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-readback-pool-r1";
 import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-readback-pool-r1";
 import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-readback-pool-r1";
@@ -25,7 +25,6 @@ struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
 }
 @fragment fn fragment_main(input: Output) -> @location(0) vec4f { return input.color; }
 `;
-
 export class ExperimentalWebGpu3dRenderer {
   #bindGroup;
   #bufferUsage;
@@ -60,6 +59,7 @@ export class ExperimentalWebGpu3dRenderer {
     }
     if (frame.protocol === "virgl-draw") return this.#virglDraw.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-solid-batch") return this.#virglSolidBatch.render(backend, frame, isCurrent);
+    if (frame.protocol === "virgl-resident-copy") return renderVirglResidentCopy(this.#virglOutputs, backend, frame, isCurrent);
     if (frame.protocol === "virgl-resident-readback") return this.#virglSolidBatch.readback(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth-batch") return this.#virglDepthBatch.render(backend, frame, isCurrent); if (frame.protocol === "virgl-material-batch") return this.#virglMaterialBatch.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth") return this.#virglDepth.render(backend, frame, isCurrent);

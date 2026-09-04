@@ -20,6 +20,13 @@ GPU-to-CPU copy, mapping latency, worker transfer, and copy into
 `GpuResource::pixels`; sampled inputs remain bounded immutable snapshots rather
 than GPU owners.
 
+An already resident source can also copy to a fresh, equal-size offscreen target
+through private `VRC1` v1. The browser issues `copyTextureToTexture` between two
+durable targets; the source stays resident and the destination becomes resident
+only after its matching completion. This intentionally excludes scanout,
+partial/overlapping copies, cross-context sources, and a destination that is
+already resident.
+
 WebGPU textures are device resources, while a canvas current texture is not a
 durable guest resource. A real resident path therefore needs a bounded offscreen
 texture plus an explicit control protocol; it cannot merely retain a canvas view.
@@ -31,6 +38,7 @@ For each eligible color resource, use one of these states:
 ```text
 Cpu(epoch) -> Gpu(epoch, producer sequence) -> FullResolve(sequence) -> Cpu(epoch + 1)
                                            -> PartialReadback(sequence) -> Gpu(epoch, same producer)
+                                           -> GpuCopy(sequence) -> Gpu(source, same) + Gpu(destination, new)
 ```
 
 The Rust shadow is authoritative only in `Cpu`. `Gpu` names one successful
@@ -56,6 +64,11 @@ mutation may consume an older shadow.
 6. Each candidate captures a conservative CPU-authority epoch. Any later CPU
    replacement invalidates an unresolved candidate before it can become GPU
    authority.
+7. A resident copy names exactly one stable source producer and one fresh full
+   destination. A lost source, changed context, source/destination scanout, or
+   failed browser copy releases only the new target and never changes either CPU
+   shadow. Both resources stay locked against another copy or transfer until
+   that completion settles.
 
 ## First safe subset
 
@@ -68,8 +81,9 @@ accepted batch as a sampled CPU texture. Depth batches remain CPU-synchronized
 because later depth tests need their CPU depth shadow.
 
 This is an eligibility boundary, not a promise of general resource residency.
-Copies and other CPU consumers need a deferred-resolve continuation before they
-are admitted to the resident path.
+Only a same-context, non-scanout, full copy between equal-size color targets is
+also admitted; partial, overlapping, CPU-observable, and general VirGL copies
+remain on the CPU path.
 
 ## Protocol phases
 
@@ -94,8 +108,12 @@ are admitted to the resident path.
    Rust emits a no-ack `VGL1` release for the old producer. The browser destroys
    that cached texture; duplicate or delayed releases are harmless.
    Context and resource teardown use the same release path.
-6. Add GPU source references and copy continuations before expanding eligibility
-   to sampled targets or general VirGL streams.
+6. A strict full `RESOURCE_COPY_REGION` from a resident source emits `VRC1` v1.
+   The browser copies the source texture into a fresh bounded target without a
+   canvas transfer or pixel map. Rust validates the source owner and promotes
+   only the destination; a stale completion emits `VGL1` for that new sequence.
+7. Add GPU source references for sampled targets before expanding eligibility to
+   general VirGL streams.
 
 ## Cost model
 
@@ -105,6 +123,7 @@ are admitted to the resident path.
 | Repeated full eligible draw | O(W×H) readback and transfer | Repaint and rekey one persistent GPU texture |
 | First guest CPU read | Already paid per draw | O(W×H), once at the synchronization boundary |
 | Partial guest CPU read (w×h) | O(W×H) map before scatter | O(w×h) map; retain GPU authority |
+| Full resident copy | O(W×H) readback plus CPU pixel copy | One GPU texture copy; retain source and promote destination |
 | Resident lookup | — | O(1) keyed by resource ID |
 | Identical vertex input | Upload every frame | Exact cached bytes skip `queue.writeBuffer` |
 | Browser memory | Transient target | Explicit bounded texture budget |
@@ -126,6 +145,8 @@ guest-visible readback.
   fixture byte-for-byte, including BGRA/RGBA normalization.
 - Prove direct full/RGB/partial masks keep their target resident, preserve the
   exact WebGPU write mask, and do not issue a mapped GPU readback.
+- Prove a `VRC1` completion retains its source, promotes only its fresh target,
+  uses `COPY_SRC`/`COPY_DST` texture usage, and releases a stale target alone.
 - Measure mapped readbacks per N eligible draws and report browser/device data
   separately from guest protocol correctness.
 

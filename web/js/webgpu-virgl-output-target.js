@@ -18,7 +18,7 @@ export class VirglResidentOutputTargets {
       format: backend.format,
       label: `VirGL resident output ${frame.sequence}`,
       size: { depthOrArrayLayers: 1, height: frame.canvasHeight, width: frame.canvasWidth },
-      usage: textureUsage().COPY_SRC | textureUsage().RENDER_ATTACHMENT,
+      usage: textureUsage().COPY_DST | textureUsage().COPY_SRC | textureUsage().RENDER_ATTACHMENT,
     });
     const output = { bytes, height: frame.canvasHeight, sequence: frame.sequence, texture, width: frame.canvasWidth };
     this.#reserved.set(texture, bytes); this.#bytes += bytes;
@@ -92,6 +92,4 @@ function checkedBytes(width, height) {
   return Number.isSafeInteger(bytes) && bytes > 0 ? bytes : undefined;
 }
 
-function textureUsage() {
-  return globalThis.GPUTextureUsage ?? { COPY_SRC: 1, RENDER_ATTACHMENT: 16 };
-}
+function textureUsage() { return globalThis.GPUTextureUsage ?? { COPY_DST: 2, COPY_SRC: 1, RENDER_ATTACHMENT: 16 }; }

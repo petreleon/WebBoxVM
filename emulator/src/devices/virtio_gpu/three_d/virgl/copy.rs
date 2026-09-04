@@ -4,6 +4,9 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::GpuResource;
 
+mod apply;
+use apply::{source_pixels, write_pixels};
+
 #[derive(Clone, Copy)]
 pub(in crate::devices::virtio_gpu) struct CopyRegion {
     pub dst_resource: u32,
@@ -21,6 +24,7 @@ pub(in crate::devices::virtio_gpu) struct CopyRegion {
 impl VirtioGpu {
     pub(super) fn validate_virgl_copy(
         &self,
+        context_id: u32,
         context: &VirglContext,
         copy: CopyRegion,
     ) -> Result<(), u32> {
@@ -42,8 +46,10 @@ impl VirtioGpu {
             || !context.is_attached(copy.dst_resource)
             || !self.is_virgl_resource(copy.src_resource)
             || !self.is_virgl_resource(copy.dst_resource)
-            || self.resident_resources.contains_key(&copy.src_resource)
-            || !self.resident_overwrite_allowed(copy.dst_resource, destination_rect)
+            || self.resident_copy_in_flight(copy.src_resource)
+            || self.resident_copy_in_flight(copy.dst_resource)
+            || (!self.resident_resources.contains_key(&copy.src_resource)
+                && !self.resident_overwrite_allowed(copy.dst_resource, destination_rect))
             || uses_scanout
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
@@ -67,10 +73,31 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
+        if self.resident_resources.contains_key(&copy.src_resource)
+            && !self.resident_copy_eligible(context_id, context.generation, copy, destination_rect)
+        {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         Ok(())
     }
 
+    pub(super) fn queue_virgl_copy(
+        &mut self,
+        header: CtrlHeader,
+        generation: u32,
+        copy: CopyRegion,
+    ) -> Result<Option<super::super::DeferredSubmit>, u32> {
+        if self.resident_resources.contains_key(&copy.src_resource) {
+            return self.queue_resident_copy(header, generation, copy).map(Some);
+        }
+        self.apply_virgl_copy(copy)?;
+        Ok(None)
+    }
+
     pub(super) fn apply_virgl_copy(&mut self, copy: CopyRegion) -> Result<(), u32> {
+        if self.resident_resources.contains_key(&copy.src_resource) {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         if self
             .resources
             .get(&copy.src_resource)
@@ -117,40 +144,4 @@ impl VirtioGpu {
         }
         result
     }
-}
-
-fn source_pixels(resource: &GpuResource, rect: Rect) -> Option<Vec<u8>> {
-    let row_len = usize::try_from(rect.width).ok()?.checked_mul(4)?;
-    let rows = usize::try_from(rect.height).ok()?;
-    let mut pixels = Vec::with_capacity(row_len.checked_mul(rows)?);
-    for y in rect.y..rect.y.checked_add(rect.height)? {
-        let start = pixel_offset(resource, rect.x, y)?;
-        pixels.extend_from_slice(resource.pixels.get(start..start.checked_add(row_len)?)?);
-    }
-    Some(pixels)
-}
-
-fn write_pixels(resource: &mut GpuResource, rect: Rect, pixels: &[u8]) -> Option<()> {
-    let row_len = usize::try_from(rect.width).ok()?.checked_mul(4)?;
-    if pixels.len() != row_len.checked_mul(usize::try_from(rect.height).ok()?)? {
-        return None;
-    }
-    for (row, y) in (rect.y..rect.y.checked_add(rect.height)?).enumerate() {
-        let start = pixel_offset(resource, rect.x, y)?;
-        let source = row.checked_mul(row_len)?;
-        let end = source.checked_add(row_len)?;
-        resource
-            .pixels
-            .get_mut(start..start.checked_add(row_len)?)?
-            .copy_from_slice(&pixels[source..end]);
-    }
-    Some(())
-}
-
-fn pixel_offset(resource: &GpuResource, x: u32, y: u32) -> Option<usize> {
-    usize::try_from(y)
-        .ok()?
-        .checked_mul(usize::try_from(resource.width).ok()?)?
-        .checked_add(usize::try_from(x).ok()?)?
-        .checked_mul(4)
 }
