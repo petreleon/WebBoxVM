@@ -26,9 +26,11 @@ omits WebGPU's `blend` descriptor and carries the exact bit value to
 
 All records in one private batch must have the same blend mode. A mixed
 source-over/replace batch is rejected transactionally rather than silently
-encoding one mode as the other. Replace batches currently remain readback
-backed and non-resident; the CPU fallback also fails closed instead of applying
-source-over by mistake.
+encoding one mode as the other. An eligible full-target non-depth direct batch,
+for any nonzero mask, becomes resident through `VGB1` v14/v15 or `VGM1` v10/v11;
+the flags hold the exact mask and replacement packets name their predecessor.
+Depth and noneligible targets remain readback backed, so the CPU depth shadow
+and CPU-authority boundary stay correct.
 
 ## Boundary
 
@@ -40,9 +42,10 @@ implemented subset.
 ## Validation
 
 Rust tests construct full, RGB-only, and partial standard wire words, require
-`VGB1` v8/v9/v10/v12 readback completion, and check RGBA-to-BGRA delivery plus
-the bounded depth shadow. Browser tests validate v8–v13 solid and v4–v9
-material packets and prove exact nonzero WebGPU masks with no source-over.
+resident `VGB1` v14/v15 completion for eligible non-depth output, and retain
+readback coverage for depth. Browser tests validate v8–v15 solid and v4–v11
+material packets, prove exact nonzero WebGPU masks with no source-over, and
+prove that direct resident batches avoid mapped GPU readback.
 
 ## Sources
 

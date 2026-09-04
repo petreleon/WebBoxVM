@@ -97,10 +97,11 @@ Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. One clear may precede one through 16 draws against the current full-scanout
-framebuffer. An eligible non-depth source-over singleton uses resident `VGB1` v6/v7 for a
+framebuffer. An eligible non-depth source-over batch uses resident `VGB1` v6/v7 for a
 solid or resident `VGM1` v2/v3 for any other supported material; an ineligible source-over
-singleton uses `VGD1`. Full/RGB opaque work uses readback `VGB1` v8–v11 or `VGM1` v4–v7; other nonzero
-masks use `VGB1` v12/v13 or `VGM1` v8/v9. A source-over solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
+singleton uses `VGD1`. An eligible full-target non-depth direct batch uses resident `VGB1`
+v14/v15 or `VGM1` v10/v11, with its exact nonzero mask in flags and a predecessor on rekey.
+Nonresident or depth direct work uses readback `VGB1` v8–v13 or `VGM1` v4–v9. A source-over solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
 legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with
 per-record comparisons, or v5 with per-record canonical DSA state. Other
 supported source-over 2–16 sequences use `VGM1`; blend-mixed batches fail transactionally.
@@ -121,7 +122,7 @@ Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. 
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, and waits for queue completion. `VGB1` remains the compact solid-only envelope. `VGM1` has a 48-byte header plus ordered 52-byte records, immutable snapshots and vertices; its depth flag requires clear-one plus canonical DSA. One WebGPU pass clears once and issues every record in order.
 
-For `VGB1`/`VGM1`, the canvas has `COPY_SRC`; after each pass the browser copies the target to a padded `MAP_READ` buffer, strips padding after `mapAsync`, and sends a sequence-tagged BGRA/RGBA payload. Rust accepts only the exact in-flight envelope target/rect/format/byte count and context generation, then writes final GPU color to canonical BGRA storage and damage. Depth batches retain their bounded CPU depth update before color replacement. Other envelopes still replay only after a successful Boolean acknowledgment. Failed, stale, malformed, or unacknowledged work changes no guest pixels. See [bounded GPU readback](virgl-gpu-readback.md).
+Nonresident `VGB1`/`VGM1` passes use a `COPY_SRC` canvas target, then copy to a padded `MAP_READ` buffer, strip padding after `mapAsync`, and send a sequence-tagged BGRA/RGBA payload. Resident versions render to a bounded durable output texture, copy it only to the canvas for presentation, and retain it until an explicit guest transfer asks for the same producer. Rust accepts only the exact in-flight envelope target/rect/format/byte count and context generation before writing a mapped result to canonical BGRA storage and damage. Depth batches retain their bounded CPU depth update before color replacement. Other envelopes still replay only after a successful Boolean acknowledgment. Failed, stale, malformed, or unacknowledged work changes no guest pixels. See [bounded GPU readback](virgl-gpu-readback.md).
 
 The clear-only route remains a smaller private `VGC1` envelope with the same deferred completion rule but no pipeline, buffers, or textures.
 Browser diagnostics distinguish clear, draw, texture, and dual-texture paths from private capset-7 WBG3 geometry.

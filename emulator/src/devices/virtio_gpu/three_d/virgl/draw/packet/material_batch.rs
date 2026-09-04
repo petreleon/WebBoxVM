@@ -25,6 +25,8 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
         (_, false, _, BlendMode::SourceOver) | (true, true, _, BlendMode::SourceOver) => 1,
         (false, true, None, BlendMode::SourceOver) => 2,
         (false, true, Some(_), BlendMode::SourceOver) => 3,
+        (false, true, None, direct) if direct.is_replace() => 10,
+        (false, true, Some(_), direct) if direct.is_replace() => 11,
         (false, false, _, BlendMode::Replace) => 4,
         (true, false, _, BlendMode::Replace) => 5,
         (false, false, _, BlendMode::ReplaceRgb) => 6,
@@ -38,21 +40,20 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
         let bytes = material_bytes(&work.material)?.checked_add(work.vertices.len())?;
         total.checked_add(DRAW_BYTES + bytes)
     })?;
-    let header_bytes = HEADER_BYTES.checked_add(usize::from(version == 3) * 4)?;
+    let header_bytes = HEADER_BYTES.checked_add(usize::from(matches!(version, 3 | 11)) * 4)?;
     let mut packet = Vec::with_capacity(header_bytes.checked_add(body)?);
     packet.extend_from_slice(b"VGM1");
-    let flags = match blend {
-        BlendMode::ReplaceMasked(mask) => u32::from(mask),
-        _ if depth => 1,
-        _ if resident => 2,
-        _ => 0,
+    let flags = if matches!(version, 8 | 9 | 10 | 11) {
+        u32::from(blend.replace_mask()?)
+    } else {
+        if depth { 1 } else if resident { 2 } else { 0 }
     };
     for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     floats(&mut packet, clear);
     packet.extend_from_slice(&(if depth { 1.0f32 } else { 0.0 }).to_le_bytes());
-    if version == 3 { packet.extend_from_slice(&predecessor?.to_le_bytes()); }
+    if matches!(version, 3 | 11) { packet.extend_from_slice(&predecessor?.to_le_bytes()); }
     for work in works {
         encode_work(&mut packet, work)?;
     }
@@ -147,3 +148,6 @@ fn floats(packet: &mut Vec<u8>, values: impl IntoIterator<Item = f32>) {
         packet.extend_from_slice(&value.to_le_bytes());
     }
 }
+
+#[cfg(test)]
+mod tests;

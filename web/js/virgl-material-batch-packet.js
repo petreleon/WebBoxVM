@@ -22,23 +22,24 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  const residentCandidate = [2, 3].includes(version); const replace = [4, 5, 6, 7, 8, 9].includes(version);
-  const masked = [8, 9].includes(version); const depth = version === 1 ? flags === 1 : [5, 7, 9].includes(version);
+  const residentCandidate = [2, 3, 10, 11].includes(version); const replace = [4, 5, 6, 7, 8, 9, 10, 11].includes(version);
+  const masked = [8, 9, 10, 11].includes(version); const replacement = [3, 11].includes(version);
+  const depth = version === 1 ? flags === 1 : [5, 7, 9].includes(version);
   const writeMask = masked ? flags : [6, 7].includes(version) ? RGB_WRITE_MASK : 0xF;
-  if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (version === 1 && drawCount < 2)
     || (masked ? flags < 1 || flags > 0xF : version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== (depth ? 1 : 0))
-    || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
+    || (replacement && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
     throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) throw new Error(`VirGL material-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
   const clearColor = colors(view, 28, "clear");
   if (view.getFloat32(44, true) !== (depth ? 1 : 0)) throw new Error("VirGL material-batch depth clear is invalid");
-  const residentPreviousProducer = version === 3 ? view.getUint32(48, true) : undefined;
-  if (version === 3 && (!residentPreviousProducer || residentPreviousProducer === sequence)) {
+  const residentPreviousProducer = replacement ? view.getUint32(48, true) : undefined;
+  if (replacement && (!residentPreviousProducer || residentPreviousProducer === sequence)) {
     throw new Error("VirGL material-batch replacement producer is invalid");
   }
-  let offset = version === 3 ? REPLACEMENT_HEADER_BYTES : HEADER_BYTES;
+  let offset = replacement ? REPLACEMENT_HEADER_BYTES : HEADER_BYTES;
   let totalVertices = 0;
   const draws = [];
   for (let index = 0; index < drawCount; index += 1) {

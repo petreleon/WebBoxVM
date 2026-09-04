@@ -20,6 +20,15 @@ impl BlendMode {
     pub(in crate::devices::virtio_gpu) const fn is_replace(self) -> bool {
         matches!(self, Self::Replace | Self::ReplaceRgb | Self::ReplaceMasked(_))
     }
+
+    pub(in crate::devices::virtio_gpu) const fn replace_mask(self) -> Option<u8> {
+        match self {
+            Self::SourceOver => None,
+            Self::Replace => Some(15),
+            Self::ReplaceRgb => Some(7),
+            Self::ReplaceMasked(mask) => Some(mask),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

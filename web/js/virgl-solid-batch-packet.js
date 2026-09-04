@@ -25,9 +25,10 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  const residentCandidate = [6, 7].includes(version); const replace = [8, 9, 10, 11, 12, 13].includes(version);
-  const masked = [12, 13].includes(version); const writeMask = masked ? flags : [10, 11].includes(version) ? RGB_WRITE_MASK : 0xF;
-  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  const residentCandidate = [6, 7, 14, 15].includes(version); const replace = [8, 9, 10, 11, 12, 13, 14, 15].includes(version);
+  const masked = [12, 13, 14, 15].includes(version); const replacement = [7, 15].includes(version);
+  const writeMask = masked ? flags : [10, 11].includes(version) ? RGB_WRITE_MASK : 0xF;
+  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (!residentCandidate && !replace && drawCount < 2)
     || (masked ? flags < 1 || flags > 0xF : residentCandidate ? flags !== 1 : version !== 3 && flags !== 0)) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
@@ -35,19 +36,19 @@ export function parseVirglSolidBatchPacket(packet) {
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
     throw new Error(`VirGL solid-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
   }
-  const residentPreviousProducer = version === 7 ? view.getUint32(48, true) : undefined;
-  if (version === 7 && (!residentPreviousProducer || residentPreviousProducer === sequence)) {
+  const residentPreviousProducer = replacement ? view.getUint32(48, true) : undefined;
+  if (replacement && (!residentPreviousProducer || residentPreviousProducer === sequence)) {
     throw new Error("VirGL solid-batch replacement producer is invalid");
   }
   const clearColor = colors(view, 28, "clear");
   const depthClear = view.getFloat32(44, true);
-  const depth = ![1, 6, 7, 8, 10, 12].includes(version);
+  const depth = ![1, 6, 7, 8, 10, 12, 14, 15].includes(version);
   if (depthClear !== (depth ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
   const depthCompare = version === 2 ? "less" : version === 3 ? DEPTH_COMPARE[flags] : undefined;
   if (depth && version < 4 && !depthCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
   const draws = [];
   const stateBytes = DRAW_STATE_BYTES + ([4, 5, 9, 11, 13].includes(version) ? DRAW_COMPARE_BYTES : 0);
-  let offset = version === 7 ? REPLACEMENT_HEADER_BYTES : HEADER_BYTES;
+  let offset = replacement ? REPLACEMENT_HEADER_BYTES : HEADER_BYTES;
   let totalVertices = 0;
   for (let index = 0; index < drawCount; index += 1) {
     if (offset + stateBytes > packet.byteLength) throw new Error("VirGL solid-batch draw is truncated");

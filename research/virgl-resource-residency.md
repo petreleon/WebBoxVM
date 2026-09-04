@@ -7,16 +7,18 @@ letting `TRANSFER_FROM_HOST_3D` or a later command observe stale CPU pixels?
 
 ## Current boundary
 
-Normal `VGB1` and `VGM1` packets render to the transient canvas texture, map a
-full BGRA or RGBA readback, and replace the Rust resource shadow. An eligible
-one-through-16-draw resident `VGB1` form is version 6: it renders to a bounded offscreen texture,
-copies that texture to the canvas, and acknowledges the producer without a
-pixel mapping. Version 7 names an existing producer and repaints that same
-texture for a later full redraw. A full `VGC1` clear uses version 2 and the
-same optional predecessor contract. These paths avoid the GPU-to-CPU copy,
-mapping latency, worker transfer, and copy into `GpuResource::pixels`.
-The matching non-depth mixed-material `VGM1` forms use versions 2 and 3, while
-their sampled inputs remain bounded immutable snapshots rather than GPU owners.
+Normal non-resident `VGB1` and `VGM1` packets render to the transient canvas
+texture, map a full BGRA or RGBA readback, and replace the Rust resource shadow.
+Eligible non-depth source-over batches use resident `VGB1` v6/v7 or `VGM1`
+v2/v3. Eligible non-depth direct batches use `VGB1` v14/v15 or `VGM1` v10/v11;
+their flags carry the exact nonzero RGBA write mask. Fresh versions render to a
+bounded offscreen texture, copy it to the canvas, and acknowledge the producer
+without pixel mapping. Replacement versions name an existing producer and
+repaint that same texture for a later full redraw. A full `VGC1` clear uses
+version 2 and the same optional predecessor contract. These paths avoid the
+GPU-to-CPU copy, mapping latency, worker transfer, and copy into
+`GpuResource::pixels`; sampled inputs remain bounded immutable snapshots rather
+than GPU owners.
 
 WebGPU textures are device resources, while a canvas current texture is not a
 durable guest resource. A real resident path therefore needs a bounded offscreen
@@ -54,13 +56,13 @@ one exact readback; no second transfer or mutation may consume an older shadow.
 
 ## First safe subset
 
-The safe subset promotes a non-depth solid or mixed-material `VirglBatch`,
-including a singleton rewritten to its batch envelope, or a standalone
-`VirglClear`, whose rectangle exactly covers its color resource and whose
-dimensions exceed 64 in at least one direction. The bounded sampler path accepts
-snapshots no larger than 64×64, so that target cannot re-enter an accepted batch
-as a sampled CPU texture. Depth batches remain CPU-synchronized because later
-depth tests need their depth state.
+The safe subset promotes a non-depth source-over or direct solid/mixed-material
+`VirglBatch`, including a singleton rewritten to its batch envelope, or a
+standalone `VirglClear`, whose rectangle exactly covers its color resource and
+whose dimensions exceed 64 in at least one direction. The bounded sampler path
+accepts snapshots no larger than 64×64, so that target cannot re-enter an
+accepted batch as a sampled CPU texture. Depth batches remain CPU-synchronized
+because later depth tests need their CPU depth shadow.
 
 This is an eligibility boundary, not a promise of general resource residency.
 Copies and other CPU consumers need a deferred-resolve continuation before they
@@ -68,13 +70,14 @@ are admitted to the resident path.
 
 ## Protocol phases
 
-1. Eligible version-6 `VGB1`, version-2 `VGM1`, and version-2 clear packets
-   render into one of at most 16 persistent textures totaling 16 MiB, with an
-   individual texture capped at 4 MiB, present through a GPU copy, and return a
-   resident completion.
-2. An eligible version-7 `VGB1`, version-3 `VGM1`, or version-2 clear with a
-   nonzero predecessor repaints and rekeys that exact texture only after GPU
-   completion; Rust accepts it only while the resource still names that predecessor.
+1. Eligible source-over v6 `VGB1`/v2 `VGM1`, direct v14 `VGB1`/v10 `VGM1`,
+   and v2 clear packets render into one of at most 16 persistent textures
+   totaling 16 MiB, with an individual texture capped at 4 MiB, present through
+   a GPU copy, and return a resident completion.
+2. Eligible source-over v7 `VGB1`/v3 `VGM1`, direct v15 `VGB1`/v11 `VGM1`,
+   or v2 clear packets with a nonzero predecessor repaint and rekey that exact
+   texture only after GPU completion; Rust accepts it only while the resource
+   still names that predecessor.
 3. Rust stores the producer sequence only after the matching completion
    validates the pending effect and context generation.
 4. `TRANSFER_FROM_HOST_3D` emits a private deferred `VGR1` request naming that
@@ -112,6 +115,8 @@ guest-visible readback.
 - Prove an upload, unref, reset, and device loss cannot revive a prior owner.
 - Compare a resident batch followed by transfer against the current readback
   fixture byte-for-byte, including BGRA/RGBA normalization.
+- Prove direct full/RGB/partial masks keep their target resident, preserve the
+  exact WebGPU write mask, and do not issue a mapped GPU readback.
 - Measure mapped readbacks per N eligible draws and report browser/device data
   separately from guest protocol correctness.
 

@@ -49,6 +49,8 @@ fn encode(
     let version = match (depth, mixed, read_only, resident, resident_predecessor, blend) {
         (None, false, false, true, None, BlendMode::SourceOver) => 6,
         (None, false, false, true, Some(_), BlendMode::SourceOver) => 7,
+        (None, false, false, true, None, direct) if direct.is_replace() => 14,
+        (None, false, false, true, Some(_), direct) if direct.is_replace() => 15,
         (None, false, false, false, _, BlendMode::SourceOver) => 1,
         (None, false, false, false, _, BlendMode::Replace) => 8,
         (None, false, false, false, _, BlendMode::ReplaceRgb) => 10,
@@ -73,19 +75,20 @@ fn encode(
             && work.vertices.len() == bytes)
             .then(|| total.checked_add(DRAW_STATE_BYTES + if per_draw_depth { 4 } else { 0 } + bytes))?
     })?;
-    let header_bytes = HEADER_BYTES.checked_add(if version == 7 { 4 } else { 0 })?;
+    let header_bytes = HEADER_BYTES.checked_add(if matches!(version, 7 | 15) { 4 } else { 0 })?;
     let mut packet = Vec::with_capacity(header_bytes.checked_add(body)?);
     packet.extend_from_slice(b"VGB1");
-    let flags = match blend {
-        BlendMode::ReplaceMasked(mask) => u32::from(mask),
-        _ => match depth { Some(state) if version == 3 => state.compare.wire(), _ if matches!(version, 6 | 7) => 1, _ => 0 },
+    let flags = if matches!(version, 12 | 13 | 14 | 15) {
+        u32::from(blend.replace_mask()?)
+    } else {
+        match depth { Some(state) if version == 3 => state.compare.wire(), _ if matches!(version, 6 | 7) => 1, _ => 0 }
     };
     for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     floats(&mut packet, clear);
     packet.extend_from_slice(&(if depth.is_some() { 1.0f32 } else { 0.0 }).to_le_bytes());
-    if version == 7 { packet.extend_from_slice(&resident_predecessor?.to_le_bytes()); }
+    if matches!(version, 7 | 15) { packet.extend_from_slice(&resident_predecessor?.to_le_bytes()); }
     for work in works {
         let DrawMaterial::Solid(color) = work.material else { return None; };
         packet.extend_from_slice(&work.vertex_count.to_le_bytes());

@@ -1,5 +1,5 @@
 use super::super::completion::{PendingCompletion, WritableRegion};
-use super::super::protocol::{RESP_ERR_INVALID_PARAMETER, RESP_OK_NODATA};
+use super::super::protocol::{CtrlHeader, RESP_ERR_INVALID_PARAMETER, RESP_OK_NODATA, read_u32};
 use super::super::three_d::BrowserCompletion;
 use super::virgl_draw::{
     FRAG, TARGET, VERT, assert_response, clear, draw, framebuffer, prepared, shader_bind,
@@ -39,7 +39,7 @@ fn draw_rejects_a_source_over_state_after_standard_unbind() {
 }
 
 #[test]
-fn opaque_blend_uses_a_readback_replace_batch() {
+fn opaque_blend_retains_and_rekeys_an_eligible_full_target() {
     let (mut gpu, mut mem) = prepared();
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9)); state.extend(shader_create(11, 0, VERT)); state.extend(shader_create(12, 1, FRAG));
@@ -47,17 +47,24 @@ fn opaque_blend_uses_a_readback_replace_batch() {
     state.extend(virgl_viewport_scissor_state(14)); state.extend(vertex_state());
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA); upload_vertices(&mut gpu);
     let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw());
-    let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("opaque batch");
-    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Readback);
-    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
+    let first = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("opaque batch");
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Resident);
+    attach(&mut gpu, first.sequence, first.header, RAM_BASE + 0x7000, 1);
     let packet = gpu.take_3d_update();
-    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|offset| super::super::protocol::read_u32(&packet, offset)), [Some(8), Some(1), Some(0)]);
-    assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 2, &[1, 2, 3, 255].repeat(1024 * 768)));
-    assert_eq!(&gpu.resources[&TARGET].pixels[..4], &[3, 2, 1, 255]);
+    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|at| read_u32(&packet, at)), [Some(14), Some(1), Some(15)]);
+    assert!(gpu.complete_3d_resident(&mut mem, first.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, first.sequence);
+    let second = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("opaque rekey");
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Resident);
+    attach(&mut gpu, second.sequence, second.header, RAM_BASE + 0x7200, 2);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 8, 24, 48].map(|at| read_u32(&packet, at)), [Some(15), Some(second.sequence), Some(15), Some(first.sequence)]);
+    assert!(gpu.complete_3d_resident(&mut mem, second.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, second.sequence);
 }
 
 #[test]
-fn rgb_opaque_blend_uses_a_readback_masked_batch() {
+fn rgb_opaque_blend_retains_its_exact_write_mask() {
     let (mut gpu, mut mem) = prepared();
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9)); state.extend(shader_create(11, 0, VERT)); state.extend(shader_create(12, 1, FRAG));
@@ -66,15 +73,16 @@ fn rgb_opaque_blend_uses_a_readback_masked_batch() {
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA); upload_vertices(&mut gpu);
     let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw());
     let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("RGB opaque batch");
-    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Readback);
-    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Resident);
+    attach(&mut gpu, deferred.sequence, deferred.header, RAM_BASE + 0x7000, 1);
     let packet = gpu.take_3d_update();
-    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|offset| super::super::protocol::read_u32(&packet, offset)), [Some(10), Some(1), Some(0)]);
-    assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 2, &[1, 2, 3, 255].repeat(1024 * 768)));
+    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|at| read_u32(&packet, at)), [Some(14), Some(1), Some(7)]);
+    assert!(gpu.complete_3d_resident(&mut mem, deferred.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, deferred.sequence);
 }
 
 #[test]
-fn partial_opaque_blend_carries_its_standard_channel_mask() {
+fn partial_opaque_blend_retains_its_standard_channel_mask() {
     let (mut gpu, mut mem) = prepared();
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9)); state.extend(shader_create(11, 0, VERT)); state.extend(shader_create(12, 1, FRAG));
@@ -83,11 +91,12 @@ fn partial_opaque_blend_carries_its_standard_channel_mask() {
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA); upload_vertices(&mut gpu);
     let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw());
     let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("masked opaque batch");
-    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Readback);
-    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Resident);
+    attach(&mut gpu, deferred.sequence, deferred.header, RAM_BASE + 0x7000, 1);
     let packet = gpu.take_3d_update();
-    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|offset| super::super::protocol::read_u32(&packet, offset)), [Some(12), Some(1), Some(9)]);
-    assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 2, &[1, 2, 3, 255].repeat(1024 * 768)));
+    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|at| read_u32(&packet, at)), [Some(14), Some(1), Some(9)]);
+    assert!(gpu.complete_3d_resident(&mut mem, deferred.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, deferred.sequence);
 }
 
 #[test]
@@ -109,11 +118,17 @@ fn blend_mixed_batch_fails_without_committing_its_binding() {
     assert!(gpu.pending_3d.is_empty()); assert!(gpu.take_3d_update().is_empty());
     let mut opaque = clear([0.1, 0.2, 0.3, 1.0]); opaque.extend(draw());
     let deferred = gpu.execute_queued_command(&mut mem, &submit(&opaque)).deferred.expect("opaque binding survives");
-    assert_eq!(super::super::protocol::read_u32(&gpu.take_3d_update(), 4), Some(8));
+    assert_eq!(read_u32(&gpu.take_3d_update(), 4), Some(14));
     assert_eq!(gpu.pending_3d[0].sequence, deferred.sequence);
 }
 
 fn opaque_state(handle: u32, mask: u32) -> Vec<u32> {
     let mut words = vec![word(1, 1, 11), handle, 0, 0, mask << 27];
     words.extend([0; 7]); words.extend([word(2, 1, 1), handle]); words
+}
+
+fn attach(gpu: &mut super::super::VirtioGpu, sequence: u32, header: CtrlHeader, address: u64, head: u16) {
+    assert!(gpu.attach_3d_completion(sequence, PendingCompletion {
+        header, output: vec![WritableRegion { addr: address, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head,
+    }));
 }
