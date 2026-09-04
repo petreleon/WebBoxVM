@@ -71,7 +71,7 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let (vertex_bytes, material) = material(self, context, resource_id, state)?;
+        let (vertex_bytes, material, offset) = material(self, context, resource_id, state)?;
         let viewport = state.viewport;
         let scissor = state.scissor;
         if !viewport.valid_within(rect.width, rect.height)
@@ -79,7 +79,7 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        let vertices = resolve(self, context, resource_id, state, call, vertex_bytes)?;
+        let mut vertices = resolve(self, context, resource_id, state, call, vertex_bytes)?;
         let vertex_count = call
             .primitive
             .output_count(call.count)
@@ -90,6 +90,11 @@ impl VirtioGpu {
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
         if vertices.len() != expected_bytes {
             return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        if let Some(offset) = offset {
+            if !raster::valid(&vertices, &material) || !translate_vertices(&mut vertices, offset) {
+                return Err(RESP_ERR_INVALID_PARAMETER);
+            }
         }
         if !raster::valid(&vertices, &material) {
             return Err(RESP_ERR_INVALID_PARAMETER);
@@ -142,9 +147,9 @@ impl VirtioGpu {
             DrawMaterial::TexturedPair(textures) => {
                 raster::draw_textured(resource, rect, vertices, textures, viewport, scissor)
             }
-            DrawMaterial::TextureColor(texture) => raster::draw_texture_color(
-                resource, rect, vertices, texture, viewport, scissor,
-            ),
+            DrawMaterial::TextureColor(texture) => {
+                raster::draw_texture_color(resource, rect, vertices, texture, viewport, scissor)
+            }
         };
         if !drawn {
             return false;
@@ -152,4 +157,23 @@ impl VirtioGpu {
         self.add_damage(resource_id, rect);
         true
     }
+}
+
+fn translate_vertices(vertices: &mut [u8], [x, y]: [f32; 2]) -> bool {
+    if !vertices.len().is_multiple_of(16) {
+        return false;
+    }
+    for vertex in vertices.chunks_exact_mut(16) {
+        for (offset, delta) in [(0, x), (4, y)] {
+            let Some(bytes) = vertex.get_mut(offset..offset + 4) else {
+                return false;
+            };
+            let value = f32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) + delta;
+            if !value.is_finite() {
+                return false;
+            }
+            bytes.copy_from_slice(&value.to_le_bytes());
+        }
+    }
+    true
 }

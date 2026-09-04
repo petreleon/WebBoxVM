@@ -10,7 +10,7 @@ primitive, one UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, and deliberately bounded
-solid/inline-constant or resource-backed-fragment-constant color; bounded triangle lists with generic per-vertex-RGBA; nearest-clamp/repeat or
+solid/inline-constant or resource-backed-fragment-constant color, plus one resource-backed vertex XY offset; bounded triangle lists with generic per-vertex-RGBA; nearest-clamp/repeat or
 linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -19,7 +19,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 | Texture resources | Packed 2D targets plus two B8G8R8A8 or R8G8B8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
 | Buffer resources | R8 raw vertex/index/constant plus R32G32/R32G32B32A32 float vertex storage | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
-| Resource transfer/copy | 72-byte transfers, one command-9 uniform inline write, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
+| Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
 | Presentation | Clear, solid, fixed vertex-color, texture-times-color, or one/two-texture sampled triangle lists through WebGPU | No multi-command composition, depth, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
@@ -29,7 +29,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 The capset render-format mask contains only B8G8R8A8, B8G8R8X8, A8R8G8B8,
 and X8R8G8B8. Its sampler mask adds B8G8R8A8 (1) and R8G8B8A8 (67); its vertex-buffer mask contains only
 `VIRGL_FORMAT_R32G32_FLOAT` (29) and `VIRGL_FORMAT_R32G32B32A32_FLOAT` (31),
-and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4), `PIPE_PRIM_TRIANGLE_STRIP` (bit 5), and `PIPE_PRIM_TRIANGLE_FAN` (bit 6). No GLSL feature level is advertised; the UBO bit and `max_uniform_blocks` are one only for the canonical resource-backed color path.
+and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4), `PIPE_PRIM_TRIANGLE_STRIP` (bit 5), and `PIPE_PRIM_TRIANGLE_FAN` (bit 6). No GLSL feature level is advertised; the UBO bit and `max_uniform_blocks` are one only for canonical stage-slot-zero color and XY-offset paths.
 
 `RESOURCE_CREATE_3D` accepts only these exact resource forms:
 
@@ -39,7 +39,7 @@ and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4), `PIPE_PRIM_TRIANG
 - `PIPE_BUFFER` target; R32G32B32A32_FLOAT with exactly vertex-buffer bind, or
   R8 with exactly vertex-, index-, or constant-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
 
-R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4 and accepts aligned byte offsets; R8 constant storage uses one aligned 16-byte command-27 range and an isolated command-9 byte upload with zero dword padding.
+R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4 and accepts aligned byte offsets; R8 constant storage uses one aligned 16-byte command-27 range per accepted stage and isolated command-9 byte uploads with zero dword padding.
 `SET_VERTEX_BUFFERS` accepts zero through three standard `(stride, offset, resource)` triples, resetting omitted slots.
 Solid draws use a format-31 position source at stride 16; textured, vertex-color, and texture-color inputs may stay
 interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes across slots 0–2; every divisor is zero.
@@ -49,12 +49,12 @@ Type-4 shader objects accept only canonical NUL-terminated TGSI text: solid or
 a one-2D-`TEX` pair; or a two-2D-`TEX`, `MUL` pair. The latter has one generic UV input, two sampler/views, and one
 color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
-source per vertex/fragment stage may be in flight. Chunks must retain handle,
+source per vertex/fragment stage may be in flight. The only vertex-constant form adds `CONST[0][0]` to `IN[0]`; chunks must retain handle,
 stage, and token count; parser failure leaves the cloned context unchanged.
 The declared token capacity plus virglrenderer’s translation slack must fit
 the recognized TGSI. Stream output, unknown stages, and unrecognized text fail.
 Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
-`SET_CONSTANT_BUFFER` accepts only fragment stage 1, slot zero, and exactly four finite normalized inline f32 values (or an empty binding to clear it); command 27 accepts that stage/slot with one attached R8 constant buffer, aligned offset, exact 16-byte range, and a zero range to clear.
+`SET_CONSTANT_BUFFER` accepts only fragment stage 1, slot zero, and exactly four finite normalized inline f32 values (or an empty binding to clear it); command 27 accepts vertex stage 0 or fragment stage 1 at slot zero with one attached R8 constant buffer, aligned offset, exact 16-byte range, and a zero range to clear.
 
 Type-1 `VIRGL_OBJECT_BLEND` accepts one exact 11-word `pipe_blend_state`:
 blend enabled; an RGBA color mask; RGB `ADD, SRC_ALPHA, INV_SRC_ALPHA`; and
@@ -98,8 +98,8 @@ Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. Each draw follows one clear in the same submission against the current
 full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots the selected 16-byte constant range and bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
-Each position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle.
+At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
+Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. The one vertex UBO form additionally snapshots `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translates local copied vertices, and repeats that validation before packet construction.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.
@@ -150,15 +150,15 @@ cached pipelines, no depth texture, bounded `draw(N)`, and queue-gated completio
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
 clear/fence, indexed inline-constant, texture, vertex-color, and texture-color paths.
-It also creates a 20-byte R8 constant buffer, populates its color at byte offset
-four through isolated standard command 9 plus readback, sends command 27, validates a distinct schema-2 `VGD1` color,
+It also creates a 36-byte R8 constant buffer, populates its color at byte offset
+four and `[dx,dy,0,0]` at byte offset 20 through two isolated standard command-9 writes plus readback, sends stage-0 and stage-1 command 27 bindings, validates distinct schema-2 `VGD1` color and translated vertices,
 completes that effect, and reads both `147,141,58,255` triangles through Linux.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
 from that harness.
 
 ## Next compatibility milestones
 
-1. Specify another bounded constant shape only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
+1. Specify another bounded shader/material shape only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

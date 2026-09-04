@@ -16,29 +16,43 @@ pub(super) fn material(
     context: &VirglContext,
     target: u32,
     state: DrawState,
-) -> Result<(usize, DrawMaterial), u32> {
+) -> Result<(usize, DrawMaterial, Option<[f32; 2]>), u32> {
     match (state.vertex_program, state.fragment_program) {
-        (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => {
-            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
-        }
+        (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => Ok((
+            SOLID_VERTEX_BYTES,
+            DrawMaterial::Solid(solid::color(bits)?),
+            None,
+        )),
         (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentConstant) => {
             let bits = uniform::resolve(gpu, context, state.fragment_constants)?;
-            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
+            Ok((
+                SOLID_VERTEX_BYTES,
+                DrawMaterial::Solid(solid::color(bits)?),
+                None,
+            ))
+        }
+        (ShaderProgram::VertexUniformOffset, ShaderProgram::FragmentConstant) => {
+            let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
+            let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
+            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(color), Some(offset)))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {
-            Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor))
+            Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor, None))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTextured) => Ok((
             TEXTURED_VERTEX_BYTES,
             DrawMaterial::Textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
+            None,
         )),
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTexturedMultiply) => Ok((
             TEXTURED_VERTEX_BYTES,
             DrawMaterial::TexturedPair(pair(gpu, context, target, state.sampled_resources)?),
+            None,
         )),
         (ShaderProgram::VertexTextureColor, ShaderProgram::FragmentTexturedVertexColor) => Ok((
             TEXTURE_COLOR_VERTEX_BYTES,
             DrawMaterial::TextureColor(snapshot(gpu, context, target, state.sampled_resources[0])?),
+            None,
         )),
         _ => Err(RESP_ERR_INVALID_PARAMETER),
     }

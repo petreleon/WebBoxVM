@@ -3,35 +3,96 @@ use super::{frame_pixels, read_u32, words_are};
 const CLEAR: [u32; 4] = [0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000];
 const INLINE: [u32; 4] = [0x3f4c_cccd, 0x3ecc_cccd, 0x3e4c_cccd, 0x3f00_0000];
 const UNIFORM: [u32; 4] = [0x3e4c_cccd, 0x3f19_999a, 0x3ecccccd, 0x3f00_0000];
-const VERTICES: [u32; 24] = [
-    0xbd80_0000, 0xbe80_0000, 0, 0x3f80_0000, 0xbe80_0000, 0xbe80_0000, 0, 0x3f80_0000,
-    0xbe80_0000, 0x3e80_0000, 0, 0x3f80_0000, 0x3e80_0000, 0xbe80_0000, 0, 0x3f80_0000,
-    0x3d80_0000, 0xbe80_0000, 0, 0x3f80_0000, 0x3d80_0000, 0x3e80_0000, 0, 0x3f80_0000,
+const INLINE_VERTICES: [u32; 24] = [
+    0xbd80_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0xbe80_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0xbe80_0000,
+    0x3e80_0000,
+    0,
+    0x3f80_0000,
+    0x3e80_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0x3d80_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0x3d80_0000,
+    0x3e80_0000,
+    0,
+    0x3f80_0000,
+];
+const UNIFORM_VERTICES: [u32; 24] = [
+    0xbda0_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0xbe88_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0xbe88_0000,
+    0x3e80_0000,
+    0,
+    0x3f80_0000,
+    0x3e70_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0x3d40_0000,
+    0xbe80_0000,
+    0,
+    0x3f80_0000,
+    0x3d40_0000,
+    0x3e80_0000,
+    0,
+    0x3f80_0000,
 ];
 const VIEWPORT: [u32; 6] = [
-    0x4380_0000, 0x4340_0000, 0x3f00_0000, 0x4400_0000, 0x43c0_0000, 0x3f00_0000,
+    0x4380_0000,
+    0x4340_0000,
+    0x3f00_0000,
+    0x4400_0000,
+    0x43c0_0000,
+    0x3f00_0000,
 ];
 
 pub(super) fn vgd1_sequence(packet: &[u8]) -> Result<u32, String> {
-    sequence(packet, INLINE, "draw")
+    sequence(packet, INLINE, INLINE_VERTICES, "draw")
 }
 
 pub(super) fn uniform_sequence(packet: &[u8]) -> Result<u32, String> {
-    sequence(packet, UNIFORM, "uniform-buffer draw")
+    sequence(packet, UNIFORM, UNIFORM_VERTICES, "uniform-buffer draw")
 }
 
-fn sequence(packet: &[u8], color: [u32; 4], label: &str) -> Result<u32, String> {
+fn sequence(
+    packet: &[u8],
+    color: [u32; 4],
+    vertices: [u32; 24],
+    label: &str,
+) -> Result<u32, String> {
     if packet.len() != 192
         || packet.get(..4) != Some(b"VGD1")
-        || [4, 12, 16, 20].into_iter().zip([2, 1024, 768, 6])
+        || [4, 12, 16, 20]
+            .into_iter()
+            .zip([2, 1024, 768, 6])
             .any(|(at, want)| read_u32(packet, at) != Some(want))
         || !words_are(packet, 24, &CLEAR)
         || !words_are(packet, 40, &color)
-        || !words_are(packet, 56, &VERTICES)
+        || !words_are(packet, 56, &vertices)
         || !words_are(packet, 152, &VIEWPORT)
         || !words_are(packet, 176, &[448, 336, 128, 96])
     {
-        return Err(format!("guest emitted an invalid standard VirGL {label} packet"));
+        return Err(format!(
+            "guest emitted an invalid standard VirGL {label} packet"
+        ));
     }
     read_u32(packet, 8)
         .filter(|sequence| *sequence != 0)

@@ -1,10 +1,10 @@
-# Research: bounded VirGL resource-backed uniform buffer
+# Research: bounded VirGL resource-backed uniform buffers
 
 ## Question
 
 Which standard VirGL command can supply the existing `CONST[0][0]` fragment
-shader from a resource without turning this renderer into general Gallium, Mesa,
-OpenGL, Vulkan, or Venus compatibility?
+shader and one canonical vertex offset from a resource without turning this
+renderer into general Gallium, Mesa, OpenGL, Vulkan, or Venus compatibility?
 
 ## Protocol finding
 
@@ -19,18 +19,18 @@ shader or memory compatibility on its own.
 
 ## Applied contract
 
-WebBoxVM accepts object zero, fragment shader type 1, index zero, and a nonzero
+WebBoxVM accepts object zero, vertex shader type 0 or fragment shader type 1, index zero, and a nonzero
 R8 `PIPE_BUFFER` resource carrying exactly 16 bytes at a four-byte-aligned
 offset. The resource must be a capset-1 resource attached to the same context
 with only the constant-buffer bind. The `(offset, length, resource) = (0, 0, 0)`
 form clears the binding.
 
-The binding replaces the limited inline command-12 source for the canonical
-fragment program. At draw preparation, WebBoxVM revalidates the resource,
-attachment, bind kind, alignment, and range, then snapshots four little-endian
-f32 words. The existing solid-material validator still requires finite,
-normalized RGBA before a draw is queued; raw uniform bytes are not reinterpreted
-after that snapshot.
+The fragment binding replaces the limited inline command-12 source for the
+canonical fragment program. At draw preparation, WebBoxVM revalidates the
+resource, attachment, bind kind, alignment, and range, then snapshots four
+little-endian f32 words. Fragment values require finite normalized RGBA; the
+only vertex form requires `[dx,dy,0,0]`, finite `dx/dy` in `[-1,1]`, and adds it
+to copied positions only after source geometry validates, then validates again.
 
 The companion command-9 inline-write path can populate this same attached
 buffer in an isolated submission. It copies only a validated byte range after
@@ -50,17 +50,23 @@ the deferred work retained its snapshot. It also proves malformed, wrong-bind,
 unaligned, out-of-range, and missing-resource rejection, standard unbind, and
 detach clearing.
 
-The native Linux DRM guest probe creates a 20-byte R8 constant buffer, writes a
-zero prefix plus RGBA through command 9, reads it back, and emits command 27
-with the exact fragment-slot-zero 16-byte range. Its host smoke accepts the resulting schema-2
-color only when it is the distinct offset-four RGBA and, after deferred completion,
-requires both source-over BGRA triangle samples to be `147,141,58,255`.
+The native Linux DRM guest probe creates a 36-byte R8 constant buffer, writes
+fragment RGBA at byte four and the vertex vector at byte 20 through command 9,
+reads it back, and emits both exact 16-byte command-27 ranges. Its host smoke
+accepts schema-2 only with the distinct offset-four RGBA and transformed
+vertices and, after deferred completion, requires both source-over BGRA triangle
+samples to be `147,141,58,255`.
+
+`virgl_vertex_uniform_draw.rs` proves that the translated schema-2 vertices are
+snapshotted before later resource mutation, rejects non-planar offsets, and
+proves clear/detach invalidation. The native guest uses two command-9 writes:
+fragment RGBA at byte four and a `-0.015625` X offset at byte 20.
 
 That establishes this bounded guest-driver transport route alongside Rust tests;
 it does not establish browser execution from the native harness. There is no
-vertex UBO, nonzero slot, range larger than 16 bytes, uniform array, arbitrary
-TGSI, generic UBO schema, external memory, synchronization protocol, or Venus
-capset claim.
+general vertex UBO, nonzero slot, range larger than 16 bytes, uniform array,
+arbitrary TGSI, generic UBO schema, external memory, synchronization protocol,
+or Venus capset claim.
 
 ## Sources
 

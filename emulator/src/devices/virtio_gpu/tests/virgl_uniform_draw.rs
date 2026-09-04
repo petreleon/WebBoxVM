@@ -75,7 +75,7 @@ fn uniform_binding_rejects_bad_shapes_transactionally_and_can_unbind() {
         (uniform(UNIFORM, 2), RESP_ERR_INVALID_PARAMETER),
         (uniform(UNIFORM, 20), RESP_ERR_INVALID_PARAMETER),
         (vec![word(27, 0, 4), 1, 0, 4, 16], RESP_ERR_INVALID_PARAMETER),
-        (vec![word(27, 0, 5), 0, 0, 4, 16, UNIFORM], RESP_ERR_INVALID_PARAMETER),
+        (vec![word(27, 0, 5), 2, 0, 4, 16, UNIFORM], RESP_ERR_INVALID_PARAMETER),
         (uniform(99, 4), RESP_ERR_INVALID_RESOURCE_ID),
     ] {
         assert_response(&mut gpu, &mut mem, &submit(&words), expected);

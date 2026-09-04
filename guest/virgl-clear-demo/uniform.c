@@ -4,28 +4,28 @@
 #include "virgl.h"
 
 #define OBJECT_BASE 160u
-#define UNIFORM_STORAGE_BYTES 20u
+#define UNIFORM_STORAGE_BYTES 36u
 #define UNIFORM_RANGE_BYTES 16u
 #define UNIFORM_OFFSET 4u
+#define VERTEX_UNIFORM_OFFSET 20u
 #define SCANOUT_WIDTH 1024u
 #define SCANOUT_HEIGHT 768u
 #define SCANOUT_BYTES (SCANOUT_WIDTH * SCANOUT_HEIGHT * 4u)
 
 static const char vertex_shader[] =
-    "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
+    "VERT\nDCL IN[0]\nDCL CONST[0][0]\nDCL OUT[0], POSITION\n0: ADD OUT[0], IN[0], CONST[0][0]\n1: END\n";
 static const char fragment_shader[] =
     "FRAG\nDCL CONST[0][0]\nDCL OUT[0], COLOR\nMOV OUT[0], CONST[0][0]\nEND\n";
 static const u32 uniform_values[] = {
     0, 0x3e4ccccdu, 0x3f19999au, 0x3ecccccdU, 0x3f000000u,
+    0xbc800000u, 0, 0, 0,
 };
-
-static int inline_write(long fd, u32 bo, u32 resource);
+static int inline_write(long fd, u32 bo, u32 resource, u32 offset, const u32 *values, u32 count);
 static int uniform_readback(long fd, u32 bo);
 static int readback(long fd, u32 bo);
 static int submit(long fd, const struct virgl_resources *resources);
 static u32 stream(u32 *words, const struct virgl_resources *resources);
 static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes);
-
 int virgl_create_uniform_buffer(long fd, u32 *bo_handle, u32 *resource_handle)
 {
     struct drm_virtgpu_resource_create resource = {
@@ -49,7 +49,8 @@ int virgl_create_uniform_buffer(long fd, u32 *bo_handle, u32 *resource_handle)
 
 int virgl_run_uniform_triangle(long fd, const struct virgl_resources *resources)
 {
-    if (inline_write(fd, resources->uniform_bo, resources->uniform_resource) != 0)
+    if (inline_write(fd, resources->uniform_bo, resources->uniform_resource, 0, uniform_values, 5) != 0 ||
+        inline_write(fd, resources->uniform_bo, resources->uniform_resource, VERTEX_UNIFORM_OFFSET, uniform_values + 5, 4) != 0)
         return 1;
     if (uniform_readback(fd, resources->uniform_bo) != 0)
         return 2;
@@ -60,19 +61,20 @@ int virgl_run_uniform_triangle(long fd, const struct virgl_resources *resources)
     return readback(fd, resources->scanout_bo) == 0 ? 0 : 5;
 }
 
-static int inline_write(long fd, u32 bo, u32 resource)
+static int inline_write(long fd, u32 bo, u32 resource, u32 offset, const u32 *values, u32 count)
 {
     u32 words[VIRGL_RESOURCE_INLINE_WRITE_WORDS] = {0};
     u32 handles[] = {bo};
     struct drm_virtgpu_execbuffer exec = {
         .command = (u64)words, .bo_handles = (u64)handles, .num_bo_handles = 1, .fence_fd = -1,
     };
-
-    words[0] = VIRGL_HEADER(VIRGL_CCMD_RESOURCE_INLINE_WRITE, 0, 16);
-    words[1] = resource; words[9] = UNIFORM_STORAGE_BYTES; words[10] = 1; words[11] = 1;
-    for (u32 index = 0; index < sizeof(uniform_values) / sizeof(uniform_values[0]); index++)
-        words[12 + index] = uniform_values[index];
-    exec.size = sizeof(words);
+    if (count == 0 || count > 5)
+        return -1;
+    words[0] = VIRGL_HEADER(VIRGL_CCMD_RESOURCE_INLINE_WRITE, 0, 11 + count);
+    words[1] = resource; words[6] = offset; words[9] = count * 4u; words[10] = 1; words[11] = 1;
+    for (u32 index = 0; index < count; index++)
+        words[12 + index] = values[index];
+    exec.size = (12u + count) * sizeof(words[0]);
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &exec) < 0 ? -1 : 0;
 }
 
@@ -137,11 +139,13 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = VIRGL_HEADER(1, 8, 5); words[next++] = OBJECT_BASE + 20u;
     words[next++] = resources->scanout_resource; words[next++] = VIRGL_FORMAT_B8G8R8X8_UNORM; next += 2;
     words[next++] = VIRGL_HEADER(5, 0, 3); words[next++] = 1; words[next++] = 0; words[next++] = OBJECT_BASE + 20u;
-    next += append_shader(words + next, OBJECT_BASE + 21u, 0, 11, vertex_shader, sizeof(vertex_shader));
+    next += append_shader(words + next, OBJECT_BASE + 21u, 0, 14, vertex_shader, sizeof(vertex_shader));
     next += append_shader(words + next, OBJECT_BASE + 22u, 1, 11, fragment_shader, sizeof(fragment_shader));
     words[next++] = VIRGL_HEADER(29, 0, 2); words[next++] = OBJECT_BASE + 21u; words[next++] = 0;
     words[next++] = VIRGL_HEADER(29, 0, 2); words[next++] = OBJECT_BASE + 22u; words[next++] = 1;
-    /* Command 27 consumes exactly bytes [4, 20), not the zero prefix. */
+    /* Command 27 consumes the offset-20 vertex vector and bytes [4, 20) color. */
+    words[next++] = VIRGL_HEADER(27, 0, 5); words[next++] = 0; words[next++] = 0;
+    words[next++] = VERTEX_UNIFORM_OFFSET; words[next++] = UNIFORM_RANGE_BYTES; words[next++] = resources->uniform_resource;
     words[next++] = VIRGL_HEADER(27, 0, 5); words[next++] = 1; words[next++] = 0;
     words[next++] = UNIFORM_OFFSET; words[next++] = UNIFORM_RANGE_BYTES; words[next++] = resources->uniform_resource;
     next += virgl_source_over_blend_stream(words + next, OBJECT_BASE + 23u);

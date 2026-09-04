@@ -1,9 +1,15 @@
 use super::VirglContext;
 
 #[derive(Clone, Copy, Debug)]
+pub(in crate::devices::virtio_gpu::three_d::virgl) struct UniformBinding {
+    pub resource: u32,
+    pub offset: u32,
+}
+
+#[derive(Clone, Copy, Debug)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) enum FragmentConstants {
     Inline([u32; 4]),
-    Uniform { resource: u32, offset: u32 },
+    Uniform(UniformBinding),
 }
 
 impl VirglContext {
@@ -19,15 +25,31 @@ impl VirglContext {
         resource: u32,
         offset: u32,
     ) {
-        self.fragment_constants = Some(FragmentConstants::Uniform { resource, offset });
+        self.fragment_constants = Some(FragmentConstants::Uniform(UniformBinding {
+            resource,
+            offset,
+        }));
+    }
+
+    pub(in crate::devices::virtio_gpu::three_d::virgl) fn set_vertex_uniform(
+        &mut self,
+        binding: Option<UniformBinding>,
+    ) {
+        self.vertex_uniform = binding;
     }
 
     pub(in crate::devices::virtio_gpu) fn remove_constant_resource(&mut self, resource: u32) {
         if matches!(
             self.fragment_constants,
-            Some(FragmentConstants::Uniform { resource: bound, .. }) if bound == resource
+            Some(FragmentConstants::Uniform(binding)) if binding.resource == resource
         ) {
             self.fragment_constants = None;
+        }
+        if self
+            .vertex_uniform
+            .is_some_and(|binding| binding.resource == resource)
+        {
+            self.vertex_uniform = None;
         }
     }
 }

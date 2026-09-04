@@ -13,8 +13,10 @@ use super::shader::Shader;
 use crate::devices::virtio_gpu::blob::BlobMemory;
 use std::collections::{HashMap, HashSet};
 
+pub(in crate::devices::virtio_gpu::three_d::virgl) use constant::{
+    FragmentConstants, UniformBinding,
+};
 pub(super) use draw::DrawState;
-pub(in crate::devices::virtio_gpu::three_d::virgl) use constant::FragmentConstants;
 use pipeline::PipelineState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
     SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState, Viewport,
@@ -22,8 +24,8 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
 use shader::PendingShader;
 
 pub(in crate::devices::virtio_gpu) use index::IndexBuffer;
-pub(super) use vertex::{MAX_VIRGL_VERTEX_BUFFERS, VertexLayout};
 use vertex::VertexState;
+pub(super) use vertex::{MAX_VIRGL_VERTEX_BUFFERS, VertexLayout};
 pub(in crate::devices::virtio_gpu) use vertex::{VertexBuffer, VertexElement};
 
 #[derive(Clone, Debug)]
@@ -41,6 +43,7 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     pending_fragment_shader: Option<PendingShader>,
     bound_vertex_shader: Option<u32>,
     bound_fragment_shader: Option<u32>,
+    vertex_uniform: Option<UniformBinding>,
     fragment_constants: Option<FragmentConstants>,
 }
 
@@ -60,6 +63,7 @@ impl VirglContext {
             pending_fragment_shader: None,
             bound_vertex_shader: None,
             bound_fragment_shader: None,
+            vertex_uniform: None,
             fragment_constants: None,
         }
     }

@@ -1,3 +1,5 @@
+mod vertex;
+
 use super::{MAX_SHADER_TEXT_BYTES, Shader, ShaderKind, ShaderProgram};
 
 pub(in crate::devices::virtio_gpu::three_d::virgl) fn parse(
@@ -6,7 +8,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) fn parse(
 ) -> Option<Shader> {
     let lines = lines(source)?;
     let program = match kind {
-        ShaderKind::Vertex => vertex(&lines),
+        ShaderKind::Vertex => vertex::parse(&lines),
         ShaderKind::Fragment => fragment(&lines),
     }?;
     Some(Shader { kind, program })
@@ -39,39 +41,6 @@ fn strip_instruction_id(line: &str) -> &str {
     (!prefix.is_empty() && prefix.bytes().all(|byte| byte.is_ascii_digit()))
         .then(|| rest.trim())
         .unwrap_or(line)
-}
-
-fn vertex(lines: &[&str]) -> Option<ShaderProgram> {
-    match lines {
-        [
-            "VERT",
-            "DCL IN[0]",
-            "DCL OUT[0], POSITION",
-            "MOV OUT[0], IN[0]",
-            "END",
-        ] => Some(ShaderProgram::VertexPassthrough),
-        [
-            "VERT",
-            "DCL IN[0..1]",
-            "DCL OUT[0], POSITION",
-            "DCL OUT[1], GENERIC[0]",
-            "MOV OUT[0], IN[0]",
-            "MOV OUT[1], IN[1]",
-            "END",
-        ] => Some(ShaderProgram::VertexGeneric),
-        [
-            "VERT",
-            "DCL IN[0..2]",
-            "DCL OUT[0], POSITION",
-            "DCL OUT[1], GENERIC[0]",
-            "DCL OUT[2], GENERIC[1]",
-            "MOV OUT[0], IN[0]",
-            "MOV OUT[1], IN[1]",
-            "MOV OUT[2], IN[2]",
-            "END",
-        ] => Some(ShaderProgram::VertexTextureColor),
-        _ => None,
-    }
 }
 
 fn fragment(lines: &[&str]) -> Option<ShaderProgram> {
