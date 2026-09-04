@@ -5,6 +5,10 @@ proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
 source-over blend, rasterizer, viewport/scissor, solid triangle, interpolated vertex color, sampled texture, texture-modulated color,
 and readback path. It is not Mesa, OpenGL, or Vulkan.
 
+It also proves Linux's `cmd_size` blob path: a private `WBL1` opaque command is
+sent by the kernel before one nonzero-`blob_id` default blob creation. That
+tests context-local allocation ordering only; it is not a Venus command.
+
 It opens `/dev/dri/card0`, reads the Linux `virtgpu` capset-1 response, creates
 a B8G8R8X8 render-target resource and two R8 `PIPE_BUFFER` vertex-buffer
 resources. It maps the source buffer backing with `DRM_IOCTL_VIRTGPU_MAP`,
@@ -59,7 +63,7 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 blob=guest+host-map+default-shadow texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness

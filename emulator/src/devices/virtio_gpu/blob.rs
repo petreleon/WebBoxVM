@@ -4,6 +4,11 @@ mod transfer;
 
 use super::BackingEntry;
 
+pub(super) const BLOB_MEM_GUEST: u32 = 1;
+pub(super) const BLOB_MEM_HOST3D: u32 = 2;
+pub(super) const BLOB_MEM_HOST3D_GUEST: u32 = 3;
+pub(super) const BLOB_FLAG_USE_MAPPABLE: u32 = 1;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum BlobMemory {
     Guest,

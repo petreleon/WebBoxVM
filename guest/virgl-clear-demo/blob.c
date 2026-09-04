@@ -3,6 +3,7 @@
 #include "syscall.h"
 
 #define BLOB_BYTES 4096u
+#define RENDERER_BLOB_ID 0x57424c4f43414c01uL
 #define PROT_READ 1L
 #define PROT_WRITE 2L
 #define MAP_SHARED 1L
@@ -94,10 +95,39 @@ static int virgl_create_default_blob(long fd)
     return words[0] == 0x53484457u ? 0 : -1;
 }
 
+static int virgl_create_renderer_local_blob(long fd)
+{
+    struct virgl_renderer_blob_prepare prepare = {
+        .magic = {'W', 'B', 'L', '1'},
+        .version = 1,
+        .blob_id = RENDERER_BLOB_ID,
+        .size = BLOB_BYTES,
+        .blob_mem = VIRTGPU_BLOB_MEM_HOST3D_GUEST,
+    };
+    struct drm_virtgpu_resource_create_blob blob = {
+        .blob_mem = VIRTGPU_BLOB_MEM_HOST3D_GUEST,
+        .size = BLOB_BYTES,
+        .cmd_size = sizeof(prepare),
+        .cmd = (u64)&prepare,
+        .blob_id = RENDERER_BLOB_ID,
+    };
+    struct drm_virtgpu_resource_info info;
+
+    if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &blob) < 0 ||
+        blob.bo_handle == 0 || blob.res_handle == 0)
+        return -1;
+    info = (struct drm_virtgpu_resource_info){.bo_handle = blob.bo_handle};
+    return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_RESOURCE_INFO, &info) < 0 ||
+                   info.res_handle != blob.res_handle || info.size != BLOB_BYTES ||
+                   info.blob_mem != VIRTGPU_BLOB_MEM_HOST3D_GUEST
+               ? -1
+               : 0;
+}
+
 int virgl_verify_blob_profiles(long fd)
 {
     return virgl_create_guest_blob(fd) || virgl_create_host_blob(fd) ||
-                   virgl_create_default_blob(fd)
+                   virgl_create_default_blob(fd) || virgl_create_renderer_local_blob(fd)
                ? -1
                : 0;
 }

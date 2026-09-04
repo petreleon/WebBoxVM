@@ -29,6 +29,15 @@ struct drm_virtgpu_resource_create_blob {
     u64 blob_id;
 };
 
+struct virgl_renderer_blob_prepare {
+    u8 magic[4];
+    u32 version;
+    u64 blob_id;
+    u64 size;
+    u32 blob_mem;
+    u32 blob_flags;
+};
+
 #define DRM_IOCTL_VIRTGPU_RESOURCE_INFO \
     DRM_IOWR(DRM_COMMAND_BASE + VIRTGPU_RESOURCE_INFO, struct drm_virtgpu_resource_info)
 #define DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB \
@@ -36,6 +45,7 @@ struct drm_virtgpu_resource_create_blob {
 
 _Static_assert(sizeof(struct drm_virtgpu_resource_info) == 16, "bad blob-info ABI");
 _Static_assert(sizeof(struct drm_virtgpu_resource_create_blob) == 48, "bad blob-create ABI");
+_Static_assert(sizeof(struct virgl_renderer_blob_prepare) == 32, "bad blob-prepare ABI");
 _Static_assert(DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB == 0xc030644au, "bad blob-create ioctl");
 
 #endif

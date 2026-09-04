@@ -1,3 +1,4 @@
+mod blob;
 mod context;
 mod copy;
 mod copy_buffer;

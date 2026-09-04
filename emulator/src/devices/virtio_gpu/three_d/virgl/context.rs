@@ -7,7 +7,9 @@ mod sampler;
 mod shader;
 mod vertex;
 
+use super::blob::RendererBlobObject;
 use super::shader::Shader;
+use crate::devices::virtio_gpu::blob::BlobMemory;
 use std::collections::{HashMap, HashSet};
 
 pub(super) use draw::DrawState;
@@ -26,6 +28,7 @@ pub(in crate::devices::virtio_gpu) use vertex::{VertexBuffer, VertexElement};
 pub(in crate::devices::virtio_gpu) struct VirglContext {
     pub(in crate::devices::virtio_gpu) generation: u32,
     attached: HashSet<u32>,
+    renderer_blobs: HashMap<u64, RendererBlobObject>,
     framebuffer: Option<u32>,
     surfaces: HashMap<u32, u32>,
     pipeline: PipelineState,
@@ -43,6 +46,7 @@ impl VirglContext {
         Self {
             generation,
             attached: HashSet::new(),
+            renderer_blobs: HashMap::new(),
             framebuffer: None,
             surfaces: HashMap::new(),
             pipeline: PipelineState::new(),
@@ -121,5 +125,35 @@ impl VirglContext {
 
     pub(in crate::devices::virtio_gpu) fn remove_resource(&mut self, resource_id: u32) {
         let _ = self.detach(resource_id);
+    }
+
+    pub(super) fn prepare_renderer_blob(
+        &mut self,
+        blob_id: u64,
+        object: RendererBlobObject,
+    ) -> bool {
+        if self.renderer_blobs.len() >= super::blob::MAX_RENDERER_BLOB_OBJECTS
+            || self.renderer_blobs.contains_key(&blob_id)
+        {
+            return false;
+        }
+        self.renderer_blobs.insert(blob_id, object);
+        true
+    }
+
+    pub(in crate::devices::virtio_gpu) fn has_renderer_blob(
+        &self,
+        blob_id: u64,
+        memory: BlobMemory,
+        flags: u32,
+        size: usize,
+    ) -> bool {
+        self.renderer_blobs
+            .get(&blob_id)
+            .is_some_and(|object| object.matches(memory, flags, size))
+    }
+
+    pub(in crate::devices::virtio_gpu) fn consume_renderer_blob(&mut self, blob_id: u64) {
+        self.renderer_blobs.remove(&blob_id);
     }
 }

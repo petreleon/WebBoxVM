@@ -1,5 +1,5 @@
 use emulator::boot::BootContext;
-pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 blob=guest+host-map+default-shadow texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255";
+pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
 pub(super) enum VirglPacket {
     Clear(u32),

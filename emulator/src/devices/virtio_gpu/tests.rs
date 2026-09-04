@@ -8,6 +8,7 @@ mod features;
 mod host_visible;
 mod lifecycle;
 mod queue;
+mod renderer_blob;
 mod three_d;
 mod virgl;
 mod virgl_blend_state;

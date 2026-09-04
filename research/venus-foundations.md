@@ -8,6 +8,9 @@ WebBoxVM implements a deliberately small resource-blob subset: negotiated
 is not a Venus capset, a Vulkan implementation, or a promise that Mesa can
 create a Vulkan device.
 
+The precise nonzero-`blob_id` ordering boundary is recorded in
+[renderer-local blob ordering](renderer-blob-ordering.md).
+
 The current Linux wire ABI assigns `VIRTIO_GPU_F_RESOURCE_BLOB` to feature bit
 3 and `RESOURCE_CREATE_BLOB` to control command `0x010c`. The command carries
 a resource ID, memory kind, flags, backing-entry count, blob ID, size, and a
@@ -21,7 +24,7 @@ trailing list of guest physical-memory entries. [Linux UAPI](https://github.com/
 | Guest `blob_mem` / flags | `BLOB_MEM_GUEST` (1), zero flags | Guest pages retain their defined ownership. |
 | Host staging `blob_mem` / flags | `BLOB_MEM_HOST3D` (2), `BLOB_FLAG_USE_MAPPABLE` | Creation requires a live VirGL context and creates one bounded CPU-visible staging allocation. |
 | Default shadow `blob_mem` / flags | `BLOB_MEM_HOST3D_GUEST` (3), zero flags | Creation records a live VirGL context and retains host bytes plus an explicitly synchronized guest shadow. |
-| `blob_id` | zero | Neither profile exposes an external or renderer-local object identity. |
+| `blob_id` | zero for legacy profiles; nonzero after `WBL1` preparation | The nonzero path is context-local and consumes its preparation record once. |
 | Guest backing entries | 0–16,384 valid physical ranges covering `size` when present | Guest/default blobs may attach or detach their shadow pages later. |
 | Host staging backing entries | zero | The profile retains its bounded bytes internally, without a guest shadow buffer. |
 | Context association | creation-time owner plus lifecycle attachment | Default 3D transfers require their recorded capset-1 owner; draw-state validation still rejects blobs. |
@@ -43,10 +46,22 @@ transfer-to-host copies a bounded range into retained host bytes, and the
 inverse transfer restores that range to guest memory. An unattached or detached
 default shadow rejects either transfer without changing retained host bytes.
 
-It does not accept shareable/cross-device flags, a renderer-local nonzero
-`blob_id`, a renderer allocation command stream, or any Vulkan external-memory
-handle. The profiles have no GPU command interpretation, fence export, or
-Vulkan ownership transfer.
+## Context-local allocation ordering
+
+For a nonzero `blob_id`, the capset-1 context must first submit an exact 32-byte
+private `WBL1` preparation envelope. It records the ID, size, blob-memory kind,
+and flags without allocating bytes. The following matching `RESOURCE_CREATE_BLOB`
+consumes that record only after all resource and backing checks succeed. Mismatched
+or failed creates preserve it for retry; it is single-use after success and is
+dropped with the context. The ledger is bounded to 64 records per context.
+
+This mirrors the required `SUBMIT_3D`-before-create ordering, but `WBL1` is a
+WebBoxVM transport probe, not a Venus command or renderer implementation. Mesa
+and a real Venus renderer do not interoperate with it.
+
+It does not accept shareable/cross-device flags, a real Venus renderer
+allocation command stream, or any Vulkan external-memory handle. The profiles
+have no GPU command interpretation, fence export, or Vulkan ownership transfer.
 
 ## Safety invariant
 
@@ -66,6 +81,8 @@ range read as zero.
 Default-shadow transfers require level/stride zero, a nonempty bounded range,
 and complete validated backing. They copy only that range between the retained
 host shadow and guest memory; a rejected request leaves the host shadow intact.
+Prepared renderer-object records are context-scoped, metadata-exact, bounded,
+and cannot be consumed by a failed allocation or another context.
 
 ## Why this precedes Venus
 
@@ -77,7 +94,8 @@ external-memory primitives Venus needs. [Mesa Venus architecture](https://docs.m
 
 The next truthful layers are:
 
-1. renderer-local blob allocation through `SUBMIT_3D` and a nonzero `blob_id`;
+1. replace the private preparation envelope with the real Venus renderer-object
+   command protocol and its nonzero `blob_id` allocation;
 2. a Vulkan-capable host boundary, only if it can preserve external-memory and
    fence behavior; and finally
 3. a Venus capset whose queried properties match those completed layers.

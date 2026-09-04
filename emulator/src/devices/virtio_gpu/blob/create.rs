@@ -5,14 +5,10 @@ use super::super::{
     MAX_BACKING_ENTRIES, MAX_RESOURCE_BYTES, MAX_RESOURCES, VIRTIO_GPU_F_RESOURCE_BLOB,
     VIRTIO_GPU_F_VIRGL, VirtioGpu,
 };
-use super::BlobResource;
+use super::{BLOB_FLAG_USE_MAPPABLE, BLOB_MEM_GUEST, BLOB_MEM_HOST3D, BLOB_MEM_HOST3D_GUEST};
+use super::{BlobMemory, BlobResource};
 use crate::constants::PAGE_SIZE;
 use crate::memory::PhysicalMemory;
-
-const BLOB_MEM_GUEST: u32 = 1;
-const BLOB_MEM_HOST3D: u32 = 2;
-const BLOB_MEM_HOST3D_GUEST: u32 = 3;
-const BLOB_FLAG_USE_MAPPABLE: u32 = 1;
 
 impl VirtioGpu {
     pub(in crate::devices::virtio_gpu) fn create_blob(
@@ -44,6 +40,7 @@ impl VirtioGpu {
             BlobKind::Host3d => {
                 if !self.feature_enabled(VIRTIO_GPU_F_VIRGL)
                     || !self.virgl_contexts.contains_key(&header.ctx_id)
+                    || !self.renderer_blob_ready(header.ctx_id, &create, BlobMemory::Host3d)
                 {
                     return RESP_ERR_INVALID_PARAMETER;
                 }
@@ -55,6 +52,7 @@ impl VirtioGpu {
             BlobKind::Host3dGuest => {
                 if !self.feature_enabled(VIRTIO_GPU_F_VIRGL)
                     || !self.virgl_contexts.contains_key(&header.ctx_id)
+                    || !self.renderer_blob_ready(header.ctx_id, &create, BlobMemory::Host3dGuest)
                 {
                     return RESP_ERR_INVALID_PARAMETER;
                 }
@@ -68,9 +66,27 @@ impl VirtioGpu {
                 blob
             }
         };
+        if create.blob_id != 0 {
+            self.virgl_contexts
+                .get_mut(&header.ctx_id)
+                .expect("context checked before blob allocation")
+                .consume_renderer_blob(create.blob_id);
+        }
         self.allocated_resource_bytes += create.size;
         self.blobs.insert(create.resource_id, blob);
         RESP_OK_NODATA
+    }
+
+    fn renderer_blob_ready(
+        &self,
+        context_id: u32,
+        create: &BlobCreate,
+        memory: BlobMemory,
+    ) -> bool {
+        create.blob_id == 0
+            || self.virgl_contexts.get(&context_id).is_some_and(|context| {
+                context.has_renderer_blob(create.blob_id, memory, create.flags, create.size)
+            })
     }
 }
 
@@ -85,6 +101,8 @@ struct BlobCreate {
     resource_id: u32,
     entries: usize,
     size: usize,
+    flags: u32,
+    blob_id: u64,
     kind: BlobKind,
 }
 
@@ -103,18 +121,17 @@ impl BlobCreate {
         {
             return None;
         }
-        let kind = match (
-            read_u32(input, 28)?,
-            read_u32(input, 32)?,
-            read_u64(input, 40)?,
-        ) {
+        let memory = read_u32(input, 28)?;
+        let flags = read_u32(input, 32)?;
+        let blob_id = read_u64(input, 40)?;
+        let kind = match (memory, flags, blob_id) {
             (BLOB_MEM_GUEST, 0, 0) => BlobKind::Guest,
-            (BLOB_MEM_HOST3D, BLOB_FLAG_USE_MAPPABLE, 0)
+            (BLOB_MEM_HOST3D, BLOB_FLAG_USE_MAPPABLE, _)
                 if entries == 0 && size % PAGE_SIZE as usize == 0 =>
             {
                 BlobKind::Host3d
             }
-            (BLOB_MEM_HOST3D_GUEST, 0, 0) if size % PAGE_SIZE as usize == 0 => {
+            (BLOB_MEM_HOST3D_GUEST, 0, _) if size % PAGE_SIZE as usize == 0 => {
                 BlobKind::Host3dGuest
             }
             _ => return None,
@@ -123,6 +140,8 @@ impl BlobCreate {
             resource_id: read_u32(input, 24)?,
             entries,
             size,
+            flags,
+            blob_id,
             kind,
         })
     }

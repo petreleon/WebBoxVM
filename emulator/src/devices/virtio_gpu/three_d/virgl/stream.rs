@@ -19,12 +19,17 @@ impl VirtioGpu {
         header: CtrlHeader,
         input: &[u8],
     ) -> Result<Option<super::DeferredSubmit>, u32> {
-        let commands = decode_stream(input).ok_or(RESP_ERR_INVALID_PARAMETER)?;
         let mut context = self
             .virgl_contexts
             .get(&header.ctx_id)
             .cloned()
             .ok_or(RESP_ERR_INVALID_CONTEXT_ID)?;
+        if let Some(result) = super::blob::prepare(&mut context, input) {
+            result?;
+            self.virgl_contexts.insert(header.ctx_id, context);
+            return Ok(None);
+        }
+        let commands = decode_stream(input).ok_or(RESP_ERR_INVALID_PARAMETER)?;
         let mut clear = None;
         let mut copy = None;
         let mut draw = None;
