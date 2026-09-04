@@ -12,13 +12,14 @@ VirGL transports Gallium TGSI shader text in a standard shader object. The
 upstream decoder passes that text to the renderer shader path, which translates
 it for the host graphics API. A canonical vertex transform is four `DP4`
 instructions: each `OUT[0]` component is the dot product of `IN[0]` and one
-`CONST[0..3]` row. Standard `SET_CONSTANT_BUFFER` carries vertex-stage values.
+`CONST[0..3]` row. Standard `SET_CONSTANT_BUFFER` or resource-backed
+`SET_UNIFORM_BUFFER` carries vertex-stage values.
 
 WebBoxVM already accepts shader objects and vertex input, but it only recognized
 an exact `MOV` or a two-component `ADD` offset. The first semantic-IR extension
 therefore accepts the canonical four-row `DP4` form, zero through two exact
 generic `MOV` passthroughs, and a vertex-stage, slot-zero matrix with exactly
-sixteen finite `f32` values.
+sixteen finite `f32` values either inline or in one attached 64-byte buffer.
 
 ## Applied contract
 
@@ -57,8 +58,9 @@ per-vertex host transform.
    `CONST[0]` through `CONST[3]` respectively.
 2. A varying form has only exact `OUT[1..2] = IN[1..2]` moves; it neither
    introduces a general register machine nor changes the fixed vertex layouts.
-3. The vertex constant binding is stage zero, slot zero, and exactly 64 bytes;
-   other sizes or stages do not widen this path.
+3. The vertex matrix binding is stage zero, slot zero, and exactly 64 bytes;
+   it may be inline or resource-backed, while other sizes or stages do not
+   widen this path.
 4. A matrix may not produce a non-finite, zero/negative-`w`, or out-of-clip
    vertex. Failure leaves the transactional stream unchanged.
 5. Matrix work is O(V) for at most 3,063 normalized list vertices and O(1)
@@ -77,8 +79,9 @@ memory and synchronization that browser WebGPU does not expose.
   or exact generic-varying programs.
 - Reject duplicate output components, a non-matrix source, and incomplete
   constant ranges.
-- Submit ordinary shader-object, vertex constant-buffer, solid, and textured
-  draw commands; verify transformed packet coordinates and raster results.
+- Submit ordinary shader-object, inline or resource-backed vertex matrix
+  bindings, solid, and textured draw commands; verify transformed packet
+  coordinates and raster results.
 - Keep the source-file limit, Rust suite, browser suite, and wasm packages
   green before advertising the increment.
 

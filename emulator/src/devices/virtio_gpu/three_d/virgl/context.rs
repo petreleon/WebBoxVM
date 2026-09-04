@@ -49,7 +49,6 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     pending_fragment_shader: Option<PendingShader>,
     bound_vertex_shader: Option<u32>,
     bound_fragment_shader: Option<u32>,
-    vertex_uniform: Option<UniformBinding>,
     vertex_constants: Option<VertexConstants>,
     fragment_constants: Option<FragmentConstants>,
 }
@@ -69,7 +68,6 @@ impl VirglContext {
             pending_fragment_shader: None,
             bound_vertex_shader: None,
             bound_fragment_shader: None,
-            vertex_uniform: None,
             vertex_constants: None,
             fragment_constants: None,
         }

@@ -11,7 +11,7 @@ UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, standard source-over plus every nonzero opaque RGBA channel mask, deliberately bounded single
-solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset or one inline four-row vertex matrix with zero through two fixed generic passthroughs; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
+solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset or one inline/resource-backed four-row vertex matrix with zero through two fixed generic passthroughs; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -55,7 +55,7 @@ The declared token capacity plus virglrenderer’s translation slack must fit
 the recognized shape. Stream output, unknown stages, and unrecognized text fail.
 The vertex-color constant form resolves normalized inline or resource-backed values once while assembling `DrawWork`, multiplies each normalized vertex channel once, and reuses the standard vertex-color `VGD1`/`VGM1` route without a new browser pipeline. The textured constant form instead turns each fixed position/UV snapshot into a constant-RGBA texture-color snapshot, preserving the existing filtered texture route and schemas 8/14 or `VGM1` without pre-quantizing texels.
 Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
-`SET_CONSTANT_BUFFER` accepts either fragment stage 1, slot zero, and exactly four finite normalized inline f32 values, or vertex stage 0, slot zero, and exactly sixteen finite inline f32 matrix values (an empty binding clears either); command 27 accepts vertex stage 0 or fragment stage 1 at slot zero with one attached R8 constant buffer, aligned offset, exact 16-byte range, and a zero range to clear.
+`SET_CONSTANT_BUFFER` accepts either fragment stage 1, slot zero, and exactly four finite normalized inline f32 values, or vertex stage 0, slot zero, and exactly sixteen finite inline f32 matrix values (an empty binding clears either); command 27 accepts fragment stage 1 or vertex stage 0 at slot zero with one attached R8 constant buffer and aligned offset: fragment color and vertex XY-offset bindings are exactly 16 bytes, while a vertex `DP4` matrix is exactly 64 bytes. A zero range clears the selected stage slot.
 
 Type-1 `VIRGL_OBJECT_BLEND` accepts either an exact source-over 11-word
 `pipe_blend_state` (RGBA `ADD, SRC_ALPHA, INV_SRC_ALPHA` and alpha `ADD, ONE,
@@ -110,8 +110,11 @@ opaque texture or texture-color singleton binds one same-context non-scanout
 resident producer by sequence, dimensions, and sampler state rather than
 embedding texels; v13 carries one exact nonzero replacement mask.
 
-At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
-Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying. The `DP4` form snapshots sixteen finite stage-zero constants, evaluates four row-major dot products against each copied position, requires finite positive output `w`, divides to canonical coordinates, and rejects any vertex outside the already supported clip volume; no clipping repair occurs. Its zero, one, or two exact generic `MOV` outputs retain the fixed color/UV bytes while the position is replaced. The resulting `w` is one before the existing packet and raster paths.
+At draw validation Rust snapshots selected 16-byte color/offset or 64-byte
+matrix constant ranges and a bounded position list from attached one-to-three
+VBO sources, directly or through bounded index-buffer lookups, then expands a
+strip or fan before validation and packet construction.
+Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO offset forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying. The `DP4` form snapshots sixteen finite stage-zero constants from an inline or exact 64-byte resource binding, evaluates four row-major dot products against each copied position, requires finite positive output `w`, divides to canonical coordinates, and rejects any vertex outside the already supported clip volume; no clipping repair occurs. Its zero, one, or two exact generic `MOV` outputs retain the fixed color/UV bytes while the position is replaced. The resulting `w` is one before the existing packet and raster paths.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 The v12 exception permits one larger resident B8G8R8A8 source only when its
@@ -154,7 +157,7 @@ and a matching capset that this renderer does not advertise.
 
 ## Validation retained in the repository
 
-Rust tests prove capset bits, transactional no-clear, malformed-index, inline/resource-constant render/rejection, canonical `DP4` parse/rejection, generic-varying matrix normalization, solid and textured vertex-matrix packet coordinates, and shifted raster output,
+Rust tests prove capset bits, transactional no-clear, malformed-index, inline/resource-constant render/rejection, canonical `DP4` parse/rejection, inline/resource-backed matrix transactional rejection, generic-varying matrix normalization, solid and textured vertex-matrix packet coordinates, and shifted raster output,
 exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2–14 `VGD1`, bounded `VGB1`, and mixed-material `VGM1`
 payloads, singleton and ordered non-depth/depth batch blending, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, solid/vertex-color/one-texture/texture-color depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, strict VGB1/VGM1 GPU-color readback, and `WBGF` damage.

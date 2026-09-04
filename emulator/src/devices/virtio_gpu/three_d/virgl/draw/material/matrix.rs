@@ -13,7 +13,7 @@ pub(super) fn material(
     target: u32,
     state: DrawState,
 ) -> Result<(usize, DrawMaterial, Option<VertexTransform>), u32> {
-    let matrix = uniform::vertex_matrix(state.vertex_constants)?;
+    let matrix = uniform::vertex_matrix(gpu, context, state.vertex_constants)?;
     match (state.vertex_program, state.fragment_program) {
         (ShaderProgram::VertexMatrix, ShaderProgram::FragmentSolid(bits)) => {
             solid(matrix, SOLID_VERTEX_BYTES, solid::color(bits)?)

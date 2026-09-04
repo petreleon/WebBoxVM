@@ -48,10 +48,12 @@ its native execution remains subject to the same boot-time evidence limit.
 
 ## Deliberate limits
 
-There is no matrix, array, arbitrary instruction, generic vertex constant,
-second UBO slot, non-16-byte range, clip-space repair, or fallback transform.
-The one optional generic varying is fixed to the existing position/UV material
-layouts; this remains a vertical seam, not a broad shader implementation.
+The separate canonical `DP4` matrix form now admits one exact 64-byte
+stage-zero binding; it does not make this offset path a general matrix, array,
+arbitrary instruction, generic vertex constant, second UBO slot, arbitrary
+range, clip-space repair, or fallback transform. The one optional generic
+varying is fixed to the existing position/UV material layouts; this remains a
+vertical seam, not a broad shader implementation.
 
 ## Sources
 

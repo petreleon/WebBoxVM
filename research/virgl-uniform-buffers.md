@@ -3,7 +3,8 @@
 ## Question
 
 Which standard VirGL command can supply the existing `CONST[0][0]` fragment
-shader and one canonical vertex offset from a resource without turning this
+shader, one canonical vertex offset, or one canonical vertex matrix from a
+resource without turning this
 renderer into general Gallium, Mesa, OpenGL, Vulkan, or Venus compatibility?
 
 ## Protocol finding
@@ -19,18 +20,21 @@ shader or memory compatibility on its own.
 
 ## Applied contract
 
-WebBoxVM accepts object zero, vertex shader type 0 or fragment shader type 1, index zero, and a nonzero
-R8 `PIPE_BUFFER` resource carrying exactly 16 bytes at a four-byte-aligned
-offset. The resource must be a capset-1 resource attached to the same context
-with only the constant-buffer bind. The `(offset, length, resource) = (0, 0, 0)`
-form clears the binding.
+WebBoxVM accepts object zero, vertex shader type 0 or fragment shader type 1,
+index zero, and a nonzero R8 `PIPE_BUFFER` resource carrying exactly 16 bytes
+for fragment RGBA or a vertex XY offset, or exactly 64 bytes for a canonical
+vertex `DP4` matrix, at a four-byte-aligned offset. The resource must be a
+capset-1 resource attached to the same context with only the constant-buffer
+bind. The `(offset, length, resource) = (0, 0, 0)` form clears the binding.
 
 The fragment binding replaces the limited inline command-12 source for the
 canonical fragment program. At draw preparation, WebBoxVM revalidates the
-resource, attachment, bind kind, alignment, and range, then snapshots four
-little-endian f32 words. Fragment values require finite normalized RGBA; the
-only vertex form requires `[dx,dy,0,0]`, finite `dx/dy` in `[-1,1]`, and adds it
-to copied positions only after source geometry validates, then validates again.
+resource, attachment, bind kind, alignment, and range, then snapshots four or
+sixteen little-endian f32 words. Fragment values require finite normalized
+RGBA; the 16-byte vertex form requires `[dx,dy,0,0]`, finite `dx/dy` in
+`[-1,1]`, and adds it to copied positions only after source geometry validates,
+then validates again. The 64-byte form is reserved for the exact canonical
+four-row `DP4` transform and applies its bounded homogeneous-coordinate rules.
 
 The companion command-9 inline-write path can populate this same attached
 buffer in an isolated submission. It copies only a validated byte range after
@@ -62,11 +66,15 @@ snapshotted before later resource mutation, rejects non-planar offsets, and
 proves clear/detach invalidation. The native guest uses two command-9 writes:
 fragment RGBA at byte four and a `-0.015625` X offset at byte 20.
 
+`virgl_matrix_uniform_draw.rs` proves that a command-27 64-byte vertex binding
+transforms the canonical `DP4` packet before later resource mutation, and
+rejects an unaligned, short, or out-of-range matrix range transactionally.
+
 That establishes this bounded guest-driver transport route alongside Rust tests;
 it does not establish browser execution from the native harness. There is no
-general vertex UBO, nonzero slot, range larger than 16 bytes, uniform array,
-arbitrary TGSI, generic UBO schema, external memory, synchronization protocol,
-or Venus capset claim.
+general vertex UBO, nonzero slot, arbitrary range (only exact 16- and 64-byte
+forms), uniform array, arbitrary TGSI, generic UBO schema, external memory,
+synchronization protocol, or Venus capset claim.
 
 ## Sources
 

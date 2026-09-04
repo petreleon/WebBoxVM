@@ -11,18 +11,17 @@ pub(super) fn apply(
     match command {
         Command::Clear(ShaderKind::Vertex) => context.set_vertex_uniform(None),
         Command::Clear(ShaderKind::Fragment) => context.set_fragment_constants(None),
-        Command::Set {
-            kind,
-            resource,
-            offset,
-        } => {
+        Command::SetVertexOffset { resource, offset } => {
             uniform::snapshot(gpu, context, resource, offset)?;
-            match kind {
-                ShaderKind::Vertex => {
-                    context.set_vertex_uniform(Some(UniformBinding { resource, offset }))
-                }
-                ShaderKind::Fragment => context.set_fragment_uniform(resource, offset),
-            }
+            context.set_vertex_uniform(Some(UniformBinding { resource, offset }));
+        }
+        Command::SetVertexMatrix { resource, offset } => {
+            uniform::matrix_snapshot(gpu, context, resource, offset)?;
+            context.set_vertex_matrix_uniform(UniformBinding { resource, offset });
+        }
+        Command::SetFragment { resource, offset } => {
+            uniform::snapshot(gpu, context, resource, offset)?;
+            context.set_fragment_uniform(resource, offset);
         }
     }
     Ok(())

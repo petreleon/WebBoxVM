@@ -77,7 +77,7 @@ pub(super) fn material(
         }
         (ShaderProgram::VertexUniformOffset, ShaderProgram::FragmentConstant) => {
             let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
-            let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
+            let offset = uniform::vertex_offset(gpu, context, state.vertex_constants)?;
             Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(color), Some(VertexTransform::offset(offset, SOLID_VERTEX_BYTES))))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {
@@ -106,7 +106,7 @@ pub(super) fn material(
             None,
         )),
         (ShaderProgram::VertexGenericUniformOffset, ShaderProgram::FragmentTextured) => {
-            let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
+            let offset = uniform::vertex_offset(gpu, context, state.vertex_constants)?;
             Ok((
                 TEXTURED_VERTEX_BYTES,
                 textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
@@ -114,7 +114,7 @@ pub(super) fn material(
             ))
         }
         (ShaderProgram::VertexGenericUniformOffset, ShaderProgram::FragmentTexturedConstant) => {
-            let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
+            let offset = uniform::vertex_offset(gpu, context, state.vertex_constants)?;
             let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
             Ok((
                 TEXTURED_VERTEX_BYTES,
@@ -123,7 +123,7 @@ pub(super) fn material(
             ))
         }
         (ShaderProgram::VertexGenericUniformOffset, ShaderProgram::FragmentTexturedMultiply) => {
-            let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
+            let offset = uniform::vertex_offset(gpu, context, state.vertex_constants)?;
             Ok((
                 TEXTURED_VERTEX_BYTES,
                 DrawMaterial::TexturedPair(pair(gpu, context, target, state.sampled_resources)?),

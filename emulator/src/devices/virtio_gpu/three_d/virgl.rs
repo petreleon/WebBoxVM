@@ -19,7 +19,7 @@ use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, V
 use context::DrawState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use context::{
     BlendMode, FragmentConstants, SampledResource, SamplerAddressMode, SamplerConfig,
-    SamplerFilter, SamplerState, UniformBinding,
+    SamplerFilter, SamplerState, UniformBinding, VertexConstants,
 };
 pub(in crate::devices::virtio_gpu) use context::{
     DepthCompare, DepthState, IndexBuffer, VertexBuffer, VertexElement, VirglContext,
