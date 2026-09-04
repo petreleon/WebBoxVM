@@ -15,6 +15,17 @@ impl VirtioGpu {
         batch::apply(self, resource_id, rect, clear, works)
     }
 
+    pub(in crate::devices::virtio_gpu) fn apply_virgl_depth_batch(
+        &mut self,
+        resource_id: u32,
+        depth_resource: u32,
+        rect: Rect,
+        clear: [u8; 4],
+        works: Vec<DrawWork>,
+    ) -> bool {
+        batch::apply_depth(self, resource_id, depth_resource, rect, clear, works)
+    }
+
     pub(in crate::devices::virtio_gpu) fn apply_virgl_draw(
         &mut self,
         resource_id: u32,

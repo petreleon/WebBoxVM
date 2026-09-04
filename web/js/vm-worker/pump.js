@@ -1,10 +1,10 @@
-import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260904-virgl-solid-batch-r1";
-import { withEmulatorAccess } from "./access.js?v=20260904-virgl-solid-batch-r1";
-import { errorMessage } from "./errors.js?v=20260904-virgl-solid-batch-r1";
-import { maybePostGpu3d } from "./gpu-3d.js?v=20260904-virgl-solid-batch-r1";
-import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260904-virgl-solid-batch-r1";
-import { maybePostGpuScanout } from "./gpu-scanout.js?v=20260904-virgl-solid-batch-r1";
-import { drainNetworkTx } from "./network.js?v=20260904-virgl-solid-batch-r1";
+import { tryRunOrCompileNextJitBlock } from "./jit-hot.js?v=20260904-virgl-depth-batch-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-depth-batch-r1";
+import { errorMessage } from "./errors.js?v=20260904-virgl-depth-batch-r1";
+import { maybePostGpu3d } from "./gpu-3d.js?v=20260904-virgl-depth-batch-r1";
+import { maybePostMetrics, maybeRequestAutosave } from "./metrics-events.js?v=20260904-virgl-depth-batch-r1";
+import { maybePostGpuScanout } from "./gpu-scanout.js?v=20260904-virgl-depth-batch-r1";
+import { drainNetworkTx } from "./network.js?v=20260904-virgl-depth-batch-r1";
 import {
   JIT_PROBE_STEP_SLICE,
   MAX_FRAME_BATCHES,
@@ -13,15 +13,15 @@ import {
   NETWORK_STEP_SLICE,
   NETWORK_TX_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260904-virgl-solid-batch-r1";
+} from "./state.js?v=20260904-virgl-depth-batch-r1";
 import {
   isInputResponsive,
   markUartGuestServiced,
   responsiveStepSlice,
-} from "./uart-input.js?v=20260904-virgl-solid-batch-r1";
-import { drainUart } from "./uart-output.js?v=20260904-virgl-solid-batch-r1";
+} from "./uart-input.js?v=20260904-virgl-depth-batch-r1";
+import { drainUart } from "./uart-output.js?v=20260904-virgl-depth-batch-r1";
 
-export { drainUart, shouldFlushUart, shouldPollUart } from "./uart-output.js?v=20260904-virgl-solid-batch-r1";
+export { drainUart, shouldFlushUart, shouldPollUart } from "./uart-output.js?v=20260904-virgl-depth-batch-r1";
 
 const schedulePumpTask = createPumpTaskScheduler();
 

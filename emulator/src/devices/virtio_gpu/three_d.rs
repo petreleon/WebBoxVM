@@ -62,6 +62,15 @@ pub(super) enum Pending3dEffect {
         clear_bgra: [u8; 4],
         works: Vec<DrawWork>,
     },
+    VirglDepthBatch {
+        context_id: u32,
+        generation: u32,
+        resource_id: u32,
+        depth_resource: u32,
+        rect: Rect,
+        clear_bgra: [u8; 4],
+        works: Vec<DrawWork>,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]

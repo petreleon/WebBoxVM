@@ -3,7 +3,7 @@ mod batch;
 use super::super::SamplerConfig;
 use super::{DrawMaterial, DrawWork};
 
-pub(in crate::devices::virtio_gpu::three_d) use batch::packet as batch_packet;
+pub(in crate::devices::virtio_gpu::three_d) use batch::{packet as batch_packet, depth_packet as depth_batch_packet};
 
 pub(in crate::devices::virtio_gpu::three_d) fn packet(
     sequence: u32,

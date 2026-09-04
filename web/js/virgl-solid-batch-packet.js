@@ -21,14 +21,15 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  if (version !== 1 || !sequence || drawCount < 2 || drawCount > MAX_DRAWS || flags !== 0) {
+  if (![1, 2].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS || flags !== 0) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
     throw new Error(`VirGL solid-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
   }
   const clearColor = colors(view, 28, "clear");
-  if (view.getFloat32(44, true) !== 0) throw new Error("VirGL solid-batch reserved depth must be zero");
+  const depthClear = view.getFloat32(44, true);
+  if (depthClear !== (version === 2 ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
   const draws = [];
   let offset = HEADER_BYTES;
   let totalVertices = 0;
@@ -53,10 +54,12 @@ export function parseVirglSolidBatchPacket(packet) {
     offset = next;
   }
   if (offset !== packet.byteLength) throw new Error("VirGL solid-batch packet has trailing bytes");
+  const depth = version === 2;
   return {
-    acceleration: "webgpu-virgl-capset1-solid-batch", canvasHeight, canvasWidth, capsetId: 1,
-    clearColor, draws, presentationLabel: "VirGL capset 1 solid draw batch",
-    protocol: "virgl-solid-batch", sequence, version,
+    acceleration: depth ? "webgpu-virgl-capset1-depth-batch" : "webgpu-virgl-capset1-solid-batch",
+    canvasHeight, canvasWidth, capsetId: 1, clearColor, depthClear, draws,
+    presentationLabel: depth ? "VirGL capset 1 depth-tested draw batch" : "VirGL capset 1 solid draw batch",
+    protocol: depth ? "virgl-depth-batch" : "virgl-solid-batch", sequence, version,
   };
 }
 

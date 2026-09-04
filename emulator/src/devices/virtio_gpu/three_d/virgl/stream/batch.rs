@@ -36,8 +36,11 @@ pub(super) fn deferred(
         Some(Clear { resource, color, rect, .. }) if works.len() == 1 => Ok(Some(
             gpu.queue_virgl_draw(header, generation, resource, rect, color, works.into_iter().next().unwrap())?,
         )),
-        Some(Clear { resource, color, rect, .. }) if works.len() > 1 => Ok(Some(
+        Some(Clear { resource, depth_resource: None, color, rect }) if works.len() > 1 => Ok(Some(
             gpu.queue_virgl_batch(header, generation, resource, rect, color, works)?,
+        )),
+        Some(Clear { resource, depth_resource: Some(depth_resource), color, rect }) if works.len() > 1 => Ok(Some(
+            gpu.queue_virgl_depth_batch(header, generation, resource, depth_resource, rect, color, works)?,
         )),
         Some(Clear { resource, depth_resource: None, color, rect }) if works.is_empty() => Ok(Some(
             gpu.queue_virgl_clear(header, generation, resource, rect, color)?,

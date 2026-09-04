@@ -4,11 +4,7 @@ import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-b
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
 @vertex fn vertex_main(@location(0) position: vec4f, @location(1) color: vec4f) -> Output {
-  var output: Output;
-  output.position = position;
-  output.position.z = (position.z + position.w) * 0.5;
-  output.color = color;
-  return output;
+  var output: Output; output.position = position; output.position.z = (position.z + position.w) * 0.5; output.color = color; return output;
 }
 @fragment fn fragment_main(input: Output) -> @location(0) vec4f { return input.color; }
 `;
@@ -17,12 +13,14 @@ const SOURCE_OVER = {
   color: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "src-alpha" },
 };
 
-export class VirglSolidBatchRenderer {
-  #bufferUsage; #generation = 0; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0;
+export class VirglDepthBatchRenderer {
+  #bufferUsage; #depthTexture; #generation = 0; #height = 0; #pipeline; #revision = 0;
+  #session; #textureUsage; #vertexBuffer; #vertexCapacity = 0; #width = 0;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
+    this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
   }
 
   async render(backend, frame, isCurrent) {
@@ -39,8 +37,9 @@ export class VirglSolidBatchRenderer {
 
   invalidate() {
     this.#revision += 1;
-    this.#vertexBuffer?.destroy?.();
-    this.#pipeline = undefined; this.#vertexBuffer = undefined; this.#generation = 0; this.#vertexCapacity = 0;
+    this.#vertexBuffer?.destroy?.(); this.#depthTexture?.destroy?.();
+    this.#vertexBuffer = undefined; this.#depthTexture = undefined; this.#pipeline = undefined;
+    this.#generation = 0; this.#vertexCapacity = 0; this.#width = 0; this.#height = 0;
   }
 
   async #ensurePipeline(backend) {
@@ -49,10 +48,11 @@ export class VirglSolidBatchRenderer {
     const revision = this.#revision;
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");
-    const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 solid-batch shader" });
+    const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 depth-batch shader" });
     this.#pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
+      depthStencil: { depthCompare: "less", depthWriteEnabled: true, format: "depth24plus" },
       fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
-      label: "VirGL capset 1 solid-batch pipeline", layout: "auto", primitive: { topology: "triangle-list" },
+      label: "VirGL capset 1 depth-batch pipeline", layout: "auto", primitive: { topology: "triangle-list" },
       vertex: { buffers: [{ arrayStride: 32, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x4", offset: 16, shaderLocation: 1 }] }], entryPoint: "vertex_main", module },
     }));
     return revision === this.#revision;
@@ -62,13 +62,14 @@ export class VirglSolidBatchRenderer {
     const { device } = backend;
     const vertices = interleave(frame.draws);
     [this.#vertexBuffer, this.#vertexCapacity] = ensureBuffer(device, this.#vertexBuffer, this.#vertexCapacity,
-      vertices.byteLength, "VirGL capset 1 solid-batch vertices", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
-    this.#session.configure(frame.canvasWidth, frame.canvasHeight);
+      vertices.byteLength, "VirGL capset 1 depth-batch vertices", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
+    this.#session.configure(frame.canvasWidth, frame.canvasHeight); this.#ensureDepth(backend, frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, vertices);
-    const encoder = device.createCommandEncoder({ label: "VirGL capset 1 solid-batch encoder" });
+    const encoder = device.createCommandEncoder({ label: "VirGL capset 1 depth-batch encoder" });
     const pass = encoder.beginRenderPass({
       colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: backend.canvasContext.getCurrentTexture().createView() }],
-      label: "VirGL capset 1 solid-batch pass",
+      depthStencilAttachment: { depthClearValue: frame.depthClear, depthLoadOp: "clear", depthStoreOp: "store", view: this.#depthTexture.createView() },
+      label: "VirGL capset 1 depth-batch pass",
     });
     pass.setPipeline(this.#pipeline); pass.setVertexBuffer(0, this.#vertexBuffer);
     let first = 0;
@@ -81,16 +82,20 @@ export class VirglSolidBatchRenderer {
     pass.end(); device.queue.submit([encoder.finish()]);
     return device.queue.onSubmittedWorkDone();
   }
+
+  #ensureDepth(backend, width, height) {
+    if (this.#depthTexture && this.#width === width && this.#height === height) return;
+    this.#depthTexture?.destroy?.();
+    this.#depthTexture = backend.device.createTexture({ format: "depth24plus", label: "VirGL capset 1 depth batch", size: { depthOrArrayLayers: 1, height, width }, usage: this.#textureUsage.RENDER_ATTACHMENT ?? 0x10 });
+    this.#width = width; this.#height = height;
+  }
 }
 
 function interleave(draws) {
   const vertices = new Float32Array(draws.reduce((total, draw) => total + draw.vertexCount, 0) * 8);
   let offset = 0;
-  for (const draw of draws) {
-    for (let source = 0; source < draw.vertices.length; source += 4) {
-      vertices.set(draw.vertices.subarray(source, source + 4), offset);
-      vertices.set(draw.drawColor, offset + 4); offset += 8;
-    }
+  for (const draw of draws) for (let source = 0; source < draw.vertices.length; source += 4) {
+    vertices.set(draw.vertices.subarray(source, source + 4), offset); vertices.set(draw.drawColor, offset + 4); offset += 8;
   }
   return vertices;
 }

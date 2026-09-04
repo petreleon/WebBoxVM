@@ -1,5 +1,5 @@
-import { OpfsDiskStore } from "./persistence-store.js?v=20260904-virgl-solid-batch-r1";
-import { formatBytes } from "./utils.js?v=20260904-virgl-solid-batch-r1";
+import { OpfsDiskStore } from "./persistence-store.js?v=20260904-virgl-depth-batch-r1";
+import { formatBytes } from "./utils.js?v=20260904-virgl-depth-batch-r1";
 
 const AUTOSAVE_INTERVAL_MS = 600_000;
 

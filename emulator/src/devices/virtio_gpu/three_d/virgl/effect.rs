@@ -58,6 +58,14 @@ impl VirtioGpu {
                 works,
                 ..
             } => self.apply_virgl_batch(resource_id, rect, clear_bgra, works),
+            Pending3dEffect::VirglDepthBatch {
+                resource_id,
+                depth_resource,
+                rect,
+                clear_bgra,
+                works,
+                ..
+            } => self.apply_virgl_depth_batch(resource_id, depth_resource, rect, clear_bgra, works),
         }
     }
 }
@@ -75,6 +83,11 @@ fn effect_context(effect: &Pending3dEffect) -> (u32, u32) {
             ..
         }
         | Pending3dEffect::VirglBatch {
+            context_id,
+            generation,
+            ..
+        }
+        | Pending3dEffect::VirglDepthBatch {
             context_id,
             generation,
             ..

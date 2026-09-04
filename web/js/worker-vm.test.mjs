@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerVm } from "./worker-vm.js?v=20260904-virgl-solid-batch-r1";
+import { WorkerVm } from "./worker-vm.js?v=20260904-virgl-depth-batch-r1";
 
 const previousDocument = globalThis.document;
 const previousWorker = globalThis.Worker;

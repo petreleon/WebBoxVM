@@ -1,7 +1,7 @@
 use emulator::boot::BootContext;
-pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255";
+pub(super) const PASS: &str = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255";
 pub(super) const FAIL: &str = "VIRGL_CLEAR_DEMO_FAIL";
-pub(super) enum VirglPacket { Clear(u32), Draw(u32), UniformDraw(u32), DepthDraw(u32), SolidBatch(u32), TexturedDraw(u32, TextureMode), TexturePairDraw(u32), VertexColorDraw(u32), TextureColorDraw(u32) }
+pub(super) enum VirglPacket { Clear(u32), Draw(u32), UniformDraw(u32), DepthDraw(u32), SolidBatch(u32), DepthBatch(u32), TexturedDraw(u32, TextureMode), TexturePairDraw(u32), VertexColorDraw(u32), TextureColorDraw(u32) }
 pub(super) fn demo_script(binary: &[u8]) -> String {
     let mut script = String::from("base64 -d >/tmp/virgl-clear-demo <<'WEBBOXVM_VIRGL_EOF'\r");
     script.push_str(&base64_lines(binary));
@@ -30,7 +30,8 @@ pub(super) fn vgc1_sequence(packet: &[u8]) -> Result<u32, String> {
 pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
     match packet.get(..4) {
         Some(magic) if magic == b"VGC1" => vgc1_sequence(packet).map(VirglPacket::Clear),
-        Some(magic) if magic == b"VGB1" => batch_sequence(packet).map(VirglPacket::SolidBatch),
+        Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(1) => batch_sequence(packet).map(VirglPacket::SolidBatch),
+        Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(2) => depth_batch_sequence(packet).map(VirglPacket::DepthBatch),
         Some(magic) if magic == b"VGD1" => match read_u32(packet, 4) {
             Some(2) => uniform_sequence(packet).map(VirglPacket::UniformDraw)
                 .or_else(|_| vgd1_sequence(packet).map(VirglPacket::Draw)),
@@ -148,23 +149,16 @@ fn base64_lines(bytes: &[u8]) -> String {
         .map(|line| format!("{}\r", std::str::from_utf8(line).unwrap()))
         .collect()
 }
-#[path = "wire/batch.rs"]
-mod batch;
-#[path = "wire/draw.rs"]
-mod draw;
-#[path = "wire/depth.rs"]
-mod depth;
-#[path = "wire/texture.rs"]
-mod texture;
-#[path = "wire/texture_pair.rs"]
-mod texture_pair;
-#[path = "wire/vertex_color.rs"]
-mod vertex_color;
-#[path = "wire/texture_color.rs"]
-mod texture_color;
+#[path = "wire/batch.rs"] mod batch;
+#[path = "wire/draw.rs"] mod draw;
+#[path = "wire/depth.rs"] mod depth;
+#[path = "wire/texture.rs"] mod texture;
+#[path = "wire/texture_pair.rs"] mod texture_pair;
+#[path = "wire/vertex_color.rs"] mod vertex_color;
+#[path = "wire/texture_color.rs"] mod texture_color;
 
-pub(crate) use batch::is_solid_batch_readback;
-use batch::batch_sequence;
+pub(crate) use batch::{is_depth_batch_readback, is_solid_batch_readback};
+use batch::{batch_sequence, depth_batch_sequence};
 pub(crate) use draw::{is_triangle_readback, is_uniform_readback};
 use draw::{uniform_sequence, vgd1_sequence};
 pub(crate) use depth::is_depth_readback;

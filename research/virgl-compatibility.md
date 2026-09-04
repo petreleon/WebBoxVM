@@ -10,7 +10,7 @@ primitive, one UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, deliberately bounded single
-solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset, and a 2–16-draw solid-constant batch; bounded triangle lists with generic per-vertex-RGBA;
+solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset, and 2–16-draw solid-constant batches that are wholly non-depth or exact `LESS` depth; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -21,7 +21,7 @@ nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear; singleton material shapes; 2–16 ordered solid draws; bounded depth singleton through WebGPU | No mixed-material/depth batch, arbitrary blending, or sampler state |
+| Presentation | Clear; singleton material shapes; 2–16 ordered solid draws, non-depth or exact `LESS` depth, through WebGPU | No mixed-material/depth records, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -96,7 +96,7 @@ Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. One clear may precede one through 16 draws against the current full-scanout
-framebuffer. A singleton uses existing `VGD1` material routes; a 2–16 solid non-depth sequence uses `VGB1`. Clear/copy mixing and repeat clear fail transactionally.
+framebuffer. A singleton uses existing `VGD1` material routes; a 2–16 solid sequence uses `VGB1` v1 when non-depth or v2 when every record shares exact `LESS` depth. Clear/copy mixing and repeat clear fail transactionally.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
 Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. The one vertex UBO form additionally snapshots `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translates local copied vertices, and repeats that validation before packet construction.
@@ -114,7 +114,7 @@ Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. 
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, applies equivalent viewport/scissor, and waits for
 `GPUQueue.onSubmittedWorkDone()`. `VGB1` is a separate private batch envelope: a 48-byte
-header carries sequence, canvas, clear color, and 2–16 records; each record is a 60-byte solid color/viewport/scissor snapshot plus `16N` position bytes. One WebGPU pass clears once and issues those draws in record order.
+header carries sequence, canvas, clear color/depth, and 2–16 records; each record is a 60-byte solid color/viewport/scissor snapshot plus `16N` position bytes. V1 reserves depth as zero for non-depth draws; v2 clears depth to one and requires all records to share `LESS` state. One WebGPU pass clears once and issues those draws in record order.
 
 Only a successful browser acknowledgment changes authoritative CPU state. Rust
 rechecks the VirGL context generation, clears the target in its canonical BGRA
@@ -142,24 +142,24 @@ and a matching capset that this renderer does not advertise.
 
 Rust tests prove capset bits, transactional no-clear, malformed-index, and inline/resource-constant render/rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2/3/4/5/6/7/8/9 `VGD1` plus bounded `VGB1`
-payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, ordered solid-batch blending, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
-acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
+payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, ordered non-depth/depth solid-batch blending, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
+acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,
-cached pipelines, depth/singleton and batch pipelines, bounded `draw(N)`, one batch render pass, and queue-gated completion.
+cached pipelines, depth/singleton plus non-depth/depth batch pipelines, bounded `draw(N)`, one batch render pass, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
 clear/fence, indexed inline-constant, texture, vertex-color, texture-color, depth, and ordered solid-batch paths.
 It also creates a 36-byte R8 constant buffer, populates its color at byte offset
 four and `[dx,dy,0,0]` at byte offset 20 through two isolated standard command-9 writes plus readback, sends stage-0 and stage-1 command 27 bindings, validates distinct schema-2 `VGD1` color and translated vertices,
-completes that effect, reads both `147,141,58,255` triangles through Linux, then verifies one standard clear plus two `DRAW_VBO`s as `VGB1` and the ordered `0,128,64,255` center.
+completes that effect, reads both `147,141,58,255` triangles through Linux, then verifies one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS` depth draws with exact `0,0,128,255` readback.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
 from that harness.
 
 ## Next compatibility milestones
 
-1. Add mixed-material or depth batch forms only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
+1. Add mixed-material or more general depth-batch forms only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

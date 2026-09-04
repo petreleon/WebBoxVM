@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260904-virgl-solid-batch-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-depth-batch-r1";
 
 test("emulator access waits for an active worker round", async () => {
   let releaseRound;

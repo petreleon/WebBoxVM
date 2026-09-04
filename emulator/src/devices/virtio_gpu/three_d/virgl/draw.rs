@@ -8,7 +8,7 @@ mod solid;
 mod texture;
 mod vertices;
 use material::material;
-pub(in crate::devices::virtio_gpu::three_d) use packet::{batch_packet, packet};
+pub(in crate::devices::virtio_gpu::three_d) use packet::{batch_packet, depth_batch_packet, packet};
 pub(super) use primitive::Primitive;
 use vertices::resolve;
 
