@@ -1,11 +1,8 @@
-//! Native Linux-driver proof for standard capset-1 VirGL transfer, blend, and draw.
+//! Native Linux-driver proof for standard capset-1 VirGL transfer, draw, and fragment UBOs.
 #[path = "virgl_guest_transport_smoke/wire.rs"]
 mod wire;
 use emulator::boot::BootContext;
-use std::env;
-use std::error::Error;
-use std::fs;
-use std::time::{Duration, Instant};
+use std::{env, error::Error, fs, time::{Duration, Instant}};
 use wire::*;
 const MODULE_OK: &str = "VIRGL_SMOKE_MODULE_OK";
 const MODULE_FAIL: &str = "VIRGL_SMOKE_MODULE_FAIL";
@@ -39,11 +36,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
     let mut steps = 0u64;
-    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence) = (None, None, None, None, None);
+    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence, mut uniform_sequence) = (None, None, None, None, None, None);
     let mut texture_sequence = None;
     let (mut upload_readback, mut clear_completed) = (false, false);
     let mut draw_completed = false;
-    let (mut repeat_completed, mut linear_completed, mut texture_pair_completed, mut vertex_color_completed) = (false, false, false, false);
+    let (mut repeat_completed, mut linear_completed, mut texture_pair_completed, mut vertex_color_completed, mut texture_color_completed) = (false, false, false, false, false);
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result { 10_000 } else { chunk_steps };
         let ran = vm.run_kernel_phase(slice.min((max_steps - steps) as usize));
@@ -104,6 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             vertex_color_sequence = Some(sequence);
                         }
                         VirglPacket::TextureColorDraw(sequence) if vertex_color_completed && texture_color_sequence.is_none() => { println!("VGD1 texture-color validated: sequence {sequence}"); texture_color_sequence = Some(sequence); }
+                        VirglPacket::UniformDraw(sequence) if texture_color_completed && uniform_sequence.is_none() => { println!("VGD1 uniform-buffer validated: sequence {sequence}"); uniform_sequence = Some(sequence); }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -160,6 +158,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         if phase == Phase::Packet && vertex_color_completed && let Some(sequence) = texture_color_sequence.take() {
             complete(&mut vm, sequence, is_texture_color_readback, "VGD1 texture-color")?;
             println!("WBGF texture-modulated vertex-color BGRA readback validated");
+            texture_color_completed = true;
+        }
+        if phase == Phase::Packet && texture_color_completed && let Some(sequence) = uniform_sequence.take() {
+            complete(&mut vm, sequence, is_uniform_readback, "VGD1 uniform-buffer")?;
+            println!("WBGF uniform-buffer triangle BGRA readback validated");
             phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {

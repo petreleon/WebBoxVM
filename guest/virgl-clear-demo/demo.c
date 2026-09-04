@@ -2,9 +2,8 @@
 #include "ops.h"
 #include "syscall.h"
 #include "transfer.h"
-static const char card_node[] = "/dev/dri/card0";
-static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255\n";
+static const char card_node[] = "/dev/dri/card0"; static const char serial_node[] = "/dev/ttyAMA0";
+static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform=147,141,58,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
@@ -30,6 +29,7 @@ static const char fail_readback[] = "VIRGL_CLEAR_DEMO_FAIL transfer-readback\n";
 static const char fail_texture_pair[] = "VIRGL_CLEAR_DEMO_FAIL texture-pair\n";
 static const char fail_vertex_color[] = "VIRGL_CLEAR_DEMO_FAIL vertex-color\n";
 static const char fail_texture_color[] = "VIRGL_CLEAR_DEMO_FAIL texture-color\n";
+static const char fail_uniform[] = "VIRGL_CLEAR_DEMO_FAIL uniform-buffer\n";
 static void emit(const char *message, u64 length)
 {
     long fd = sys_open(serial_node, O_WRONLY | O_CLOEXEC);
@@ -115,6 +115,8 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
                     stage += 49;
                 else if ((stage = virgl_run_texture_color_triangle(fd, &resources)) != 0)
                     stage += 53;
+                else if ((stage = virgl_run_uniform_triangle(fd, &resources)) != 0)
+                    stage += 57;
             }
         }
     }
@@ -166,12 +168,10 @@ __attribute__((noreturn, section(".text.start"))) void _start(void)
         EMIT(fail_triangle_readback);
     else if (stage >= 41 && stage <= 44)
         EMIT(fail_triangle_readback);
-    else if (stage >= 45 && stage <= 49)
-        EMIT(fail_texture_pair);
-    else if (stage >= 50 && stage <= 53)
-        EMIT(fail_vertex_color);
-    else if (stage >= 54 && stage <= 57)
-        EMIT(fail_texture_color);
+    else if (stage >= 45 && stage <= 49) EMIT(fail_texture_pair);
+    else if (stage >= 50 && stage <= 53) EMIT(fail_vertex_color);
+    else if (stage >= 54 && stage <= 57) EMIT(fail_texture_color);
+    else if (stage >= 58 && stage <= 61) EMIT(fail_uniform);
     else
         EMIT(fail_readback);
     if (fd >= 0)

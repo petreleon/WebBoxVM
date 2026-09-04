@@ -1,8 +1,8 @@
-# WebBoxVM standard VirGL inline-constant, texture, vertex-color, and texture-color triangle probe
+# WebBoxVM standard VirGL inline-constant, uniform, texture, and color triangle probe
 
 This freestanding AArch64 Linux program is a deliberately small guest-side
 proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
-source-over blend, rasterizer, viewport/scissor, inline-constant triangle, interpolated vertex color, sampled texture, texture-modulated color,
+source-over blend, rasterizer, viewport/scissor, inline-constant and uniform triangles, interpolated vertex color, sampled texture, texture-modulated color,
 and readback path. It is not Mesa, OpenGL, or Vulkan.
 
 It also proves Linux's `cmd_size` blob path: a private `WBL1` opaque command is
@@ -41,6 +41,9 @@ Finally it binds left clamp/linear and right repeat/nearest views at `[u,v] ==
 `[1,.625]`; the distinct right texture proves wrap while the left interpolates
 to `55,65,75,255` after its fence. A final 96-byte position/RGBA VBO uses a
 generic TGSI varying, and its barycentric center reads `64,64,127,255` in BGRA.
+It finally creates a 20-byte R8 constant buffer, transfers a zero prefix plus
+RGBA at byte offset four, emits command-27 `SET_UNIFORM_BUFFER`, and requires
+both indexed triangles to read `147,141,58,255` while the center gap is clear.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -63,7 +66,7 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform=147,141,58,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness
@@ -75,6 +78,8 @@ It next validates two schema-5 packets: repeat at `u == 1`, then clamp/linear at
 RGBA. Schema 6 then verifies independent left-linear/right-repeat sampling at `[1,.625]`
 and requires `55,65,75,255` at the center. Schema 7 then checks the generic
 position/RGBA VBO and requires interpolated `64,64,127,255`; schema 8 then checks the 40-byte position/RGBA/UV stride, gray sampler snapshot, and modulated `32,32,64,255` center before the marker.
+Finally it accepts another schema-2 packet only with the offset-four UBO color,
+completes it, and requires both `147,141,58,255` triangle samples before PASS.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command

@@ -19,7 +19,8 @@ static int virgl_caps(long fd)
 
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_GET_CAPS, &get) < 0 ||
                    caps[0] != 1 || caps[4] != 2 || caps[68] != 30 ||
-                   caps[199] != 160 || caps[288] != VIRGL_TRIANGLE_PRIMITIVES
+                   caps[199] != 160 || caps[262] != 4 ||
+                   caps[288] != VIRGL_TRIANGLE_PRIMITIVES || caps[296] != 1
                ? -1
                : 0;
 }
@@ -109,6 +110,9 @@ int virgl_setup(long fd, struct virgl_resources *resources)
         return 4;
     if (virgl_create_index_buffer(fd, &resources->index_bo,
                                   &resources->index_resource) != 0)
+        return 4;
+    if (virgl_create_uniform_buffer(fd, &resources->uniform_bo,
+                                    &resources->uniform_resource) != 0)
         return 4;
     if (virgl_create_textured_resources(fd, resources) != 0)
         return 4;

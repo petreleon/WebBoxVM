@@ -45,11 +45,17 @@ the deferred work retained its snapshot. It also proves malformed, wrong-bind,
 unaligned, out-of-range, and missing-resource rejection, standard unbind, and
 detach clearing.
 
-This increment has Rust-level coverage only. The native Linux DRM guest probe
-does not yet issue command 27, so no native transport proof is claimed here.
-There is no vertex UBO, nonzero slot, range larger than 16 bytes, uniform array,
-arbitrary TGSI, generic UBO schema, external memory, synchronization protocol,
-or Venus capset claim.
+The native Linux DRM guest probe creates a 20-byte R8 constant buffer, transfers
+a zero prefix plus RGBA at byte offset four, and emits command 27 with the exact
+fragment-slot-zero 16-byte range. Its host smoke accepts the resulting schema-2
+color only when it is the distinct offset-four RGBA and, after deferred completion,
+requires both source-over BGRA triangle samples to be `147,141,58,255`.
+
+That establishes this bounded guest-driver transport route alongside Rust tests;
+it does not establish browser execution from the native harness. There is no
+vertex UBO, nonzero slot, range larger than 16 bytes, uniform array, arbitrary
+TGSI, generic UBO schema, external memory, synchronization protocol, or Venus
+capset claim.
 
 ## Sources
 

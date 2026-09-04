@@ -148,23 +148,17 @@ independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attri
 cached pipelines, no depth texture, bounded `draw(N)`, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
-VirtIO-GPU/DRM/KMS transport for all three blob profiles, `cmd_size` ordering, capset discovery, R8 buffer transfer/copy,
-color transfer/readback, and the standard clear/fence path. It then creates
-the exact 96-byte R32G32B32A32 VBO plus a 14-byte R8 index buffer, canonical `CONST[0][0]` TGSI state,
-exact type-1 source-over blend and type-2 scissor-rasterizer objects, viewport/scissor,
-commands 11/12 `SET_INDEX_BUFFER` at byte offset two and fragment-slot-zero `SET_CONSTANT_BUFFER`, plus indexed `DRAW_VBO`; it validates the schema-2
-`VGD1` envelope with the guest's `[2,1,0,5,4,3]` reordered vertices, resolves the
-deferred fence, and reads both blended `121,115,134,255` triangles plus their clear
-center gap back through the Linux driver. It then creates two attached
-R8G8B8A8 sampler-view textures and a 24-byte position/UV VBO. It validates schema-5's
-transfer-normalized BGRA and first `0x1080` at `u == 1`, then `0x3292` at `u == .5`,
-completes both, and reads `10,20,30,255` then `25,35,45,255` at the center. It then validates schema-6
-with left clamp-linear and right repeat-nearest at `[u,v] == [1,.625]`, reads `55,65,75,255`, then validates schema-7's 96-byte position/RGBA VBO and reads `64,64,127,255`, followed by schema-8's 120-byte position/RGBA/UV VBO and opaque gray texture, reading the modulated `32,32,64,255` center.
-This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution from that harness.
+VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
+clear/fence, indexed inline-constant, texture, vertex-color, and texture-color paths.
+It also creates a 20-byte R8 constant buffer, transfers its color at byte offset
+four, sends standard command 27, validates a distinct schema-2 `VGD1` color,
+completes that effect, and reads both `147,141,58,255` triangles through Linux.
+This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
+from that harness.
 
 ## Next compatibility milestones
 
-1. Prove the resource-backed uniform route through native Linux DRM transport, then expand generic vertex/fragment only with a new native/CPU/WebGPU agreement.
+1. Specify another bounded constant shape only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 
