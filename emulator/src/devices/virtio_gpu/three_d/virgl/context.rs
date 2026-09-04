@@ -18,7 +18,7 @@ use std::collections::{HashMap, HashSet};
 use framebuffer::{Framebuffer, Surface};
 
 pub(in crate::devices::virtio_gpu::three_d::virgl) use constant::{
-    FragmentConstants, UniformBinding,
+    FragmentConstants, UniformBinding, VertexConstants,
 };
 pub(super) use draw::DrawState;
 use pipeline::PipelineState;
@@ -50,6 +50,7 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     bound_vertex_shader: Option<u32>,
     bound_fragment_shader: Option<u32>,
     vertex_uniform: Option<UniformBinding>,
+    vertex_constants: Option<VertexConstants>,
     fragment_constants: Option<FragmentConstants>,
 }
 
@@ -69,6 +70,7 @@ impl VirglContext {
             bound_vertex_shader: None,
             bound_fragment_shader: None,
             vertex_uniform: None,
+            vertex_constants: None,
             fragment_constants: None,
         }
     }

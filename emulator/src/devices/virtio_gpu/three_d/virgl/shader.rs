@@ -28,6 +28,7 @@ impl ShaderKind {
 pub(in crate::devices::virtio_gpu) enum ShaderProgram {
     VertexPassthrough,
     VertexUniformOffset,
+    VertexMatrix,
     VertexGeneric,
     VertexGenericUniformOffset,
     VertexTextureColor,
@@ -52,6 +53,7 @@ impl Shader {
         match self.program {
             ShaderProgram::VertexPassthrough => 11,
             ShaderProgram::VertexUniformOffset => 14,
+            ShaderProgram::VertexMatrix => 18,
             ShaderProgram::VertexGeneric => 17,
             ShaderProgram::VertexGenericUniformOffset => 20,
             ShaderProgram::VertexTextureColor => 21,

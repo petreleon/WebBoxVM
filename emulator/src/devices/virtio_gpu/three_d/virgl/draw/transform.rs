@@ -11,11 +11,41 @@ pub(super) fn apply(vertices: &mut Vec<u8>, transform: VertexTransform) -> bool 
             return false;
         }
     }
+    if let Some((matrix, stride)) = transform.matrix {
+        if !project(vertices, matrix, stride) {
+            return false;
+        }
+    }
     match transform.color {
         None => true,
         Some(ColorTransform::Multiply(color)) => multiply_color(vertices, color),
         Some(ColorTransform::TextureColor(color)) => add_constant_color(vertices, color),
     }
+}
+
+fn project(vertices: &mut [u8], matrix: [f32; 16], stride: usize) -> bool {
+    if stride < POSITION_BYTES || !vertices.len().is_multiple_of(stride) {
+        return false;
+    }
+    for vertex in vertices.chunks_exact_mut(stride) {
+        let input = [0, 4, 8, 12].map(|offset| f32::from_le_bytes(vertex[offset..offset + 4].try_into().unwrap()));
+        let mut output = [0.0; 4];
+        for (index, row) in matrix.chunks_exact(4).enumerate() {
+            output[index] = row.iter().zip(input).map(|(left, right)| left * right).sum();
+        }
+        let w = output[3];
+        if !w.is_finite() || w <= 0.0 {
+            return false;
+        }
+        let normalized = [output[0] / w, output[1] / w, output[2] / w];
+        if !normalized.iter().all(|value| value.is_finite() && (-1.0..=1.0).contains(value)) {
+            return false;
+        }
+        for (offset, value) in [0, 4, 8, 12].into_iter().zip(normalized.into_iter().chain([1.0])) {
+            vertex[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+        }
+    }
+    true
 }
 
 fn translate(vertices: &mut [u8], [x, y]: [f32; 2], stride: usize) -> bool {

@@ -38,6 +38,17 @@ pub(super) fn vertex_offset(
         .ok_or(RESP_ERR_INVALID_PARAMETER)
 }
 
+pub(super) fn vertex_matrix(source: Option<[u32; 16]>) -> Result<[f32; 16], u32> {
+    let matrix = source
+        .ok_or(RESP_ERR_INVALID_PARAMETER)?
+        .map(f32::from_bits);
+    matrix
+        .iter()
+        .all(|value| value.is_finite())
+        .then_some(matrix)
+        .ok_or(RESP_ERR_INVALID_PARAMETER)
+}
+
 pub(super) fn snapshot(
     gpu: &VirtioGpu,
     context: &VirglContext,

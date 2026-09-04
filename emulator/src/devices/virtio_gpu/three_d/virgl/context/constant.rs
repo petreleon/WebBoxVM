@@ -1,5 +1,7 @@
 use super::VirglContext;
 
+pub(in crate::devices::virtio_gpu::three_d::virgl) type VertexConstants = [u32; 16];
+
 #[derive(Clone, Copy, Debug)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) struct UniformBinding {
     pub resource: u32,
@@ -36,6 +38,13 @@ impl VirglContext {
         binding: Option<UniformBinding>,
     ) {
         self.vertex_uniform = binding;
+    }
+
+    pub(in crate::devices::virtio_gpu::three_d::virgl) fn set_vertex_constants(
+        &mut self,
+        values: Option<VertexConstants>,
+    ) {
+        self.vertex_constants = values;
     }
 
     pub(in crate::devices::virtio_gpu) fn remove_constant_resource(&mut self, resource: u32) {

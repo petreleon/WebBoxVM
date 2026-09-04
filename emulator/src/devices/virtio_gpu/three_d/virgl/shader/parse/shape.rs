@@ -1,11 +1,5 @@
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub(super) enum Operation<'a> {
-    Mov(&'a str, &'a str),
-    Add(&'a str, &'a str, &'a str),
-    Mul(&'a str, &'a str, &'a str),
-    Tex(&'a str, &'a str, &'a str, &'a str),
-    End,
-}
+mod operation;
+pub(super) use operation::Operation;
 
 #[derive(Clone, Copy)]
 struct Declaration<'a> {
@@ -49,7 +43,7 @@ pub(super) fn parse<'a>(lines: &[&'a str], stage: &str) -> Option<Shape<'a>> {
             }
             immediates.push(line);
         } else {
-            let operation = operation(line)?;
+            let operation = operation::parse(line)?;
             ended = operation == Operation::End;
             operations.push(operation);
         }
@@ -90,6 +84,12 @@ pub(super) fn same(left: &str, right: &str) -> bool {
     strip_vector(left) == strip_vector(right)
 }
 
+pub(super) fn component_matches(actual: &str, register: &str, component: char) -> bool {
+    actual
+        .strip_suffix(&format!(".{component}"))
+        .is_some_and(|base| same(base, register))
+}
+
 fn declaration(line: &str) -> Option<Declaration<'_>> {
     let mut parts = line.strip_prefix("DCL ")?.split(',').map(str::trim);
     Some(Declaration { register: parts.next()?.trim(), semantic: parts.next().filter(|part| !part.is_empty()) })
@@ -97,20 +97,6 @@ fn declaration(line: &str) -> Option<Declaration<'_>> {
 
 fn immediate_register(line: &str) -> Option<&str> {
     line.split_ascii_whitespace().next().filter(|register| register.starts_with("IMM["))
-}
-
-fn operation(line: &str) -> Option<Operation<'_>> {
-    let mut words = line.split(|character: char| character.is_ascii_whitespace() || character == ',').filter(|word| !word.is_empty());
-    let opcode = words.next()?;
-    let arguments: Vec<_> = words.collect();
-    match (opcode, arguments.as_slice()) {
-        ("MOV", [destination, source]) => Some(Operation::Mov(destination, source)),
-        ("ADD", [destination, left, right]) => Some(Operation::Add(destination, left, right)),
-        ("MUL", [destination, left, right]) => Some(Operation::Mul(destination, left, right)),
-        ("TEX", [destination, coordinates, sampler, target]) => Some(Operation::Tex(destination, coordinates, sampler, target)),
-        ("END", []) => Some(Operation::End),
-        _ => None,
-    }
 }
 
 fn register_matches(actual: &str, wanted: &str) -> bool {
