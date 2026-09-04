@@ -2,6 +2,7 @@ use super::super::protocol::*;
 use super::super::three_d::VIRGL2_CAPSET_ID;
 use super::super::{SCANOUT_HEIGHT, SCANOUT_WIDTH, VirtioGpu};
 use super::{header, response_type};
+use crate::constants::RAM_BASE;
 use crate::memory::PhysicalMemory;
 
 const VIRGL_FORMAT_B8G8R8A8_UNORM: u32 = 1;
@@ -56,6 +57,17 @@ fn virgl2_context_routes_the_bounded_standard_clear_path() {
     assert_eq!(read_u32(&packet, 16), Some(SCANOUT_HEIGHT));
 }
 
+#[test]
+fn virgl2_context_accepts_the_bounded_standard_texture_transfer() {
+    let mut gpu = VirtioGpu::new(); let mut mem = PhysicalMemory::new();
+    for command in [resource_create(4), attach_backing(4), context_create(), context_resource(CMD_CTX_ATTACH_RESOURCE, 4)] {
+        assert_response(&mut gpu, &mut mem, &command, RESP_OK_NODATA);
+    }
+    mem.write_bytes(RAM_BASE, &[1, 2, 3, 4]).expect("guest texture source");
+    assert_response(&mut gpu, &mut mem, &transfer_to_host(4), RESP_OK_NODATA);
+    assert_eq!(&gpu.resources[&4].pixels[..4], &[1, 2, 3, 4]);
+}
+
 fn capset_info(index: u32) -> Vec<u8> {
     let mut command = header(CMD_GET_CAPSET_INFO);
     push_u32(&mut command, index);
@@ -106,6 +118,17 @@ fn full_scanout(resource: u32) -> Vec<u8> {
         push_u32(&mut command, value);
     }
     command
+}
+
+fn attach_backing(resource: u32) -> Vec<u8> {
+    let mut command = header(CMD_RESOURCE_ATTACH_BACKING); push_u32(&mut command, resource); push_u32(&mut command, 1);
+    push_u64(&mut command, RAM_BASE); push_u32(&mut command, SCANOUT_WIDTH * SCANOUT_HEIGHT * 4); push_u32(&mut command, 0); command
+}
+
+fn transfer_to_host(resource: u32) -> Vec<u8> {
+    let mut command = header(CMD_TRANSFER_TO_HOST_3D);
+    for value in [0, 0, 0, 1, 1, 1] { push_u32(&mut command, value); }
+    push_u64(&mut command, 0); for value in [resource, 0, 0, 0] { push_u32(&mut command, value); } command
 }
 
 fn context_resource(kind: u32, resource: u32) -> Vec<u8> {

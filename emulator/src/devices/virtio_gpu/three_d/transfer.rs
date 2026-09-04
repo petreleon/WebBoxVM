@@ -1,4 +1,4 @@
-use super::VIRGL_CAPSET_ID;
+use super::capset::is_virgl_capset;
 use crate::devices::virtio_gpu::blob::BlobMemory;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
@@ -141,7 +141,11 @@ impl VirtioGpu {
         if !resource && !self.blobs.contains_key(&transfer.resource_id) {
             return Err(RESP_ERR_INVALID_RESOURCE_ID);
         }
-        if self.contexts.get(&header.ctx_id) != Some(&VIRGL_CAPSET_ID) {
+        if !self
+            .contexts
+            .get(&header.ctx_id)
+            .is_some_and(|&capset| is_virgl_capset(capset))
+        {
             return Err(RESP_ERR_INVALID_CONTEXT_ID);
         }
         if !self.is_virgl_resource(transfer.resource_id) && !shadow_blob {
