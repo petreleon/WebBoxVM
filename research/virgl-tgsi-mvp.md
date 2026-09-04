@@ -51,11 +51,13 @@ clip volume. The exact non-depth solid singleton uses private `VGD1` v15 with
 the original 16-byte positions and row-major 64-byte matrix. The exact
 non-depth generic-RGBA passthrough singleton, without a fragment-constant
 multiply, uses v16 with original 32-byte position/RGBA vertices and the same
-rows. The browser rechecks projection (and v16 normalized finite RGBA), then
-uses four matrix row-dot-products in a WebGPU vertex shader. Textured,
-constant-modulated, and depth forms retain the transformed CPU-packet route.
-This preserves the no-clipping boundary without claiming a general shader
-compiler.
+rows. The exact non-depth generic-UV one-texture singleton, without fragment
+constant modulation, uses v17 with original 24-byte position/UV vertices, one
+bounded sampler snapshot, and the same rows. The browser rechecks projection,
+v16 normalized finite RGBA, and v17 bounded UV/sampler state, then uses four
+matrix row-dot-products in a WebGPU vertex shader. Constant-modulated,
+two-texture, and depth forms retain the transformed CPU-packet route. This
+preserves the no-clipping boundary without claiming a general shader compiler.
 
 ## Invariants
 
@@ -68,8 +70,8 @@ compiler.
    widen this path.
 4. A matrix may not produce a non-finite, zero/negative-`w`, or out-of-clip
    vertex. Failure leaves the transactional stream unchanged.
-5. Matrix work is O(V) for at most 3,063 normalized list vertices; the two GPU
-   lanes retain one bounded raw snapshot for browser presentation and never
+5. Matrix work is O(V) for at most 3,063 normalized list vertices; the three
+   GPU lanes retain one bounded raw snapshot for browser presentation and never
    open an unbounded guest command path.
 
 ## Boundary
@@ -86,9 +88,9 @@ memory and synchronization that browser WebGPU does not expose.
 - Reject duplicate output components, a non-matrix source, and incomplete
   constant ranges.
 - Submit ordinary shader-object, inline or resource-backed vertex matrix
-  bindings, solid, generic-RGBA, and textured draw commands; verify v15/v16 raw
-  matrix/vertex snapshots, browser WebGPU rows and RGBA attributes, transformed
-  packet coordinates, and raster results.
+  bindings, solid, generic-RGBA, and textured draw commands; verify v15/v16/v17
+  raw matrix/vertex snapshots, browser WebGPU rows/RGBA/UV attributes and
+  sampler snapshots, transformed packet coordinates, and raster results.
 - Keep the source-file limit, Rust suite, browser suite, and wasm packages
   green before advertising the increment.
 

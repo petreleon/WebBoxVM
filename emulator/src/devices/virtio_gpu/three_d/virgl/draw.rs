@@ -146,7 +146,7 @@ impl VirtioGpu {
         }
         let gpu_matrix = transform
             .filter(|transform| state.depth.is_none() && transform.color.is_none()
-                && matches!(&material, DrawMaterial::Solid(_) | DrawMaterial::VertexColor))
+                && matches!(&material, DrawMaterial::Solid(_) | DrawMaterial::VertexColor | DrawMaterial::Textured(_)))
             .and_then(|transform| transform.matrix.map(|(rows, _)| rows))
             .map(|rows| GpuMatrix { rows, raw_vertices: vertices.clone() });
         if let Some(transform) = transform {

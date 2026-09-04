@@ -46,8 +46,9 @@ or range reject the cloned stream without replacing a prior binding. Detaching a
 bound resource clears the source. Nonmatrix material remains on its existing
 private schemas. Exact non-depth solid DP4 presentation uses schema 15, while
 exact generic-RGBA passthrough without fragment-constant multiplication uses
-schema 16 with raw RGBA attributes. CPU replay keeps the guest color contract
-for both lanes.
+schema 16 with raw RGBA attributes, and exact generic-UV one-texture sampling
+without modulation uses schema 17. CPU replay keeps the guest color contract
+for all three lanes.
 
 ## Evidence and limits
 
@@ -76,6 +77,8 @@ unaligned, short, or out-of-range matrix range transactionally.
 `virgl_matrix_vertex_color_draw.rs` separately proves an inline DP4 matrix with
 an exact generic-RGBA passthrough preserves raw attributes in v16 and retains
 the transformed CPU replay result.
+`virgl_matrix_texture_draw.rs` proves the exact generic-UV one-texture form
+preserves raw UVs and a sampler snapshot in v17 while retaining CPU replay.
 
 That establishes this bounded guest-driver transport route alongside Rust and
 browser WebGPU-unit tests; it does not establish native guest-to-browser

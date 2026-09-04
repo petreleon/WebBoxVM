@@ -1,4 +1,5 @@
 const MAX_DIMENSION = 8192;
+const MAX_TEXTURE_DIMENSION = 64;
 const MAX_VERTEX_COUNT = 3063;
 const MATRIX_OFFSET = 56;
 const VERTEX_OFFSET = MATRIX_OFFSET + 64;
@@ -7,25 +8,28 @@ const STATE_BYTES = 40;
 export function parseVirglMatrixPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const version = view.getUint32(4, true);
-  if (packet.byteLength < VERTEX_OFFSET || ![15, 16].includes(version)) throw new Error("VirGL matrix packet has invalid version or length");
+  if (packet.byteLength < VERTEX_OFFSET || ![15, 16, 17].includes(version)) throw new Error("VirGL matrix packet has invalid version or length");
   const sequence = view.getUint32(8, true); const canvasWidth = view.getUint32(12, true);
   const canvasHeight = view.getUint32(16, true); const vertexCount = view.getUint32(20, true);
   if (!sequence) throw new Error("VirGL matrix packet sequence must be nonzero");
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) throw new Error("VirGL matrix dimensions must fit the bounded target");
   if (vertexCount < 3 || vertexCount > MAX_VERTEX_COUNT || vertexCount % 3) throw new Error("VirGL matrix vertex count must be 3..3063 and divisible by 3");
-  const vertexColor = version === 16; const stride = vertexColor ? 8 : 4;
+  const vertexColor = version === 16; const textured = version === 17; const stride = vertexColor ? 8 : textured ? 6 : 4;
   const state = VERTEX_OFFSET + vertexCount * stride * 4;
-  if (packet.byteLength !== state + STATE_BYTES) throw new Error("VirGL matrix packet has invalid length");
+  if (packet.byteLength < state + STATE_BYTES || !textured && packet.byteLength !== state + STATE_BYTES) throw new Error("VirGL matrix packet has invalid length");
+  const sampled = textured ? textureFrame(view, packet, state) : undefined;
+  if (textured && (!sampled || packet.byteLength !== state + STATE_BYTES + sampled.byteLength)) throw new Error("VirGL matrix texture framing is invalid");
   const clearColor = color(view, 24, "clear"); const drawColor = color(view, 40, "draw");
-  if (vertexColor && ![...drawColor].every((value) => value === 0)) throw new Error("VirGL matrix vertex-color reserved color must be zero");
+  if ((vertexColor || textured) && ![...drawColor].every((value) => value === 0)) throw new Error("VirGL matrix reserved color must be zero");
   const matrix = floats(view, MATRIX_OFFSET, 16);
   if (![...matrix].every(Number.isFinite)) throw new Error("VirGL matrix rows must be finite");
   const vertices = floats(view, VERTEX_OFFSET, vertexCount * stride);
-  if (!validProjected(vertices, matrix, stride) || vertexColor && !validColors(vertices)) throw new Error("VirGL matrix projection is invalid");
+  if (!validProjected(vertices, matrix, stride) || vertexColor && !validColors(vertices) || textured && !validUvs(vertices)) throw new Error("VirGL matrix projection is invalid");
   return {
-    acceleration: vertexColor ? "webgpu-virgl-capset1-matrix-vertex-color" : "webgpu-virgl-capset1-matrix", canvasHeight, canvasWidth, capsetId: 1,
-    clearColor, drawColor, matrix, presentationLabel: vertexColor ? "VirGL capset 1 GPU matrix vertex-color triangles" : "VirGL capset 1 GPU matrix triangles",
-    protocol: vertexColor ? "virgl-matrix-vertex-color" : "virgl-draw", sequence, version, vertexCount, vertices,
+    acceleration: vertexColor ? "webgpu-virgl-capset1-matrix-vertex-color" : textured ? "webgpu-virgl-capset1-matrix-texture" : "webgpu-virgl-capset1-matrix", canvasHeight, canvasWidth, capsetId: 1,
+    clearColor, drawColor, matrix, presentationLabel: vertexColor ? "VirGL capset 1 GPU matrix vertex-color triangles" : textured ? "VirGL capset 1 GPU matrix texture triangles" : "VirGL capset 1 GPU matrix triangles",
+    protocol: vertexColor ? "virgl-matrix-vertex-color" : textured ? "virgl-matrix-texture" : "virgl-draw", sequence, version, vertexCount, vertices,
+    ...(sampled ? { texture: sampled.texture } : {}),
     ...viewportState(view, canvasWidth, canvasHeight, state),
   };
 }
@@ -44,6 +48,24 @@ function validProjected(vertices, matrix, stride) {
 
 function validColors(vertices) {
   return vertices.every((value, index) => index % 8 < 4 || Number.isFinite(value) && value >= 0 && value <= 1);
+}
+
+function validUvs(vertices) {
+  return vertices.every((value, index) => index % 6 < 4 || Number.isFinite(value) && value >= -8 && value <= 8);
+}
+
+function textureFrame(view, packet, state) {
+  if (packet.byteLength < state + 52) return undefined;
+  const sampler = samplerConfig(view.getUint32(state + 40, true));
+  const width = view.getUint32(state + 44, true); const height = view.getUint32(state + 48, true);
+  const pixels = width && height && width <= MAX_TEXTURE_DIMENSION && height <= MAX_TEXTURE_DIMENSION ? width * height * 4 : 0;
+  return sampler && pixels ? { byteLength: 12 + pixels, texture: { ...sampler, width, height, pixels: packet.subarray(state + 52, state + 52 + pixels) } } : undefined;
+}
+
+function samplerConfig(word) {
+  if (word === 0x1092) return { addressMode: "clamp-to-edge", filter: "nearest" };
+  if (word === 0x1080) return { addressMode: "repeat", filter: "nearest" };
+  if (word === 0x3292) return { addressMode: "clamp-to-edge", filter: "linear" };
 }
 
 function dot(row, input) {

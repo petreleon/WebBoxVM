@@ -12,7 +12,7 @@ const MATRIX: [f32; 16] = [
 ];
 
 #[test]
-fn matrix_vertex_preserves_one_generic_texture_varying() {
+fn matrix_texture_keeps_raw_uvs_for_webgpu() {
     let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(&mut gpu, &mut mem, &submit(&state()), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);
@@ -21,7 +21,7 @@ fn matrix_vertex_preserves_one_generic_texture_varying() {
     let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw());
     assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
     let packet = gpu.take_3d_update();
-    assert_eq!([4, 56, 60, 64, 68].map(|at| read_u32(&packet, at)), [Some(3), Some(0.25f32.to_bits()), Some(0.375f32.to_bits()), Some(0), Some(1.0f32.to_bits())]);
+    assert_eq!([4, 56, 120, 124, 136, 140, 232].map(|at| read_u32(&packet, at)), [Some(17), Some(MATRIX[0].to_bits()), Some(0), Some(0.75f32.to_bits()), Some(0), Some(1.0f32.to_bits()), Some(0x1092)]);
     gpu.resources.get_mut(&BUFFER).unwrap().pixels.fill(0); gpu.resources.get_mut(&TEXTURE).unwrap().pixels.fill(0);
     let effect = gpu.pending_3d[0].effect.clone().expect("matrix texture effect");
     assert!(gpu.apply_3d_effect(effect));

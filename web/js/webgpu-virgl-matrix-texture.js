@@ -1,0 +1,124 @@
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
+import { copyTextureIfChanged } from "./webgpu-virgl-texture-upload.js?v=20260904-virgl-readback-pool-r1";
+
+const SHADER = `
+struct Scene { matrix: mat4x4<f32> }
+@group(0) @binding(0) var<uniform> scene: Scene;
+@group(0) @binding(1) var source: texture_2d<f32>;
+@group(0) @binding(2) var nearest: sampler;
+struct Output { @builtin(position) position: vec4f, @location(0) uv: vec2f }
+@vertex fn vertex_main(@location(0) position: vec4f, @location(1) uv: vec2f) -> Output {
+  var output: Output;
+  let clip = vec4f(dot(scene.matrix[0], position), dot(scene.matrix[1], position), dot(scene.matrix[2], position), dot(scene.matrix[3], position));
+  output.position = clip;
+  output.position.z = (clip.z + clip.w) * 0.5;
+  output.uv = uv;
+  return output;
+}
+@fragment fn fragment_main(input: Output) -> @location(0) vec4f {
+  return textureSampleLevel(source, nearest, vec2f(input.uv.x, 1.0 - input.uv.y), 0.0);
+}
+`;
+const SOURCE_OVER = {
+  alpha: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "one" },
+  color: { dstFactor: "one-minus-src-alpha", operation: "add", srcFactor: "src-alpha" },
+};
+
+export class VirglMatrixTextureRenderer {
+  #bindGroup; #bufferUsage; #generation = 0; #pipeline; #revision = 0; #sampler; #samplerAddressMode; #samplerFilter; #session;
+  #texture; #textureHeight = 0; #texturePixels; #textureUsage; #textureWidth = 0; #uniformBuffer; #vertexBuffer; #vertexCapacity = 0;
+
+  constructor(session, options = {}) {
+    this.#session = session;
+    this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
+    this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { COPY_DST: 0x2, TEXTURE_BINDING: 0x4 };
+  }
+
+  async render(backend, frame, isCurrent) {
+    const { device } = backend;
+    if (typeof device.queue.onSubmittedWorkDone !== "function") throw new Error("WebGPU queue completion tracking is unavailable");
+    if (!isCurrent()) return false;
+    try {
+      if (!await this.#ensurePipeline(backend) || !isCurrent()) return false;
+      const revision = this.#revision;
+      await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
+      return revision === this.#revision && isCurrent();
+    } catch (error) {
+      this.invalidate(); throw error;
+    }
+  }
+
+  invalidate() {
+    this.#revision += 1; this.#uniformBuffer?.destroy?.(); this.#vertexBuffer?.destroy?.(); this.#texture?.destroy?.();
+    this.#bindGroup = this.#uniformBuffer = this.#vertexBuffer = this.#texture = this.#texturePixels = undefined;
+    this.#pipeline = this.#sampler = this.#samplerAddressMode = this.#samplerFilter = undefined;
+    this.#generation = this.#textureHeight = this.#textureWidth = this.#vertexCapacity = 0;
+  }
+
+  async #ensurePipeline(backend) {
+    if (this.#generation === backend.deviceGeneration && this.#pipeline) return true;
+    this.invalidate(); this.#generation = backend.deviceGeneration;
+    const revision = this.#revision; const { device } = backend;
+    if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");
+    const module = device.createShaderModule({ code: SHADER, label: "VirGL matrix texture shader" });
+    this.#pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
+      fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
+      label: "VirGL matrix texture pipeline", layout: "auto", primitive: { topology: "triangle-list" },
+      vertex: { buffers: [{ arrayStride: 24, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x2", offset: 16, shaderLocation: 1 }] }], entryPoint: "vertex_main", module },
+    }));
+    if (revision !== this.#revision) return false;
+    await captureWebGpuErrors(device, () => {
+      this.#uniformBuffer = device.createBuffer({ label: "VirGL matrix texture rows", size: 64, usage: this.#bufferUsage.COPY_DST | this.#bufferUsage.UNIFORM });
+    });
+    return revision === this.#revision;
+  }
+
+  #issueDraw(backend, frame) {
+    const { device } = backend;
+    [this.#vertexBuffer, this.#vertexCapacity] = ensureBuffer(device, this.#vertexBuffer, this.#vertexCapacity,
+      frame.vertices.byteLength, "VirGL matrix texture attributes", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
+    this.#ensureSampler(device, frame.texture); this.#ensureTexture(device, frame.texture); this.#session.configure(frame.canvasWidth, frame.canvasHeight);
+    device.queue.writeBuffer(this.#uniformBuffer, 0, frame.matrix); device.queue.writeBuffer(this.#vertexBuffer, 0, frame.vertices);
+    const pixels = copyTextureIfChanged(this.#texturePixels, frame.texture.pixels);
+    if (pixels) {
+      const upload = padBgraRows(pixels, frame.texture.width, frame.texture.height);
+      device.queue.writeTexture({ texture: this.#texture }, upload.data, { bytesPerRow: upload.bytesPerRow, rowsPerImage: frame.texture.height }, { width: frame.texture.width, height: frame.texture.height, depthOrArrayLayers: 1 });
+      this.#texturePixels = pixels;
+    }
+    const encoder = device.createCommandEncoder({ label: "VirGL matrix texture encoder" });
+    const pass = encoder.beginRenderPass({ colorAttachments: [{
+      clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] },
+      loadOp: "clear", storeOp: "store", view: backend.canvasContext.getCurrentTexture().createView(),
+    }], label: "VirGL matrix texture pass" });
+    pass.setPipeline(this.#pipeline); pass.setBindGroup(0, this.#bindGroup); pass.setVertexBuffer(0, this.#vertexBuffer);
+    const viewport = webGpuViewport(frame); if (viewport) pass.setViewport(...viewport);
+    if (frame.scissor) pass.setScissorRect(frame.scissor.x, frame.scissor.y, frame.scissor.width, frame.scissor.height);
+    pass.draw(frame.vertexCount); pass.end(); device.queue.submit([encoder.finish()]);
+    return device.queue.onSubmittedWorkDone();
+  }
+
+  #ensureTexture(device, texture) {
+    if (!this.#texture || this.#textureWidth !== texture.width || this.#textureHeight !== texture.height) {
+      this.#texture?.destroy?.(); this.#texture = device.createTexture({ format: "bgra8unorm", label: "VirGL matrix sampled texture", size: { width: texture.width, height: texture.height, depthOrArrayLayers: 1 }, usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING });
+      this.#textureWidth = texture.width; this.#textureHeight = texture.height; this.#texturePixels = this.#bindGroup = undefined;
+    }
+    if (!this.#bindGroup) this.#bindGroup = device.createBindGroup({ entries: [
+      { binding: 0, resource: { buffer: this.#uniformBuffer } }, { binding: 1, resource: this.#texture.createView() }, { binding: 2, resource: this.#sampler },
+    ], layout: this.#pipeline.getBindGroupLayout(0) });
+  }
+
+  #ensureSampler(device, texture) {
+    const addressMode = texture.addressMode ?? "clamp-to-edge"; const filter = texture.filter ?? "nearest";
+    if (this.#sampler && this.#samplerAddressMode === addressMode && this.#samplerFilter === filter) return;
+    this.#sampler = device.createSampler({ addressModeU: addressMode, addressModeV: addressMode, magFilter: filter, minFilter: filter, mipmapFilter: "nearest" });
+    this.#samplerAddressMode = addressMode; this.#samplerFilter = filter; this.#bindGroup = undefined;
+  }
+}
+
+function webGpuViewport(frame) {
+  if (!frame.viewport) return undefined;
+  const [sx, sy, sz, tx, ty, tz] = frame.viewport;
+  return [tx - sx, frame.canvasHeight - ty - sy, sx * 2, sy * 2, tz - sz, tz + sz];
+}

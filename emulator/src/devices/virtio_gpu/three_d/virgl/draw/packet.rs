@@ -78,6 +78,7 @@ fn textured(
     work: &DrawWork,
     texture: &super::TextureSnapshot,
 ) -> Vec<u8> {
+    if work.depth_state.is_none() && let Some(matrix) = &work.gpu_matrix { return matrix::texture(sequence, width, height, clear, work, matrix, texture); }
     let depth = work.depth_state;
     let extended = depth.is_some() || texture.sampler != SamplerConfig::CLAMP_NEAREST;
     let mut packet = header(
@@ -89,9 +90,7 @@ fn textured(
     if extended {
         packet.extend_from_slice(&texture.sampler.wire().to_le_bytes());
     }
-    for value in [texture.width, texture.height] {
-        packet.extend_from_slice(&value.to_le_bytes());
-    }
+    for value in [texture.width, texture.height] { packet.extend_from_slice(&value.to_le_bytes()); }
     packet.extend_from_slice(&texture.bgra);
     if let Some(state) = depth {
         floats(&mut packet, [1.0].into_iter());
