@@ -1,6 +1,7 @@
 import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
 import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
 import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
+import { virglColorTarget } from "./webgpu-virgl-color-target.js?v=20260904-virgl-readback-pool-r1";
 import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-readback-pool-r1";
 import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260904-virgl-readback-pool-r1";
 import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
@@ -54,7 +55,7 @@ export class VirglMaterialBatchRenderer {
     for (const draw of missing) {
       const module = device.createShaderModule({ code: materialShader(draw.material), label: `VirGL ${draw.material} batch shader` });
       const descriptor = {
-        fragment: { entryPoint: "fragment_main", module, targets: [{ ...(frame.blend === "replace" ? {} : { blend: SOURCE_OVER }), format: backend.format }] },
+        fragment: { entryPoint: "fragment_main", module, targets: [virglColorTarget(backend.format, frame.blend, frame.writeMask, SOURCE_OVER)] },
         label: `VirGL ${draw.material} batch pipeline`, layout: "auto", primitive: { topology: "triangle-list" },
         vertex: { buffers: [materialVertexLayout(draw.material)], entryPoint: "vertex_main", module },
       };
@@ -119,7 +120,7 @@ export class VirglMaterialBatchRenderer {
 
 function key(frame, draw) {
   const material = frame.depth ? `${draw.material}:${draw.depthCompare}:${draw.depthWriteEnabled}` : draw.material;
-  return `${frame.blend ?? "source-over"}:${material}`;
+  return `${frame.blend ?? "source-over"}:${frame.writeMask ?? 0xF}:${material}`;
 }
 
 function pack(draws) {

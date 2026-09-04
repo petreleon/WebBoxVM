@@ -1,5 +1,6 @@
 import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
 import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
+import { virglColorTarget } from "./webgpu-virgl-color-target.js?v=20260904-virgl-readback-pool-r1";
 import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
 import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
 import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260904-virgl-readback-pool-r1";
@@ -73,18 +74,19 @@ export class VirglSolidBatchRenderer {
   async #ensurePipeline(backend, frame) {
     if (this.#generation !== backend.deviceGeneration) { this.#invalidatePipeline(); this.#generation = backend.deviceGeneration; }
     const blend = frame.blend ?? "source-over";
-    if (this.#pipelines.has(blend)) return true;
+    const writeMask = frame.writeMask ?? 0xF; const key = `${blend}:${writeMask}`;
+    if (this.#pipelines.has(key)) return true;
     const revision = this.#revision;
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");
     const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 solid-batch shader" });
     const pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
-      fragment: { entryPoint: "fragment_main", module, targets: [{ ...(blend === "replace" ? {} : { blend: SOURCE_OVER }), format: backend.format }] },
+      fragment: { entryPoint: "fragment_main", module, targets: [virglColorTarget(backend.format, blend, writeMask, SOURCE_OVER)] },
       label: "VirGL capset 1 solid-batch pipeline", layout: "auto", primitive: { topology: "triangle-list" },
       vertex: { buffers: [{ arrayStride: 32, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x4", offset: 16, shaderLocation: 1 }] }], entryPoint: "vertex_main", module },
     }));
     if (revision !== this.#revision) return false;
-    this.#pipelines.set(blend, pipeline); return true;
+    this.#pipelines.set(key, pipeline); return true;
   }
 
   #issueDraw(backend, frame, output) {
@@ -100,7 +102,7 @@ export class VirglSolidBatchRenderer {
       colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
       label: "VirGL capset 1 solid-batch pass",
     });
-    const pipeline = this.#pipelines.get(frame.blend ?? "source-over");
+    const pipeline = this.#pipelines.get(`${frame.blend ?? "source-over"}:${frame.writeMask ?? 0xF}`);
     if (!pipeline) throw new Error("VirGL solid-batch pipeline is unavailable");
     pass.setPipeline(pipeline); pass.setVertexBuffer(0, this.#vertexBuffer);
     let first = 0;

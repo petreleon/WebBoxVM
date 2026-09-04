@@ -28,7 +28,7 @@ pub(super) fn apply_depth(
     works: Vec<DrawWork>,
 ) -> bool {
     if !(1..=MAX_VIRGL_BATCH_DRAWS).contains(&works.len())
-        || (works.len() == 1 && works[0].blend != BlendMode::Replace)
+        || (works.len() == 1 && !works[0].blend.is_replace())
     {
         return false;
     }

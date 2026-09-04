@@ -12,6 +12,13 @@ pub(super) struct Rasterizer {
 pub(in crate::devices::virtio_gpu) enum BlendMode {
     SourceOver,
     Replace,
+    ReplaceRgb,
+}
+
+impl BlendMode {
+    pub(in crate::devices::virtio_gpu) const fn is_replace(self) -> bool {
+        matches!(self, Self::Replace | Self::ReplaceRgb)
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

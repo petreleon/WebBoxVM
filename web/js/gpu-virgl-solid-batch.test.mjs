@@ -87,3 +87,13 @@ test("VirGL opaque solid batches use a replace pipeline", async () => {
   assert.equal((await display.present3d(virglSolidBatchPacket({ drawCount: 1, sequence: 84, version: 8 }))).success, true);
   assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ format: "bgra8unorm" }]);
 });
+
+test("VirGL RGB-only solid batches use an RGB target mask", async () => {
+  const packet = virglSolidBatchPacket({ drawCount: 1, sequence: 85, version: 10 }); const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.blend, "replace"); assert.equal(frame.writeMask, 7);
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(packet)).success, true);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ writeMask: 7, format: "bgra8unorm" }]);
+});

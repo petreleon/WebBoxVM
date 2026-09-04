@@ -117,6 +117,17 @@ test("VirGL opaque depth batches use replace depth pipelines", async () => {
   assert.deepEqual(device.pipelines[0].descriptor.depthStencil, { depthCompare: "less", depthWriteEnabled: true, format: "depth24plus" });
 });
 
+test("VirGL RGB-only depth batches use an RGB target mask", async () => {
+  const packet = virglSolidBatchPacket({ depthCompare: 1, draws: depthDraws().slice(0, 1), sequence: 85, version: 11 });
+  const frame = parseGpu3dPacket(packet); assert.equal(frame.blend, "replace"); assert.equal(frame.writeMask, 7);
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(packet)).success, true);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ writeMask: 7, format: "bgra8unorm" }]);
+  assert.equal(device.pipelines[0].descriptor.depthStencil.format, "depth24plus");
+});
+
 function depthDraws() {
   const viewport = [512, 384, 0.5, 512, 384, 0.5];
   const triangle = (z) => [0, 0.75, z, 1, -0.75, -0.75, z, 1, 0.75, -0.75, z, 1];

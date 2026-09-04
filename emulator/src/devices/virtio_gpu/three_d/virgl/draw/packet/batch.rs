@@ -40,7 +40,7 @@ fn encode(
 ) -> Option<Vec<u8>> {
     let blend = works.first()?.blend;
     if works.iter().any(|work| work.blend != blend)
-        || (!resident && blend != BlendMode::Replace && works.len() < 2)
+        || (!resident && !blend.is_replace() && works.len() < 2)
         || works.len() > MAX_VIRGL_BATCH_DRAWS
     {
         return None;
@@ -51,14 +51,16 @@ fn encode(
         (None, false, false, true, Some(_), BlendMode::SourceOver) => 7,
         (None, false, false, false, _, BlendMode::SourceOver) => 1,
         (None, false, false, false, _, BlendMode::Replace) => 8,
+        (None, false, false, false, _, BlendMode::ReplaceRgb) => 10,
         (Some(DepthState { compare: DepthCompare::Less, write: true }), false, false, false, _, BlendMode::SourceOver) => 2,
         (Some(DepthState { write: true, .. }), false, false, false, _, BlendMode::SourceOver) => 3,
         (Some(_), true, false, false, _, BlendMode::SourceOver) => 4,
         (Some(_), _, true, false, _, BlendMode::SourceOver) => 5,
         (Some(_), _, _, false, _, BlendMode::Replace) => 9,
+        (Some(_), _, _, false, _, BlendMode::ReplaceRgb) => 11,
         _ => return None,
     };
-    let per_draw_depth = matches!(version, 4 | 5 | 9);
+    let per_draw_depth = matches!(version, 4 | 5 | 9 | 11);
     let depth_resource = works.first()?.depth_resource;
     let body = works.iter().try_fold(0usize, |total, work| {
         let bytes = usize::try_from(work.vertex_count).ok()?.checked_mul(16)?;
@@ -83,7 +85,7 @@ fn encode(
         let DrawMaterial::Solid(color) = work.material else { return None; };
         packet.extend_from_slice(&work.vertex_count.to_le_bytes());
         if version == 4 { packet.extend_from_slice(&work.depth_state?.compare.wire().to_le_bytes()); }
-        if version == 5 { packet.extend_from_slice(&work.depth_state?.wire().to_le_bytes()); }
+        if matches!(version, 5 | 9 | 11) { packet.extend_from_slice(&work.depth_state?.wire().to_le_bytes()); }
         floats(&mut packet, color.into_iter().chain(work.viewport));
         for value in work
             .scissor

@@ -110,7 +110,7 @@ fn opaque_depth_draw_requires_readback_replace_delivery() {
     let first = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("opaque depth defers");
     assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Readback);
     attach(&mut gpu, first, RAM_BASE + 0x7000, 1); let packet = gpu.take_3d_update();
-    assert_eq!([4, 20, 24].map(|at| read_u32(&packet, at)), [Some(9), Some(1), Some(0)]);
+    assert_eq!([4, 20, 24, 52].map(|at| read_u32(&packet, at)), [Some(9), Some(1), Some(0), Some(7)]);
     assert!(gpu.complete_3d(&mut mem, first.sequence, true)); assert_eq!(mem.read(RAM_BASE + 0x7000, 4), Some(RESP_ERR_UNSPEC as u64));
     let second = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("second opaque depth defers");
     attach(&mut gpu, second, RAM_BASE + 0x7200, 2); let _ = gpu.take_3d_update();

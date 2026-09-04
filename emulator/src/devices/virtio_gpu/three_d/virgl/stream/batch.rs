@@ -1,5 +1,5 @@
 use super::clear::Clear;
-use super::super::{BlendMode, DrawWork};
+use super::super::DrawWork;
 use super::super::draw::MAX_VIRGL_BATCH_DRAWS;
 use super::super::super::DeferredSubmit;
 use crate::devices::virtio_gpu::VirtioGpu;
@@ -36,11 +36,11 @@ pub(super) fn deferred(
     let works = batch.works;
     match clear {
         Some(Clear { resource, depth_resource: None, color, rect })
-            if works.len() == 1 && works[0].blend == BlendMode::Replace => Ok(Some(
+            if works.len() == 1 && works[0].blend.is_replace() => Ok(Some(
                 gpu.queue_virgl_batch(header, generation, resource, rect, color, works)?,
             )),
         Some(Clear { resource, depth_resource: Some(depth_resource), color, rect })
-            if works.len() == 1 && works[0].blend == BlendMode::Replace => Ok(Some(
+            if works.len() == 1 && works[0].blend.is_replace() => Ok(Some(
                 gpu.queue_virgl_depth_batch(header, generation, resource, depth_resource, rect, color, works)?,
             )),
         Some(Clear { resource, color, rect, .. }) if works.len() == 1 => Ok(Some(

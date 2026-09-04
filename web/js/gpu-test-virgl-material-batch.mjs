@@ -3,7 +3,7 @@ export function virglMaterialBatchPacket({
   canvasWidth = 1024,
   clearColor = [0, 0, 0, 1],
   version = 1,
-  depth = [1, 5].includes(version),
+  depth = [1, 5, 7].includes(version),
   drawCount = 2,
   draws = defaultDraws(canvasWidth, canvasHeight).slice(0, drawCount),
   residentPreviousProducer = version === 3 ? 90 : undefined,

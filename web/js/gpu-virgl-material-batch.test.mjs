@@ -84,6 +84,19 @@ test("VirGL opaque material depth batches use replace depth pipelines", async ()
   assert.equal(device.pipelines.every((pipeline) => pipeline.descriptor.depthStencil.format === "depth24plus"), true);
 });
 
+test("VirGL RGB-only material batches use RGB target masks", async () => {
+  const shallow = virglMaterialBatchPacket({ sequence: 101, version: 6 });
+  const depth = virglMaterialBatchPacket({ sequence: 102, version: 7 });
+  assert.equal(parseGpu3dPacket(shallow).writeMask, 7); assert.equal(parseGpu3dPacket(depth).depth, true);
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(shallow)).success, true); assert.equal((await display.present3d(depth)).success, true);
+  assert.equal(device.pipelines.every((pipeline) => pipeline.descriptor.fragment.targets[0].writeMask === 7
+    && !("blend" in pipeline.descriptor.fragment.targets[0])), true);
+  assert.equal(device.pipelines.some((pipeline) => pipeline.descriptor.depthStencil?.format === "depth24plus"), true);
+});
+
 test("non-depth singleton material batches retain and rekey one resident output", async () => {
   const fresh = parseGpu3dPacket(virglMaterialBatchPacket({ drawCount: 1, sequence: 94, version: 2 }));
   assert.equal(fresh.depth, false); assert.equal(fresh.residentCandidate, true);

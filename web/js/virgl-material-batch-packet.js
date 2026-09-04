@@ -6,6 +6,7 @@ const MAX_DIMENSION = 8192;
 const MAX_DRAWS = 16;
 const MAX_TEXTURE_DIMENSION = 64;
 const MAX_VERTICES = 3063;
+const RGB_WRITE_MASK = 7;
 const DEPTH_COMPARE = ["never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"];
 
 export function isVirglMaterialBatchPacket(packet) {
@@ -21,9 +22,10 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  const residentCandidate = [2, 3].includes(version); const replace = [4, 5].includes(version);
-  const depth = version === 1 ? flags === 1 : version === 5;
-  if (![1, 2, 3, 4, 5].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  const residentCandidate = [2, 3].includes(version); const replace = [4, 5, 6, 7].includes(version);
+  const depth = version === 1 ? flags === 1 : [5, 7].includes(version);
+  const writeMask = [6, 7].includes(version) ? RGB_WRITE_MASK : 0xF;
+  if (![1, 2, 3, 4, 5, 6, 7].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (version === 1 && drawCount < 2)
     || (version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== (depth ? 1 : 0))
     || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
@@ -49,7 +51,7 @@ export function parseVirglMaterialBatchPacket(packet) {
   return {
     acceleration: depth ? "webgpu-virgl-capset1-depth-material-batch" : "webgpu-virgl-capset1-material-batch",
     blend: replace ? "replace" : "source-over",
-    canvasHeight, canvasWidth, capsetId: 1, clearColor, depth, depthClear: depth ? 1 : 0, draws,
+    canvasHeight, canvasWidth, capsetId: 1, clearColor, depth, depthClear: depth ? 1 : 0, draws, writeMask,
     presentationLabel: depth ? "VirGL capset 1 mixed-material depth batch" : "VirGL capset 1 mixed-material draw batch",
     protocol: "virgl-material-batch", residentCandidate, residentPreviousProducer, sequence, version,
   };
