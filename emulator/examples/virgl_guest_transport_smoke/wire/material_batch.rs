@@ -9,9 +9,9 @@ const SOLID_VERTICES: [u32; 12] = [
     0x3f00_0000, 0x3f80_0000, 0x3f40_0000, 0xbf40_0000, 0x3f00_0000, 0x3f80_0000,
 ];
 const TEXTURE_VERTICES: [u32; 30] = [
-    0, 0x3f40_0000, 0xbf00_0000, 0x3f80_0000, 0x3f80_0000, 0, 0, 0x3f80_0000, 0, 0x3f80_0000,
-    0xbf40_0000, 0xbf40_0000, 0xbf00_0000, 0x3f80_0000, 0, 0x3f80_0000, 0, 0x3f80_0000, 0, 0x3f80_0000,
-    0x3f40_0000, 0xbf40_0000, 0xbf00_0000, 0x3f80_0000, 0, 0, 0x3f80_0000, 0x3f80_0000, 0, 0x3f80_0000,
+    0, 0x3f40_0000, 0xbf00_0000, 0x3f80_0000, 0x3f00_0000, 0x3f00_0000, 0x3f00_0000, 0x3f80_0000, 0, 0x3f80_0000,
+    0xbf40_0000, 0xbf40_0000, 0xbf00_0000, 0x3f80_0000, 0x3f00_0000, 0x3f00_0000, 0x3f00_0000, 0x3f80_0000, 0, 0x3f80_0000,
+    0x3f40_0000, 0xbf40_0000, 0xbf00_0000, 0x3f80_0000, 0x3f00_0000, 0x3f00_0000, 0x3f00_0000, 0x3f80_0000, 0, 0x3f80_0000,
 ];
 const TEXTURE: [u8; 16] = [128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255];
 
@@ -19,7 +19,7 @@ pub(super) fn material_batch_sequence(packet: &[u8]) -> Result<u32, String> {
     if packet.len() != 364 || packet.get(..4) != Some(b"VGM1")
         || [4, 12, 16, 20, 24].into_iter().zip([1, 1024, 768, 2, 1]).any(|(at, want)| read_u32(packet, at) != Some(want))
         || !words_are(packet, 28, &CLEAR) || read_u32(packet, 44) != Some(0x3f80_0000)
-        || !solid(packet) || !texture_color(packet)
+        || !solid(packet) || !texture_constant(packet)
     {
         return Err("guest emitted an invalid standard VirGL material-batch packet".into());
     }
@@ -33,7 +33,7 @@ fn solid(packet: &[u8]) -> bool {
         && words_are(packet, 116, &SOLID_VERTICES)
 }
 
-fn texture_color(packet: &[u8]) -> bool {
+fn texture_constant(packet: &[u8]) -> bool {
     words_are(packet, 164, &[5, 7, 3]) && words_are(packet, 176, &VIEWPORT)
         && words_are(packet, 200, &SCISSOR) && words_are(packet, 216, &[0x1092, 2, 2])
         && packet.get(228..244) == Some(&TEXTURE) && words_are(packet, 244, &TEXTURE_VERTICES)
@@ -42,7 +42,7 @@ fn texture_color(packet: &[u8]) -> bool {
 pub(crate) fn is_material_batch_readback(packet: &[u8]) -> bool {
     frame_pixels(packet).is_some_and(|pixels| {
         let center = (384 * 1024 + 512) * 4;
-        pixels[..4] == [191, 128, 64, 255] && pixels[center..center + 4] == [32, 32, 64, 255]
+        pixels[..4] == [191, 128, 64, 255] && pixels[center..center + 4] == [64, 64, 64, 255]
     })
 }
 

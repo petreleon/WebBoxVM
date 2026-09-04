@@ -70,7 +70,7 @@ Tightly packed BGRA8 pixels follow the header.
 ## Experimental 3D slice
 
 WebBoxVM advertises `VIRTIO_GPU_F_VIRGL`, `VIRTIO_GPU_F_RESOURCE_BLOB`, `VIRTIO_GPU_F_BLOB_ALIGNMENT`, and `VIRTIO_GPU_F_CONTEXT_INIT`. It exposes a bounded host-visible aperture, guest/default blob profiles, and a private context-local allocation ledger, separately documented in [Venus foundations](venus-foundations.md).
-The device now separately exposes a deliberately narrow standard VirGL capset-1 clear, solid-triangle, generic vertex-color, texture-times-vertex-color, and fixed sampled-texture path, documented in [VirGL compatibility](virgl-compatibility.md).
+The device now separately exposes a deliberately narrow standard VirGL capset-1 clear, solid-triangle, generic vertex-color, fragment-constant texture, texture-times-vertex-color, and fixed sampled-texture path, documented in [VirGL compatibility](virgl-compatibility.md).
 Capset ID 7 is deliberately private and unregistered, its data starts with
 `WBG3`, and generic Mesa must not select or interpret it.
 

@@ -22,5 +22,5 @@ for source in Makefile README.md batch.c demo.c depth.c depth_batch.c depth_equa
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done
-printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/uniform/texture-pair/vertex-color/texture-color/depth-less/depth-equal/depth-equal-batch/depth-mixed-batch/depth-texture/depth-texture-color/depth-vertex-color/depth-write-mask-batch/solid-batch/depth-batch/depth-material-batch=%s bytes\n' \
+printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/uniform/texture-pair/vertex-color/texture-color/depth-less/depth-equal/depth-equal-batch/depth-mixed-batch/depth-texture/depth-texture-color/depth-vertex-color/depth-write-mask-batch/solid-batch/depth-batch/depth-material-constant=%s bytes\n' \
     "$binary" "$size"

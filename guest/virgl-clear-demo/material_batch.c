@@ -10,10 +10,10 @@
 
 static const char solid_vert[] = "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
 static const char solid_frag[] = "FRAG\nDCL CONST[0][0]\nDCL OUT[0], COLOR\nMOV OUT[0], CONST[0][0]\nEND\n";
-static const char texture_vert[] = "VERT\nDCL IN[0..2]\nDCL OUT[0], POSITION\nDCL OUT[1], GENERIC[0]\nDCL OUT[2], GENERIC[1]\nMOV OUT[0], IN[0]\nMOV OUT[1], IN[1]\nMOV OUT[2], IN[2]\nEND\n";
-static const char texture_frag[] = "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL IN[1], GENERIC[1], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[1], SAMP[0], 2D\nMUL OUT[0], TEMP[0], IN[0]\nEND\n";
+static const char texture_vert[] = "VERT\nDCL IN[0..1]\nDCL OUT[0], POSITION\nDCL OUT[1], GENERIC[0]\nMOV OUT[0], IN[0]\nMOV OUT[1], IN[1]\nEND\n";
+static const char texture_frag[] = "FRAG\nDCL CONST[0][0]\nDCL IN[0], GENERIC[0], LINEAR\nDCL SAMP[0]\nDCL SVIEW[0], 2D, FLOAT\nDCL OUT[0], COLOR[0]\nDCL TEMP[0]\nTEX TEMP[0], IN[0], SAMP[0], 2D\nMUL OUT[0], TEMP[0], CONST[0][0]\nEND\n";
 static const u32 solid_vertices[] = {0, 0x3f400000u, 0x3f000000u, 0x3f800000u, 0xbf400000u, 0xbf400000u, 0x3f000000u, 0x3f800000u, 0x3f400000u, 0xbf400000u, 0x3f000000u, 0x3f800000u};
-static const u32 texture_vertices[] = {0, 0x3f400000u, 0xbf000000u, 0x3f800000u, 0x3f800000u, 0, 0, 0x3f800000u, 0, 0x3f800000u, 0xbf400000u, 0xbf400000u, 0xbf000000u, 0x3f800000u, 0, 0x3f800000u, 0, 0x3f800000u, 0, 0x3f800000u, 0x3f400000u, 0xbf400000u, 0xbf000000u, 0x3f800000u, 0, 0, 0x3f800000u, 0x3f800000u, 0, 0x3f800000u};
+static const u32 texture_vertices[] = {0, 0x3f400000u, 0xbf000000u, 0x3f800000u, 0, 0x3f800000u, 0xbf400000u, 0xbf400000u, 0xbf000000u, 0x3f800000u, 0, 0x3f800000u, 0x3f400000u, 0xbf400000u, 0xbf000000u, 0x3f800000u, 0, 0x3f800000u};
 
 static int upload(long fd, const struct virgl_resources *resources); static int submit(long fd, const struct virgl_resources *resources);
 static u32 stream(u32 *words, const struct virgl_resources *resources); static u32 shader(u32 *words, u32 handle, u32 kind, u32 tokens, const char *text, u32 bytes);
@@ -68,13 +68,14 @@ static u32 stream(u32 *words, const struct virgl_resources *resources)
     words[next++] = VIRGL_HEADER(1, 0, 5); words[next++] = OBJECT_BASE + 7u; words[next++] = 7; next += 3; words[next++] = VIRGL_HEADER(2, 0, 1); words[next++] = OBJECT_BASE + 7u;
     words[next++] = VIRGL_HEADER(7, 0, 8); words[next++] = VIRGL_CLEAR_COLOR0 | VIRGL_CLEAR_DEPTH; words[next++] = 0x3e800000u; words[next++] = 0x3f000000u; words[next++] = 0x3f400000u; words[next++] = 0x3f800000u; words[next++] = 0x3f800000u; next += 2;
     words[next++] = VIRGL_HEADER(8, 0, 12); words[next++] = 0; words[next++] = 3; words[next++] = 4; words[next++] = 0; words[next++] = 1; next += 5; words[next++] = ~0u; words[next++] = 0;
-    next += shader(words + next, OBJECT_BASE + 8u, 0, 21, texture_vert, sizeof(texture_vert)); next += shader(words + next, OBJECT_BASE + 9u, 1, 30, texture_frag, sizeof(texture_frag));
+    next += shader(words + next, OBJECT_BASE + 8u, 0, 17, texture_vert, sizeof(texture_vert)); next += shader(words + next, OBJECT_BASE + 9u, 1, 30, texture_frag, sizeof(texture_frag));
     words[next++] = VIRGL_HEADER(29, 0, 2); words[next++] = OBJECT_BASE + 8u; words[next++] = 0; words[next++] = VIRGL_HEADER(29, 0, 2); words[next++] = OBJECT_BASE + 9u; words[next++] = 1;
-    words[next++] = VIRGL_HEADER(1, 5, 13); words[next++] = OBJECT_BASE + 10u; words[next++] = 0; next += 2; words[next++] = VIRGL_FORMAT_R32G32B32A32_FLOAT; words[next++] = 16; next += 2; words[next++] = VIRGL_FORMAT_R32G32B32A32_FLOAT; words[next++] = 32; next += 2; words[next++] = VIRGL_FORMAT_R32G32_FLOAT;
-    words[next++] = VIRGL_HEADER(2, 5, 1); words[next++] = OBJECT_BASE + 10u; words[next++] = VIRGL_HEADER(6, 0, 3); words[next++] = 40; words[next++] = 0; words[next++] = resources->textured_resource;
+    words[next++] = VIRGL_HEADER(1, 5, 9); words[next++] = OBJECT_BASE + 10u; words[next++] = 0; next += 2; words[next++] = VIRGL_FORMAT_R32G32B32A32_FLOAT; words[next++] = 16; next += 2; words[next++] = VIRGL_FORMAT_R32G32_FLOAT;
+    words[next++] = VIRGL_HEADER(2, 5, 1); words[next++] = OBJECT_BASE + 10u; words[next++] = VIRGL_HEADER(6, 0, 3); words[next++] = 24; words[next++] = 0; words[next++] = resources->textured_resource;
     words[next++] = VIRGL_HEADER(1, 7, 9); words[next++] = OBJECT_BASE + 11u; words[next++] = VIRGL_CLAMP_NEAREST_SAMPLER_STATE; next += 7;
     words[next++] = VIRGL_HEADER(1, 6, 6); words[next++] = OBJECT_BASE + 12u; words[next++] = resources->texture_resource; words[next++] = VIRGL_FORMAT_R8G8B8A8_UNORM; next += 2; words[next++] = 0x688u;
     words[next++] = VIRGL_HEADER(10, 0, 3); words[next++] = 1; words[next++] = 0; words[next++] = OBJECT_BASE + 12u; words[next++] = VIRGL_HEADER(18, 0, 3); words[next++] = 1; words[next++] = 0; words[next++] = OBJECT_BASE + 11u;
+    words[next++] = VIRGL_HEADER(12, 0, 6); words[next++] = 1; words[next++] = 0; words[next++] = 0x3f000000u; words[next++] = 0x3f000000u; words[next++] = 0x3f000000u; words[next++] = 0x3f800000u;
     words[next++] = VIRGL_HEADER(8, 0, 12); words[next++] = 0; words[next++] = 3; words[next++] = 4; words[next++] = 0; words[next++] = 1; next += 5; words[next++] = ~0u; words[next++] = 0;
     return next;
 }
