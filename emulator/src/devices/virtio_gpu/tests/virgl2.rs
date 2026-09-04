@@ -29,7 +29,7 @@ fn virgl2_capset_has_the_current_growable_layout_without_unbacked_features() {
 }
 
 #[test]
-fn virgl2_context_routes_the_bounded_standard_clear_path() {
+fn virgl2_context_routes_the_bounded_resident_clear_path() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mut mem, &resource_create(4), RESP_OK_NODATA);
@@ -52,7 +52,7 @@ fn virgl2_context_routes_the_bounded_standard_clear_path() {
     assert_eq!(result.deferred.map(|submit| submit.sequence), Some(1));
     let packet = gpu.take_3d_update();
     assert_eq!(&packet[..4], b"VGC1");
-    assert_eq!(read_u32(&packet, 4), Some(1));
+    assert_eq!([4, 36].map(|offset| read_u32(&packet, offset)), [Some(2), Some(0)]);
     assert_eq!(read_u32(&packet, 12), Some(SCANOUT_WIDTH));
     assert_eq!(read_u32(&packet, 16), Some(SCANOUT_HEIGHT));
 }

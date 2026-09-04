@@ -9,6 +9,8 @@ const MAX_RESIDENT_RESOURCES: usize = 4;
 const MAX_RESIDENT_RELEASES: usize = 16;
 const MAX_SNAPSHOT_DIMENSION: u32 = 64;
 
+mod promotion;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(in crate::devices::virtio_gpu) struct ResidentResource {
     pub context_id: u32,
@@ -17,16 +19,6 @@ pub(in crate::devices::virtio_gpu) struct ResidentResource {
 }
 
 impl VirtioGpu {
-    pub(in crate::devices::virtio_gpu) fn resident_candidate(
-        &self,
-        packet: &[u8],
-        effect: &Pending3dEffect,
-    ) -> bool {
-        packet.get(..4) == Some(b"VGB1")
-            && matches!(effect, Pending3dEffect::VirglBatch { .. })
-            && self.resident_effect_valid(effect)
-    }
-
     pub(in crate::devices::virtio_gpu) fn resident_target_eligible(
         &self,
         resource_id: u32,
@@ -47,24 +39,6 @@ impl VirtioGpu {
     ) -> bool {
         !self.resident_resources.contains_key(&resource_id) || self.resources.get(&resource_id)
             .is_some_and(|resource| rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height)
-    }
-
-    pub(in crate::devices::virtio_gpu) fn promote_resident(
-        &mut self,
-        sequence: u32,
-        effect: Pending3dEffect,
-    ) -> bool {
-        if !self.resident_effect_valid(&effect) { return false; }
-        let Pending3dEffect::VirglBatch { context_id, generation, resource_id, .. } = effect else {
-            return false;
-        };
-        self.resident_resources.insert(resource_id, ResidentResource {
-            context_id, generation, producer_sequence: sequence,
-        });
-        if self.scanout.is_some_and(|scanout| scanout.resource_id == resource_id) {
-            self.pending_damage = None;
-        }
-        true
     }
 
     pub(in crate::devices::virtio_gpu) fn forget_resident(&mut self, resource_id: u32) {
@@ -139,21 +113,6 @@ impl VirtioGpu {
         self.resident_resources.remove(&resource_id);
         self.resources.get(&resource_id).is_some_and(|resource|
             resource.transfer_from_host(mem, transfer_rect, transfer_offset).is_some())
-    }
-
-    fn resident_effect_valid(&self, effect: &Pending3dEffect) -> bool {
-        let Pending3dEffect::VirglBatch {
-            context_id, generation, resource_id, rect, resident_epoch, resident_predecessor, ..
-        } = effect else {
-            return false;
-        };
-        let context_valid = self.virgl_contexts.get(context_id)
-            .is_some_and(|context| context.generation == *generation);
-        context_valid
-            && self.resident_target_eligible(*resource_id, *rect)
-            && self.resident_epoch == *resident_epoch
-            && self.resident_resources.get(resource_id).map(|resident| resident.producer_sequence)
-                == *resident_predecessor
     }
 
     fn resident_context_valid(&self, resident: ResidentResource) -> bool {

@@ -22,10 +22,10 @@ const SOURCE_OVER = {
 export class VirglSolidBatchRenderer {
   #bufferUsage; #generation = 0; #outputs; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0;
 
-  constructor(session, options = {}) {
+  constructor(session, options = {}, outputs) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
-    this.#outputs = new VirglResidentOutputTargets();
+    this.#outputs = outputs ?? new VirglResidentOutputTargets();
   }
 
   async render(backend, frame, isCurrent) {
@@ -58,15 +58,19 @@ export class VirglSolidBatchRenderer {
   release(frame) { this.#outputs.release(frame.producerSequence); }
 
   invalidate() {
-    this.#revision += 1;
     this.#outputs.invalidate();
+    this.#invalidatePipeline();
+  }
+
+  #invalidatePipeline() {
+    this.#revision += 1;
     this.#vertexBuffer?.destroy?.();
     this.#pipeline = undefined; this.#vertexBuffer = undefined; this.#generation = 0; this.#vertexCapacity = 0;
   }
 
   async #ensurePipeline(backend) {
     if (this.#generation === backend.deviceGeneration && this.#pipeline) return true;
-    this.invalidate(); this.#generation = backend.deviceGeneration;
+    this.#invalidatePipeline(); this.#generation = backend.deviceGeneration;
     const revision = this.#revision;
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");

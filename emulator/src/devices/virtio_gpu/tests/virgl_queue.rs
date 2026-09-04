@@ -12,7 +12,7 @@ const REQUEST: u64 = RAM_BASE + 0x5000;
 const RESPONSE: u64 = RAM_BASE + 0x30000;
 
 #[test]
-fn queued_standard_framebuffer_clear_waits_for_ack_before_mutating_scanout() {
+fn queued_resident_capable_framebuffer_clear_waits_for_ack_before_mutating_scanout() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mut mem, &resource_create(4), RESP_OK_NODATA);

@@ -28,6 +28,8 @@ pub(in crate::devices::virtio_gpu) enum Pending3dEffect {
         generation: u32,
         resource_id: u32,
         rect: Rect,
+        resident_epoch: u64,
+        resident_predecessor: Option<u32>,
         bgra: [u8; 4],
     },
     VirglDraw {

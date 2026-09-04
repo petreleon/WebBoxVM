@@ -51,7 +51,7 @@ fn virgl_surface_clear_is_deferred_until_webgpu_ack_effect() {
     assert_eq!(&gpu.resources[&4].pixels[..4], &[0, 0, 0, 0]);
     let packet = gpu.take_3d_update();
     assert_eq!(&packet[..4], b"VGC1");
-    assert_eq!(read_u32(&packet, 4), Some(1));
+    assert_eq!([4, 36].map(|offset| read_u32(&packet, offset)), [Some(2), Some(0)]);
     assert_eq!(read_u32(&packet, 8), Some(1));
     assert_eq!(read_u32(&packet, 12), Some(SCANOUT_WIDTH));
     assert_eq!(read_u32(&packet, 16), Some(SCANOUT_HEIGHT));

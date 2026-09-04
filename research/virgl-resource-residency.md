@@ -12,8 +12,9 @@ full BGRA or RGBA readback, and replace the Rust resource shadow. The first
 resident `VGB1` form is version 6: it renders to a bounded offscreen texture,
 copies that texture to the canvas, and acknowledges the producer without a
 pixel mapping. Version 7 names an existing producer and repaints that same
-texture for a later full redraw. Both avoid the GPU-to-CPU copy, mapping
-latency, worker transfer, and copy into `GpuResource::pixels` on the draw path.
+texture for a later full redraw. A full `VGC1` clear uses version 2 and the
+same optional predecessor contract. These paths avoid the GPU-to-CPU copy,
+mapping latency, worker transfer, and copy into `GpuResource::pixels`.
 
 WebGPU textures are device resources, while a canvas current texture is not a
 durable guest resource. A real resident path therefore needs a bounded offscreen
@@ -51,12 +52,12 @@ one exact readback; no second transfer or mutation may consume an older shadow.
 
 ## First safe subset
 
-The first implementation should promote only a non-depth `VirglBatch` whose
-rectangle exactly covers its color resource and whose dimensions exceed 64 in
-at least one direction. The current bounded sampler path accepts snapshots no
-larger than 64×64, so that target cannot re-enter an accepted batch as a sampled
-CPU texture. Depth batches remain CPU-synchronized because later depth tests
-need their depth state.
+The safe subset promotes a non-depth `VirglBatch` or standalone `VirglClear`
+whose rectangle exactly covers its color resource and whose dimensions exceed
+64 in at least one direction. The current bounded sampler path accepts snapshots
+no larger than 64×64, so that target cannot re-enter an accepted batch as a
+sampled CPU texture. Depth batches remain CPU-synchronized because later depth
+tests need their depth state.
 
 This is an eligibility boundary, not a promise of general resource residency.
 Copies and other CPU consumers need a deferred-resolve continuation before they
@@ -64,9 +65,10 @@ are admitted to the resident path.
 
 ## Protocol phases
 
-1. Eligible version-6 batches render into one of at most four 4 MiB persistent
-   textures, present through a GPU copy, and return a resident completion.
-2. An eligible version-7 full redraw names its prior producer. The browser
+1. Eligible version-6 batches and version-2 clears render into one of at most
+   four 4 MiB persistent textures, present through a GPU copy, and return a
+   resident completion.
+2. An eligible version-7 batch or version-2 clear with a nonzero predecessor
    repaints and rekeys that exact texture only after GPU completion; Rust accepts
    it only while the resource still names the same predecessor.
 3. Rust stores the producer sequence only after the matching completion
