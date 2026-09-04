@@ -27,6 +27,14 @@ test("VirGL material-batch renderer submits one depth pass for mixed materials",
   assert.equal(device.textureCopies.length, 1); assert.equal(result.readback.pixels.byteLength, 1024 * 768 * 4);
 });
 
+test("VirGL material batches reuse byte-identical texture snapshots", async () => {
+  const device = fakeDevice(); const status = fakeStatus();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, { navigator: { gpu: fakeGpu([fakeAdapter(device)]) } });
+  await display.present3d(virglMaterialBatchPacket({ sequence: 94 }));
+  await display.present3d(virglMaterialBatchPacket({ sequence: 95 }));
+  assert.equal(device.writes.length, 1);
+});
+
 test("VirGL material-batch parser rejects a noncanonical depth state", () => {
   const packet = virglMaterialBatchPacket(); new DataView(packet.buffer).setUint32(52, 2, true);
   assert.throws(() => parseGpu3dPacket(packet), /depth state/);

@@ -1,17 +1,18 @@
 import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
 import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
 import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
 import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-readback-pool-r1";
+import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260904-virgl-readback-pool-r1";
 
 export class VirglMaterialBatchRenderer {
   #bufferUsage; #depthTexture; #generation = 0; #height = 0; #pipelines = new Map(); #revision = 0;
-  #session; #textureUsage; #vertexBuffer; #vertexCapacity = 0; #width = 0;
+  #session; #textureUsage; #textures; #vertexBuffer; #vertexCapacity = 0; #width = 0;
 
   constructor(session, options = {}) {
     this.#session = session; this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
     const usage = options.textureUsage ?? globalThis.GPUTextureUsage ?? {};
     this.#textureUsage = { COPY_DST: usage.COPY_DST ?? 2, RENDER_ATTACHMENT: usage.RENDER_ATTACHMENT ?? 16, TEXTURE_BINDING: usage.TEXTURE_BINDING ?? 4 };
+    this.#textures = new VirglTextureSnapshotCache(options);
   }
 
   async render(backend, frame, isCurrent) {
@@ -27,6 +28,7 @@ export class VirglMaterialBatchRenderer {
 
   invalidate() {
     this.#revision += 1; this.#vertexBuffer?.destroy?.(); this.#depthTexture?.destroy?.();
+    this.#textures.invalidate();
     this.#depthTexture = undefined; this.#generation = 0; this.#height = 0; this.#pipelines.clear();
     this.#vertexBuffer = undefined; this.#vertexCapacity = 0; this.#width = 0;
   }
@@ -58,8 +60,8 @@ export class VirglMaterialBatchRenderer {
     [this.#vertexBuffer, this.#vertexCapacity] = ensureBuffer(device, this.#vertexBuffer, this.#vertexCapacity,
       packed.bytes.byteLength, "VirGL capset 1 material-batch vertices", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight); device.queue.writeBuffer(this.#vertexBuffer, 0, packed.bytes);
-    const owned = []; const draws = frame.draws.map((draw, index) => ({ ...draw, ...packed.draws[index] }));
-    for (const draw of draws) draw.bindGroup = this.#bindGroup(device, this.#pipelines.get(key(frame, draw)), draw, owned);
+    const retired = []; const draws = frame.draws.map((draw, index) => ({ ...draw, ...packed.draws[index] }));
+    for (const draw of draws) draw.bindGroup = this.#bindGroup(device, this.#pipelines.get(key(frame, draw)), draw, retired);
     const encoder = device.createCommandEncoder({ label: "VirGL capset 1 material-batch encoder" }); const target = backend.canvasContext.getCurrentTexture();
     const pass = encoder.beginRenderPass({
       colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
@@ -75,19 +77,13 @@ export class VirglMaterialBatchRenderer {
     }
     pass.end();
     return submitTextureReadback(device, encoder, target, frame.canvasWidth, frame.canvasHeight, backend.format)
-      .finally(() => owned.forEach((texture) => texture.destroy?.()));
+      .finally(() => retired.forEach((texture) => texture.destroy?.()));
   }
 
-  #bindGroup(device, pipeline, draw, owned) {
+  #bindGroup(device, pipeline, draw, retired) {
     const textures = materialTextures(draw); if (!textures.length) return undefined;
     if (!pipeline) throw new Error("VirGL material-batch texture pipeline is unavailable");
-    const entries = textures.flatMap((texture, index) => {
-      const source = device.createTexture({ format: "bgra8unorm", label: "VirGL material-batch source", size: { width: texture.width, height: texture.height, depthOrArrayLayers: 1 }, usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING });
-      owned.push(source); const upload = padBgraRows(texture.pixels, texture.width, texture.height);
-      device.queue.writeTexture({ texture: source }, upload.data, { bytesPerRow: upload.bytesPerRow, rowsPerImage: texture.height }, { width: texture.width, height: texture.height, depthOrArrayLayers: 1 });
-      const sampler = device.createSampler({ addressModeU: texture.addressMode, addressModeV: texture.addressMode, magFilter: texture.filter, minFilter: texture.filter, mipmapFilter: "nearest" });
-      return [{ binding: index * 2, resource: source.createView() }, { binding: index * 2 + 1, resource: sampler }];
-    });
+    const entries = this.#textures.bindGroupEntries(device, textures, retired);
     return device.createBindGroup({ entries, layout: pipeline.getBindGroupLayout(0) });
   }
 
