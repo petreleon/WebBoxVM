@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-depth-batch-compare-r1";
+import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-mixed-depth-batch-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-batch-compare-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-mixed-depth-batch-r1";
 import {
   virglClearPacket, virglDrawPacket, virglTexturedMultiplyPacket, virglTexturedPacket,
-} from "./gpu-test-packets.mjs?v=20260904-virgl-depth-batch-compare-r1";
-import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-depth-batch-compare-r1";
+} from "./gpu-test-packets.mjs?v=20260904-virgl-mixed-depth-batch-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-mixed-depth-batch-r1";
 
 test("standard VirGL capset-one clear renders and acknowledges after WebGPU completion", async () => {
   let finishWork;

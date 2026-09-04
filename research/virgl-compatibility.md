@@ -10,7 +10,7 @@ primitive, one UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, deliberately bounded single
-solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid depth draws with standard canonical DSA comparisons; and 2–16-draw solid-constant batches that are wholly non-depth or share one standard depth comparison; bounded triangle lists with generic per-vertex-RGBA;
+solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid depth draws with standard canonical DSA comparisons; and 2–16-draw solid-constant batches that are wholly non-depth, share one standard depth comparison, or preserve bounded ordered depth comparisons; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -21,7 +21,7 @@ nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear; singleton material shapes with standard depth compare; 2–16 ordered solid draws, non-depth or one shared depth comparison, through WebGPU | No mixed-material/depth records, arbitrary blending, or sampler state |
+| Presentation | Clear; singleton material shapes with standard depth compare; 2–16 ordered solid draws, non-depth, shared-depth, or per-record depth comparison, through WebGPU | No mixed-material/depth records, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -96,7 +96,7 @@ Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. One clear may precede one through 16 draws against the current full-scanout
-framebuffer. A singleton uses existing `VGD1` material routes; a 2–16 solid sequence uses `VGB1` v1 when non-depth, legacy v2 for shared `LESS`, or v3 with one shared standard comparison encoded in flags. Clear/copy mixing, repeat clear, and mixed comparisons fail transactionally.
+framebuffer. A singleton uses existing `VGD1` material routes; a 2–16 solid sequence uses `VGB1` v1 when non-depth, legacy v2 for shared `LESS`, v3 with one shared standard comparison in flags, or v4 with one canonical comparison word per record. Clear/copy mixing, repeat clear, and mixed depth attachments fail transactionally.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
 Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. The one vertex UBO form additionally snapshots `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translates local copied vertices, and repeats that validation before packet construction.
@@ -114,7 +114,7 @@ Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. 
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, applies equivalent viewport/scissor, and waits for
 `GPUQueue.onSubmittedWorkDone()`. `VGB1` is a separate private batch envelope: a 48-byte
-header carries sequence, canvas, clear color/depth, and 2–16 records; each record is a 60-byte solid color/viewport/scissor snapshot plus `16N` position bytes. V1 reserves depth as zero for non-depth draws; v2 is the legacy clear-one shared-`LESS` form; v3 clears depth to one and carries one shared canonical `PIPE_FUNC_*` value in flags. One WebGPU pass clears once and issues those draws in record order.
+header carries sequence, canvas, clear color/depth, and 2–16 records; each record is a 60-byte solid color/viewport/scissor snapshot plus `16N` position bytes, or 64 bytes in v4 with one canonical comparison word. V1 reserves depth as zero for non-depth draws; v2 is the legacy clear-one shared-`LESS` form; v3 carries one shared `PIPE_FUNC_*` value in flags; v4 clears depth to one and preserves each record's comparison. One WebGPU pass clears once and issues those draws in record order.
 
 Only a successful browser acknowledgment changes authoritative CPU state. Rust
 rechecks the VirGL context generation, clears the target in its canonical BGRA
@@ -146,20 +146,20 @@ payloads, normalized per-vertex RGBA interpolation and texture modulation, repea
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,
-cached pipelines, standard compare-selected singleton and shared-comparison depth-batch pipelines, bounded `draw(N)`, one batch render pass, and queue-gated completion.
+cached pipelines, standard compare-selected singleton and shared/per-record depth-batch pipelines, bounded `draw(N)`, one batch render pass, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
 clear/fence, indexed inline-constant, texture, vertex-color, texture-color, depth comparisons, and ordered solid-batch paths.
 It also creates a 36-byte R8 constant buffer, populates its color at byte offset
 four and `[dx,dy,0,0]` at byte offset 20 through two isolated standard command-9 writes plus readback, sends stage-0 and stage-1 command 27 bindings, validates distinct schema-2 `VGD1` color and translated vertices,
-completes that effect, reads both `147,141,58,255` triangles through Linux, then verifies one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS` depth draws with exact `0,0,128,255` readback, singleton VGD1 schema 10 `EQUAL` at depth one with `128,0,0,255`, and VGB1 v3 shared-`EQUAL` depth with `128,0,64,255` readback.
+completes that effect, reads both `147,141,58,255` triangles through Linux, then verifies one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS` depth draws with exact `0,0,128,255` readback, singleton VGD1 schema 10 `EQUAL` at depth one with `128,0,0,255`, VGB1 v3 shared-`EQUAL` depth with `128,0,64,255`, and VGB1 v4 `LESS` then `GREATER` with `0,128,64,255` readback.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
 from that harness.
 
 ## Next compatibility milestones
 
-1. Add mixed-material, mixed-comparison, or more general depth-batch forms only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
+1. Add mixed-material or more general depth-batch forms only with a new native/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

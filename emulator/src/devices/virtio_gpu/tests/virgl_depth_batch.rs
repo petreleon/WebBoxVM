@@ -63,15 +63,22 @@ fn standard_equal_depth_draws_batch_in_one_deferred_submission() {
 }
 
 #[test]
-fn depth_batch_rejects_mixed_comparisons_before_queueing() {
+fn standard_mixed_depth_compares_batch_in_one_deferred_submission() {
     let (mut gpu, mut mem) = prepared();
     add_depth(&mut gpu, &mut mem, DEPTH); configure(&mut gpu, &mut mem); upload_depth_vertices(&mut gpu);
     let mut command = clear(); command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
-    command.extend([word(3, 0, 1), DSA, word(1, 0, 5), DSA, 11, 0, 0, 0, word(2, 0, 1), DSA]);
+    command.extend([word(1, 0, 5), DSA + 1, 19, 0, 0, 0, word(2, 0, 1), DSA + 1]);
     command.extend(constants([0.0, 1.0, 0.0, 0.5]));
     let mut far = draw(); far[1] = 3; command.extend(far);
-    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_ERR_INVALID_PARAMETER);
-    assert!(gpu.take_3d_update().is_empty());
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 12, 16, 20, 24, 44, 52, 160, 164].map(|at| read_u32(&packet, at)), [Some(4), Some(1024), Some(768), Some(2), Some(0), Some(1.0f32.to_bits()), Some(1), Some(3), Some(4)]);
+    assert_eq!(packet.len(), 272);
+    let effect = gpu.pending_3d[0].effect.clone().expect("mixed depth batch effect");
+    assert!(gpu.apply_3d_effect(effect));
+    let middle = ((384 * 1024 + 512) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[middle..middle + 4], &[0, 128, 64, 255]);
+    assert_eq!(f32::from_le_bytes(gpu.resources[&DEPTH].pixels[middle..middle + 4].try_into().unwrap()), 0.75);
 }
 
 fn configure(gpu: &mut super::super::VirtioGpu, mem: &mut PhysicalMemory) {

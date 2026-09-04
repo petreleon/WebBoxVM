@@ -1,6 +1,6 @@
-import { parseVirglVertexColorPacket } from "./virgl-vertex-color-packet.js?v=20260904-virgl-depth-batch-compare-r1";
-import { parseVirglTextureColorPacket } from "./virgl-texture-color-packet.js?v=20260904-virgl-depth-batch-compare-r1";
-import { parseVirglDepthPacket } from "./virgl-depth-packet.js?v=20260904-virgl-depth-batch-compare-r1";
+import { parseVirglVertexColorPacket } from "./virgl-vertex-color-packet.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { parseVirglTextureColorPacket } from "./virgl-texture-color-packet.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { parseVirglDepthPacket } from "./virgl-depth-packet.js?v=20260904-virgl-mixed-depth-batch-r1";
 
 const MAGIC = [0x56, 0x47, 0x44, 0x31]; // VGD1
 const MAX_DIMENSION = 8192;

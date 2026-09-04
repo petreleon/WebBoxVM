@@ -1,6 +1,7 @@
 const MAGIC = [0x56, 0x47, 0x42, 0x31];
 const HEADER_BYTES = 48;
 const DRAW_STATE_BYTES = 60;
+const DRAW_COMPARE_BYTES = 4;
 const MAX_DIMENSION = 8192;
 const MAX_DRAWS = 16;
 const MAX_VERTICES = 3063;
@@ -22,8 +23,8 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  if (![1, 2, 3].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
-    || version < 3 && flags !== 0) {
+  if (![1, 2, 3, 4].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
+    || version !== 3 && flags !== 0) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
@@ -34,28 +35,32 @@ export function parseVirglSolidBatchPacket(packet) {
   const depth = version !== 1;
   if (depthClear !== (depth ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
   const depthCompare = version === 2 ? "less" : version === 3 ? DEPTH_COMPARE[flags] : undefined;
-  if (depth && !depthCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
+  if (depth && version !== 4 && !depthCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
   const draws = [];
+  const stateBytes = DRAW_STATE_BYTES + (version === 4 ? DRAW_COMPARE_BYTES : 0);
   let offset = HEADER_BYTES;
   let totalVertices = 0;
   for (let index = 0; index < drawCount; index += 1) {
-    if (offset + DRAW_STATE_BYTES > packet.byteLength) throw new Error("VirGL solid-batch draw is truncated");
+    if (offset + stateBytes > packet.byteLength) throw new Error("VirGL solid-batch draw is truncated");
     const vertexCount = view.getUint32(offset, true);
     if (vertexCount < 3 || vertexCount > MAX_VERTICES || vertexCount % 3 !== 0) {
       throw new Error("VirGL solid-batch vertex count is invalid");
     }
     totalVertices += vertexCount;
     if (totalVertices > MAX_DRAWS * MAX_VERTICES) throw new Error("VirGL solid-batch vertex budget is invalid");
-    const drawColor = colors(view, offset + 4, "draw");
-    const viewport = readFloats(view, offset + 20, 6);
+    const drawCompare = version === 4 ? DEPTH_COMPARE[view.getUint32(offset + 4, true)] : depthCompare;
+    if (depth && !drawCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
+    const state = offset + (version === 4 ? DRAW_COMPARE_BYTES : 0);
+    const drawColor = colors(view, state + 4, "draw");
+    const viewport = readFloats(view, state + 20, 6);
     validateViewport(viewport, canvasWidth, canvasHeight);
-    const scissor = readScissor(view, offset + 44, canvasWidth, canvasHeight);
+    const scissor = readScissor(view, state + 44, canvasWidth, canvasHeight);
     const vertexBytes = vertexCount * 16;
-    const next = offset + DRAW_STATE_BYTES + vertexBytes;
+    const next = offset + stateBytes + vertexBytes;
     if (next > packet.byteLength) throw new Error("VirGL solid-batch vertices are truncated");
-    const vertices = readFloats(view, offset + DRAW_STATE_BYTES, vertexCount * 4);
+    const vertices = readFloats(view, offset + stateBytes, vertexCount * 4);
     if (!validPositions(vertices)) throw new Error("VirGL solid-batch vertices are invalid");
-    draws.push({ drawColor, scissor, vertexCount, vertices, viewport });
+    draws.push({ depthCompare: drawCompare, drawColor, scissor, vertexCount, vertices, viewport });
     offset = next;
   }
   if (offset !== packet.byteLength) throw new Error("VirGL solid-batch packet has trailing bytes");

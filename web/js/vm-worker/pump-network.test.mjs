@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260904-virgl-depth-batch-compare-r1";
-import { schedulePump } from "./pump.js?v=20260904-virgl-depth-batch-compare-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-batch-compare-r1";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { schedulePump } from "./pump.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-mixed-depth-batch-r1";
 
 const previousPerformance = globalThis.performance;
 const previousPostMessage = globalThis.postMessage;

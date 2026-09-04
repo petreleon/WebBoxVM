@@ -1,5 +1,5 @@
-import { NETWORK_IDLE_FAST_MS, NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-depth-batch-compare-r1";
-import { withEmulatorAccess } from "./access.js?v=20260904-virgl-depth-batch-compare-r1";
+import { NETWORK_IDLE_FAST_MS, NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-mixed-depth-batch-r1";
 
 const RETRY_MS = 3000;
 let socket;

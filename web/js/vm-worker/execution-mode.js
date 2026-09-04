@@ -1,5 +1,5 @@
-import { VcpuPool } from "./vcpu-pool.js?v=20260904-virgl-depth-batch-compare-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-batch-compare-r1";
+import { VcpuPool } from "./vcpu-pool.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-mixed-depth-batch-r1";
 
 export async function prepareExecutionMode(
   numCores,

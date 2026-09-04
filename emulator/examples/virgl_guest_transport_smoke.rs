@@ -27,10 +27,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
     let mut steps = 0u64;
-    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence, mut uniform_sequence, mut depth_sequence, mut batch_sequence, mut depth_batch_sequence, mut depth_equal_sequence, mut depth_equal_batch_sequence) = (None, None, None, None, None, None, None, None, None, None, None);
-    let mut texture_sequence = None;
-    let (mut upload_readback, mut clear_completed) = (false, false);
-    let (mut draw_completed, mut depth_completed, mut batch_completed, mut depth_batch_completed, mut depth_equal_completed) = (false, false, false, false, false);
+    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence, mut uniform_sequence, mut depth_sequence, mut batch_sequence, mut depth_batch_sequence, mut depth_equal_sequence, mut depth_equal_batch_sequence, mut depth_mixed_batch_sequence) = (None, None, None, None, None, None, None, None, None, None, None, None); let mut texture_sequence = None;
+    let (mut upload_readback, mut clear_completed) = (false, false); let (mut draw_completed, mut depth_completed, mut batch_completed, mut depth_batch_completed, mut depth_equal_completed, mut depth_equal_batch_completed) = (false, false, false, false, false, false);
     let (mut repeat_completed, mut linear_completed, mut texture_pair_completed, mut vertex_color_completed, mut texture_color_completed, mut uniform_completed) = (false, false, false, false, false, false);
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result { 10_000 } else { chunk_steps };
@@ -98,6 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         VirglPacket::DepthBatch(sequence) if batch_completed && depth_batch_sequence.is_none() => { println!("VGB1 depth-batch validated: sequence {sequence}"); depth_batch_sequence = Some(sequence); }
                         VirglPacket::DepthEqualDraw(sequence) if depth_batch_completed && depth_equal_sequence.is_none() => { println!("VGD1 depth-equal validated: sequence {sequence}"); depth_equal_sequence = Some(sequence); }
                         VirglPacket::DepthEqualBatch(sequence) if depth_equal_completed && depth_equal_batch_sequence.is_none() => { println!("VGB1 depth-equal-batch validated: sequence {sequence}"); depth_equal_batch_sequence = Some(sequence); }
+                        VirglPacket::DepthMixedBatch(sequence) if depth_equal_batch_completed && depth_mixed_batch_sequence.is_none() => { println!("VGB1 depth-mixed-batch validated: sequence {sequence}"); depth_mixed_batch_sequence = Some(sequence); }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -169,7 +168,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         if phase == Phase::Packet && depth_completed && let Some(sequence) = batch_sequence.take() { complete(&mut vm, sequence, is_solid_batch_readback, "VGB1 solid batch")?; println!("WBGF ordered solid-batch BGRA readback validated"); batch_completed = true; }
         if phase == Phase::Packet && batch_completed && let Some(sequence) = depth_batch_sequence.take() { complete(&mut vm, sequence, is_depth_batch_readback, "VGB1 depth batch")?; println!("WBGF depth-tested batch BGRA readback validated"); depth_batch_completed = true; }
         if phase == Phase::Packet && depth_batch_completed && let Some(sequence) = depth_equal_sequence.take() { complete(&mut vm, sequence, is_depth_equal_readback, "VGD1 depth equal")?; println!("WBGF depth-equal BGRA readback validated"); depth_equal_completed = true; }
-        if phase == Phase::Packet && depth_equal_completed && let Some(sequence) = depth_equal_batch_sequence.take() { complete(&mut vm, sequence, is_depth_equal_batch_readback, "VGB1 depth equal batch")?; println!("WBGF depth-equal batch BGRA readback validated"); phase = Phase::Result; }
+        if phase == Phase::Packet && depth_equal_completed && let Some(sequence) = depth_equal_batch_sequence.take() { complete(&mut vm, sequence, is_depth_equal_batch_readback, "VGB1 depth equal batch")?; println!("WBGF depth-equal batch BGRA readback validated"); depth_equal_batch_completed = true; }
+        if phase == Phase::Packet && depth_equal_batch_completed && let Some(sequence) = depth_mixed_batch_sequence.take() { complete(&mut vm, sequence, is_depth_mixed_batch_readback, "VGB1 depth mixed batch")?; println!("WBGF depth-mixed batch BGRA readback validated"); phase = Phase::Result; }
         if phase == Phase::Result && uart.contains(PASS) {
             println!("PASS: {PASS}; steps={steps}; seconds={:.3}", start.elapsed().as_secs_f64());
             return Ok(());

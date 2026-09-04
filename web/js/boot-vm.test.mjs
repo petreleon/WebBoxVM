@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260904-virgl-depth-batch-compare-r1";
+import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260904-virgl-mixed-depth-batch-r1";
 
 test("browser boots default to two virtual CPUs", () => {
   assert.equal(DEFAULT_VM_CORES, 2);

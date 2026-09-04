@@ -1,4 +1,4 @@
-import { formatBytes } from "./utils.js?v=20260904-virgl-depth-batch-compare-r1";
+import { formatBytes } from "./utils.js?v=20260904-virgl-mixed-depth-batch-r1";
 
 export class UiController {
   constructor(els) {

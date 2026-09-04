@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-batch-compare-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-mixed-depth-batch-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-batch-compare-r1";
-import { virglDepthPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-depth-batch-compare-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-mixed-depth-batch-r1";
+import { virglDepthPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-mixed-depth-batch-r1";
 
 test("VirGL depth envelope requires its canonical depth clear and viewport state", () => {
   const packet = virglDepthPacket({ sequence: 71 });

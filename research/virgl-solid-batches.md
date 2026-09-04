@@ -6,19 +6,19 @@ This is a compatibility increment, not a general VirGL, OpenGL, Vulkan, or
 Venus implementation. A valid standard capset-1 stream may now contain one
 color clear followed by two through sixteen solid `DRAW_VBO` commands. A
 batch is either entirely non-depth or depth-tested after a clear-one depth
-attachment, with every depth record sharing one standard DSA comparison. Each draw retains the standard state active at
+attachment. V2/V3 share one standard DSA comparison; v4 preserves one comparison per record. Each draw retains the standard state active at
 that exact command: fragment constant, expanded vertices, viewport, and
 optional scissor.
 
-Singleton and v3 depth batches may use the accepted standard DSA comparison
+Singleton and depth batches may use the accepted standard DSA comparison
 functions. V2 remains a byte-compatible legacy `LESS` form; V3 carries one
-shared comparison function with matching native/CPU/WebGPU proof.
+shared comparison function, while V4 carries a comparison per record with matching native/CPU/WebGPU proof.
 
 The restriction is intentional. A singleton continues through the established
 `VGD1` material routes (solid, texture, vertex color, texture-color, depth).
 A batch is only a source-over solid sequence against one target; a depth batch
-also shares one Z32 attachment and exact comparison state. Clear/copy mixing,
-repeated clears, mixed depth comparison, or any non-solid batch record is rejected
+also shares one Z32 attachment and preserves its exact comparison state. Clear/copy mixing,
+repeated clears, mixed depth attachments, or any non-solid batch record is rejected
 before the context clone commits.
 
 ## Why this is a real protocol step
@@ -37,9 +37,9 @@ fully parsed before GPU allocation or rendering.
 | Bytes | Field | Constraint |
 | --- | --- | --- |
 | 0–3 | magic | `VGB1` |
-| 4–27 | version, sequence, width, height, count, flags | v1 non-depth, v2 legacy `LESS`, or v3 depth; nonzero sequence; 2–16 draws; v1/v2 flags zero, v3 `PIPE_FUNC_*` 0–7 |
-| 28–47 | clear RGBA and depth clear | finite normalized color; v1 depth exactly zero; v2/v3 depth exactly one |
-| each 60-byte record | count, solid RGBA, viewport, scissor | 3–3,063 vertices; triangle-list count; normalized/fitting state |
+| 4–27 | version, sequence, width, height, count, flags | v1 non-depth, v2 legacy `LESS`, v3 shared depth, or v4 per-record depth; nonzero sequence; 2–16 draws; v1/v2/v4 flags zero, v3 `PIPE_FUNC_*` 0–7 |
+| 28–47 | clear RGBA and depth clear | finite normalized color; v1 depth exactly zero; v2/v3/v4 depth exactly one |
+| each record | 60-byte count/solid/viewport/scissor, or v4 64-byte count/comparison/solid/viewport/scissor | 3–3,063 vertices; triangle-list count; normalized/fitting state |
 | record tail | `16N` position bytes | finite `x/y/z` in `[-1,1]`, `w == 1`, nondegenerate triples |
 
 The aggregate vertex budget is `16 × 3,063`; parser bounds, target dimensions,
@@ -60,7 +60,7 @@ GPUQueue.onSubmittedWorkDone() ← ordered draw calls and one clear
 The WebGPU renderer uploads position/color-interleaved vertices so every draw
 uses its own snapshotted color in a single pass. It clears once, resets scissor
 when absent, and issues `draw()` records in original order. V2 uses `less`; V3
-maps its shared canonical comparison to one `depth24plus` pipeline with depth writes. Only a successful
+maps its shared canonical comparison to one `depth24plus` pipeline, while V4 selects cached pipelines per record with depth writes. Only a successful
 browser completion permits the CPU-authoritative clear and raster sequence;
 lost context, stale generation, validation failure, or failed completion leaves
 guest pixels unchanged.
@@ -71,14 +71,15 @@ The AArch64 guest proof exercises all versions. V1 clears black, then draws
 half-alpha red and half-alpha green; its ordered BGRA center is `0,128,64,255`.
 V2 clears color/depth, draws near half-alpha red before far half-alpha green,
 and its `LESS` depth result is `0,0,128,255`. V3 uses `EQUAL` at z=1 for
-half-alpha red then blue, producing `128,0,64,255`. The native harness verifies
-each exact 264-byte two-record `VGB1` packet, completes its sequence, and checks
+half-alpha red then blue, producing `128,0,64,255`. V4 changes from `LESS` at
+z=-.5 to `GREATER` at z=.5, producing `0,128,64,255`. The native harness verifies
+each exact 264-byte v1/v2/v3 or 272-byte v4 two-record `VGB1` packet, completes its sequence, and checks
 that readback. Rust tests cover parser layout, comparison isolation, depth ordering,
 and the 16-record cap; browser tests prove two draws occur in one source-over WebGPU pass.
 
 ## Deliberate next boundaries
 
-- Mixed texture, vertex-color, uniform, non-depth, or comparison records
+- Mixed texture, vertex-color, uniform, or non-depth records
   do not batch yet.
 - There is no stencil, target switch, instancing, or multi-pass model in a
   batch.
