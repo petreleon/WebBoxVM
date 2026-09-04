@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { state } from "./state.js?v=20260904-virgl-depth-write-mask-r1";
+import { state } from "./state.js?v=20260904-virgl-depth-vertex-color-r1";
 
 const originalGlobals = {};
 
@@ -28,7 +28,7 @@ test("ensureWasm memoizes concurrent initialization", async () => {
     },
     threaded: false,
   });
-  const { ensureWasm } = await import(`./wasm.js?v=20260904-virgl-depth-write-mask-r1&memoized=${Date.now()}`);
+  const { ensureWasm } = await import(`./wasm.js?v=20260904-virgl-depth-vertex-color-r1&memoized=${Date.now()}`);
 
   const first = ensureWasm();
   const second = ensureWasm();
@@ -49,7 +49,7 @@ test("threaded package failure falls back once to the serial package", async () 
     },
     threaded: true,
   });
-  const { ensureWasm } = await import(`./wasm.js?v=20260904-virgl-depth-write-mask-r1&fallback=${Date.now()}`);
+  const { ensureWasm } = await import(`./wasm.js?v=20260904-virgl-depth-vertex-color-r1&fallback=${Date.now()}`);
 
   await ensureWasm();
 

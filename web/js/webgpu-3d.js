@@ -1,13 +1,13 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-write-mask-r1";
-import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-write-mask-r1";
-import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-depth-write-mask-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-depth-write-mask-r1";
-import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-depth-write-mask-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-vertex-color-r1";
+import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-vertex-color-r1";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-depth-vertex-color-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-depth-vertex-color-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
@@ -63,7 +63,7 @@ export class ExperimentalWebGpu3dRenderer {
     if (frame.protocol === "virgl-depth") return this.#virglDepth.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture") return this.#virglTexture.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture-multiply") return this.#virglTextureMultiply.render(backend, frame, isCurrent);
-    if (frame.protocol === "virgl-vertex-color") return this.#virglVertexColor.render(backend, frame, isCurrent); if (frame.protocol === "virgl-texture-color") return this.#virglTextureColor.render(backend, frame, isCurrent);
+    if (["virgl-vertex-color", "virgl-depth-vertex-color"].includes(frame.protocol)) return this.#virglVertexColor.render(backend, frame, isCurrent); if (frame.protocol === "virgl-texture-color") return this.#virglTextureColor.render(backend, frame, isCurrent);
     const { device } = backend;
     if (typeof device.queue.onSubmittedWorkDone !== "function") {
       throw new Error("WebGPU queue completion tracking is unavailable");

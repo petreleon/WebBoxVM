@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-write-mask-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-vertex-color-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-write-mask-r1";
-import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-depth-write-mask-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-vertex-color-r1";
+import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-depth-vertex-color-r1";
 
 test("VirGL depth-batch envelope requires a clear-one ordered depth stream", () => {
   const packet = virglSolidBatchPacket({ draws: depthDraws(), sequence: 76, version: 2 });

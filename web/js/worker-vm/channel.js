@@ -1,4 +1,4 @@
-import { initialMetrics } from "./channel-state.js?v=20260904-virgl-depth-write-mask-r1";
+import { initialMetrics } from "./channel-state.js?v=20260904-virgl-depth-vertex-color-r1";
 
 export class WorkerChannel {
   #callbacks;

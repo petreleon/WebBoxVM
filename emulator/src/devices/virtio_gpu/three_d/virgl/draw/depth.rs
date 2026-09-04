@@ -27,7 +27,7 @@ fn checked(
 ) -> Result<Option<u32>, u32> {
     let color = gpu.resources.get(&color_resource).ok_or(RESP_ERR_INVALID_PARAMETER)?;
     let depth = gpu.resources.get(&depth_resource).ok_or(RESP_ERR_INVALID_PARAMETER)?;
-    if !matches!(material, DrawMaterial::Solid(_))
+    if !matches!(material, DrawMaterial::Solid(_) | DrawMaterial::VertexColor)
         || context.framebuffer_depth_resource() != Some(depth_resource)
         || color_resource == depth_resource
         || !depth.is_depth_texture_2d()

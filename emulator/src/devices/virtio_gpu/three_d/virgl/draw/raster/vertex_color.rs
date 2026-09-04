@@ -45,7 +45,7 @@ pub(super) fn draw(
     true
 }
 
-fn colors(vertices: &[u8]) -> Option<[[f32; 4]; geometry::VERTICES]> {
+pub(super) fn colors(vertices: &[u8]) -> Option<[[f32; 4]; geometry::VERTICES]> {
     if vertices.len() != geometry::VERTICES * STRIDE {
         return None;
     }
@@ -62,7 +62,7 @@ fn colors(vertices: &[u8]) -> Option<[[f32; 4]; geometry::VERTICES]> {
         .then_some(values)
 }
 
-fn interpolate(
+pub(super) fn interpolate(
     colors: [[f32; 4]; geometry::VERTICES],
     weights: [f32; geometry::VERTICES],
 ) -> [f32; 4] {

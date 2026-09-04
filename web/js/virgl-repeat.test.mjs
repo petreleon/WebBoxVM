@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-write-mask-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-vertex-color-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-write-mask-r1";
-import { virglTexturedPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-depth-write-mask-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-vertex-color-r1";
+import { virglTexturedPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-depth-vertex-color-r1";
 
 test("VirGL repeat sampler envelope carries the standard sampler state", () => {
   const packet = repeatPacket({ sequence: 66 });

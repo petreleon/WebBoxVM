@@ -1,5 +1,5 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-write-mask-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-write-mask-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-vertex-color-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-vertex-color-r1";
 
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
@@ -19,16 +19,23 @@ const SOURCE_OVER = {
 
 export class VirglVertexColorRenderer {
   #bufferUsage;
+  #depthCompare;
+  #depthTexture;
+  #depthWriteEnabled;
   #generation = 0;
+  #height = 0;
   #pipeline;
   #revision = 0;
   #session;
+  #textureUsage;
   #vertexBuffer;
   #vertexCapacity = 0;
+  #width = 0;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
+    this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
   }
 
   async render(backend, frame, isCurrent) {
@@ -38,7 +45,7 @@ export class VirglVertexColorRenderer {
     }
     if (!isCurrent()) return false;
     try {
-      if (!await this.#ensurePipeline(backend) || !isCurrent()) return false;
+      if (!await this.#ensurePipeline(backend, frame) || !isCurrent()) return false;
       const revision = this.#revision;
       await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
       return revision === this.#revision && isCurrent();
@@ -51,23 +58,35 @@ export class VirglVertexColorRenderer {
   invalidate() {
     this.#revision += 1;
     this.#vertexBuffer?.destroy?.();
+    this.#depthTexture?.destroy?.();
+    this.#depthCompare = undefined;
+    this.#depthTexture = undefined;
+    this.#depthWriteEnabled = undefined;
+    this.#height = 0;
     this.#pipeline = undefined;
     this.#generation = 0;
     this.#vertexBuffer = undefined;
     this.#vertexCapacity = 0;
+    this.#width = 0;
   }
 
-  async #ensurePipeline(backend) {
-    if (this.#generation === backend.deviceGeneration && this.#pipeline) return true;
+  async #ensurePipeline(backend, frame) {
+    if (this.#generation === backend.deviceGeneration && this.#pipeline
+      && this.#depthCompare === frame.depthCompare && this.#depthWriteEnabled === frame.depthWriteEnabled) return true;
     this.invalidate();
     this.#generation = backend.deviceGeneration;
+    this.#depthCompare = frame.depthCompare;
+    this.#depthWriteEnabled = frame.depthWriteEnabled;
     const revision = this.#revision;
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") {
       throw new Error("WebGPU asynchronous pipeline validation is unavailable");
     }
     const module = device.createShaderModule({ code: SHADER, label: "VirGL vertex-color shader" });
+    const depthStencil = frame.depthCompare && { depthCompare: frame.depthCompare,
+      depthWriteEnabled: frame.depthWriteEnabled, format: "depth24plus" };
     this.#pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
+      ...(depthStencil && { depthStencil }),
       fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
       label: "VirGL vertex-color pipeline", layout: "auto", primitive: { topology: "triangle-list" },
       vertex: { buffers: [{ arrayStride: 32, attributes: [
@@ -87,7 +106,8 @@ export class VirglVertexColorRenderer {
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, frame.vertices);
     const encoder = device.createCommandEncoder({ label: "VirGL vertex-color encoder" });
-    const pass = encoder.beginRenderPass({ colorAttachments: [{
+    const depthStencilAttachment = frame.depthCompare && this.#depthAttachment(backend, frame);
+    const pass = encoder.beginRenderPass({ ...(depthStencilAttachment && { depthStencilAttachment }), colorAttachments: [{
       clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] },
       loadOp: "clear", storeOp: "store", view: backend.canvasContext.getCurrentTexture().createView(),
     }], label: "VirGL vertex-color pass" });
@@ -100,6 +120,19 @@ export class VirglVertexColorRenderer {
     pass.end();
     device.queue.submit([encoder.finish()]);
     return device.queue.onSubmittedWorkDone();
+  }
+
+  #depthAttachment(backend, frame) {
+    this.#ensureDepth(backend, frame.canvasWidth, frame.canvasHeight);
+    return { depthClearValue: frame.depthClear, depthLoadOp: "clear", depthStoreOp: "store", view: this.#depthTexture.createView() };
+  }
+
+  #ensureDepth(backend, width, height) {
+    if (this.#depthTexture && this.#width === width && this.#height === height) return;
+    this.#depthTexture?.destroy?.();
+    this.#depthTexture = backend.device.createTexture({ format: "depth24plus", label: "VirGL vertex-color depth",
+      size: { depthOrArrayLayers: 1, height, width }, usage: this.#textureUsage.RENDER_ATTACHMENT ?? 0x10 });
+    this.#width = width; this.#height = height;
   }
 }
 

@@ -1,22 +1,22 @@
-import { VmBooter } from "./js/boot-vm.js?v=20260904-virgl-depth-write-mask-r1";
-import { formatBootMilestone } from "./js/boot-timeline.js?v=20260904-virgl-depth-write-mask-r1";
-import { els } from "./js/dom.js?v=20260904-virgl-depth-write-mask-r1";
-import { DiskPersistence } from "./js/persistence.js?v=20260904-virgl-depth-write-mask-r1";
-import { VmRunner } from "./js/runner.js?v=20260904-virgl-depth-write-mask-r1";
+import { VmBooter } from "./js/boot-vm.js?v=20260904-virgl-depth-vertex-color-r1";
+import { formatBootMilestone } from "./js/boot-timeline.js?v=20260904-virgl-depth-vertex-color-r1";
+import { els } from "./js/dom.js?v=20260904-virgl-depth-vertex-color-r1";
+import { DiskPersistence } from "./js/persistence.js?v=20260904-virgl-depth-vertex-color-r1";
+import { VmRunner } from "./js/runner.js?v=20260904-virgl-depth-vertex-color-r1";
 import {
   extraBootargsFromLocation,
   installedDiskBenchmarkFromLocation,
   stagedSmpRequestedFromLocation,
-} from "./js/boot-args.js?v=20260904-virgl-depth-write-mask-r1";
-import { installWebboxVmDevtools } from "./js/devtools.js?v=20260904-virgl-depth-write-mask-r1";
+} from "./js/boot-args.js?v=20260904-virgl-depth-vertex-color-r1";
+import { installWebboxVmDevtools } from "./js/devtools.js?v=20260904-virgl-depth-vertex-color-r1";
 import {
   fetchBundledDebian,
   fetchInstalledDiskBenchmark,
   readSelectedIso,
-} from "./js/sources.js?v=20260904-virgl-depth-write-mask-r1";
-import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260904-virgl-depth-write-mask-r1";
-import { UiController } from "./js/ui.js?v=20260904-virgl-depth-write-mask-r1";
-import { GuestDisplay } from "./js/gpu-display.js?v=20260904-virgl-depth-write-mask-r1";
+} from "./js/sources.js?v=20260904-virgl-depth-vertex-color-r1";
+import { mountTerminal, waitForTerminal } from "./js/terminal.js?v=20260904-virgl-depth-vertex-color-r1";
+import { UiController } from "./js/ui.js?v=20260904-virgl-depth-vertex-color-r1";
+import { GuestDisplay } from "./js/gpu-display.js?v=20260904-virgl-depth-vertex-color-r1";
 
 const ui = new UiController(els);
 const display = new GuestDisplay(els.displayCanvas, els.displayStatus);

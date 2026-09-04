@@ -31,10 +31,15 @@ fn vertex_color(
     clear: [f32; 4],
     work: &DrawWork,
 ) -> Vec<u8> {
-    let mut packet = header(7, sequence, width, height, work.vertex_count);
+    let version = if work.depth_state.is_some() { 12 } else { 7 };
+    let mut packet = header(version, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
+    if let Some(state) = work.depth_state {
+        floats(&mut packet, [1.0].into_iter());
+        packet.extend_from_slice(&state.wire().to_le_bytes());
+    }
     packet
 }
 

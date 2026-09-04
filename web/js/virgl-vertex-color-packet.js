@@ -2,6 +2,7 @@ const MAGIC = [0x56, 0x47, 0x44, 0x31];
 const MAX_DIMENSION = 8192;
 const MAX_VERTEX_COUNT = 3063;
 const VERTICES_PER_TRIANGLE = 3;
+const DEPTH_COMPARE = ["never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"];
 
 export function parseVirglVertexColorPacket(packet) {
   if (!(packet instanceof Uint8Array) || packet.byteLength < 24
@@ -12,7 +13,8 @@ export function parseVirglVertexColorPacket(packet) {
   const [version, sequence, canvasWidth, canvasHeight, vertexCount] = [4, 8, 12, 16, 20]
     .map((offset) => view.getUint32(offset, true));
   const state = 56 + vertexCount * 32;
-  if (version !== 7 || !sequence || !validCount(vertexCount) || packet.byteLength !== state + 40) {
+  const extra = version === 12 ? 48 : 40;
+  if (![7, 12].includes(version) || !sequence || !validCount(vertexCount) || packet.byteLength !== state + extra) {
     throw new Error("VirGL vertex-color packet has invalid VGD1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
@@ -25,12 +27,22 @@ export function parseVirglVertexColorPacket(packet) {
   if (!validPositions(vertices) || !validColors(vertices)) {
     throw new Error("VirGL vertex-color vertices must contain bounded positions and normalized colors");
   }
+  const depth = version === 12 ? depthState(view, state) : {};
   return {
-    acceleration: "webgpu-virgl-capset1-vertex-color", canvasHeight, canvasWidth, capsetId: 1,
-    clearColor, drawColor: reserved, presentationLabel: "VirGL capset 1 vertex-color triangles",
-    protocol: "virgl-vertex-color", sequence, version, vertexCount, vertices,
-    ...viewportState(view, canvasWidth, canvasHeight, state),
+    acceleration: version === 12 ? "webgpu-virgl-capset1-depth-vertex-color" : "webgpu-virgl-capset1-vertex-color",
+    canvasHeight, canvasWidth, capsetId: 1, clearColor, drawColor: reserved,
+    presentationLabel: version === 12 ? "VirGL capset 1 depth-tested vertex-color triangles" : "VirGL capset 1 vertex-color triangles",
+    protocol: version === 12 ? "virgl-depth-vertex-color" : "virgl-vertex-color", sequence, version, vertexCount, vertices,
+    ...viewportState(view, canvasWidth, canvasHeight, state), ...depth,
   };
+}
+
+function depthState(view, state) {
+  const depthClear = view.getFloat32(state + 40, true);
+  const dsa = view.getUint32(state + 44, true);
+  if (depthClear !== 1) throw new Error("VirGL vertex-color depth clear must be exactly one");
+  if ((dsa & 1) === 0 || dsa > 31) throw new Error("VirGL vertex-color depth state must be canonical");
+  return { depthClear, depthCompare: DEPTH_COMPARE[dsa >> 2], depthWriteEnabled: (dsa & 2) !== 0 };
 }
 
 function validCount(count) {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260904-virgl-depth-write-mask-r1";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260904-virgl-depth-vertex-color-r1";
 test("CPU1 and login milestones request and report one parallel transition", async () => {
   let calls = 0;
   let resolveLogged;
