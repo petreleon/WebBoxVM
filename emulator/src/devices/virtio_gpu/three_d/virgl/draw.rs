@@ -39,6 +39,15 @@ pub(in crate::devices::virtio_gpu) struct TextureSnapshot {
     pub sampler: SamplerConfig,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::devices::virtio_gpu) struct ResidentTexture {
+    pub resource_id: u32,
+    pub producer_sequence: u32,
+    pub width: u32,
+    pub height: u32,
+    pub sampler: SamplerConfig,
+}
+
 #[derive(Clone, Debug)]
 pub(in crate::devices::virtio_gpu) enum DrawMaterial {
     Solid([f32; 4]),
@@ -46,6 +55,8 @@ pub(in crate::devices::virtio_gpu) enum DrawMaterial {
     Textured(TextureSnapshot),
     TexturedPair([TextureSnapshot; 2]),
     TextureColor(TextureSnapshot),
+    ResidentTextured(ResidentTexture),
+    ResidentTextureColor(ResidentTexture),
 }
 
 #[derive(Clone, Debug)]
@@ -58,6 +69,27 @@ pub(in crate::devices::virtio_gpu) struct DrawWork {
     pub(super) scissor: Option<Rect>,
     pub(super) depth_resource: Option<u32>,
     pub(super) depth_state: Option<DepthState>,
+}
+
+impl DrawMaterial {
+    pub(in crate::devices::virtio_gpu) fn resident_texture(&self) -> Option<ResidentTexture> {
+        match self {
+            Self::ResidentTextured(texture) | Self::ResidentTextureColor(texture) => Some(*texture),
+            _ => None,
+        }
+    }
+}
+
+impl DrawWork {
+    pub(in crate::devices::virtio_gpu) fn resident_texture(&self) -> Option<ResidentTexture> {
+        self.material.resident_texture()
+    }
+
+    pub(in crate::devices::virtio_gpu) fn resident_sample_source(&self) -> Option<ResidentTexture> {
+        (self.blend == BlendMode::SourceOver && self.depth_resource.is_none() && self.depth_state.is_none())
+            .then(|| self.resident_texture())
+            .flatten()
+    }
 }
 
 impl VirtioGpu {

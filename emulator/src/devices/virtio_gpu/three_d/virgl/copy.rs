@@ -46,8 +46,8 @@ impl VirtioGpu {
             || !context.is_attached(copy.dst_resource)
             || !self.is_virgl_resource(copy.src_resource)
             || !self.is_virgl_resource(copy.dst_resource)
-            || self.resident_copy_in_flight(copy.src_resource)
-            || self.resident_copy_in_flight(copy.dst_resource)
+            || self.resident_resource_in_flight(copy.src_resource)
+            || self.resident_resource_in_flight(copy.dst_resource)
             || (!self.resident_resources.contains_key(&copy.src_resource)
                 && !self.resident_overwrite_allowed(copy.dst_resource, destination_rect))
             || uses_scanout

@@ -1,5 +1,7 @@
 use super::super::{BlendMode, DrawMaterial, DrawWork, TextureSnapshot, MAX_VIRGL_BATCH_DRAWS};
 
+mod resident;
+
 const HEADER_BYTES: usize = 48;
 const DRAW_BYTES: usize = 52;
 
@@ -13,6 +15,9 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     resident: bool,
     predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
+    if works.iter().any(|work| work.resident_texture().is_some()) {
+        return resident::packet(sequence, width, height, clear, works, depth, resident, predecessor);
+    }
     let blend = works.first()?.blend;
     let singleton = resident || blend.is_replace();
     if works.iter().any(|work| work.blend != blend)
@@ -66,6 +71,7 @@ fn valid(work: &DrawWork, depth: bool) -> bool {
         .and_then(|count| count.checked_mul(stride(&work.material)))
         .is_some_and(|bytes| work.vertices.len() == bytes);
     bytes
+        && work.resident_texture().is_none()
         && work.depth_resource.is_some() == depth
         && work.depth_state.is_some() == depth
         && (!depth || !matches!(work.material, DrawMaterial::TexturedPair(_)))
@@ -88,6 +94,7 @@ fn encode_work(packet: &mut Vec<u8>, work: &DrawWork) -> Option<()> {
             texture(packet, &textures[0])?;
             texture(packet, &textures[1])?;
         }
+        DrawMaterial::ResidentTextured(_) | DrawMaterial::ResidentTextureColor(_) => return None,
     }
     packet.extend_from_slice(&work.vertices);
     Some(())
@@ -99,6 +106,7 @@ fn material_bytes(material: &DrawMaterial) -> Option<usize> {
         DrawMaterial::VertexColor => 0,
         DrawMaterial::Textured(texture) | DrawMaterial::TextureColor(texture) => texture_bytes(texture)?,
         DrawMaterial::TexturedPair(textures) => texture_bytes(&textures[0])?.checked_add(texture_bytes(&textures[1])?)?,
+        DrawMaterial::ResidentTextured(_) | DrawMaterial::ResidentTextureColor(_) => return None,
     };
     Some(vertices)
 }
@@ -127,6 +135,8 @@ fn kind(material: &DrawMaterial) -> u32 {
         DrawMaterial::Textured(_) => 3,
         DrawMaterial::TexturedPair(_) => 4,
         DrawMaterial::TextureColor(_) => 5,
+        DrawMaterial::ResidentTextured(_) => 3,
+        DrawMaterial::ResidentTextureColor(_) => 5,
     }
 }
 
@@ -136,6 +146,8 @@ fn stride(material: &DrawMaterial) -> usize {
         DrawMaterial::Textured(_) | DrawMaterial::TexturedPair(_) => 24,
         DrawMaterial::VertexColor => 32,
         DrawMaterial::TextureColor(_) => 40,
+        DrawMaterial::ResidentTextured(_) => 24,
+        DrawMaterial::ResidentTextureColor(_) => 40,
     }
 }
 

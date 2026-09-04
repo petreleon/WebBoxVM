@@ -17,8 +17,8 @@ pub(super) fn valid(vertices: &[u8], material: &DrawMaterial) -> bool {
     match material {
         DrawMaterial::Solid(_) => solid::valid(vertices),
         DrawMaterial::VertexColor => vertex_color::valid(vertices),
-        DrawMaterial::Textured(_) | DrawMaterial::TexturedPair(_) => textured::valid(vertices),
-        DrawMaterial::TextureColor(_) => texture_color::valid(vertices),
+        DrawMaterial::Textured(_) | DrawMaterial::TexturedPair(_) | DrawMaterial::ResidentTextured(_) => textured::valid(vertices),
+        DrawMaterial::TextureColor(_) | DrawMaterial::ResidentTextureColor(_) => texture_color::valid(vertices),
     }
 }
 

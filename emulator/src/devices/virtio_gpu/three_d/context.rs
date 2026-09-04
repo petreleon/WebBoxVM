@@ -74,6 +74,9 @@ impl VirtioGpu {
         if !self.is_virgl_resource(resource_id) && !self.blobs.contains_key(&resource_id) {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        if header.command_type == CMD_CTX_DETACH_RESOURCE && self.resident_resource_in_flight(resource_id) {
+            return RESP_ERR_INVALID_PARAMETER;
+        }
         let context = self
             .virgl_contexts
             .get_mut(&header.ctx_id)

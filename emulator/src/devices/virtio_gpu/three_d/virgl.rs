@@ -65,7 +65,8 @@ impl VirtioGpu {
             return self.queue_virgl_resident_singleton(header, generation, resource_id, rect, clear, work);
         }
         let sequence = self.virgl_sequence()?;
-        let packet = draw::packet(sequence, rect.width, rect.height, clear, &work);
+        let packet = draw::packet(sequence, rect.width, rect.height, clear, &work)
+            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
         self.queue_virgl_packet(
             header,
             sequence,

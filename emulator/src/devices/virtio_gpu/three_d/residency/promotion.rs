@@ -12,7 +12,7 @@ impl VirtioGpu {
         let supported = match effect {
             Pending3dEffect::VirglClear { .. } => version(packet, b"VGC1") == Some(2),
             Pending3dEffect::VirglBatch { .. } => matches!(version(packet, b"VGB1"), Some(6 | 7 | 14 | 15))
-                || matches!(version(packet, b"VGM1"), Some(2 | 3 | 10 | 11)),
+                || matches!(version(packet, b"VGM1"), Some(2 | 3 | 10 | 11 | 12)),
             _ => false,
         };
         supported && self.resident_effect_valid(effect)
@@ -45,7 +45,13 @@ impl VirtioGpu {
             && self.resident_target_eligible(resource_id, rect)
             && self.resident_epoch == epoch
             && self.resident_resources.get(&resource_id).map(|resident| resident.producer_sequence) == predecessor
+            && (!effect_has_resident_sample(effect) || self.resident_sample_effect_valid(effect))
     }
+}
+
+fn effect_has_resident_sample(effect: &Pending3dEffect) -> bool {
+    matches!(effect, Pending3dEffect::VirglBatch { works, .. }
+        if works.iter().any(|work| work.resident_texture().is_some()))
 }
 
 fn target(effect: &Pending3dEffect) -> Option<(u32, u32, u32, Rect, u64, Option<u32>)> {

@@ -18,7 +18,7 @@ export class VirglResidentOutputTargets {
       format: backend.format,
       label: `VirGL resident output ${frame.sequence}`,
       size: { depthOrArrayLayers: 1, height: frame.canvasHeight, width: frame.canvasWidth },
-      usage: textureUsage().COPY_DST | textureUsage().COPY_SRC | textureUsage().RENDER_ATTACHMENT,
+      usage: textureUsage().COPY_DST | textureUsage().COPY_SRC | textureUsage().RENDER_ATTACHMENT | textureUsage().TEXTURE_BINDING,
     });
     const output = { bytes, height: frame.canvasHeight, sequence: frame.sequence, texture, width: frame.canvasWidth };
     this.#reserved.set(texture, bytes); this.#bytes += bytes;
@@ -38,7 +38,8 @@ export class VirglResidentOutputTargets {
   get(backend, frame) {
     if (!this.#ready(backend)) return undefined;
     const output = this.#outputs.get(frame.producerSequence);
-    return output?.width === frame.canvasWidth && output.height === frame.canvasHeight ? output : undefined;
+    const width = frame.sourceWidth ?? frame.canvasWidth; const height = frame.sourceHeight ?? frame.canvasHeight;
+    return output?.width === width && output.height === height ? output : undefined;
   }
 
   release(sequence) {
@@ -92,4 +93,4 @@ function checkedBytes(width, height) {
   return Number.isSafeInteger(bytes) && bytes > 0 ? bytes : undefined;
 }
 
-function textureUsage() { return globalThis.GPUTextureUsage ?? { COPY_DST: 2, COPY_SRC: 1, RENDER_ATTACHMENT: 16 }; }
+function textureUsage() { return globalThis.GPUTextureUsage ?? { COPY_DST: 2, COPY_SRC: 1, TEXTURE_BINDING: 4, RENDER_ATTACHMENT: 16 }; }

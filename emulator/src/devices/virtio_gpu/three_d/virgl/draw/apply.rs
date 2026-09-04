@@ -66,6 +66,7 @@ impl VirtioGpu {
                 (DrawMaterial::Textured(texture), None) => raster::draw_textured(resource, rect, vertices, std::slice::from_ref(texture), viewport, scissor),
                 (DrawMaterial::TexturedPair(textures), None) => raster::draw_textured(resource, rect, vertices, textures, viewport, scissor),
                 (DrawMaterial::TextureColor(texture), None) => raster::draw_texture_color(resource, rect, vertices, texture, viewport, scissor),
+                (DrawMaterial::ResidentTextured(_) | DrawMaterial::ResidentTextureColor(_), _) => false,
                 (_, Some(_)) => false,
             }
         };

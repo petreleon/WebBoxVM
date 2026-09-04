@@ -131,7 +131,9 @@ export function fakeDevice({ readbackBytes = new Uint8Array(), scopeErrors = [],
     createShaderModule: () => ({ kind: "shader" }),
     createTexture(descriptor) {
       const texture = resource(descriptor);
-      texture.createView = () => ({ kind: "texture-view" });
+      texture.createView = () => {
+        const view = { kind: "texture-view" }; Object.defineProperty(view, "texture", { value: texture }); return view;
+      };
       this.textures.push(texture);
       return texture;
     },

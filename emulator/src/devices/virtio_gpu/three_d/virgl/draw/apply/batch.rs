@@ -56,6 +56,7 @@ fn draw(resource: &mut GpuResource, rect: Rect, work: &DrawWork) -> bool {
         DrawMaterial::Textured(texture) => raster::draw_textured(resource, rect, &work.vertices, std::slice::from_ref(texture), work.viewport, work.scissor),
         DrawMaterial::TexturedPair(textures) => raster::draw_textured(resource, rect, &work.vertices, textures, work.viewport, work.scissor),
         DrawMaterial::TextureColor(texture) => raster::draw_texture_color(resource, rect, &work.vertices, texture, work.viewport, work.scissor),
+        DrawMaterial::ResidentTextured(_) | DrawMaterial::ResidentTextureColor(_) => false,
     }
 }
 
@@ -73,6 +74,6 @@ fn draw_depth(
         DrawMaterial::VertexColor => raster::draw_depth_vertex_color(resource, rect, &work.vertices, work.viewport, work.scissor, state, values),
         DrawMaterial::Textured(texture) => raster::draw_depth_textured(resource, rect, &work.vertices, texture, work.viewport, work.scissor, state, values),
         DrawMaterial::TextureColor(texture) => raster::draw_depth_texture_color(resource, rect, &work.vertices, texture, work.viewport, work.scissor, state, values),
-        DrawMaterial::TexturedPair(_) => false,
+        DrawMaterial::TexturedPair(_) | DrawMaterial::ResidentTextured(_) | DrawMaterial::ResidentTextureColor(_) => false,
     }
 }

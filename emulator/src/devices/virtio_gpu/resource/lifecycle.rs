@@ -18,6 +18,9 @@ impl super::super::VirtioGpu {
         let Some(resource_id) = read_u32(input, CTRL_HEADER_LEN) else {
             return RESP_ERR_INVALID_PARAMETER;
         };
+        if self.resident_resource_in_flight(resource_id) {
+            return RESP_ERR_INVALID_PARAMETER;
+        }
         let mapped = self
             .blobs
             .get(&resource_id)

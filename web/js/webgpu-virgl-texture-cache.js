@@ -43,6 +43,7 @@ export class VirglTextureSnapshotCache {
   }
 
   #texture(device, snapshot, retired) {
+    if (snapshot.gpuTexture) return { texture: snapshot.gpuTexture };
     const key = snapshotKey(snapshot); const entries = this.#entries.get(key) ?? [];
     const existing = entries.find((entry) => sameSnapshot(entry, snapshot));
     if (existing) { existing.age = ++this.#clock; return existing; }

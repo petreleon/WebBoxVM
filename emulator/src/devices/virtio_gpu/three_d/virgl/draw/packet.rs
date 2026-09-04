@@ -14,13 +14,14 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     height: u32,
     clear: [f32; 4],
     work: &DrawWork,
-) -> Vec<u8> {
+) -> Option<Vec<u8>> {
     match &work.material {
-        DrawMaterial::Solid(color) => solid(sequence, width, height, clear, work, *color),
-        DrawMaterial::VertexColor => vertex_color(sequence, width, height, clear, work),
-        DrawMaterial::Textured(texture) => textured(sequence, width, height, clear, work, texture),
-        DrawMaterial::TexturedPair(textures) => textured_pair(sequence, width, height, clear, work, textures),
-        DrawMaterial::TextureColor(texture) => texture_color(sequence, width, height, clear, work, texture),
+        DrawMaterial::Solid(color) => Some(solid(sequence, width, height, clear, work, *color)),
+        DrawMaterial::VertexColor => Some(vertex_color(sequence, width, height, clear, work)),
+        DrawMaterial::Textured(texture) => Some(textured(sequence, width, height, clear, work, texture)),
+        DrawMaterial::TexturedPair(textures) => Some(textured_pair(sequence, width, height, clear, work, textures)),
+        DrawMaterial::TextureColor(texture) => Some(texture_color(sequence, width, height, clear, work, texture)),
+        DrawMaterial::ResidentTextured(_) | DrawMaterial::ResidentTextureColor(_) => None,
     }
 }
 

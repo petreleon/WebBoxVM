@@ -73,7 +73,7 @@ export class VirglMaterialBatchRenderer {
       packed.bytes.byteLength, "VirGL capset 1 material-batch vertices", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight); this.#vertices.upload(device, this.#vertexBuffer, packed.bytes);
     const retired = []; const draws = frame.draws.map((draw, index) => ({ ...draw, ...packed.draws[index] }));
-    for (const draw of draws) draw.bindGroup = this.#bindGroup(device, this.#pipelines.get(key(frame, draw)), draw, retired);
+    for (const draw of draws) draw.bindGroup = this.#bindGroup(backend, this.#pipelines.get(key(frame, draw)), draw, retired);
     const encoder = device.createCommandEncoder({ label: "VirGL capset 1 material-batch encoder" }); const canvas = backend.canvasContext.getCurrentTexture(); const target = output?.texture ?? canvas;
     const pass = encoder.beginRenderPass({
       colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
@@ -103,10 +103,17 @@ export class VirglMaterialBatchRenderer {
     return submitTextureReadback(device, encoder, target, frame.canvasWidth, frame.canvasHeight, backend.format).finally(() => retired.forEach((texture) => texture.destroy?.()));
   }
 
-  #bindGroup(device, pipeline, draw, retired) {
+  #bindGroup(backend, pipeline, draw, retired) {
     const textures = materialTextures(draw); if (!textures.length) return undefined;
     if (!pipeline) throw new Error("VirGL material-batch texture pipeline is unavailable");
-    return this.#textures.bindGroup(device, pipeline, textures, retired);
+    const sources = textures.map((texture) => texture.producerSequence && this.#outputs.get(backend, {
+      producerSequence: texture.producerSequence, sourceHeight: texture.height, sourceWidth: texture.width,
+    }));
+    if (sources.some((source, index) => textures[index].producerSequence && !source)) {
+      throw new Error("VirGL resident sampled texture is unavailable");
+    }
+    const inputs = textures.map((texture, index) => sources[index] ? { ...texture, gpuTexture: sources[index].texture } : texture);
+    return this.#textures.bindGroup(backend.device, pipeline, inputs, retired);
   }
 
   #depthAttachment(backend, frame) {

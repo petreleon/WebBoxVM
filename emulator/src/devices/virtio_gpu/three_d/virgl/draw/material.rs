@@ -1,6 +1,7 @@
 use super::super::SampledResource;
 use super::super::uniform;
 use super::{DrawMaterial, DrawState, TextureSnapshot, solid, texture};
+use super::texture::SampledTexture;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
 use crate::devices::virtio_gpu::three_d::virgl::VirglContext;
@@ -75,14 +76,14 @@ pub(super) fn material(
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTextured) => Ok((
             TEXTURED_VERTEX_BYTES,
-            DrawMaterial::Textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
+            textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
             None,
         )),
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTexturedConstant) => {
             let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
             Ok((
                 TEXTURED_VERTEX_BYTES,
-                DrawMaterial::TextureColor(snapshot(gpu, context, target, state.sampled_resources[0])?),
+                texture_color(snapshot(gpu, context, target, state.sampled_resources[0])?),
                 Some(VertexTransform::texture_color(color)),
             ))
         }
@@ -95,7 +96,7 @@ pub(super) fn material(
             let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
             Ok((
                 TEXTURED_VERTEX_BYTES,
-                DrawMaterial::Textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
+                textured(snapshot(gpu, context, target, state.sampled_resources[0])?),
                 Some(VertexTransform::offset(offset, TEXTURED_VERTEX_BYTES)),
             ))
         }
@@ -104,7 +105,7 @@ pub(super) fn material(
             let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
             Ok((
                 TEXTURED_VERTEX_BYTES,
-                DrawMaterial::TextureColor(snapshot(gpu, context, target, state.sampled_resources[0])?),
+                texture_color(snapshot(gpu, context, target, state.sampled_resources[0])?),
                 Some(VertexTransform::offset_texture_color(offset, color)),
             ))
         }
@@ -118,7 +119,7 @@ pub(super) fn material(
         }
         (ShaderProgram::VertexTextureColor, ShaderProgram::FragmentTexturedVertexColor) => Ok((
             TEXTURE_COLOR_VERTEX_BYTES,
-            DrawMaterial::TextureColor(snapshot(gpu, context, target, state.sampled_resources[0])?),
+            texture_color(snapshot(gpu, context, target, state.sampled_resources[0])?),
             None,
         )),
         _ => Err(RESP_ERR_INVALID_PARAMETER),
@@ -130,7 +131,7 @@ fn snapshot(
     context: &VirglContext,
     target: u32,
     resource: Option<SampledResource>,
-) -> Result<TextureSnapshot, u32> {
+) -> Result<SampledTexture, u32> {
     texture::snapshot(gpu, context, target, resource)
 }
 
@@ -144,5 +145,22 @@ fn pair(
         snapshot(gpu, context, target, left)?,
         snapshot(gpu, context, target, right)?,
     ];
-    Ok(snapshots)
+    match snapshots {
+        [SampledTexture::Snapshot(left), SampledTexture::Snapshot(right)] => Ok([left, right]),
+        _ => Err(RESP_ERR_INVALID_PARAMETER),
+    }
+}
+
+fn textured(texture: SampledTexture) -> DrawMaterial {
+    match texture {
+        SampledTexture::Snapshot(texture) => DrawMaterial::Textured(texture),
+        SampledTexture::Resident(texture) => DrawMaterial::ResidentTextured(texture),
+    }
+}
+
+fn texture_color(texture: SampledTexture) -> DrawMaterial {
+    match texture {
+        SampledTexture::Snapshot(texture) => DrawMaterial::TextureColor(texture),
+        SampledTexture::Resident(texture) => DrawMaterial::ResidentTextureColor(texture),
+    }
 }

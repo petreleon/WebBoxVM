@@ -19,7 +19,15 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        let sequence = self.virgl_sequence()?;
+        if work.resident_texture().is_some()
+            && !self.resident_sample_eligible(header.ctx_id, generation, resource_id, rect, std::slice::from_ref(&work))
+        {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        let mut sequence = self.virgl_sequence()?;
+        if work.resident_texture().is_some_and(|source| source.producer_sequence == sequence) {
+            sequence = self.virgl_sequence()?;
+        }
         let resident_epoch = self.resident_epoch;
         let resident_predecessor = self.resident_resources.get(&resource_id)
             .map(|resource| resource.producer_sequence);
@@ -52,7 +60,15 @@ impl VirtioGpu {
         clear: [f32; 4],
         works: Vec<DrawWork>,
     ) -> Result<DeferredSubmit, u32> {
-        let sequence = self.virgl_sequence()?;
+        if works.iter().any(|work| work.resident_texture().is_some())
+            && !self.resident_sample_eligible(header.ctx_id, generation, resource_id, rect, &works)
+        {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        let mut sequence = self.virgl_sequence()?;
+        if works.iter().find_map(DrawWork::resident_texture).is_some_and(|source| source.producer_sequence == sequence) {
+            sequence = self.virgl_sequence()?;
+        }
         let resident = self.resident_target_eligible(resource_id, rect);
         let resident_epoch = self.resident_epoch;
         let resident_predecessor = resident.then(|| self.resident_resources.get(&resource_id)

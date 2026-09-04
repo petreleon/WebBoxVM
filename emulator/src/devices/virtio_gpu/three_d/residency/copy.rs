@@ -19,8 +19,8 @@ impl VirtioGpu {
         let Some(target) = self.resources.get(&copy.dst_resource) else { return false; };
         let Some(resident) = self.resident_resources.get(&copy.src_resource) else { return false; };
         copy.src_resource != copy.dst_resource
-            && !self.resident_copy_in_flight(copy.src_resource)
-            && !self.resident_copy_in_flight(copy.dst_resource)
+            && !self.resident_resource_in_flight(copy.src_resource)
+            && !self.resident_resource_in_flight(copy.dst_resource)
             && resident.context_id == context_id && resident.generation == generation
             && !self.resident_resources.contains_key(&copy.dst_resource)
             && source.is_texture_2d() && target.is_texture_2d()

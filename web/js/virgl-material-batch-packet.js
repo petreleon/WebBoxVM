@@ -5,6 +5,7 @@ const DRAW_BYTES = 52;
 const MAX_DIMENSION = 8192;
 const MAX_DRAWS = 16;
 const MAX_TEXTURE_DIMENSION = 64;
+const MAX_RESIDENT_TEXTURE_PIXELS = 1024 * 1024;
 const MAX_VERTICES = 3063;
 const RGB_WRITE_MASK = 7;
 const DEPTH_COMPARE = ["never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"];
@@ -22,12 +23,14 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  const residentCandidate = [2, 3, 10, 11].includes(version); const replace = [4, 5, 6, 7, 8, 9, 10, 11].includes(version);
+  const residentCandidate = [2, 3, 10, 11, 12].includes(version); const residentSource = version === 12;
+  const replace = [4, 5, 6, 7, 8, 9, 10, 11].includes(version);
   const masked = [8, 9, 10, 11].includes(version); const replacement = [3, 11].includes(version);
   const depth = version === 1 ? flags === 1 : [5, 7, 9].includes(version);
   const writeMask = masked ? flags : [6, 7].includes(version) ? RGB_WRITE_MASK : 0xF;
-  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (version === 1 && drawCount < 2)
+    || (residentSource && drawCount !== 1)
     || (masked ? flags < 1 || flags > 0xF : version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== (depth ? 1 : 0))
     || (replacement && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
     throw new Error("VirGL material-batch packet has invalid VGM1 framing");
@@ -43,7 +46,7 @@ export function parseVirglMaterialBatchPacket(packet) {
   let totalVertices = 0;
   const draws = [];
   for (let index = 0; index < drawCount; index += 1) {
-    const result = draw(view, packet, offset, canvasWidth, canvasHeight, depth);
+    const result = draw(view, packet, offset, canvasWidth, canvasHeight, depth, version, sequence);
     totalVertices += result.draw.vertexCount;
     if (totalVertices > MAX_DRAWS * MAX_VERTICES) throw new Error("VirGL material-batch vertex budget is invalid");
     draws.push(result.draw); offset = result.next;
@@ -54,11 +57,11 @@ export function parseVirglMaterialBatchPacket(packet) {
     blend: replace ? "replace" : "source-over",
     canvasHeight, canvasWidth, capsetId: 1, clearColor, depth, depthClear: depth ? 1 : 0, draws, writeMask,
     presentationLabel: depth ? "VirGL capset 1 mixed-material depth batch" : "VirGL capset 1 mixed-material draw batch",
-    protocol: "virgl-material-batch", residentCandidate, residentPreviousProducer, sequence, version,
+    protocol: "virgl-material-batch", residentCandidate, residentPreviousProducer, residentSource, sequence, version,
   };
 }
 
-function draw(view, packet, offset, width, height, depth) {
+function draw(view, packet, offset, width, height, depth, version, sequence) {
   if (offset + DRAW_BYTES > packet.byteLength) throw new Error("VirGL material-batch draw is truncated");
   const kind = view.getUint32(offset, true);
   const vertexCount = view.getUint32(offset + 8, true);
@@ -69,7 +72,7 @@ function draw(view, packet, offset, width, height, depth) {
   const viewport = floats(view, offset + 12, 6); validateViewport(viewport, width, height);
   const scissor = readScissor(view, offset + 36, width, height);
   let cursor = offset + DRAW_BYTES;
-  const decoded = materialData(view, packet, cursor, material);
+  const decoded = materialData(view, packet, cursor, material, version, sequence);
   cursor = decoded.next;
   const vertexBytes = vertexCount * stride(material);
   if (cursor + vertexBytes > packet.byteLength) throw new Error("VirGL material-batch vertices are truncated");
@@ -78,13 +81,31 @@ function draw(view, packet, offset, width, height, depth) {
   return { draw: { ...decoded, ...depthState, material, scissor, vertexCount, vertices, viewport }, next: cursor + vertexBytes };
 }
 
-function materialData(view, packet, offset, material) {
+function materialData(view, packet, offset, material, version, sequence) {
   if (material === "solid") return { drawColor: colors(view, offset, "draw"), next: offset + 16 };
   if (material === "vertex-color") return { next: offset };
+  if (version === 12) {
+    if (!["texture", "texture-color"].includes(material)) throw new Error("VirGL resident texture material is invalid");
+    const source = residentTexture(view, packet, offset, sequence);
+    return { next: source.next, texture: source.texture };
+  }
   const first = texture(view, packet, offset);
   if (material !== "texture-pair") return { texture: first.texture, next: first.next };
   const second = texture(view, packet, first.next);
   return { textures: [first.texture, second.texture], next: second.next };
+}
+
+function residentTexture(view, packet, offset, sequence) {
+  if (offset + 16 > packet.byteLength) throw new Error("VirGL resident texture is truncated");
+  const sampler = samplerConfig(view.getUint32(offset, true));
+  const width = view.getUint32(offset + 4, true); const height = view.getUint32(offset + 8, true);
+  const producerSequence = view.getUint32(offset + 12, true); const pixels = width * height;
+  if (!sampler || !width || !height || width > MAX_DIMENSION || height > MAX_DIMENSION
+    || !Number.isSafeInteger(pixels) || pixels > MAX_RESIDENT_TEXTURE_PIXELS
+    || !producerSequence || producerSequence === sequence) {
+    throw new Error("VirGL resident texture framing is invalid");
+  }
+  return { next: offset + 16, texture: { ...sampler, height, producerSequence, width } };
 }
 
 function texture(view, packet, offset) {
