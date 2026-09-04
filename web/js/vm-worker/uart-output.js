@@ -3,8 +3,8 @@ import {
   UART_FLUSH_INTERVAL_MS,
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260904-virgl-gpu-readback-r1";
-import { isInputResponsive } from "./uart-input.js?v=20260904-virgl-gpu-readback-r1";
+} from "./state.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { isInputResponsive } from "./uart-input.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 export function drainUart(now, emulator = state.emulator) {
   const responsive = isInputResponsive(now);

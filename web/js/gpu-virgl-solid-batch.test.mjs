@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-gpu-readback-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-solid-gpu-readback-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-gpu-readback-r1";
-import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-gpu-readback-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-solid-gpu-readback-r1";
 
 test("VirGL solid-batch packet preserves bounded ordered draw records", () => {
   const packet = virglSolidBatchPacket({ sequence: 74 });
@@ -23,9 +23,9 @@ test("VirGL solid-batch renderer submits both draws in one source-over pass", as
   const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
-  assert.deepEqual(await display.present3d(virglSolidBatchPacket({ sequence: 75 })), {
-    sequence: 75, success: true,
-  });
+  const result = await display.present3d(virglSolidBatchPacket({ sequence: 75 }));
+  assert.equal(result.sequence, 75); assert.equal(result.success, true);
+  assert.equal(result.readback?.format, 1); assert.equal(result.readback?.pixels.byteLength, 1024 * 768 * 4);
   assert.deepEqual(device.draw, [3, 3]);
   assert.equal(device.bufferWrites[0].data.byteLength, 192);
   assert.deepEqual(device.pipelines[0].descriptor.vertex.buffers[0], {
@@ -33,5 +33,6 @@ test("VirGL solid-batch renderer submits both draws in one source-over pass", as
     attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x4", offset: 16, shaderLocation: 1 }],
   });
   assert.equal(device.renderPasses.length, 1);
+  assert.equal(device.textureCopies.length, 1);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-solid-batch");
 });

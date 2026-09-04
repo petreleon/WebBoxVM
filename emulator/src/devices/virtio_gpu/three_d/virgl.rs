@@ -126,7 +126,7 @@ impl VirtioGpu {
             return Err(RESP_ERR_OUT_OF_MEMORY);
         }
         let timeline = self.fence_timeline(header);
-        let webgpu_readback = packet.starts_with(b"VGM1");
+        let webgpu_readback = matches!(packet.get(..4), Some(b"VGB1" | b"VGM1"));
         self.pending_3d_bytes += packet.len();
         self.pending_3d.push(Pending3d {
             sequence,

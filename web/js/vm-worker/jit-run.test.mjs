@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { runCachedJitBlock } from "./jit-run.js?v=20260904-virgl-gpu-readback-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
+import { runCachedJitBlock } from "./jit-run.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 afterEach(() => {
   resetJitState();

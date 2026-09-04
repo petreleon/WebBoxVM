@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260904-virgl-gpu-readback-r1";
+import { BootParallelTransition } from "./boot-parallel-transition.js?v=20260904-virgl-solid-gpu-readback-r1";
 test("CPU1 and login milestones request and report one parallel transition", async () => {
   let calls = 0;
   let resolveLogged;

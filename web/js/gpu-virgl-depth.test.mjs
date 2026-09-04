@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-gpu-readback-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-solid-gpu-readback-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-gpu-readback-r1";
-import { virglDepthPacket, virglDepthTexturePacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-gpu-readback-r1";
-import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-gpu-readback-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { virglDepthPacket, virglDepthTexturePacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-solid-gpu-readback-r1";
 
 test("VirGL depth envelope requires its canonical depth clear and viewport state", () => {
   const packet = virglDepthPacket({ sequence: 71 });

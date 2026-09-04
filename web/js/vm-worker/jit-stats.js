@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
+import { state } from "./state.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 const MAX_REJECT_LOG = 16;
 

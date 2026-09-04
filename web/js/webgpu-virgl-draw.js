@@ -1,5 +1,5 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-gpu-readback-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-gpu-readback-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 const SHADER = `
 struct Solid { color: vec4f }

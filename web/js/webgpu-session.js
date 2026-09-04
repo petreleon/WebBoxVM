@@ -1,5 +1,5 @@
-import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-gpu-readback-r1";
-import { canvasConfiguration } from "./webgpu-readback.js?v=20260904-virgl-gpu-readback-r1";
+import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { canvasConfiguration } from "./webgpu-readback.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 export class WebGpuSession {
   #adapter;

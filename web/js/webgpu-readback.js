@@ -1,4 +1,4 @@
-import { paddedBytesPerRow } from "./gpu-scanout-packet.js?v=20260904-virgl-gpu-readback-r1";
+import { paddedBytesPerRow } from "./gpu-scanout-packet.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 export const READBACK_FORMAT_BGRA8 = 1;
 export const READBACK_FORMAT_RGBA8 = 2;

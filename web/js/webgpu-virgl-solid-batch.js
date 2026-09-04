@@ -1,5 +1,6 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-gpu-readback-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-gpu-readback-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
@@ -32,8 +33,8 @@ export class VirglSolidBatchRenderer {
     try {
       if (!await this.#ensurePipeline(backend) || !isCurrent()) return false;
       const revision = this.#revision;
-      await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
-      return revision === this.#revision && isCurrent();
+      const readback = await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
+      return revision === this.#revision && isCurrent() && (readback ? { readback } : true);
     } catch (error) { this.invalidate(); throw error; }
   }
 
@@ -66,8 +67,9 @@ export class VirglSolidBatchRenderer {
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, vertices);
     const encoder = device.createCommandEncoder({ label: "VirGL capset 1 solid-batch encoder" });
+    const target = backend.canvasContext.getCurrentTexture();
     const pass = encoder.beginRenderPass({
-      colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: backend.canvasContext.getCurrentTexture().createView() }],
+      colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
       label: "VirGL capset 1 solid-batch pass",
     });
     pass.setPipeline(this.#pipeline); pass.setVertexBuffer(0, this.#vertexBuffer);
@@ -78,8 +80,8 @@ export class VirglSolidBatchRenderer {
       pass.setScissorRect(scissor.x, scissor.y, scissor.width, scissor.height);
       pass.draw(draw.vertexCount, 1, first); first += draw.vertexCount;
     }
-    pass.end(); device.queue.submit([encoder.finish()]);
-    return device.queue.onSubmittedWorkDone();
+    pass.end();
+    return submitTextureReadback(device, encoder, target, frame.canvasWidth, frame.canvasHeight, backend.format);
   }
 }
 

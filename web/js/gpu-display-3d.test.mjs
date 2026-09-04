@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-gpu-readback-r1";
+import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-solid-gpu-readback-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-gpu-readback-r1";
-import { gpu3dPacket, gpuPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-gpu-readback-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { gpu3dPacket, gpuPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-solid-gpu-readback-r1";
 
 test("experimental 3D has no Canvas2D fallback or compatibility claim", async () => {
   const canvas = fakeCanvas({ canvas2d: true });

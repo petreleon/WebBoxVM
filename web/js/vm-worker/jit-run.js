@@ -1,8 +1,8 @@
-import { compileJitBlock, jitBlockKey } from "./jit-compile.js?v=20260904-virgl-gpu-readback-r1";
-import { pcForCore } from "./jit-core.js?v=20260904-virgl-gpu-readback-r1";
-import { postMetrics } from "./metrics-events.js?v=20260904-virgl-gpu-readback-r1";
-import { state } from "./state.js?v=20260904-virgl-gpu-readback-r1";
-import { requireEmulator } from "./lifecycle.js?v=20260904-virgl-gpu-readback-r1";
+import { compileJitBlock, jitBlockKey } from "./jit-compile.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { pcForCore } from "./jit-core.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { postMetrics } from "./metrics-events.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { state } from "./state.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { requireEmulator } from "./lifecycle.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 const JIT_FINISH_COMMITTED = 0;
 const JIT_FINISH_HELPER_REJECTED = 1;

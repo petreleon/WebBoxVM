@@ -21,8 +21,8 @@ nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated te
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, bounded normalized TGSI shapes, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear; singleton shapes plus 2–16 ordered solid/vertex-color/one-/two-texture/texture-color snapshots, with per-record DSA where depth supports the material, through one WebGPU pass; `VGM1` can map final GPU color | No arbitrary shader/state, blending, or sampler state |
-| Completion | `VGM1` color changes after its mapped GPU payload validates; other paths retain deferred CPU replay | Lost, stale, malformed, or unsupported payloads report an error/fallback |
+| Presentation | Clear; singleton shapes plus 2–16 ordered solid/vertex-color/one-/two-texture/texture-color snapshots, with per-record DSA where depth supports the material, through one WebGPU pass; `VGB1`/`VGM1` can map final GPU color | No arbitrary shader/state, blending, or sampler state |
+| Completion | `VGB1`/`VGM1` color changes after mapped GPU payload validation; other paths retain deferred CPU replay | Lost, stale, malformed, or unsupported payloads report an error/fallback |
 
 ## Advertised and accepted shapes
 
@@ -114,7 +114,7 @@ Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. 
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, and waits for queue completion. `VGB1` remains the compact solid-only envelope. `VGM1` has a 48-byte header plus ordered 52-byte records, immutable snapshots and vertices; its depth flag requires clear-one plus canonical DSA. One WebGPU pass clears once and issues every record in order.
 
-For `VGM1`, the canvas has `COPY_SRC`; after that pass the browser copies the target to a padded `MAP_READ` buffer, strips padding after `mapAsync`, and sends a sequence-tagged BGRA/RGBA payload. Rust accepts only the exact in-flight `VGM1` target/rect/format/byte count and context generation, then writes final GPU color to canonical BGRA storage and damage. Depth batches retain their bounded CPU depth update before color replacement. Other envelopes still replay only after a successful Boolean acknowledgment. Failed, stale, malformed, or unacknowledged work changes no guest pixels. See [bounded GPU readback](virgl-gpu-readback.md).
+For `VGB1`/`VGM1`, the canvas has `COPY_SRC`; after each pass the browser copies the target to a padded `MAP_READ` buffer, strips padding after `mapAsync`, and sends a sequence-tagged BGRA/RGBA payload. Rust accepts only the exact in-flight envelope target/rect/format/byte count and context generation, then writes final GPU color to canonical BGRA storage and damage. Depth batches retain their bounded CPU depth update before color replacement. Other envelopes still replay only after a successful Boolean acknowledgment. Failed, stale, malformed, or unacknowledged work changes no guest pixels. See [bounded GPU readback](virgl-gpu-readback.md).
 
 The clear-only route remains a smaller private `VGC1` envelope with the same deferred completion rule but no pipeline, buffers, or textures.
 Browser diagnostics distinguish clear, draw, texture, and dual-texture paths from private capset-7 WBG3 geometry.
@@ -137,7 +137,7 @@ and a matching capset that this renderer does not advertise.
 Rust tests prove capset bits, transactional no-clear, malformed-index, and inline/resource-constant render/rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2–14 `VGD1`, bounded `VGB1`, and mixed-material `VGM1`
 payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, ordered non-depth/depth batch blending, solid/vertex-color/one-texture/texture-color depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
-acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, strict VGM1 GPU-color readback, and `WBGF` damage.
+acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, strict VGB1/VGM1 GPU-color readback, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,
 cached pipelines, standard singleton material and `VGB1`/`VGM1` shared/per-record depth-batch pipelines, bounded `draw(N)`, one batch render pass, padded map readback, and queue-gated completion.

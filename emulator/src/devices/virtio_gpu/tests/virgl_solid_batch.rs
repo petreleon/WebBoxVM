@@ -1,5 +1,7 @@
 use super::super::protocol::*;
+use super::super::completion::{PendingCompletion, WritableRegion};
 use super::{virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_scissor_state};
+use crate::constants::RAM_BASE;
 
 const CONSTANT_FRAG: &str =
     "FRAG\nDCL CONST[0][0]\nDCL OUT[0], COLOR\nMOV OUT[0], CONST[0][0]\nEND\n";
@@ -23,6 +25,23 @@ fn standard_solid_draws_batch_in_order_after_one_clear() {
     assert!(gpu.apply_3d_effect(effect));
     let middle = ((384 * 1024 + 512) * 4) as usize;
     assert_eq!(&gpu.resources[&TARGET].pixels[middle..middle + 4], &[0, 128, 64, 255]);
+}
+
+#[test]
+fn solid_batch_accepts_gpu_color_readback_after_browser_delivery() {
+    let (mut gpu, mut mem) = prepared();
+    configure(&mut gpu, &mut mem);
+    let mut command = clear([0.0, 0.0, 0.0, 1.0]);
+    command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend(constants([0.0, 1.0, 0.0, 0.5])); command.extend(draw());
+    let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("solid batch defers");
+    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
+    assert_eq!(&gpu.take_3d_update()[..4], b"VGB1");
+    let pixels = [1, 2, 3, 255].repeat(1024 * 768);
+    assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 2, &pixels));
+    let middle = ((384 * 1024 + 512) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[middle..middle + 4], &[3, 2, 1, 255]);
+    assert_eq!(mem.read(RAM_BASE + 0x7000, 4), Some(RESP_OK_NODATA as u64));
 }
 
 #[test]

@@ -2,10 +2,10 @@
 
 ## Decision
 
-`VGM1` material batches can now make their final color target GPU-authoritative.
+`VGM1` material and `VGB1` solid batches can make their final color target GPU-authoritative.
 The browser renders the bounded batch, copies that same canvas texture into a
 mapped buffer, and delivers its tightly packed pixels with the submission
-sequence. Rust accepts the payload only for the matching in-flight `VGM1`
+sequence. Rust accepts the payload only for a matching in-flight `VGM1`/`VGB1`
 completion and writes it into the matching guest color resource.
 
 This replaces CPU color replay for that one envelope. It is not a general
@@ -14,7 +14,7 @@ VirGL, OpenGL, Vulkan, Venus, or zero-copy resource implementation.
 ## Browser path
 
 ```text
-VGM1 -> WebGPU render pass -> canvas texture (RENDER_ATTACHMENT | COPY_SRC)
+VGM1/VGB1 -> WebGPU render pass -> canvas texture (RENDER_ATTACHMENT | COPY_SRC)
      -> copyTextureToBuffer -> MAP_READ | COPY_DST buffer -> mapAsync(READ)
      -> tightly packed pixels + sequence -> VM worker -> Rust completion
 ```
@@ -32,7 +32,7 @@ used for the payload, rather than treating queue submission alone as readable.
 
 ## Completion and failure contract
 
-- The Rust pending entry must have been emitted as `VGM1`, already delivered to
+- The Rust pending entry must have been emitted as `VGM1` or `VGB1`, delivered to
   the browser, and have a live completion record on the matching fence timeline.
 - The payload format, exact `rect.width * rect.height * 4` byte count, resource
   kind, target bounds, and VirGL context generation are checked before writes.
@@ -41,7 +41,7 @@ used for the payload, rather than treating queue submission alone as readable.
 - Browsers without a mappable copy path retain the prior Boolean acknowledgment,
   which deliberately uses the existing bounded CPU replay instead.
 
-Depth-material `VGM1` batches preserve a bounded CPU depth update, then replace
+Depth `VGM1`/`VGB1` batches preserve a bounded CPU depth update, then replace
 the color target with the mapped GPU pixels. Thus final guest-visible color is
 GPU-authoritative while depth remains a compatibility seam, not GPU depth
 readback. The operation rolls back color/depth snapshots if the depth update or

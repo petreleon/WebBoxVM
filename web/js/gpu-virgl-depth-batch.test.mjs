@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-gpu-readback-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-solid-gpu-readback-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-gpu-readback-r1";
-import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-gpu-readback-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-solid-gpu-readback-r1";
 
 test("VirGL depth-batch envelope requires a clear-one ordered depth stream", () => {
   const packet = virglSolidBatchPacket({ draws: depthDraws(), sequence: 76, version: 2 });
@@ -50,7 +50,9 @@ test("VirGL depth-batch renderer clears one less-write depth attachment", async 
   const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
-  assert.deepEqual(await display.present3d(virglSolidBatchPacket({ draws: depthDraws(), sequence: 77, version: 2 })), { sequence: 77, success: true });
+  const result = await display.present3d(virglSolidBatchPacket({ draws: depthDraws(), sequence: 77, version: 2 }));
+  assert.equal(result.sequence, 77); assert.equal(result.success, true);
+  assert.equal(result.readback?.format, 1); assert.equal(result.readback?.pixels.byteLength, 1024 * 768 * 4);
   assert.deepEqual(device.pipelines[0].descriptor.depthStencil, {
     depthCompare: "less", depthWriteEnabled: true, format: "depth24plus",
   });
@@ -61,6 +63,7 @@ test("VirGL depth-batch renderer clears one less-write depth attachment", async 
   assert.equal(device.renderPasses.length, 1);
   assert.equal(device.renderPasses[0].depthStencilAttachment.depthClearValue, 1);
   assert.deepEqual(device.draw, [3, 3]);
+  assert.equal(device.textureCopies.length, 1);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-depth-batch");
 });
 
@@ -70,7 +73,8 @@ test("VirGL depth-batch renderer configures the shared standard comparison", asy
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
   const packet = virglSolidBatchPacket({ depthCompare: 2, draws: equalDraws(), sequence: 79, version: 3 });
-  assert.deepEqual(await display.present3d(packet), { sequence: 79, success: true });
+  const result = await display.present3d(packet);
+  assert.equal(result.sequence, 79); assert.equal(result.success, true);
   assert.equal(device.pipelines[0].descriptor.depthStencil.depthCompare, "equal");
 });
 
@@ -80,7 +84,8 @@ test("VirGL depth-batch renderer preserves ordered per-draw comparisons", async 
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
   const packet = virglSolidBatchPacket({ draws: mixedDraws(), sequence: 81, version: 4 });
-  assert.deepEqual(await display.present3d(packet), { sequence: 81, success: true });
+  const result = await display.present3d(packet);
+  assert.equal(result.sequence, 81); assert.equal(result.success, true);
   assert.deepEqual(device.pipelines.map((pipeline) => pipeline.descriptor.depthStencil.depthCompare), ["less", "greater"]);
   assert.deepEqual(device.pipelineBinds.map((pipeline) => pipeline.descriptor.depthStencil.depthCompare), ["less", "greater"]);
   assert.equal(device.renderPasses.length, 1); assert.deepEqual(device.draw, [3, 3]);
@@ -92,7 +97,8 @@ test("VirGL depth-batch renderer preserves ordered depth write masks", async () 
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
   const packet = virglSolidBatchPacket({ draws: mixedWriteDraws(), sequence: 83, version: 5 });
-  assert.deepEqual(await display.present3d(packet), { sequence: 83, success: true });
+  const result = await display.present3d(packet);
+  assert.equal(result.sequence, 83); assert.equal(result.success, true);
   assert.deepEqual(device.pipelines.map((pipeline) => pipeline.descriptor.depthStencil), [
     { depthCompare: "less", depthWriteEnabled: true, format: "depth24plus" },
     { depthCompare: "greater", depthWriteEnabled: false, format: "depth24plus" },

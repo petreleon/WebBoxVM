@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-gpu-readback-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-solid-gpu-readback-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-gpu-readback-r1";
-import { virglDepthTextureColorPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-gpu-readback-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { virglDepthTextureColorPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-solid-gpu-readback-r1";
 
 test("VirGL depth texture-color envelope keeps fixed attributes and DSA", () => {
   const packet = virglDepthTextureColorPacket({ depthCompare: 4, depthWriteEnabled: false, sampler: 0x3292, sequence: 94 });

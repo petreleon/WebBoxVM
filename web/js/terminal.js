@@ -1,4 +1,4 @@
-import { delay } from "./utils.js?v=20260904-virgl-gpu-readback-r1";
+import { delay } from "./utils.js?v=20260904-virgl-solid-gpu-readback-r1";
 
 export async function waitForTerminal() {
   while (!window.Terminal || !window.FitAddon) {

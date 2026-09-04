@@ -1,5 +1,5 @@
 // After changing this token, run: node scripts/stamp_web_asset_version.mjs --write
-export const WEBBOXVM_ASSET_VERSION = "20260904-virgl-gpu-readback-r1";
+export const WEBBOXVM_ASSET_VERSION = "20260904-virgl-solid-gpu-readback-r1";
 
 export function versionedUrl(path, baseUrl = import.meta.url) {
   const url = new URL(path, baseUrl);
