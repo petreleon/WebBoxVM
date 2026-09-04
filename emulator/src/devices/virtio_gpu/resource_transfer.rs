@@ -4,6 +4,7 @@ use super::resource::{
     FORMAT_X8R8G8B8_UNORM, GpuResource,
 };
 use crate::memory::PhysicalMemory;
+mod readback;
 struct BackingWrite {
     addr: u64,
     source: usize,
@@ -101,7 +102,6 @@ impl GpuResource {
         }
         Some(())
     }
-
     fn plan_writes(
         &self,
         mem: &PhysicalMemory,

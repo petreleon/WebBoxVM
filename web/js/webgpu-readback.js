@@ -13,7 +13,7 @@ export function canvasConfiguration(device, format) {
   return { alphaMode: "opaque", device, format, usage: usage.COPY_DST | usage.COPY_SRC | usage.RENDER_ATTACHMENT };
 }
 
-export function submitTextureReadback(device, encoder, texture, width, height, format) {
+export function submitTextureReadback(device, encoder, texture, width, height, format, origin) {
   const outputFormat = readbackFormat(format);
   if (!outputFormat || typeof encoder.copyTextureToBuffer !== "function") {
     return submitWithoutReadback(device, encoder);
@@ -28,7 +28,7 @@ export function submitTextureReadback(device, encoder, texture, width, height, f
   }
   try {
     encoder.copyTextureToBuffer(
-      { texture }, { buffer, bytesPerRow, rowsPerImage: height },
+      origin ? { texture, origin } : { texture }, { buffer, bytesPerRow, rowsPerImage: height },
       { depthOrArrayLayers: 1, height, width },
     );
     device.queue.submit([encoder.finish()]);

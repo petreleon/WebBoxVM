@@ -28,6 +28,7 @@ mod virgl_dual_texture_draw;
 mod virgl_indexed_draw;
 mod virgl_queue;
 mod virgl_readback;
+mod virgl_resident_partial_readback;
 mod virgl_rgba_transfer;
 mod virgl_sampler_linear;
 mod virgl_sampler_repeat;
@@ -47,7 +48,6 @@ mod virgl_vertex_color_draw;
 mod virgl_vertex_uniform_draw;
 mod virgl_vertex_state;
 mod virgl_viewport_state;
-
 use super::protocol::*;
 use crate::memory::PhysicalMemory;
 use virgl_draw_fixture::word;

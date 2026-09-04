@@ -46,13 +46,15 @@ export class VirglSolidBatchRenderer {
   async readback(backend, frame, isCurrent) {
     const output = this.#outputs.get(backend, frame);
     if (!output || !isCurrent()) return false;
+    const width = frame.readbackWidth ?? frame.canvasWidth;
+    const height = frame.readbackHeight ?? frame.canvasHeight;
     try {
       const readback = await captureWebGpuErrors(backend.device, () => submitTextureReadback(
         backend.device, backend.device.createCommandEncoder({ label: "VirGL resident readback" }), output.texture,
-        frame.canvasWidth, frame.canvasHeight, backend.format,
+        width, height, backend.format, frame.readbackOrigin,
       ));
       if (!readback || !isCurrent()) return false;
-      this.#outputs.release(frame.producerSequence);
+      if (!frame.retainResident) this.#outputs.release(frame.producerSequence);
       return { readback };
     } catch (error) { this.#outputs.release(frame.producerSequence); this.invalidate(); throw error; }
   }

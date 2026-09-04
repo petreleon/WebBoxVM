@@ -29,12 +29,15 @@ texture plus an explicit control protocol; it cannot merely retain a canvas view
 For each eligible color resource, use one of these states:
 
 ```text
-Cpu(epoch) -> Gpu(epoch, producer sequence) -> Resolving(sequence) -> Cpu(epoch + 1)
+Cpu(epoch) -> Gpu(epoch, producer sequence) -> FullResolve(sequence) -> Cpu(epoch + 1)
+                                           -> PartialReadback(sequence) -> Gpu(epoch, same producer)
 ```
 
 The Rust shadow is authoritative only in `Cpu`. `Gpu` names one successful
-browser producer and is the authority for its full target. `Resolving` reserves
-one exact readback; no second transfer or mutation may consume an older shadow.
+browser producer and is the authority for its full target. `FullResolve` reserves
+one exact full-image readback. `PartialReadback` reserves one exact guest-visible
+rectangle while deliberately leaving the CPU shadow stale; no second transfer or
+mutation may consume an older shadow.
 
 ## Required invariants
 
@@ -80,10 +83,13 @@ are admitted to the resident path.
    still names that predecessor.
 3. Rust stores the producer sequence only after the matching completion
    validates the pending effect and context generation.
-4. `TRANSFER_FROM_HOST_3D` emits a private deferred `VGR1` request naming that
-   producer. The browser maps the persistent texture; Rust validates the full
-   image, refreshes its shadow, and only then writes the requested backing range
-   and completion response.
+4. A full `TRANSFER_FROM_HOST_3D` emits private `VGR1` v1 naming that producer.
+   The browser maps the persistent texture; Rust validates the full image,
+   refreshes its shadow, and only then writes the requested backing range and
+   completion response. A strictly partial transfer emits `VGR1` v2 with a
+   bounded source origin and size. Rust validates and converts only those pixels
+   directly into the requested backing rows, without shadow mutation, damage, or
+   producer release; the same GPU target remains authoritative.
 5. When a full CPU replacement or a new CPU-synchronized render ends residency,
    Rust emits a no-ack `VGL1` release for the old producer. The browser destroys
    that cached texture; duplicate or delayed releases are harmless.
@@ -98,6 +104,7 @@ are admitted to the resident path.
 | Eligible draw completion | O(W×H) readback and transfer | O(1) host control; GPU presentation copy |
 | Repeated full eligible draw | O(W×H) readback and transfer | Repaint and rekey one persistent GPU texture |
 | First guest CPU read | Already paid per draw | O(W×H), once at the synchronization boundary |
+| Partial guest CPU read (w×h) | O(W×H) map before scatter | O(w×h) map; retain GPU authority |
 | Resident lookup | — | O(1) keyed by resource ID |
 | Identical vertex input | Upload every frame | Exact cached bytes skip `queue.writeBuffer` |
 | Browser memory | Transient target | Explicit bounded texture budget |
@@ -112,6 +119,8 @@ guest-visible readback.
   wrong-generation completions.
 - Prove a deferred `VGR1` transfer writes exact scatter-backed bytes only after
   its matching readback.
+- Prove `VGR1` v2 maps only its validated source rectangle, converts BGRA/RGBA
+  correctly, writes no partial backing range on failure, and retains its producer.
 - Prove an upload, unref, reset, and device loss cannot revive a prior owner.
 - Compare a resident batch followed by transfer against the current readback
   fixture byte-for-byte, including BGRA/RGBA normalization.

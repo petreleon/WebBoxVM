@@ -6,10 +6,10 @@ use super::{header, response_type};
 use crate::constants::RAM_BASE;
 use crate::memory::PhysicalMemory;
 
-const RESOURCE_ID: u32 = 1;
-const WIDTH: u32 = 4;
-const HEIGHT: u32 = 3;
-const SECOND_BACKING: u64 = RAM_BASE + 0x100;
+pub(super) const RESOURCE_ID: u32 = 1;
+pub(super) const WIDTH: u32 = 4;
+pub(super) const HEIGHT: u32 = 3;
+pub(super) const SECOND_BACKING: u64 = RAM_BASE + 0x100;
 
 #[test]
 fn transfer_from_host_3d_writes_exact_scatter_backed_pixels() {
@@ -46,14 +46,14 @@ fn transfer_from_host_3d_rejects_an_incomplete_range_without_partial_writes() {
 }
 
 #[test]
-fn resident_transfer_defers_a_full_readback_before_scattering_guest_pixels() {
+fn resident_full_transfer_defers_a_full_readback_before_scattering_guest_pixels() {
     let (mut gpu, mut mem) = resource_with_backing();
     assert_response(&mut gpu, &mut mem, &virgl_context(), RESP_OK_NODATA);
     let generation = gpu.virgl_contexts[&7].generation;
     gpu.resident_resources.insert(RESOURCE_ID, ResidentResource {
         context_id: 7, generation, producer_sequence: 71,
     });
-    let deferred = gpu.execute_queued_command(&mut mem, &transfer(1, 0, 2, 2, 4))
+    let deferred = gpu.execute_queued_command(&mut mem, &transfer(0, 0, WIDTH, HEIGHT, 0))
         .deferred.expect("resident transfer defers");
     assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion {
         header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }],
@@ -61,14 +61,14 @@ fn resident_transfer_defers_a_full_readback_before_scattering_guest_pixels() {
     }));
     let packet = gpu.take_3d_update();
     assert_eq!(&packet[..4], b"VGR1");
+    assert_eq!(packet.len(), 24);
     assert_eq!([4, 8, 12, 16, 20].map(|offset| read_u32(&packet, offset)), [Some(1), Some(deferred.sequence), Some(71), Some(WIDTH), Some(HEIGHT)]);
     let pixels: Vec<u8> = (0..WIDTH * HEIGHT * 4).map(|value| value as u8).collect();
     assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 1, &pixels));
     assert!(!gpu.resident_resources.contains_key(&RESOURCE_ID));
     assert!(gpu.take_3d_update().is_empty());
-    assert_eq!(read(&mem, RAM_BASE + 4, 8), pixels[4..12]);
-    assert_eq!(read(&mem, RAM_BASE + 20, 4), pixels[20..24]);
-    assert_eq!(read(&mem, SECOND_BACKING, 4), pixels[24..28]);
+    assert_eq!(read(&mem, RAM_BASE, 24), pixels[..24]);
+    assert_eq!(read(&mem, SECOND_BACKING, 24), pixels[24..]);
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn failed_resident_readback_keeps_the_cpu_shadow_fail_closed() {
     assert_eq!(read(&mem, RAM_BASE, 4), [0; 4]);
 }
 
-fn resource_with_backing() -> (VirtioGpu, PhysicalMemory) {
+pub(super) fn resource_with_backing() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mut mem, &resource_create(), RESP_OK_NODATA);
@@ -136,7 +136,7 @@ fn attach_backing() -> Vec<u8> {
     command
 }
 
-fn virgl_context() -> Vec<u8> {
+pub(super) fn virgl_context() -> Vec<u8> {
     let mut command = header(CMD_CTX_CREATE);
     push_u32(&mut command, 5);
     push_u32(&mut command, VIRGL_CAPSET_ID);
@@ -145,7 +145,7 @@ fn virgl_context() -> Vec<u8> {
     command
 }
 
-fn transfer(x: u32, y: u32, width: u32, height: u32, offset: u64) -> Vec<u8> {
+pub(super) fn transfer(x: u32, y: u32, width: u32, height: u32, offset: u64) -> Vec<u8> {
     transfer_command(CMD_TRANSFER_FROM_HOST_3D, x, y, width, height, offset)
 }
 
@@ -165,12 +165,12 @@ fn transfer_command(command_type: u32, x: u32, y: u32, width: u32, height: u32, 
     command
 }
 
-fn read(mem: &PhysicalMemory, addr: u64, len: usize) -> Vec<u8> {
+pub(super) fn read(mem: &PhysicalMemory, addr: u64, len: usize) -> Vec<u8> {
     let mut bytes = vec![0; len];
     mem.read_bytes(addr, &mut bytes).unwrap();
     bytes
 }
 
-fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
+pub(super) fn assert_response(gpu: &mut VirtioGpu, mem: &mut PhysicalMemory, command: &[u8], expected: u32) {
     assert_eq!(response_type(&gpu.execute_command(mem, command)), expected);
 }
