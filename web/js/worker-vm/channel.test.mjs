@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerChannel } from "./channel.js?v=20260904-virgl-depth-compare-r1";
+import { WorkerChannel } from "./channel.js?v=20260904-virgl-depth-batch-compare-r1";
 const previousWorker = globalThis.Worker;
 const previousDocument = globalThis.document;
 class FakeWorker {

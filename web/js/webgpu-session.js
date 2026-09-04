@@ -1,4 +1,4 @@
-import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-depth-compare-r1";
+import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-depth-batch-compare-r1";
 
 export class WebGpuSession {
   #adapter;

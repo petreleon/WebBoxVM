@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { compileJitBlockEntry } from "./jit-compile.js?v=20260904-virgl-depth-compare-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-compare-r1";
+import { compileJitBlockEntry } from "./jit-compile.js?v=20260904-virgl-depth-batch-compare-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-batch-compare-r1";
 
 afterEach(() => {
   resetJitState();

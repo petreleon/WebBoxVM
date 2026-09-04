@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260904-virgl-depth-compare-r1";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260904-virgl-depth-batch-compare-r1";
 
 test("installed boot boundary passes the successful preflight unchanged", () => {
   const calls = [];

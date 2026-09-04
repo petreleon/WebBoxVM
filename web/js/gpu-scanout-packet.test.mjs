@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { padBgraRows, paddedBytesPerRow, parseGpuScanoutPacket }
-  from "./gpu-scanout-packet.js?v=20260904-virgl-depth-compare-r1";
-import { gpuPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-depth-compare-r1";
+  from "./gpu-scanout-packet.js?v=20260904-virgl-depth-batch-compare-r1";
+import { gpuPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-depth-batch-compare-r1";
 
 test("WBGF parser accepts an offset view and exposes its dirty rectangle", () => {
   const packet = gpuPacket({

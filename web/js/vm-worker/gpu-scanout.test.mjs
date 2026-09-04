@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { maybePostGpuScanout } from "./gpu-scanout.js?v=20260904-virgl-depth-compare-r1";
-import { state } from "./state.js?v=20260904-virgl-depth-compare-r1";
+import { maybePostGpuScanout } from "./gpu-scanout.js?v=20260904-virgl-depth-batch-compare-r1";
+import { state } from "./state.js?v=20260904-virgl-depth-batch-compare-r1";
 
 let previousPollAt;
 let previousResetGeneration;

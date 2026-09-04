@@ -3,7 +3,8 @@ export function virglSolidBatchPacket({
   canvasWidth = 1024,
   clearColor = [0, 0, 0, 1],
   version = 1,
-  depthClear = version === 2 ? 1 : 0,
+  depthCompare = version === 2 ? 1 : 0,
+  depthClear = version === 1 ? 0 : 1,
   draws = defaultDraws(canvasWidth, canvasHeight),
   sequence = 73,
 } = {}) {
@@ -11,7 +12,7 @@ export function virglSolidBatchPacket({
   const packet = new Uint8Array(48 + body);
   packet.set([0x56, 0x47, 0x42, 0x31]);
   const view = new DataView(packet.buffer);
-  [version, sequence, canvasWidth, canvasHeight, draws.length, 0]
+  [version, sequence, canvasWidth, canvasHeight, draws.length, version === 3 ? depthCompare : 0]
     .forEach((value, index) => view.setUint32(4 + index * 4, value, true));
   writeFloats(view, 28, clearColor);
   view.setFloat32(44, depthClear, true);

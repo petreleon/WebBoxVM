@@ -4,6 +4,7 @@ const DRAW_STATE_BYTES = 60;
 const MAX_DIMENSION = 8192;
 const MAX_DRAWS = 16;
 const MAX_VERTICES = 3063;
+const DEPTH_COMPARE = ["never", "less", "equal", "less-equal", "greater", "not-equal", "greater-equal", "always"];
 
 export function isVirglSolidBatchPacket(packet) {
   return packet instanceof Uint8Array && MAGIC.every((byte, index) => packet[index] === byte);
@@ -21,7 +22,8 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  if (![1, 2].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS || flags !== 0) {
+  if (![1, 2, 3].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
+    || version < 3 && flags !== 0) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
@@ -29,7 +31,10 @@ export function parseVirglSolidBatchPacket(packet) {
   }
   const clearColor = colors(view, 28, "clear");
   const depthClear = view.getFloat32(44, true);
-  if (depthClear !== (version === 2 ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
+  const depth = version !== 1;
+  if (depthClear !== (depth ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
+  const depthCompare = version === 2 ? "less" : version === 3 ? DEPTH_COMPARE[flags] : undefined;
+  if (depth && !depthCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
   const draws = [];
   let offset = HEADER_BYTES;
   let totalVertices = 0;
@@ -54,10 +59,9 @@ export function parseVirglSolidBatchPacket(packet) {
     offset = next;
   }
   if (offset !== packet.byteLength) throw new Error("VirGL solid-batch packet has trailing bytes");
-  const depth = version === 2;
   return {
     acceleration: depth ? "webgpu-virgl-capset1-depth-batch" : "webgpu-virgl-capset1-solid-batch",
-    canvasHeight, canvasWidth, capsetId: 1, clearColor, depthClear, draws,
+    canvasHeight, canvasWidth, capsetId: 1, clearColor, depthClear, depthCompare, draws,
     presentationLabel: depth ? "VirGL capset 1 depth-tested draw batch" : "VirGL capset 1 solid draw batch",
     protocol: depth ? "virgl-depth-batch" : "virgl-solid-batch", sequence, version,
   };

@@ -43,12 +43,31 @@ fn depth_batch_rejects_mixed_depth_attachments_before_queueing() {
 }
 
 #[test]
-fn depth_batch_rejects_compare_modes_other_than_less_before_queueing() {
+fn standard_equal_depth_draws_batch_in_one_deferred_submission() {
     let (mut gpu, mut mem) = prepared();
-    add_depth(&mut gpu, &mut mem, DEPTH); configure(&mut gpu, &mut mem); upload_depth_vertices(&mut gpu);
+    add_depth(&mut gpu, &mut mem, DEPTH); configure(&mut gpu, &mut mem); upload_equal_depth_vertices(&mut gpu);
     let state = [word(3, 0, 1), DSA, word(1, 0, 5), DSA, 11, 0, 0, 0, word(2, 0, 1), DSA];
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
     let mut command = clear(); command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend(constants([0.0, 0.0, 1.0, 0.5]));
+    let mut second = draw(); second[1] = 3; command.extend(second);
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 12, 16, 20, 24, 44].map(|at| read_u32(&packet, at)), [Some(3), Some(1024), Some(768), Some(2), Some(2), Some(1.0f32.to_bits())]);
+    assert_eq!(packet.len(), 264);
+    let effect = gpu.pending_3d[0].effect.clone().expect("equal depth batch effect");
+    assert!(gpu.apply_3d_effect(effect));
+    let middle = ((384 * 1024 + 512) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[middle..middle + 4], &[128, 0, 64, 255]);
+    assert_eq!(f32::from_le_bytes(gpu.resources[&DEPTH].pixels[middle..middle + 4].try_into().unwrap()), 1.0);
+}
+
+#[test]
+fn depth_batch_rejects_mixed_comparisons_before_queueing() {
+    let (mut gpu, mut mem) = prepared();
+    add_depth(&mut gpu, &mut mem, DEPTH); configure(&mut gpu, &mut mem); upload_depth_vertices(&mut gpu);
+    let mut command = clear(); command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend([word(3, 0, 1), DSA, word(1, 0, 5), DSA, 11, 0, 0, 0, word(2, 0, 1), DSA]);
     command.extend(constants([0.0, 1.0, 0.0, 0.5]));
     let mut far = draw(); far[1] = 3; command.extend(far);
     assert_response(&mut gpu, &mut mem, &submit(&command), RESP_ERR_INVALID_PARAMETER);
@@ -90,6 +109,16 @@ fn upload_depth_vertices(gpu: &mut super::super::VirtioGpu) {
     for z in [-0.5, 0.5] {
         for [x, y] in [[0.0, 0.75], [-0.75, -0.75], [0.75, -0.75]] {
             bytes.extend([x, y, z, 1.0].into_iter().flat_map(f32::to_le_bytes));
+        }
+    }
+    gpu.resources.get_mut(&BUFFER).unwrap().pixels[..bytes.len()].copy_from_slice(&bytes);
+}
+
+fn upload_equal_depth_vertices(gpu: &mut super::super::VirtioGpu) {
+    let mut bytes = Vec::new();
+    for _ in 0..2 {
+        for [x, y] in [[0.0, 0.75], [-0.75, -0.75], [0.75, -0.75]] {
+            bytes.extend([x, y, 1.0, 1.0].into_iter().flat_map(f32::to_le_bytes));
         }
     }
     gpu.resources.get_mut(&BUFFER).unwrap().pixels[..bytes.len()].copy_from_slice(&bytes);

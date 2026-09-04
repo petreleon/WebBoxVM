@@ -1,4 +1,4 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-compare-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-batch-compare-r1";
 
 export async function renderVirglClear(session, backend, frame, isCurrent) {
   const { device } = backend;

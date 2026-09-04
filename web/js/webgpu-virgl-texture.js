@@ -1,6 +1,6 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-compare-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-compare-r1";
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-depth-compare-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-batch-compare-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-batch-compare-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-depth-batch-compare-r1";
 
 const SHADER = `
 @group(0) @binding(0) var source: texture_2d<f32>;

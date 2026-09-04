@@ -1,4 +1,4 @@
-use super::super::{DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS};
+use super::super::{DepthCompare, DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS};
 
 const HEADER_BYTES: usize = 48;
 const DRAW_STATE_BYTES: usize = 60;
@@ -10,7 +10,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     clear: [f32; 4],
     works: &[DrawWork],
 ) -> Option<Vec<u8>> {
-    encode(sequence, width, height, clear, works, false)
+    encode(sequence, width, height, clear, works, None)
 }
 
 pub(in crate::devices::virtio_gpu::three_d) fn depth_packet(
@@ -20,7 +20,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn depth_packet(
     clear: [f32; 4],
     works: &[DrawWork],
 ) -> Option<Vec<u8>> {
-    encode(sequence, width, height, clear, works, true)
+    encode(sequence, width, height, clear, works, Some(works.first()?.depth_compare?))
 }
 
 fn encode(
@@ -29,27 +29,32 @@ fn encode(
     height: u32,
     clear: [f32; 4],
     works: &[DrawWork],
-    depth: bool,
+    depth: Option<DepthCompare>,
 ) -> Option<Vec<u8>> {
     if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS {
         return None;
     }
+    let version = match depth {
+        None => 1,
+        Some(DepthCompare::Less) => 2,
+        Some(_) => 3,
+    };
     let body = works.iter().try_fold(0usize, |total, work| {
         let bytes = usize::try_from(work.vertex_count).ok()?.checked_mul(16)?;
         (matches!(work.material, DrawMaterial::Solid(_))
-            && work.depth_resource.is_some() == depth
-            && (!depth && work.depth_compare.is_none()
-                || depth && work.depth_compare == Some(super::super::super::DepthCompare::Less))
+            && work.depth_resource.is_some() == depth.is_some()
+            && work.depth_compare == depth
             && work.vertices.len() == bytes)
             .then(|| total.checked_add(DRAW_STATE_BYTES + bytes))?
     })?;
     let mut packet = Vec::with_capacity(HEADER_BYTES.checked_add(body)?);
     packet.extend_from_slice(b"VGB1");
-    for value in [if depth { 2 } else { 1 }, sequence, width, height, works.len() as u32, 0] {
+    let flags = match depth { Some(compare) if version == 3 => compare.wire(), _ => 0 };
+    for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     floats(&mut packet, clear);
-    packet.extend_from_slice(&(if depth { 1.0f32 } else { 0.0 }).to_le_bytes());
+    packet.extend_from_slice(&(if depth.is_some() { 1.0f32 } else { 0.0 }).to_le_bytes());
     for work in works {
         let DrawMaterial::Solid(color) = work.material else { return None; };
         packet.extend_from_slice(&work.vertex_count.to_le_bytes());

@@ -1,4 +1,4 @@
-import { GPU_SCANOUT_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-depth-compare-r1";
+import { GPU_SCANOUT_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-depth-batch-compare-r1";
 
 export function maybePostGpuScanout(
   now,

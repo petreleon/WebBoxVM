@@ -1,4 +1,4 @@
-use super::super::{DepthCompare, DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS, raster};
+use super::super::{DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS, raster};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
 
@@ -37,6 +37,7 @@ pub(super) fn apply_depth(
     works: Vec<DrawWork>,
 ) -> bool {
     if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS { return false; }
+    let Some(compare) = works.first().and_then(|work| work.depth_compare) else { return false; };
     let Some(mut values) = gpu.depth_values(resource_id, depth_resource) else { return false; };
     let drawn = {
         let Some(resource) = gpu.resources.get_mut(&resource_id) else { return false; };
@@ -44,10 +45,10 @@ pub(super) fn apply_depth(
         works.into_iter().all(|work| {
             let DrawMaterial::Solid(color) = work.material else { return false; };
             work.depth_resource == Some(depth_resource)
-                && work.depth_compare == Some(DepthCompare::Less)
+                && work.depth_compare == Some(compare)
                 && raster::draw_depth_solid(
                     resource, rect, &work.vertices, color, work.viewport, work.scissor,
-                    DepthCompare::Less, &mut values,
+                    compare, &mut values,
                 )
         })
     };
