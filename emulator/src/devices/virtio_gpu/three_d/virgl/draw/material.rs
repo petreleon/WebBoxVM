@@ -20,6 +20,10 @@ pub(super) fn material(
         (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => {
             Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
         }
+        (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentConstant) => {
+            let bits = state.fragment_constants.ok_or(RESP_ERR_INVALID_PARAMETER)?;
+            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
+        }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {
             Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor))
         }

@@ -1,4 +1,5 @@
 mod blend;
+mod constant;
 mod draw;
 mod index;
 mod pipeline;
@@ -39,6 +40,7 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     pending_fragment_shader: Option<PendingShader>,
     bound_vertex_shader: Option<u32>,
     bound_fragment_shader: Option<u32>,
+    fragment_constants: Option<[u32; 4]>,
 }
 
 impl VirglContext {
@@ -57,6 +59,7 @@ impl VirglContext {
             pending_fragment_shader: None,
             bound_vertex_shader: None,
             bound_fragment_shader: None,
+            fragment_constants: None,
         }
     }
 

@@ -1,5 +1,6 @@
 mod blend;
 mod clear;
+mod constant;
 mod decode;
 mod index;
 mod sampler;
@@ -90,6 +91,7 @@ impl VirtioGpu {
                     draw = Some(self.prepare_virgl_draw(&context, resource, rect, call)?);
                 }
                 Command::Blend(command) => blend::apply(&mut context, command)?,
+                Command::Constant(command) => constant::apply(&mut context, command),
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
                 Command::Index(command) => index::apply(self, &mut context, command)?,
                 Command::Sampler(command) => sampler::apply(self, &mut context, command)?,

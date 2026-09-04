@@ -1,4 +1,5 @@
 pub(super) mod blend;
+pub(super) mod constant;
 pub(super) mod draw;
 pub(super) mod index;
 pub(super) mod sampler;
@@ -30,12 +31,8 @@ pub(super) enum Command {
         level: u32,
         layers: u32,
     },
-    DestroySurface {
-        handle: u32,
-    },
-    SetFramebuffer {
-        surface: Option<u32>,
-    },
+    DestroySurface { handle: u32 },
+    SetFramebuffer { surface: Option<u32> },
     Clear {
         color: [f32; 4],
     },
@@ -47,6 +44,7 @@ pub(super) enum Command {
     CopyRegion(CopyRegion),
     Draw(DrawCall),
     Blend(blend::Command),
+    Constant(constant::Command),
     Vertex(vertex::Command),
     Index(index::Command),
     Sampler(sampler::Command),
@@ -170,6 +168,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         })),
         _ => vertex::decode(command, object, words)
             .map(Command::Vertex)
+            .or_else(|| constant::decode(command, object, words).map(Command::Constant))
             .or_else(|| index::decode(command, object, words).map(Command::Index))
             .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))

@@ -10,7 +10,7 @@ primitive, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, and deliberately bounded
-solid-color; bounded triangle lists with generic per-vertex-RGBA; nearest-clamp/repeat or
+solid/inline-constant color; bounded triangle lists with generic per-vertex-RGBA; nearest-clamp/repeat or
 linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -20,7 +20,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 | Buffer resources | R8 raw vertex/index plus R32G32/R32G32B32A32 float vertex storage | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
-| VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
+| VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
 | Presentation | Clear, solid, fixed vertex-color, texture-times-color, or one/two-texture sampled triangle lists through WebGPU | No multi-command composition, depth, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
@@ -44,8 +44,8 @@ R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 
 Solid draws use a format-31 position source at stride 16; textured, vertex-color, and texture-color inputs may stay
 interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes across slots 0–2; every divisor is zero.
 
-Type-4 shader objects accept only canonical NUL-terminated TGSI text: the
-solid passthrough/constant-RGBA pair; a generic RGBA-passthrough fragment pair; a two-generic texture-times-color pair;
+Type-4 shader objects accept only canonical NUL-terminated TGSI text: solid or
+`CONST[0][0]` passthrough/fragment-color pairs; a generic RGBA-passthrough fragment pair; a two-generic texture-times-color pair;
 a one-2D-`TEX` pair; or a two-2D-`TEX`, `MUL` pair. The latter has one generic UV input, two sampler/views, and one
 color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
@@ -53,7 +53,8 @@ source per vertex/fragment stage may be in flight. Chunks must retain handle,
 stage, and token count; parser failure leaves the cloned context unchanged.
 The declared token capacity plus virglrenderer’s translation slack must fit
 the recognized TGSI. Stream output, unknown stages, and unrecognized text fail.
-Binding zero unbinds, and destroying a bound shader clears its stage.
+Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
+`SET_CONSTANT_BUFFER` accepts only fragment stage 1, slot zero, and exactly four finite normalized inline f32 values (or an empty binding to clear it).
 
 Type-1 `VIRGL_OBJECT_BLEND` accepts one exact 11-word `pipe_blend_state`:
 blend enabled; an RGBA color mask; RGB `ADD, SRC_ALPHA, INV_SRC_ALPHA`; and
@@ -81,8 +82,8 @@ slots. Type 8, rather than type 7, is the standard surface object type.
 
 The guest stream uses ordinary VirGL headers, object types 1, 2, 4, 5, 6, 7,
 and 8; `SET_FRAMEBUFFER_STATE`, `SET_VIEWPORT_STATE`, `SET_SCISSOR_STATE`,
-generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, command 11
-`SET_INDEX_BUFFER`, command 29 `BIND_SHADER`, commands 10/18 sampler bindings,
+generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, commands 11/12
+`SET_INDEX_BUFFER`/`SET_CONSTANT_BUFFER`, command 29 `BIND_SHADER`, commands 10/18 sampler bindings,
 and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
 occur on a clone and commit only after the complete stream validates.
 
@@ -126,7 +127,7 @@ Browser diagnostics distinguish clear, draw, texture, and dual-texture paths fro
 ## What this does not establish
 
 This slice does not establish Mesa initialization, an OpenGL context, arbitrary
-Gallium/TGSI, shader compilation, clipping, unbounded or instanced draws,
+Gallium/TGSI, shader compilation, arbitrary constant/uniform buffers, clipping, unbounded or instanced draws,
 multiple vertex attributes beyond fixed position/UV, position/RGBA, or position/RGBA/UV layouts, arbitrary
 sampling/filtering or blending, depth/stencil, multi-target rendering, general
 readback, or a broad VirGL renderer.
@@ -138,7 +139,7 @@ and a matching capset that this renderer does not advertise.
 
 ## Validation retained in the repository
 
-Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
+Rust tests prove capset bits, transactional no-clear, malformed-index, and inline-constant render/rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schema-2/3/4/5/6/7/8 `VGD1`
 payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
@@ -163,8 +164,8 @@ This does not claim native Mesa, a native OpenGL context, or browser WebGPU exec
 
 ## Next compatibility milestones
 
-1. Expand the generic vertex/fragment contract only with the same native/CPU/WebGPU agreement.
-2. Design blob, external-memory, and synchronization contracts before any
+1. Add native transport proof for inline constants, then expand the generic vertex/fragment contract only with the same CPU/WebGPU agreement.
+2. Design resource-backed uniform buffers, blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 
 ## Sources

@@ -15,6 +15,7 @@ mod virgl;
 mod virgl_blend_state;
 mod virgl_buffer;
 mod virgl_buffer_copy;
+mod virgl_constant_draw;
 mod virgl_copy;
 mod virgl_draw;
 mod virgl_draw_capset;

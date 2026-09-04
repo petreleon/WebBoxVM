@@ -78,6 +78,17 @@ fn fragment(lines: &[&str]) -> Option<ShaderProgram> {
     if lines
         == [
             "FRAG",
+            "DCL CONST[0][0]",
+            "DCL OUT[0], COLOR",
+            "MOV OUT[0], CONST[0][0]",
+            "END",
+        ]
+    {
+        return Some(ShaderProgram::FragmentConstant);
+    }
+    if lines
+        == [
+            "FRAG",
             "DCL IN[0], GENERIC[0], LINEAR",
             "DCL OUT[0], COLOR[0]",
             "MOV OUT[0], IN[0]",
@@ -143,7 +154,6 @@ fn fragment(lines: &[&str]) -> Option<ShaderProgram> {
     }
     color(lines[2]).map(ShaderProgram::FragmentSolid)
 }
-
 fn color(line: &str) -> Option<[u32; 4]> {
     let body = line.strip_prefix("IMM[0] FLT32 {")?.strip_suffix('}')?;
     let values: Vec<_> = body.split(',').map(str::trim).collect();
