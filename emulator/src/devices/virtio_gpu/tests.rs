@@ -19,6 +19,7 @@ mod virgl_constant_draw;
 mod virgl_copy;
 mod virgl_draw;
 mod virgl_draw_capset;
+mod virgl_depth_draw;
 mod virgl_draw_fixture;
 mod virgl_dual_texture_draw;
 mod virgl_indexed_draw;

@@ -1,12 +1,14 @@
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::{
     BufferBind, FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32_FLOAT,
-    FORMAT_R32G32B32A32_FLOAT, GpuResource, sampled_texture_format, total_resource_limit,
+    FORMAT_R32G32B32A32_FLOAT, FORMAT_Z32_FLOAT, GpuResource, sampled_texture_format,
+    total_resource_limit,
 };
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
 const VIRGL_TARGET_BUFFER: u32 = 0;
 const VIRGL_TARGET_TEXTURE_2D: u32 = 2;
+const VIRGL_BIND_DEPTH_STENCIL: u32 = 1;
 const VIRGL_BIND_RENDER_TARGET: u32 = 1 << 1;
 const VIRGL_BIND_SAMPLER_VIEW: u32 = 1 << 3;
 const VIRGL_BIND_RENDER_AND_SAMPLE: u32 = VIRGL_BIND_RENDER_TARGET | VIRGL_BIND_SAMPLER_VIEW;
@@ -27,10 +29,12 @@ impl VirtioGpu {
         if self.resource_count() >= MAX_RESOURCES {
             return RESP_ERR_OUT_OF_MEMORY;
         }
-        let resource = if let Some(sampleable) =
-            color_texture(target, format, bind, depth, array, level, samples, flags)
-        {
+        let resource = if let Some(sampleable) = color_texture(
+            target, format, bind, depth, array, level, samples, flags,
+        ) {
             GpuResource::new_texture(format, width, height, sampleable)
+        } else if depth_texture(target, format, bind, depth, array, level, samples, flags) {
+            GpuResource::new_depth_texture(width, height)
         } else if let Some(buffer_bind) = buffer_bind(
             target, format, bind, height, depth, array, level, samples, flags,
         ) {
@@ -50,6 +54,26 @@ impl VirtioGpu {
         self.virgl_resources.insert(id);
         RESP_OK_NODATA
     }
+}
+
+fn depth_texture(
+    target: u32,
+    format: u32,
+    bind: u32,
+    depth: u32,
+    array: u32,
+    level: u32,
+    samples: u32,
+    flags: u32,
+) -> bool {
+    target == VIRGL_TARGET_TEXTURE_2D
+        && format == FORMAT_Z32_FLOAT
+        && bind == VIRGL_BIND_DEPTH_STENCIL
+        && depth == 1
+        && array == 1
+        && level == 0
+        && matches!(samples, 0 | 1)
+        && flags == 0
 }
 
 fn color_texture(

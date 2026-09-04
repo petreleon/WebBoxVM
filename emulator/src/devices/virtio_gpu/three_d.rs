@@ -46,6 +46,7 @@ pub(super) enum Pending3dEffect {
         context_id: u32,
         generation: u32,
         resource_id: u32,
+        depth_resource: Option<u32>,
         rect: Rect,
         clear_bgra: [u8; 4],
         material: DrawMaterial,

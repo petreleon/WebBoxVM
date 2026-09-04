@@ -1,6 +1,8 @@
+mod depth;
 mod lifecycle;
 use super::{MAX_RESOURCE_BYTES, protocol::{BackingEntry, Rect}};
 use crate::memory::PhysicalMemory;
+pub(in crate::devices::virtio_gpu) use depth::FORMAT_Z32_FLOAT;
 pub(super) use lifecycle::total_resource_limit;
 pub(super) const FORMAT_B8G8R8A8_UNORM: u32 = 1;
 pub(super) const FORMAT_B8G8R8X8_UNORM: u32 = 2;
@@ -16,6 +18,7 @@ pub(super) fn sampled_texture_format(format: u32) -> bool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResourceKind {
     ColorTexture2d,
+    DepthTexture2d,
     Buffer,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,7 +38,6 @@ pub(super) struct GpuResource {
     sampleable: bool,
     buffer_bind: Option<BufferBind>,
 }
-
 impl GpuResource {
     pub fn byte_len(width: u32, height: u32) -> Option<usize> {
         if width == 0 || height == 0 {
@@ -48,7 +50,6 @@ impl GpuResource {
             .checked_mul(4)
             .filter(|len| *len <= MAX_RESOURCE_BYTES)
     }
-
     pub fn supported_format(format: u32) -> bool {
         matches!(
             format,
@@ -58,17 +59,14 @@ impl GpuResource {
                 | FORMAT_X8R8G8B8_UNORM
         )
     }
-
     pub(super) fn virgl_texture_format(format: u32) -> bool {
         Self::supported_format(format) || format == FORMAT_R8G8B8A8_UNORM
     }
-
     pub fn new(format: u32, width: u32, height: u32) -> Option<Self> {
         Self::supported_format(format)
             .then(|| Self::new_texture(format, width, height, false))
             .flatten()
     }
-
     pub fn new_texture(format: u32, width: u32, height: u32, sampleable: bool) -> Option<Self> {
         let len = Self::byte_len(width, height)?;
         Self::virgl_texture_format(format).then(|| Self {
@@ -82,7 +80,6 @@ impl GpuResource {
             buffer_bind: None,
         })
     }
-
     pub(super) fn new_buffer(format: u32, width: u32, buffer_bind: BufferBind) -> Option<Self> {
         let len = Self::buffer_byte_len(width)?;
         Some(Self {
@@ -96,7 +93,6 @@ impl GpuResource {
             buffer_bind: Some(buffer_bind),
         })
     }
-
     pub fn buffer_byte_len(width: u32) -> Option<usize> {
         usize::try_from(width)
             .ok()
@@ -105,6 +101,10 @@ impl GpuResource {
 
     pub fn is_texture_2d(&self) -> bool {
         self.kind == ResourceKind::ColorTexture2d
+    }
+
+    pub(in crate::devices::virtio_gpu) fn is_depth_texture_2d(&self) -> bool {
+        self.kind == ResourceKind::DepthTexture2d
     }
 
     pub fn is_buffer(&self) -> bool {

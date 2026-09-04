@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260903-virgl-viewport-r1";
-import { bindRunnerEvents } from "./runner-events.js?v=20260903-virgl-viewport-r1";
-import { fakeCanvas, fakeStatus } from "./gpu-test-fakes.mjs?v=20260903-virgl-viewport-r1";
-import { gpu3dPacket } from "./gpu-test-packets.mjs?v=20260903-virgl-viewport-r1";
+import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-depth-r1";
+import { bindRunnerEvents } from "./runner-events.js?v=20260904-virgl-depth-r1";
+import { fakeCanvas, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-r1";
+import { gpu3dPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-depth-r1";
 
 test("3D acknowledgment waits for completion and is suppressed after VM replacement", async () => {
   let current = true;

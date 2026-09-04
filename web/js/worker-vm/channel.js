@@ -1,4 +1,4 @@
-import { initialMetrics } from "./channel-state.js?v=20260903-virgl-viewport-r1";
+import { initialMetrics } from "./channel-state.js?v=20260904-virgl-depth-r1";
 
 export class WorkerChannel {
   #callbacks;

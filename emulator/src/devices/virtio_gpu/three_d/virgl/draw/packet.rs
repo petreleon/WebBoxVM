@@ -41,10 +41,11 @@ fn solid(
     work: &DrawWork,
     color: [f32; 4],
 ) -> Vec<u8> {
-    let mut packet = header(2, sequence, width, height, work.vertex_count);
+    let mut packet = header(if work.depth_resource.is_some() { 9 } else { 2 }, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain(color));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
+    if work.depth_resource.is_some() { floats(&mut packet, [1.0].into_iter()); }
     packet
 }
 

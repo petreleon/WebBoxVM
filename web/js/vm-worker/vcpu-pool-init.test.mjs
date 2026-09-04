@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { VcpuPool } from "./vcpu-pool.js?v=20260903-virgl-viewport-r1";
+import { VcpuPool } from "./vcpu-pool.js?v=20260904-virgl-depth-r1";
 
 const previousWorker = globalThis.Worker;
 

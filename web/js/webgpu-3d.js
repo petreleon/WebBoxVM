@@ -1,16 +1,11 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260903-virgl-viewport-r1";
-import {
-  defaultBufferUsage,
-  ensureBuffer,
-  paddedIndexBytes,
-  pipelineDescriptor,
-  renderPassDescriptor,
-} from "./webgpu-3d-resources.js?v=20260903-virgl-viewport-r1";
-import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260903-virgl-viewport-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260903-virgl-viewport-r1";
-import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260903-virgl-viewport-r1";
-import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260903-virgl-viewport-r1";
-import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260903-virgl-viewport-r1";
-import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260903-virgl-viewport-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-r1";
+import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-r1";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-depth-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-depth-r1";
+import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-depth-r1";
+import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-depth-r1";
+import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-depth-r1";
+import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-depth-r1";
+import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-depth-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
@@ -44,14 +39,14 @@ export class ExperimentalWebGpu3dRenderer {
   #uniformBuffer;
   #vertexBuffer;
   #vertexCapacity = 0;
-  #virglDraw; #virglTexture; #virglTextureMultiply; #virglVertexColor; #virglTextureColor;
+  #virglDraw; #virglDepth; #virglTexture; #virglTextureMultiply; #virglVertexColor; #virglTextureColor;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
     this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
-    [this.#virglDraw, this.#virglTexture, this.#virglTextureMultiply, this.#virglVertexColor, this.#virglTextureColor] = [
-      new VirglDrawRenderer(session, options), new VirglTextureRenderer(session, options),
+    [this.#virglDraw, this.#virglDepth, this.#virglTexture, this.#virglTextureMultiply, this.#virglVertexColor, this.#virglTextureColor] = [
+      new VirglDrawRenderer(session, options), new VirglDepthRenderer(session, options), new VirglTextureRenderer(session, options),
       new VirglTextureMultiplyRenderer(session, options), new VirglVertexColorRenderer(session, options), new VirglTextureColorRenderer(session, options),
     ];
   }
@@ -61,6 +56,7 @@ export class ExperimentalWebGpu3dRenderer {
       return renderVirglClear(this.#session, backend, frame, isCurrent);
     }
     if (frame.protocol === "virgl-draw") return this.#virglDraw.render(backend, frame, isCurrent);
+    if (frame.protocol === "virgl-depth") return this.#virglDepth.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture") return this.#virglTexture.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture-multiply") return this.#virglTextureMultiply.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-vertex-color") return this.#virglVertexColor.render(backend, frame, isCurrent); if (frame.protocol === "virgl-texture-color") return this.#virglTextureColor.render(backend, frame, isCurrent);
@@ -81,7 +77,7 @@ export class ExperimentalWebGpu3dRenderer {
 
   invalidate() {
     this.#revision += 1;
-    this.#virglDraw.invalidate(); this.#virglTexture.invalidate(); this.#virglTextureMultiply.invalidate(); this.#virglVertexColor.invalidate(); this.#virglTextureColor.invalidate();
+    this.#virglDraw.invalidate(); this.#virglDepth.invalidate(); this.#virglTexture.invalidate(); this.#virglTextureMultiply.invalidate(); this.#virglVertexColor.invalidate(); this.#virglTextureColor.invalidate();
     this.#uniformBuffer?.destroy?.();
     this.#vertexBuffer?.destroy?.();
     this.#indexBuffer?.destroy?.();

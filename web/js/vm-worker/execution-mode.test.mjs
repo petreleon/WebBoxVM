@@ -3,8 +3,8 @@ import test, { afterEach } from "node:test";
 import {
   prepareExecutionMode,
   transitionToParallel,
-} from "./lifecycle.js?v=20260903-virgl-viewport-r1";
-import { resetJitState, state } from "./state.js?v=20260903-virgl-viewport-r1";
+} from "./lifecycle.js?v=20260904-virgl-depth-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-r1";
 
 afterEach(() => {
   state.executionMode = "cooperative";

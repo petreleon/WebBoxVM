@@ -10,6 +10,7 @@ pub(in crate::devices::virtio_gpu) const CAPSET_COUNT: u32 = 2;
 const VIRGL_SAMPLER_FORMATS_0: u32 = 1 << 1;
 const VIRGL_SAMPLER_FORMATS_2: u32 = 1 << 3;
 const VIRGL_COLOR_RENDER_FORMATS: u32 = 0b1_1110;
+const VIRGL_DEPTH_STENCIL_FORMATS: u32 = 1 << 18;
 const VIRGL_VERTEX_FORMATS: u32 = (1 << 29) | (1 << 31);
 const VIRGL_PRIMITIVES: u32 = (1 << 4) | (1 << 5) | (1 << 6);
 const VIRGL_UBO: u32 = 1 << 18;
@@ -57,6 +58,7 @@ fn virgl_caps() -> Vec<u8> {
     write_u32(&mut caps, 4, VIRGL_SAMPLER_FORMATS_0);
     write_u32(&mut caps, 12, VIRGL_SAMPLER_FORMATS_2);
     write_u32(&mut caps, 68, VIRGL_COLOR_RENDER_FORMATS);
+    write_u32(&mut caps, 132, VIRGL_DEPTH_STENCIL_FORMATS);
     write_u32(&mut caps, 196, VIRGL_VERTEX_FORMATS);
     write_u32(&mut caps, 260, VIRGL_UBO);
     write_u32(&mut caps, 268, 1);

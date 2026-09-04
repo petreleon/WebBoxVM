@@ -18,9 +18,9 @@ test -z "$("$nm" -u "$binary")"
 
 size=$(wc -c < "$binary" | tr -d ' ')
 test "$size" -le 65536
-for source in Makefile README.md demo.c draw.c index.c kms.c kms.h link.ld memory.c ops.c ops.h syscall.h texture.c texture_color.c texture_draw.c texture_pair.c transfer.c transfer.h uapi.h uniform.c vertex_color.c virgl.h verify.sh; do
+for source in Makefile README.md demo.c depth.c draw.c index.c kms.c kms.h link.ld memory.c ops.c ops.h setup.c syscall.h texture.c texture_color.c texture_draw.c texture_pair.c transfer.c transfer.h uapi.h uniform.c vertex_color.c virgl.h verify.sh; do
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done
-printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/inline-constant/vertex-fragment-uniform/texture-pair/vertex-color/texture-color=%s bytes\n' \
+printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/uniform/texture-pair/vertex-color/texture-color/depth-less=%s bytes\n' \
     "$binary" "$size"

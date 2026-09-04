@@ -1,4 +1,4 @@
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260903-virgl-viewport-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-depth-r1";
 
 const SHADER = `
 @group(0) @binding(0) var guest_texture: texture_2d<f32>;

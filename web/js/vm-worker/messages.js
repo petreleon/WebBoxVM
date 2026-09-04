@@ -8,18 +8,18 @@ import {
   restoreInstallDisk,
   setStepSlice,
   transitionToParallel,
-} from "./lifecycle.js?v=20260903-virgl-viewport-r1";
-import { withEmulatorAccess } from "./access.js?v=20260903-virgl-viewport-r1";
-import { compileJitBlock } from "./jit-compile.js?v=20260903-virgl-viewport-r1";
-import { errorMessage } from "./errors.js?v=20260903-virgl-viewport-r1";
-import { runJitBlock } from "./jit-run.js?v=20260903-virgl-viewport-r1";
-import { schedulePump } from "./pump.js?v=20260903-virgl-viewport-r1";
-import { resetJitState, state } from "./state.js?v=20260903-virgl-viewport-r1";
+} from "./lifecycle.js?v=20260904-virgl-depth-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-depth-r1";
+import { compileJitBlock } from "./jit-compile.js?v=20260904-virgl-depth-r1";
+import { errorMessage } from "./errors.js?v=20260904-virgl-depth-r1";
+import { runJitBlock } from "./jit-run.js?v=20260904-virgl-depth-r1";
+import { schedulePump } from "./pump.js?v=20260904-virgl-depth-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-r1";
 import {
   beginUrgentUartMessage,
   finishUrgentUartMessage,
   injectUartMessage,
-} from "./uart-input.js?v=20260903-virgl-viewport-r1";
+} from "./uart-input.js?v=20260904-virgl-depth-r1";
 
 export async function handleMessage(message) {
   const { id, payload = {}, type } = message;

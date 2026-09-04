@@ -1,4 +1,4 @@
-import { installTextProbe } from "./uart-probe.js?v=20260903-virgl-viewport-r1";
+import { installTextProbe } from "./uart-probe.js?v=20260904-virgl-depth-r1";
 
 const RENDER_TAIL_LIMIT = 32768;
 

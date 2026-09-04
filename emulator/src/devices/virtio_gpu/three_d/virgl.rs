@@ -30,6 +30,7 @@ pub(in crate::devices::virtio_gpu) use shader::ShaderKind;
 #[allow(unused_imports)]
 pub(in crate::devices::virtio_gpu) use shader::ShaderProgram;
 
+pub(super) const VIRGL_OBJECT_DSA: u8 = 0;
 pub(super) const VIRGL_OBJECT_BLEND: u8 = 1;
 pub(super) const VIRGL_OBJECT_RASTERIZER: u8 = 2;
 pub(super) const VIRGL_OBJECT_SHADER: u8 = 4;
@@ -91,6 +92,7 @@ impl VirtioGpu {
                 context_id: header.ctx_id,
                 generation,
                 resource_id,
+                depth_resource: work.depth_resource,
                 rect,
                 clear_bgra: bgra(clear),
                 material: work.material,

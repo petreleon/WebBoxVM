@@ -1,4 +1,4 @@
-import { formatBytes, nextFrame } from "./utils.js?v=20260903-virgl-viewport-r1";
+import { formatBytes, nextFrame } from "./utils.js?v=20260904-virgl-depth-r1";
 
 const BENCHMARK_DISK_PATH = "./media/benchmark-installed.wbdisk";
 const BENCHMARK_DISK_BYTES = 1_259_034_724;

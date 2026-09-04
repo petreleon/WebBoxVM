@@ -4,7 +4,13 @@ use crate::devices::virtio_gpu::protocol::{
 };
 use crate::devices::virtio_gpu::{Scanout, VirtioGpu};
 
-pub(super) type Clear = (u32, [f32; 4], Rect);
+#[derive(Clone, Copy)]
+pub(super) struct Clear {
+    pub(super) resource: u32,
+    pub(super) depth_resource: Option<u32>,
+    pub(super) color: [f32; 4],
+    pub(super) rect: Rect,
+}
 
 impl VirtioGpu {
     pub(super) fn validate_virgl_clear(
@@ -35,7 +41,8 @@ impl VirtioGpu {
         &self,
         context: &VirglContext,
         color: [f32; 4],
-    ) -> Result<(u32, Rect), u32> {
+        depth: bool,
+    ) -> Result<Clear, u32> {
         let resource = context
             .framebuffer_resource()
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
@@ -45,18 +52,27 @@ impl VirtioGpu {
             .map(|current| current.rect)
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
         self.validate_virgl_clear(resource, color, rect)?;
-        Ok((resource, rect))
+        let depth_resource = context.framebuffer_depth_resource();
+        if depth != depth_resource.is_some() {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
+        if let Some(depth_resource) = depth_resource {
+            let depth = self.resources.get(&depth_resource).ok_or(RESP_ERR_INVALID_RESOURCE_ID)?;
+            if !depth.is_depth_texture_2d()
+                || depth.width != rect.width
+                || depth.height != rect.height
+                || depth_resource == resource
+            {
+                return Err(RESP_ERR_INVALID_PARAMETER);
+            }
+        }
+        Ok(Clear { resource, depth_resource, color, rect })
     }
 }
 
-pub(super) fn set(
-    clear: &mut Option<Clear>,
-    resource: u32,
-    color: [f32; 4],
-    rect: Rect,
-) -> Result<(), u32> {
+pub(super) fn set(clear: &mut Option<Clear>, target: Clear) -> Result<(), u32> {
     clear
-        .replace((resource, color, rect))
+        .replace(target)
         .is_none()
         .then_some(())
         .ok_or(RESP_ERR_INVALID_PARAMETER)

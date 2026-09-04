@@ -28,6 +28,10 @@ struct virgl_resources {
     u32 vertex_color_resource;
     u32 uniform_bo;
     u32 uniform_resource;
+    u32 depth_bo;
+    u32 depth_resource;
+    u32 depth_vertex_bo;
+    u32 depth_vertex_resource;
 };
 
 int virgl_setup(long fd, struct virgl_resources *resources);
@@ -43,6 +47,8 @@ int virgl_create_index_buffer(long fd, u32 *bo_handle, u32 *resource_handle);
 int virgl_run_triangle(long fd, const struct virgl_resources *resources);
 int virgl_create_uniform_buffer(long fd, u32 *bo_handle, u32 *resource_handle);
 int virgl_run_uniform_triangle(long fd, const struct virgl_resources *resources);
+int virgl_create_depth_resources(long fd, struct virgl_resources *resources);
+int virgl_run_depth_triangle(long fd, const struct virgl_resources *resources);
 int virgl_upload_index_buffer(long fd, u32 bo_handle);
 int virgl_create_textured_resources(long fd, struct virgl_resources *resources);
 int virgl_run_textured_triangle(long fd, const struct virgl_resources *resources);

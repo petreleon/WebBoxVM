@@ -1,5 +1,5 @@
-import { state } from "./state.js?v=20260903-virgl-viewport-r1";
-import { resetUartInput } from "./uart-input.js?v=20260903-virgl-viewport-r1";
+import { state } from "./state.js?v=20260904-virgl-depth-r1";
+import { resetUartInput } from "./uart-input.js?v=20260904-virgl-depth-r1";
 
 export function resetVmPollState(now = performance.now()) {
   resetUartInput();

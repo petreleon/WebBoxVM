@@ -1,5 +1,7 @@
 pub(super) mod blend;
 pub(super) mod constant;
+mod core;
+pub(super) mod depth;
 pub(super) mod draw;
 pub(super) mod index;
 pub(super) mod inline;
@@ -10,15 +12,9 @@ pub(super) mod uniform;
 pub(super) mod vertex;
 use super::super::draw::DrawCall;
 use super::super::inline::InlineWrite;
-use super::super::{CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE};
+use super::super::{CopyRegion, MAX_VIRGL_SUBMIT_BYTES};
 use crate::devices::virtio_gpu::protocol::{Rect, read_u32};
 const CMD_NOP: u8 = 0;
-const CMD_CREATE_OBJECT: u8 = 1;
-const CMD_DESTROY_OBJECT: u8 = 3;
-const CMD_SET_FRAMEBUFFER_STATE: u8 = 5;
-const CMD_CLEAR: u8 = 7;
-const CMD_RESOURCE_COPY_REGION: u8 = 17;
-const CLEAR_COLOR0: u32 = 1 << 2;
 
 #[derive(Clone)]
 pub(super) enum Command {
@@ -31,8 +27,8 @@ pub(super) enum Command {
         layers: u32,
     },
     DestroySurface { handle: u32 },
-    SetFramebuffer { surface: Option<u32> },
-    Clear { color: [f32; 4] },
+    SetFramebuffer { color: Option<u32>, depth: Option<u32> },
+    Clear { color: [f32; 4], depth: bool },
     ClearSurface {
         handle: u32,
         color: [f32; 4],
@@ -43,6 +39,7 @@ pub(super) enum Command {
     Draw(DrawCall),
     Blend(blend::Command),
     Constant(constant::Command),
+    Depth(depth::Command),
     Uniform(uniform::Command),
     Vertex(vertex::Command),
     Index(index::Command),
@@ -81,100 +78,17 @@ pub(super) fn decode_stream(input: &[u8]) -> Option<Vec<Command>> {
 
 fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
     let (command, object) = (header as u8, (header >> 8) as u8);
-    match (command, object, words) {
-        (CMD_NOP, 0, []) => Some(Command::Nop),
-        (CMD_CREATE_OBJECT, VIRGL_OBJECT_SURFACE, [handle, resource, format, level, layers]) => {
-            Some(Command::CreateSurface {
-                handle: *handle,
-                resource: *resource,
-                format: *format,
-                level: *level,
-                layers: *layers,
-            })
-        }
-        (CMD_DESTROY_OBJECT, VIRGL_OBJECT_SURFACE, [handle]) => {
-            Some(Command::DestroySurface { handle: *handle })
-        }
-        (CMD_SET_FRAMEBUFFER_STATE, 0, [0, 0]) => Some(Command::SetFramebuffer { surface: None }),
-        (CMD_SET_FRAMEBUFFER_STATE, 0, [1, 0, surface]) if *surface != 0 => {
-            Some(Command::SetFramebuffer {
-                surface: Some(*surface),
-            })
-        }
-        (CMD_CLEAR, 0, [buffers, red, green, blue, alpha, _, _, _]) if *buffers == CLEAR_COLOR0 => {
-            Some(Command::Clear {
-                color: [
-                    f32::from_bits(*red),
-                    f32::from_bits(*green),
-                    f32::from_bits(*blue),
-                    f32::from_bits(*alpha),
-                ],
-            })
-        }
-        (
-            VIRGL_CMD_CLEAR_SURFACE,
-            0,
-            [state, handle, red, green, blue, alpha, x, y, width, height],
-        ) if *state == CLEAR_COLOR0 << 1 => Some(Command::ClearSurface {
-            handle: *handle,
-            color: [
-                f32::from_bits(*red),
-                f32::from_bits(*green),
-                f32::from_bits(*blue),
-                f32::from_bits(*alpha),
-            ],
-            rect: Rect {
-                x: *x,
-                y: *y,
-                width: *width,
-                height: *height,
-            },
-        }),
-        (
-            CMD_RESOURCE_COPY_REGION,
-            0,
-            [
-                dst_resource,
-                dst_level,
-                dst_x,
-                dst_y,
-                dst_z,
-                src_resource,
-                src_level,
-                src_x,
-                src_y,
-                src_z,
-                width,
-                height,
-                depth,
-            ],
-        ) => Some(Command::CopyRegion(CopyRegion {
-            dst_resource: *dst_resource,
-            dst_level: *dst_level,
-            dst_x: *dst_x,
-            dst_y: *dst_y,
-            dst_z: *dst_z,
-            src_resource: *src_resource,
-            src_level: *src_level,
-            src_rect: Rect {
-                x: *src_x,
-                y: *src_y,
-                width: *width,
-                height: *height,
-            },
-            src_z: *src_z,
-            depth: *depth,
-        })),
-        _ => vertex::decode(command, object, words)
-            .map(Command::Vertex)
-            .or_else(|| constant::decode(command, object, words).map(Command::Constant))
-            .or_else(|| uniform::decode(command, object, words).map(Command::Uniform))
-            .or_else(|| inline::decode(command, object, words).map(Command::InlineWrite))
-            .or_else(|| index::decode(command, object, words).map(Command::Index))
-            .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
-            .or_else(|| draw::decode(command, object, words).map(Command::Draw))
-            .or_else(|| blend::decode(command, object, words).map(Command::Blend))
-            .or_else(|| shader::decode(command, object, words).map(Command::Shader))
-            .or_else(|| state::decode(command, object, words).map(Command::State)),
-    }
+    if command == CMD_NOP && object == 0 && words.is_empty() { return Some(Command::Nop); }
+    core::decode(command, object, words)
+        .or_else(|| vertex::decode(command, object, words).map(Command::Vertex))
+        .or_else(|| constant::decode(command, object, words).map(Command::Constant))
+        .or_else(|| depth::decode(command, object, words).map(Command::Depth))
+        .or_else(|| uniform::decode(command, object, words).map(Command::Uniform))
+        .or_else(|| inline::decode(command, object, words).map(Command::InlineWrite))
+        .or_else(|| index::decode(command, object, words).map(Command::Index))
+        .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
+        .or_else(|| draw::decode(command, object, words).map(Command::Draw))
+        .or_else(|| blend::decode(command, object, words).map(Command::Blend))
+        .or_else(|| shader::decode(command, object, words).map(Command::Shader))
+        .or_else(|| state::decode(command, object, words).map(Command::State))
 }

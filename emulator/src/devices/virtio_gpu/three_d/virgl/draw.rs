@@ -1,3 +1,5 @@
+mod apply;
+mod depth;
 mod material;
 mod packet;
 mod primitive;
@@ -50,6 +52,7 @@ pub(super) struct DrawWork {
     pub(super) vertex_count: u32,
     pub(super) viewport: [f32; 6],
     pub(super) scissor: Option<Rect>,
+    pub(super) depth_resource: Option<u32>,
 }
 
 impl VirtioGpu {
@@ -57,6 +60,7 @@ impl VirtioGpu {
         &self,
         context: &VirglContext,
         resource_id: u32,
+        depth_resource: Option<u32>,
         rect: Rect,
         call: DrawCall,
     ) -> Result<DrawWork, u32> {
@@ -72,6 +76,9 @@ impl VirtioGpu {
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
         let (vertex_bytes, material, offset) = material(self, context, resource_id, state)?;
+        let depth_resource = depth::validate(
+            self, context, resource_id, depth_resource, state.depth, &material,
+        )?;
         let viewport = state.viewport;
         let scissor = state.scissor;
         if !viewport.valid_within(rect.width, rect.height)
@@ -104,6 +111,7 @@ impl VirtioGpu {
             vertices,
             vertex_count,
             viewport: viewport.values(),
+            depth_resource,
             scissor: scissor.map(|scissor| Rect {
                 x: scissor.x,
                 y: rect.height - (scissor.y + scissor.height),
@@ -113,50 +121,6 @@ impl VirtioGpu {
         })
     }
 
-    pub(super) fn apply_virgl_draw(
-        &mut self,
-        resource_id: u32,
-        rect: Rect,
-        clear: [u8; 4],
-        material: DrawMaterial,
-        vertices: &[u8],
-        viewport: [f32; 6],
-        scissor: Option<Rect>,
-    ) -> bool {
-        let Some(resource) = self.resources.get_mut(&resource_id) else {
-            return false;
-        };
-        if resource.clear_bgra(rect, clear).is_none() {
-            return false;
-        }
-        let drawn = match &material {
-            DrawMaterial::Solid(color) => {
-                raster::draw_solid(resource, rect, vertices, *color, viewport, scissor)
-            }
-            DrawMaterial::VertexColor => {
-                raster::draw_vertex_color(resource, rect, vertices, viewport, scissor)
-            }
-            DrawMaterial::Textured(texture) => raster::draw_textured(
-                resource,
-                rect,
-                vertices,
-                std::slice::from_ref(texture),
-                viewport,
-                scissor,
-            ),
-            DrawMaterial::TexturedPair(textures) => {
-                raster::draw_textured(resource, rect, vertices, textures, viewport, scissor)
-            }
-            DrawMaterial::TextureColor(texture) => {
-                raster::draw_texture_color(resource, rect, vertices, texture, viewport, scissor)
-            }
-        };
-        if !drawn {
-            return false;
-        }
-        self.add_damage(resource_id, rect);
-        true
-    }
 }
 
 fn translate_vertices(vertices: &mut [u8], [x, y]: [f32; 2]) -> bool {

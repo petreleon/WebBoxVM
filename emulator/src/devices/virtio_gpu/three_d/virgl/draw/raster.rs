@@ -1,3 +1,4 @@
+mod depth;
 mod geometry;
 mod solid;
 mod textured;
@@ -26,6 +27,18 @@ pub(super) fn draw_solid(
     scissor: Option<Rect>,
 ) -> bool {
     solid::draw(resource, rect, vertices, color, viewport, scissor)
+}
+
+pub(super) fn draw_depth_solid(
+    resource: &mut GpuResource,
+    rect: Rect,
+    vertices: &[u8],
+    color: [f32; 4],
+    viewport: [f32; 6],
+    scissor: Option<Rect>,
+    depth_values: &mut [f32],
+) -> bool {
+    depth::draw(resource, rect, vertices, color, viewport, scissor, depth_values)
 }
 
 pub(super) fn draw_textured(

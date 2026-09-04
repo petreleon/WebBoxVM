@@ -1,6 +1,7 @@
 mod blend;
 mod clear;
 mod constant;
+mod depth;
 mod decode;
 mod index;
 mod sampler;
@@ -12,7 +13,7 @@ mod vertex;
 use super::VirglContext;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
-use clear::set;
+use clear::{Clear, set};
 use decode::{Command, decode_stream};
 
 impl VirtioGpu {
@@ -65,17 +66,17 @@ impl VirtioGpu {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                 }
-                Command::SetFramebuffer { surface } => {
-                    if !context.bind_framebuffer(surface) {
+                Command::SetFramebuffer { color, depth } => {
+                    if !context.bind_framebuffer(color, depth) {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                 }
-                Command::Clear { color } => {
+                Command::Clear { color, depth } => {
                     if copy.is_some() || draw.is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
-                    let (resource, rect) = self.framebuffer_virgl_clear_target(&context, color)?;
-                    set(&mut clear, resource, color, rect)?;
+                    let target = self.framebuffer_virgl_clear_target(&context, color, depth)?;
+                    set(&mut clear, target)?;
                 }
                 Command::ClearSurface {
                     handle,
@@ -89,7 +90,7 @@ impl VirtioGpu {
                         .surface_resource(handle)
                         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
                     self.validate_virgl_clear(resource, color, rect)?;
-                    set(&mut clear, resource, color, rect)?;
+                    set(&mut clear, Clear { resource, depth_resource: None, color, rect })?;
                 }
                 Command::CopyRegion(region) => {
                     if clear.is_some() || draw.is_some() || copy.replace(region).is_some() {
@@ -105,11 +106,14 @@ impl VirtioGpu {
                     if copy.is_some() || draw.is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
-                    let (resource, _, rect) = clear.ok_or(RESP_ERR_INVALID_PARAMETER)?;
-                    draw = Some(self.prepare_virgl_draw(&context, resource, rect, call)?);
+                    let target = clear.ok_or(RESP_ERR_INVALID_PARAMETER)?;
+                    draw = Some(self.prepare_virgl_draw(
+                        &context, target.resource, target.depth_resource, target.rect, call,
+                    )?);
                 }
                 Command::Blend(command) => blend::apply(&mut context, command)?,
                 Command::Constant(command) => constant::apply(&mut context, command),
+                Command::Depth(command) => depth::apply(&mut context, command)?,
                 Command::Uniform(command) => uniform::apply(self, &mut context, command)?,
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
                 Command::Index(command) => index::apply(self, &mut context, command)?,
@@ -125,7 +129,7 @@ impl VirtioGpu {
             self.apply_virgl_inline_write(write)?;
         }
         let deferred = match (clear, draw) {
-            (Some((resource, color, rect)), Some(work)) => Some(self.queue_virgl_draw(
+            (Some(Clear { resource, color, rect, .. }), Some(work)) => Some(self.queue_virgl_draw(
                 header,
                 context.generation,
                 resource,
@@ -133,9 +137,10 @@ impl VirtioGpu {
                 color,
                 work,
             )?),
-            (Some((resource, color, rect)), None) => {
+            (Some(Clear { resource, depth_resource: None, color, rect }), None) => {
                 Some(self.queue_virgl_clear(header, context.generation, resource, rect, color)?)
             }
+            (Some(Clear { depth_resource: Some(_), .. }), None) => return Err(RESP_ERR_INVALID_PARAMETER),
             (None, None) => None,
             (None, Some(_)) => return Err(RESP_ERR_INVALID_PARAMETER),
         };
@@ -160,12 +165,12 @@ impl VirtioGpu {
         };
         if !context.is_attached(resource)
             || !self.is_virgl_resource(resource)
-            || !target.is_texture_2d()
+            || (!target.is_texture_2d() && !target.is_depth_texture_2d())
             || target.format != format
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        context.add_surface(handle, resource);
+        context.add_surface(handle, resource, target.is_depth_texture_2d());
         Ok(())
     }
 }

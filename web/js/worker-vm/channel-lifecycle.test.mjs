@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { WorkerChannel } from "./channel.js?v=20260903-virgl-viewport-r1";
+import { WorkerChannel } from "./channel.js?v=20260904-virgl-depth-r1";
 
 const previousWorker = globalThis.Worker;
 let worker;
