@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-depth-batch-r1";
-import { versionedUrl } from "./asset-version.js?v=20260904-virgl-depth-batch-r1";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-depth-batch-r1";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-depth-compare-r1";
+import { versionedUrl } from "./asset-version.js?v=20260904-virgl-depth-compare-r1";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-depth-compare-r1";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);

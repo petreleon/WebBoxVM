@@ -1,4 +1,4 @@
-use super::DrawWork;
+use super::{DepthCompare, DrawWork};
 use super::super::{DeferredSubmit, Pending3dEffect};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{CtrlHeader, RESP_ERR_INVALID_PARAMETER, Rect};
@@ -41,7 +41,9 @@ impl VirtioGpu {
         clear: [f32; 4],
         works: Vec<DrawWork>,
     ) -> Result<DeferredSubmit, u32> {
-        if !works.iter().all(|work| work.depth_resource == Some(depth_resource)) {
+        if !works.iter().all(|work| {
+            work.depth_resource == Some(depth_resource) && work.depth_compare == Some(DepthCompare::Less)
+        }) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let sequence = self.virgl_sequence()?;

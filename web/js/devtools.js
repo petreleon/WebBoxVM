@@ -1,4 +1,4 @@
-import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260904-virgl-depth-batch-r1";
+import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260904-virgl-depth-compare-r1";
 
 export function installWebboxVmDevtools(getEmulator, getRunner) {
   const bridge = installDomBridge(getEmulator);

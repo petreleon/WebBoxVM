@@ -1,4 +1,5 @@
 use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
+use super::DepthCompare;
 use crate::devices::virtio_gpu::protocol::Rect;
 use std::collections::{HashMap, HashSet};
 
@@ -124,7 +125,7 @@ impl Viewport {
 pub(super) struct PipelineState {
     pub(super) blend_states: HashSet<u32>,
     pub(super) bound_blend_state: Option<u32>,
-    pub(super) depth_states: HashSet<u32>,
+    pub(super) depth_states: HashMap<u32, DepthCompare>,
     pub(super) bound_depth_state: Option<u32>,
     pub(super) rasterizers: HashMap<u32, Rasterizer>,
     pub(super) bound_rasterizer: Option<u32>,
@@ -141,7 +142,7 @@ impl PipelineState {
         Self {
             blend_states: HashSet::new(),
             bound_blend_state: None,
-            depth_states: HashSet::new(),
+            depth_states: HashMap::new(),
             bound_depth_state: None,
             rasterizers: HashMap::new(),
             bound_rasterizer: None,

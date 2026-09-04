@@ -1,5 +1,5 @@
 use super::DrawMaterial;
-use super::super::VirglContext;
+use super::super::{DepthCompare, VirglContext};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
 
@@ -8,12 +8,12 @@ pub(super) fn validate(
     context: &VirglContext,
     color_resource: u32,
     depth_resource: Option<u32>,
-    depth_enabled: bool,
+    depth_compare: Option<DepthCompare>,
     material: &DrawMaterial,
 ) -> Result<Option<u32>, u32> {
-    match (depth_enabled, depth_resource) {
-        (false, None) => Ok(None),
-        (true, Some(depth_resource)) => checked(gpu, context, color_resource, depth_resource, material),
+    match (depth_compare, depth_resource) {
+        (None, None) => Ok(None),
+        (Some(_), Some(depth_resource)) => checked(gpu, context, color_resource, depth_resource, material),
         _ => Err(RESP_ERR_INVALID_PARAMETER),
     }
 }

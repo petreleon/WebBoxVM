@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { withEmulatorAccess } from "./access.js?v=20260904-virgl-depth-batch-r1";
-import { handleMessage } from "./messages.js?v=20260904-virgl-depth-batch-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-batch-r1";
+import { withEmulatorAccess } from "./access.js?v=20260904-virgl-depth-compare-r1";
+import { handleMessage } from "./messages.js?v=20260904-virgl-depth-compare-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-compare-r1";
 
 afterEach(() => {
   state.emulator = undefined;

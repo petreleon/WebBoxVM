@@ -42,6 +42,19 @@ fn depth_batch_rejects_mixed_depth_attachments_before_queueing() {
     assert!(gpu.take_3d_update().is_empty());
 }
 
+#[test]
+fn depth_batch_rejects_compare_modes_other_than_less_before_queueing() {
+    let (mut gpu, mut mem) = prepared();
+    add_depth(&mut gpu, &mut mem, DEPTH); configure(&mut gpu, &mut mem); upload_depth_vertices(&mut gpu);
+    let state = [word(3, 0, 1), DSA, word(1, 0, 5), DSA, 11, 0, 0, 0, word(2, 0, 1), DSA];
+    assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
+    let mut command = clear(); command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    command.extend(constants([0.0, 1.0, 0.0, 0.5]));
+    let mut far = draw(); far[1] = 3; command.extend(far);
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_ERR_INVALID_PARAMETER);
+    assert!(gpu.take_3d_update().is_empty());
+}
+
 fn configure(gpu: &mut super::super::VirtioGpu, mem: &mut PhysicalMemory) {
     let mut state = surface_create(COLOR_SURFACE, TARGET);
     state.extend(surface_create(DEPTH_SURFACE, DEPTH).into_iter().enumerate().map(|(index, word)| if index == 3 { 18 } else { word }));

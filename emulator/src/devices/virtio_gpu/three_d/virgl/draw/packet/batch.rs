@@ -38,6 +38,8 @@ fn encode(
         let bytes = usize::try_from(work.vertex_count).ok()?.checked_mul(16)?;
         (matches!(work.material, DrawMaterial::Solid(_))
             && work.depth_resource.is_some() == depth
+            && (!depth && work.depth_compare.is_none()
+                || depth && work.depth_compare == Some(super::super::super::DepthCompare::Less))
             && work.vertices.len() == bytes)
             .then(|| total.checked_add(DRAW_STATE_BYTES + bytes))?
     })?;

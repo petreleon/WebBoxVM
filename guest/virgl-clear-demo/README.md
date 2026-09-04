@@ -2,7 +2,7 @@
 
 This freestanding AArch64 Linux program is a deliberately small guest-side
 proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
-source-over blend, rasterizer, viewport/scissor, inline-constant and bounded vertex/fragment-uniform triangles, interpolated vertex color, sampled texture, texture-modulated color, canonical depth-less triangles, and ordered non-depth and depth-tested solid-draw batches,
+source-over blend, rasterizer, viewport/scissor, inline-constant and bounded vertex/fragment-uniform triangles, interpolated vertex color, sampled texture, texture-modulated color, canonical depth-less and depth-equal triangles, and ordered non-depth and depth-tested solid-draw batches,
 and readback path. It is not Mesa, OpenGL, or Vulkan.
 
 It also proves Linux's `cmd_size` blob path: a private `WBL1` opaque command is
@@ -52,7 +52,7 @@ creates standard DSA state `DEPTH_TEST|DEPTH_WRITE|LESS`, clears color plus
 depth to one, and draws a near triangle before an overlapping far triangle.
 The final center must be a single source-over blend `58,102,20,255`. It then
 clears once and emits half-alpha red then half-alpha green standard solid
-`DRAW_VBO`s; the ordered source-over center is `0,128,64,255` in BGRA. It then clears color/depth once and draws half-alpha red near before half-alpha green far; `LESS` leaves the center at `0,0,128,255`.
+`DRAW_VBO`s; the ordered source-over center is `0,128,64,255` in BGRA. It then clears color/depth once and draws half-alpha red near before half-alpha green far; `LESS` leaves the center at `0,0,128,255`. A final standard `DEPTH_TEST|DEPTH_WRITE|EQUAL` state clears depth to one, draws a half-alpha blue triangle at z=1, and requires `128,0,0,255` BGRA.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -75,7 +75,7 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness
@@ -92,7 +92,7 @@ schema-2 packet only with the offset-four UBO color and shifted vertex positions
 then accepts schema 9 only with Z32 depth state, clear-one, and near-before-far
 vertices. It requires the one-blend `58,102,20,255` center, then validates the
 private `VGB1` envelope from the two standard draws and its ordered
-`0,128,64,255` center, then validates VGB1 v2 with standard clear-one depth and near-before-far records, requiring the `0,0,128,255` center before PASS.
+`0,128,64,255` center, then validates VGB1 v2 with standard clear-one depth and near-before-far records, requiring the `0,0,128,255` center. It finally validates schema 10 with standard `EQUAL`, z=1 vertices, black clear, and `128,0,0,255` BGRA before PASS.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command

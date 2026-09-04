@@ -1,6 +1,7 @@
 mod blend;
 mod constant;
 mod depth;
+mod depth_compare;
 mod draw;
 mod framebuffer;
 mod index;
@@ -24,6 +25,7 @@ use pipeline::PipelineState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
     SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState, Viewport,
 };
+pub(in crate::devices::virtio_gpu) use depth_compare::DepthCompare;
 use shader::PendingShader;
 
 pub(in crate::devices::virtio_gpu) use index::IndexBuffer;

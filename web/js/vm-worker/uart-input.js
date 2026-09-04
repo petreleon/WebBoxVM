@@ -3,7 +3,7 @@ import {
   INTERACTIVE_STEP_SLICE,
   INTERACTIVE_WINDOW_MS,
   state,
-} from "./state.js?v=20260904-virgl-depth-batch-r1";
+} from "./state.js?v=20260904-virgl-depth-compare-r1";
 
 const INPUT_TYPES = new Set(["sendUartBytes", "sendUartInput"]);
 

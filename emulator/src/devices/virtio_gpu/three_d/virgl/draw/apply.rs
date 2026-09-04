@@ -1,6 +1,6 @@
 mod batch;
 
-use super::{DrawMaterial, DrawWork, raster};
+use super::{DepthCompare, DrawMaterial, DrawWork, raster};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
 
@@ -30,6 +30,7 @@ impl VirtioGpu {
         &mut self,
         resource_id: u32,
         depth_resource: Option<u32>,
+        depth_compare: Option<DepthCompare>,
         rect: Rect,
         clear: [u8; 4],
         material: DrawMaterial,
@@ -37,19 +38,19 @@ impl VirtioGpu {
         viewport: [f32; 6],
         scissor: Option<Rect>,
     ) -> bool {
-        let mut depth = match depth_resource {
-            Some(depth_resource) => match self.depth_values(resource_id, depth_resource) {
-                Some(values) => Some((depth_resource, values)),
-                None => return false,
-            },
-            None => None,
+        let mut depth = match (depth_resource, depth_compare) {
+            (Some(depth_resource), Some(compare)) => self
+                .depth_values(resource_id, depth_resource)
+                .map(|values| (depth_resource, compare, values)),
+            (None, None) => None,
+            _ => return false,
         };
         let drawn = {
             let Some(resource) = self.resources.get_mut(&resource_id) else { return false; };
             if resource.clear_bgra(rect, clear).is_none() { return false; }
             match (&material, depth.as_mut()) {
-                (DrawMaterial::Solid(color), Some((_, values))) => {
-                    raster::draw_depth_solid(resource, rect, vertices, *color, viewport, scissor, values)
+                (DrawMaterial::Solid(color), Some((_, compare, values))) => {
+                    raster::draw_depth_solid(resource, rect, vertices, *color, viewport, scissor, *compare, values)
                 }
                 (DrawMaterial::Solid(color), None) => raster::draw_solid(resource, rect, vertices, *color, viewport, scissor),
                 (DrawMaterial::VertexColor, None) => raster::draw_vertex_color(resource, rect, vertices, viewport, scissor),
@@ -59,7 +60,7 @@ impl VirtioGpu {
                 (_, Some(_)) => false,
             }
         };
-        if !drawn || !self.store_depth(depth) { return false; }
+        if !drawn || !self.store_depth(depth.map(|(id, _, values)| (id, values))) { return false; }
         self.add_damage(resource_id, rect);
         true
     }

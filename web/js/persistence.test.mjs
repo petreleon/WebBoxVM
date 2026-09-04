@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DiskPersistence } from "./persistence.js?v=20260904-virgl-depth-batch-r1";
+import { DiskPersistence } from "./persistence.js?v=20260904-virgl-depth-compare-r1";
 
 test("background autosave throttles unchanged and recent generations", () => {
   let now = 0;

@@ -15,7 +15,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
     pub fragment_program: ShaderProgram,
     pub vertex_uniform: Option<super::UniformBinding>,
     pub fragment_constants: Option<FragmentConstants>,
-    pub depth: bool,
+    pub depth: Option<super::DepthCompare>,
     pub viewport: Viewport,
     pub scissor: Option<Rect>,
     pub sampled_resources: [Option<SampledResource>; MAX_VIRGL_FRAGMENT_SAMPLERS],
@@ -41,10 +41,10 @@ impl VirglContext {
         } else {
             None
         };
-        let depth = self.pipeline.bound_depth_state;
-        if depth.is_some() && !depth.is_some_and(|handle| self.pipeline.depth_states.contains(&handle)) {
-            return None;
-        }
+        let depth = match self.pipeline.bound_depth_state {
+            Some(handle) => Some(*self.pipeline.depth_states.get(&handle)?),
+            None => None,
+        };
         Some(DrawState {
             vertex_buffers,
             vertex_layout,
@@ -53,7 +53,7 @@ impl VirglContext {
             fragment_program,
             vertex_uniform: self.vertex_uniform,
             fragment_constants: self.fragment_constants,
-            depth: depth.is_some(),
+            depth,
             viewport: self.pipeline.viewport?,
             scissor,
             sampled_resources: self.sampled_resources(),

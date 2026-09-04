@@ -10,6 +10,10 @@ clear-one depth attachment. Each draw retains the standard state active at
 that exact command: fragment constant, expanded vertices, viewport, and
 optional scissor.
 
+Singleton depth draws may use the accepted standard DSA comparison functions;
+the batch envelope stays `LESS`-only until a versioned record format carries
+one shared comparison function and has matching native/CPU/WebGPU proof.
+
 The restriction is intentional. A singleton continues through the established
 `VGD1` material routes (solid, texture, vertex color, texture-color, depth).
 A batch is only a source-over solid sequence against one target; a depth batch

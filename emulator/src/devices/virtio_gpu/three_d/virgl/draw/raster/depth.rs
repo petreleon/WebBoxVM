@@ -1,4 +1,5 @@
 use super::geometry;
+use super::super::super::DepthCompare;
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::resource::GpuResource;
 
@@ -11,6 +12,7 @@ pub(super) fn draw(
     color: [f32; 4],
     viewport: [f32; 6],
     scissor: Option<Rect>,
+    compare: DepthCompare,
     depth_values: &mut [f32],
 ) -> bool {
     if !geometry::valid_vertices(vertices, STRIDE) || depth_values.len() * 4 != resource.pixels.len() {
@@ -29,7 +31,7 @@ pub(super) fn draw(
                 let Some(index) = geometry::pixel(resource, rect, x, y).map(|index| index / 4) else { return false; };
                 let Some(stored) = depth_values.get_mut(index) else { return false; };
                 if !value.is_finite() || !(0.0..=1.0).contains(&value) || !stored.is_finite() { return false; }
-                if value < *stored {
+                if compare.passes(value, *stored) {
                     let Some(pixel) = resource.pixels.get_mut(index * 4..index * 4 + 4) else { return false; };
                     *stored = value;
                     geometry::source_over(pixel, color);

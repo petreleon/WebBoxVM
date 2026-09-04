@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { interpreterStepSlice, shouldContinuePumpFrame } from "./pump.js?v=20260904-virgl-depth-batch-r1";
+import { interpreterStepSlice, shouldContinuePumpFrame } from "./pump.js?v=20260904-virgl-depth-compare-r1";
 import {
   COOPERATIVE_STEP_SLICE,
   DEFAULT_JIT_ENABLED,
@@ -12,7 +12,7 @@ import {
   NETWORK_STEP_SLICE,
   resetJitState,
   state,
-} from "./state.js?v=20260904-virgl-depth-batch-r1";
+} from "./state.js?v=20260904-virgl-depth-compare-r1";
 
 test("browser worker starts with jit disabled for installer safety", () => {
   assert.equal(DEFAULT_JIT_ENABLED, false);

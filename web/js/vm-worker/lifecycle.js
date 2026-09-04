@@ -1,12 +1,12 @@
-import { Emulator, ensureWasm } from "./wasm.js?v=20260904-virgl-depth-batch-r1";
-import { BootPhaseTimer } from "./boot-timing.js?v=20260904-virgl-depth-batch-r1";
-import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260904-virgl-depth-batch-r1";
-import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260904-virgl-depth-batch-r1";
-import { changedJitStats, jitStats } from "./jit-stats.js?v=20260904-virgl-depth-batch-r1";
-import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260904-virgl-depth-batch-r1";
-import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260904-virgl-depth-batch-r1";
-import { resetUartInput } from "./uart-input.js?v=20260904-virgl-depth-batch-r1";
-import { resetVmPollState } from "./poll-state.js?v=20260904-virgl-depth-batch-r1";
+import { Emulator, ensureWasm } from "./wasm.js?v=20260904-virgl-depth-compare-r1";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260904-virgl-depth-compare-r1";
+import { prepareExecutionMode, transitionToParallel } from "./execution-mode.js?v=20260904-virgl-depth-compare-r1";
+import { bootPreparedInstalledDisk } from "./installed-boot.js?v=20260904-virgl-depth-compare-r1";
+import { changedJitStats, jitStats } from "./jit-stats.js?v=20260904-virgl-depth-compare-r1";
+import { startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260904-virgl-depth-compare-r1";
+import { DEFAULT_STEP_SLICE, MAX_STEP_SLICE, state, resetJitState } from "./state.js?v=20260904-virgl-depth-compare-r1";
+import { resetUartInput } from "./uart-input.js?v=20260904-virgl-depth-compare-r1";
+import { resetVmPollState } from "./poll-state.js?v=20260904-virgl-depth-compare-r1";
 
 export { prepareExecutionMode, transitionToParallel };
 
