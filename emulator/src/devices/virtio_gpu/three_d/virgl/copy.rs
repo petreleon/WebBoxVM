@@ -35,10 +35,15 @@ impl VirtioGpu {
         let uses_scanout = self.scanout.is_some_and(|scanout| {
             scanout.resource_id == copy.src_resource || scanout.resource_id == copy.dst_resource
         });
+        let destination_rect = Rect {
+            x: copy.dst_x, y: copy.dst_y, width: copy.src_rect.width, height: copy.src_rect.height,
+        };
         if !context.is_attached(copy.src_resource)
             || !context.is_attached(copy.dst_resource)
             || !self.is_virgl_resource(copy.src_resource)
             || !self.is_virgl_resource(copy.dst_resource)
+            || self.resident_resources.contains_key(&copy.src_resource)
+            || !self.resident_overwrite_allowed(copy.dst_resource, destination_rect)
             || uses_scanout
         {
             return Err(RESP_ERR_INVALID_PARAMETER);
@@ -51,12 +56,6 @@ impl VirtioGpu {
         if !source.is_texture_2d() || !destination.is_texture_2d() {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        let destination_rect = Rect {
-            x: copy.dst_x,
-            y: copy.dst_y,
-            width: copy.src_rect.width,
-            height: copy.src_rect.height,
-        };
         if copy.dst_level != 0
             || copy.src_level != 0
             || copy.dst_z != 0
@@ -84,7 +83,7 @@ impl VirtioGpu {
                 copy,
             )
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-            return copy_buffer::write_bytes(
+            let result = copy_buffer::write_bytes(
                 self.resources
                     .get_mut(&copy.dst_resource)
                     .expect("copy destination validated before application"),
@@ -92,6 +91,10 @@ impl VirtioGpu {
                 &bytes,
             )
             .ok_or(RESP_ERR_INVALID_PARAMETER);
+            if result.is_ok() {
+                self.forget_resident(copy.dst_resource);
+            }
+            return result;
         }
         let pixels = source_pixels(
             self.resources
@@ -100,20 +103,19 @@ impl VirtioGpu {
             copy.src_rect,
         )
         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let destination_rect = Rect {
-            x: copy.dst_x,
-            y: copy.dst_y,
-            width: copy.src_rect.width,
-            height: copy.src_rect.height,
-        };
-        write_pixels(
+        let destination_rect = Rect { x: copy.dst_x, y: copy.dst_y, width: copy.src_rect.width, height: copy.src_rect.height };
+        let result = write_pixels(
             self.resources
                 .get_mut(&copy.dst_resource)
                 .expect("copy destination validated before application"),
             destination_rect,
             &pixels,
         )
-        .ok_or(RESP_ERR_INVALID_PARAMETER)
+        .ok_or(RESP_ERR_INVALID_PARAMETER);
+        if result.is_ok() {
+            self.forget_resident(copy.dst_resource);
+        }
+        result
     }
 }
 

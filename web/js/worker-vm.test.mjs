@@ -146,14 +146,13 @@ test("GPU events and 3D acknowledgments preserve transferable packets", () => {
   vm.gpu3d_ack(17, true);
 
   assert.deepEqual(received, [["2d", packet], ["3d", packet], ["reset", 4]]);
-  assert.deepEqual(FakeWorker.instances[0].lastMessage, {
-    payload: { sequence: 17, success: true },
-    type: "gpu3dAck",
-  });
+  assert.deepEqual(FakeWorker.instances[0].lastMessage, { payload: { sequence: 17, success: true }, type: "gpu3dAck" });
   const pixels = new Uint8Array([1, 2, 3, 4]); vm.gpu3d_ack(18, true, { format: 1, pixels });
   assert.deepEqual(FakeWorker.instances[0].lastMessage, {
     payload: { readback: { format: 1, pixels }, sequence: 18, success: true }, type: "gpu3dAck",
   });
+  vm.gpu3d_ack(19, true, undefined, true);
+  assert.deepEqual(FakeWorker.instances[0].lastMessage, { payload: { resident: true, sequence: 19, success: true }, type: "gpu3dAck" });
 });
 
 function metrics(overrides = {}) {

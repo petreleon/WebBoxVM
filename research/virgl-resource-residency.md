@@ -7,10 +7,12 @@ letting `TRANSFER_FROM_HOST_3D` or a later command observe stale CPU pixels?
 
 ## Current boundary
 
-`VGB1` and `VGM1` render to the transient canvas texture, map a full BGRA or
-RGBA readback, and replace the Rust resource shadow. That is correct but makes
-each batch pay a GPU-to-CPU copy, mapping latency, worker transfer, and copy
-into `GpuResource::pixels`.
+Normal `VGB1` and `VGM1` packets render to the transient canvas texture, map a
+full BGRA or RGBA readback, and replace the Rust resource shadow. The first
+resident `VGB1` form is version 6: it renders to a bounded offscreen texture,
+copies that texture to the canvas, and acknowledges the producer without a
+pixel mapping. That avoids the GPU-to-CPU copy, mapping latency, worker
+transfer, and copy into `GpuResource::pixels` on the draw path.
 
 WebGPU textures are device resources, while a canvas current texture is not a
 durable guest resource. A real resident path therefore needs a bounded offscreen
@@ -34,8 +36,10 @@ one exact readback; no second transfer or mutation may consume an older shadow.
    context generation, full target rectangle, and producer sequence.
 2. A guest-visible readback must resolve the matching producer before backing
    memory is written. Failure returns an error; it never writes stale bytes.
-3. Guest uploads, inline writes, copies, resource destruction, reset, and
-   browser device loss invalidate or resolve a GPU owner before CPU mutation.
+3. Partial guest uploads and copies cannot mutate a resident shadow. A full CPU
+   replacement, matching readback, resource destruction, or VM reset ends the
+   GPU owner; a browser-loss owner stays fail-closed until one of those paths
+   re-establishes CPU authority.
 4. A later GPU command either references the resident source on the GPU or
    resolves it before taking a CPU snapshot. It may not snapshot stale pixels.
 5. Deferred acknowledgments preserve a resource's submission order as well as
@@ -56,14 +60,14 @@ are admitted to the resident path.
 
 ## Protocol phases
 
-1. Render eligible batches into a bounded persistent texture, present it with a
-   GPU copy, and return a resident completion instead of pixel data.
-2. Store the producer sequence in Rust only after that completion validates the
-   pending effect and context generation.
-3. On `TRANSFER_FROM_HOST_3D`, emit a private deferred `VGR1` request naming
-   the producer. The browser maps the persistent texture; Rust validates the
-   full image, refreshes its shadow, and only then writes the requested backing
-   range and completion response.
+1. Eligible version-6 batches render into one of at most four 4 MiB persistent
+   textures, present through a GPU copy, and return a resident completion.
+2. Rust stores the producer sequence only after the matching completion
+   validates the pending effect and context generation.
+3. `TRANSFER_FROM_HOST_3D` emits a private deferred `VGR1` request naming that
+   producer. The browser maps the persistent texture; Rust validates the full
+   image, refreshes its shadow, and only then writes the requested backing range
+   and completion response.
 4. Add GPU source references and copy continuations before expanding eligibility
    to sampled targets or general VirGL streams.
 
@@ -84,8 +88,8 @@ guest-visible readback.
 
 - Promote only a matching full-target packet; reject stale, wrong-resource, and
   wrong-generation completions.
-- Prove a deferred transfer writes exact scatter-backed bytes only after its
-  matching readback.
+- Prove a deferred `VGR1` transfer writes exact scatter-backed bytes only after
+  its matching readback.
 - Prove an upload, unref, reset, and device loss cannot revive a prior owner.
 - Compare a resident batch followed by transfer against the current readback
   fixture byte-for-byte, including BGRA/RGBA normalization.

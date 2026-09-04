@@ -23,21 +23,22 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  if (![1, 2, 3, 4, 5].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
-    || version !== 3 && flags !== 0) {
+  if (![1, 2, 3, 4, 5, 6].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
+    || (version === 6 ? flags !== 1 : version !== 3 && flags !== 0)) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
     throw new Error(`VirGL solid-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
   }
+  const residentCandidate = version === 6;
   const clearColor = colors(view, 28, "clear");
   const depthClear = view.getFloat32(44, true);
-  const depth = version !== 1;
+  const depth = version !== 1 && version !== 6;
   if (depthClear !== (depth ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
   const depthCompare = version === 2 ? "less" : version === 3 ? DEPTH_COMPARE[flags] : undefined;
   if (depth && version < 4 && !depthCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
   const draws = [];
-  const stateBytes = DRAW_STATE_BYTES + (version >= 4 ? DRAW_COMPARE_BYTES : 0);
+  const stateBytes = DRAW_STATE_BYTES + ([4, 5].includes(version) ? DRAW_COMPARE_BYTES : 0);
   let offset = HEADER_BYTES;
   let totalVertices = 0;
   for (let index = 0; index < drawCount; index += 1) {
@@ -55,7 +56,7 @@ export function parseVirglSolidBatchPacket(packet) {
     const drawCompare = version === 4 ? DEPTH_COMPARE[view.getUint32(offset + 4, true)]
       : version === 5 ? DEPTH_COMPARE[depthState >> 2] : depthCompare;
     if (depth && !drawCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
-    const state = offset + (version >= 4 ? DRAW_COMPARE_BYTES : 0);
+    const state = offset + ([4, 5].includes(version) ? DRAW_COMPARE_BYTES : 0);
     const drawColor = colors(view, state + 4, "draw");
     const viewport = readFloats(view, state + 20, 6);
     validateViewport(viewport, canvasWidth, canvasHeight);
@@ -73,7 +74,7 @@ export function parseVirglSolidBatchPacket(packet) {
     acceleration: depth ? "webgpu-virgl-capset1-depth-batch" : "webgpu-virgl-capset1-solid-batch",
     canvasHeight, canvasWidth, capsetId: 1, clearColor, depthClear, depthCompare, depthWriteEnabled: true, draws,
     presentationLabel: depth ? "VirGL capset 1 depth-tested draw batch" : "VirGL capset 1 solid draw batch",
-    protocol: depth ? "virgl-depth-batch" : "virgl-solid-batch", sequence, version,
+    protocol: depth ? "virgl-depth-batch" : "virgl-solid-batch", residentCandidate, sequence, version,
   };
 }
 

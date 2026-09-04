@@ -70,3 +70,13 @@ test("GPU readback follows the matching 3D acknowledgment", async () => {
   emulator.onGpu3dFrame(new Uint8Array([1])); await Promise.resolve();
   assert.deepEqual(acknowledgments, [[9, true, { format: 1, pixels }]]);
 });
+
+test("GPU residency follows the matching 3D acknowledgment", async () => {
+  const acknowledgments = []; const emulator = { gpu3d_ack: (...values) => acknowledgments.push(values) };
+  bindRunnerEvents(emulator, {
+    autosave() {}, current: () => true, error() {}, frame2d() {}, metrics() {}, network() {}, uart() {},
+    frame3d: () => ({ resident: true, sequence: 10, success: true }),
+  });
+  emulator.onGpu3dFrame(new Uint8Array([1])); await Promise.resolve();
+  assert.deepEqual(acknowledgments, [[10, true, undefined, true]]);
+});

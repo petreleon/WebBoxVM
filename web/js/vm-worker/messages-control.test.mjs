@@ -45,23 +45,24 @@ test("setJitEnabled resets cached jit state and stale telemetry", async () => {
   assert.deepEqual(messages, [{ id: 7, ok: true, value: {} }]);
 });
 
-test("gpu3dAck reaches its normal and readback wasm completion boundaries", async () => {
+test("gpu3dAck reaches normal, readback, and resident wasm completions", async () => {
   const acknowledgments = [];
   state.emulator = { gpu_3d_complete: (...values) => { acknowledgments.push(values); return true; } };
-  await withPostMessage([], () =>
-    handleMessage({ payload: { sequence: 19, success: false }, type: "gpu3dAck" }),
-  );
-  assert.deepEqual(acknowledgments, [[19, false]]);
   const pixels = new Uint8Array([1, 2, 3, 4]);
-  await withPostMessage([], () => handleMessage({
-    payload: { readback: { format: 1, pixels }, sequence: 20, success: true }, type: "gpu3dAck",
-  }));
+  await withPostMessage([], () => Promise.all([
+    handleMessage({ payload: { sequence: 19, success: false }, type: "gpu3dAck" }),
+    handleMessage({ payload: { readback: { format: 1, pixels }, sequence: 20, success: true }, type: "gpu3dAck" }),
+  ]));
   assert.deepEqual(acknowledgments, [[19, false], [20, true]]);
-  state.emulator.gpu_3d_complete_readback = (...values) => { acknowledgments.push(values); return true; };
-  await withPostMessage([], () => handleMessage({
-    payload: { readback: { format: 1, pixels }, sequence: 21, success: true }, type: "gpu3dAck",
-  }));
-  assert.deepEqual(acknowledgments, [[19, false], [20, true], [21, 1, pixels]]);
+  Object.assign(state.emulator, {
+    gpu_3d_complete_readback: (...values) => { acknowledgments.push(values); return true; },
+    gpu_3d_complete_resident: (...values) => { acknowledgments.push(values); return true; },
+  });
+  await withPostMessage([], () => Promise.all([
+    handleMessage({ payload: { readback: { format: 1, pixels }, sequence: 21, success: true }, type: "gpu3dAck" }),
+    handleMessage({ payload: { resident: true, sequence: 22, success: true }, type: "gpu3dAck" }),
+  ]));
+  assert.deepEqual(acknowledgments, [[19, false], [20, true], [21, 1, pixels], [22]]);
 });
 
 test("gpu3dAck reports an unaccepted completion without mutating Rust state", async () => {

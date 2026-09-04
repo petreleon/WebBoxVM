@@ -12,6 +12,9 @@ test("VirGL solid-batch packet preserves bounded ordered draw records", () => {
   assert.equal(frame.acceleration, "webgpu-virgl-capset1-solid-batch");
   assert.equal(frame.draws.length, 2);
   assert.equal(frame.draws[0].vertexCount, 3);
+  const resident = parseGpu3dPacket(virglSolidBatchPacket({ sequence: 76, version: 6 }));
+  assert.equal(resident.residentCandidate, true);
+  assert.equal(resident.depthClear, 0);
   const invalid = packet.slice();
   new DataView(invalid.buffer).setUint32(24, 1, true);
   assert.throws(() => parseGpu3dPacket(invalid), /VGB1 framing/);

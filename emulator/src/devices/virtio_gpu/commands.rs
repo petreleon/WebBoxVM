@@ -49,7 +49,11 @@ impl VirtioGpu {
             }
             CMD_RESOURCE_CREATE_3D => self.create_virgl_resource(input),
             CMD_TRANSFER_TO_HOST_3D => self.transfer_to_host_3d(mem, header, input),
-            CMD_TRANSFER_FROM_HOST_3D => self.transfer_from_host_3d(mem, header, input),
+            CMD_TRANSFER_FROM_HOST_3D => match self.transfer_from_host_3d(mem, header, input) {
+                Ok(Some(deferred)) => return deferred_result(header, deferred),
+                Ok(None) => RESP_OK_NODATA,
+                Err(response) => response,
+            },
             CMD_RESOURCE_MAP_BLOB => return immediate(self.map_blob(mem, header, input)),
             CMD_RESOURCE_UNMAP_BLOB => self.unmap_blob(mem, input),
             CMD_SUBMIT_3D => match self.submit_3d(header, input) {
@@ -131,6 +135,7 @@ impl VirtioGpu {
         if !rect.valid_within(resource.width, resource.height) {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        if self.resident_resources.contains_key(&resource_id) { return RESP_OK_NODATA; }
         self.add_damage(resource_id, rect);
         RESP_OK_NODATA
     }
@@ -146,12 +151,14 @@ impl VirtioGpu {
         ) else {
             return RESP_ERR_INVALID_PARAMETER;
         };
+        if !self.resident_overwrite_allowed(resource_id, rect) { return RESP_ERR_INVALID_PARAMETER; }
         let Some(resource) = self.resources.get_mut(&resource_id) else {
             return RESP_ERR_INVALID_RESOURCE_ID;
         };
         if resource.transfer(mem, rect, offset).is_none() {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        self.forget_resident(resource_id);
         RESP_OK_NODATA
     }
 }

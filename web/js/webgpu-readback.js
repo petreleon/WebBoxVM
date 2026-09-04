@@ -10,7 +10,7 @@ const READBACK_CACHES = new WeakMap();
 
 export function canvasConfiguration(device, format) {
   const usage = textureUsage();
-  return { alphaMode: "opaque", device, format, usage: usage.COPY_SRC | usage.RENDER_ATTACHMENT };
+  return { alphaMode: "opaque", device, format, usage: usage.COPY_DST | usage.COPY_SRC | usage.RENDER_ATTACHMENT };
 }
 
 export function submitTextureReadback(device, encoder, texture, width, height, format) {
@@ -111,5 +111,5 @@ function mapMode() {
 }
 
 function textureUsage() {
-  return globalThis.GPUTextureUsage ?? { COPY_SRC: 0x01, RENDER_ATTACHMENT: 0x10 };
+  return globalThis.GPUTextureUsage ?? { COPY_DST: 0x02, COPY_SRC: 0x01, RENDER_ATTACHMENT: 0x10 };
 }

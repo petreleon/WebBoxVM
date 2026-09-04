@@ -27,7 +27,7 @@ use protocol::{BackingEntry, Rect};
 use resource::GpuResource;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use three_d::{Pending3d, VirglContext};
+use three_d::{Pending3d, ResidentResource, VirglContext};
 
 pub const SCANOUT_WIDTH: u32 = 1024;
 pub const SCANOUT_HEIGHT: u32 = 768;
@@ -86,6 +86,7 @@ pub struct VirtioGpu {
     context_generations: HashMap<u32, u32>,
     virgl_contexts: HashMap<u32, VirglContext>,
     virgl_resources: HashSet<u32>,
+    resident_resources: HashMap<u32, ResidentResource>,
     pending_3d: Vec<Pending3d>,
     pending_3d_bytes: usize,
     next_3d_sequence: u32,
@@ -114,6 +115,7 @@ impl VirtioGpu {
             context_generations: HashMap::new(),
             virgl_contexts: HashMap::new(),
             virgl_resources: HashSet::new(),
+            resident_resources: HashMap::new(),
             pending_3d: Vec::new(),
             pending_3d_bytes: 0,
             next_3d_sequence: 1,

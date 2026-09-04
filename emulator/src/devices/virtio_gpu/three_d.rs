@@ -5,12 +5,14 @@ mod capset;
 mod context;
 pub(super) mod packet;
 mod pending;
+mod residency;
 mod transfer;
 mod virgl;
 
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID, VIRGL2_CAPSET_ID};
 use packet::decode_submit;
 pub(super) use pending::{BrowserCompletion, DeferredSubmit, Pending3d, Pending3dEffect};
+pub(super) use residency::ResidentResource;
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
 #[cfg(test)]
 pub(in crate::devices::virtio_gpu) use virgl::{ShaderKind, ShaderProgram};

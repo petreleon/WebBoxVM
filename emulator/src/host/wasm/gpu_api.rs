@@ -55,4 +55,14 @@ impl Emulator {
             self.machine.bus.complete_gpu_3d_readback(sequence, format, &pixels)
         }
     }
+
+    /// Complete a resident browser GPU target without copying its pixels to the CPU.
+    pub fn gpu_3d_complete_resident(&mut self, sequence: u32) -> bool {
+        let _access = self.require_parallel_idle();
+        if let Some(ref mut boot) = self.boot {
+            boot.machine.bus.complete_gpu_3d_resident(sequence)
+        } else {
+            self.machine.bus.complete_gpu_3d_resident(sequence)
+        }
+    }
 }

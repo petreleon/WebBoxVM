@@ -70,6 +70,7 @@ export function fakeDevice({ readbackBytes = new Uint8Array(), scopeErrors = [],
     submits: 0,
     textures: [],
     textureCopies: [],
+    textureTransfers: [],
     viewports: [],
     writes: [],
     createBindGroup(descriptor) {
@@ -90,6 +91,9 @@ export function fakeDevice({ readbackBytes = new Uint8Array(), scopeErrors = [],
         copyTextureToBuffer(source, destination, size) {
           device.textureCopies.push({ destination, size, source });
           destination.buffer.mapped.set(readbackBytes.subarray(0, destination.buffer.mapped.byteLength));
+        },
+        copyTextureToTexture(source, destination, size) {
+          device.textureTransfers.push({ destination, size, source });
         },
         beginRenderPass(descriptor) {
           device.renderPasses.push(descriptor);

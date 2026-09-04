@@ -71,6 +71,12 @@ async function handleRequest(type, payload) {
       return {};
     case "gpu3dAck": {
       const emulator = requireEmulator();
+      if (payload.success && payload.resident === true) {
+        if (typeof emulator.gpu_3d_complete_resident !== "function") {
+          throw new Error("Worker VM wasm export gpu_3d_complete_resident is unavailable");
+        }
+        return { accepted: emulator.gpu_3d_complete_resident(payload.sequence) };
+      }
       if (payload.success && payload.readback) {
         const { format, pixels } = payload.readback;
         if (!(pixels instanceof Uint8Array) || !Number.isInteger(format)) {

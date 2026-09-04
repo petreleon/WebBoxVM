@@ -7,6 +7,7 @@ use super::virgl::{DepthState, DrawMaterial, DrawWork};
 pub(in crate::devices::virtio_gpu) enum BrowserCompletion {
     Standard,
     Readback,
+    Resident,
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +60,27 @@ pub(in crate::devices::virtio_gpu) enum Pending3dEffect {
         clear_bgra: [u8; 4],
         works: Vec<DrawWork>,
     },
+    VirglResidentReadback {
+        context_id: u32,
+        generation: u32,
+        resource_id: u32,
+        producer_sequence: u32,
+        source_rect: Rect,
+        transfer_rect: Rect,
+        transfer_offset: u64,
+    },
+}
+
+impl Pending3dEffect {
+    pub(in crate::devices::virtio_gpu) fn color_target(&self) -> Option<(u32, Rect)> {
+        match self {
+            Self::VirglClear { resource_id, rect, .. }
+            | Self::VirglDraw { resource_id, rect, .. }
+            | Self::VirglBatch { resource_id, rect, .. }
+            | Self::VirglDepthBatch { resource_id, rect, .. } => Some((*resource_id, *rect)),
+            Self::VirglResidentReadback { .. } => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

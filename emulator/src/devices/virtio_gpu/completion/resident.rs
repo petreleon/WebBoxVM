@@ -1,17 +1,11 @@
 use super::{push_used, write_response};
-use crate::devices::virtio_gpu::three_d::{BrowserCompletion, Pending3dEffect};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_UNSPEC, RESP_OK_NODATA};
+use crate::devices::virtio_gpu::three_d::BrowserCompletion;
 use crate::memory::PhysicalMemory;
 
 impl VirtioGpu {
-    pub fn complete_3d_readback(
-        &mut self,
-        mem: &mut PhysicalMemory,
-        sequence: u32,
-        format: u32,
-        pixels: &[u8],
-    ) -> bool {
+    pub fn complete_3d_resident(&mut self, mem: &mut PhysicalMemory, sequence: u32) -> bool {
         let Some(index) = self.pending_3d.iter().position(|pending| {
             pending.sequence == sequence && pending.packet.is_none() && pending.completion.is_some()
         }) else {
@@ -27,20 +21,8 @@ impl VirtioGpu {
         let pending = self.pending_3d.remove(index);
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");
-        let output = pending.effect.as_ref().and_then(|effect| effect.color_target().map(|(id, _)| id));
-        let success = matches!(pending.browser_completion, BrowserCompletion::Readback | BrowserCompletion::Resident)
-            && pending.effect.is_some_and(|effect| {
-                if matches!(&effect, Pending3dEffect::VirglResidentReadback { .. }) {
-                    self.resolve_resident_readback(mem, effect, format, pixels)
-                } else {
-                    self.apply_3d_readback(effect, format, pixels)
-                }
-            });
-        if success {
-            if let Some(resource_id) = output {
-                self.forget_resident(resource_id);
-            }
-        }
+        let success = pending.browser_completion == BrowserCompletion::Resident
+            && pending.effect.is_some_and(|effect| self.promote_resident(sequence, effect));
         let response = completion.header.encode(if success { RESP_OK_NODATA } else { RESP_ERR_UNSPEC });
         let written = write_response(mem, &completion.output, &response).unwrap_or(0);
         push_used(mem, completion.used, completion.queue_size, completion.head, written as u32);

@@ -61,6 +61,7 @@ export class ExperimentalWebGpu3dRenderer {
     }
     if (frame.protocol === "virgl-draw") return this.#virglDraw.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-solid-batch") return this.#virglSolidBatch.render(backend, frame, isCurrent);
+    if (frame.protocol === "virgl-resident-readback") return this.#virglSolidBatch.readback(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth-batch") return this.#virglDepthBatch.render(backend, frame, isCurrent); if (frame.protocol === "virgl-material-batch") return this.#virglMaterialBatch.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth") return this.#virglDepth.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth-texture") return this.#virglDepthTexture.render(backend, frame, isCurrent); if (frame.protocol === "virgl-depth-texture-color") return this.#virglDepthTextureColor.render(backend, frame, isCurrent);

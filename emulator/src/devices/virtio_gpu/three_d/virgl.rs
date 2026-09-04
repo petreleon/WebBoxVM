@@ -118,6 +118,9 @@ impl VirtioGpu {
         packet: Vec<u8>,
         effect: Pending3dEffect,
     ) -> Result<DeferredSubmit, u32> {
+        if effect.color_target().is_some_and(|(id, rect)| !self.resident_overwrite_allowed(id, rect)) {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         if self
             .pending_3d_bytes
             .checked_add(packet.len())
@@ -126,9 +129,13 @@ impl VirtioGpu {
             return Err(RESP_ERR_OUT_OF_MEMORY);
         }
         let timeline = self.fence_timeline(header);
-        let browser_completion = matches!(packet.get(..4), Some(b"VGB1" | b"VGM1"))
-            .then_some(BrowserCompletion::Readback)
-            .unwrap_or(BrowserCompletion::Standard);
+        let browser_completion = if self.resident_candidate(&packet, &effect) {
+            BrowserCompletion::Resident
+        } else if matches!(packet.get(..4), Some(b"VGB1" | b"VGM1")) {
+            BrowserCompletion::Readback
+        } else {
+            BrowserCompletion::Standard
+        };
         self.pending_3d_bytes += packet.len();
         self.pending_3d.push(Pending3d {
             sequence,
@@ -143,6 +150,7 @@ impl VirtioGpu {
     }
 
     pub(in crate::devices::virtio_gpu) fn remove_virgl_resource(&mut self, resource_id: u32) {
+        self.forget_resident(resource_id);
         self.virgl_resources.remove(&resource_id);
         for context in self.virgl_contexts.values_mut() {
             context.remove_resource(resource_id);

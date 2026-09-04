@@ -3,6 +3,7 @@ use super::protocol::{CtrlHeader, RESP_ERR_UNSPEC, RESP_OK_NODATA};
 use crate::memory::PhysicalMemory;
 
 mod readback;
+mod resident;
 
 #[derive(Clone, Copy, Debug)]
 pub(super) struct WritableRegion {
@@ -66,10 +67,16 @@ impl VirtioGpu {
         let pending = self.pending_3d.remove(index);
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");
+        let output = pending.effect.as_ref().and_then(|effect| effect.color_target().map(|(id, _)| id));
         let success = success
             && pending
                 .effect
                 .is_none_or(|effect| self.apply_3d_effect(effect));
+        if success {
+            if let Some(resource_id) = output {
+                self.forget_resident(resource_id);
+            }
+        }
         let response_type = if success {
             RESP_OK_NODATA
         } else {

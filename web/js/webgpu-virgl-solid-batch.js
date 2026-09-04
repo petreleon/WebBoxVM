@@ -1,6 +1,7 @@
 import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
 import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
 import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
+import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
 
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
@@ -19,11 +20,12 @@ const SOURCE_OVER = {
 };
 
 export class VirglSolidBatchRenderer {
-  #bufferUsage; #generation = 0; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0;
+  #bufferUsage; #generation = 0; #outputs; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
+    this.#outputs = new VirglResidentOutputTargets();
   }
 
   async render(backend, frame, isCurrent) {
@@ -32,14 +34,30 @@ export class VirglSolidBatchRenderer {
     if (!isCurrent()) return false;
     try {
       if (!await this.#ensurePipeline(backend) || !isCurrent()) return false;
-      const revision = this.#revision;
-      const readback = await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
-      return revision === this.#revision && isCurrent() && (readback ? { readback } : true);
+      const revision = this.#revision; const output = this.#outputs.acquire(backend, frame);
+      const readback = await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame, output));
+      if (revision !== this.#revision || !isCurrent()) { this.#outputs.discard(output); return false; }
+      return output ? this.#outputs.publish(backend, output) && { resident: true } : readback ? { readback } : true;
     } catch (error) { this.invalidate(); throw error; }
+  }
+
+  async readback(backend, frame, isCurrent) {
+    const output = this.#outputs.get(backend, frame);
+    if (!output || !isCurrent()) return false;
+    try {
+      const readback = await captureWebGpuErrors(backend.device, () => submitTextureReadback(
+        backend.device, backend.device.createCommandEncoder({ label: "VirGL resident readback" }), output.texture,
+        frame.canvasWidth, frame.canvasHeight, backend.format,
+      ));
+      if (!readback || !isCurrent()) return false;
+      this.#outputs.release(frame.producerSequence);
+      return { readback };
+    } catch (error) { this.#outputs.release(frame.producerSequence); this.invalidate(); throw error; }
   }
 
   invalidate() {
     this.#revision += 1;
+    this.#outputs.invalidate();
     this.#vertexBuffer?.destroy?.();
     this.#pipeline = undefined; this.#vertexBuffer = undefined; this.#generation = 0; this.#vertexCapacity = 0;
   }
@@ -59,7 +77,7 @@ export class VirglSolidBatchRenderer {
     return revision === this.#revision;
   }
 
-  #issueDraw(backend, frame) {
+  #issueDraw(backend, frame, output) {
     const { device } = backend;
     const vertices = interleave(frame.draws);
     [this.#vertexBuffer, this.#vertexCapacity] = ensureBuffer(device, this.#vertexBuffer, this.#vertexCapacity,
@@ -67,7 +85,7 @@ export class VirglSolidBatchRenderer {
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, vertices);
     const encoder = device.createCommandEncoder({ label: "VirGL capset 1 solid-batch encoder" });
-    const target = backend.canvasContext.getCurrentTexture();
+    const target = output?.texture ?? backend.canvasContext.getCurrentTexture();
     const pass = encoder.beginRenderPass({
       colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
       label: "VirGL capset 1 solid-batch pass",
@@ -81,6 +99,14 @@ export class VirglSolidBatchRenderer {
       pass.draw(draw.vertexCount, 1, first); first += draw.vertexCount;
     }
     pass.end();
+    if (output) {
+      if (typeof encoder.copyTextureToTexture !== "function") throw new Error("WebGPU texture copies are unavailable");
+      encoder.copyTextureToTexture({ texture: target }, { texture: backend.canvasContext.getCurrentTexture() }, {
+        depthOrArrayLayers: 1, height: frame.canvasHeight, width: frame.canvasWidth,
+      });
+      device.queue.submit([encoder.finish()]);
+      return Promise.resolve(device.queue.onSubmittedWorkDone());
+    }
     return submitTextureReadback(device, encoder, target, frame.canvasWidth, frame.canvasHeight, backend.format);
   }
 }

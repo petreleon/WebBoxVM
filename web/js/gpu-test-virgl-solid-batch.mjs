@@ -3,18 +3,19 @@ export function virglSolidBatchPacket({
   canvasWidth = 1024,
   clearColor = [0, 0, 0, 1],
   version = 1,
+  resident = version === 6,
   depthCompare = version === 2 ? 1 : 0,
   depthWriteEnabled = true,
-  depthClear = version === 1 ? 0 : 1,
+  depthClear = [1, 6].includes(version) ? 0 : 1,
   draws = defaultDraws(canvasWidth, canvasHeight),
   sequence = 73,
 } = {}) {
-  const stateBytes = version >= 4 ? 64 : 60;
+  const stateBytes = [4, 5].includes(version) ? 64 : 60;
   const body = draws.reduce((total, draw) => total + stateBytes + draw.vertices.length * 4, 0);
   const packet = new Uint8Array(48 + body);
   packet.set([0x56, 0x47, 0x42, 0x31]);
   const view = new DataView(packet.buffer);
-  [version, sequence, canvasWidth, canvasHeight, draws.length, version === 3 ? depthCompare : 0]
+  [version, sequence, canvasWidth, canvasHeight, draws.length, version === 3 ? depthCompare : version === 6 && resident ? 1 : 0]
     .forEach((value, index) => view.setUint32(4 + index * 4, value, true));
   writeFloats(view, 28, clearColor);
   view.setFloat32(44, depthClear, true);
@@ -22,7 +23,7 @@ export function virglSolidBatchPacket({
   for (const draw of draws) {
     const vertexCount = draw.vertices.length / 4;
     view.setUint32(offset, vertexCount, true);
-    const state = offset + (version >= 4 ? 4 : 0);
+    const state = offset + ([4, 5].includes(version) ? 4 : 0);
     if (version === 4) view.setUint32(offset + 4, draw.depthCompare ?? depthCompare, true);
     if (version === 5) {
       const compare = draw.depthCompare ?? depthCompare;

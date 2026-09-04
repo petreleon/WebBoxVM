@@ -52,4 +52,13 @@ impl SystemBus {
         self.gic.set_pending(VIRTIO_GPU_IRQ_ID);
         true
     }
+
+    pub fn complete_gpu_3d_resident(&mut self, sequence: u32) -> bool {
+        if !self.virtio_gpu.complete_3d_resident(&mut self.mem, sequence) {
+            return false;
+        }
+        self.record_external_dma_write();
+        self.gic.set_pending(VIRTIO_GPU_IRQ_ID);
+        true
+    }
 }

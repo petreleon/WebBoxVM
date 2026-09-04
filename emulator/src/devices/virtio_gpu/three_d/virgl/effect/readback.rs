@@ -51,7 +51,7 @@ impl VirtioGpu {
         false
     }
 
-    fn write_gpu_readback(&mut self, resource_id: u32, rect: Rect, format: u32, pixels: &[u8]) -> bool {
+    pub(in crate::devices::virtio_gpu) fn write_gpu_readback(&mut self, resource_id: u32, rect: Rect, format: u32, pixels: &[u8]) -> bool {
         if !self.valid_gpu_readback(resource_id, rect, format, pixels) { return false; }
         let row_bytes = rect.width as usize * 4;
         let Some(resource) = self.resources.get_mut(&resource_id) else { return false; };

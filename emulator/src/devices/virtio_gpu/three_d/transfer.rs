@@ -1,4 +1,5 @@
 use super::capset::is_virgl_capset;
+use super::DeferredSubmit;
 use crate::devices::virtio_gpu::blob::BlobMemory;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
@@ -61,6 +62,11 @@ impl VirtioGpu {
             Ok(transfer) => transfer,
             Err(response) => return response,
         };
+        if self.resident_resources.contains_key(&transfer.resource_id)
+            && !transfer.texture_rect().is_some_and(|rect| self.resident_overwrite_allowed(transfer.resource_id, rect))
+        {
+            return RESP_ERR_INVALID_PARAMETER;
+        }
         let transferred = if let Some(resource) = self.resources.get_mut(&transfer.resource_id) {
             if resource.is_texture_2d() {
                 transfer
@@ -85,6 +91,7 @@ impl VirtioGpu {
         if transferred.is_none() {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        self.forget_resident(transfer.resource_id);
         RESP_OK_NODATA
     }
 
@@ -93,11 +100,12 @@ impl VirtioGpu {
         mem: &mut PhysicalMemory,
         header: CtrlHeader,
         input: &[u8],
-    ) -> u32 {
-        let transfer = match self.virgl_transfer(header, input) {
-            Ok(transfer) => transfer,
-            Err(response) => return response,
-        };
+    ) -> Result<Option<DeferredSubmit>, u32> {
+        let transfer = self.virgl_transfer(header, input)?;
+        if self.resident_resources.contains_key(&transfer.resource_id) {
+            let rect = transfer.texture_rect().ok_or(RESP_ERR_INVALID_PARAMETER)?;
+            return self.queue_resident_readback(header, transfer.resource_id, rect, transfer.offset).map(Some);
+        }
         let transferred = if let Some(resource) = self.resources.get(&transfer.resource_id) {
             if resource.is_texture_2d() {
                 transfer
@@ -120,9 +128,9 @@ impl VirtioGpu {
             })
         };
         if transferred.is_none() {
-            return RESP_ERR_INVALID_PARAMETER;
+            return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        RESP_OK_NODATA
+        Ok(None)
     }
 
     fn virgl_transfer(&self, header: CtrlHeader, input: &[u8]) -> Result<Transfer3d, u32> {

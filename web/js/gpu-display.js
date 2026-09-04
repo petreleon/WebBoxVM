@@ -152,7 +152,7 @@ export class GuestDisplay {
       return { sequence: frame.sequence, success: false };
     }
     this.#diagnostics.drew3d(frame);
-    return { sequence: frame.sequence, success: true, ...(rendered.readback && { readback: rendered.readback }) };
+    return { sequence: frame.sequence, success: true, ...(rendered.readback && { readback: rendered.readback }), ...(rendered.resident && { resident: true }) };
   }
 
   #settle3d(result, claim) {

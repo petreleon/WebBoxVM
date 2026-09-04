@@ -8,9 +8,9 @@ import {
   submitTextureReadback,
 } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
 
-test("canvas readback configuration keeps both rendering and copy-source usage", () => {
+test("canvas readback configuration keeps rendering and copy usage", () => {
   const config = canvasConfiguration({ kind: "device" }, "bgra8unorm");
-  assert.equal(config.usage, 0x11);
+  assert.equal(config.usage, 0x13);
   assert.equal(config.alphaMode, "opaque");
 });
 
