@@ -9,13 +9,21 @@ fn virtio_gpu_has_device_id_and_own_mmio_window() {
 }
 
 #[test]
-fn virtio_gpu_reports_no_shared_memory_region() {
+fn virtio_gpu_reports_a_host_visible_shared_memory_region() {
     let mut bus = SystemBus::new();
-    bus.write(VIRTIO_GPU_BASE + 0x0ac, 4, 0);
-    assert_eq!(bus.read(VIRTIO_GPU_BASE + 0x0b0, 4), Some(u32::MAX as u64));
-    assert_eq!(bus.read(VIRTIO_GPU_BASE + 0x0b4, 4), Some(u32::MAX as u64));
-    assert_eq!(bus.read(VIRTIO_GPU_BASE + 0x0b8, 4), Some(0));
+    bus.write(VIRTIO_GPU_BASE + 0x0ac, 4, 1);
+    assert_eq!(
+        bus.read(VIRTIO_GPU_BASE + 0x0b0, 4),
+        Some(VIRTIO_GPU_HOST_VISIBLE_SIZE)
+    );
+    assert_eq!(bus.read(VIRTIO_GPU_BASE + 0x0b4, 4), Some(0));
+    assert_eq!(
+        bus.read(VIRTIO_GPU_BASE + 0x0b8, 4),
+        Some(VIRTIO_GPU_HOST_VISIBLE_BASE)
+    );
     assert_eq!(bus.read(VIRTIO_GPU_BASE + 0x0bc, 4), Some(0));
+    bus.write(VIRTIO_GPU_BASE + 0x0ac, 4, 2);
+    assert_eq!(bus.read(VIRTIO_GPU_BASE + 0x0b0, 4), Some(u32::MAX as u64));
 }
 
 #[test]

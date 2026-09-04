@@ -1,4 +1,7 @@
 use super::*;
+use crate::constants::{PAGE_SIZE, VIRTIO_GPU_HOST_VISIBLE_BASE, VIRTIO_GPU_HOST_VISIBLE_SIZE};
+
+const SHM_ID_HOST_VISIBLE: u32 = 1;
 
 impl VirtioGpu {
     pub fn read(&self, offset: u64, size: u8) -> Option<u64> {
@@ -24,14 +27,14 @@ impl VirtioGpu {
                 .selected_queue()
                 .map_or(0, |queue| queue.device as u32 as u64),
             0x0a4 => self.selected_queue().map_or(0, |queue| queue.device >> 32),
-            // VirtIO MMIO requires an all-ones length for an unsupported
-            // shared-memory selector. Linux uses this sentinel to avoid
-            // treating address zero as a host-visible region.
-            0x0b0 | 0x0b4 => u32::MAX as u64,
-            0x0b8 | 0x0bc => 0,
+            0x0b0 => self.shared_memory_length() as u32 as u64,
+            0x0b4 => self.shared_memory_length() >> 32,
+            0x0b8 => self.shared_memory_base() as u32 as u64,
+            0x0bc => self.shared_memory_base() >> 32,
             0x0fc | 0x100 | 0x104 => 0,
             0x108 => 1,
             0x10c => super::three_d::CAPSET_COUNT as u64,
+            0x110 => PAGE_SIZE,
             _ => 0,
         };
         mask_read(value, size)
@@ -65,7 +68,7 @@ impl VirtioGpu {
             0x050 => return self.notify_queue(mem, value as u32),
             0x060 => {}
             0x064 => self.interrupt_status &= !(value as u32),
-            0x070 => self.write_status(value as u32),
+            0x070 => self.write_status(mem, value as u32),
             0x080 => set_low(
                 &mut self.selected_queue_mut().map(|queue| &mut queue.desc),
                 value,
@@ -90,11 +93,27 @@ impl VirtioGpu {
                 &mut self.selected_queue_mut().map(|queue| &mut queue.device),
                 value,
             ),
-            0x0ac => {}
+            0x0ac => self.shm_selector = value as u32,
             0x104 => {}
             _ => {}
         }
         false
+    }
+}
+
+impl VirtioGpu {
+    fn shared_memory_length(&self) -> u64 {
+        if self.shm_selector == SHM_ID_HOST_VISIBLE {
+            VIRTIO_GPU_HOST_VISIBLE_SIZE
+        } else {
+            u64::MAX
+        }
+    }
+
+    fn shared_memory_base(&self) -> u64 {
+        (self.shm_selector == SHM_ID_HOST_VISIBLE)
+            .then_some(VIRTIO_GPU_HOST_VISIBLE_BASE)
+            .unwrap_or(0)
     }
 }
 

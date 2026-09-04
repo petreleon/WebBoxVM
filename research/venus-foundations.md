@@ -16,18 +16,29 @@ trailing list of guest physical-memory entries. [Linux UAPI](https://github.com/
 
 | ABI field | Accepted value | Reason |
 | --- | --- | --- |
-| Feature negotiation | bit 3 plus `VIRTIO_F_VERSION_1` and `FEATURES_OK` | The command never activates from an unnegotiated feature mask. |
-| `blob_mem` | `BLOB_MEM_GUEST` (1) only | Guest pages have defined ownership without a browser-visible host aperture. |
-| `blob_flags` | zero | Mappable, shareable, and cross-device claims need host contracts not present here. |
-| `blob_id` | zero | A guest-only blob has no host object identifier. |
-| Backing entries | 0–16,384 valid physical ranges covering `size` when present | Later attach/detach supports swap-style guest-page lifetime. |
-| Context attachment | lifecycle attachment only | A VirGL context may retain the ID, but draw-state validation still rejects it. |
+| Feature negotiation | bit 3 plus `VIRTIO_F_VERSION_1` and `FEATURES_OK`; bit 5 when selected | Blob creation never activates from an unnegotiated resource-blob feature mask. |
+| Guest `blob_mem` / flags | `BLOB_MEM_GUEST` (1), zero flags | Guest pages retain their defined ownership. |
+| Host staging `blob_mem` / flags | `BLOB_MEM_HOST3D` (2), `BLOB_FLAG_USE_MAPPABLE` | A live VirGL context owns one bounded CPU-visible staging allocation. |
+| `blob_id` | zero | Neither profile exposes an external or renderer-local object identity. |
+| Guest backing entries | 0–16,384 valid physical ranges covering `size` when present | Later attach/detach supports swap-style guest-page lifetime. |
+| Host staging backing entries | zero | The profile retains its bounded bytes internally, without a guest shadow buffer. |
+| Context association | lifecycle attachment only | A live VirGL context owns host staging lifetime, but draw-state validation still rejects it. |
 | Lifetime | normal `RESOURCE_UNREF` | IDs share one namespace and accounting budget with 2D and bounded VirGL resources. |
 
-The device neither exposes the host-visible shared-memory selector nor accepts
-`BLOB_MEM_HOST3D` / `BLOB_MEM_HOST3D_GUEST`, `RESOURCE_MAP_BLOB`, or
-`RESOURCE_UNMAP_BLOB`. It therefore cannot expose a guest pointer to browser
-memory and cannot represent Vulkan external-memory ownership.
+The device also implements a tightly scoped host-visible map profile. The
+VirtIO-MMIO shared-memory selector exposes ID 1 at a 64 MiB sparse aperture
+starting at guest physical `0x0b00_0000`. `BLOB_MEM_HOST3D` is accepted only
+for a 4 KiB-aligned, mappable, backing-free blob created in a live VirGL
+context. `RESOURCE_MAP_BLOB` assigns a page-aligned offset, returns cached map
+info, restores that blob's retained bytes into the aperture, and rejects an
+overlap or a duplicate mapping. `RESOURCE_UNMAP_BLOB` copies the aperture back
+to the bounded host allocation and discards the sparse pages. Unref and device
+reset also discard live mappings, preventing data leakage on aperture reuse.
+
+It does not accept `BLOB_MEM_HOST3D_GUEST`, shareable/cross-device flags, or
+any Vulkan external-memory handle. The mappable `HOST3D` profile is a
+CPU-visible staging allocation: it has no renderer-local object validation,
+GPU command interpretation, fence export, or Vulkan ownership transfer.
 
 ## Safety invariant
 
@@ -38,18 +49,23 @@ reserves an ID, consumes a budget byte, or changes an existing resource.
 Lookups are expected O(1); validation is O(n) only in the bounded list of `n`
 backing entries.
 
+For mapped host blobs, the aperture intervals are pairwise disjoint and every
+interval has exactly one live owner. A map copies retained bytes into the
+aperture; unmap performs the inverse copy before dropping sparse pages. Thus a
+mapping round trip preserves bytes while an ID's release makes its aperture
+range read as zero.
+
 ## Why this precedes Venus
 
 Mesa documents Venus as a VirtIO-GPU Vulkan command-serialization path that
 requires resource blobs, host-visible memory, and host Vulkan/external-memory
-support. The current profile satisfies only the first resource-lifecycle step;
-WebGPU does not itself provide the host Vulkan external-memory primitives Venus
-needs. [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
+support. The current profile now supplies the first two resource-lifecycle
+layers, but WebGPU does not itself provide the host Vulkan external-memory
+primitives Venus needs. [Mesa Venus architecture](https://docs.mesa3d.org/drivers/venus.html)
 
 The next truthful layers are:
 
-1. a real host-visible aperture with map/unmap lifetime and cache-mode rules;
-2. `HOST3D_GUEST` ownership and synchronization semantics;
-3. a Vulkan-capable host boundary, only if it can preserve external-memory and
+1. `HOST3D_GUEST` ownership and synchronization semantics;
+2. a Vulkan-capable host boundary, only if it can preserve external-memory and
    fence behavior; and finally
-4. a Venus capset whose queried properties match those completed layers.
+3. a Venus capset whose queried properties match those completed layers.

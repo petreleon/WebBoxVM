@@ -31,8 +31,8 @@ impl VirtioGpu {
                 return immediate(self.capset_response(header, input));
             }
             CMD_RESOURCE_CREATE_2D => self.create_2d(input),
-            CMD_RESOURCE_CREATE_BLOB => self.create_blob(mem, input),
-            CMD_RESOURCE_UNREF => self.unref_resource(input),
+            CMD_RESOURCE_CREATE_BLOB => self.create_blob(mem, header, input),
+            CMD_RESOURCE_UNREF => self.unref_resource(mem, input),
             CMD_SET_SCANOUT => self.set_scanout(input),
             CMD_RESOURCE_FLUSH => self.flush(input),
             CMD_TRANSFER_TO_HOST_2D => self.transfer(mem, input),
@@ -47,6 +47,8 @@ impl VirtioGpu {
             CMD_RESOURCE_CREATE_3D => self.create_virgl_resource(input),
             CMD_TRANSFER_TO_HOST_3D => self.transfer_to_host_3d(mem, header, input),
             CMD_TRANSFER_FROM_HOST_3D => self.transfer_from_host_3d(mem, header, input),
+            CMD_RESOURCE_MAP_BLOB => return immediate(self.map_blob(mem, header, input)),
+            CMD_RESOURCE_UNMAP_BLOB => self.unmap_blob(mem, input),
             CMD_SUBMIT_3D => match self.submit_3d(header, input) {
                 Ok(Some(deferred)) => return deferred_result(header, deferred),
                 Ok(None) => RESP_OK_NODATA,

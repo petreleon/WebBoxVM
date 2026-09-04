@@ -134,3 +134,15 @@ fn range_must_stay_inside_one_region() {
     assert_eq!(m.read_bytes(LOW_REGION_END - 2, &mut out), None);
     assert_eq!(m.read(EFI_REGION_END, 1), None);
 }
+
+#[test]
+fn discard_reclaims_complete_sparse_pages_without_widening_the_range() {
+    let mut m = PhysicalMemory::new();
+    let addr = RAM_BASE + PAGE_SIZE;
+    m.write_bytes(addr, &[1; PAGE_SIZE as usize]).unwrap();
+    assert_eq!(m.allocated_pages(), 1);
+    assert_eq!(m.discard_range(addr, PAGE_SIZE as usize), Some(()));
+    assert_eq!(m.read(addr, 4), Some(0));
+    assert_eq!(m.allocated_pages(), 0);
+    assert_eq!(m.discard_range(addr + 1, PAGE_SIZE as usize), None);
+}

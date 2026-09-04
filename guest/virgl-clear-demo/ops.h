@@ -30,6 +30,7 @@ struct virgl_resources {
 
 int virgl_setup(long fd, struct virgl_resources *resources);
 int virgl_create_guest_blob(long fd);
+int virgl_create_host_blob(long fd);
 int virgl_submit_clear(long fd, u32 bo_handle, u32 resource_handle);
 int virgl_submit_copy(long fd, u32 source_bo, u32 source_resource,
                       u32 destination_bo, u32 destination_resource);

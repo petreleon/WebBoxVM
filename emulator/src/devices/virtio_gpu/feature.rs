@@ -1,7 +1,8 @@
 use super::{
-    VIRTIO_F_VERSION_1, VIRTIO_GPU_F_CONTEXT_INIT, VIRTIO_GPU_F_RESOURCE_BLOB,
-    VIRTIO_GPU_F_VIRGL, VirtioGpu,
+    VIRTIO_F_VERSION_1, VIRTIO_GPU_F_BLOB_ALIGNMENT, VIRTIO_GPU_F_CONTEXT_INIT,
+    VIRTIO_GPU_F_RESOURCE_BLOB, VIRTIO_GPU_F_VIRGL, VirtioGpu,
 };
+use crate::memory::PhysicalMemory;
 
 pub(super) const STATUS_FEATURES_OK: u32 = 1 << 3;
 
@@ -25,9 +26,9 @@ impl VirtioGpu {
         self.revalidate_features();
     }
 
-    pub(super) fn write_status(&mut self, value: u32) {
+    pub(super) fn write_status(&mut self, mem: &mut PhysicalMemory, value: u32) {
         if value == 0 {
-            self.cold_reset();
+            self.cold_reset(mem);
             return;
         }
         self.status = value;
@@ -49,6 +50,7 @@ impl VirtioGpu {
             | VIRTIO_GPU_F_VIRGL
             | VIRTIO_GPU_F_RESOURCE_BLOB
             | VIRTIO_GPU_F_CONTEXT_INIT
+            | VIRTIO_GPU_F_BLOB_ALIGNMENT
     }
 
     fn driver_features(&self) -> u64 {

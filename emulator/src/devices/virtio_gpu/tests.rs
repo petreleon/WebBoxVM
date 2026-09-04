@@ -4,6 +4,7 @@ mod bounds;
 mod commands;
 mod context;
 mod features;
+mod host_visible;
 mod lifecycle;
 mod queue;
 mod three_d;

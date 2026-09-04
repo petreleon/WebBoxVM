@@ -81,6 +81,15 @@ pub const VIRTIO_GPU_BASE: u64 = 0x0A00_3000;
 /// End of the VirtIO-MMIO GPU device region.
 pub const VIRTIO_GPU_END: u64 = VIRTIO_GPU_BASE + VIRTIO_BLK_SIZE;
 
+/// Sparse physical aperture returned through VirtIO-GPU shared-memory ID 1.
+/// It is outside the guest RAM map and is only populated by mapped host blobs.
+pub const VIRTIO_GPU_HOST_VISIBLE_BASE: u64 = 0x0B00_0000;
+/// Maximum concurrently mapped host-visible blob storage (64 MiB).
+pub const VIRTIO_GPU_HOST_VISIBLE_SIZE: u64 = 64 * 1024 * 1024;
+/// Exclusive end of the VirtIO-GPU host-visible aperture.
+pub const VIRTIO_GPU_HOST_VISIBLE_END: u64 =
+    VIRTIO_GPU_HOST_VISIBLE_BASE + VIRTIO_GPU_HOST_VISIBLE_SIZE;
+
 /// PL011 UART register offsets (from base address).
 pub const UART_DR_OFFSET: u64 = 0x00;
 pub const UART_RSR_OFFSET: u64 = 0x04;

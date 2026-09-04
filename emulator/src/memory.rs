@@ -92,6 +92,16 @@ impl PhysicalMemory {
         self.select_region(addr, len).is_some()
     }
 
+    /// Releases a page-aligned sparse range back to its implicit-zero state.
+    pub fn discard_range(&mut self, addr: u64, len: usize) -> Option<()> {
+        let region = self.select_region_mut(addr, len)?;
+        region.discard_pages(addr, len).then_some(())?;
+        if len != 0 {
+            self.bump_generation();
+        }
+        Some(())
+    }
+
     pub fn page_generation(&self, addr: u64) -> Option<u64> {
         self.select_region_for_addr(addr)
             .map(|region| region.page_generation(addr))

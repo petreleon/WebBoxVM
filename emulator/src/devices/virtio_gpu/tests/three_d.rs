@@ -4,7 +4,8 @@ use super::super::three_d::{
     CAPSET_ID, CAPSET_SIZE, CAPSET_VERSION, MAX_3D_INDICES, MAX_3D_VERTICES,
 };
 use super::super::{
-    VIRTIO_GPU_F_CONTEXT_INIT, VIRTIO_GPU_F_RESOURCE_BLOB, VIRTIO_GPU_F_VIRGL, VirtioGpu,
+    VIRTIO_GPU_F_BLOB_ALIGNMENT, VIRTIO_GPU_F_CONTEXT_INIT, VIRTIO_GPU_F_RESOURCE_BLOB,
+    VIRTIO_GPU_F_VIRGL, VirtioGpu,
 };
 use super::{context_create, header, response_type, submit_3d, wbg3_packet};
 use crate::memory::PhysicalMemory;
@@ -15,7 +16,12 @@ fn features_and_private_capset_remain_advertised_with_exact_structures() {
     let mut mem = PhysicalMemory::new();
     assert_eq!(
         gpu.read(0x010, 4),
-        Some(VIRTIO_GPU_F_VIRGL | VIRTIO_GPU_F_RESOURCE_BLOB | VIRTIO_GPU_F_CONTEXT_INIT)
+        Some(
+            VIRTIO_GPU_F_VIRGL
+                | VIRTIO_GPU_F_RESOURCE_BLOB
+                | VIRTIO_GPU_F_CONTEXT_INIT
+                | VIRTIO_GPU_F_BLOB_ALIGNMENT
+        )
     );
     gpu.write(&mut mem, 0x014, 1, 4);
     assert_eq!(gpu.read(0x010, 4), Some(1));

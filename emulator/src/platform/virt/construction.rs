@@ -35,7 +35,7 @@ impl SystemBus {
         self.virtio_blk.cold_reset();
         self.virtio_disk.cold_reset();
         self.virtio_net = VirtioNet::new();
-        self.virtio_gpu.cold_reset();
+        self.virtio_gpu.cold_reset(&mut self.mem);
         self.uart_rx_refresh_needed = false;
         self.memory_writes.clear();
         self.dma_write_during_instruction = false;

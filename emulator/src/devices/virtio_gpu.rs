@@ -13,6 +13,7 @@ mod frame;
 mod mmio;
 mod protocol;
 mod queue;
+mod reset;
 mod resource;
 mod resource_transfer;
 mod three_d;
@@ -38,6 +39,7 @@ pub(super) const VIRTIO_F_VERSION_1: u64 = 1 << 32;
 pub(super) const VIRTIO_GPU_F_VIRGL: u64 = 1 << 0;
 pub(super) const VIRTIO_GPU_F_RESOURCE_BLOB: u64 = 1 << 3;
 pub(super) const VIRTIO_GPU_F_CONTEXT_INIT: u64 = 1 << 4;
+pub(super) const VIRTIO_GPU_F_BLOB_ALIGNMENT: u64 = 1 << 5;
 pub(super) const QUEUE_COUNT: usize = 2;
 pub(super) const QUEUE_NUM_MAX: u16 = 256;
 pub(super) const MAX_RESOURCES: usize = 64;
@@ -69,6 +71,7 @@ pub struct VirtioGpu {
     device_features_sel: u32,
     driver_features_sel: u32,
     driver_features: [u32; 2],
+    shm_selector: u32,
     queue_sel: u32,
     queues: [VirtQueue; QUEUE_COUNT],
     interrupt_status: u32,
@@ -94,6 +97,7 @@ impl VirtioGpu {
             device_features_sel: 0,
             driver_features_sel: 0,
             driver_features: [0; 2],
+            shm_selector: 0,
             queue_sel: 0,
             queues: [VirtQueue::default(); QUEUE_COUNT],
             interrupt_status: 0,
@@ -112,14 +116,6 @@ impl VirtioGpu {
             next_virgl_context_generation: 1,
             reset_generation: 0,
         }
-    }
-
-    pub fn cold_reset(&mut self) {
-        let next_3d_sequence = self.next_3d_sequence;
-        let reset_generation = self.reset_generation.wrapping_add(1);
-        *self = Self::new();
-        self.next_3d_sequence = next_3d_sequence;
-        self.reset_generation = reset_generation;
     }
 
     pub fn reset_generation(&self) -> u32 {

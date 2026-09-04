@@ -129,6 +129,18 @@ impl SparseRegion {
         }
     }
 
+    pub(super) fn discard_pages(&mut self, addr: u64, len: usize) -> bool {
+        if addr % PAGE_SIZE != 0 || len % MEMORY_PAGE_SIZE != 0 || !self.contains_range(addr, len) {
+            return false;
+        }
+        let first = ((addr - self.base) / PAGE_SIZE) as usize;
+        let count = len / MEMORY_PAGE_SIZE;
+        for page in &mut self.pages[first..first + count] {
+            *page = None;
+        }
+        true
+    }
+
     pub(super) fn allocated_pages(&self) -> usize {
         self.pages.iter().filter(|page| page.is_some()).count()
     }

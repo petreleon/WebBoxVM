@@ -19,11 +19,14 @@ pub(super) const CMD_RESOURCE_CREATE_3D: u32 = 0x0204;
 pub(super) const CMD_TRANSFER_TO_HOST_3D: u32 = 0x0205;
 pub(super) const CMD_TRANSFER_FROM_HOST_3D: u32 = 0x0206;
 pub(super) const CMD_SUBMIT_3D: u32 = 0x0207;
+pub(super) const CMD_RESOURCE_MAP_BLOB: u32 = 0x0208;
+pub(super) const CMD_RESOURCE_UNMAP_BLOB: u32 = 0x0209;
 
 pub(super) const RESP_OK_NODATA: u32 = 0x1100;
 pub(super) const RESP_OK_DISPLAY_INFO: u32 = 0x1101;
 pub(super) const RESP_OK_CAPSET_INFO: u32 = 0x1102;
 pub(super) const RESP_OK_CAPSET: u32 = 0x1103;
+pub(super) const RESP_OK_MAP_INFO: u32 = 0x1106;
 pub(super) const RESP_ERR_UNSPEC: u32 = 0x1200;
 pub(super) const RESP_ERR_OUT_OF_MEMORY: u32 = 0x1201;
 pub(super) const RESP_ERR_INVALID_SCANOUT_ID: u32 = 0x1202;
