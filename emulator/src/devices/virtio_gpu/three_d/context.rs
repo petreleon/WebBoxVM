@@ -61,13 +61,13 @@ impl VirtioGpu {
         let Some(resource_id) = read_u32(input, 24) else {
             return RESP_ERR_INVALID_PARAMETER;
         };
-        if !self.resources.contains_key(&resource_id) {
+        if !self.resource_exists(resource_id) {
             return RESP_ERR_INVALID_RESOURCE_ID;
         }
         if capset != VIRGL_CAPSET_ID {
             return RESP_OK_NODATA;
         }
-        if !self.is_virgl_resource(resource_id) {
+        if !self.is_virgl_resource(resource_id) && !self.blobs.contains_key(&resource_id) {
             return RESP_ERR_INVALID_PARAMETER;
         }
         let context = self

@@ -1,4 +1,7 @@
-use super::{VIRTIO_F_VERSION_1, VIRTIO_GPU_F_CONTEXT_INIT, VIRTIO_GPU_F_VIRGL, VirtioGpu};
+use super::{
+    VIRTIO_F_VERSION_1, VIRTIO_GPU_F_CONTEXT_INIT, VIRTIO_GPU_F_RESOURCE_BLOB,
+    VIRTIO_GPU_F_VIRGL, VirtioGpu,
+};
 
 pub(super) const STATUS_FEATURES_OK: u32 = 1 << 3;
 
@@ -31,6 +34,10 @@ impl VirtioGpu {
         self.revalidate_features();
     }
 
+    pub(super) fn feature_enabled(&self, feature: u64) -> bool {
+        self.status & STATUS_FEATURES_OK != 0 && self.driver_features() & feature == feature
+    }
+
     fn revalidate_features(&mut self) {
         if self.status & STATUS_FEATURES_OK != 0 && !self.features_are_valid() {
             self.status &= !STATUS_FEATURES_OK;
@@ -38,7 +45,10 @@ impl VirtioGpu {
     }
 
     fn offered_features(&self) -> u64 {
-        VIRTIO_F_VERSION_1 | VIRTIO_GPU_F_VIRGL | VIRTIO_GPU_F_CONTEXT_INIT
+        VIRTIO_F_VERSION_1
+            | VIRTIO_GPU_F_VIRGL
+            | VIRTIO_GPU_F_RESOURCE_BLOB
+            | VIRTIO_GPU_F_CONTEXT_INIT
     }
 
     fn driver_features(&self) -> u64 {

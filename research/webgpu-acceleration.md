@@ -69,7 +69,7 @@ Tightly packed BGRA8 pixels follow the header.
 
 ## Experimental 3D slice
 
-WebBoxVM advertises the standard `VIRTIO_GPU_F_VIRGL` and `VIRTIO_GPU_F_CONTEXT_INIT` bits so the stock Linux 6.12 `virtio_gpu` DRM driver exposes its render ioctl path.
+WebBoxVM advertises `VIRTIO_GPU_F_VIRGL`, `VIRTIO_GPU_F_RESOURCE_BLOB`, and `VIRTIO_GPU_F_CONTEXT_INIT`; the blob profile is guest-memory-only and separately documented in [Venus foundations](venus-foundations.md).
 The device now separately exposes a deliberately narrow standard VirGL capset-1 clear, solid-triangle, generic vertex-color, texture-times-vertex-color, and fixed sampled-texture path, documented in [VirGL compatibility](virgl-compatibility.md).
 Capset ID 7 is deliberately private and unregistered, its data starts with
 `WBG3`, and generic Mesa must not select or interpret it.
@@ -102,13 +102,13 @@ A completed WBG3 v1 draw owns full-canvas presentation until reset, device loss,
 There is no v1 guest-release or mixed-composition opcode.
 
 Full VirGL would additionally require a Gallium state machine and TGSI-to-WGSL translator.
-Venus requires blob/host-visible resources and host Vulkan external memory primitives that WebGPU does not expose; neither name is used for the private capset.
+Venus requires host-3D/host-visible blobs and host Vulkan external-memory primitives that WebGPU does not expose; neither name is used for the private capset.
 
 ## Known transport limitations
 
 - Both queues are exposed, but only control-queue commands are implemented; `UPDATE_CURSOR` and `MOVE_CURSOR` on the cursor queue return an error.
-- Feature pages retain the driver's 64-bit selection. `FEATURES_OK` clears for an unsupported mask or a missing `VERSION_1`; command-level feature gating remains a future transport hardening step.
-- WBG3 plus the narrow capset-1 clear, solid, generic vertex-color, texture-times-color, and fixed sampled-texture triangles are the only 3D operations; there are no general VirGL/Venus shader, state, blob, host-visible-memory, or compute APIs.
+- Feature pages retain the driver's 64-bit selection. `FEATURES_OK` clears for an unsupported mask or a missing `VERSION_1`; resource-blob creation is gated on that accepted feature.
+- Guest-only resource blobs coexist with WBG3 plus the narrow capset-1 triangles. There are no host-3D blobs, map/unmap, host-visible-memory, general VirGL/Venus shader/state, or compute APIs.
 
 ## Invariants
 

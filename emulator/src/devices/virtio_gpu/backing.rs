@@ -34,19 +34,32 @@ impl VirtioGpu {
         if entry_count == 0 || entry_count > MAX_BACKING_ENTRIES || input.len() < expected {
             return RESP_ERR_INVALID_PARAMETER;
         }
-        let Some(resource) = self.resources.get(&resource_id) else {
+        let Some((resource_len, has_backing)) = self
+            .resources
+            .get(&resource_id)
+            .map(|resource| (resource.pixels.len(), !resource.backing.is_empty()))
+            .or_else(|| {
+                self.blobs
+                    .get(&resource_id)
+                    .map(|blob| (blob.size, !blob.backing.is_empty()))
+            })
+        else {
             return RESP_ERR_INVALID_RESOURCE_ID;
         };
-        if !resource.backing.is_empty() {
+        if has_backing {
             return RESP_ERR_INVALID_PARAMETER;
         }
-        let Some(entries) = decode_entries(mem, input, entry_count, resource.pixels.len()) else {
+        let Some(entries) = decode_entries(mem, input, 32, entry_count, resource_len) else {
             return RESP_ERR_INVALID_PARAMETER;
         };
-        self.resources
-            .get_mut(&resource_id)
-            .expect("resource checked above")
-            .attach(entries);
+        if let Some(resource) = self.resources.get_mut(&resource_id) {
+            resource.attach(entries);
+        } else {
+            self.blobs
+                .get_mut(&resource_id)
+                .expect("blob checked above")
+                .backing = entries;
+        }
         RESP_OK_NODATA
     }
 
@@ -57,27 +70,34 @@ impl VirtioGpu {
         let Some(resource_id) = read_u32(input, 24) else {
             return RESP_ERR_INVALID_PARAMETER;
         };
-        let Some(resource) = self.resources.get_mut(&resource_id) else {
+        if let Some(resource) = self.resources.get_mut(&resource_id) {
+            if resource.backing.is_empty() {
+                return RESP_ERR_INVALID_PARAMETER;
+            }
+            resource.backing.clear();
+        } else if let Some(blob) = self.blobs.get_mut(&resource_id) {
+            if blob.backing.is_empty() {
+                return RESP_ERR_INVALID_PARAMETER;
+            }
+            blob.backing.clear();
+        } else {
             return RESP_ERR_INVALID_RESOURCE_ID;
-        };
-        if resource.backing.is_empty() {
-            return RESP_ERR_INVALID_PARAMETER;
         }
-        resource.backing.clear();
         RESP_OK_NODATA
     }
 }
 
-fn decode_entries(
+pub(super) fn decode_entries(
     mem: &PhysicalMemory,
     input: &[u8],
+    start: usize,
     count: usize,
     resource_len: usize,
 ) -> Option<Vec<BackingEntry>> {
     let mut entries = Vec::with_capacity(count);
     let mut total = 0usize;
     for index in 0..count {
-        let offset = 32 + index * 16;
+        let offset = start.checked_add(index.checked_mul(16)?)?;
         let addr = read_u64(input, offset)?;
         let len = read_u32(input, offset + 8)?;
         let len_usize = usize::try_from(len).ok()?;

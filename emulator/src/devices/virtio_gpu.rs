@@ -5,6 +5,7 @@
 //! module; hosts consume coalesced scanout updates through `take_scanout_update`.
 
 mod backing;
+mod blob;
 mod commands;
 mod completion;
 mod feature;
@@ -19,6 +20,7 @@ mod three_d;
 #[cfg(test)]
 mod tests;
 
+use blob::BlobResource;
 use protocol::{BackingEntry, Rect};
 use resource::GpuResource;
 use std::collections::HashMap;
@@ -34,6 +36,7 @@ pub(super) const VIRTIO_DEVICE_ID_GPU: u64 = 16;
 pub(super) const VIRTIO_VENDOR_WEBBOXVM: u64 = 0x5742_564d;
 pub(super) const VIRTIO_F_VERSION_1: u64 = 1 << 32;
 pub(super) const VIRTIO_GPU_F_VIRGL: u64 = 1 << 0;
+pub(super) const VIRTIO_GPU_F_RESOURCE_BLOB: u64 = 1 << 3;
 pub(super) const VIRTIO_GPU_F_CONTEXT_INIT: u64 = 1 << 4;
 pub(super) const QUEUE_COUNT: usize = 2;
 pub(super) const QUEUE_NUM_MAX: u16 = 256;
@@ -71,6 +74,7 @@ pub struct VirtioGpu {
     interrupt_status: u32,
     status: u32,
     resources: HashMap<u32, GpuResource>,
+    blobs: HashMap<u32, BlobResource>,
     allocated_resource_bytes: usize,
     scanout: Option<Scanout>,
     pending_damage: Option<Rect>,
@@ -95,6 +99,7 @@ impl VirtioGpu {
             interrupt_status: 0,
             status: 0,
             resources: HashMap::new(),
+            blobs: HashMap::new(),
             allocated_resource_bytes: 0,
             scanout: None,
             pending_damage: None,
@@ -131,6 +136,14 @@ impl VirtioGpu {
 
     fn selected_queue_mut(&mut self) -> Option<&mut VirtQueue> {
         self.queues.get_mut(self.queue_sel as usize)
+    }
+
+    pub(super) fn resource_exists(&self, resource_id: u32) -> bool {
+        self.resources.contains_key(&resource_id) || self.blobs.contains_key(&resource_id)
+    }
+
+    pub(super) fn resource_count(&self) -> usize {
+        self.resources.len() + self.blobs.len()
     }
 
     fn detach_scanout_resource(&mut self, resource_id: u32) {

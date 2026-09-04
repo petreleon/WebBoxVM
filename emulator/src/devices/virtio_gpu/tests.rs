@@ -1,4 +1,5 @@
 mod backing_many;
+mod blob;
 mod bounds;
 mod commands;
 mod context;

@@ -20,10 +20,10 @@ impl VirtioGpu {
         else {
             return RESP_ERR_INVALID_PARAMETER;
         };
-        if id == 0 || self.resources.contains_key(&id) {
+        if id == 0 || self.resource_exists(id) {
             return RESP_ERR_INVALID_RESOURCE_ID;
         }
-        if self.resources.len() >= MAX_RESOURCES {
+        if self.resource_count() >= MAX_RESOURCES {
             return RESP_ERR_OUT_OF_MEMORY;
         }
         let resource = if let Some(sampleable) =

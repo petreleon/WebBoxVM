@@ -10,6 +10,7 @@ pub(super) const CMD_RESOURCE_ATTACH_BACKING: u32 = 0x0106;
 pub(super) const CMD_RESOURCE_DETACH_BACKING: u32 = 0x0107;
 pub(super) const CMD_GET_CAPSET_INFO: u32 = 0x0108;
 pub(super) const CMD_GET_CAPSET: u32 = 0x0109;
+pub(super) const CMD_RESOURCE_CREATE_BLOB: u32 = 0x010c;
 pub(super) const CMD_CTX_CREATE: u32 = 0x0200;
 pub(super) const CMD_CTX_DESTROY: u32 = 0x0201;
 pub(super) const CMD_CTX_ATTACH_RESOURCE: u32 = 0x0202;

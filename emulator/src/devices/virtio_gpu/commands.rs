@@ -31,6 +31,7 @@ impl VirtioGpu {
                 return immediate(self.capset_response(header, input));
             }
             CMD_RESOURCE_CREATE_2D => self.create_2d(input),
+            CMD_RESOURCE_CREATE_BLOB => self.create_blob(mem, input),
             CMD_RESOURCE_UNREF => self.unref_resource(input),
             CMD_SET_SCANOUT => self.set_scanout(input),
             CMD_RESOURCE_FLUSH => self.flush(input),
@@ -60,10 +61,10 @@ impl VirtioGpu {
         let Some((resource_id, format, width, height)) = read_create_2d(input) else {
             return RESP_ERR_INVALID_PARAMETER;
         };
-        if resource_id == 0 || self.resources.contains_key(&resource_id) {
+        if resource_id == 0 || self.resource_exists(resource_id) {
             return RESP_ERR_INVALID_RESOURCE_ID;
         }
-        if self.resources.len() >= MAX_RESOURCES {
+        if self.resource_count() >= MAX_RESOURCES {
             return RESP_ERR_OUT_OF_MEMORY;
         }
         if !GpuResource::supported_format(format) {

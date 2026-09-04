@@ -129,9 +129,9 @@ multiple vertex attributes beyond fixed position/UV, position/RGBA, or position/
 sampling/filtering or blending, depth/stencil, multi-target rendering, general
 readback, or a broad VirGL renderer.
 
-It also does not establish Vulkan or Venus. Venus needs blob resources,
-external-memory semantics, synchronization, and context initialization support
-that this capset deliberately does not advertise.
+It also does not establish Vulkan or Venus. A separate guest-only blob profile
+exists, but Venus needs host-3D/host-visible blobs, external-memory semantics,
+synchronization, and a matching capset that this renderer does not advertise.
 
 ## Validation retained in the repository
 
