@@ -51,7 +51,7 @@ pub(super) fn draw(
     true
 }
 
-fn uvs(vertices: &[u8]) -> Option<[[f32; 2]; geometry::VERTICES]> {
+pub(super) fn uvs(vertices: &[u8]) -> Option<[[f32; 2]; geometry::VERTICES]> {
     if vertices.len() != geometry::VERTICES * STRIDE {
         return None;
     }
@@ -68,7 +68,7 @@ fn uvs(vertices: &[u8]) -> Option<[[f32; 2]; geometry::VERTICES]> {
         .then_some(values)
 }
 
-fn interpolate(
+pub(super) fn interpolate(
     uvs: [[f32; 2]; geometry::VERTICES],
     weights: [f32; geometry::VERTICES],
 ) -> [f32; 2] {

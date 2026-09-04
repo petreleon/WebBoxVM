@@ -17,9 +17,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
         DrawMaterial::Solid(color) => solid(sequence, width, height, clear, work, *color),
         DrawMaterial::VertexColor => vertex_color(sequence, width, height, clear, work),
         DrawMaterial::Textured(texture) => textured(sequence, width, height, clear, work, texture),
-        DrawMaterial::TexturedPair(textures) => {
-            textured_pair(sequence, width, height, clear, work, textures)
-        }
+        DrawMaterial::TexturedPair(textures) => textured_pair(sequence, width, height, clear, work, textures),
         DrawMaterial::TextureColor(texture) => texture_color(sequence, width, height, clear, work, texture),
     }
 }
@@ -77,9 +75,10 @@ fn textured(
     work: &DrawWork,
     texture: &super::TextureSnapshot,
 ) -> Vec<u8> {
-    let extended = texture.sampler != SamplerConfig::CLAMP_NEAREST;
+    let depth = work.depth_state;
+    let extended = depth.is_some() || texture.sampler != SamplerConfig::CLAMP_NEAREST;
     let mut packet = header(
-        if extended { 5 } else { 3 }, sequence, width, height, work.vertex_count,
+        if depth.is_some() { 13 } else if extended { 5 } else { 3 }, sequence, width, height, work.vertex_count,
     );
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
@@ -91,6 +90,10 @@ fn textured(
         packet.extend_from_slice(&value.to_le_bytes());
     }
     packet.extend_from_slice(&texture.bgra);
+    if let Some(state) = depth {
+        floats(&mut packet, [1.0].into_iter());
+        packet.extend_from_slice(&state.wire().to_le_bytes());
+    }
     packet
 }
 

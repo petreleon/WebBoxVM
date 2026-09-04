@@ -3,11 +3,11 @@ import test from "node:test";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260904-virgl-depth-vertex-color-r1";
+} from "./gpu-3d-packet.js?v=20260904-virgl-depth-texture-r1";
 import {
   gpu3dPacket, virglClearPacket, virglDrawPacket, virglTexturedMultiplyPacket, virglTexturedPacket,
-} from "./gpu-test-packets.mjs?v=20260904-virgl-depth-vertex-color-r1";
-import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-depth-vertex-color-r1";
+} from "./gpu-test-packets.mjs?v=20260904-virgl-depth-texture-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-depth-texture-r1";
 
 test("WBG3 parser decodes bounded indexed geometry from an offset view", () => {
   const packet = gpu3dPacket({ sequence: 42 });

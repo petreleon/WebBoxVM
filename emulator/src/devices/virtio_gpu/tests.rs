@@ -21,6 +21,7 @@ mod virgl_draw;
 mod virgl_draw_capset;
 mod virgl_depth_batch;
 mod virgl_depth_draw;
+mod virgl_depth_textured_draw;
 mod virgl_draw_fixture;
 mod virgl_dual_texture_draw;
 mod virgl_indexed_draw;

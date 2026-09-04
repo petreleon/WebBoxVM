@@ -1,4 +1,4 @@
-import { GPU_3D_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-depth-vertex-color-r1";
+import { GPU_3D_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-depth-texture-r1";
 
 export function maybePostGpu3d(
   now,

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installWebboxVmDevtools } from "./devtools.js?v=20260904-virgl-depth-vertex-color-r1";
+import { installWebboxVmDevtools } from "./devtools.js?v=20260904-virgl-depth-texture-r1";
 
 test("hidden devtools jit checkbox follows the safe default", () => {
   withFakeDocument((document) => {

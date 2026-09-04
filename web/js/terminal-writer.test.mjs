@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { TerminalWriter } from "./terminal-writer.js?v=20260904-virgl-depth-vertex-color-r1";
+import { TerminalWriter } from "./terminal-writer.js?v=20260904-virgl-depth-texture-r1";
 
 const previousDocument = globalThis.document;
 const previousRequestAnimationFrame = globalThis.requestAnimationFrame;

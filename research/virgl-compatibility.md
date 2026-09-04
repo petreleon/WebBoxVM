@@ -10,7 +10,7 @@ primitive, one UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, deliberately bounded single
-solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid or interpolated-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw solid-constant batches that are wholly non-depth, share one standard depth state, or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
+solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid, interpolated-vertex-color, or one-texture depth draws with canonical DSA comparisons/write masks; and 2–16-draw solid-constant batches that are wholly non-depth, share one standard depth state, or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -21,7 +21,7 @@ nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear; singleton material shapes plus solid/vertex-color canonical depth state; 2–16 ordered solid draws, non-depth, shared-depth, or per-record DSA, through WebGPU | No mixed-material/depth records, arbitrary blending, or sampler state |
+| Presentation | Clear; singleton material shapes plus solid/vertex-color/one-texture canonical depth state; 2–16 ordered solid draws, non-depth, shared-depth, or per-record DSA, through WebGPU | No mixed-material/depth records, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -60,7 +60,7 @@ Type-1 `VIRGL_OBJECT_BLEND` accepts one exact 11-word `pipe_blend_state`:
 blend enabled; an RGBA color mask; RGB `ADD, SRC_ALPHA, INV_SRC_ALPHA`; and
 alpha `ADD, ONE, INV_SRC_ALPHA`. A draw requires that object to be bound.
 Binding zero unbinds it; every other equation, factor, mask, and independent
-blend configuration is rejected. Type-0 `VIRGL_OBJECT_DSA` accepts only depth-test bit 0, write bit 1, and `PIPE_FUNC_NEVER` through `PIPE_FUNC_ALWAYS` in bits 2–4 (`1 | write << 1 | func << 2`), with all remaining state zero; singleton solid/vertex-color draws preserve it exactly.
+blend configuration is rejected. Type-0 `VIRGL_OBJECT_DSA` accepts only depth-test bit 0, write bit 1, and `PIPE_FUNC_NEVER` through `PIPE_FUNC_ALWAYS` in bits 2–4 (`1 | write << 1 | func << 2`), with all remaining state zero; singleton solid/vertex-color/one-texture draws preserve it exactly.
 
 Type-2 `VIRGL_OBJECT_RASTERIZER` accepts only the normal `DEPTH_CLIP`,
 `HALF_PIXEL_CENTER`, and `BOTTOM_EDGE_RULE` bits, with or without `SCISSOR`,
@@ -110,7 +110,7 @@ is not a guest ABI or VirGL command. Each schema validates three through 3,063 n
 sequence, canvas size, colors, `16N` vertex bytes, viewport, and optional
 canonical top-origin scissor. Schema 3 appends `24N` position/UV bytes, one 2D texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
 texels for legacy nearest-clamp multiplication; schema 5 carries exact one-texture state `0x1080` or `0x3292`, its size, and texels. Schema 6 carries two sampler words, sizes, and texels.
-Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. Schema 8 is `108 + 40N + 4WH` bytes with position/RGBA/UV vertices, viewport/scissor, one exact sampler, and one `W,H <= 64` BGRA texture. Schema 9 is legacy clear-one `LESS`; schema 10 carries a write-enabled comparison; schema 11 carries read-only solid DSA; schema 12 is schema 7 plus clear-one/canonical DSA vertex-color depth. The browser retains schema-1 parsing only for old packets, independently validates schemas 2–12,
+Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. Schema 8 is `108 + 40N + 4WH` bytes with position/RGBA/UV vertices, viewport/scissor, one exact sampler, and one `W,H <= 64` BGRA texture. Schema 9 is legacy clear-one `LESS`; schema 10 carries a write-enabled comparison; schema 11 carries read-only solid DSA; schema 12 is schema 7 plus clear-one/canonical DSA vertex-color depth; schema 13 is `116 + 24N + 4WH` bytes with exact sampler, texture, clear-one, and canonical DSA one-texture depth. The browser retains schema-1 parsing only for old packets, independently validates schemas 2–13,
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, applies equivalent viewport/scissor, and waits for
 `GPUQueue.onSubmittedWorkDone()`. `VGB1` is a separate private batch envelope: a 48-byte
@@ -141,12 +141,12 @@ and a matching capset that this renderer does not advertise.
 ## Validation retained in the repository
 
 Rust tests prove capset bits, transactional no-clear, malformed-index, and inline/resource-constant render/rejection,
-exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2–12 `VGD1` plus bounded `VGB1`
-payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, ordered non-depth/depth solid-batch blending, read-only solid/vertex-color depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
+exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2–13 `VGD1` plus bounded `VGB1`
+payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, ordered non-depth/depth solid-batch blending, solid/vertex-color/one-texture depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,
-cached pipelines, standard singleton solid/vertex-color and shared/per-record depth-batch pipelines, bounded `draw(N)`, one batch render pass, and queue-gated completion.
+cached pipelines, standard singleton solid/vertex-color/one-texture and shared/per-record depth-batch pipelines, bounded `draw(N)`, one batch render pass, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` provides a native Linux transport harness for
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
@@ -159,7 +159,7 @@ from that harness.
 
 ## Next compatibility milestones
 
-1. Add textured and texture-color depth routes, then mixed-material depth batches, only with a new guest/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
+1. Add texture-color depth, then mixed-material depth batches, only with a new guest/CPU/WebGPU agreement; do not generalize slots or shader forms implicitly.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

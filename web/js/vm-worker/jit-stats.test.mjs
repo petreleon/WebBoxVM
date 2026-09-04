@@ -6,8 +6,8 @@ import {
   recordJitFallback,
   recordJitReject,
   recordJitSkip,
-} from "./jit-stats.js?v=20260904-virgl-depth-vertex-color-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-vertex-color-r1";
+} from "./jit-stats.js?v=20260904-virgl-depth-texture-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-texture-r1";
 
 test("jit reject logs include parsed current instruction snapshots", () => {
   resetTelemetry();

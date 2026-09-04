@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-vertex-color-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-texture-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-vertex-color-r1";
-import { virglDepthPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-depth-vertex-color-r1";
-import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-depth-vertex-color-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-texture-r1";
+import { virglDepthPacket, virglDepthTexturePacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-depth-texture-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-depth-texture-r1";
 
 test("VirGL depth envelope requires its canonical depth clear and viewport state", () => {
   const packet = virglDepthPacket({ sequence: 71 });
@@ -112,6 +112,30 @@ test("VirGL depth vertex-color renderer uses its requested WebGPU depth state", 
     size: { depthOrArrayLayers: 1, height: 768, width: 1024 }, usage: 0x10,
   });
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-depth-vertex-color");
+});
+
+test("VirGL depth-texture envelope keeps a canonical sampler and DSA", () => {
+  const packet = virglDepthTexturePacket({ depthCompare: 4, depthWriteEnabled: false, sampler: 0x3292, sequence: 91 });
+  const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.protocol, "virgl-depth-texture"); assert.equal(frame.version, 13);
+  assert.equal(frame.depthCompare, "greater"); assert.equal(frame.depthWriteEnabled, false);
+  assert.deepEqual([frame.texture.addressMode, frame.texture.filter], ["clamp-to-edge", "linear"]);
+  const invalid = packet.slice(); new DataView(invalid.buffer).setUint32(invalid.byteLength - 4, 16, true);
+  assert.throws(() => parseGpu3dPacket(invalid), /depth state/);
+});
+
+test("VirGL depth-texture renderer attaches requested WebGPU depth and sampler state", async () => {
+  const device = fakeDevice(); const status = fakeStatus();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, { navigator: { gpu: fakeGpu([fakeAdapter(device)]) } });
+  const packet = virglDepthTexturePacket({ depthCompare: 4, depthWriteEnabled: false, sampler: 0x3292, sequence: 92 });
+  assert.deepEqual(await display.present3d(packet), { sequence: 92, success: true });
+  assert.deepEqual(device.pipelines[0].descriptor.depthStencil, { depthCompare: "greater", depthWriteEnabled: false, format: "depth24plus" });
+  assert.deepEqual(device.samplers[0], { addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge", magFilter: "linear", minFilter: "linear", mipmapFilter: "nearest" });
+  assert.deepEqual(device.textures.find((texture) => texture.descriptor.label === "VirGL depth-texture depth").descriptor,
+    { format: "depth24plus", label: "VirGL depth-texture depth", size: { depthOrArrayLayers: 1, height: 768, width: 1024 }, usage: 0x10 });
+  assert.deepEqual(device.renderPasses[0].depthStencilAttachment,
+    { depthClearValue: 1, depthLoadOp: "clear", depthStoreOp: "store", view: { kind: "texture-view" } });
+  assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-depth-texture");
 });
 
 function equalTriangle() {
