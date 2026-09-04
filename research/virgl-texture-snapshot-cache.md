@@ -26,6 +26,10 @@ hot path.
 
 Sampler objects are cached by the finite accepted `(addressMode, filter)` pair.
 This reduces repeated descriptor allocation without extending the guest ABI.
+For an exact cached snapshot tuple and the same material pipeline, the matching
+bind group is also reused. The cache holds at most 64 bind groups and clears all
+of them before any texture eviction can leave a descriptor naming a retired
+texture.
 
 ## Boundary
 
@@ -36,7 +40,9 @@ support, Mesa/OpenGL compatibility, Vulkan, or Venus external memory.
 ## Validation
 
 The material-batch browser test presents two byte-identical packets and proves
-only one source texture upload occurs. Full browser tests retain packet parsing,
-submission, readback, and device-loss coverage.
+one source texture upload, one vertex upload, and one texture bind group. Cache
+tests also prove a changed snapshot creates a new binding and eviction drops old
+bindings before reuse. Full browser tests retain packet parsing, submission,
+readback, and device-loss coverage.
 
 Source: [W3C WebGPU resource lifetime](https://www.w3.org/TR/webgpu/#resource-lifetime).

@@ -34,7 +34,7 @@ test("VirGL material batches reuse byte-identical texture snapshots", async () =
   const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, { navigator: { gpu: fakeGpu([fakeAdapter(device)]) } });
   await display.present3d(virglMaterialBatchPacket({ sequence: 94 }));
   await display.present3d(virglMaterialBatchPacket({ sequence: 95 }));
-  assert.equal(device.writes.length, 1); assert.equal(device.bufferWrites.length, 1);
+  assert.equal(device.writes.length, 1); assert.equal(device.bufferWrites.length, 1); assert.equal(device.bindGroups.length, 1);
 });
 
 test("VirGL material-batch parser rejects a noncanonical depth state", () => {

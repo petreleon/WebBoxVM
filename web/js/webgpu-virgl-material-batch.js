@@ -99,8 +99,7 @@ export class VirglMaterialBatchRenderer {
   #bindGroup(device, pipeline, draw, retired) {
     const textures = materialTextures(draw); if (!textures.length) return undefined;
     if (!pipeline) throw new Error("VirGL material-batch texture pipeline is unavailable");
-    const entries = this.#textures.bindGroupEntries(device, textures, retired);
-    return device.createBindGroup({ entries, layout: pipeline.getBindGroupLayout(0) });
+    return this.#textures.bindGroup(device, pipeline, textures, retired);
   }
 
   #depthAttachment(backend, frame) {

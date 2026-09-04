@@ -146,7 +146,7 @@ payloads, singleton and ordered non-depth/depth batch blending, normalized per-v
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, strict VGB1/VGM1 GPU-color readback, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,
-cached pipelines and exact byte-identical vertex uploads, standard singleton material and `VGB1`/`VGM1` shared/per-record depth-batch pipelines, bounded `draw(N)`, one batch render pass, padded map readback, and queue-gated completion.
+cached pipelines, exact byte-identical vertex uploads, and material bind groups, standard singleton material and `VGB1`/`VGM1` shared/per-record depth-batch pipelines, bounded `draw(N)`, one batch render pass, padded map readback, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` provides a native Linux transport harness for
 VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfer/copy,
