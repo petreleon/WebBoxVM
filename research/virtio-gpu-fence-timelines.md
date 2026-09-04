@@ -44,6 +44,11 @@ rather than presentation merely having been scheduled.
 - exact returned fence fields; and
 - independent completion of two negotiated rings.
 
+The native AArch64 smoke guest creates a two-ring DRM context and issues its
+deferred clear on ring 1. Linux accepts that `EXECBUF_RING_IDX` request only
+after context-ring setup; a passing clear/readback therefore also exercises the
+real driver emission and device acceptance of `FENCE | INFO_RING_IDX`.
+
 The Linux UAPI defines the flags and byte-sized ring field, while the Linux
 virtio-gpu fence driver shows that fence IDs signal prior fences on the same
 DMA-fence context.
@@ -56,4 +61,4 @@ implement a capset-2/Venus command stream, translate Vulkan, or expose Vulkan
 external-memory primitives. Those require a real renderer protocol and host
 resource interop, neither of which browser WebGPU supplies today.
 
-Sources: [Linux VirtIO-GPU UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h), [Linux fence implementation](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/virtio/virtgpu_fence.c), and [OASIS VirtIO GPU specification](https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.html).
+Sources: [Linux VirtIO-GPU UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/linux/virtio_gpu.h), [Linux fence implementation](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/virtio/virtgpu_fence.c), [Linux submit path](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/virtio/virtgpu_submit.c), and [OASIS VirtIO GPU specification](https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.html).

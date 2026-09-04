@@ -25,7 +25,9 @@ typedef unsigned long u64;
 
 #define VIRTGPU_DRM_CAPSET_VIRGL 1u
 #define VIRTGPU_CONTEXT_PARAM_CAPSET_ID 1u
+#define VIRTGPU_CONTEXT_PARAM_NUM_RINGS 2u
 #define VIRTGPU_EXECBUF_FENCE_FD_OUT 0x02u
+#define VIRTGPU_EXECBUF_RING_IDX 0x04u
 
 struct drm_virtgpu_context_set_param {
     u64 param;

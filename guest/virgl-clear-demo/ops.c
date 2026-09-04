@@ -26,13 +26,13 @@ static int virgl_caps(long fd)
 
 static int init_context(long fd)
 {
-    struct drm_virtgpu_context_set_param parameter = {
-        .param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID,
-        .value = VIRTGPU_DRM_CAPSET_VIRGL,
+    struct drm_virtgpu_context_set_param parameters[] = {
+        {.param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID, .value = VIRTGPU_DRM_CAPSET_VIRGL},
+        {.param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS, .value = 2},
     };
     struct drm_virtgpu_context_init context = {
-        .num_params = 1,
-        .ctx_set_params = (u64)&parameter,
+        .num_params = sizeof(parameters) / sizeof(parameters[0]),
+        .ctx_set_params = (u64)parameters,
     };
 
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &context) < 0 ? -1 : 0;
@@ -126,6 +126,8 @@ int virgl_submit_clear(long fd, u32 bo_handle, u32 resource_handle)
         .bo_handles = (u64)&bo_handle,
         .num_bo_handles = 1,
         .fence_fd = -1,
+        .flags = VIRTGPU_EXECBUF_RING_IDX,
+        .ring_idx = 1,
     };
 
     virgl_clear_stream(words, resource_handle);
