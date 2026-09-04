@@ -1,8 +1,8 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
+import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
+import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-readback-pool-r1";
 
 export class VirglMaterialBatchRenderer {
   #bufferUsage; #depthTexture; #generation = 0; #height = 0; #pipelines = new Map(); #revision = 0;

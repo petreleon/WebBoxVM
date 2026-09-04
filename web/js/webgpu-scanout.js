@@ -1,4 +1,4 @@
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
 
 const SHADER = `
 @group(0) @binding(0) var guest_texture: texture_2d<f32>;

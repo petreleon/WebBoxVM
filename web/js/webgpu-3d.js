@@ -1,15 +1,15 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-solid-gpu-readback-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglDepthTextureRenderer } from "./webgpu-virgl-depth-texture.js?v=20260904-virgl-solid-gpu-readback-r1"; import { VirglDepthTextureColorRenderer } from "./webgpu-virgl-depth-texture-color.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglMaterialBatchRenderer } from "./webgpu-virgl-material-batch.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
+import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-readback-pool-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-readback-pool-r1";
+import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-readback-pool-r1";
+import { VirglDepthTextureRenderer } from "./webgpu-virgl-depth-texture.js?v=20260904-virgl-readback-pool-r1"; import { VirglDepthTextureColorRenderer } from "./webgpu-virgl-depth-texture-color.js?v=20260904-virgl-readback-pool-r1";
+import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-readback-pool-r1";
+import { VirglMaterialBatchRenderer } from "./webgpu-virgl-material-batch.js?v=20260904-virgl-readback-pool-r1";
+import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-readback-pool-r1";
+import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-readback-pool-r1";
+import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-readback-pool-r1";
+import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-readback-pool-r1";
+import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-readback-pool-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }

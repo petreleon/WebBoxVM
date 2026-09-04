@@ -1,4 +1,4 @@
-import { GPU_SCANOUT_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { GPU_SCANOUT_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-readback-pool-r1";
 
 export function maybePostGpuScanout(
   now,

@@ -6,8 +6,8 @@ import {
   recordJitFallback,
   recordJitReject,
   recordJitSkip,
-} from "./jit-stats.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-solid-gpu-readback-r1";
+} from "./jit-stats.js?v=20260904-virgl-readback-pool-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-readback-pool-r1";
 
 test("jit reject logs include parsed current instruction snapshots", () => {
   resetTelemetry();

@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-gpu-readback-r1";
+import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
 import {
   READBACK_FORMAT_BGRA8,
   READBACK_FORMAT_RGBA8,
   canvasConfiguration,
   submitTextureReadback,
-} from "./webgpu-readback.js?v=20260904-virgl-solid-gpu-readback-r1";
+} from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
 
 test("canvas readback configuration keeps both rendering and copy-source usage", () => {
   const config = canvasConfiguration({ kind: "device" }, "bgra8unorm");
@@ -38,4 +38,13 @@ test("RGBA canvas output retains its format tag while unsupported output falls b
   assert.equal(rgba.format, READBACK_FORMAT_RGBA8);
   const fallback = await submitTextureReadback(device, device.createCommandEncoder(), {}, 1, 1, "rgba16float");
   assert.equal(fallback, undefined); assert.equal(device.textureCopies.length, 1);
+});
+
+test("settled texture readback reuses an unmapped staging buffer", async () => {
+  const device = fakeDevice();
+  await submitTextureReadback(device, device.createCommandEncoder(), {}, 2, 2, "bgra8unorm");
+  await submitTextureReadback(device, device.createCommandEncoder(), {}, 2, 2, "bgra8unorm");
+  assert.equal(device.buffers.length, 1);
+  assert.equal(device.buffers[0].destroyed, undefined);
+  assert.equal(device.buffers[0].unmaps, 2);
 });

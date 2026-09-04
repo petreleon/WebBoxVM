@@ -1,4 +1,4 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
 
 export async function renderVirglClear(session, backend, frame, isCurrent) {
   const { device } = backend;

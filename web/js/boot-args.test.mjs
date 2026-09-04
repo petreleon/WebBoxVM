@@ -5,7 +5,7 @@ import {
   installedDiskBenchmarkFromLocation,
   normalizeExtraBootargs,
   stagedSmpRequestedFromLocation,
-} from "./boot-args.js?v=20260904-virgl-solid-gpu-readback-r1";
+} from "./boot-args.js?v=20260904-virgl-readback-pool-r1";
 
 test("normalizeExtraBootargs trims and collapses whitespace", () => {
   assert.equal(normalizeExtraBootargs("  ftrace_filter=close   quiet "), "ftrace_filter=close quiet");

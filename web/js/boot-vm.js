@@ -1,7 +1,7 @@
-import { GIB, clamp, nextFrame } from "./utils.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { assertWasm64Supported } from "./wasm64.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { WorkerVm } from "./worker-vm.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { formatBootPhase } from "./boot-timeline.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { GIB, clamp, nextFrame } from "./utils.js?v=20260904-virgl-readback-pool-r1";
+import { assertWasm64Supported } from "./wasm64.js?v=20260904-virgl-readback-pool-r1";
+import { WorkerVm } from "./worker-vm.js?v=20260904-virgl-readback-pool-r1";
+import { formatBootPhase } from "./boot-timeline.js?v=20260904-virgl-readback-pool-r1";
 
 const BOOT_KIND_MEDIA = "media";
 const BOOT_KIND_SAVED_DISK = "saved-disk";

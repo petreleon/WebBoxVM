@@ -1,9 +1,12 @@
-import { paddedBytesPerRow } from "./gpu-scanout-packet.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { paddedBytesPerRow } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
 
 export const READBACK_FORMAT_BGRA8 = 1;
 export const READBACK_FORMAT_RGBA8 = 2;
 
 const MAX_READBACK_BYTES = 64 * 1024 * 1024;
+const MAX_CACHED_BUFFERS = 4;
+const MAX_CACHED_BYTES = 32 * 1024 * 1024;
+const READBACK_CACHES = new WeakMap();
 
 export function canvasConfiguration(device, format) {
   const usage = textureUsage();
@@ -18,20 +21,22 @@ export function submitTextureReadback(device, encoder, texture, width, height, f
   const bytesPerRow = paddedBytesPerRow(width);
   const bytes = checkedBytes(bytesPerRow, height);
   if (!bytes || bytes > MAX_READBACK_BYTES) return submitWithoutReadback(device, encoder);
-  const buffer = device.createBuffer({
-    label: "VirGL material-batch GPU readback", size: bytes,
-    usage: bufferUsage().COPY_DST | bufferUsage().MAP_READ,
-  });
+  const buffer = acquireReadbackBuffer(device, bytes);
   if (!buffer || typeof buffer.mapAsync !== "function" || typeof buffer.getMappedRange !== "function") {
-    buffer?.destroy?.();
+    destroyBuffer(buffer);
     return submitWithoutReadback(device, encoder);
   }
-  encoder.copyTextureToBuffer(
-    { texture }, { buffer, bytesPerRow, rowsPerImage: height },
-    { depthOrArrayLayers: 1, height, width },
+  try {
+    encoder.copyTextureToBuffer(
+      { texture }, { buffer, bytesPerRow, rowsPerImage: height },
+      { depthOrArrayLayers: 1, height, width },
+    );
+    device.queue.submit([encoder.finish()]);
+  } catch (error) { destroyBuffer(buffer); throw error; }
+  return mappedPixels(buffer, width, height, bytesPerRow).then(
+    (pixels) => { recycleReadbackBuffer(device, buffer, bytes); return { format: outputFormat, pixels }; },
+    (error) => { destroyBuffer(buffer); throw error; },
   );
-  device.queue.submit([encoder.finish()]);
-  return mappedPixels(buffer, width, height, bytesPerRow).then((pixels) => ({ format: outputFormat, pixels }));
 }
 
 async function mappedPixels(buffer, width, height, bytesPerRow) {
@@ -47,9 +52,39 @@ async function mappedPixels(buffer, width, height, bytesPerRow) {
     return pixels;
   } finally {
     buffer.unmap?.();
-    buffer.destroy?.();
   }
 }
+
+function acquireReadbackBuffer(device, bytes) {
+  const cache = readbackCache(device); const buffers = cache.buffers.get(bytes);
+  const buffer = buffers?.pop();
+  if (buffer) {
+    cache.bytes -= bytes; cache.count -= 1;
+    if (!buffers.length) cache.buffers.delete(bytes);
+    return buffer;
+  }
+  return device.createBuffer({
+    label: "VirGL GPU readback", size: bytes,
+    usage: bufferUsage().COPY_DST | bufferUsage().MAP_READ,
+  });
+}
+
+function recycleReadbackBuffer(device, buffer, bytes) {
+  const cache = readbackCache(device);
+  if (cache.count >= MAX_CACHED_BUFFERS || cache.bytes + bytes > MAX_CACHED_BYTES) {
+    destroyBuffer(buffer); return;
+  }
+  const buffers = cache.buffers.get(bytes) ?? [];
+  buffers.push(buffer); cache.buffers.set(bytes, buffers); cache.bytes += bytes; cache.count += 1;
+}
+
+function readbackCache(device) {
+  let cache = READBACK_CACHES.get(device);
+  if (!cache) { cache = { buffers: new Map(), bytes: 0, count: 0 }; READBACK_CACHES.set(device, cache); }
+  return cache;
+}
+
+function destroyBuffer(buffer) { buffer?.destroy?.(); }
 
 function submitWithoutReadback(device, encoder) {
   device.queue.submit([encoder.finish()]);

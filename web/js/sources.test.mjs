@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
-import { fetchInstalledDiskBenchmark } from "./sources.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { fetchInstalledDiskBenchmark } from "./sources.js?v=20260904-virgl-readback-pool-r1";
 
 const previousAnimationFrame = globalThis.requestAnimationFrame;
 globalThis.requestAnimationFrame = (callback) => callback();

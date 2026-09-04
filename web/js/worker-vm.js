@@ -1,6 +1,6 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { versionedUrl } from "./asset-version.js?v=20260904-virgl-solid-gpu-readback-r1";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-readback-pool-r1";
+import { versionedUrl } from "./asset-version.js?v=20260904-virgl-readback-pool-r1";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-readback-pool-r1";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);

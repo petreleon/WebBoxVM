@@ -55,6 +55,11 @@ row on the GPU copy. It removes CPU rasterization from this path but adds a
 GPU-to-CPU synchronization point and a worker transfer; it therefore needs an
 end-to-end benchmark before any near-native performance claim.
 
+After a successful map/copy/unmap, a small per-device, exact-size staging pool
+retains at most four buffers and 32 MiB. Reuse avoids per-batch allocation and
+destruction churn; a buffer is never pooled while mapping is pending or active.
+This does not remove the copy or map synchronization boundary.
+
 The next useful optimization is an explicit guest-visible resource residency
 contract: retain GPU-resident targets across draws and read back only when the
 guest requests CPU visibility. That requires broader synchronization/state

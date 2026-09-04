@@ -157,6 +157,7 @@ function resource(descriptor) {
   return {
     descriptor,
     destroy() { this.destroyed = true; },
+    unmap() { this.unmaps = (this.unmaps ?? 0) + 1; },
   };
 }
 

@@ -1,4 +1,4 @@
-import { installTextProbe } from "./uart-probe.js?v=20260904-virgl-solid-gpu-readback-r1";
+import { installTextProbe } from "./uart-probe.js?v=20260904-virgl-readback-pool-r1";
 
 const RENDER_TAIL_LIMIT = 32768;
 
