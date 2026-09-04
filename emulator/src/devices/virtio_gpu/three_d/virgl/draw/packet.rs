@@ -1,10 +1,12 @@
 mod batch;
+mod material_batch;
 
 use super::super::SamplerConfig;
 use super::super::{DepthCompare, DepthState};
 use super::{DrawMaterial, DrawWork};
 
 pub(in crate::devices::virtio_gpu::three_d) use batch::{packet as batch_packet, depth_packet as depth_batch_packet};
+pub(in crate::devices::virtio_gpu::three_d) use material_batch::packet as material_batch_packet;
 
 pub(in crate::devices::virtio_gpu::three_d) fn packet(
     sequence: u32,

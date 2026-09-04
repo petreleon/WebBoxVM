@@ -1,4 +1,4 @@
-import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-depth-texture-color-r1";
+import { clearWebGpuCanvas } from "./webgpu-canvas-clear.js?v=20260904-virgl-material-batch-r1";
 
 export class WebGpuSession {
   #adapter;

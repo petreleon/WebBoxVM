@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
-import { drainNetworkTx, startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260904-virgl-depth-texture-color-r1";
-import { NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-depth-texture-color-r1";
+import { drainNetworkTx, startNetworkProxy, stopNetworkProxy } from "./network.js?v=20260904-virgl-material-batch-r1";
+import { NETWORK_TX_POLL_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-material-batch-r1";
 
 const previousSelf = globalThis.self;
 const previousWebSocket = globalThis.WebSocket;

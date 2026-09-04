@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { metrics, restoreInstallDisk } from "./lifecycle.js?v=20260904-virgl-depth-texture-color-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-texture-color-r1";
+import { metrics, restoreInstallDisk } from "./lifecycle.js?v=20260904-virgl-material-batch-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-material-batch-r1";
 
 const previousPostMessage = globalThis.postMessage;
 

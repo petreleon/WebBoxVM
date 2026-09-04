@@ -3,8 +3,8 @@ import test, { afterEach } from "node:test";
 import {
   prepareExecutionMode,
   transitionToParallel,
-} from "./lifecycle.js?v=20260904-virgl-depth-texture-color-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-depth-texture-color-r1";
+} from "./lifecycle.js?v=20260904-virgl-material-batch-r1";
+import { resetJitState, state } from "./state.js?v=20260904-virgl-material-batch-r1";
 
 afterEach(() => {
   state.executionMode = "cooperative";

@@ -1,14 +1,15 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-texture-color-r1";
-import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-texture-color-r1";
-import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-depth-texture-color-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglDepthTextureRenderer } from "./webgpu-virgl-depth-texture.js?v=20260904-virgl-depth-texture-color-r1"; import { VirglDepthTextureColorRenderer } from "./webgpu-virgl-depth-texture-color.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-depth-texture-color-r1";
-import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-depth-texture-color-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-material-batch-r1";
+import { defaultBufferUsage, ensureBuffer, paddedIndexBytes, pipelineDescriptor, renderPassDescriptor } from "./webgpu-3d-resources.js?v=20260904-virgl-material-batch-r1";
+import { renderVirglClear } from "./webgpu-virgl-clear.js?v=20260904-virgl-material-batch-r1"; import { VirglDrawRenderer } from "./webgpu-virgl-draw.js?v=20260904-virgl-material-batch-r1";
+import { VirglDepthRenderer } from "./webgpu-virgl-depth.js?v=20260904-virgl-material-batch-r1";
+import { VirglDepthTextureRenderer } from "./webgpu-virgl-depth-texture.js?v=20260904-virgl-material-batch-r1"; import { VirglDepthTextureColorRenderer } from "./webgpu-virgl-depth-texture-color.js?v=20260904-virgl-material-batch-r1";
+import { VirglDepthBatchRenderer } from "./webgpu-virgl-depth-batch.js?v=20260904-virgl-material-batch-r1";
+import { VirglMaterialBatchRenderer } from "./webgpu-virgl-material-batch.js?v=20260904-virgl-material-batch-r1";
+import { VirglSolidBatchRenderer } from "./webgpu-virgl-solid-batch.js?v=20260904-virgl-material-batch-r1";
+import { VirglTextureRenderer } from "./webgpu-virgl-texture.js?v=20260904-virgl-material-batch-r1";
+import { VirglTextureMultiplyRenderer } from "./webgpu-virgl-texture-multiply.js?v=20260904-virgl-material-batch-r1";
+import { VirglVertexColorRenderer } from "./webgpu-virgl-vertex-color.js?v=20260904-virgl-material-batch-r1";
+import { VirglTextureColorRenderer } from "./webgpu-virgl-texture-color.js?v=20260904-virgl-material-batch-r1";
 
 const SHADER = `
 struct Scene { mvp: mat4x4<f32> }
@@ -42,14 +43,14 @@ export class ExperimentalWebGpu3dRenderer {
   #uniformBuffer;
   #vertexBuffer;
   #vertexCapacity = 0;
-  #virglDraw; #virglSolidBatch; #virglDepthBatch; #virglDepth; #virglDepthTexture; #virglDepthTextureColor; #virglTexture; #virglTextureMultiply; #virglVertexColor; #virglTextureColor;
+  #virglDraw; #virglSolidBatch; #virglDepthBatch; #virglMaterialBatch; #virglDepth; #virglDepthTexture; #virglDepthTextureColor; #virglTexture; #virglTextureMultiply; #virglVertexColor; #virglTextureColor;
 
   constructor(session, options = {}) {
     this.#session = session;
     this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
     this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
-    [this.#virglDraw, this.#virglSolidBatch, this.#virglDepthBatch, this.#virglDepth, this.#virglDepthTexture, this.#virglDepthTextureColor, this.#virglTexture, this.#virglTextureMultiply, this.#virglVertexColor, this.#virglTextureColor] = [
-      new VirglDrawRenderer(session, options), new VirglSolidBatchRenderer(session, options), new VirglDepthBatchRenderer(session, options), new VirglDepthRenderer(session, options), new VirglDepthTextureRenderer(session, options), new VirglDepthTextureColorRenderer(session, options),
+    [this.#virglDraw, this.#virglSolidBatch, this.#virglDepthBatch, this.#virglMaterialBatch, this.#virglDepth, this.#virglDepthTexture, this.#virglDepthTextureColor, this.#virglTexture, this.#virglTextureMultiply, this.#virglVertexColor, this.#virglTextureColor] = [
+      new VirglDrawRenderer(session, options), new VirglSolidBatchRenderer(session, options), new VirglDepthBatchRenderer(session, options), new VirglMaterialBatchRenderer(session, options), new VirglDepthRenderer(session, options), new VirglDepthTextureRenderer(session, options), new VirglDepthTextureColorRenderer(session, options),
       new VirglTextureRenderer(session, options), new VirglTextureMultiplyRenderer(session, options), new VirglVertexColorRenderer(session, options), new VirglTextureColorRenderer(session, options),
     ];
   }
@@ -60,7 +61,7 @@ export class ExperimentalWebGpu3dRenderer {
     }
     if (frame.protocol === "virgl-draw") return this.#virglDraw.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-solid-batch") return this.#virglSolidBatch.render(backend, frame, isCurrent);
-    if (frame.protocol === "virgl-depth-batch") return this.#virglDepthBatch.render(backend, frame, isCurrent);
+    if (frame.protocol === "virgl-depth-batch") return this.#virglDepthBatch.render(backend, frame, isCurrent); if (frame.protocol === "virgl-material-batch") return this.#virglMaterialBatch.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth") return this.#virglDepth.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-depth-texture") return this.#virglDepthTexture.render(backend, frame, isCurrent); if (frame.protocol === "virgl-depth-texture-color") return this.#virglDepthTextureColor.render(backend, frame, isCurrent);
     if (frame.protocol === "virgl-texture") return this.#virglTexture.render(backend, frame, isCurrent);
@@ -83,7 +84,7 @@ export class ExperimentalWebGpu3dRenderer {
 
   invalidate() {
     this.#revision += 1;
-    this.#virglDraw.invalidate(); this.#virglSolidBatch.invalidate(); this.#virglDepthBatch.invalidate(); this.#virglDepth.invalidate(); this.#virglDepthTexture.invalidate(); this.#virglDepthTextureColor.invalidate(); this.#virglTexture.invalidate(); this.#virglTextureMultiply.invalidate(); this.#virglVertexColor.invalidate(); this.#virglTextureColor.invalidate();
+    this.#virglDraw.invalidate(); this.#virglSolidBatch.invalidate(); this.#virglDepthBatch.invalidate(); this.#virglMaterialBatch.invalidate(); this.#virglDepth.invalidate(); this.#virglDepthTexture.invalidate(); this.#virglDepthTextureColor.invalidate(); this.#virglTexture.invalidate(); this.#virglTextureMultiply.invalidate(); this.#virglVertexColor.invalidate(); this.#virglTextureColor.invalidate();
     this.#uniformBuffer?.destroy?.();
     this.#vertexBuffer?.destroy?.();
     this.#indexBuffer?.destroy?.();

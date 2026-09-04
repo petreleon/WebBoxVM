@@ -1,6 +1,7 @@
 use super::super::{DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS, raster};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
+use crate::devices::virtio_gpu::resource::GpuResource;
 
 pub(super) fn apply(
     gpu: &mut VirtioGpu,
@@ -9,23 +10,13 @@ pub(super) fn apply(
     clear: [u8; 4],
     works: Vec<DrawWork>,
 ) -> bool {
-    if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS {
-        return false;
-    }
-    {
+    if !valid(&works) { return false; }
+    let drawn = {
         let Some(resource) = gpu.resources.get_mut(&resource_id) else { return false; };
-        if resource.clear_bgra(rect, clear).is_none() { return false; }
-        for work in works {
-            let DrawMaterial::Solid(color) = work.material else { return false; };
-            if work.depth_resource.is_some() || work.depth_state.is_some()
-                || !raster::draw_solid(resource, rect, &work.vertices, color, work.viewport, work.scissor)
-            {
-                return false;
-            }
-        }
-    }
-    gpu.add_damage(resource_id, rect);
-    true
+        resource.clear_bgra(rect, clear).is_some() && works.iter().all(|work| draw(resource, rect, work))
+    };
+    if drawn { gpu.add_damage(resource_id, rect); }
+    drawn
 }
 
 pub(super) fn apply_depth(
@@ -36,22 +27,47 @@ pub(super) fn apply_depth(
     clear: [u8; 4],
     works: Vec<DrawWork>,
 ) -> bool {
-    if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS { return false; }
+    if !valid(&works) { return false; }
     let Some(mut values) = gpu.depth_values(resource_id, depth_resource) else { return false; };
     let drawn = {
         let Some(resource) = gpu.resources.get_mut(&resource_id) else { return false; };
-        if resource.clear_bgra(rect, clear).is_none() { return false; }
-        works.into_iter().all(|work| {
-            let DrawMaterial::Solid(color) = work.material else { return false; };
-            let Some(state) = work.depth_state else { return false; };
-            work.depth_resource == Some(depth_resource)
-                && raster::draw_depth_solid(
-                    resource, rect, &work.vertices, color, work.viewport, work.scissor,
-                    state, &mut values,
-                )
-        })
+        resource.clear_bgra(rect, clear).is_some()
+            && works.iter().all(|work| draw_depth(resource, rect, depth_resource, work, &mut values))
     };
     if !drawn || !gpu.store_depth(Some((depth_resource, values))) { return false; }
     gpu.add_damage(resource_id, rect);
     true
+}
+
+fn valid(works: &[DrawWork]) -> bool {
+    (2..=MAX_VIRGL_BATCH_DRAWS).contains(&works.len())
+}
+
+fn draw(resource: &mut GpuResource, rect: Rect, work: &DrawWork) -> bool {
+    if work.depth_resource.is_some() || work.depth_state.is_some() { return false; }
+    match &work.material {
+        DrawMaterial::Solid(color) => raster::draw_solid(resource, rect, &work.vertices, *color, work.viewport, work.scissor),
+        DrawMaterial::VertexColor => raster::draw_vertex_color(resource, rect, &work.vertices, work.viewport, work.scissor),
+        DrawMaterial::Textured(texture) => raster::draw_textured(resource, rect, &work.vertices, std::slice::from_ref(texture), work.viewport, work.scissor),
+        DrawMaterial::TexturedPair(textures) => raster::draw_textured(resource, rect, &work.vertices, textures, work.viewport, work.scissor),
+        DrawMaterial::TextureColor(texture) => raster::draw_texture_color(resource, rect, &work.vertices, texture, work.viewport, work.scissor),
+    }
+}
+
+fn draw_depth(
+    resource: &mut GpuResource,
+    rect: Rect,
+    depth_resource: u32,
+    work: &DrawWork,
+    values: &mut [f32],
+) -> bool {
+    let Some(state) = work.depth_state else { return false; };
+    if work.depth_resource != Some(depth_resource) { return false; }
+    match &work.material {
+        DrawMaterial::Solid(color) => raster::draw_depth_solid(resource, rect, &work.vertices, *color, work.viewport, work.scissor, state, values),
+        DrawMaterial::VertexColor => raster::draw_depth_vertex_color(resource, rect, &work.vertices, work.viewport, work.scissor, state, values),
+        DrawMaterial::Textured(texture) => raster::draw_depth_textured(resource, rect, &work.vertices, texture, work.viewport, work.scissor, state, values),
+        DrawMaterial::TextureColor(texture) => raster::draw_depth_texture_color(resource, rect, &work.vertices, texture, work.viewport, work.scissor, state, values),
+        DrawMaterial::TexturedPair(_) => false,
+    }
 }

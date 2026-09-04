@@ -1,4 +1,4 @@
-import { delay } from "./utils.js?v=20260904-virgl-depth-texture-color-r1";
+import { delay } from "./utils.js?v=20260904-virgl-material-batch-r1";
 
 export async function waitForTerminal() {
   while (!window.Terminal || !window.FitAddon) {

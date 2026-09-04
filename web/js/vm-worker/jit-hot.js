@@ -1,8 +1,8 @@
-import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260904-virgl-depth-texture-color-r1";
-import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260904-virgl-depth-texture-color-r1";
-import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260904-virgl-depth-texture-color-r1";
-import { tryRunCachedJitBlock } from "./jit-run.js?v=20260904-virgl-depth-texture-color-r1";
-import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260904-virgl-depth-texture-color-r1";
+import { compileJitBlockEntry, jitBlockKey } from "./jit-compile.js?v=20260904-virgl-material-batch-r1";
+import { pcForCore, prepareNextJitCore } from "./jit-core.js?v=20260904-virgl-material-batch-r1";
+import { recordJitFallback, recordJitReject, recordJitSkip } from "./jit-stats.js?v=20260904-virgl-material-batch-r1";
+import { tryRunCachedJitBlock } from "./jit-run.js?v=20260904-virgl-material-batch-r1";
+import { JIT_HOT_THRESHOLD, JIT_MAX_HIT_SITES, state } from "./state.js?v=20260904-virgl-material-batch-r1";
 
 export function tryRunOrCompileNextJitBlock(emulator = state.emulator) {
   if (!state.jitEnabled || !emulator) {
