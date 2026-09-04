@@ -152,13 +152,14 @@ VirtIO-GPU/DRM/KMS transport for the blob profiles, capset discovery, R8 transfe
 clear/fence, indexed inline-constant, texture, vertex-color, texture-color, solid/vertex-color/one-texture/texture-color depth state, and ordered solid-batch paths.
 It also creates a 36-byte R8 constant buffer, populates its color at byte offset
 four and `[dx,dy,0,0]` at byte offset 20 through two isolated standard command-9 writes plus readback, sends stage-0 and stage-1 command 27 bindings, validates distinct schema-2 `VGD1` color and translated vertices,
-completes that effect, reads both `147,141,58,255` triangles through Linux, then expects one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS`, VGD1 schema 10 `EQUAL`, VGB1 v3 shared-`EQUAL`, v4 `LESS`/`GREATER`, v5 canonical state words `7`/`17`, schema 12 vertex-color DSA word `5`, schema 13 one-texture DSA word `7`, and schema 14 texture-color DSA word `7`. The latest full native run timed out during boot before guest graphics, so it is inconclusive for these newest paths.
+completes that effect, reads both `147,141,58,255` triangles through Linux, then expects one standard clear plus two `DRAW_VBO`s as `VGB1` v1 and the ordered `0,128,64,255` center, followed by VGB1 v2 clear-one `LESS`, VGD1 schema 10 `EQUAL`, VGB1 v3 shared-`EQUAL`, v4 `LESS`/`GREATER`, v5 canonical state words `7`/`17`, schema 12 vertex-color DSA word `5`, schema 13 one-texture DSA word `7`, and schema 14 texture-color DSA word `7`.
+The newly wired guest phase must then produce one exact 364-byte `VGM1` depth-material batch: a far solid red record followed by a near texture-color record, both DSA word `7`, and a `32,32,64,255` center after acknowledgment. The latest full native run timed out during boot before guest graphics, so native execution of this newest phase remains inconclusive.
 This does not claim native Mesa, a native OpenGL context, or browser WebGPU execution
 from that harness.
 
 ## Next compatibility milestones
 
-1. Drive `VGM1` from the native guest harness, then generalize the bounded state/shader IR rather than add more exact TGSI strings.
+1. Obtain native end-to-end execution of the newly wired `VGM1` guest phase once shell startup is available, then generalize the bounded state/shader IR rather than add more exact TGSI strings.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

@@ -18,9 +18,9 @@ test -z "$("$nm" -u "$binary")"
 
 size=$(wc -c < "$binary" | tr -d ' ')
 test "$size" -le 65536
-for source in Makefile README.md batch.c demo.c depth.c depth_batch.c depth_equal.c depth_equal_batch.c depth_mixed_batch.c depth_texture.c depth_texture_color.c depth_vertex_color.c depth_write_mask_batch.c draw.c index.c kms.c kms.h link.ld memory.c ops.c ops.h setup.c syscall.h texture.c texture_color.c texture_draw.c texture_pair.c transfer.c transfer.h uapi.h uniform.c vertex_color.c virgl.h verify.sh; do
+for source in Makefile README.md batch.c demo.c depth.c depth_batch.c depth_equal.c depth_equal_batch.c depth_mixed_batch.c depth_texture.c depth_texture_color.c depth_vertex_color.c depth_write_mask_batch.c draw.c index.c kms.c kms.h link.ld material_batch.c memory.c ops.c ops.h setup.c syscall.h texture.c texture_color.c texture_draw.c texture_pair.c transfer.c transfer.h uapi.h uniform.c vertex_color.c virgl.h verify.sh; do
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done
-printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/uniform/texture-pair/vertex-color/texture-color/depth-less/depth-equal/depth-equal-batch/depth-mixed-batch/depth-texture/depth-texture-color/depth-vertex-color/depth-write-mask-batch/solid-batch/depth-batch=%s bytes\n' \
+printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/uniform/texture-pair/vertex-color/texture-color/depth-less/depth-equal/depth-equal-batch/depth-mixed-batch/depth-texture/depth-texture-color/depth-vertex-color/depth-write-mask-batch/solid-batch/depth-batch/depth-material-batch=%s bytes\n' \
     "$binary" "$size"
