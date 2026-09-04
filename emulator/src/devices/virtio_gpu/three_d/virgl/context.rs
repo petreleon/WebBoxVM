@@ -14,6 +14,7 @@ use crate::devices::virtio_gpu::blob::BlobMemory;
 use std::collections::{HashMap, HashSet};
 
 pub(super) use draw::DrawState;
+pub(in crate::devices::virtio_gpu::three_d::virgl) use constant::FragmentConstants;
 use pipeline::PipelineState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
     SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState, Viewport,
@@ -40,7 +41,7 @@ pub(in crate::devices::virtio_gpu) struct VirglContext {
     pending_fragment_shader: Option<PendingShader>,
     bound_vertex_shader: Option<u32>,
     bound_fragment_shader: Option<u32>,
-    fragment_constants: Option<[u32; 4]>,
+    fragment_constants: Option<FragmentConstants>,
 }
 
 impl VirglContext {
@@ -81,6 +82,7 @@ impl VirglContext {
         self.remove_sampler_resource(resource_id);
         self.remove_vertex_resource(resource_id);
         self.remove_index_resource(resource_id);
+        self.remove_constant_resource(resource_id);
         true
     }
 

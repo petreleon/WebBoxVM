@@ -1,6 +1,5 @@
 mod lifecycle;
-use super::MAX_RESOURCE_BYTES;
-use super::protocol::{BackingEntry, Rect};
+use super::{MAX_RESOURCE_BYTES, protocol::{BackingEntry, Rect}};
 use crate::memory::PhysicalMemory;
 pub(super) use lifecycle::total_resource_limit;
 pub(super) const FORMAT_B8G8R8A8_UNORM: u32 = 1;
@@ -23,6 +22,7 @@ enum ResourceKind {
 pub(super) enum BufferBind {
     Vertex,
     Index,
+    Uniform,
 }
 #[derive(Debug, Clone)]
 pub(super) struct GpuResource {

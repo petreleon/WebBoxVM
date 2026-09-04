@@ -7,6 +7,7 @@ mod effect;
 mod resource;
 mod shader;
 mod stream;
+mod uniform;
 
 use super::{DeferredSubmit, Pending3d, Pending3dEffect};
 use crate::devices::virtio_gpu::protocol::*;
@@ -17,7 +18,7 @@ pub(in crate::devices::virtio_gpu) use context::{
     IndexBuffer, VertexBuffer, VertexElement, VirglContext,
 };
 pub(in crate::devices::virtio_gpu::three_d::virgl) use context::{
-    SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState,
+    FragmentConstants, SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState,
 };
 pub(super) use copy::CopyRegion;
 pub(super) use draw::DrawMaterial;

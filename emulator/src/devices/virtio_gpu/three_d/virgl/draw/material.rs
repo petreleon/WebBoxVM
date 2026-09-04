@@ -1,4 +1,5 @@
 use super::super::SampledResource;
+use super::super::uniform;
 use super::{DrawMaterial, DrawState, TextureSnapshot, solid, texture};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
@@ -21,7 +22,7 @@ pub(super) fn material(
             Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
         }
         (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentConstant) => {
-            let bits = state.fragment_constants.ok_or(RESP_ERR_INVALID_PARAMETER)?;
+            let bits = uniform::resolve(gpu, context, state.fragment_constants)?;
             Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(solid::color(bits)?)))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {

@@ -12,6 +12,7 @@ const VIRGL_BIND_SAMPLER_VIEW: u32 = 1 << 3;
 const VIRGL_BIND_RENDER_AND_SAMPLE: u32 = VIRGL_BIND_RENDER_TARGET | VIRGL_BIND_SAMPLER_VIEW;
 const VIRGL_BIND_VERTEX_BUFFER: u32 = 1 << 4;
 const VIRGL_BIND_INDEX_BUFFER: u32 = 1 << 5;
+const VIRGL_BIND_CONSTANT_BUFFER: u32 = 1 << 6;
 
 impl VirtioGpu {
     pub(in crate::devices::virtio_gpu) fn create_virgl_resource(&mut self, input: &[u8]) -> u32 {
@@ -103,6 +104,7 @@ fn buffer_bind(
                 Some(BufferBind::Vertex)
             }
             (FORMAT_R8_UNORM, VIRGL_BIND_INDEX_BUFFER) => Some(BufferBind::Index),
+            (FORMAT_R8_UNORM, VIRGL_BIND_CONSTANT_BUFFER) => Some(BufferBind::Uniform),
             _ => None,
         })
         .flatten()

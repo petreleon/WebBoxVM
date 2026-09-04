@@ -35,6 +35,7 @@ mod virgl_textured_draw;
 mod virgl_triangle_primitives;
 mod virgl_texture_color_draw;
 mod virgl_transfer;
+mod virgl_uniform_draw;
 mod virgl_vertex_state;
 mod virgl_vertex_color_draw;
 mod virgl_viewport_state;

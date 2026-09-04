@@ -6,6 +6,7 @@ mod index;
 mod sampler;
 mod shader;
 mod state;
+mod uniform;
 mod vertex;
 
 use super::VirglContext;
@@ -92,6 +93,7 @@ impl VirtioGpu {
                 }
                 Command::Blend(command) => blend::apply(&mut context, command)?,
                 Command::Constant(command) => constant::apply(&mut context, command),
+                Command::Uniform(command) => uniform::apply(self, &mut context, command)?,
                 Command::Vertex(command) => vertex::apply(self, &mut context, command)?,
                 Command::Index(command) => index::apply(self, &mut context, command)?,
                 Command::Sampler(command) => sampler::apply(self, &mut context, command)?,

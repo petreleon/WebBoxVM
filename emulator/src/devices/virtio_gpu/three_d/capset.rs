@@ -12,6 +12,7 @@ const VIRGL_SAMPLER_FORMATS_2: u32 = 1 << 3;
 const VIRGL_COLOR_RENDER_FORMATS: u32 = 0b1_1110;
 const VIRGL_VERTEX_FORMATS: u32 = (1 << 29) | (1 << 31);
 const VIRGL_PRIMITIVES: u32 = (1 << 4) | (1 << 5) | (1 << 6);
+const VIRGL_UBO: u32 = 1 << 18;
 
 pub(super) struct Capset {
     pub id: u32,
@@ -57,10 +58,12 @@ fn virgl_caps() -> Vec<u8> {
     write_u32(&mut caps, 12, VIRGL_SAMPLER_FORMATS_2);
     write_u32(&mut caps, 68, VIRGL_COLOR_RENDER_FORMATS);
     write_u32(&mut caps, 196, VIRGL_VERTEX_FORMATS);
+    write_u32(&mut caps, 260, VIRGL_UBO);
     write_u32(&mut caps, 268, 1);
     write_u32(&mut caps, 280, 1);
     write_u32(&mut caps, 284, 1);
     write_u32(&mut caps, 288, VIRGL_PRIMITIVES);
+    write_u32(&mut caps, 296, 1);
     caps
 }
 

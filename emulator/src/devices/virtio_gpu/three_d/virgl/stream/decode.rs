@@ -5,12 +5,11 @@ pub(super) mod index;
 pub(super) mod sampler;
 pub(super) mod shader;
 pub(super) mod state;
+pub(super) mod uniform;
 pub(super) mod vertex;
 
 use super::super::draw::DrawCall;
-use super::super::{
-    CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE,
-};
+use super::super::{CopyRegion, MAX_VIRGL_SUBMIT_BYTES, VIRGL_CMD_CLEAR_SURFACE, VIRGL_OBJECT_SURFACE};
 use crate::devices::virtio_gpu::protocol::{Rect, read_u32};
 
 const CMD_NOP: u8 = 0;
@@ -45,6 +44,7 @@ pub(super) enum Command {
     Draw(DrawCall),
     Blend(blend::Command),
     Constant(constant::Command),
+    Uniform(uniform::Command),
     Vertex(vertex::Command),
     Index(index::Command),
     Sampler(sampler::Command),
@@ -169,6 +169,7 @@ fn decode_command(header: u32, words: &[u32]) -> Option<Command> {
         _ => vertex::decode(command, object, words)
             .map(Command::Vertex)
             .or_else(|| constant::decode(command, object, words).map(Command::Constant))
+            .or_else(|| uniform::decode(command, object, words).map(Command::Uniform))
             .or_else(|| index::decode(command, object, words).map(Command::Index))
             .or_else(|| sampler::decode(command, object, words).map(Command::Sampler))
             .or_else(|| draw::decode(command, object, words).map(Command::Draw))

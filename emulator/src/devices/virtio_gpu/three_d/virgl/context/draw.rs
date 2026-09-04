@@ -1,6 +1,6 @@
 use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use super::{
-    IndexBuffer, MAX_VIRGL_VERTEX_BUFFERS, SampledResource, VertexBuffer, VertexLayout,
+    FragmentConstants, IndexBuffer, MAX_VIRGL_VERTEX_BUFFERS, SampledResource, VertexBuffer, VertexLayout,
     Viewport, VirglContext,
 };
 use crate::devices::virtio_gpu::protocol::Rect;
@@ -13,7 +13,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
     pub index_buffer: Option<IndexBuffer>,
     pub vertex_program: ShaderProgram,
     pub fragment_program: ShaderProgram,
-    pub fragment_constants: Option<[u32; 4]>,
+    pub fragment_constants: Option<FragmentConstants>,
     pub viewport: Viewport,
     pub scissor: Option<Rect>,
     pub sampled_resources: [Option<SampledResource>; MAX_VIRGL_FRAGMENT_SAMPLERS],

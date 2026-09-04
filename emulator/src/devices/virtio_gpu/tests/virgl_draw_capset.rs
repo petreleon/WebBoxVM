@@ -5,7 +5,7 @@ use super::{header, response_type};
 use crate::memory::PhysicalMemory;
 
 #[test]
-fn virgl_capset_advertises_the_implemented_triangle_requirements() {
+fn virgl_capset_advertises_the_implemented_triangle_and_uniform_requirements() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     let mut request = header(CMD_GET_CAPSET);
@@ -16,5 +16,7 @@ fn virgl_capset_advertises_the_implemented_triangle_requirements() {
     assert_eq!(response_type(&response), RESP_OK_CAPSET);
     assert_eq!(read_u32(&response, 24 + 12), Some(1 << 3));
     assert_eq!(read_u32(&response, 24 + 196), Some((1 << 29) | (1 << 31)));
+    assert_eq!(read_u32(&response, 24 + 260), Some(1 << 18));
     assert_eq!(read_u32(&response, 24 + 288), Some((1 << 4) | (1 << 5) | (1 << 6)));
+    assert_eq!(read_u32(&response, 24 + 296), Some(1));
 }

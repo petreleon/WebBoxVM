@@ -3,7 +3,7 @@
 ## Question
 
 What standard VirGL state can replace a hard-coded fragment color without
-claiming resource-backed uniforms, Mesa, OpenGL, or Venus?
+claiming general resource-backed uniforms, Mesa, OpenGL, or Venus?
 
 ## Findings
 
@@ -12,9 +12,9 @@ an index at word two, and inline dwords after that. virglrenderer forwards
 those dwords to its constant setter. Mesa's Gallium test uses the canonical
 fragment TGSI form `DCL CONST[0][0]` followed by `MOV OUT[0], CONST[0][0]`.
 
-Resource-backed uniform buffers are a different protocol path. They need
-resource binding, byte ranges, and later synchronization/external-memory work;
-accepting the inline command does not imply that path is present.
+Resource-backed uniform buffers are a different protocol path. A separately
+bounded fragment-slot-zero implementation now covers one attached 16-byte R8
+range; accepting the inline command still does not imply general UBO support.
 
 ## Application
 
@@ -31,7 +31,7 @@ readback, so guest DRM transport is covered in addition to Rust/browser tests.
 
 ## Deliberate limits
 
-Vertex constants, other slots, arrays, non-color values, resource-backed
+Vertex constants, other slots, arrays, non-color values, general resource-backed
 uniform buffers, arbitrary TGSI, and any capset expansion remain unsupported.
 This is a narrow standard capset-1 transport seam, not Vulkan/Venus support.
 
