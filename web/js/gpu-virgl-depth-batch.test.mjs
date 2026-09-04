@@ -128,6 +128,16 @@ test("VirGL RGB-only depth batches use an RGB target mask", async () => {
   assert.equal(device.pipelines[0].descriptor.depthStencil.format, "depth24plus");
 });
 
+test("VirGL masked depth batches preserve an exact target mask", async () => {
+  const packet = virglSolidBatchPacket({ depthCompare: 1, draws: depthDraws().slice(0, 1), sequence: 86, version: 13, writeMask: 9 });
+  const frame = parseGpu3dPacket(packet); assert.equal(frame.writeMask, 9); assert.equal(frame.protocol, "virgl-depth-batch");
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(packet)).success, true);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ writeMask: 9, format: "bgra8unorm" }]);
+});
+
 function depthDraws() {
   const viewport = [512, 384, 0.5, 512, 384, 0.5];
   const triangle = (z) => [0, 0.75, z, 1, -0.75, -0.75, z, 1, 0.75, -0.75, z, 1];

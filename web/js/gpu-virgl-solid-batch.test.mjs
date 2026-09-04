@@ -97,3 +97,15 @@ test("VirGL RGB-only solid batches use an RGB target mask", async () => {
   assert.equal((await display.present3d(packet)).success, true);
   assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ writeMask: 7, format: "bgra8unorm" }]);
 });
+
+test("VirGL masked solid batches preserve an exact nonzero target mask", async () => {
+  const packet = virglSolidBatchPacket({ drawCount: 1, sequence: 86, version: 12, writeMask: 9 }); const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.blend, "replace"); assert.equal(frame.writeMask, 9);
+  const invalid = packet.slice(); new DataView(invalid.buffer).setUint32(24, 0, true);
+  assert.throws(() => parseGpu3dPacket(invalid), /VGB1 framing/);
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(packet)).success, true);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ writeMask: 9, format: "bgra8unorm" }]);
+});

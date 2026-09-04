@@ -3,17 +3,18 @@ export function virglMaterialBatchPacket({
   canvasWidth = 1024,
   clearColor = [0, 0, 0, 1],
   version = 1,
-  depth = [1, 5, 7].includes(version),
+  depth = [1, 5, 7, 9].includes(version),
   drawCount = 2,
   draws = defaultDraws(canvasWidth, canvasHeight).slice(0, drawCount),
   residentPreviousProducer = version === 3 ? 90 : undefined,
   sequence = 91,
+  writeMask = 9,
 } = {}) {
   const body = draws.reduce((total, draw) => total + 52 + materialBytes(draw) + draw.vertices.length * 4, 0);
   const headerBytes = version === 3 ? 52 : 48;
   const packet = new Uint8Array(headerBytes + body); const view = new DataView(packet.buffer);
   packet.set([0x56, 0x47, 0x4d, 0x31]);
-  [version, sequence, canvasWidth, canvasHeight, draws.length, version === 1 ? depth ? 1 : 0 : [2, 3].includes(version) ? 2 : depth ? 1 : 0].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
+  [version, sequence, canvasWidth, canvasHeight, draws.length, version === 1 ? depth ? 1 : 0 : [2, 3].includes(version) ? 2 : [8, 9].includes(version) ? writeMask : depth ? 1 : 0].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
   floats(view, 28, clearColor); view.setFloat32(44, depth ? 1 : 0, true);
   if (version === 3) view.setUint32(48, residentPreviousProducer, true);
   let offset = headerBytes;

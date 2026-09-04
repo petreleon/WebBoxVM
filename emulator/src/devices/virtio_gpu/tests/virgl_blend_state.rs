@@ -74,6 +74,29 @@ fn rgb_opaque_blend_uses_a_readback_masked_batch() {
 }
 
 #[test]
+fn partial_opaque_blend_carries_its_standard_channel_mask() {
+    let (mut gpu, mut mem) = prepared();
+    let mut state = surface_create(9, TARGET);
+    state.extend(framebuffer(9)); state.extend(shader_create(11, 0, VERT)); state.extend(shader_create(12, 1, FRAG));
+    state.extend(shader_bind(11, 0)); state.extend(shader_bind(12, 1)); state.extend(opaque_state(13, 9));
+    state.extend(virgl_viewport_scissor_state(14)); state.extend(vertex_state());
+    assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA); upload_vertices(&mut gpu);
+    let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw());
+    let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("masked opaque batch");
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Readback);
+    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
+    let packet = gpu.take_3d_update();
+    assert_eq!(&packet[..4], b"VGB1"); assert_eq!([4, 20, 24].map(|offset| super::super::protocol::read_u32(&packet, offset)), [Some(12), Some(1), Some(9)]);
+    assert!(gpu.complete_3d_readback(&mut mem, deferred.sequence, 2, &[1, 2, 3, 255].repeat(1024 * 768)));
+}
+
+#[test]
+fn zero_color_mask_fails_stream_validation() {
+    let (mut gpu, mut mem) = prepared();
+    assert_response(&mut gpu, &mut mem, &submit(&opaque_state(13, 0)), RESP_ERR_INVALID_PARAMETER);
+}
+
+#[test]
 fn blend_mixed_batch_fails_without_committing_its_binding() {
     let (mut gpu, mut mem) = prepared();
     let mut state = surface_create(9, TARGET);

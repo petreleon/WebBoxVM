@@ -13,11 +13,12 @@ pub(in crate::devices::virtio_gpu) enum BlendMode {
     SourceOver,
     Replace,
     ReplaceRgb,
+    ReplaceMasked(u8),
 }
 
 impl BlendMode {
     pub(in crate::devices::virtio_gpu) const fn is_replace(self) -> bool {
-        matches!(self, Self::Replace | Self::ReplaceRgb)
+        matches!(self, Self::Replace | Self::ReplaceRgb | Self::ReplaceMasked(_))
     }
 }
 

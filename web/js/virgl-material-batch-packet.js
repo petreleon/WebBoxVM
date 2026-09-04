@@ -22,12 +22,12 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  const residentCandidate = [2, 3].includes(version); const replace = [4, 5, 6, 7].includes(version);
-  const depth = version === 1 ? flags === 1 : [5, 7].includes(version);
-  const writeMask = [6, 7].includes(version) ? RGB_WRITE_MASK : 0xF;
-  if (![1, 2, 3, 4, 5, 6, 7].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  const residentCandidate = [2, 3].includes(version); const replace = [4, 5, 6, 7, 8, 9].includes(version);
+  const masked = [8, 9].includes(version); const depth = version === 1 ? flags === 1 : [5, 7, 9].includes(version);
+  const writeMask = masked ? flags : [6, 7].includes(version) ? RGB_WRITE_MASK : 0xF;
+  if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (version === 1 && drawCount < 2)
-    || (version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== (depth ? 1 : 0))
+    || (masked ? flags < 1 || flags > 0xF : version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== (depth ? 1 : 0))
     || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
     throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   }

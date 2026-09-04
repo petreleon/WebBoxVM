@@ -6,6 +6,7 @@ const CMD_DESTROY_OBJECT: u8 = 3;
 const SOURCE_OVER: u32 = 1 | (3 << 4) | (19 << 9) | (1 << 17) | (19 << 22) | (15 << 27);
 const REPLACE: u32 = 15 << 27;
 const REPLACE_RGB: u32 = 7 << 27;
+const COLOR_MASK: u32 = 15 << 27;
 
 #[derive(Clone, Copy)]
 pub(in crate::devices::virtio_gpu::three_d::virgl::stream) enum Command {
@@ -21,6 +22,10 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> 
                 SOURCE_OVER => Some(Command::Create { handle: *handle, blend: BlendMode::SourceOver }),
                 REPLACE => Some(Command::Create { handle: *handle, blend: BlendMode::Replace }),
                 REPLACE_RGB => Some(Command::Create { handle: *handle, blend: BlendMode::ReplaceRgb }),
+                masked if masked & !COLOR_MASK == 0 => {
+                    let mask = (masked >> 27) as u8;
+                    (mask != 0).then_some(Command::Create { handle: *handle, blend: BlendMode::ReplaceMasked(mask) })
+                }
                 _ => None,
             }
         }

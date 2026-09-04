@@ -52,15 +52,17 @@ fn encode(
         (None, false, false, false, _, BlendMode::SourceOver) => 1,
         (None, false, false, false, _, BlendMode::Replace) => 8,
         (None, false, false, false, _, BlendMode::ReplaceRgb) => 10,
+        (None, false, false, false, _, BlendMode::ReplaceMasked(_)) => 12,
         (Some(DepthState { compare: DepthCompare::Less, write: true }), false, false, false, _, BlendMode::SourceOver) => 2,
         (Some(DepthState { write: true, .. }), false, false, false, _, BlendMode::SourceOver) => 3,
         (Some(_), true, false, false, _, BlendMode::SourceOver) => 4,
         (Some(_), _, true, false, _, BlendMode::SourceOver) => 5,
         (Some(_), _, _, false, _, BlendMode::Replace) => 9,
         (Some(_), _, _, false, _, BlendMode::ReplaceRgb) => 11,
+        (Some(_), _, _, false, _, BlendMode::ReplaceMasked(_)) => 13,
         _ => return None,
     };
-    let per_draw_depth = matches!(version, 4 | 5 | 9 | 11);
+    let per_draw_depth = matches!(version, 4 | 5 | 9 | 11 | 13);
     let depth_resource = works.first()?.depth_resource;
     let body = works.iter().try_fold(0usize, |total, work| {
         let bytes = usize::try_from(work.vertex_count).ok()?.checked_mul(16)?;
@@ -74,7 +76,10 @@ fn encode(
     let header_bytes = HEADER_BYTES.checked_add(if version == 7 { 4 } else { 0 })?;
     let mut packet = Vec::with_capacity(header_bytes.checked_add(body)?);
     packet.extend_from_slice(b"VGB1");
-    let flags = match depth { Some(state) if version == 3 => state.compare.wire(), _ if matches!(version, 6 | 7) => 1, _ => 0 };
+    let flags = match blend {
+        BlendMode::ReplaceMasked(mask) => u32::from(mask),
+        _ => match depth { Some(state) if version == 3 => state.compare.wire(), _ if matches!(version, 6 | 7) => 1, _ => 0 },
+    };
     for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
@@ -85,7 +90,7 @@ fn encode(
         let DrawMaterial::Solid(color) = work.material else { return None; };
         packet.extend_from_slice(&work.vertex_count.to_le_bytes());
         if version == 4 { packet.extend_from_slice(&work.depth_state?.compare.wire().to_le_bytes()); }
-        if matches!(version, 5 | 9 | 11) { packet.extend_from_slice(&work.depth_state?.wire().to_le_bytes()); }
+        if matches!(version, 5 | 9 | 11 | 13) { packet.extend_from_slice(&work.depth_state?.wire().to_le_bytes()); }
         floats(&mut packet, color.into_iter().chain(work.viewport));
         for value in work
             .scissor

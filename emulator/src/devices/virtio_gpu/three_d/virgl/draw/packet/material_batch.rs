@@ -29,6 +29,8 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
         (true, false, _, BlendMode::Replace) => 5,
         (false, false, _, BlendMode::ReplaceRgb) => 6,
         (true, false, _, BlendMode::ReplaceRgb) => 7,
+        (false, false, _, BlendMode::ReplaceMasked(_)) => 8,
+        (true, false, _, BlendMode::ReplaceMasked(_)) => 9,
         _ => return None,
     };
     let body = works.iter().try_fold(0usize, |total, work| {
@@ -39,7 +41,12 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     let header_bytes = HEADER_BYTES.checked_add(usize::from(version == 3) * 4)?;
     let mut packet = Vec::with_capacity(header_bytes.checked_add(body)?);
     packet.extend_from_slice(b"VGM1");
-    let flags = if depth { 1 } else if resident { 2 } else { 0 };
+    let flags = match blend {
+        BlendMode::ReplaceMasked(mask) => u32::from(mask),
+        _ if depth => 1,
+        _ if resident => 2,
+        _ => 0,
+    };
     for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
