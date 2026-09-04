@@ -11,7 +11,7 @@ UBO slot, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, standard source-over plus every nonzero opaque RGBA channel mask, deliberately bounded single
-solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset or one inline four-row vertex matrix; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
+solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset or one inline four-row vertex matrix with zero through two fixed generic passthroughs; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -46,7 +46,7 @@ Solid draws use a format-31 position source at stride 16; textured, vertex-color
 interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes across slots 0–2; every divisor is zero.
 
 Type-4 shader objects accept only bounded NUL-terminated TGSI shapes: solid or
-`CONST[0][0]` passthrough/fragment-color pairs; a four-row `DP4 OUT[0].xyzw, IN[0], CONST[0..3]` position transform paired with a solid or constant fragment color; generic RGBA passthrough or generic-RGBA-times-fragment-constant pairs; a two-generic texture-times-color pair;
+`CONST[0][0]` passthrough/fragment-color pairs; a four-row `DP4 OUT[0].xyzw, IN[0], CONST[0..3]` position transform alone or with exact `MOV OUT[1..2], IN[1..2]` generic passthroughs, paired with the matching existing solid, vertex-color, one-/two-texture, texture-color, or constant-material fragment form; generic RGBA passthrough or generic-RGBA-times-fragment-constant pairs; a two-generic texture-times-color pair;
 a one-2D-`TEX` passthrough or texture-times-`CONST[0][0]` pair; or a two-2D-`TEX`, `MUL` pair. Declaration order and full-vector `.xyzw` spellings normalize for those forms, while unknown operations, repeated/overlapping declarations, and ambiguous immediates fail. The latter pair has one generic UV input, two sampler/views, and one color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
 source per vertex/fragment stage may be in flight. Vertex-constant forms add `CONST[0][0]` to `IN[0]`, optionally preserving one `GENERIC[0]` varying; chunks must retain handle,
@@ -111,7 +111,7 @@ resident producer by sequence, dimensions, and sampler state rather than
 embedding texels; v13 carries one exact nonzero replacement mask.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
-Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying. The `DP4` form snapshots sixteen finite stage-zero constants, evaluates four row-major dot products against each copied position, requires finite positive output `w`, divides to canonical coordinates, and rejects any vertex outside the already supported clip volume; no clipping repair occurs. The resulting `w` is one before the existing packet and raster paths.
+Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying. The `DP4` form snapshots sixteen finite stage-zero constants, evaluates four row-major dot products against each copied position, requires finite positive output `w`, divides to canonical coordinates, and rejects any vertex outside the already supported clip volume; no clipping repair occurs. Its zero, one, or two exact generic `MOV` outputs retain the fixed color/UV bytes while the position is replaced. The resulting `w` is one before the existing packet and raster paths.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 The v12 exception permits one larger resident B8G8R8A8 source only when its
@@ -154,7 +154,7 @@ and a matching capset that this renderer does not advertise.
 
 ## Validation retained in the repository
 
-Rust tests prove capset bits, transactional no-clear, malformed-index, inline/resource-constant render/rejection, canonical `DP4` parse/rejection, vertex-matrix packet coordinates, and shifted raster output,
+Rust tests prove capset bits, transactional no-clear, malformed-index, inline/resource-constant render/rejection, canonical `DP4` parse/rejection, generic-varying matrix normalization, solid and textured vertex-matrix packet coordinates, and shifted raster output,
 exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2–14 `VGD1`, bounded `VGB1`, and mixed-material `VGM1`
 payloads, singleton and ordered non-depth/depth batch blending, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, solid/vertex-color/one-texture/texture-color depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, strict VGB1/VGM1 GPU-color readback, and `WBGF` damage.

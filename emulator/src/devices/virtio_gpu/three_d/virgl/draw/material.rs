@@ -1,3 +1,5 @@
+mod matrix;
+
 use super::super::SampledResource;
 use super::super::uniform;
 use super::{DrawMaterial, DrawState, TextureSnapshot, solid, texture};
@@ -33,6 +35,10 @@ impl VertexTransform {
         Self { offset: None, matrix: Some((matrix, stride)), color: None }
     }
 
+    pub(super) const fn matrix_color(matrix: [f32; 16], stride: usize, color: ColorTransform) -> Self {
+        Self { offset: None, matrix: Some((matrix, stride)), color: Some(color) }
+    }
+
     const fn multiply_color(color: [f32; 4]) -> Self {
         Self { offset: None, matrix: None, color: Some(ColorTransform::Multiply(color)) }
     }
@@ -52,6 +58,9 @@ pub(super) fn material(
     target: u32,
     state: DrawState,
 ) -> Result<(usize, DrawMaterial, Option<VertexTransform>), u32> {
+    if matches!(state.vertex_program, ShaderProgram::VertexMatrix | ShaderProgram::VertexMatrixGeneric | ShaderProgram::VertexMatrixTextureColor) {
+        return matrix::material(gpu, context, target, state);
+    }
     match (state.vertex_program, state.fragment_program) {
         (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => Ok((
             SOLID_VERTEX_BYTES,
@@ -70,16 +79,6 @@ pub(super) fn material(
             let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
             let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
             Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(color), Some(VertexTransform::offset(offset, SOLID_VERTEX_BYTES))))
-        }
-        (ShaderProgram::VertexMatrix, ShaderProgram::FragmentSolid(bits)) => Ok((
-            SOLID_VERTEX_BYTES,
-            DrawMaterial::Solid(solid::color(bits)?),
-            Some(VertexTransform::matrix(uniform::vertex_matrix(state.vertex_constants)?, SOLID_VERTEX_BYTES)),
-        )),
-        (ShaderProgram::VertexMatrix, ShaderProgram::FragmentConstant) => {
-            let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
-            let matrix = uniform::vertex_matrix(state.vertex_constants)?;
-            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(color), Some(VertexTransform::matrix(matrix, SOLID_VERTEX_BYTES))))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {
             Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor, None))

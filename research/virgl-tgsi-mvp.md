@@ -16,8 +16,9 @@ instructions: each `OUT[0]` component is the dot product of `IN[0]` and one
 
 WebBoxVM already accepts shader objects and vertex input, but it only recognized
 an exact `MOV` or a two-component `ADD` offset. The first semantic-IR extension
-therefore accepts the canonical four-row `DP4` form and a vertex-stage, slot-zero
-matrix with exactly sixteen finite `f32` values.
+therefore accepts the canonical four-row `DP4` form, zero through two exact
+generic `MOV` passthroughs, and a vertex-stage, slot-zero matrix with exactly
+sixteen finite `f32` values.
 
 ## Applied contract
 
@@ -32,6 +33,16 @@ DP4 OUT[0].w, IN[0], CONST[3]
 END
 ```
 
+One or two fixed generic outputs may follow or interleave with the four rows:
+
+```text
+MOV OUT[1], IN[1]
+MOV OUT[2], IN[2]
+```
+
+They retain the existing fixed color/UV layouts while the position undergoes
+the matrix transform.
+
 For the first layer, Rust applies the matrix to the bounded copied vertices
 before emitting the existing WebGPU packet. A finite positive homogeneous `w`
 is divided into canonical clip coordinates; every resulting vertex must remain
@@ -44,11 +55,13 @@ per-vertex host transform.
 
 1. The four rows must target `x`, `y`, `z`, and `w` exactly once and read
    `CONST[0]` through `CONST[3]` respectively.
-2. The vertex constant binding is stage zero, slot zero, and exactly 64 bytes;
+2. A varying form has only exact `OUT[1..2] = IN[1..2]` moves; it neither
+   introduces a general register machine nor changes the fixed vertex layouts.
+3. The vertex constant binding is stage zero, slot zero, and exactly 64 bytes;
    other sizes or stages do not widen this path.
-3. A matrix may not produce a non-finite, zero/negative-`w`, or out-of-clip
+4. A matrix may not produce a non-finite, zero/negative-`w`, or out-of-clip
    vertex. Failure leaves the transactional stream unchanged.
-4. Matrix work is O(V) for at most 3,063 normalized list vertices and O(1)
+5. Matrix work is O(V) for at most 3,063 normalized list vertices and O(1)
    additional allocation; it is never on the unbounded guest command path.
 
 ## Boundary
@@ -60,11 +73,12 @@ memory and synchronization that browser WebGPU does not expose.
 
 ## Validation
 
-- Parse canonical and reordered declaration forms into one matrix program.
+- Parse canonical and reordered declaration/instruction forms into matrix-only
+  or exact generic-varying programs.
 - Reject duplicate output components, a non-matrix source, and incomplete
   constant ranges.
-- Submit ordinary shader-object, vertex constant-buffer, and draw commands;
-  verify transformed packet coordinates and raster result.
+- Submit ordinary shader-object, vertex constant-buffer, solid, and textured
+  draw commands; verify transformed packet coordinates and raster results.
 - Keep the source-file limit, Rust suite, browser suite, and wasm packages
   green before advertising the increment.
 
