@@ -20,7 +20,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
 use shader::PendingShader;
 
 pub(in crate::devices::virtio_gpu) use index::IndexBuffer;
-pub(super) use vertex::VertexLayout;
+pub(super) use vertex::{MAX_VIRGL_VERTEX_BUFFERS, VertexLayout};
 use vertex::VertexState;
 pub(in crate::devices::virtio_gpu) use vertex::{VertexBuffer, VertexElement};
 

@@ -1,7 +1,7 @@
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::resource::{
-    BufferBind, FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT, GpuResource,
-    sampled_texture_format, total_resource_limit,
+    BufferBind, FORMAT_B8G8R8A8_UNORM, FORMAT_R8_UNORM, FORMAT_R32G32_FLOAT,
+    FORMAT_R32G32B32A32_FLOAT, GpuResource, sampled_texture_format, total_resource_limit,
 };
 use crate::devices::virtio_gpu::{MAX_RESOURCES, VirtioGpu};
 
@@ -96,7 +96,10 @@ fn buffer_bind(
         && samples == 0
         && flags == 0)
         .then_some(match (format, bind) {
-            (FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT, VIRGL_BIND_VERTEX_BUFFER) => {
+            (
+                FORMAT_R8_UNORM | FORMAT_R32G32_FLOAT | FORMAT_R32G32B32A32_FLOAT,
+                VIRGL_BIND_VERTEX_BUFFER,
+            ) => {
                 Some(BufferBind::Vertex)
             }
             (FORMAT_R8_UNORM, VIRGL_BIND_INDEX_BUFFER) => Some(BufferBind::Index),

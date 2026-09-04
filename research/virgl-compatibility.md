@@ -17,7 +17,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 | --- | --- | --- |
 | Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
 | Texture resources | Packed 2D targets plus two B8G8R8A8 or R8G8B8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
-| Buffer resources | R8 raw vertex/index storage and R32G32B32A32_FLOAT vertex buffers | R8 is not a renderable vertex format |
+| Buffer resources | R8 raw vertex/index plus R32G32/R32G32B32A32 float vertex storage | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
@@ -41,9 +41,9 @@ feature level is advertised.
   R8 with exactly vertex- or index-buffer bind; width in bytes; height/depth/array one; level/sample zero; no flags.
 
 R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 4 and accepts aligned byte offsets.
-Solid draws use an attached format-31 VBO at stride 16; textured draws use stride 24 with type-5 `VERTEX_ELEMENTS`:
-format-31 position at offset zero and format-29 UV at offset 16. Vertex-color draws use stride 32 with
-format-31 position and RGBA at offsets zero and 16; texture-color draws add format-29 UV at offset 32 with stride 40; all accepted elements have divisor zero in VBO slot zero.
+`SET_VERTEX_BUFFERS` accepts zero through three standard `(stride, offset, resource)` triples, resetting omitted slots.
+Solid draws use a format-31 position source at stride 16; textured, vertex-color, and texture-color inputs may stay
+interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes across slots 0–2; every divisor is zero.
 
 Type-4 shader objects accept only canonical NUL-terminated TGSI text: the
 solid passthrough/constant-RGBA pair; a generic RGBA-passthrough fragment pair; a two-generic texture-times-color pair;
@@ -95,7 +95,7 @@ Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. Each draw follows one clear in the same submission against the current
 full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots the bounded position list from the attached VBO, directly or through bounded index-buffer lookups.
+At draw validation Rust snapshots the bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups.
 Each position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.

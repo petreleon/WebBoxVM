@@ -1,11 +1,14 @@
 use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
-use super::{IndexBuffer, SampledResource, VertexBuffer, VertexLayout, Viewport, VirglContext};
+use super::{
+    IndexBuffer, MAX_VIRGL_VERTEX_BUFFERS, SampledResource, VertexBuffer, VertexLayout,
+    Viewport, VirglContext,
+};
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::three_d::virgl::shader::ShaderProgram;
 
 #[derive(Clone, Copy)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
-    pub vertex_buffer: VertexBuffer,
+    pub vertex_buffers: [Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS],
     pub vertex_layout: VertexLayout,
     pub index_buffer: Option<IndexBuffer>,
     pub vertex_program: ShaderProgram,
@@ -23,7 +26,7 @@ impl VirglContext {
             .pipeline
             .bound_rasterizer
             .and_then(|handle| self.pipeline.rasterizers.get(&handle).copied())?;
-        let (vertex_buffer, vertex_layout) = self.draw_vertex_state()?;
+        let (vertex_buffers, vertex_layout) = self.draw_vertex_state()?;
         let vertex_program = self
             .bound_vertex_shader
             .and_then(|handle| self.shaders.get(&handle).map(|shader| shader.program))?;
@@ -36,7 +39,7 @@ impl VirglContext {
             None
         };
         Some(DrawState {
-            vertex_buffer,
+            vertex_buffers,
             vertex_layout,
             index_buffer: self.index_buffer,
             vertex_program,

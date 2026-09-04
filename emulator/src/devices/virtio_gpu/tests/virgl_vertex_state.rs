@@ -70,7 +70,7 @@ fn vertex_input_rejects_bad_or_partial_streams_without_mutating_state() {
         (vertex_buffer(Some((0, 1, 0))), RESP_ERR_INVALID_PARAMETER),
         (vertex_elements_create(0, 64), RESP_ERR_INVALID_PARAMETER),
         (
-            vec![command_header(6, 0, 6), 1, 0, BUFFER_ID, 1, 0, BUFFER_ID],
+            vec![command_header(6, 0, 4), 1, 0, BUFFER_ID, 0],
             RESP_ERR_INVALID_PARAMETER,
         ),
     ] {

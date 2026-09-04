@@ -1,83 +1,16 @@
+mod layout;
+
 use super::VirglContext;
-use crate::devices::virtio_gpu::resource::{FORMAT_R8_UNORM, FORMAT_R32G32_FLOAT, FORMAT_R32G32B32A32_FLOAT};
 use std::collections::HashMap;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(in crate::devices::virtio_gpu) struct VertexBuffer {
-    pub stride: u32,
-    pub offset: u32,
-    pub resource: u32,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(in crate::devices::virtio_gpu) struct VertexElement {
-    pub offset: u32,
-    pub divisor: u32,
-    pub buffer_index: u32,
-    pub format: u32,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(in crate::devices::virtio_gpu::three_d::virgl) enum VertexLayout {
-    Single(VertexElement),
-    Textured,
-    VertexColor,
-    TextureColor,
-}
-
-impl VertexLayout {
-    pub(in crate::devices::virtio_gpu::three_d::virgl) fn from_elements(elements: &[VertexElement]) -> Option<Self> {
-        match elements {
-            [element] => Some(Self::Single(*element)),
-            [VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32_FLOAT }] => Some(Self::Textured),
-            [VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }] => Some(Self::VertexColor),
-            [VertexElement { offset: 0, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 16, divisor: 0, buffer_index: 0, format: FORMAT_R32G32B32A32_FLOAT }, VertexElement { offset: 32, divisor: 0, buffer_index: 0, format: FORMAT_R32G32_FLOAT }] => Some(Self::TextureColor),
-            _ => None,
-        }
-    }
-
-    pub(in crate::devices::virtio_gpu::three_d::virgl) fn valid(self) -> bool {
-        matches!(
-            self,
-            Self::Textured | Self::VertexColor | Self::TextureColor
-                | Self::Single(VertexElement {
-                    offset: 0,
-                    divisor: 0,
-                    buffer_index: 0,
-                    format: FORMAT_R8_UNORM | FORMAT_R32G32B32A32_FLOAT,
-                })
-        )
-    }
-
-    pub(in crate::devices::virtio_gpu::three_d::virgl) fn draw_stride(self) -> Option<u32> {
-        match self {
-            Self::Single(VertexElement {
-                format: FORMAT_R32G32B32A32_FLOAT,
-                ..
-            }) => Some(16),
-            Self::Textured => Some(24),
-            Self::VertexColor => Some(32),
-            Self::TextureColor => Some(40),
-            Self::Single(_) => None,
-        }
-    }
-    #[cfg(test)]
-    pub(in crate::devices::virtio_gpu) fn first(self) -> VertexElement {
-        match self {
-            Self::Single(element) => element,
-            Self::Textured | Self::VertexColor | Self::TextureColor => VertexElement {
-                offset: 0,
-                divisor: 0,
-                buffer_index: 0,
-                format: FORMAT_R32G32B32A32_FLOAT,
-            },
-        }
-    }
-}
+pub(in crate::devices::virtio_gpu::three_d::virgl) use layout::{
+    MAX_VIRGL_VERTEX_BUFFERS, VertexLayout,
+};
+pub(in crate::devices::virtio_gpu) use layout::{VertexBuffer, VertexElement};
 
 #[derive(Clone, Debug)]
 pub(super) struct VertexState {
-    buffer: Option<VertexBuffer>,
+    buffers: [Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS],
     layouts: HashMap<u32, VertexLayout>,
     bound: Option<u32>,
 }
@@ -85,36 +18,39 @@ pub(super) struct VertexState {
 impl VertexState {
     pub(super) fn new() -> Self {
         Self {
-            buffer: None,
+            buffers: [None; MAX_VIRGL_VERTEX_BUFFERS],
             layouts: HashMap::new(),
             bound: None,
         }
     }
 
     fn remove_resource(&mut self, resource: u32) {
-        if self
-            .buffer
-            .is_some_and(|buffer| buffer.resource == resource)
-        {
-            self.buffer = None;
+        for binding in &mut self.buffers {
+            if binding.is_some_and(|buffer| buffer.resource == resource) {
+                *binding = None;
+            }
         }
     }
 }
 
 impl VirglContext {
-    pub(in crate::devices::virtio_gpu) fn set_vertex_buffer(
+    pub(in crate::devices::virtio_gpu) fn set_vertex_buffers(
         &mut self,
-        binding: Option<VertexBuffer>,
+        bindings: [Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS],
     ) {
-        self.vertex.buffer = binding;
+        self.vertex.buffers = bindings;
     }
 
     #[cfg(test)]
     pub(in crate::devices::virtio_gpu) fn vertex_buffer(&self) -> Option<VertexBuffer> {
-        self.vertex.buffer
+        self.vertex.buffers[0]
     }
 
-    pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_vertex_elements(&mut self, handle: u32, layout: VertexLayout) -> bool {
+    pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_vertex_elements(
+        &mut self,
+        handle: u32,
+        layout: VertexLayout,
+    ) -> bool {
         handle != 0 && self.vertex.layouts.insert(handle, layout).is_none()
     }
 
@@ -144,9 +80,9 @@ impl VirglContext {
 
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn draw_vertex_state(
         &self,
-    ) -> Option<(VertexBuffer, VertexLayout)> {
+    ) -> Option<([Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS], VertexLayout)> {
         Some((
-            self.vertex.buffer?,
+            self.vertex.buffers,
             *self.vertex.layouts.get(&self.vertex.bound?)?,
         ))
     }

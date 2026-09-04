@@ -1,5 +1,6 @@
 use super::super::super::{
-    VIRGL_OBJECT_VERTEX_ELEMENTS, VertexBuffer, VertexElement, context::VertexLayout,
+    VIRGL_OBJECT_VERTEX_ELEMENTS, VertexBuffer, VertexElement,
+    context::{MAX_VIRGL_VERTEX_BUFFERS, VertexLayout},
 };
 
 const CMD_CREATE_OBJECT: u8 = 1;
@@ -12,7 +13,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl::stream) enum Command {
     Create { handle: u32, layout: VertexLayout },
     Bind { handle: u32 },
     Destroy { handle: u32 },
-    SetBuffer(Option<VertexBuffer>),
+    SetBuffers([Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS]),
 }
 
 pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> {
@@ -28,16 +29,31 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<Command> 
         (CMD_DESTROY_OBJECT, VIRGL_OBJECT_VERTEX_ELEMENTS, [handle]) => {
             Some(Command::Destroy { handle: *handle })
         }
-        (CMD_SET_VERTEX_BUFFERS, 0, []) => Some(Command::SetBuffer(None)),
-        (CMD_SET_VERTEX_BUFFERS, 0, [stride, offset, resource]) => {
-            Some(Command::SetBuffer(Some(VertexBuffer {
+        (CMD_SET_VERTEX_BUFFERS, 0, fields) => buffers(fields).map(Command::SetBuffers),
+        _ => None,
+    }
+}
+
+fn buffers(fields: &[u32]) -> Option<[Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS]> {
+    if fields.len() % 3 != 0 || fields.len() / 3 > MAX_VIRGL_VERTEX_BUFFERS {
+        return None;
+    }
+    let mut buffers = [None; MAX_VIRGL_VERTEX_BUFFERS];
+    for (slot, values) in fields.chunks_exact(3).enumerate() {
+        let [stride, offset, resource] = values else {
+            return None;
+        };
+        buffers[slot] = if *resource == 0 {
+            (*stride == 0 && *offset == 0).then_some(None)?
+        } else {
+            Some(VertexBuffer {
                 stride: *stride,
                 offset: *offset,
                 resource: *resource,
-            })))
-        }
-        _ => None,
+            })
+        };
     }
+    Some(buffers)
 }
 
 fn layout(fields: &[u32]) -> Option<VertexLayout> {

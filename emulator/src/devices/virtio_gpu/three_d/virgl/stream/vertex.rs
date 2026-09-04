@@ -1,11 +1,14 @@
-use super::super::{VertexBuffer, VirglContext, context::VertexLayout};
+use super::super::{
+    VertexBuffer, VirglContext,
+    context::{MAX_VIRGL_VERTEX_BUFFERS, VertexLayout},
+};
 use super::decode::vertex::Command;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{
     RESP_ERR_INVALID_PARAMETER, RESP_ERR_INVALID_RESOURCE_ID,
 };
 use crate::devices::virtio_gpu::resource::{
-    BufferBind, FORMAT_R8_UNORM, FORMAT_R32G32B32A32_FLOAT,
+    BufferBind, FORMAT_R8_UNORM, FORMAT_R32G32_FLOAT, FORMAT_R32G32B32A32_FLOAT,
 };
 
 pub(super) fn apply(
@@ -23,7 +26,7 @@ pub(super) fn apply(
             .destroy_vertex_elements(handle)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
-        Command::SetBuffer(binding) => set_buffer(gpu, context, binding),
+        Command::SetBuffers(bindings) => set_buffers(gpu, context, bindings),
     }
 }
 
@@ -34,39 +37,33 @@ fn create(context: &mut VirglContext, handle: u32, layout: VertexLayout) -> Resu
     Ok(())
 }
 
-fn set_buffer(
+fn set_buffers(
     gpu: &VirtioGpu,
     context: &mut VirglContext,
-    binding: Option<VertexBuffer>,
+    bindings: [Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS],
 ) -> Result<(), u32> {
-    let Some(binding) = binding else {
-        context.set_vertex_buffer(None);
-        return Ok(());
-    };
-    if binding.resource == 0 {
-        if binding.stride != 0 || binding.offset != 0 {
+    for binding in bindings.into_iter().flatten() {
+        let resource = gpu
+            .resources
+            .get(&binding.resource)
+            .ok_or(RESP_ERR_INVALID_RESOURCE_ID)?;
+        let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
+        let shape = matches!(
+            (binding.stride, resource.format),
+            (1, FORMAT_R8_UNORM)
+                | (8, FORMAT_R32G32_FLOAT)
+                | (16 | 24 | 32 | 40, FORMAT_R32G32B32A32_FLOAT)
+        );
+        if !shape
+            || !context.is_attached(binding.resource)
+            || !gpu.is_virgl_resource(binding.resource)
+            || !resource.is_buffer_bind(BufferBind::Vertex)
+            || !binding.offset.is_multiple_of(binding.stride)
+            || offset >= resource.pixels.len()
+        {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        context.set_vertex_buffer(None);
-        return Ok(());
     }
-    let resource = gpu
-        .resources
-        .get(&binding.resource)
-        .ok_or(RESP_ERR_INVALID_RESOURCE_ID)?;
-    let offset = usize::try_from(binding.offset).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
-    let shape = matches!(
-        (binding.stride, resource.format),
-        (1, FORMAT_R8_UNORM) | (16 | 24 | 32 | 40, FORMAT_R32G32B32A32_FLOAT)
-    );
-    if !shape
-        || !context.is_attached(binding.resource)
-        || !gpu.is_virgl_resource(binding.resource)
-        || !resource.is_buffer_bind(BufferBind::Vertex)
-        || offset >= resource.pixels.len()
-    {
-        return Err(RESP_ERR_INVALID_PARAMETER);
-    }
-    context.set_vertex_buffer(Some(binding));
+    context.set_vertex_buffers(bindings);
     Ok(())
 }
