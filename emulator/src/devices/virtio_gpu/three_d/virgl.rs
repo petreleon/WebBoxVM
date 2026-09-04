@@ -119,10 +119,11 @@ impl VirtioGpu {
         {
             return Err(RESP_ERR_OUT_OF_MEMORY);
         }
+        let timeline = self.fence_timeline(header);
         self.pending_3d_bytes += packet.len();
         self.pending_3d.push(Pending3d {
             sequence,
-            timeline: header.fence_timeline(),
+            timeline,
             bytes: packet.len(),
             packet: Some(packet),
             completion: None,

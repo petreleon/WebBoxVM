@@ -29,7 +29,9 @@ impl VirtioGpu {
         if self.contexts.len() >= MAX_CONTEXTS {
             return RESP_ERR_OUT_OF_MEMORY;
         }
+        let generation = self.allocate_context_generation();
         self.contexts.insert(header.ctx_id, capset);
+        self.context_generations.insert(header.ctx_id, generation);
         if capset == VIRGL_CAPSET_ID {
             let generation = self.allocate_virgl_context_generation();
             self.virgl_contexts
@@ -43,6 +45,7 @@ impl VirtioGpu {
             return RESP_ERR_INVALID_CONTEXT_ID;
         }
         self.contexts.remove(&header.ctx_id);
+        self.context_generations.remove(&header.ctx_id);
         self.virgl_contexts.remove(&header.ctx_id);
         RESP_OK_NODATA
     }
@@ -83,5 +86,11 @@ impl VirtioGpu {
             CMD_CTX_DETACH_RESOURCE => RESP_ERR_INVALID_PARAMETER,
             _ => RESP_ERR_INVALID_PARAMETER,
         }
+    }
+
+    fn allocate_context_generation(&mut self) -> u32 {
+        let generation = self.next_context_generation.max(1);
+        self.next_context_generation = generation.wrapping_add(1).max(1);
+        generation
     }
 }

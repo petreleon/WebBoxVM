@@ -40,7 +40,7 @@ fn legacy_context_resource_lifecycle_is_noop_but_cannot_submit_wbg3() {
 }
 
 #[test]
-fn old_submit_completion_does_not_touch_reused_context_id() {
+fn reused_context_id_has_a_new_completion_timeline() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(&mut gpu, &mut mem, &context_create(), RESP_OK_NODATA);
@@ -53,10 +53,10 @@ fn old_submit_completion_does_not_touch_reused_context_id() {
     assert_eq!(read_u32(&gpu.take_3d_update(), 12), Some(old.sequence));
     assert_eq!(read_u32(&gpu.take_3d_update(), 12), Some(new.sequence));
 
-    assert!(gpu.complete_3d(&mut mem, old.sequence, true));
+    assert!(gpu.complete_3d(&mut mem, new.sequence, true));
     assert_eq!(gpu.contexts.get(&7), Some(&CAPSET_ID));
     assert_eq!(gpu.pending_3d.len(), 1);
-    assert!(gpu.complete_3d(&mut mem, new.sequence, true));
+    assert!(gpu.complete_3d(&mut mem, old.sequence, true));
     assert_eq!(mem.read(USED + 2, 2), Some(2));
     assert_eq!(mem.read(OLD_RESPONSE, 4), Some(RESP_OK_NODATA as u64));
     assert_eq!(mem.read(NEW_RESPONSE, 4), Some(RESP_OK_NODATA as u64));

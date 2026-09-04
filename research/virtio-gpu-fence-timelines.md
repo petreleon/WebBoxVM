@@ -20,10 +20,13 @@ headers a deterministic error response instead of reinterpreting padding.
 
 ## Completion model
 
-Each pending browser-owned 3D packet stores its `(ctx_id, ring_idx)` timeline.
+Each pending browser-owned 3D packet stores its `(ctx_id, generation, ring_idx)` timeline.
 `gpu_3d_complete` refuses an acknowledgement for a later pending packet when
 an earlier packet on that same timeline still has a guest completion attached.
 After the earlier acknowledgement, the later one can complete normally.
+
+A context recreation receives a new internal generation, so reuse of a numeric
+context ID cannot make an old packet block its replacement's fence timeline.
 
 Different rings are independent. This matches the reason ring information
 exists: separate guest fence timelines must not accidentally serialize each
