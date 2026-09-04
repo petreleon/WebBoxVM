@@ -10,7 +10,7 @@
 static const char vertex_shader[] =
     "VERT\nDCL IN[0]\nDCL OUT[0], POSITION\n0: MOV OUT[0], IN[0]\n1: END\n";
 static const char fragment_shader[] =
-    "FRAG\nDCL OUT[0], COLOR\nIMM[0] FLT32 {0, 1, 0, .25}\n0: MOV OUT[0], IMM[0]\n1: END\n";
+    "FRAG\nDCL CONST[0][0]\nDCL OUT[0], COLOR\nMOV OUT[0], CONST[0][0]\nEND\n";
 
 static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangle_resource, u32 index_bo, u32 index_resource);
 static u32 triangle_stream(u32 *words, u32 triangle, u32 index);
@@ -72,19 +72,19 @@ static int submit_triangle(long fd, u32 scanout_bo, u32 triangle_bo, u32 triangl
 static u32 triangle_stream(u32 *words, u32 triangle, u32 index)
 {
     u32 next = 0;
-
     words[next++] = VIRGL_HEADER(5, 0, 3);
     words[next++] = 1;
     words[next++] = 0;
     words[next++] = 1;
     next += append_shader(words + next, 11, 0, 11, vertex_shader, sizeof(vertex_shader));
-    next += append_shader(words + next, 12, 1, 14, fragment_shader, sizeof(fragment_shader));
+    next += append_shader(words + next, 12, 1, 11, fragment_shader, sizeof(fragment_shader));
     words[next++] = VIRGL_HEADER(29, 0, 2);
     words[next++] = 11;
     words[next++] = 0;
     words[next++] = VIRGL_HEADER(29, 0, 2);
     words[next++] = 12;
     words[next++] = 1;
+    next += virgl_fragment_constants_stream(words + next);
     next += virgl_source_over_blend_stream(words + next, 13);
     next += virgl_scissor_rasterizer_stream(words + next, 14);
     next += virgl_viewport_scissor_stream(words + next);
@@ -172,8 +172,8 @@ static int readback_triangle(long fd, u32 bo_handle)
         };
         if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
             return -2;
-        if (pixels[transfer.offset] != 143 || pixels[transfer.offset + 1] != 160 ||
-            pixels[transfer.offset + 2] != 48 || pixels[transfer.offset + 3] != 255)
+        if (pixels[transfer.offset] != 121 || pixels[transfer.offset + 1] != 115 ||
+            pixels[transfer.offset + 2] != 134 || pixels[transfer.offset + 3] != 255)
             return -3;
     }
     return 0;

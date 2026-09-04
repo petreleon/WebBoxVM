@@ -19,7 +19,7 @@ static int virgl_caps(long fd)
 
     return sys_ioctl(fd, DRM_IOCTL_VIRTGPU_GET_CAPS, &get) < 0 ||
                    caps[0] != 1 || caps[4] != 2 || caps[68] != 30 ||
-                   caps[199] != 160 || caps[288] != 16
+                   caps[199] != 160 || caps[288] != VIRGL_TRIANGLE_PRIMITIVES
                ? -1
                : 0;
 }

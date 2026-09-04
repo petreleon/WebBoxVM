@@ -150,11 +150,11 @@ cached pipelines, no depth texture, bounded `draw(N)`, and queue-gated completio
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for all three blob profiles, `cmd_size` ordering, capset discovery, R8 buffer transfer/copy,
 color transfer/readback, and the standard clear/fence path. It then creates
-the exact 96-byte R32G32B32A32 VBO plus a 14-byte R8 index buffer, canonical TGSI state,
+the exact 96-byte R32G32B32A32 VBO plus a 14-byte R8 index buffer, canonical `CONST[0][0]` TGSI state,
 exact type-1 source-over blend and type-2 scissor-rasterizer objects, viewport/scissor,
-command-11 `SET_INDEX_BUFFER` at byte offset two, and indexed `DRAW_VBO`; it validates the schema-2
+commands 11/12 `SET_INDEX_BUFFER` at byte offset two and fragment-slot-zero `SET_CONSTANT_BUFFER`, plus indexed `DRAW_VBO`; it validates the schema-2
 `VGD1` envelope with the guest's `[2,1,0,5,4,3]` reordered vertices, resolves the
-deferred fence, and reads both blended `143,160,48,255` triangles plus their clear
+deferred fence, and reads both blended `121,115,134,255` triangles plus their clear
 center gap back through the Linux driver. It then creates two attached
 R8G8B8A8 sampler-view textures and a 24-byte position/UV VBO. It validates schema-5's
 transfer-normalized BGRA and first `0x1080` at `u == 1`, then `0x3292` at `u == .5`,
@@ -164,7 +164,7 @@ This does not claim native Mesa, a native OpenGL context, or browser WebGPU exec
 
 ## Next compatibility milestones
 
-1. Add native transport proof for inline constants, then expand the generic vertex/fragment contract only with the same CPU/WebGPU agreement.
+1. Expand the generic vertex/fragment contract only with a new native/CPU/WebGPU agreement.
 2. Design resource-backed uniform buffers, blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

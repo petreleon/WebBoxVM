@@ -25,6 +25,10 @@ values and reuses the existing bounded solid-color raster and `VGD1` schema-2
 route. Invalid state rejects the full cloned submission, leaving prior state
 unchanged.
 
+The native Linux guest probe emits this exact state before indexed `DRAW_VBO`.
+Its host smoke validates the distinct schema-2 color and the deferred BGRA
+readback, so guest DRM transport is covered in addition to Rust/browser tests.
+
 ## Deliberate limits
 
 Vertex constants, other slots, arrays, non-color values, resource-backed

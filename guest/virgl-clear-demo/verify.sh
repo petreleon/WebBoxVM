@@ -22,5 +22,5 @@ for source in Makefile README.md demo.c draw.c index.c kms.c kms.h link.ld memor
     lines=$(wc -l < "$source" | tr -d ' ')
     test "$lines" -le 180
 done
-printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/draw/texture-pair/vertex-color/texture-color=%s bytes\n' \
+printf 'verified %s: ELF64 AArch64 static EXEC, standard VirGL buffer/copy/upload/readback/clear/inline-constant-draw/texture-pair/vertex-color/texture-color=%s bytes\n' \
     "$binary" "$size"

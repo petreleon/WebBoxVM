@@ -16,6 +16,7 @@
 #define VIRGL_BIND_VERTEX_BUFFER (1u << 4)
 #define VIRGL_BIND_INDEX_BUFFER (1u << 5)
 #define VIRGL_CLEAR_COLOR0 (1u << 2)
+#define VIRGL_TRIANGLE_PRIMITIVES 0x70u
 #define VIRGL_CLEAR_WORDS 19u
 #define VIRGL_COPY_WORDS 14u
 #define VIRGL_VERTEX_INPUT_WORDS 12u
@@ -80,6 +81,18 @@ static inline u32 virgl_viewport_scissor_stream(u32 *words)
     words[10] = 0x015001c0u;
     words[11] = 0x01b00240u;
     return VIRGL_VIEWPORT_SCISSOR_WORDS;
+}
+
+static inline u32 virgl_fragment_constants_stream(u32 *words)
+{
+    words[0] = VIRGL_HEADER(12, 0, 6);
+    words[1] = 1;
+    words[2] = 0;
+    words[3] = 0x3f4ccccdu;
+    words[4] = 0x3ecccccdu;
+    words[5] = 0x3e4ccccdu;
+    words[6] = 0x3f000000u;
+    return 7;
 }
 
 static inline void virgl_clear_stream(u32 words[VIRGL_CLEAR_WORDS], u32 resource)

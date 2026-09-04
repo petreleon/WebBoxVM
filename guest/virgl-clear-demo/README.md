@@ -1,8 +1,8 @@
-# WebBoxVM standard VirGL solid, texture, vertex-color, and texture-color triangle probe
+# WebBoxVM standard VirGL inline-constant, texture, vertex-color, and texture-color triangle probe
 
 This freestanding AArch64 Linux program is a deliberately small guest-side
 proof for a conservative standard capset-1 vertex, buffer, copy, upload, clear,
-source-over blend, rasterizer, viewport/scissor, solid triangle, interpolated vertex color, sampled texture, texture-modulated color,
+source-over blend, rasterizer, viewport/scissor, inline-constant triangle, interpolated vertex color, sampled texture, texture-modulated color,
 and readback path. It is not Mesa, OpenGL, or Vulkan.
 
 It also proves Linux's `cmd_size` blob path: a private `WBL1` opaque command is
@@ -28,10 +28,10 @@ for the resource fence, then obtains and checks two clear pixels through
 `R32G32B32A32_FLOAT` vertex buffer and 14-byte R8 index buffer, uploads six
 fixed clip-space vertices plus a two-byte pad then little-endian `[2,1,0,5,4,3]` indices, and submits one
 standard type-1 source-over blend object, type-2 scissor rasterizer, type-4
-shader objects, type-5 vertex elements, shader binds, command-11 index binding at byte offset two,
-one viewport/scissor, a generic clear, and one indexed `DRAW_VBO`. It waits again
+`CONST[0][0]` shader object, type-5 vertex elements, shader binds, command-11 index binding at byte offset two,
+command-12 fragment-slot-zero inline constants, one viewport/scissor, a generic clear, and one indexed `DRAW_VBO`. It waits again
 and requires both triangles to read back as source-over BGRA
-(`143,160,48,255`) while their center gap remains clear. It then
+(`121,115,134,255`) while their center gap remains clear. It then
 reuses the scanout surface, binds distinct persistent-state handles, and creates
 two R8G8B8A8 sampler-view textures plus a 72-byte interleaved position/UV VBO.
 The type-7 nearest S/T-repeat sampler uses `u == 1`, so the type-6 identity
@@ -63,13 +63,13 @@ Inject the built program into an installed WebBoxVM Debian guest after loading
 `virtio_gpu`, then run it as the DRM master on the serial console. Success is:
 
 ```text
-VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-triangle blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255
+VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255
 ```
 
 That marker appears only after all guest fences resolve. The native harness
 first validates the scanout upload `WBGF`, then validates and completes `VGC1`,
-captures its clear `WBGF`, validates schema-2 `VGD1` with six reordered vertices,
-viewport, scissor, and its indexed two-triangle batch, then requires its blended `WBGF`.
+captures its clear `WBGF`, validates schema-2 `VGD1` with the inline color, six reordered vertices,
+viewport, scissor, and its indexed two-triangle batch, then requires its `121,115,134,255` `WBGF`.
 It next validates two schema-5 packets: repeat at `u == 1`, then clamp/linear at
 `u == .5`, each with its position/UV VBO and normalized 2×2 BGRA snapshot from raw
 RGBA. Schema 6 then verifies independent left-linear/right-repeat sampling at `[1,.625]`

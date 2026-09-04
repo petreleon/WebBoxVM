@@ -46,7 +46,7 @@ pub(super) fn vgd1_sequence(packet: &[u8]) -> Result<u32, String> {
             24,
             &[0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000],
         )
-        || !words_are(packet, 40, &[0, 0x3f80_0000, 0, 0x3e80_0000])
+        || !words_are(packet, 40, &[0x3f4c_cccd, 0x3ecc_cccd, 0x3e4c_cccd, 0x3f00_0000])
         || !words_are(packet, 56, &vertices)
         || !words_are(packet, 152, &viewport)
         || !words_are(packet, 176, &[448, 336, 128, 96])
@@ -64,8 +64,8 @@ pub(crate) fn is_triangle_readback(packet: &[u8]) -> bool {
         let right = (384 * 1024 + 530) * 4;
         let gap = (384 * 1024 + 512) * 4;
         pixels[..4] == [191, 128, 64, 255]
-            && pixels[left..left + 4] == [143, 160, 48, 255]
-            && pixels[right..right + 4] == [143, 160, 48, 255]
+            && pixels[left..left + 4] == [121, 115, 134, 255]
+            && pixels[right..right + 4] == [121, 115, 134, 255]
             && pixels[gap..gap + 4] == [191, 128, 64, 255]
     })
 }
