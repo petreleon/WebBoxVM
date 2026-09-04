@@ -49,6 +49,7 @@ int virgl_create_uniform_buffer(long fd, u32 *bo_handle, u32 *resource_handle);
 int virgl_run_uniform_triangle(long fd, const struct virgl_resources *resources);
 int virgl_create_depth_resources(long fd, struct virgl_resources *resources);
 int virgl_run_depth_triangle(long fd, const struct virgl_resources *resources);
+int virgl_run_solid_batch(long fd, const struct virgl_resources *resources);
 int virgl_upload_index_buffer(long fd, u32 bo_handle);
 int virgl_create_textured_resources(long fd, struct virgl_resources *resources);
 int virgl_run_textured_triangle(long fd, const struct virgl_resources *resources);

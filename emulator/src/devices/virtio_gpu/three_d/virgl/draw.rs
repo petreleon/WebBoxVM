@@ -8,7 +8,7 @@ mod solid;
 mod texture;
 mod vertices;
 use material::material;
-pub(in crate::devices::virtio_gpu::three_d) use packet::packet;
+pub(in crate::devices::virtio_gpu::three_d) use packet::{batch_packet, packet};
 pub(super) use primitive::Primitive;
 use vertices::resolve;
 
@@ -20,6 +20,7 @@ pub(super) const TRIANGLE_VERTICES: u32 = 3;
 pub(super) const MAX_VIRGL_DRAW_INPUT_VERTICES: u32 = 1023;
 pub(super) const MAX_VIRGL_DRAW_VERTICES: u32 =
     (MAX_VIRGL_DRAW_INPUT_VERTICES - 2) * TRIANGLE_VERTICES;
+pub(in crate::devices::virtio_gpu::three_d::virgl) const MAX_VIRGL_BATCH_DRAWS: usize = 16;
 
 #[derive(Clone, Copy)]
 pub(super) struct DrawCall {
@@ -46,7 +47,8 @@ pub(in crate::devices::virtio_gpu) enum DrawMaterial {
     TextureColor(TextureSnapshot),
 }
 
-pub(super) struct DrawWork {
+#[derive(Clone, Debug)]
+pub(in crate::devices::virtio_gpu) struct DrawWork {
     pub(super) material: DrawMaterial,
     pub(super) vertices: Vec<u8>,
     pub(super) vertex_count: u32,

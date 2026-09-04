@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { wasm64ThreadsSupported } from "./wasm64.js?v=20260904-virgl-depth-r1";
+import { wasm64ThreadsSupported } from "./wasm64.js?v=20260904-virgl-solid-batch-r1";
 
 test("threaded wasm64 requires isolation and a shared Memory64", () => {
   class SharedArrayBufferMock {}

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseGpu3dPacket } from "./gpu-3d-packet.js?v=20260904-virgl-depth-r1";
-import { virglDrawPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-depth-r1";
-import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-depth-r1";
-import { virglTextureColorPacket } from "./gpu-test-virgl-texture-color.mjs?v=20260904-virgl-depth-r1";
+import { parseGpu3dPacket } from "./gpu-3d-packet.js?v=20260904-virgl-solid-batch-r1";
+import { virglDrawPacket } from "./gpu-test-packets.mjs?v=20260904-virgl-solid-batch-r1";
+import { virglVertexColorPacket } from "./gpu-test-virgl-vertex-color.mjs?v=20260904-virgl-solid-batch-r1";
+import { virglTextureColorPacket } from "./gpu-test-virgl-texture-color.mjs?v=20260904-virgl-solid-batch-r1";
 
 const POSITIONS = [
   -0.9, 0.7, 0, 1, -0.9, -0.7, 0, 1, -0.1, -0.7, 0, 1,

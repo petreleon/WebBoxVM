@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-solid-batch-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-r1";
-import { virglTextureColorPacket } from "./gpu-test-virgl-texture-color.mjs?v=20260904-virgl-depth-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-solid-batch-r1";
+import { virglTextureColorPacket } from "./gpu-test-virgl-texture-color.mjs?v=20260904-virgl-solid-batch-r1";
 
 test("VirGL texture-color envelope snapshots one bounded texture and generic color varyings", () => {
   const packet = virglTextureColorPacket({ sequence: 68, sampler: 0x3292 });

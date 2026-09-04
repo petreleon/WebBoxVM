@@ -11,7 +11,7 @@ mod virgl;
 
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};
 use packet::decode_submit;
-use virgl::DrawMaterial;
+use virgl::{DrawMaterial, DrawWork};
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
 #[cfg(test)]
 pub(in crate::devices::virtio_gpu) use virgl::{ShaderKind, ShaderProgram};
@@ -53,6 +53,14 @@ pub(super) enum Pending3dEffect {
         vertices: Vec<u8>,
         viewport: [f32; 6],
         scissor: Option<Rect>,
+    },
+    VirglBatch {
+        context_id: u32,
+        generation: u32,
+        resource_id: u32,
+        rect: Rect,
+        clear_bgra: [u8; 4],
+        works: Vec<DrawWork>,
     },
 }
 

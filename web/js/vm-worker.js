@@ -1,5 +1,5 @@
-import { errorMessage } from "./vm-worker/errors.js?v=20260904-virgl-depth-r1";
-import { handleMessage } from "./vm-worker/messages.js?v=20260904-virgl-depth-r1";
+import { errorMessage } from "./vm-worker/errors.js?v=20260904-virgl-solid-batch-r1";
+import { handleMessage } from "./vm-worker/messages.js?v=20260904-virgl-solid-batch-r1";
 
 self.onmessage = (event) => {
   handleMessage(event.data).catch((error) => {

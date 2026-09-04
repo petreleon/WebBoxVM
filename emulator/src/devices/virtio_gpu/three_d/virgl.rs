@@ -1,4 +1,5 @@
 mod blob;
+mod batch;
 mod context;
 mod copy;
 mod copy_buffer;
@@ -23,8 +24,7 @@ pub(in crate::devices::virtio_gpu) use context::{
     IndexBuffer, VertexBuffer, VertexElement, VirglContext,
 };
 pub(super) use copy::CopyRegion;
-pub(super) use draw::DrawMaterial;
-use draw::DrawWork;
+pub(super) use draw::{DrawMaterial, DrawWork};
 pub(in crate::devices::virtio_gpu) use shader::ShaderKind;
 #[cfg(test)]
 #[allow(unused_imports)]

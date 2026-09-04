@@ -1,3 +1,4 @@
+mod batch;
 mod blend;
 mod clear;
 mod constant;
@@ -13,6 +14,7 @@ mod vertex;
 use super::VirglContext;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::*;
+use batch::Batch;
 use clear::{Clear, set};
 use decode::{Command, decode_stream};
 
@@ -47,7 +49,7 @@ impl VirtioGpu {
         }
         let mut clear = None;
         let mut copy = None;
-        let mut draw = None;
+        let mut draws = Batch::default();
         let mut inline_write = None;
         for command in commands {
             match command {
@@ -72,7 +74,7 @@ impl VirtioGpu {
                     }
                 }
                 Command::Clear { color, depth } => {
-                    if copy.is_some() || draw.is_some() {
+                    if copy.is_some() || !draws.is_empty() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                     let target = self.framebuffer_virgl_clear_target(&context, color, depth)?;
@@ -83,7 +85,7 @@ impl VirtioGpu {
                     color,
                     rect,
                 } => {
-                    if copy.is_some() || draw.is_some() {
+                    if copy.is_some() || !draws.is_empty() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                     let resource = context
@@ -93,7 +95,7 @@ impl VirtioGpu {
                     set(&mut clear, Clear { resource, depth_resource: None, color, rect })?;
                 }
                 Command::CopyRegion(region) => {
-                    if clear.is_some() || draw.is_some() || copy.replace(region).is_some() {
+                    if clear.is_some() || !draws.is_empty() || copy.replace(region).is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                     self.validate_virgl_copy(&context, region)?;
@@ -103,13 +105,13 @@ impl VirtioGpu {
                     inline_write = Some(write);
                 }
                 Command::Draw(call) => {
-                    if copy.is_some() || draw.is_some() {
+                    if copy.is_some() {
                         return Err(RESP_ERR_INVALID_PARAMETER);
                     }
                     let target = clear.ok_or(RESP_ERR_INVALID_PARAMETER)?;
-                    draw = Some(self.prepare_virgl_draw(
+                    draws.push(self.prepare_virgl_draw(
                         &context, target.resource, target.depth_resource, target.rect, call,
-                    )?);
+                    )?)?;
                 }
                 Command::Blend(command) => blend::apply(&mut context, command)?,
                 Command::Constant(command) => constant::apply(&mut context, command),
@@ -128,22 +130,7 @@ impl VirtioGpu {
         if let Some(write) = inline_write {
             self.apply_virgl_inline_write(write)?;
         }
-        let deferred = match (clear, draw) {
-            (Some(Clear { resource, color, rect, .. }), Some(work)) => Some(self.queue_virgl_draw(
-                header,
-                context.generation,
-                resource,
-                rect,
-                color,
-                work,
-            )?),
-            (Some(Clear { resource, depth_resource: None, color, rect }), None) => {
-                Some(self.queue_virgl_clear(header, context.generation, resource, rect, color)?)
-            }
-            (Some(Clear { depth_resource: Some(_), .. }), None) => return Err(RESP_ERR_INVALID_PARAMETER),
-            (None, None) => None,
-            (None, Some(_)) => return Err(RESP_ERR_INVALID_PARAMETER),
-        };
+        let deferred = batch::deferred(self, header, context.generation, clear, draws)?;
         self.virgl_contexts.insert(header.ctx_id, context);
         Ok(deferred)
     }

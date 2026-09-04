@@ -6,12 +6,17 @@ import {
   extractVirglClearSequence,
   isVirglClearPacket,
   parseVirglClearPacket,
-} from "./virgl-clear-packet.js?v=20260904-virgl-depth-r1";
+} from "./virgl-clear-packet.js?v=20260904-virgl-solid-batch-r1";
 import {
   extractVirglDrawSequence,
   isVirglDrawPacket,
   parseVirglDrawPacket,
-} from "./virgl-draw-packet.js?v=20260904-virgl-depth-r1";
+} from "./virgl-draw-packet.js?v=20260904-virgl-solid-batch-r1";
+import {
+  extractVirglSolidBatchSequence,
+  isVirglSolidBatchPacket,
+  parseVirglSolidBatchPacket,
+} from "./virgl-solid-batch-packet.js?v=20260904-virgl-solid-batch-r1";
 
 const MAGIC = [0x57, 0x42, 0x47, 0x33]; // WBG3
 const MAX_DIMENSION = 8192;
@@ -22,6 +27,7 @@ const VERTEX_FLOATS = 7;
 const FIXED_BYTES = GPU_3D_HEADER_BYTES + MVP_FLOATS * 4;
 
 export function extractGpu3dSequence(packet) {
+  if (isVirglSolidBatchPacket(packet)) return extractVirglSolidBatchSequence(packet);
   if (isVirglClearPacket(packet)) return extractVirglClearSequence(packet);
   if (isVirglDrawPacket(packet)) return extractVirglDrawSequence(packet);
   if (!(packet instanceof Uint8Array) || packet.byteLength < 16) return undefined;
@@ -33,6 +39,7 @@ export function extractGpu3dSequence(packet) {
 }
 
 export function parseGpu3dPacket(packet) {
+  if (isVirglSolidBatchPacket(packet)) return parseVirglSolidBatchPacket(packet);
   if (isVirglClearPacket(packet)) return parseVirglClearPacket(packet);
   if (isVirglDrawPacket(packet)) return parseVirglDrawPacket(packet);
   if (!(packet instanceof Uint8Array)) throw new TypeError("GPU 3D packet must be a Uint8Array");

@@ -3,7 +3,7 @@
 #include "syscall.h"
 #include "transfer.h"
 static const char card_node[] = "/dev/dri/card0"; static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255\n";
+static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
@@ -29,8 +29,7 @@ static const char fail_readback[] = "VIRGL_CLEAR_DEMO_FAIL transfer-readback\n";
 static const char fail_texture_pair[] = "VIRGL_CLEAR_DEMO_FAIL texture-pair\n";
 static const char fail_vertex_color[] = "VIRGL_CLEAR_DEMO_FAIL vertex-color\n";
 static const char fail_texture_color[] = "VIRGL_CLEAR_DEMO_FAIL texture-color\n";
-static const char fail_uniform[] = "VIRGL_CLEAR_DEMO_FAIL uniform-buffer\n";
-static const char fail_depth[] = "VIRGL_CLEAR_DEMO_FAIL depth-less\n";
+static const char fail_uniform[] = "VIRGL_CLEAR_DEMO_FAIL uniform-buffer\n"; static const char fail_depth[] = "VIRGL_CLEAR_DEMO_FAIL depth-less\n"; static const char fail_batch[] = "VIRGL_CLEAR_DEMO_FAIL solid-batch\n";
 static void emit(const char *message, u64 length)
 {
     long fd = sys_open(serial_node, O_WRONLY | O_CLOEXEC);
@@ -118,6 +117,7 @@ __attribute__((noreturn, section(".text.start"))) void _start(void) {
                 else if ((stage = virgl_run_uniform_triangle(fd, &resources)) != 0)
                     stage += 57;
                 else if ((stage = virgl_run_depth_triangle(fd, &resources)) != 0) stage += 62;
+                else if ((stage = virgl_run_solid_batch(fd, &resources)) != 0) stage += 66;
             }
         }
     }
@@ -174,7 +174,7 @@ __attribute__((noreturn, section(".text.start"))) void _start(void) {
     else if (stage >= 54 && stage <= 57) EMIT(fail_texture_color);
     else if (stage >= 58 && stage <= 62) EMIT(fail_uniform);
     else if (stage >= 63 && stage <= 66) EMIT(fail_depth);
+    else if (stage >= 67 && stage <= 70) EMIT(fail_batch);
     else EMIT(fail_readback);
-    if (fd >= 0) sys_close(fd);
-    sys_exit(0);
+    if (fd >= 0) { sys_close(fd); } sys_exit(0);
 }

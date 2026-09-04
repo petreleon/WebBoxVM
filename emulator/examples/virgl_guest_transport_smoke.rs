@@ -1,11 +1,9 @@
-//! Native Linux-driver proof for standard capset-1 VirGL transfer, draw, and fragment UBOs.
-#[path = "virgl_guest_transport_smoke/wire.rs"]
-mod wire;
+//! Native Linux-driver proof for standard capset-1 VirGL transfer, draw, UBOs, and batches.
+#[path = "virgl_guest_transport_smoke/wire.rs"] mod wire;
 use emulator::boot::BootContext;
 use std::{env, error::Error, fs, time::{Duration, Instant}};
 use wire::*;
-const MODULE_OK: &str = "VIRGL_SMOKE_MODULE_OK";
-const MODULE_FAIL: &str = "VIRGL_SMOKE_MODULE_FAIL";
+const MODULE_OK: &str = "VIRGL_SMOKE_MODULE_OK"; const MODULE_FAIL: &str = "VIRGL_SMOKE_MODULE_FAIL";
 const MODULE_COMMAND: &str = concat!(
     "PATH=/usr/sbin:/usr/bin:/sbin:/bin; export PATH; ",
     "mkdir -p /dev /proc /sys /tmp; ",
@@ -31,10 +29,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut phase = Phase::Shell;
     let mut uart_offset = 0;
     let mut steps = 0u64;
-    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence, mut uniform_sequence, mut depth_sequence) = (None, None, None, None, None, None, None);
+    let (mut clear_sequence, mut draw_sequence, mut texture_pair_sequence, mut vertex_color_sequence, mut texture_color_sequence, mut uniform_sequence, mut depth_sequence, mut batch_sequence) = (None, None, None, None, None, None, None, None);
     let mut texture_sequence = None;
     let (mut upload_readback, mut clear_completed) = (false, false);
-    let mut draw_completed = false;
+    let (mut draw_completed, mut depth_completed) = (false, false);
     let (mut repeat_completed, mut linear_completed, mut texture_pair_completed, mut vertex_color_completed, mut texture_color_completed, mut uniform_completed) = (false, false, false, false, false, false);
     while steps < max_steps && start.elapsed() < timeout {
         let slice = if phase == Phase::Result { 10_000 } else { chunk_steps };
@@ -98,6 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         VirglPacket::TextureColorDraw(sequence) if vertex_color_completed && texture_color_sequence.is_none() => { println!("VGD1 texture-color validated: sequence {sequence}"); texture_color_sequence = Some(sequence); }
                         VirglPacket::UniformDraw(sequence) if texture_color_completed && uniform_sequence.is_none() => { println!("VGD1 uniform-buffer validated: sequence {sequence}"); uniform_sequence = Some(sequence); }
                         VirglPacket::DepthDraw(sequence) if uniform_completed && depth_sequence.is_none() => { println!("VGD1 depth validated: sequence {sequence}"); depth_sequence = Some(sequence); }
+                        VirglPacket::SolidBatch(sequence) if depth_completed && batch_sequence.is_none() => { println!("VGB1 solid-batch validated: sequence {sequence}"); batch_sequence = Some(sequence); }
                         _ => return Err("guest emitted an unexpected VirGL packet".into()),
                     }
                 }
@@ -164,6 +163,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         if phase == Phase::Packet && uniform_completed && let Some(sequence) = depth_sequence.take() {
             complete(&mut vm, sequence, is_depth_readback, "VGD1 depth")?;
             println!("WBGF depth-tested triangle BGRA readback validated");
+            depth_completed = true;
+        }
+        if phase == Phase::Packet && depth_completed && let Some(sequence) = batch_sequence.take() {
+            complete(&mut vm, sequence, is_solid_batch_readback, "VGB1 solid batch")?;
+            println!("WBGF ordered solid-batch BGRA readback validated");
             phase = Phase::Result;
         }
         if phase == Phase::Result && uart.contains(PASS) {

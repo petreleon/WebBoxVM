@@ -51,6 +51,13 @@ impl VirtioGpu {
                 viewport,
                 scissor,
             ),
+            Pending3dEffect::VirglBatch {
+                resource_id,
+                rect,
+                clear_bgra,
+                works,
+                ..
+            } => self.apply_virgl_batch(resource_id, rect, clear_bgra, works),
         }
     }
 }
@@ -63,6 +70,11 @@ fn effect_context(effect: &Pending3dEffect) -> (u32, u32) {
             ..
         }
         | Pending3dEffect::VirglDraw {
+            context_id,
+            generation,
+            ..
+        }
+        | Pending3dEffect::VirglBatch {
             context_id,
             generation,
             ..

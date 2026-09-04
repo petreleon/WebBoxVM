@@ -4,11 +4,11 @@ import {
   drainUart,
   shouldFlushUart,
   shouldPollUart,
-} from "./pump.js?v=20260904-virgl-depth-r1";
+} from "./pump.js?v=20260904-virgl-solid-batch-r1";
 import {
   UART_POLL_INTERVAL_MS,
   state,
-} from "./state.js?v=20260904-virgl-depth-r1";
+} from "./state.js?v=20260904-virgl-solid-batch-r1";
 
 test("uart flushing batches small bursts for terminal throughput", () => {
   assert.equal(shouldFlushUart(16, 40, 0), false);

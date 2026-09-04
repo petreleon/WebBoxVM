@@ -1,8 +1,20 @@
-use super::{DrawMaterial, raster};
+mod batch;
+
+use super::{DrawMaterial, DrawWork, raster};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
 
 impl VirtioGpu {
+    pub(in crate::devices::virtio_gpu) fn apply_virgl_batch(
+        &mut self,
+        resource_id: u32,
+        rect: Rect,
+        clear: [u8; 4],
+        works: Vec<DrawWork>,
+    ) -> bool {
+        batch::apply(self, resource_id, rect, clear, works)
+    }
+
     pub(in crate::devices::virtio_gpu) fn apply_virgl_draw(
         &mut self,
         resource_id: u32,

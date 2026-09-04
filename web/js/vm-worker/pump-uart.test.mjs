@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { drainUart } from "./pump.js?v=20260904-virgl-depth-r1";
-import { state } from "./state.js?v=20260904-virgl-depth-r1";
+import { drainUart } from "./pump.js?v=20260904-virgl-solid-batch-r1";
+import { state } from "./state.js?v=20260904-virgl-solid-batch-r1";
 
 const previousPostMessage = globalThis.postMessage;
 

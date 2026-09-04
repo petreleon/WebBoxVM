@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BootPhaseTimer } from "./boot-timing.js?v=20260904-virgl-depth-r1";
+import { BootPhaseTimer } from "./boot-timing.js?v=20260904-virgl-solid-batch-r1";
 
 test("boot phase timer records adjacent phases and overall time", () => {
   const samples = [100, 105, 117.5, 125];
