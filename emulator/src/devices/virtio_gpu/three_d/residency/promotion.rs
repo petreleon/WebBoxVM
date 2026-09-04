@@ -11,7 +11,8 @@ impl VirtioGpu {
     ) -> bool {
         let supported = match effect {
             Pending3dEffect::VirglClear { .. } => version(packet, b"VGC1") == Some(2),
-            Pending3dEffect::VirglBatch { .. } => matches!(version(packet, b"VGB1"), Some(6 | 7)),
+            Pending3dEffect::VirglBatch { .. } => matches!(version(packet, b"VGB1"), Some(6 | 7))
+                || matches!(version(packet, b"VGM1"), Some(2 | 3)),
             _ => false,
         };
         supported && self.resident_effect_valid(effect)

@@ -21,7 +21,9 @@ impl VirtioGpu {
         let packet = super::draw::batch_packet(
             sequence, rect.width, rect.height, clear, &works, resident, resident_predecessor,
         )
-            .or_else(|| super::draw::material_batch_packet(sequence, rect.width, rect.height, clear, &works, false))
+            .or_else(|| super::draw::material_batch_packet(
+                sequence, rect.width, rect.height, clear, &works, false, resident, resident_predecessor,
+            ))
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
         self.queue_virgl_packet(
             header,
@@ -57,7 +59,9 @@ impl VirtioGpu {
         }
         let sequence = self.virgl_sequence()?;
         let packet = super::draw::depth_batch_packet(sequence, rect.width, rect.height, clear, &works)
-            .or_else(|| super::draw::material_batch_packet(sequence, rect.width, rect.height, clear, &works, true))
+            .or_else(|| super::draw::material_batch_packet(
+                sequence, rect.width, rect.height, clear, &works, true, false, None,
+            ))
             .ok_or(RESP_ERR_INVALID_PARAMETER)?;
         self.queue_virgl_packet(
             header,

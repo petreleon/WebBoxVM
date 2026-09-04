@@ -2,16 +2,20 @@ export function virglMaterialBatchPacket({
   canvasHeight = 768,
   canvasWidth = 1024,
   clearColor = [0, 0, 0, 1],
-  depth = true,
+  version = 1,
+  depth = version === 1,
   draws = defaultDraws(canvasWidth, canvasHeight),
+  residentPreviousProducer = version === 3 ? 90 : undefined,
   sequence = 91,
 } = {}) {
   const body = draws.reduce((total, draw) => total + 52 + materialBytes(draw) + draw.vertices.length * 4, 0);
-  const packet = new Uint8Array(48 + body); const view = new DataView(packet.buffer);
+  const headerBytes = version === 3 ? 52 : 48;
+  const packet = new Uint8Array(headerBytes + body); const view = new DataView(packet.buffer);
   packet.set([0x56, 0x47, 0x4d, 0x31]);
-  [1, sequence, canvasWidth, canvasHeight, draws.length, depth ? 1 : 0].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
+  [version, sequence, canvasWidth, canvasHeight, draws.length, version === 1 ? depth ? 1 : 0 : 2].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
   floats(view, 28, clearColor); view.setFloat32(44, depth ? 1 : 0, true);
-  let offset = 48;
+  if (version === 3) view.setUint32(48, residentPreviousProducer, true);
+  let offset = headerBytes;
   for (const draw of draws) offset = writeDraw(view, packet, offset, draw, depth);
   return packet;
 }

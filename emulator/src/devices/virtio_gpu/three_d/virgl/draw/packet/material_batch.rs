@@ -10,22 +10,32 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     clear: [f32; 4],
     works: &[DrawWork],
     depth: bool,
+    resident: bool,
+    predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
     if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS {
         return None;
     }
+    let version = match (depth, resident, predecessor) {
+        (_, false, _) | (true, true, _) => 1,
+        (false, true, None) => 2,
+        (false, true, Some(_)) => 3,
+    };
     let body = works.iter().try_fold(0usize, |total, work| {
         if !valid(work, depth) { return None; }
         let bytes = material_bytes(&work.material)?.checked_add(work.vertices.len())?;
         total.checked_add(DRAW_BYTES + bytes)
     })?;
-    let mut packet = Vec::with_capacity(HEADER_BYTES.checked_add(body)?);
+    let header_bytes = HEADER_BYTES.checked_add(usize::from(version == 3) * 4)?;
+    let mut packet = Vec::with_capacity(header_bytes.checked_add(body)?);
     packet.extend_from_slice(b"VGM1");
-    for value in [1, sequence, width, height, works.len() as u32, depth as u32] {
+    let flags = if depth { 1 } else if resident { 2 } else { 0 };
+    for value in [version, sequence, width, height, works.len() as u32, flags] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     floats(&mut packet, clear);
     packet.extend_from_slice(&(if depth { 1.0f32 } else { 0.0 }).to_le_bytes());
+    if version == 3 { packet.extend_from_slice(&predecessor?.to_le_bytes()); }
     for work in works {
         encode_work(&mut packet, work)?;
     }

@@ -12,25 +12,30 @@ const TEXTURE_CONSTANT_FRAG: &str = "FRAG\nDCL CONST[0][0]\nDCL IN[0], GENERIC[0
 const CONSTANT_FRAG: &str = "FRAG\nDCL CONST[0][0]\nDCL OUT[0], COLOR\nMOV OUT[0], CONST[0][0]\nEND\n";
 
 #[test]
-fn standard_mixed_material_draws_share_one_ordered_batch() {
+fn mixed_material_draws_keep_a_full_target_resident() {
     let (mut gpu, mut mem) = prepared();
     add_texture_buffer(&mut gpu, &mut mem);
     assert_response(&mut gpu, &mut mem, &submit(&solid_state()), RESP_OK_NODATA);
     upload_vertices(&mut gpu); upload_texture_vertices(&mut gpu);
     gpu.resources.get_mut(&TEXTURE).unwrap().pixels.chunks_exact_mut(4).for_each(|pixel| pixel.copy_from_slice(&[128, 128, 128, 255]));
     let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw()); command.extend(texture_state()); command.extend(draw());
-    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let deferred = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("mixed batch defers");
+    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7000, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head: 1 }));
     let packet = gpu.take_3d_update();
-    assert_eq!(&packet[..4], b"VGM1"); assert_eq!([4, 12, 16, 20, 24, 44].map(|at| read_u32(&packet, at)), [Some(1), Some(1024), Some(768), Some(2), Some(0), Some(0)]);
+    assert_eq!(&packet[..4], b"VGM1"); assert_eq!([4, 12, 16, 20, 24, 44].map(|at| read_u32(&packet, at)), [Some(2), Some(1024), Some(768), Some(2), Some(2), Some(0)]);
     assert_eq!([48, 52, 56, 164, 168, 172].map(|at| read_u32(&packet, at)), [Some(1), Some(0), Some(3), Some(5), Some(0), Some(3)]);
     assert_eq!(packet.len(), 364);
-    gpu.resources.get_mut(&TEXTURE_BUFFER).unwrap().pixels.fill(0); gpu.resources.get_mut(&TEXTURE).unwrap().pixels.fill(0);
-    let effect = gpu.pending_3d[0].effect.clone().expect("mixed material batch effect");
-    assert!(!gpu.apply_3d_readback(effect.clone(), 1, &[]));
+    assert!(gpu.complete_3d_resident(&mut mem, deferred.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, deferred.sequence);
     assert_eq!(&gpu.resources[&TARGET].pixels[..4], &[0, 0, 0, 0]);
-    assert!(gpu.apply_3d_effect(effect));
-    let center = ((384 * 1024 + 512) * 4) as usize;
-    assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[32, 32, 64, 255]);
+    assert_eq!(mem.read(RAM_BASE + 0x7000, 4), Some(RESP_OK_NODATA as u64));
+    let mut redraw = clear([0.4, 0.5, 0.6, 1.0]); redraw.extend(draw()); redraw.extend(draw());
+    let replacement = gpu.execute_queued_command(&mut mem, &submit(&redraw)).deferred.expect("material replacement defers");
+    assert!(gpu.attach_3d_completion(replacement.sequence, PendingCompletion { header: replacement.header, output: vec![WritableRegion { addr: RAM_BASE + 0x7200, len: 24 }], used: RAM_BASE + 0x7300, queue_size: 8, head: 2 }));
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 8, 48].map(|at| read_u32(&packet, at)), [Some(3), Some(replacement.sequence), Some(deferred.sequence)]);
+    assert!(gpu.complete_3d_resident(&mut mem, replacement.sequence));
+    assert_eq!(gpu.resident_resources[&TARGET].producer_sequence, replacement.sequence);
 }
 
 #[test]

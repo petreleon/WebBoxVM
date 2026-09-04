@@ -49,7 +49,7 @@ export class ExperimentalWebGpu3dRenderer {
     this.#textureUsage = options.textureUsage ?? globalThis.GPUTextureUsage ?? { RENDER_ATTACHMENT: 0x10 };
     this.#virglOutputs = new VirglResidentOutputTargets();
     [this.#virglDraw, this.#virglSolidBatch, this.#virglDepthBatch, this.#virglMaterialBatch, this.#virglDepth, this.#virglDepthTexture, this.#virglDepthTextureColor, this.#virglTexture, this.#virglTextureMultiply, this.#virglVertexColor, this.#virglTextureColor] = [
-      new VirglDrawRenderer(session, options), new VirglSolidBatchRenderer(session, options, this.#virglOutputs), new VirglDepthBatchRenderer(session, options), new VirglMaterialBatchRenderer(session, options), new VirglDepthRenderer(session, options), new VirglDepthTextureRenderer(session, options), new VirglDepthTextureColorRenderer(session, options),
+      new VirglDrawRenderer(session, options), new VirglSolidBatchRenderer(session, options, this.#virglOutputs), new VirglDepthBatchRenderer(session, options), new VirglMaterialBatchRenderer(session, options, this.#virglOutputs), new VirglDepthRenderer(session, options), new VirglDepthTextureRenderer(session, options), new VirglDepthTextureColorRenderer(session, options),
       new VirglTextureRenderer(session, options), new VirglTextureMultiplyRenderer(session, options), new VirglVertexColorRenderer(session, options), new VirglTextureColorRenderer(session, options),
     ];
   }

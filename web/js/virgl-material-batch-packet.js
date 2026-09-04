@@ -1,5 +1,6 @@
 const MAGIC = [0x56, 0x47, 0x4d, 0x31];
 const HEADER_BYTES = 48;
+const REPLACEMENT_HEADER_BYTES = 52;
 const DRAW_BYTES = 52;
 const MAX_DIMENSION = 8192;
 const MAX_DRAWS = 16;
@@ -20,12 +21,19 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  if (version !== 1 || !sequence || drawCount < 2 || drawCount > MAX_DRAWS || flags > 1) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
+  if (![1, 2, 3].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
+    || (version === 1 ? flags > 1 : flags !== 2) || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
+    throw new Error("VirGL material-batch packet has invalid VGM1 framing");
+  }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) throw new Error(`VirGL material-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
-  const depth = flags === 1;
+  const depth = version === 1 && flags === 1;
   const clearColor = colors(view, 28, "clear");
   if (view.getFloat32(44, true) !== (depth ? 1 : 0)) throw new Error("VirGL material-batch depth clear is invalid");
-  let offset = HEADER_BYTES;
+  const residentPreviousProducer = version === 3 ? view.getUint32(48, true) : undefined;
+  if (version === 3 && (!residentPreviousProducer || residentPreviousProducer === sequence)) {
+    throw new Error("VirGL material-batch replacement producer is invalid");
+  }
+  let offset = version === 3 ? REPLACEMENT_HEADER_BYTES : HEADER_BYTES;
   let totalVertices = 0;
   const draws = [];
   for (let index = 0; index < drawCount; index += 1) {
@@ -39,7 +47,7 @@ export function parseVirglMaterialBatchPacket(packet) {
     acceleration: depth ? "webgpu-virgl-capset1-depth-material-batch" : "webgpu-virgl-capset1-material-batch",
     canvasHeight, canvasWidth, capsetId: 1, clearColor, depth, depthClear: depth ? 1 : 0, draws,
     presentationLabel: depth ? "VirGL capset 1 mixed-material depth batch" : "VirGL capset 1 mixed-material draw batch",
-    protocol: "virgl-material-batch", sequence, version,
+    protocol: "virgl-material-batch", residentCandidate: version !== 1, residentPreviousProducer, sequence, version,
   };
 }
 
