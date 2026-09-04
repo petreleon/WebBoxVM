@@ -63,6 +63,16 @@ test("VirGL material-batch parser rejects a noncanonical depth state", () => {
   assert.throws(() => parseGpu3dPacket(packet), /depth state/);
 });
 
+test("VirGL opaque material batches use replace pipelines", async () => {
+  const frame = parseGpu3dPacket(virglMaterialBatchPacket({ sequence: 99, version: 4 }));
+  assert.equal(frame.blend, "replace"); assert.equal(frame.residentCandidate, false);
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(virglMaterialBatchPacket({ sequence: 99, version: 4 }))).success, true);
+  assert.equal(device.pipelines.every((pipeline) => !("blend" in pipeline.descriptor.fragment.targets[0])), true);
+});
+
 test("non-depth singleton material batches retain and rekey one resident output", async () => {
   const fresh = parseGpu3dPacket(virglMaterialBatchPacket({ drawCount: 1, sequence: 94, version: 2 }));
   assert.equal(fresh.depth, false); assert.equal(fresh.residentCandidate, true);

@@ -77,3 +77,13 @@ test("VirGL solid batches reuse byte-identical vertex uploads", async () => {
   await display.present3d(virglSolidBatchPacket({ sequence: 83 }));
   assert.equal(device.bufferWrites.length, 1);
 });
+
+test("VirGL opaque solid batches use a replace pipeline", async () => {
+  const frame = parseGpu3dPacket(virglSolidBatchPacket({ drawCount: 1, sequence: 84, version: 8 }));
+  assert.equal(frame.blend, "replace"); assert.equal(frame.residentCandidate, false);
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(virglSolidBatchPacket({ drawCount: 1, sequence: 84, version: 8 }))).success, true);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ format: "bgra8unorm" }]);
+});

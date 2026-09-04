@@ -54,7 +54,7 @@ export class VirglMaterialBatchRenderer {
     for (const draw of missing) {
       const module = device.createShaderModule({ code: materialShader(draw.material), label: `VirGL ${draw.material} batch shader` });
       const descriptor = {
-        fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
+        fragment: { entryPoint: "fragment_main", module, targets: [{ ...(frame.blend === "replace" ? {} : { blend: SOURCE_OVER }), format: backend.format }] },
         label: `VirGL ${draw.material} batch pipeline`, layout: "auto", primitive: { topology: "triangle-list" },
         vertex: { buffers: [materialVertexLayout(draw.material)], entryPoint: "vertex_main", module },
       };
@@ -117,7 +117,10 @@ export class VirglMaterialBatchRenderer {
   }
 }
 
-function key(frame, draw) { return frame.depth ? `${draw.material}:${draw.depthCompare}:${draw.depthWriteEnabled}` : draw.material; }
+function key(frame, draw) {
+  const material = frame.depth ? `${draw.material}:${draw.depthCompare}:${draw.depthWriteEnabled}` : draw.material;
+  return `${frame.blend ?? "source-over"}:${material}`;
+}
 
 function pack(draws) {
   const sources = draws.map((draw) => draw.material === "solid" ? solidVertices(draw) : rawBytes(draw.vertices));

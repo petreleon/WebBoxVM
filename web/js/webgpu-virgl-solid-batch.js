@@ -21,7 +21,7 @@ const SOURCE_OVER = {
 };
 
 export class VirglSolidBatchRenderer {
-  #bufferUsage; #generation = 0; #outputs; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0; #vertices = new VirglVertexUploadCache();
+  #bufferUsage; #generation = 0; #outputs; #pipelines = new Map(); #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0; #vertices = new VirglVertexUploadCache();
 
   constructor(session, options = {}, outputs) {
     this.#session = session;
@@ -34,7 +34,7 @@ export class VirglSolidBatchRenderer {
     if (typeof device.queue.onSubmittedWorkDone !== "function") throw new Error("WebGPU queue completion tracking is unavailable");
     if (!isCurrent()) return false;
     try {
-      if (!await this.#ensurePipeline(backend) || !isCurrent()) return false;
+      if (!await this.#ensurePipeline(backend, frame) || !isCurrent()) return false;
       const revision = this.#revision; const output = this.#outputs.acquire(backend, frame);
       const readback = await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame, output));
       if (revision !== this.#revision || !isCurrent()) { this.#outputs.abandon(output); return false; }
@@ -67,22 +67,24 @@ export class VirglSolidBatchRenderer {
     this.#revision += 1;
     this.#vertexBuffer?.destroy?.();
     this.#vertices.invalidate();
-    this.#pipeline = undefined; this.#vertexBuffer = undefined; this.#generation = 0; this.#vertexCapacity = 0;
+    this.#pipelines.clear(); this.#vertexBuffer = undefined; this.#generation = 0; this.#vertexCapacity = 0;
   }
 
-  async #ensurePipeline(backend) {
-    if (this.#generation === backend.deviceGeneration && this.#pipeline) return true;
-    this.#invalidatePipeline(); this.#generation = backend.deviceGeneration;
+  async #ensurePipeline(backend, frame) {
+    if (this.#generation !== backend.deviceGeneration) { this.#invalidatePipeline(); this.#generation = backend.deviceGeneration; }
+    const blend = frame.blend ?? "source-over";
+    if (this.#pipelines.has(blend)) return true;
     const revision = this.#revision;
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");
     const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 solid-batch shader" });
-    this.#pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
-      fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
+    const pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
+      fragment: { entryPoint: "fragment_main", module, targets: [{ ...(blend === "replace" ? {} : { blend: SOURCE_OVER }), format: backend.format }] },
       label: "VirGL capset 1 solid-batch pipeline", layout: "auto", primitive: { topology: "triangle-list" },
       vertex: { buffers: [{ arrayStride: 32, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x4", offset: 16, shaderLocation: 1 }] }], entryPoint: "vertex_main", module },
     }));
-    return revision === this.#revision;
+    if (revision !== this.#revision) return false;
+    this.#pipelines.set(blend, pipeline); return true;
   }
 
   #issueDraw(backend, frame, output) {
@@ -98,7 +100,9 @@ export class VirglSolidBatchRenderer {
       colorAttachments: [{ clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] }, loadOp: "clear", storeOp: "store", view: target.createView() }],
       label: "VirGL capset 1 solid-batch pass",
     });
-    pass.setPipeline(this.#pipeline); pass.setVertexBuffer(0, this.#vertexBuffer);
+    const pipeline = this.#pipelines.get(frame.blend ?? "source-over");
+    if (!pipeline) throw new Error("VirGL solid-batch pipeline is unavailable");
+    pass.setPipeline(pipeline); pass.setVertexBuffer(0, this.#vertexBuffer);
     let first = 0;
     for (const draw of frame.draws) {
       pass.setViewport(...webGpuViewport(draw, frame.canvasHeight));

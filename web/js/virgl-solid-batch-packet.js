@@ -24,22 +24,22 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  if (![1, 2, 3, 4, 5, 6, 7].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
-    || (![6, 7].includes(version) && drawCount < 2)
-    || ([6, 7].includes(version) ? flags !== 1 : version !== 3 && flags !== 0)) {
+  const residentCandidate = [6, 7].includes(version); const replace = version === 8;
+  if (![1, 2, 3, 4, 5, 6, 7, 8].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+    || (!residentCandidate && !replace && drawCount < 2)
+    || (residentCandidate ? flags !== 1 : version !== 3 && flags !== 0)) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) {
     throw new Error(`VirGL solid-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
   }
-  const residentCandidate = [6, 7].includes(version);
   const residentPreviousProducer = version === 7 ? view.getUint32(48, true) : undefined;
   if (version === 7 && (!residentPreviousProducer || residentPreviousProducer === sequence)) {
     throw new Error("VirGL solid-batch replacement producer is invalid");
   }
   const clearColor = colors(view, 28, "clear");
   const depthClear = view.getFloat32(44, true);
-  const depth = ![1, 6, 7].includes(version);
+  const depth = ![1, 6, 7, 8].includes(version);
   if (depthClear !== (depth ? 1 : 0)) throw new Error("VirGL solid-batch depth clear is invalid");
   const depthCompare = version === 2 ? "less" : version === 3 ? DEPTH_COMPARE[flags] : undefined;
   if (depth && version < 4 && !depthCompare) throw new Error("VirGL solid-batch depth comparison is invalid");
@@ -78,6 +78,7 @@ export function parseVirglSolidBatchPacket(packet) {
   if (offset !== packet.byteLength) throw new Error("VirGL solid-batch packet has trailing bytes");
   return {
     acceleration: depth ? "webgpu-virgl-capset1-depth-batch" : "webgpu-virgl-capset1-solid-batch",
+    blend: replace ? "replace" : "source-over",
     canvasHeight, canvasWidth, capsetId: 1, clearColor, depthClear, depthCompare, depthWriteEnabled: true, draws,
     presentationLabel: depth ? "VirGL capset 1 depth-tested draw batch" : "VirGL capset 1 solid draw batch",
     protocol: depth ? "virgl-depth-batch" : "virgl-solid-batch", residentCandidate, residentPreviousProducer, sequence, version,

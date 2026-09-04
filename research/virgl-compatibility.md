@@ -10,7 +10,7 @@ UBO slot, and limits exercised by this implementation.
 
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
-clear, one exact standard source-over blend state, deliberately bounded single
+clear, standard source-over plus non-depth full-mask opaque blend states, deliberately bounded single
 solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
@@ -57,10 +57,10 @@ The vertex-color constant form resolves normalized inline or resource-backed val
 Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
 `SET_CONSTANT_BUFFER` accepts only fragment stage 1, slot zero, and exactly four finite normalized inline f32 values (or an empty binding to clear it); command 27 accepts vertex stage 0 or fragment stage 1 at slot zero with one attached R8 constant buffer, aligned offset, exact 16-byte range, and a zero range to clear.
 
-Type-1 `VIRGL_OBJECT_BLEND` accepts one exact 11-word `pipe_blend_state`:
-blend enabled; an RGBA color mask; RGB `ADD, SRC_ALPHA, INV_SRC_ALPHA`; and
-alpha `ADD, ONE, INV_SRC_ALPHA`. A draw requires that object to be bound.
-Binding zero unbinds it; every other equation, factor, mask, and independent
+Type-1 `VIRGL_OBJECT_BLEND` accepts either an exact source-over 11-word
+`pipe_blend_state` (RGBA `ADD, SRC_ALPHA, INV_SRC_ALPHA` and alpha `ADD, ONE,
+INV_SRC_ALPHA`) or blend-disabled full-RGBA replace word `0x78000000`, limited
+to uniform non-depth batches. Binding zero unbinds; every other equation, factor, mask, and independent
 blend configuration is rejected. Type-0 `VIRGL_OBJECT_DSA` accepts only depth-test bit 0, write bit 1, and `PIPE_FUNC_NEVER` through `PIPE_FUNC_ALWAYS` in bits 2–4 (`1 | write << 1 | func << 2`), with all remaining state zero; singleton solid/vertex-color/one-texture/texture-color draws preserve it exactly.
 
 Type-2 `VIRGL_OBJECT_RASTERIZER` accepts only the normal `DEPTH_CLIP`,
@@ -97,19 +97,20 @@ Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. One clear may precede one through 16 draws against the current full-scanout
-framebuffer. An eligible non-depth singleton uses resident `VGB1` v6/v7 for a
-solid or resident `VGM1` v2/v3 for any other supported material; an ineligible
-singleton uses `VGD1`. A solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
+framebuffer. An eligible non-depth source-over singleton uses resident `VGB1` v6/v7 for a
+solid or resident `VGM1` v2/v3 for any other supported material; an ineligible source-over
+singleton uses `VGD1`. Full-mask opaque non-depth work uses readback `VGB1` v8 for solid or
+`VGM1` v4 for other materials. A source-over solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
 legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with
 per-record comparisons, or v5 with per-record canonical DSA state. Other
-supported 2–16 sequences use `VGM1`. Clear/copy mixing, repeat clear, and mixed depth attachments fail transactionally.
+supported source-over 2–16 sequences use `VGM1`; blend-mixed batches fail transactionally.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
 Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.
-Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use the required source-over blend object.
+Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use source-over unless the uniform non-depth full-mask opaque mode is selected.
 
 After validation an ineligible singleton uses the private `VGD1` envelope; `VGD1`
 is not a guest ABI or VirGL command. Each schema validates three through 3,063 normalized list vertices. Schema 2 is 144 bytes: its original

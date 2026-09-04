@@ -1,4 +1,4 @@
-use super::super::{DrawMaterial, DrawWork, TextureSnapshot, MAX_VIRGL_BATCH_DRAWS};
+use super::super::{BlendMode, DrawMaterial, DrawWork, TextureSnapshot, MAX_VIRGL_BATCH_DRAWS};
 
 const HEADER_BYTES: usize = 48;
 const DRAW_BYTES: usize = 52;
@@ -13,13 +13,20 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     resident: bool,
     predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
-    if works.is_empty() || (works.len() < 2 && (!resident || depth)) || works.len() > MAX_VIRGL_BATCH_DRAWS {
+    let blend = works.first()?.blend;
+    let singleton = !depth && (resident || blend == BlendMode::Replace);
+    if works.iter().any(|work| work.blend != blend)
+        || (works.len() < 2 && !singleton)
+        || works.len() > MAX_VIRGL_BATCH_DRAWS
+    {
         return None;
     }
-    let version = match (depth, resident, predecessor) {
-        (_, false, _) | (true, true, _) => 1,
-        (false, true, None) => 2,
-        (false, true, Some(_)) => 3,
+    let version = match (depth, resident, predecessor, blend) {
+        (_, false, _, BlendMode::SourceOver) | (true, true, _, BlendMode::SourceOver) => 1,
+        (false, true, None, BlendMode::SourceOver) => 2,
+        (false, true, Some(_), BlendMode::SourceOver) => 3,
+        (false, false, _, BlendMode::Replace) => 4,
+        _ => return None,
     };
     let body = works.iter().try_fold(0usize, |total, work| {
         if !valid(work, depth) { return None; }

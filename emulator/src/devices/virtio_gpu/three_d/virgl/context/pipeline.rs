@@ -1,11 +1,17 @@
 use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use super::DepthState;
 use crate::devices::virtio_gpu::protocol::Rect;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug)]
 pub(super) struct Rasterizer {
     pub scissor: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::devices::virtio_gpu) enum BlendMode {
+    SourceOver,
+    Replace,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -123,7 +129,7 @@ impl Viewport {
 
 #[derive(Clone, Debug)]
 pub(super) struct PipelineState {
-    pub(super) blend_states: HashSet<u32>,
+    pub(super) blend_states: HashMap<u32, BlendMode>,
     pub(super) bound_blend_state: Option<u32>,
     pub(super) depth_states: HashMap<u32, DepthState>,
     pub(super) bound_depth_state: Option<u32>,
@@ -140,7 +146,7 @@ pub(super) struct PipelineState {
 impl PipelineState {
     pub(super) fn new() -> Self {
         Self {
-            blend_states: HashSet::new(),
+            blend_states: HashMap::new(),
             bound_blend_state: None,
             depth_states: HashMap::new(),
             bound_depth_state: None,

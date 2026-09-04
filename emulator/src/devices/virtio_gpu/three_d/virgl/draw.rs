@@ -13,7 +13,7 @@ pub(in crate::devices::virtio_gpu::three_d) use packet::{batch_packet, depth_bat
 pub(super) use primitive::Primitive;
 use vertices::resolve;
 
-use super::{DepthState, DrawState, SamplerConfig, VirglContext};
+use super::{BlendMode, DepthState, DrawState, SamplerConfig, VirglContext};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 
@@ -50,6 +50,7 @@ pub(in crate::devices::virtio_gpu) enum DrawMaterial {
 
 #[derive(Clone, Debug)]
 pub(in crate::devices::virtio_gpu) struct DrawWork {
+    pub(super) blend: BlendMode,
     pub(super) material: DrawMaterial,
     pub(super) vertices: Vec<u8>,
     pub(super) vertex_count: u32,
@@ -79,6 +80,9 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        if state.blend == BlendMode::Replace && state.depth.is_some() {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         let (vertex_bytes, material, transform) = material(self, context, resource_id, state)?;
         let depth_resource = depth::validate(
             self, context, resource_id, depth_resource, state.depth, &material,
@@ -111,6 +115,7 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         Ok(DrawWork {
+            blend: state.blend,
             material,
             vertices,
             vertex_count,

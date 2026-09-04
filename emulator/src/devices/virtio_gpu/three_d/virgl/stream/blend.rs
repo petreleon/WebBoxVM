@@ -4,8 +4,8 @@ use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
 
 pub(super) fn apply(context: &mut VirglContext, command: Command) -> Result<(), u32> {
     match command {
-        Command::Create { handle } => context
-            .create_blend(handle)
+        Command::Create { handle, blend } => context
+            .create_blend(handle, blend)
             .then_some(())
             .ok_or(RESP_ERR_INVALID_PARAMETER),
         Command::Bind { handle } => context

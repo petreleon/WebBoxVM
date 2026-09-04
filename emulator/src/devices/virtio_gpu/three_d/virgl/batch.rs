@@ -53,7 +53,8 @@ impl VirtioGpu {
         works: Vec<DrawWork>,
     ) -> Result<DeferredSubmit, u32> {
         let sequence = self.virgl_sequence()?;
-        let resident = self.resident_target_eligible(resource_id, rect);
+        let resident = works.iter().all(|work| work.blend == super::BlendMode::SourceOver)
+            && self.resident_target_eligible(resource_id, rect);
         let resident_epoch = self.resident_epoch;
         let resident_predecessor = resident.then(|| self.resident_resources.get(&resource_id)
             .map(|resource| resource.producer_sequence)).flatten();

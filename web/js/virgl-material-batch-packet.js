@@ -21,9 +21,11 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  if (![1, 2, 3].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+  const residentCandidate = [2, 3].includes(version); const replace = version === 4;
+  if (![1, 2, 3, 4].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
     || (version === 1 && drawCount < 2)
-    || (version === 1 ? flags > 1 : flags !== 2) || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
+    || (version === 1 ? flags > 1 : residentCandidate ? flags !== 2 : flags !== 0)
+    || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
     throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   }
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) throw new Error(`VirGL material-batch dimensions must be between 1 and ${MAX_DIMENSION}`);
@@ -46,9 +48,10 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (offset !== packet.byteLength) throw new Error("VirGL material-batch packet has trailing bytes");
   return {
     acceleration: depth ? "webgpu-virgl-capset1-depth-material-batch" : "webgpu-virgl-capset1-material-batch",
+    blend: replace ? "replace" : "source-over",
     canvasHeight, canvasWidth, capsetId: 1, clearColor, depth, depthClear: depth ? 1 : 0, draws,
     presentationLabel: depth ? "VirGL capset 1 mixed-material depth batch" : "VirGL capset 1 mixed-material draw batch",
-    protocol: "virgl-material-batch", residentCandidate: version !== 1, residentPreviousProducer, sequence, version,
+    protocol: "virgl-material-batch", residentCandidate, residentPreviousProducer, sequence, version,
   };
 }
 

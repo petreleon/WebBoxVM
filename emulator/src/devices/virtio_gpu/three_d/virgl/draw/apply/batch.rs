@@ -1,4 +1,4 @@
-use super::super::{DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS, raster};
+use super::super::{BlendMode, DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS, raster};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::resource::GpuResource;
@@ -41,6 +41,7 @@ pub(super) fn apply_depth(
 
 fn valid(works: &[DrawWork]) -> bool {
     (1..=MAX_VIRGL_BATCH_DRAWS).contains(&works.len())
+        && works.iter().all(|work| work.blend == BlendMode::SourceOver)
 }
 
 fn draw(resource: &mut GpuResource, rect: Rect, work: &DrawWork) -> bool {

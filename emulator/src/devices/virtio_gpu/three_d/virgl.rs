@@ -18,8 +18,8 @@ use crate::devices::virtio_gpu::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, V
 
 use context::DrawState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use context::{
-    FragmentConstants, SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter,
-    SamplerState, UniformBinding,
+    BlendMode, FragmentConstants, SampledResource, SamplerAddressMode, SamplerConfig,
+    SamplerFilter, SamplerState, UniformBinding,
 };
 pub(in crate::devices::virtio_gpu) use context::{
     DepthCompare, DepthState, IndexBuffer, VertexBuffer, VertexElement, VirglContext,
@@ -59,7 +59,7 @@ impl VirtioGpu {
         clear: [f32; 4],
         work: DrawWork,
     ) -> Result<DeferredSubmit, u32> {
-        if work.depth_resource.is_none() && work.depth_state.is_none()
+        if work.blend == BlendMode::SourceOver && work.depth_resource.is_none() && work.depth_state.is_none()
             && self.resident_target_eligible(resource_id, rect)
         {
             return self.queue_virgl_resident_singleton(header, generation, resource_id, rect, clear, work);

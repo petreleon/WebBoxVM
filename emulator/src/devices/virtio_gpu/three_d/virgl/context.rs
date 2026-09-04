@@ -23,7 +23,8 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) use constant::{
 pub(super) use draw::DrawState;
 use pipeline::PipelineState;
 pub(in crate::devices::virtio_gpu::three_d::virgl) use pipeline::{
-    SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState, Viewport,
+    BlendMode, SampledResource, SamplerAddressMode, SamplerConfig, SamplerFilter, SamplerState,
+    Viewport,
 };
 pub(in crate::devices::virtio_gpu) use depth_compare::{DepthCompare, DepthState};
 use shader::PendingShader;

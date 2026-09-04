@@ -1,4 +1,4 @@
-use super::super::{DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS};
+use super::super::{BlendMode, DrawMaterial, DrawWork, MAX_VIRGL_BATCH_DRAWS};
 use crate::devices::virtio_gpu::three_d::virgl::{DepthCompare, DepthState};
 
 const HEADER_BYTES: usize = 48;
@@ -38,18 +38,23 @@ fn encode(
     resident: bool,
     resident_predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
-    if works.is_empty() || (!resident && works.len() < 2) || works.len() > MAX_VIRGL_BATCH_DRAWS {
+    let blend = works.first()?.blend;
+    if works.iter().any(|work| work.blend != blend)
+        || (!resident && blend != BlendMode::Replace && works.len() < 2)
+        || works.len() > MAX_VIRGL_BATCH_DRAWS
+    {
         return None;
     }
     let read_only = works.iter().any(|work| work.depth_state.is_some_and(|state| !state.write));
-    let version = match (depth, mixed, read_only, resident, resident_predecessor) {
-        (None, false, false, true, None) => 6,
-        (None, false, false, true, Some(_)) => 7,
-        (None, false, false, false, _) => 1,
-        (Some(DepthState { compare: DepthCompare::Less, write: true }), false, false, false, _) => 2,
-        (Some(DepthState { write: true, .. }), false, false, false, _) => 3,
-        (Some(_), true, false, false, _) => 4,
-        (Some(_), _, true, false, _) => 5,
+    let version = match (depth, mixed, read_only, resident, resident_predecessor, blend) {
+        (None, false, false, true, None, BlendMode::SourceOver) => 6,
+        (None, false, false, true, Some(_), BlendMode::SourceOver) => 7,
+        (None, false, false, false, _, BlendMode::SourceOver) => 1,
+        (None, false, false, false, _, BlendMode::Replace) => 8,
+        (Some(DepthState { compare: DepthCompare::Less, write: true }), false, false, false, _, BlendMode::SourceOver) => 2,
+        (Some(DepthState { write: true, .. }), false, false, false, _, BlendMode::SourceOver) => 3,
+        (Some(_), true, false, false, _, BlendMode::SourceOver) => 4,
+        (Some(_), _, true, false, _, BlendMode::SourceOver) => 5,
         _ => return None,
     };
     let per_draw_depth = matches!(version, 4 | 5);

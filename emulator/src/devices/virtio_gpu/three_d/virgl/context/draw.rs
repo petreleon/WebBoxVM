@@ -1,13 +1,14 @@
 use super::super::MAX_VIRGL_FRAGMENT_SAMPLERS;
 use super::{
-    FragmentConstants, IndexBuffer, MAX_VIRGL_VERTEX_BUFFERS, SampledResource, VertexBuffer,
-    VertexLayout, Viewport, VirglContext,
+    BlendMode, FragmentConstants, IndexBuffer, MAX_VIRGL_VERTEX_BUFFERS, SampledResource,
+    VertexBuffer, VertexLayout, Viewport, VirglContext,
 };
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::three_d::virgl::shader::ShaderProgram;
 
 #[derive(Clone, Copy)]
 pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
+    pub blend: BlendMode,
     pub vertex_buffers: [Option<VertexBuffer>; MAX_VIRGL_VERTEX_BUFFERS],
     pub vertex_layout: VertexLayout,
     pub index_buffer: Option<IndexBuffer>,
@@ -23,8 +24,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
 
 impl VirglContext {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn draw_state(&self) -> Option<DrawState> {
-        let blend = self.pipeline.bound_blend_state?;
-        self.pipeline.blend_states.contains(&blend).then_some(())?;
+        let blend = *self.pipeline.blend_states.get(&self.pipeline.bound_blend_state?)?;
         let rasterizer = self
             .pipeline
             .bound_rasterizer
@@ -46,6 +46,7 @@ impl VirglContext {
             None => None,
         };
         Some(DrawState {
+            blend,
             vertex_buffers,
             vertex_layout,
             index_buffer: self.index_buffer,
