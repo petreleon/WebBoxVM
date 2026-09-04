@@ -6,7 +6,7 @@ const FRAG: &str = "FRAG\nDCL OUT[0], COLOR\nDCL TEMP[0]\nDCL SVIEW[0], 2D, FLOA
 
 #[test]
 fn normalized_tgsi_shapes_reach_the_standard_textured_draw_path() {
-    let (mut gpu, mut mem) = prepared(); let mut state = surface_create(9, TARGET); state.extend(framebuffer(9));
+    let (mut gpu, mut mem) = prepared_nonresident(); let mut state = surface_create(9, TARGET); state.extend(framebuffer(9));
     let mut vertex = shader_create(11, 0, VERT); vertex[4] = 17; let mut fragment = shader_create(12, 1, FRAG); fragment[4] = 25;
     state.extend(vertex); state.extend(fragment); state.extend(shader_bind(11, 0)); state.extend(shader_bind(12, 1));
     state.extend(virgl_source_over_state(13)); state.extend(virgl_viewport_scissor_state(14)); state.extend(textured_vertex_state());

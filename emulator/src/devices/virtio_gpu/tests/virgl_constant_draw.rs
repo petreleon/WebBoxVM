@@ -7,7 +7,7 @@ const CONSTANT_FRAG: &str =
 
 #[test]
 fn inline_fragment_constants_render_through_the_solid_packet_route() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     configure(&mut gpu, &mut mem);
     assert_response(
         &mut gpu,
@@ -34,7 +34,7 @@ fn inline_fragment_constants_render_through_the_solid_packet_route() {
 
 #[test]
 fn invalid_inline_constant_updates_preserve_the_last_valid_binding() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     configure(&mut gpu, &mut mem);
     assert_response(
         &mut gpu,

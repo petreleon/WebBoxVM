@@ -8,8 +8,8 @@ letting `TRANSFER_FROM_HOST_3D` or a later command observe stale CPU pixels?
 ## Current boundary
 
 Normal `VGB1` and `VGM1` packets render to the transient canvas texture, map a
-full BGRA or RGBA readback, and replace the Rust resource shadow. The first
-resident `VGB1` form is version 6: it renders to a bounded offscreen texture,
+full BGRA or RGBA readback, and replace the Rust resource shadow. An eligible
+one-through-16-draw resident `VGB1` form is version 6: it renders to a bounded offscreen texture,
 copies that texture to the canvas, and acknowledges the producer without a
 pixel mapping. Version 7 names an existing producer and repaints that same
 texture for a later full redraw. A full `VGC1` clear uses version 2 and the
@@ -54,12 +54,13 @@ one exact readback; no second transfer or mutation may consume an older shadow.
 
 ## First safe subset
 
-The safe subset promotes a non-depth solid or mixed-material `VirglBatch`, or a
-standalone `VirglClear`, whose rectangle exactly covers its color resource and
-whose dimensions exceed 64 in at least one direction. The bounded sampler path
-accepts snapshots no larger than 64×64, so that target cannot re-enter an
-accepted batch as a sampled CPU texture. Depth batches remain CPU-synchronized
-because later depth tests need their depth state.
+The safe subset promotes a non-depth solid or mixed-material `VirglBatch`,
+including a singleton rewritten to its batch envelope, or a standalone
+`VirglClear`, whose rectangle exactly covers its color resource and whose
+dimensions exceed 64 in at least one direction. The bounded sampler path accepts
+snapshots no larger than 64×64, so that target cannot re-enter an accepted batch
+as a sampled CPU texture. Depth batches remain CPU-synchronized because later
+depth tests need their depth state.
 
 This is an eligibility boundary, not a promise of general resource residency.
 Copies and other CPU consumers need a deferred-resolve continuation before they

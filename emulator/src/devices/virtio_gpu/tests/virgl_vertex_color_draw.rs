@@ -11,7 +11,7 @@ const DSA: u32 = 16;
 
 #[test]
 fn standard_generic_vertex_colors_snapshot_and_interpolate_through_schema_seven() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(&mut gpu, &mut mem, &submit(&color_state()), RESP_OK_NODATA);
     upload_colors(&mut gpu);
     let mut command = clear([0.1, 0.2, 0.3, 1.0]);
@@ -30,7 +30,7 @@ fn standard_generic_vertex_colors_snapshot_and_interpolate_through_schema_seven(
 
 #[test]
 fn vertex_colors_multiply_a_fragment_constant_before_gpu_snapshot() {
-    let (mut gpu, mut mem) = prepared(); assert_response(&mut gpu, &mut mem, &submit(&modulated_color_state()), RESP_OK_NODATA);
+    let (mut gpu, mut mem) = prepared_nonresident(); assert_response(&mut gpu, &mut mem, &submit(&modulated_color_state()), RESP_OK_NODATA);
     upload_colors(&mut gpu); let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(constants([0.5, 0.5, 0.5, 1.0])); command.extend(draw());
     assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA); let packet = gpu.take_3d_update();
     assert_eq!([4, 72, 76, 80, 84].map(|at| read_u32(&packet, at)), [Some(7), Some(0.5f32.to_bits()), Some(0), Some(0), Some(1.0f32.to_bits())]);

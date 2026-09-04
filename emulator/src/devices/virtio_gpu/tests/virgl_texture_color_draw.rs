@@ -8,7 +8,7 @@ const DEPTH: u32 = 7; const DEPTH_SURFACE: u32 = 15; const DSA: u32 = 16;
 
 #[test]
 fn standard_texture_color_draw_snapshots_generic_rgba_and_sampler_data() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(&mut gpu, &mut mem, &submit(&state()), RESP_OK_NODATA);
     upload(&mut gpu);
     gpu.resources.get_mut(&TEXTURE).unwrap().pixels.chunks_exact_mut(4)

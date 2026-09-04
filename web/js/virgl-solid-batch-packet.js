@@ -24,7 +24,8 @@ export function parseVirglSolidBatchPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24]
     .map((offset) => view.getUint32(offset, true));
-  if (![1, 2, 3, 4, 5, 6, 7].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
+  if (![1, 2, 3, 4, 5, 6, 7].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+    || (![6, 7].includes(version) && drawCount < 2)
     || ([6, 7].includes(version) ? flags !== 1 : version !== 3 && flags !== 0)) {
     throw new Error("VirGL solid-batch packet has invalid VGB1 framing");
   }

@@ -8,7 +8,7 @@ const COLOR_FRAG: &str =
 
 #[test]
 fn standard_split_vertex_buffers_normalize_generic_color_input() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     for resource in [POSITION, COLOR] {
         create_buffer(&mut gpu, &mut mem, resource);
         attach(&mut gpu, &mut mem, resource);

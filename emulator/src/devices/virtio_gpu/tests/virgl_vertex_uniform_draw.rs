@@ -14,7 +14,7 @@ const CONSTANT_FRAG: &str =
 
 #[test]
 fn vertex_uniform_offsets_the_snapshot_before_the_schema_two_draw() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_uniform(&mut gpu, &mut mem);
     configure(&mut gpu, &mut mem);
     upload_vertices(&mut gpu);

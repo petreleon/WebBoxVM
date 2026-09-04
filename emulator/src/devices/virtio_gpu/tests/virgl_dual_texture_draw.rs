@@ -7,7 +7,7 @@ const RIGHT_TEXTURE: u32 = 7;
 
 #[test]
 fn standard_fragment_two_sampler_slots_multiply_bounded_texture_snapshots() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_right_texture(&mut gpu, &mut mem);
     let state = dual_textured_state(0x1092, 0x1092);
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
@@ -46,7 +46,7 @@ fn standard_fragment_two_sampler_slots_multiply_bounded_texture_snapshots() {
 
 #[test]
 fn independent_sampler_states_use_schema_six_and_compose_cpu_pixels() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_right_texture(&mut gpu, &mut mem);
     assert_response(
         &mut gpu,

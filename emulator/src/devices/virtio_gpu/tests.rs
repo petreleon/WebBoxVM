@@ -11,7 +11,7 @@ mod lifecycle;
 mod queue;
 mod renderer_blob;
 mod three_d;
-mod virgl; mod virgl2;
+mod virgl; mod virgl2; mod virgl_singleton_resident;
 mod virgl_blend_state;
 mod virgl_buffer; mod virgl_buffer_copy;
 mod virgl_constant_draw;

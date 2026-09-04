@@ -3,7 +3,7 @@ use super::{virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_sciss
 
 #[test]
 fn standard_linear_sampler_interpolates_two_texels_in_cpu_and_browser_work() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(
         &mut gpu,
         &mut mem,
@@ -44,7 +44,7 @@ fn standard_linear_sampler_interpolates_two_texels_in_cpu_and_browser_work() {
 
 #[test]
 fn linear_sampler_state_follows_a_completed_repeat_draw_with_fresh_handles() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(
         &mut gpu,
         &mut mem,

@@ -38,7 +38,7 @@ fn encode(
     resident: bool,
     resident_predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
-    if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS {
+    if works.is_empty() || (!resident && works.len() < 2) || works.len() > MAX_VIRGL_BATCH_DRAWS {
         return None;
     }
     let read_only = works.iter().any(|work| work.depth_state.is_some_and(|state| !state.write));

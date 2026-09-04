@@ -7,7 +7,7 @@ const INDEX: u32 = 7;
 
 #[test]
 fn standard_triangle_strip_normalizes_to_a_bounded_triangle_list() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     configure(&mut gpu, &mut mem);
     let bytes = upload(&mut gpu);
     let mut strip = draw();
@@ -25,7 +25,7 @@ fn standard_triangle_strip_normalizes_to_a_bounded_triangle_list() {
 
 #[test]
 fn standard_triangle_fan_retains_its_first_spoke() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     configure(&mut gpu, &mut mem);
     let bytes = upload(&mut gpu);
     let mut fan = draw();
@@ -42,7 +42,7 @@ fn standard_triangle_fan_retains_its_first_spoke() {
 
 #[test]
 fn indexed_triangle_strip_expands_resolved_index_values() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_index_buffer(&mut gpu, &mut mem);
     configure(&mut gpu, &mut mem);
     let bytes = upload(&mut gpu);

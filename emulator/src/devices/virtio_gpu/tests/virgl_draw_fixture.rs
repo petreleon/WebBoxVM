@@ -3,6 +3,9 @@ use super::super::protocol::*;
 use super::super::three_d::VIRGL_CAPSET_ID;
 use super::{full_scanout, header, response_type};
 use crate::memory::PhysicalMemory;
+
+mod resident_capacity;
+pub(super) use resident_capacity::prepared_nonresident;
 pub(super) const BUFFER: u32 = 5;
 pub(super) const TARGET: u32 = 4;
 pub(super) const TEXTURE: u32 = 6;
@@ -17,20 +20,17 @@ pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_response(
-        &mut gpu,
-        &mut mem,
+        &mut gpu, &mut mem,
         &create(TARGET, 2, 1, 2, 1024, 768),
         RESP_OK_NODATA,
     );
     assert_response(
-        &mut gpu,
-        &mut mem,
+        &mut gpu, &mut mem,
         &create(BUFFER, 0, 31, 1 << 4, 120, 1),
         RESP_OK_NODATA,
     );
     assert_response(
-        &mut gpu,
-        &mut mem,
+        &mut gpu, &mut mem,
         &create(TEXTURE, 2, 1, 1 << 3, 2, 2),
         RESP_OK_NODATA,
     );
@@ -52,7 +52,7 @@ pub(super) fn prepared() -> (VirtioGpu, PhysicalMemory) {
     (gpu, mem)
 }
 
-fn create(id: u32, target: u32, format: u32, bind: u32, width: u32, height: u32) -> Vec<u8> {
+pub(super) fn create(id: u32, target: u32, format: u32, bind: u32, width: u32, height: u32) -> Vec<u8> {
     let mut command = header(CMD_RESOURCE_CREATE_3D);
     for value in [id, target, format, bind, width, height, 1, 1, 0, 0, 0, 0] {
         push_u32(&mut command, value);

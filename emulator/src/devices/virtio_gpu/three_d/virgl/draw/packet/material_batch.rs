@@ -13,7 +13,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     resident: bool,
     predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
-    if works.len() < 2 || works.len() > MAX_VIRGL_BATCH_DRAWS {
+    if works.is_empty() || (works.len() < 2 && (!resident || depth)) || works.len() > MAX_VIRGL_BATCH_DRAWS {
         return None;
     }
     let version = match (depth, resident, predecessor) {

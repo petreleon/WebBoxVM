@@ -15,6 +15,9 @@ test("VirGL solid-batch packet preserves bounded ordered draw records", () => {
   const resident = parseGpu3dPacket(virglSolidBatchPacket({ sequence: 76, version: 6 }));
   assert.equal(resident.residentCandidate, true);
   assert.equal(resident.depthClear, 0);
+  const singleton = parseGpu3dPacket(virglSolidBatchPacket({ drawCount: 1, sequence: 78, version: 6 }));
+  assert.equal(singleton.draws.length, 1);
+  assert.throws(() => parseGpu3dPacket(virglSolidBatchPacket({ drawCount: 1, sequence: 79 })), /VGB1 framing/);
   const replacement = parseGpu3dPacket(virglSolidBatchPacket({
     residentPreviousProducer: 76, sequence: 77, version: 7,
   }));
@@ -47,4 +50,20 @@ test("VirGL solid-batch renderer submits both draws in one source-over pass", as
   assert.equal(device.renderPasses.length, 1);
   assert.equal(device.textureCopies.length, 1);
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-solid-batch");
+});
+
+test("VirGL singleton solid batches retain and rekey one resident output", async () => {
+  const device = fakeDevice();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.deepEqual(await display.present3d(virglSolidBatchPacket({
+    drawCount: 1, sequence: 80, version: 6,
+  })), { resident: true, sequence: 80, success: true });
+  const outputs = device.textures.filter((texture) => texture.descriptor.label?.startsWith("VirGL resident output"));
+  assert.equal(outputs.length, 1); assert.deepEqual(device.draw, [3]);
+  assert.deepEqual(await display.present3d(virglSolidBatchPacket({
+    drawCount: 1, residentPreviousProducer: 80, sequence: 81, version: 7,
+  })), { resident: true, sequence: 81, success: true });
+  assert.equal(outputs.length, 1); assert.deepEqual(device.draw, [3, 3]);
 });

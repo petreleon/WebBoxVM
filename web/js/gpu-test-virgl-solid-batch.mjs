@@ -7,7 +7,8 @@ export function virglSolidBatchPacket({
   depthCompare = version === 2 ? 1 : 0,
   depthWriteEnabled = true,
   depthClear = [1, 6, 7].includes(version) ? 0 : 1,
-  draws = defaultDraws(canvasWidth, canvasHeight),
+  drawCount = 2,
+  draws = defaultDraws(canvasWidth, canvasHeight).slice(0, drawCount),
   residentPreviousProducer = version === 7 ? 72 : undefined,
   sequence = 73,
 } = {}) {

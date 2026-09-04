@@ -97,7 +97,12 @@ Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. One clear may precede one through 16 draws against the current full-scanout
-framebuffer. A singleton uses `VGD1` material routes; a solid-only 2–16 sequence uses `VGB1` v1 when non-depth, legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with per-record comparisons, or v5 with per-record canonical DSA state. Other supported 2–16 sequences use `VGM1`. Clear/copy mixing, repeat clear, and mixed depth attachments fail transactionally.
+framebuffer. An eligible non-depth singleton uses resident `VGB1` v6/v7 for a
+solid or resident `VGM1` v2/v3 for any other supported material; an ineligible
+singleton uses `VGD1`. A solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
+legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with
+per-record comparisons, or v5 with per-record canonical DSA state. Other
+supported 2–16 sequences use `VGM1`. Clear/copy mixing, repeat clear, and mixed depth attachments fail transactionally.
 
 At draw validation Rust snapshots selected 16-byte constant ranges and a bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip or fan before validation and packet construction.
 Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle. Vertex UBO forms additionally snapshot `[dx, dy, 0, 0]`, with finite `dx/dy` in `[-1, 1]`, translate local copied vertices, and repeat that validation before packet construction; the generic form retains one fixed UV varying.
@@ -106,7 +111,7 @@ one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedba
 Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.
 Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use the required source-over blend object.
 
-After validation Rust sends a private `VGD1` singleton envelope to the browser. `VGD1`
+After validation an ineligible singleton uses the private `VGD1` envelope; `VGD1`
 is not a guest ABI or VirGL command. Each schema validates three through 3,063 normalized list vertices. Schema 2 is 144 bytes: its original
 sequence, canvas size, colors, `16N` vertex bytes, viewport, and optional
 canonical top-origin scissor. Schema 3 appends `24N` position/UV bytes, one 2D texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
@@ -137,7 +142,7 @@ and a matching capset that this renderer does not advertise.
 
 Rust tests prove capset bits, transactional no-clear, malformed-index, and inline/resource-constant render/rejection,
 exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, alternating strip, and spoke-preserving fan expansion, schemas 2–14 `VGD1`, bounded `VGB1`, and mixed-material `VGM1`
-payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, ordered non-depth/depth batch blending, solid/vertex-color/one-texture/texture-color depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
+payloads, singleton and ordered non-depth/depth batch blending, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, solid/vertex-color/one-texture/texture-color depth, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, non-depth/depth batch ordering, exact `EQUAL` depth, canonical write masks, strict VGB1/VGM1 GPU-color readback, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,

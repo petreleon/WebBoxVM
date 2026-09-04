@@ -3,7 +3,7 @@ use super::{virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_sciss
 
 #[test]
 fn standard_repeat_sampler_wraps_a_one_coordinate_in_cpu_and_browser_work() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(
         &mut gpu,
         &mut mem,

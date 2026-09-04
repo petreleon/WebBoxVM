@@ -21,7 +21,8 @@ export function parseVirglMaterialBatchPacket(packet) {
   if (!isVirglMaterialBatchPacket(packet) || packet.byteLength < HEADER_BYTES) throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const [version, sequence, canvasWidth, canvasHeight, drawCount, flags] = [4, 8, 12, 16, 20, 24].map((offset) => view.getUint32(offset, true));
-  if (![1, 2, 3].includes(version) || !sequence || drawCount < 2 || drawCount > MAX_DRAWS
+  if (![1, 2, 3].includes(version) || !sequence || drawCount < 1 || drawCount > MAX_DRAWS
+    || (version === 1 && drawCount < 2)
     || (version === 1 ? flags > 1 : flags !== 2) || (version === 3 && packet.byteLength < REPLACEMENT_HEADER_BYTES)) {
     throw new Error("VirGL material-batch packet has invalid VGM1 framing");
   }

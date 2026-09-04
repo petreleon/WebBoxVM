@@ -27,7 +27,7 @@ pub(super) fn apply_depth(
     clear: [u8; 4],
     works: Vec<DrawWork>,
 ) -> bool {
-    if !valid(&works) { return false; }
+    if !(2..=MAX_VIRGL_BATCH_DRAWS).contains(&works.len()) { return false; }
     let Some(mut values) = gpu.depth_values(resource_id, depth_resource) else { return false; };
     let drawn = {
         let Some(resource) = gpu.resources.get_mut(&resource_id) else { return false; };
@@ -40,7 +40,7 @@ pub(super) fn apply_depth(
 }
 
 fn valid(works: &[DrawWork]) -> bool {
-    (2..=MAX_VIRGL_BATCH_DRAWS).contains(&works.len())
+    (1..=MAX_VIRGL_BATCH_DRAWS).contains(&works.len())
 }
 
 fn draw(resource: &mut GpuResource, rect: Rect, work: &DrawWork) -> bool {

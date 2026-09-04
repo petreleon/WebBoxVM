@@ -5,7 +5,7 @@ const INDEX: u32 = 7;
 
 #[test]
 fn standard_indexed_draw_vbo_resolves_bounded_u16_and_u32_triangles() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_index_buffer(&mut gpu, &mut mem);
     configure_draw(&mut gpu, &mut mem);
     upload_vertices(&mut gpu);

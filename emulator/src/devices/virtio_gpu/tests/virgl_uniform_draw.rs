@@ -10,7 +10,7 @@ const CONSTANT_FRAG: &str =
 
 #[test]
 fn fragment_uniform_buffer_renders_and_snapshots_a_nonzero_offset() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_uniform(&mut gpu, &mut mem);
     configure(&mut gpu, &mut mem);
     store(&mut gpu, 4, COLOR);
@@ -32,7 +32,7 @@ fn fragment_uniform_buffer_renders_and_snapshots_a_nonzero_offset() {
 
 #[test]
 fn inline_write_populates_an_attached_uniform_buffer_before_draw() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_uniform(&mut gpu, &mut mem);
     configure(&mut gpu, &mut mem);
     assert_response(&mut gpu, &mut mem, &submit(&inline(UNIFORM, 4, COLOR)), RESP_OK_NODATA);
@@ -65,7 +65,7 @@ fn inline_write_rejects_bad_or_mixed_streams_without_mutation() {
 
 #[test]
 fn uniform_binding_rejects_bad_shapes_transactionally_and_can_unbind() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_uniform(&mut gpu, &mut mem);
     configure(&mut gpu, &mut mem);
     store(&mut gpu, 4, COLOR);

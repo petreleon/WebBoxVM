@@ -8,7 +8,7 @@ const FRAG: &str = "FRAG\nDCL CONST[0][0]\nDCL IN[0], GENERIC[0], LINEAR\nDCL SA
 
 #[test]
 fn vertex_uniform_offset_and_fragment_constant_share_the_texture_color_snapshot() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_uniform(&mut gpu, &mut mem);
     assert_response(&mut gpu, &mut mem, &submit(&state()), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);

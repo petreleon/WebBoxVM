@@ -4,7 +4,8 @@ export function virglMaterialBatchPacket({
   clearColor = [0, 0, 0, 1],
   version = 1,
   depth = version === 1,
-  draws = defaultDraws(canvasWidth, canvasHeight),
+  drawCount = 2,
+  draws = defaultDraws(canvasWidth, canvasHeight).slice(0, drawCount),
   residentPreviousProducer = version === 3 ? 90 : undefined,
   sequence = 91,
 } = {}) {

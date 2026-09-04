@@ -59,6 +59,11 @@ impl VirtioGpu {
         clear: [f32; 4],
         work: DrawWork,
     ) -> Result<DeferredSubmit, u32> {
+        if work.depth_resource.is_none() && work.depth_state.is_none()
+            && self.resident_target_eligible(resource_id, rect)
+        {
+            return self.queue_virgl_resident_singleton(header, generation, resource_id, rect, clear, work);
+        }
         let sequence = self.virgl_sequence()?;
         let packet = draw::packet(sequence, rect.width, rect.height, clear, &work);
         self.queue_virgl_packet(

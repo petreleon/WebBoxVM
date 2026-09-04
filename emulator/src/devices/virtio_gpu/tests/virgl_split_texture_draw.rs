@@ -6,7 +6,7 @@ const UV: u32 = 8;
 
 #[test]
 fn standard_split_position_and_uv_buffers_snapshot_a_textured_draw() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     create_buffer(&mut gpu, &mut mem, POSITION, 31, 48);
     create_buffer(&mut gpu, &mut mem, UV, 29, 24);
     for resource in [POSITION, UV] {

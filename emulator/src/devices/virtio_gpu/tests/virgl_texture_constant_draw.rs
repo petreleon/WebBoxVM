@@ -6,7 +6,7 @@ const UNIFORM: u32 = 7;
 
 #[test]
 fn fragment_texture_constant_reuses_the_texture_color_gpu_snapshot() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     assert_response(&mut gpu, &mut mem, &submit(&state()), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);
     gpu.resources.get_mut(&TEXTURE).unwrap().pixels.chunks_exact_mut(4)
@@ -32,7 +32,7 @@ fn fragment_texture_constant_reuses_the_texture_color_gpu_snapshot() {
 
 #[test]
 fn fragment_texture_resource_constant_snapshots_before_the_gpu_acknowledgment() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_uniform(&mut gpu, &mut mem);
     assert_response(&mut gpu, &mut mem, &submit(&state()), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);

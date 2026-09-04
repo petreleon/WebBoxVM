@@ -42,28 +42,29 @@ test("VirGL material-batch parser rejects a noncanonical depth state", () => {
   assert.throws(() => parseGpu3dPacket(packet), /depth state/);
 });
 
-test("non-depth material batches retain and rekey one resident output", async () => {
-  const fresh = parseGpu3dPacket(virglMaterialBatchPacket({ sequence: 94, version: 2 }));
+test("non-depth singleton material batches retain and rekey one resident output", async () => {
+  const fresh = parseGpu3dPacket(virglMaterialBatchPacket({ drawCount: 1, sequence: 94, version: 2 }));
   assert.equal(fresh.depth, false); assert.equal(fresh.residentCandidate, true);
+  assert.throws(() => parseGpu3dPacket(virglMaterialBatchPacket({ drawCount: 1 })), /VGM1 framing/);
   const replacement = parseGpu3dPacket(virglMaterialBatchPacket({
-    residentPreviousProducer: 94, sequence: 95, version: 3,
+    drawCount: 1, residentPreviousProducer: 94, sequence: 95, version: 3,
   }));
   assert.equal(replacement.residentPreviousProducer, 94);
   assert.throws(() => parseGpu3dPacket(virglMaterialBatchPacket({
-    residentPreviousProducer: 95, sequence: 95, version: 3,
+    drawCount: 1, residentPreviousProducer: 95, sequence: 95, version: 3,
   })), /replacement producer/);
   const pixels = new Uint8Array(1024 * 768 * 4); pixels.set([3, 2, 1, 255]);
   const device = fakeDevice({ readbackBytes: pixels });
   const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
     navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
   });
-  assert.deepEqual(await display.present3d(virglMaterialBatchPacket({ sequence: 94, version: 2 })), {
+  assert.deepEqual(await display.present3d(virglMaterialBatchPacket({ drawCount: 1, sequence: 94, version: 2 })), {
     resident: true, sequence: 94, success: true,
   });
   const outputs = device.textures.filter((texture) => texture.descriptor.label?.startsWith("VirGL resident output"));
   assert.equal(outputs.length, 1); assert.equal(device.textureTransfers.length, 1);
   assert.deepEqual(await display.present3d(virglMaterialBatchPacket({
-    residentPreviousProducer: 94, sequence: 95, version: 3,
+    drawCount: 1, residentPreviousProducer: 94, sequence: 95, version: 3,
   })), { resident: true, sequence: 95, success: true });
   assert.equal(outputs.length, 1); assert.equal(device.textureTransfers.length, 2);
   assert.equal((await display.present3d(virglResidentReadbackPacket({

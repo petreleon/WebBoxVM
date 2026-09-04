@@ -5,7 +5,7 @@ const RGBA_TEXTURE: u32 = 7;
 
 #[test]
 fn standard_sampler_view_draws_from_a_queued_texture_snapshot() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     let state = textured_state(TEXTURE, 1);
     assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
     upload_textured_vertices(&mut gpu);
@@ -44,7 +44,7 @@ fn standard_sampler_view_draws_from_a_queued_texture_snapshot() {
 
 #[test]
 fn rgba_sampler_texture_uses_a_canonical_bgra_snapshot() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     attach_rgba_texture(&mut gpu, &mut mem);
     assert_response(
         &mut gpu,

@@ -5,7 +5,7 @@ pub(super) use super::virgl_draw_fixture::*;
 
 #[test]
 fn standard_draw_vbo_queues_a_webgpu_triangle_after_clear() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9));
     state.extend(shader_create(11, 0, VERT));
@@ -58,7 +58,7 @@ fn standard_draw_vbo_queues_a_webgpu_triangle_after_clear() {
 
 #[test]
 fn standard_draw_batches_two_triangles_from_one_vertex_buffer() {
-    let (mut gpu, mut mem) = prepared();
+    let (mut gpu, mut mem) = prepared_nonresident();
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9));
     state.extend(shader_create(11, 0, VERT));
