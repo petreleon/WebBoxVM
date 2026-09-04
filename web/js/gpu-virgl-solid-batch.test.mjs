@@ -67,3 +67,13 @@ test("VirGL singleton solid batches retain and rekey one resident output", async
   })), { resident: true, sequence: 81, success: true });
   assert.equal(outputs.length, 1); assert.deepEqual(device.draw, [3, 3]);
 });
+
+test("VirGL solid batches reuse byte-identical vertex uploads", async () => {
+  const device = fakeDevice();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  await display.present3d(virglSolidBatchPacket({ sequence: 82 }));
+  await display.present3d(virglSolidBatchPacket({ sequence: 83 }));
+  assert.equal(device.bufferWrites.length, 1);
+});

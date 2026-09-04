@@ -95,6 +95,7 @@ are admitted to the resident path.
 | Repeated full eligible draw | O(W×H) readback and transfer | Repaint and rekey one persistent GPU texture |
 | First guest CPU read | Already paid per draw | O(W×H), once at the synchronization boundary |
 | Resident lookup | — | O(1) keyed by resource ID |
+| Identical vertex input | Upload every frame | Exact cached bytes skip `queue.writeBuffer` |
 | Browser memory | Transient target | Explicit bounded texture budget |
 
 The resident path improves draw-heavy workloads that do not read pixels on the

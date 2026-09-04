@@ -2,6 +2,7 @@ import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=202
 import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
 import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
 import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
+import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260904-virgl-readback-pool-r1";
 
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
@@ -20,7 +21,7 @@ const SOURCE_OVER = {
 };
 
 export class VirglSolidBatchRenderer {
-  #bufferUsage; #generation = 0; #outputs; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0;
+  #bufferUsage; #generation = 0; #outputs; #pipeline; #revision = 0; #session; #vertexBuffer; #vertexCapacity = 0; #vertices = new VirglVertexUploadCache();
 
   constructor(session, options = {}, outputs) {
     this.#session = session;
@@ -65,6 +66,7 @@ export class VirglSolidBatchRenderer {
   #invalidatePipeline() {
     this.#revision += 1;
     this.#vertexBuffer?.destroy?.();
+    this.#vertices.invalidate();
     this.#pipeline = undefined; this.#vertexBuffer = undefined; this.#generation = 0; this.#vertexCapacity = 0;
   }
 
@@ -89,7 +91,7 @@ export class VirglSolidBatchRenderer {
     [this.#vertexBuffer, this.#vertexCapacity] = ensureBuffer(device, this.#vertexBuffer, this.#vertexCapacity,
       vertices.byteLength, "VirGL capset 1 solid-batch vertices", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
-    device.queue.writeBuffer(this.#vertexBuffer, 0, vertices);
+    this.#vertices.upload(device, this.#vertexBuffer, vertices);
     const encoder = device.createCommandEncoder({ label: "VirGL capset 1 solid-batch encoder" });
     const target = output?.texture ?? backend.canvasContext.getCurrentTexture();
     const pass = encoder.beginRenderPass({
@@ -118,15 +120,15 @@ export class VirglSolidBatchRenderer {
 }
 
 function interleave(draws) {
-  const vertices = new Float32Array(draws.reduce((total, draw) => total + draw.vertexCount, 0) * 8);
+  const floats = new Float32Array(draws.reduce((total, draw) => total + draw.vertexCount, 0) * 8);
   let offset = 0;
   for (const draw of draws) {
     for (let source = 0; source < draw.vertices.length; source += 4) {
-      vertices.set(draw.vertices.subarray(source, source + 4), offset);
-      vertices.set(draw.drawColor, offset + 4); offset += 8;
+      floats.set(draw.vertices.subarray(source, source + 4), offset);
+      floats.set(draw.drawColor, offset + 4); offset += 8;
     }
   }
-  return vertices;
+  return new Uint8Array(floats.buffer);
 }
 
 function webGpuViewport(draw, height) {

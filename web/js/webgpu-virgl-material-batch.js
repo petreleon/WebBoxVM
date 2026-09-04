@@ -4,10 +4,11 @@ import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-rea
 import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-readback-pool-r1";
 import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260904-virgl-readback-pool-r1";
 import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
+import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260904-virgl-readback-pool-r1";
 
 export class VirglMaterialBatchRenderer {
   #bufferUsage; #depthTexture; #generation = 0; #height = 0; #pipelines = new Map(); #revision = 0;
-  #outputs; #session; #textureUsage; #textures; #vertexBuffer; #vertexCapacity = 0; #width = 0;
+  #outputs; #session; #textureUsage; #textures; #vertexBuffer; #vertexCapacity = 0; #vertices = new VirglVertexUploadCache(); #width = 0;
 
   constructor(session, options = {}, outputs) {
     this.#session = session; this.#bufferUsage = options.bufferUsage ?? globalThis.GPUBufferUsage ?? defaultBufferUsage();
@@ -38,6 +39,7 @@ export class VirglMaterialBatchRenderer {
   #invalidateRenderer() {
     this.#revision += 1; this.#vertexBuffer?.destroy?.(); this.#depthTexture?.destroy?.();
     this.#textures.invalidate();
+    this.#vertices.invalidate();
     this.#depthTexture = undefined; this.#generation = 0; this.#height = 0; this.#pipelines.clear();
     this.#vertexBuffer = undefined; this.#vertexCapacity = 0; this.#width = 0;
   }
@@ -68,7 +70,7 @@ export class VirglMaterialBatchRenderer {
     const { device } = backend; const packed = pack(frame.draws);
     [this.#vertexBuffer, this.#vertexCapacity] = ensureBuffer(device, this.#vertexBuffer, this.#vertexCapacity,
       packed.bytes.byteLength, "VirGL capset 1 material-batch vertices", this.#bufferUsage.COPY_DST | this.#bufferUsage.VERTEX);
-    this.#session.configure(frame.canvasWidth, frame.canvasHeight); device.queue.writeBuffer(this.#vertexBuffer, 0, packed.bytes);
+    this.#session.configure(frame.canvasWidth, frame.canvasHeight); this.#vertices.upload(device, this.#vertexBuffer, packed.bytes);
     const retired = []; const draws = frame.draws.map((draw, index) => ({ ...draw, ...packed.draws[index] }));
     for (const draw of draws) draw.bindGroup = this.#bindGroup(device, this.#pipelines.get(key(frame, draw)), draw, retired);
     const encoder = device.createCommandEncoder({ label: "VirGL capset 1 material-batch encoder" }); const canvas = backend.canvasContext.getCurrentTexture(); const target = output?.texture ?? canvas;
