@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-write-mask-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-mixed-depth-batch-r1";
-import { virglDepthPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-mixed-depth-batch-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-write-mask-r1";
+import { virglDepthPacket } from "./gpu-test-virgl-depth.mjs?v=20260904-virgl-depth-write-mask-r1";
 
 test("VirGL depth envelope requires its canonical depth clear and viewport state", () => {
   const packet = virglDepthPacket({ sequence: 71 });
@@ -25,6 +25,15 @@ test("VirGL depth envelope carries standard equal comparison state", () => {
   assert.equal(frame.depthCompare, "equal");
   const invalid = packet.slice(); new DataView(invalid.buffer).setUint32(invalid.byteLength - 4, 8, true);
   assert.throws(() => parseGpu3dPacket(invalid), /depth compare/);
+});
+
+test("VirGL depth envelope carries a canonical read-only DSA state", () => {
+  const packet = virglDepthPacket({ depthCompare: 4, depthWriteEnabled: false, sequence: 75 });
+  const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.version, 11); assert.equal(frame.depthCompare, "greater");
+  assert.equal(frame.depthWriteEnabled, false);
+  const invalid = packet.slice(); new DataView(invalid.buffer).setUint32(invalid.byteLength - 4, 16, true);
+  assert.throws(() => parseGpu3dPacket(invalid), /depth state/);
 });
 
 test("VirGL depth envelope maps every accepted standard comparison", () => {
@@ -62,6 +71,18 @@ test("VirGL depth renderer configures the requested standard comparison", async 
   });
   assert.deepEqual(await display.present3d(virglDepthPacket({ depthCompare: 2, sequence: 74, vertices: equalTriangle() })), { sequence: 74, success: true });
   assert.equal(device.pipelines[0].descriptor.depthStencil.depthCompare, "equal");
+});
+
+test("VirGL depth renderer preserves the requested depth write mask", async () => {
+  const device = fakeDevice(); const status = fakeStatus();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  const packet = virglDepthPacket({ depthCompare: 4, depthWriteEnabled: false, sequence: 76 });
+  assert.deepEqual(await display.present3d(packet), { sequence: 76, success: true });
+  assert.deepEqual(device.pipelines[0].descriptor.depthStencil, {
+    depthCompare: "greater", depthWriteEnabled: false, format: "depth24plus",
+  });
 });
 
 function equalTriangle() {

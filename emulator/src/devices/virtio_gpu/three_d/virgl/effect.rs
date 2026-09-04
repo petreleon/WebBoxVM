@@ -34,7 +34,7 @@ impl VirtioGpu {
             Pending3dEffect::VirglDraw {
                 resource_id,
                 depth_resource,
-                depth_compare,
+                depth_state,
                 rect,
                 clear_bgra,
                 material,
@@ -45,7 +45,7 @@ impl VirtioGpu {
             } => self.apply_virgl_draw(
                 resource_id,
                 depth_resource,
-                depth_compare,
+                depth_state,
                 rect,
                 clear_bgra,
                 material,

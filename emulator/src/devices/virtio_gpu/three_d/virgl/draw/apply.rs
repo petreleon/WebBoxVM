@@ -1,6 +1,6 @@
 mod batch;
 
-use super::{DepthCompare, DrawMaterial, DrawWork, raster};
+use super::{DepthState, DrawMaterial, DrawWork, raster};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
 
@@ -30,7 +30,7 @@ impl VirtioGpu {
         &mut self,
         resource_id: u32,
         depth_resource: Option<u32>,
-        depth_compare: Option<DepthCompare>,
+        depth_state: Option<DepthState>,
         rect: Rect,
         clear: [u8; 4],
         material: DrawMaterial,
@@ -38,10 +38,10 @@ impl VirtioGpu {
         viewport: [f32; 6],
         scissor: Option<Rect>,
     ) -> bool {
-        let mut depth = match (depth_resource, depth_compare) {
-            (Some(depth_resource), Some(compare)) => self
+        let mut depth = match (depth_resource, depth_state) {
+            (Some(depth_resource), Some(state)) => self
                 .depth_values(resource_id, depth_resource)
-                .map(|values| (depth_resource, compare, values)),
+                .map(|values| (depth_resource, state, values)),
             (None, None) => None,
             _ => return false,
         };
@@ -49,8 +49,8 @@ impl VirtioGpu {
             let Some(resource) = self.resources.get_mut(&resource_id) else { return false; };
             if resource.clear_bgra(rect, clear).is_none() { return false; }
             match (&material, depth.as_mut()) {
-                (DrawMaterial::Solid(color), Some((_, compare, values))) => {
-                    raster::draw_depth_solid(resource, rect, vertices, *color, viewport, scissor, *compare, values)
+                (DrawMaterial::Solid(color), Some((_, state, values))) => {
+                    raster::draw_depth_solid(resource, rect, vertices, *color, viewport, scissor, *state, values)
                 }
                 (DrawMaterial::Solid(color), None) => raster::draw_solid(resource, rect, vertices, *color, viewport, scissor),
                 (DrawMaterial::VertexColor, None) => raster::draw_vertex_color(resource, rect, vertices, viewport, scissor),

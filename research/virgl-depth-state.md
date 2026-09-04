@@ -1,71 +1,83 @@
-# Bounded VirGL depth-test seam
+# Bounded VirGL depth-state seam
 
 ## Purpose
 
-This milestone adds one interoperable depth path to capset-1 rendering.  It is
-deliberately a narrow proof that the guest's standard VirGL state reaches both
-the CPU fallback and WebGPU with the same ordering rule.
+This compatibility slice carries the supported standard VirGL depth subset
+unchanged from the guest DSA object through queued CPU rasterization and the
+WebGPU depth-stencil descriptor. It covers all standard comparison functions
+and both enabled and disabled depth writes; it is not full depth/stencil.
 
-## Advertised resource contract
+## Resource and framebuffer contract
 
-- `PIPE_TEXTURE_2D` only.
-- `VIRGL_FORMAT_Z32_FLOAT` (format 18) only.
-- Exact `VIRGL_BIND_DEPTH_STENCIL` (bit 0) only.
-- One mip level, one layer, no multisampling, sampling, transfer, or texture
-  view use.
-- The depth resource has the same dimensions as the scanout color target.
+- `PIPE_TEXTURE_2D`, `VIRGL_FORMAT_Z32_FLOAT` (format 18), and exact
+  `VIRGL_BIND_DEPTH_STENCIL` (bit 0) only.
+- One mip, one layer, no multisampling, sampling, transfer, or depth views.
+- The depth texture exactly matches the scanout color target dimensions.
+- The framebuffer is one color surface plus an optional matching depth
+  surface: `SET_FRAMEBUFFER_STATE [1, depth_surface, color_surface]`.
 
-The capset exposes format 18 in the `depthstencil` mask, not in the ordinary
-color-render-target mask.
+The capset advertises format 18 in `depthstencil`, not in the ordinary color
+render-target mask.
 
-## Standard command contract
+## Standard DSA contract
 
-The accepted state is the standard `VIRGL_OBJECT_DSA` object (type 0):
+The accepted object is `VIRGL_OBJECT_DSA` (type 0):
 
 ```text
-CREATE_OBJECT DSA [handle, 7, 0, 0, 0]
+CREATE_OBJECT DSA [handle, state, 0, 0, 0]
 BIND_OBJECT   DSA [handle]
 ```
 
-`7` means depth enabled, depth writes enabled, and `PIPE_FUNC_LESS` (enum 1).
-No alpha test or stencil state is accepted.  Unbinding uses handle zero;
-destroying a bound state unbinds it.
-
-The framebuffer is exactly one color buffer plus an optional depth surface:
+`state` is canonical when only these low five bits are set:
 
 ```text
-SET_FRAMEBUFFER_STATE [1, depth_surface, color_surface]
+bit 0       depth test enabled (must be 1)
+bit 1       depth write enabled
+bits 2..4   PIPE_FUNC_* comparison, 0 through 7
 ```
 
-The color attachment remains the scanout resource.  The depth attachment is
-only legal with the accepted depth resource and surface format.
+The canonical word is `1 | (write << 1) | (compare << 2)`. For example,
+`7` is enabled/write-enabled `LESS`; `17` is enabled/write-disabled
+`GREATER`. Alpha test and stencil payloads are rejected. Unbinding uses handle
+zero; destroying a bound state unbinds it.
 
-## Draw and clear contract
+## Draw, transport, and completion contract
 
-- A depth-tested draw requires the DSA object and the matching depth surface.
-- Only the existing solid-color material routes participate in this first
-  slice; textures, vertex colors, alpha test, stencil, and alternate compare
-  functions remain unsupported.
-- Clear is exactly `CLEAR_COLOR0 | CLEAR_DEPTH`, with a depth clear value of
-  `1.0`.  The queued packet snapshots all vertices and the canonical clear.
-- CPU rasterization interpolates vertex Z after the accepted viewport mapping
-  and applies strict less-than before source-over blending.
-- The matching WebGPU renderer uses `depth24plus`, `depthCompare: "less"`,
-  `depthWriteEnabled: true`, and a depth attachment cleared to `1.0`.
+- A depth-tested solid draw requires both a bound canonical DSA state and the
+  matching depth surface. Clear is exactly `CLEAR_COLOR0 | CLEAR_DEPTH` with
+  depth clear `1.0`.
+- CPU rasterization compares interpolated Z after viewport mapping and writes
+  the stored depth only when the DSA write bit is set; source-over blending is
+  still performed after a passing read-only test.
+- WebGPU uses `depth24plus`; its pipeline key is the pair
+  `(depthCompare, depthWriteEnabled)`, preventing read-only draws from sharing
+  a write-enabled pipeline.
+- `VGD1` v9 remains byte-compatible for write-enabled `LESS`; v10 remains the
+  write-enabled non-`LESS` comparison form; v11 carries the canonical DSA
+  word for read-only depth states.
+- `VGB1` v1–v4 remain byte-compatible. V5 carries one canonical DSA word per
+  ordered record whenever any record disables depth writes.
 
-The depth resource is written only after browser completion, as the color
-resource is.  A later resource mutation cannot alter a queued draw.
+Completion remains fail-closed: a browser failure, stale generation, or
+validation error leaves the CPU-authoritative color/depth effect unapplied.
+
+## Demonstrated boundary
+
+The guest probe is configured to emit VGB1 v5 with a write-enabled `LESS` near
+red draw followed by a read-only `GREATER` far green draw. Its harness expects
+the exact `7` then `17` DSA record words and the blended `0,128,64,255` BGRA
+result. Rust depth tests separately assert that the stored center depth remains
+`0.25` after the read-only second draw.
 
 ## Explicit exclusions
 
-This is not generic OpenGL, Vulkan, VirGL, or Venus depth/stencil support.  It
-does not provide stencil, depth sampling, depth copy/transfer, depth persistence
-across submits, multi-draw composition, arbitrary depth formats, or compare
-functions other than `LESS`.
+This does not implement stencil, alpha test, depth sampling/copy/transfer,
+cross-submit depth persistence, alternate depth formats, generic Gallium,
+OpenGL, Vulkan, or Venus.
 
 ## References
 
 - VirGL object and command layout: `virgl_protocol.h` and `vrend_decode.c` in
   virglrenderer.
-- Gallium compare values: `pipe/p_defines.h` (`PIPE_FUNC_LESS == 1`).
+- Gallium comparison values: `pipe/p_defines.h`.
 - WebGPU depth pipeline and render-pass requirements: WebGPU specification.

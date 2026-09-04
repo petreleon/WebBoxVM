@@ -17,7 +17,7 @@ pub(super) fn apply(
         if resource.clear_bgra(rect, clear).is_none() { return false; }
         for work in works {
             let DrawMaterial::Solid(color) = work.material else { return false; };
-            if work.depth_resource.is_some() || work.depth_compare.is_some()
+            if work.depth_resource.is_some() || work.depth_state.is_some()
                 || !raster::draw_solid(resource, rect, &work.vertices, color, work.viewport, work.scissor)
             {
                 return false;
@@ -43,11 +43,11 @@ pub(super) fn apply_depth(
         if resource.clear_bgra(rect, clear).is_none() { return false; }
         works.into_iter().all(|work| {
             let DrawMaterial::Solid(color) = work.material else { return false; };
-            let Some(compare) = work.depth_compare else { return false; };
+            let Some(state) = work.depth_state else { return false; };
             work.depth_resource == Some(depth_resource)
                 && raster::draw_depth_solid(
                     resource, rect, &work.vertices, color, work.viewport, work.scissor,
-                    compare, &mut values,
+                    state, &mut values,
                 )
         })
     };

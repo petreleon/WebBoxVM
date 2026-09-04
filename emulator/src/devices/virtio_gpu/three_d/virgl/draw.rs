@@ -12,7 +12,7 @@ pub(in crate::devices::virtio_gpu::three_d) use packet::{batch_packet, depth_bat
 pub(super) use primitive::Primitive;
 use vertices::resolve;
 
-use super::{DepthCompare, DrawState, SamplerConfig, VirglContext};
+use super::{DepthState, DrawState, SamplerConfig, VirglContext};
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 
@@ -55,7 +55,7 @@ pub(in crate::devices::virtio_gpu) struct DrawWork {
     pub(super) viewport: [f32; 6],
     pub(super) scissor: Option<Rect>,
     pub(super) depth_resource: Option<u32>,
-    pub(super) depth_compare: Option<DepthCompare>,
+    pub(super) depth_state: Option<DepthState>,
 }
 
 impl VirtioGpu {
@@ -115,7 +115,7 @@ impl VirtioGpu {
             vertex_count,
             viewport: viewport.values(),
             depth_resource,
-            depth_compare: state.depth,
+            depth_state: state.depth,
             scissor: scissor.map(|scissor| Rect {
                 x: scissor.x,
                 y: rect.height - (scissor.y + scissor.height),

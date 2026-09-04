@@ -4,7 +4,7 @@ import {
   decodeDiskSnapshotFromStorage,
   encodeDiskSnapshotForStorage,
   writeDiskSnapshotToStorage,
-} from "./persistence-store.js?v=20260904-virgl-mixed-depth-batch-r1";
+} from "./persistence-store.js?v=20260904-virgl-depth-write-mask-r1";
 
 test("compressed disk snapshots roundtrip from storage", async () => {
   const snapshot = new Uint8Array(1024 * 1024);

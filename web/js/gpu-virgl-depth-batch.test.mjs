@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-depth-write-mask-r1";
 import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus }
-  from "./gpu-test-fakes.mjs?v=20260904-virgl-mixed-depth-batch-r1";
-import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-mixed-depth-batch-r1";
+  from "./gpu-test-fakes.mjs?v=20260904-virgl-depth-write-mask-r1";
+import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-depth-write-mask-r1";
 
 test("VirGL depth-batch envelope requires a clear-one ordered depth stream", () => {
   const packet = virglSolidBatchPacket({ draws: depthDraws(), sequence: 76, version: 2 });
@@ -34,6 +34,15 @@ test("VirGL depth-batch envelope carries ordered per-draw comparisons", () => {
   assert.throws(() => parseGpu3dPacket(flagged), /framing/);
   const invalid = packet.slice(); new DataView(invalid.buffer).setUint32(52, 8, true);
   assert.throws(() => parseGpu3dPacket(invalid), /depth comparison/);
+});
+
+test("VirGL depth-batch envelope carries ordered DSA write masks", () => {
+  const packet = virglSolidBatchPacket({ draws: mixedWriteDraws(), sequence: 82, version: 5 });
+  const frame = parseGpu3dPacket(packet);
+  assert.equal(frame.version, 5); assert.deepEqual(frame.draws.map((draw) => draw.depthCompare), ["less", "greater"]);
+  assert.deepEqual(frame.draws.map((draw) => draw.depthWriteEnabled), [true, false]);
+  const invalid = packet.slice(); new DataView(invalid.buffer).setUint32(52, 2, true);
+  assert.throws(() => parseGpu3dPacket(invalid), /depth state/);
 });
 
 test("VirGL depth-batch renderer clears one less-write depth attachment", async () => {
@@ -77,6 +86,20 @@ test("VirGL depth-batch renderer preserves ordered per-draw comparisons", async 
   assert.equal(device.renderPasses.length, 1); assert.deepEqual(device.draw, [3, 3]);
 });
 
+test("VirGL depth-batch renderer preserves ordered depth write masks", async () => {
+  const device = fakeDevice(); const status = fakeStatus();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), status, {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  const packet = virglSolidBatchPacket({ draws: mixedWriteDraws(), sequence: 83, version: 5 });
+  assert.deepEqual(await display.present3d(packet), { sequence: 83, success: true });
+  assert.deepEqual(device.pipelines.map((pipeline) => pipeline.descriptor.depthStencil), [
+    { depthCompare: "less", depthWriteEnabled: true, format: "depth24plus" },
+    { depthCompare: "greater", depthWriteEnabled: false, format: "depth24plus" },
+  ]);
+  assert.deepEqual(device.pipelineBinds.map((pipeline) => pipeline.descriptor.depthStencil.depthWriteEnabled), [true, false]);
+});
+
 function depthDraws() {
   const viewport = [512, 384, 0.5, 512, 384, 0.5];
   const triangle = (z) => [0, 0.75, z, 1, -0.75, -0.75, z, 1, 0.75, -0.75, z, 1];
@@ -97,4 +120,8 @@ function equalDraws() {
 
 function mixedDraws() {
   return depthDraws().map((draw, index) => ({ ...draw, depthCompare: [1, 4][index] }));
+}
+
+function mixedWriteDraws() {
+  return mixedDraws().map((draw, index) => ({ ...draw, depthWriteEnabled: index === 0 }));
 }

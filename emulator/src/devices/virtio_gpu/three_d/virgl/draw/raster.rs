@@ -6,7 +6,7 @@ mod texture_color;
 mod vertex_color;
 
 use super::{DrawMaterial, TextureSnapshot};
-use super::super::DepthCompare;
+use super::super::DepthState;
 use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::resource::GpuResource;
 
@@ -37,10 +37,10 @@ pub(super) fn draw_depth_solid(
     color: [f32; 4],
     viewport: [f32; 6],
     scissor: Option<Rect>,
-    compare: DepthCompare,
+    state: DepthState,
     depth_values: &mut [f32],
 ) -> bool {
-    depth::draw(resource, rect, vertices, color, viewport, scissor, compare, depth_values)
+    depth::draw(resource, rect, vertices, color, viewport, scissor, state, depth_values)
 }
 
 pub(super) fn draw_textured(

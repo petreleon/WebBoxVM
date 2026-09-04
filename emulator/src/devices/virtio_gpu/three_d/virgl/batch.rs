@@ -42,7 +42,7 @@ impl VirtioGpu {
         works: Vec<DrawWork>,
     ) -> Result<DeferredSubmit, u32> {
         if !works.iter().all(|work| {
-            work.depth_resource == Some(depth_resource) && work.depth_compare.is_some()
+            work.depth_resource == Some(depth_resource) && work.depth_state.is_some()
         }) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }

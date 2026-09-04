@@ -1,5 +1,5 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-mixed-depth-batch-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-depth-write-mask-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-depth-write-mask-r1";
 
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }
@@ -28,8 +28,11 @@ export class VirglDepthBatchRenderer {
     if (typeof device.queue.onSubmittedWorkDone !== "function") throw new Error("WebGPU queue completion tracking is unavailable");
     if (!isCurrent()) return false;
     try {
-      const compares = frame.draws.map((draw) => draw.depthCompare ?? frame.depthCompare);
-      if (!await this.#ensurePipelines(backend, compares) || !isCurrent()) return false;
+      const states = frame.draws.map((draw) => ({
+        depthCompare: draw.depthCompare ?? frame.depthCompare,
+        depthWriteEnabled: draw.depthWriteEnabled ?? frame.depthWriteEnabled,
+      }));
+      if (!await this.#ensurePipelines(backend, states) || !isCurrent()) return false;
       const revision = this.#revision;
       await captureWebGpuErrors(device, () => this.#issueDraw(backend, frame));
       return revision === this.#revision && isCurrent();
@@ -43,25 +46,26 @@ export class VirglDepthBatchRenderer {
     this.#generation = 0; this.#vertexCapacity = 0; this.#width = 0; this.#height = 0;
   }
 
-  async #ensurePipelines(backend, compares) {
+  async #ensurePipelines(backend, states) {
     if (this.#generation !== backend.deviceGeneration) {
       this.invalidate(); this.#generation = backend.deviceGeneration;
     }
-    const missing = [...new Set(compares)].filter((compare) => !this.#pipelines.has(compare));
+    const missing = [...new Map(states.map((state) => [pipelineKey(state), state])).values()]
+      .filter((state) => !this.#pipelines.has(pipelineKey(state)));
     if (!missing.length) return true;
     const revision = this.#revision;
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");
     const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 depth-batch shader" });
-    for (const depthCompare of missing) {
+    for (const { depthCompare, depthWriteEnabled } of missing) {
       const pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
-        depthStencil: { depthCompare, depthWriteEnabled: true, format: "depth24plus" },
+        depthStencil: { depthCompare, depthWriteEnabled, format: "depth24plus" },
         fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
         label: "VirGL capset 1 depth-batch pipeline", layout: "auto", primitive: { topology: "triangle-list" },
         vertex: { buffers: [{ arrayStride: 32, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x4", offset: 16, shaderLocation: 1 }] }], entryPoint: "vertex_main", module },
       }));
       if (revision !== this.#revision) return false;
-      this.#pipelines.set(depthCompare, pipeline);
+      this.#pipelines.set(pipelineKey({ depthCompare, depthWriteEnabled }), pipeline);
     }
     return revision === this.#revision;
   }
@@ -82,7 +86,10 @@ export class VirglDepthBatchRenderer {
     pass.setVertexBuffer(0, this.#vertexBuffer);
     let first = 0;
     for (const draw of frame.draws) {
-      const pipeline = this.#pipelines.get(draw.depthCompare ?? frame.depthCompare);
+      const pipeline = this.#pipelines.get(pipelineKey({
+        depthCompare: draw.depthCompare ?? frame.depthCompare,
+        depthWriteEnabled: draw.depthWriteEnabled ?? frame.depthWriteEnabled,
+      }));
       if (!pipeline) throw new Error("VirGL depth-batch pipeline is unavailable");
       pass.setPipeline(pipeline);
       pass.setViewport(...webGpuViewport(draw, frame.canvasHeight));
@@ -109,6 +116,10 @@ function interleave(draws) {
     vertices.set(draw.vertices.subarray(source, source + 4), offset); vertices.set(draw.drawColor, offset + 4); offset += 8;
   }
   return vertices;
+}
+
+function pipelineKey({ depthCompare, depthWriteEnabled }) {
+  return `${depthCompare}:${depthWriteEnabled}`;
 }
 
 function webGpuViewport(draw, height) {

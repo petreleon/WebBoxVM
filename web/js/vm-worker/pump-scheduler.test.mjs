@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createPumpTaskScheduler } from "./pump.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { createPumpTaskScheduler } from "./pump.js?v=20260904-virgl-depth-write-mask-r1";
 
 test("pump scheduler uses message channel when available", () => {
   let port1;

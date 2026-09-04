@@ -1,4 +1,4 @@
-import { delay } from "./utils.js?v=20260904-virgl-mixed-depth-batch-r1";
+import { delay } from "./utils.js?v=20260904-virgl-depth-write-mask-r1";
 
 export async function waitForTerminal() {
   while (!window.Terminal || !window.FitAddon) {

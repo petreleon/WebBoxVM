@@ -15,7 +15,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) struct DrawState {
     pub fragment_program: ShaderProgram,
     pub vertex_uniform: Option<super::UniformBinding>,
     pub fragment_constants: Option<FragmentConstants>,
-    pub depth: Option<super::DepthCompare>,
+    pub depth: Option<super::DepthState>,
     pub viewport: Viewport,
     pub scissor: Option<Rect>,
     pub sampled_resources: [Option<SampledResource>; MAX_VIRGL_FRAGMENT_SAMPLERS],

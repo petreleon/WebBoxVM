@@ -3,6 +3,7 @@ export function virglDepthPacket({
   canvasWidth = 1024,
   clearColor = [0.1, 0.2, 0.3, 1],
   depthCompare = 1,
+  depthWriteEnabled = true,
   depthClear = 1,
   drawColor = [0, 1, 0, 0.25],
   scissor = [0, 0, canvasWidth, canvasHeight],
@@ -12,7 +13,7 @@ export function virglDepthPacket({
 } = {}) {
   const vertexCount = vertices.length / 4;
   const state = 56 + vertices.length * 4;
-  const version = depthCompare === 1 ? 9 : 10;
+  const version = !depthWriteEnabled ? 11 : depthCompare === 1 ? 9 : 10;
   const packet = new Uint8Array(state + (version === 9 ? 44 : 48));
   packet.set([0x56, 0x47, 0x44, 0x31]);
   const view = new DataView(packet.buffer);
@@ -22,6 +23,7 @@ export function virglDepthPacket({
   scissor.forEach((value, index) => view.setUint32(state + 24 + index * 4, value, true));
   view.setFloat32(state + 40, depthClear, true);
   if (version === 10) view.setUint32(state + 44, depthCompare, true);
+  if (version === 11) view.setUint32(state + 44, 1 | (depthCompare << 2), true);
   return packet;
 }
 

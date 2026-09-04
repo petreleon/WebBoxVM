@@ -21,7 +21,7 @@ pub(in crate::devices::virtio_gpu::three_d::virgl) use context::{
     SamplerState, UniformBinding,
 };
 pub(in crate::devices::virtio_gpu) use context::{
-    DepthCompare, IndexBuffer, VertexBuffer, VertexElement, VirglContext,
+    DepthCompare, DepthState, IndexBuffer, VertexBuffer, VertexElement, VirglContext,
 };
 pub(super) use copy::CopyRegion;
 pub(super) use draw::{DrawMaterial, DrawWork};
@@ -93,7 +93,7 @@ impl VirtioGpu {
                 generation,
                 resource_id,
                 depth_resource: work.depth_resource,
-                depth_compare: work.depth_compare,
+                depth_state: work.depth_state,
                 rect,
                 clear_bgra: bgra(clear),
                 material: work.material,

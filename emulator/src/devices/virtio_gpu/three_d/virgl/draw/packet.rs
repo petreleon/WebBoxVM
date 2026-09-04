@@ -1,7 +1,7 @@
 mod batch;
 
 use super::super::SamplerConfig;
-use super::super::DepthCompare;
+use super::super::{DepthCompare, DepthState};
 use super::{DrawMaterial, DrawWork};
 
 pub(in crate::devices::virtio_gpu::three_d) use batch::{packet as batch_packet, depth_packet as depth_batch_packet};
@@ -46,18 +46,20 @@ fn solid(
     work: &DrawWork,
     color: [f32; 4],
 ) -> Vec<u8> {
-    let version = match work.depth_compare {
+    let version = match work.depth_state {
         None => 2,
-        Some(DepthCompare::Less) => 9,
-        Some(_) => 10,
+        Some(DepthState { compare: DepthCompare::Less, write: true }) => 9,
+        Some(DepthState { write: true, .. }) => 10,
+        Some(_) => 11,
     };
     let mut packet = header(version, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain(color));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
-    if let Some(compare) = work.depth_compare {
+    if let Some(state) = work.depth_state {
         floats(&mut packet, [1.0].into_iter());
-        if compare != DepthCompare::Less { packet.extend_from_slice(&compare.wire().to_le_bytes()); }
+        if version == 10 { packet.extend_from_slice(&state.compare.wire().to_le_bytes()); }
+        if version == 11 { packet.extend_from_slice(&state.wire().to_le_bytes()); }
     }
     packet
 }

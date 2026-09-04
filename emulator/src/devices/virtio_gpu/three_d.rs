@@ -11,7 +11,7 @@ mod virgl;
 
 pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};
 use packet::decode_submit;
-use virgl::{DepthCompare, DrawMaterial, DrawWork};
+use virgl::{DepthState, DrawMaterial, DrawWork};
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
 #[cfg(test)]
 pub(in crate::devices::virtio_gpu) use virgl::{ShaderKind, ShaderProgram};
@@ -47,7 +47,7 @@ pub(super) enum Pending3dEffect {
         generation: u32,
         resource_id: u32,
         depth_resource: Option<u32>,
-        depth_compare: Option<DepthCompare>,
+        depth_state: Option<DepthState>,
         rect: Rect,
         clear_bgra: [u8; 4],
         material: DrawMaterial,

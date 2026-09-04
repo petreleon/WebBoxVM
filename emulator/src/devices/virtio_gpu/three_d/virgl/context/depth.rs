@@ -1,12 +1,12 @@
-use super::{DepthCompare, VirglContext};
+use super::{DepthState, VirglContext};
 
 impl VirglContext {
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn create_depth_state(
         &mut self,
         handle: u32,
-        compare: DepthCompare,
+        state: DepthState,
     ) -> bool {
-        handle != 0 && self.pipeline.depth_states.insert(handle, compare).is_none()
+        handle != 0 && self.pipeline.depth_states.insert(handle, state).is_none()
     }
 
     pub(in crate::devices::virtio_gpu::three_d::virgl) fn bind_depth_state(

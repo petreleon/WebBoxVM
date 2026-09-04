@@ -13,7 +13,7 @@ export function parseVirglDepthPacket(packet) {
   const [version, sequence, canvasWidth, canvasHeight, vertexCount] = [4, 8, 12, 16, 20]
     .map((offset) => view.getUint32(offset, true));
   const state = 56 + vertexCount * 16;
-  const extra = version === 9 ? 44 : version === 10 ? 48 : 0;
+  const extra = version === 9 ? 44 : version === 10 || version === 11 ? 48 : 0;
   if (!extra || !sequence || !validCount(vertexCount) || packet.byteLength !== state + extra) {
     throw new Error("VirGL depth packet has invalid VGD1 framing");
   }
@@ -26,11 +26,16 @@ export function parseVirglDepthPacket(packet) {
   if (!validPositions(vertices)) throw new Error("VirGL depth vertices are invalid");
   const depthClear = view.getFloat32(state + 40, true);
   if (depthClear !== 1) throw new Error("VirGL depth clear must be exactly one");
-  const depthCompare = version === 9 ? "less" : DEPTH_COMPARE[view.getUint32(state + 44, true)];
+  const depthState = version === 11 ? view.getUint32(state + 44, true) : undefined;
+  if (version === 11 && ((depthState & 1) === 0 || depthState > 31)) {
+    throw new Error("VirGL depth state must be canonical");
+  }
+  const depthCompare = version === 9 ? "less" : DEPTH_COMPARE[version === 11 ? depthState >> 2 : view.getUint32(state + 44, true)];
   if (!depthCompare) throw new Error("VirGL depth compare must be standard");
   return {
     acceleration: "webgpu-virgl-capset1-depth", canvasHeight, canvasWidth, capsetId: 1,
-    clearColor, depthClear, depthCompare, drawColor, presentationLabel: "VirGL capset 1 depth-tested triangles",
+    clearColor, depthClear, depthCompare, depthWriteEnabled: version !== 11 || (depthState & 2) !== 0, drawColor,
+    presentationLabel: "VirGL capset 1 depth-tested triangles",
     protocol: "virgl-depth", sequence, version, vertexCount, vertices,
     ...viewportState(view, canvasWidth, canvasHeight, state),
   };
