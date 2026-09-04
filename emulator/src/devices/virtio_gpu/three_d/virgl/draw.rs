@@ -80,9 +80,6 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        if state.blend == BlendMode::Replace && state.depth.is_some() {
-            return Err(RESP_ERR_INVALID_PARAMETER);
-        }
         let (vertex_bytes, material, transform) = material(self, context, resource_id, state)?;
         let depth_resource = depth::validate(
             self, context, resource_id, depth_resource, state.depth, &material,

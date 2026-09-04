@@ -55,9 +55,10 @@ fn encode(
         (Some(DepthState { write: true, .. }), false, false, false, _, BlendMode::SourceOver) => 3,
         (Some(_), true, false, false, _, BlendMode::SourceOver) => 4,
         (Some(_), _, true, false, _, BlendMode::SourceOver) => 5,
+        (Some(_), _, _, false, _, BlendMode::Replace) => 9,
         _ => return None,
     };
-    let per_draw_depth = matches!(version, 4 | 5);
+    let per_draw_depth = matches!(version, 4 | 5 | 9);
     let depth_resource = works.first()?.depth_resource;
     let body = works.iter().try_fold(0usize, |total, work| {
         let bytes = usize::try_from(work.vertex_count).ok()?.checked_mul(16)?;

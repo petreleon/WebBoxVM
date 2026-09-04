@@ -1,5 +1,7 @@
 use super::super::protocol::*;
+use super::super::{completion::{PendingCompletion, WritableRegion}, three_d::BrowserCompletion};
 use super::{header, virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_scissor_state};
+use crate::constants::RAM_BASE;
 use crate::memory::PhysicalMemory;
 
 const DEPTH: u32 = 7;
@@ -100,6 +102,24 @@ fn standard_mixed_depth_write_masks_batch_in_one_deferred_submission() {
     assert_eq!(f32::from_le_bytes(gpu.resources[&DEPTH].pixels[middle..middle + 4].try_into().unwrap()), 0.25);
 }
 
+#[test]
+fn opaque_depth_draw_requires_readback_replace_delivery() {
+    let (mut gpu, mut mem) = prepared(); add_depth(&mut gpu, &mut mem, DEPTH); configure(&mut gpu, &mut mem); upload_depth_vertices(&mut gpu);
+    assert_response(&mut gpu, &mut mem, &submit(&opaque_state(16)), RESP_OK_NODATA);
+    let mut command = clear(); command.extend(constants([1.0, 0.0, 0.0, 0.5])); command.extend(draw());
+    let first = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("opaque depth defers");
+    assert_eq!(gpu.pending_3d[0].browser_completion, BrowserCompletion::Readback);
+    attach(&mut gpu, first, RAM_BASE + 0x7000, 1); let packet = gpu.take_3d_update();
+    assert_eq!([4, 20, 24].map(|at| read_u32(&packet, at)), [Some(9), Some(1), Some(0)]);
+    assert!(gpu.complete_3d(&mut mem, first.sequence, true)); assert_eq!(mem.read(RAM_BASE + 0x7000, 4), Some(RESP_ERR_UNSPEC as u64));
+    let second = gpu.execute_queued_command(&mut mem, &submit(&command)).deferred.expect("second opaque depth defers");
+    attach(&mut gpu, second, RAM_BASE + 0x7200, 2); let _ = gpu.take_3d_update();
+    assert!(gpu.complete_3d_readback(&mut mem, second.sequence, 2, &[1, 2, 3, 255].repeat(1024 * 768)));
+    let middle = ((384 * 1024 + 512) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[middle..middle + 4], &[3, 2, 1, 255]);
+    assert_eq!(f32::from_le_bytes(gpu.resources[&DEPTH].pixels[middle..middle + 4].try_into().unwrap()), 0.25);
+}
+
 fn configure(gpu: &mut super::super::VirtioGpu, mem: &mut PhysicalMemory) {
     let mut state = surface_create(COLOR_SURFACE, TARGET);
     state.extend(surface_create(DEPTH_SURFACE, DEPTH).into_iter().enumerate().map(|(index, word)| if index == 3 { 18 } else { word }));
@@ -119,6 +139,15 @@ fn clear() -> Vec<u32> {
 
 fn constants(color: [f32; 4]) -> Vec<u32> {
     let mut words = vec![word(12, 0, 6), 1, 0]; words.extend(color.map(f32::to_bits)); words
+}
+
+fn opaque_state(handle: u32) -> Vec<u32> {
+    let mut words = vec![word(1, 1, 11), handle, 0, 0, 15 << 27];
+    words.extend([0; 7]); words.extend([word(2, 1, 1), handle]); words
+}
+
+fn attach(gpu: &mut super::super::VirtioGpu, deferred: super::super::three_d::DeferredSubmit, addr: u64, head: u16) {
+    assert!(gpu.attach_3d_completion(deferred.sequence, PendingCompletion { header: deferred.header, output: vec![WritableRegion { addr, len: 24 }], used: RAM_BASE + 0x7100, queue_size: 8, head }));
 }
 
 fn add_depth(gpu: &mut super::super::VirtioGpu, mem: &mut PhysicalMemory, resource: u32) {

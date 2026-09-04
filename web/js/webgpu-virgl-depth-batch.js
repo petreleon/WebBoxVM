@@ -29,7 +29,7 @@ export class VirglDepthBatchRenderer {
     if (typeof device.queue.onSubmittedWorkDone !== "function") throw new Error("WebGPU queue completion tracking is unavailable");
     if (!isCurrent()) return false;
     try {
-      const states = frame.draws.map((draw) => ({
+      const states = frame.draws.map((draw) => ({ blend: frame.blend ?? "source-over",
         depthCompare: draw.depthCompare ?? frame.depthCompare,
         depthWriteEnabled: draw.depthWriteEnabled ?? frame.depthWriteEnabled,
       }));
@@ -58,15 +58,15 @@ export class VirglDepthBatchRenderer {
     const { device } = backend;
     if (typeof device.createRenderPipelineAsync !== "function") throw new Error("WebGPU asynchronous pipeline validation is unavailable");
     const module = device.createShaderModule({ code: SHADER, label: "VirGL capset 1 depth-batch shader" });
-    for (const { depthCompare, depthWriteEnabled } of missing) {
+    for (const { blend, depthCompare, depthWriteEnabled } of missing) {
       const pipeline = await captureWebGpuErrors(device, () => device.createRenderPipelineAsync({
         depthStencil: { depthCompare, depthWriteEnabled, format: "depth24plus" },
-        fragment: { entryPoint: "fragment_main", module, targets: [{ blend: SOURCE_OVER, format: backend.format }] },
+        fragment: { entryPoint: "fragment_main", module, targets: [{ ...(blend === "replace" ? {} : { blend: SOURCE_OVER }), format: backend.format }] },
         label: "VirGL capset 1 depth-batch pipeline", layout: "auto", primitive: { topology: "triangle-list" },
         vertex: { buffers: [{ arrayStride: 32, attributes: [{ format: "float32x4", offset: 0, shaderLocation: 0 }, { format: "float32x4", offset: 16, shaderLocation: 1 }] }], entryPoint: "vertex_main", module },
       }));
       if (revision !== this.#revision) return false;
-      this.#pipelines.set(pipelineKey({ depthCompare, depthWriteEnabled }), pipeline);
+      this.#pipelines.set(pipelineKey({ blend, depthCompare, depthWriteEnabled }), pipeline);
     }
     return revision === this.#revision;
   }
@@ -89,6 +89,7 @@ export class VirglDepthBatchRenderer {
     let first = 0;
     for (const draw of frame.draws) {
       const pipeline = this.#pipelines.get(pipelineKey({
+        blend: frame.blend ?? "source-over",
         depthCompare: draw.depthCompare ?? frame.depthCompare,
         depthWriteEnabled: draw.depthWriteEnabled ?? frame.depthWriteEnabled,
       }));
@@ -120,8 +121,8 @@ function interleave(draws) {
   return vertices;
 }
 
-function pipelineKey({ depthCompare, depthWriteEnabled }) {
-  return `${depthCompare}:${depthWriteEnabled}`;
+function pipelineKey({ blend, depthCompare, depthWriteEnabled }) {
+  return `${blend}:${depthCompare}:${depthWriteEnabled}`;
 }
 
 function webGpuViewport(draw, height) {

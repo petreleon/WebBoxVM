@@ -10,7 +10,7 @@ UBO slot, and limits exercised by this implementation.
 
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
-clear, standard source-over plus non-depth full-mask opaque blend states, deliberately bounded single
+clear, standard source-over plus full-mask opaque blend states, deliberately bounded single
 solid/inline-constant or resource-backed-fragment-constant color plus one resource-backed vertex XY offset; singleton solid, interpolated or constant-modulated vertex-color, one-texture, fragment-constant-modulated texture, or texture-times-vertex-color depth draws with canonical DSA comparisons/write masks; and 2–16-draw batches of those supported material snapshots that are wholly non-depth or preserve bounded ordered DSA states; bounded triangle lists with generic per-vertex-RGBA;
 nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
@@ -60,7 +60,7 @@ Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
 Type-1 `VIRGL_OBJECT_BLEND` accepts either an exact source-over 11-word
 `pipe_blend_state` (RGBA `ADD, SRC_ALPHA, INV_SRC_ALPHA` and alpha `ADD, ONE,
 INV_SRC_ALPHA`) or blend-disabled full-RGBA replace word `0x78000000`, limited
-to uniform non-depth batches. Binding zero unbinds; every other equation, factor, mask, and independent
+to uniform batches. Binding zero unbinds; every other equation, factor, mask, and independent
 blend configuration is rejected. Type-0 `VIRGL_OBJECT_DSA` accepts only depth-test bit 0, write bit 1, and `PIPE_FUNC_NEVER` through `PIPE_FUNC_ALWAYS` in bits 2–4 (`1 | write << 1 | func << 2`), with all remaining state zero; singleton solid/vertex-color/one-texture/texture-color draws preserve it exactly.
 
 Type-2 `VIRGL_OBJECT_RASTERIZER` accepts only the normal `DEPTH_CLIP`,
@@ -99,8 +99,8 @@ Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. One clear may precede one through 16 draws against the current full-scanout
 framebuffer. An eligible non-depth source-over singleton uses resident `VGB1` v6/v7 for a
 solid or resident `VGM1` v2/v3 for any other supported material; an ineligible source-over
-singleton uses `VGD1`. Full-mask opaque non-depth work uses readback `VGB1` v8 for solid or
-`VGM1` v4 for other materials. A source-over solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
+singleton uses `VGD1`. Full-mask opaque work uses readback `VGB1` v8/v9 (non-depth/depth) for solid or
+`VGM1` v4/v5 (non-depth/depth) for other materials. A source-over solid-only 2–16 sequence uses `VGB1` v1 when non-depth,
 legacy v2 for shared `LESS`, v3 with one shared comparison in flags, v4 with
 per-record comparisons, or v5 with per-record canonical DSA state. Other
 supported source-over 2–16 sequences use `VGM1`; blend-mixed batches fail transactionally.
@@ -110,7 +110,7 @@ Each source position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.
-Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use source-over unless the uniform non-depth full-mask opaque mode is selected.
+Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use source-over unless the uniform full-mask opaque mode is selected.
 
 After validation an ineligible singleton uses the private `VGD1` envelope; `VGD1`
 is not a guest ABI or VirGL command. Each schema validates three through 3,063 normalized list vertices. Schema 2 is 144 bytes: its original

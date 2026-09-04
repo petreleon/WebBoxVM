@@ -16,11 +16,10 @@ writable. The VirGL renderer test creates that state by zeroing
 ## Application to WebBoxVM
 
 The stream accepts exactly that full-mask replace state in addition to the
-existing source-over state. A uniform non-depth replace batch uses private
-`VGB1` version 8 for solid draws or `VGM1` version 4 for other supported
-materials. The browser validates those versions and omits WebGPU's `blend`
-descriptor, so fragment RGBA replaces the target as the standard state
-requires.
+existing source-over state. A uniform replace batch uses private `VGB1` v8/v9
+or `VGM1` v4/v5 for non-depth/depth solid or other material draws. The browser
+validates those versions and omits WebGPU's `blend` descriptor, so fragment
+RGBA replaces the target as the standard state requires.
 
 All records in one private batch must have the same blend mode. A mixed
 source-over/replace batch is rejected transactionally rather than silently
@@ -30,16 +29,15 @@ source-over by mistake.
 
 ## Boundary
 
-This is non-depth, full-RGBA replace only. Partial color masks, blend equations
-or factors other than source-over, logic operations, independent targets,
-opaque depth rendering, general OpenGL, Vulkan, and Venus remain outside the
-implemented subset.
+This is full-RGBA replace with bounded depth testing only. Partial color masks,
+blend equations or factors other than source-over, logic operations, independent
+targets, general OpenGL, Vulkan, and Venus remain outside the implemented subset.
 
 ## Validation
 
-Rust tests construct the standard wire word, require a `VGB1` version-8
-readback completion, and check RGBA-to-BGRA delivery. Browser tests validate
-both version-8 solid and version-4 mixed-material packets and prove their
+Rust tests construct the standard wire word, require `VGB1` v8/v9 readback
+completion, and check RGBA-to-BGRA delivery plus the bounded depth shadow.
+Browser tests validate v8/v9 solid and v4/v5 material packets and prove their
 WebGPU targets have no source-over descriptor.
 
 ## Sources

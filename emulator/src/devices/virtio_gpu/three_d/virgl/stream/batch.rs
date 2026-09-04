@@ -39,6 +39,10 @@ pub(super) fn deferred(
             if works.len() == 1 && works[0].blend == BlendMode::Replace => Ok(Some(
                 gpu.queue_virgl_batch(header, generation, resource, rect, color, works)?,
             )),
+        Some(Clear { resource, depth_resource: Some(depth_resource), color, rect })
+            if works.len() == 1 && works[0].blend == BlendMode::Replace => Ok(Some(
+                gpu.queue_virgl_depth_batch(header, generation, resource, depth_resource, rect, color, works)?,
+            )),
         Some(Clear { resource, color, rect, .. }) if works.len() == 1 => Ok(Some(
             gpu.queue_virgl_draw(header, generation, resource, rect, color, works.into_iter().next().unwrap())?,
         )),

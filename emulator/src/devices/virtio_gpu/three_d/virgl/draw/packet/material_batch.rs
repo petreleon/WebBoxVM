@@ -14,7 +14,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
     predecessor: Option<u32>,
 ) -> Option<Vec<u8>> {
     let blend = works.first()?.blend;
-    let singleton = !depth && (resident || blend == BlendMode::Replace);
+    let singleton = resident || blend == BlendMode::Replace;
     if works.iter().any(|work| work.blend != blend)
         || (works.len() < 2 && !singleton)
         || works.len() > MAX_VIRGL_BATCH_DRAWS
@@ -26,6 +26,7 @@ pub(in crate::devices::virtio_gpu::three_d) fn packet(
         (false, true, None, BlendMode::SourceOver) => 2,
         (false, true, Some(_), BlendMode::SourceOver) => 3,
         (false, false, _, BlendMode::Replace) => 4,
+        (true, false, _, BlendMode::Replace) => 5,
         _ => return None,
     };
     let body = works.iter().try_fold(0usize, |total, work| {

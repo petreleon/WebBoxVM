@@ -106,6 +106,17 @@ test("VirGL depth-batch renderer preserves ordered depth write masks", async () 
   assert.deepEqual(device.pipelineBinds.map((pipeline) => pipeline.descriptor.depthStencil.depthWriteEnabled), [true, false]);
 });
 
+test("VirGL opaque depth batches use replace depth pipelines", async () => {
+  const packet = virglSolidBatchPacket({ depthCompare: 1, draws: depthDraws().slice(0, 1), sequence: 84, version: 9 });
+  const frame = parseGpu3dPacket(packet); assert.equal(frame.blend, "replace"); assert.equal(frame.protocol, "virgl-depth-batch");
+  const device = fakeDevice(); const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  assert.equal((await display.present3d(packet)).success, true);
+  assert.deepEqual(device.pipelines[0].descriptor.fragment.targets, [{ format: "bgra8unorm" }]);
+  assert.deepEqual(device.pipelines[0].descriptor.depthStencil, { depthCompare: "less", depthWriteEnabled: true, format: "depth24plus" });
+});
+
 function depthDraws() {
   const viewport = [512, 384, 0.5, 512, 384, 0.5];
   const triangle = (z) => [0, 0.75, z, 1, -0.75, -0.75, z, 1, 0.75, -0.75, z, 1];

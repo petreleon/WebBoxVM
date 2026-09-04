@@ -1,4 +1,5 @@
 use super::super::Pending3dEffect;
+use super::BlendMode;
 use crate::devices::virtio_gpu::VirtioGpu;
 
 mod readback;
@@ -69,7 +70,10 @@ impl VirtioGpu {
                 clear_bgra,
                 works,
                 ..
-            } => self.apply_virgl_depth_batch(resource_id, depth_resource, rect, clear_bgra, works),
+            } if works.iter().all(|work| work.blend == BlendMode::SourceOver) => {
+                self.apply_virgl_depth_batch(resource_id, depth_resource, rect, clear_bgra, works)
+            }
+            Pending3dEffect::VirglDepthBatch { .. } => false,
             Pending3dEffect::VirglResidentReadback { .. } => false,
         }
     }
