@@ -75,7 +75,7 @@ test("VirGL clear envelope identifies capset one and rejects invalid color value
   assert.throws(() => parseGpu3dPacket(packet), /normalized finite/);
 });
 
-test("VirGL draw envelope validates one bounded clip-space triangle", () => {
+test("VirGL draw envelope validates bounded clip-space triangles", () => {
   const packet = virglDrawPacket({ sequence: 62 });
   const frame = parseGpu3dPacket(packet);
   assert.equal(frame.protocol, "virgl-draw");
@@ -92,10 +92,10 @@ test("VirGL draw envelope validates one bounded clip-space triangle", () => {
   assert.equal(legacy.scissor, undefined);
   const count = packet.slice();
   new DataView(count.buffer).setUint32(20, 2, true);
-  assert.throws(() => parseGpu3dPacket(count), /one triangle/);
+  assert.throws(() => parseGpu3dPacket(count), /vertex count/);
   const position = packet.slice();
   new DataView(position.buffer).setFloat32(56, 2, true);
-  assert.throws(() => parseGpu3dPacket(position), /clip-space/);
+  assert.throws(() => parseGpu3dPacket(position), /positions/);
   const viewport = packet.slice();
   new DataView(viewport.buffer).setFloat32(104, Number.NaN, true);
   assert.throws(() => parseGpu3dPacket(viewport), /viewport/);
@@ -118,7 +118,7 @@ test("VirGL textured envelope snapshots bounded BGRA sampler data", () => {
   assert.throws(() => parseGpu3dPacket(badSize), /length or version/);
   const badUv = packet.slice();
   new DataView(badUv.buffer).setFloat32(72, Number.NaN, true);
-  assert.throws(() => parseGpu3dPacket(badUv), /textured triangle/);
+  assert.throws(() => parseGpu3dPacket(badUv), /textured vertices/);
 });
 
 test("VirGL dual-texture envelope snapshots two bounded sampler slots", () => {

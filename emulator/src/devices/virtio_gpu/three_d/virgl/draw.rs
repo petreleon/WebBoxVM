@@ -13,10 +13,12 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 
 pub(super) const TRIANGLE_VERTICES: u32 = 3;
+pub(super) const MAX_VIRGL_DRAW_VERTICES: u32 = 1023;
 
 #[derive(Clone, Copy)]
 pub(super) struct DrawCall {
     pub start: u32,
+    pub count: u32,
     pub indexed: bool,
 }
 
@@ -40,6 +42,7 @@ pub(in crate::devices::virtio_gpu) enum DrawMaterial {
 pub(super) struct DrawWork {
     pub(super) material: DrawMaterial,
     pub(super) vertices: Vec<u8>,
+    pub(super) vertex_count: u32,
     pub(super) viewport: [f32; 6],
     pub(super) scissor: Option<Rect>,
 }
@@ -78,6 +81,7 @@ impl VirtioGpu {
         Ok(DrawWork {
             material,
             vertices,
+            vertex_count: call.count,
             viewport: viewport.values(),
             scissor: scissor.map(|scissor| Rect {
                 x: scissor.x,

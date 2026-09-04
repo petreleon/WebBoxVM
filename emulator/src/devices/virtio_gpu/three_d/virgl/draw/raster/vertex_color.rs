@@ -5,8 +5,10 @@ use crate::devices::virtio_gpu::resource::GpuResource;
 const STRIDE: usize = 32;
 
 pub(super) fn valid(vertices: &[u8]) -> bool {
-    geometry::positions(vertices, STRIDE).is_some_and(geometry::valid_positions)
-        && colors(vertices).is_some()
+    geometry::valid_vertices(vertices, STRIDE)
+        && vertices
+            .chunks_exact(geometry::VERTICES * STRIDE)
+            .all(|triangle| colors(triangle).is_some())
 }
 
 pub(super) fn draw(
@@ -16,27 +18,28 @@ pub(super) fn draw(
     viewport: [f32; 6],
     scissor: Option<Rect>,
 ) -> bool {
-    let Some(colors) = colors(vertices) else {
+    if !valid(vertices) {
         return false;
-    };
-    let Some((points, (min_x, max_x, min_y, max_y))) =
-        geometry::setup(resource, rect, vertices, STRIDE, viewport, scissor)
-    else {
-        return false;
-    };
-    for y in min_y..max_y {
-        for x in min_x..max_x {
-            let point = [x as f32 + 0.5, y as f32 + 0.5];
-            if !geometry::contains(points, point[0], point[1]) {
-                continue;
+    }
+    for triangle in vertices.chunks_exact(geometry::VERTICES * STRIDE) {
+        let Some(colors) = colors(triangle) else { return false; };
+        let Some((points, (min_x, max_x, min_y, max_y))) =
+            geometry::setup(resource, rect, triangle, STRIDE, viewport, scissor)
+        else { return false; };
+        for y in min_y..max_y {
+            for x in min_x..max_x {
+                let point = [x as f32 + 0.5, y as f32 + 0.5];
+                if !geometry::contains(points, point[0], point[1]) {
+                    continue;
+                }
+                let Some(index) = geometry::pixel(resource, rect, x, y) else {
+                    return false;
+                };
+                let Some(pixel) = resource.pixels.get_mut(index..index + 4) else {
+                    return false;
+                };
+                geometry::source_over(pixel, interpolate(colors, geometry::weights(points, point[0], point[1])));
             }
-            let Some(index) = geometry::pixel(resource, rect, x, y) else {
-                return false;
-            };
-            let Some(pixel) = resource.pixels.get_mut(index..index + 4) else {
-                return false;
-            };
-            geometry::source_over(pixel, interpolate(colors, geometry::weights(points, point[0], point[1])));
         }
     }
     true

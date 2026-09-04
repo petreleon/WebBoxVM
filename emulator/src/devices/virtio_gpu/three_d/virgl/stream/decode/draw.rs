@@ -1,4 +1,4 @@
-use super::super::super::draw::DrawCall;
+use super::super::super::draw::{DrawCall, MAX_VIRGL_DRAW_VERTICES, TRIANGLE_VERTICES};
 
 const CMD_DRAW_VBO: u8 = 8;
 const PIPE_PRIM_TRIANGLES: u32 = 4;
@@ -10,7 +10,7 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<DrawCall>
             0,
             [
                 start,
-                3,
+                count,
                 PIPE_PRIM_TRIANGLES,
                 indexed,
                 1,
@@ -22,10 +22,16 @@ pub(super) fn decode(command: u8, object: u8, words: &[u32]) -> Option<DrawCall>
                 _,
                 0,
             ],
-        ) if *indexed <= 1 => Some(DrawCall {
+        ) if *indexed <= 1 && valid_count(*count) => Some(DrawCall {
             start: *start,
+            count: *count,
             indexed: *indexed != 0,
         }),
         _ => None,
     }
+}
+
+fn valid_count(count: u32) -> bool {
+    (TRIANGLE_VERTICES..=MAX_VIRGL_DRAW_VERTICES).contains(&count)
+        && count.is_multiple_of(TRIANGLE_VERTICES)
 }

@@ -55,3 +55,44 @@ fn standard_draw_vbo_queues_a_webgpu_triangle_after_clear() {
     );
     assert_eq!(&gpu.take_scanout_update()[..4], b"WBGF");
 }
+
+#[test]
+fn standard_draw_batches_two_triangles_from_one_vertex_buffer() {
+    let (mut gpu, mut mem) = prepared();
+    let mut state = surface_create(9, TARGET);
+    state.extend(framebuffer(9));
+    state.extend(shader_create(11, 0, VERT));
+    state.extend(shader_create(12, 1, FRAG));
+    state.extend(shader_bind(11, 0));
+    state.extend(shader_bind(12, 1));
+    state.extend(virgl_source_over_state(13));
+    state.extend(virgl_viewport_scissor_state(14));
+    state.extend(vertex_state());
+    assert_response(&mut gpu, &mut mem, &submit(&state), RESP_OK_NODATA);
+    let positions = [
+        -0.23, 0.2, 0.0, 1.0, -0.23, -0.2, 0.0, 1.0, -0.03, -0.2, 0.0, 1.0,
+        0.03, 0.2, 0.0, 1.0, 0.03, -0.2, 0.0, 1.0, 0.23, -0.2, 0.0, 1.0,
+    ];
+    let bytes: Vec<u8> = positions.into_iter().flat_map(f32::to_le_bytes).collect();
+    gpu.resources
+        .get_mut(&BUFFER)
+        .expect("vertex buffer")
+        .pixels[..bytes.len()]
+        .copy_from_slice(&bytes);
+    let mut call = draw();
+    call[2] = 6;
+    let mut command = clear([0.1, 0.2, 0.3, 1.0]);
+    command.extend(call);
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 20].map(|offset| read_u32(&packet, offset)), [Some(2), Some(6)]);
+    assert_eq!(packet.len(), 192);
+    let effect = gpu.pending_3d[0].effect.clone().expect("batched draw effect");
+    assert!(gpu.apply_3d_effect(effect));
+    for x in [465, 530] {
+        let offset = ((384 * 1024 + x) * 4) as usize;
+        assert_eq!(&gpu.resources[&TARGET].pixels[offset..offset + 4], &[58, 102, 20, 255]);
+    }
+    let gap = ((384 * 1024 + 512) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[gap..gap + 4], &[77, 51, 26, 255]);
+}

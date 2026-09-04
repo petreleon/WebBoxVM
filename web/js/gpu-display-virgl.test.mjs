@@ -76,6 +76,21 @@ test("standard VirGL capset-one draw renders a cached WebGPU triangle", async ()
   assert.equal(status.dataset.threeDAcceleration, "webgpu-virgl-capset1-draw");
 });
 
+test("standard VirGL capset-one draw sends a bounded triangle batch to WebGPU", async () => {
+  const device = fakeDevice();
+  const display = new GuestDisplay(fakeCanvas({ webgpu: true }), fakeStatus(), {
+    navigator: { gpu: fakeGpu([fakeAdapter(device)]) },
+  });
+  const vertices = [
+    -0.9, 0.7, 0, 1, -0.9, -0.7, 0, 1, -0.1, -0.7, 0, 1,
+    0.1, 0.7, 0, 1, 0.1, -0.7, 0, 1, 0.9, -0.7, 0, 1,
+  ];
+  assert.deepEqual(await display.present3d(virglDrawPacket({ sequence: 48, vertices })), {
+    sequence: 48, success: true,
+  });
+  assert.deepEqual(device.draw, [6]);
+});
+
 test("standard VirGL sampler texture uploads bounded BGRA data to WebGPU", async () => {
   const device = fakeDevice();
   const status = fakeStatus();

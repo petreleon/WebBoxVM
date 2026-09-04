@@ -1,4 +1,5 @@
-use super::{DrawCall, DrawState, TRIANGLE_VERTICES};
+use super::DrawCall;
+use super::DrawState;
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::RESP_ERR_INVALID_PARAMETER;
 use crate::devices::virtio_gpu::resource::{BufferBind, FORMAT_R32G32B32A32_FLOAT, GpuResource};
@@ -16,10 +17,11 @@ pub(super) fn resolve(
     let indices = if call.indexed {
         index_values(gpu, context, state, call)?
     } else {
-        sequential(call.start)?
+        sequential(call.start, call.count)?
     };
-    let capacity = (TRIANGLE_VERTICES as usize)
-        .checked_mul(vertex_bytes)
+    let capacity = usize::try_from(call.count)
+        .ok()
+        .and_then(|count| count.checked_mul(vertex_bytes))
         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
     let mut vertices = Vec::with_capacity(capacity);
     for index in indices {
@@ -53,12 +55,9 @@ fn vertex_source<'a>(
     valid.then_some(source).ok_or(RESP_ERR_INVALID_PARAMETER)
 }
 
-fn sequential(start: u32) -> Result<[u32; TRIANGLE_VERTICES as usize], u32> {
-    Ok([
-        start,
-        start.checked_add(1).ok_or(RESP_ERR_INVALID_PARAMETER)?,
-        start.checked_add(2).ok_or(RESP_ERR_INVALID_PARAMETER)?,
-    ])
+fn sequential(start: u32, count: u32) -> Result<Vec<u32>, u32> {
+    let end = start.checked_add(count).ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    Ok((start..end).collect())
 }
 
 fn index_values(
@@ -66,7 +65,7 @@ fn index_values(
     context: &VirglContext,
     state: DrawState,
     call: DrawCall,
-) -> Result<[u32; TRIANGLE_VERTICES as usize], u32> {
+) -> Result<Vec<u32>, u32> {
     let binding = state.index_buffer.ok_or(RESP_ERR_INVALID_PARAMETER)?;
     let source = gpu
         .resources
@@ -90,16 +89,17 @@ fn index_values(
         .and_then(|start| start.checked_mul(size))
         .and_then(|start| offset.checked_add(start))
         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-    let bytes = (TRIANGLE_VERTICES as usize)
+    let count = usize::try_from(call.count).map_err(|_| RESP_ERR_INVALID_PARAMETER)?;
+    let bytes = count
         .checked_mul(size)
         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
     let raw = source
         .pixels
         .get(start..start.checked_add(bytes).ok_or(RESP_ERR_INVALID_PARAMETER)?)
         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
-    let mut values = [0; TRIANGLE_VERTICES as usize];
-    for (value, bytes) in values.iter_mut().zip(raw.chunks_exact(size)) {
-        *value = index_value(bytes).ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    let mut values = Vec::with_capacity(count);
+    for bytes in raw.chunks_exact(size) {
+        values.push(index_value(bytes).ok_or(RESP_ERR_INVALID_PARAMETER)?);
     }
     Ok(values)
 }

@@ -30,6 +30,15 @@ pub(super) fn valid_positions(points: [[f32; 4]; VERTICES]) -> bool {
         >= 0.001
 }
 
+pub(super) fn valid_vertices(vertices: &[u8], stride: usize) -> bool {
+    let triangle_bytes = VERTICES * stride;
+    !vertices.is_empty()
+        && vertices.len().is_multiple_of(triangle_bytes)
+        && vertices
+            .chunks_exact(triangle_bytes)
+            .all(|triangle| positions(triangle, stride).is_some_and(valid_positions))
+}
+
 pub(super) fn setup(
     resource: &GpuResource,
     rect: Rect,

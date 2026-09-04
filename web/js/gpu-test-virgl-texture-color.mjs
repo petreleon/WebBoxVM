@@ -9,14 +9,17 @@ export function virglTextureColorPacket({
   vertices = colorTextureTriangle(),
   viewport = [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5],
 } = {}) {
-  const packet = new Uint8Array(228 + texture.length);
+  const vertexCount = vertices.length / 10;
+  const state = 56 + vertices.length * 4;
+  const header = state + 40;
+  const packet = new Uint8Array(header + 12 + texture.length);
   packet.set([0x56, 0x47, 0x44, 0x31]);
   const view = new DataView(packet.buffer);
-  [8, sequence, canvasWidth, canvasHeight, 3].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
-  writeFloats(view, 24, clearColor); writeFloats(view, 56, vertices); writeFloats(view, 176, viewport);
-  scissor.forEach((value, index) => view.setUint32(200 + index * 4, value, true));
-  view.setUint32(216, sampler, true); view.setUint32(220, 2, true); view.setUint32(224, 2, true);
-  packet.set(texture, 228);
+  [8, sequence, canvasWidth, canvasHeight, vertexCount].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
+  writeFloats(view, 24, clearColor); writeFloats(view, 56, vertices); writeFloats(view, state, viewport);
+  scissor.forEach((value, index) => view.setUint32(state + 24 + index * 4, value, true));
+  view.setUint32(header, sampler, true); view.setUint32(header + 4, 2, true); view.setUint32(header + 8, 2, true);
+  packet.set(texture, header + 12);
   return packet;
 }
 

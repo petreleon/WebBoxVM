@@ -113,7 +113,7 @@ static u32 triangle_stream(u32 *words, u32 triangle, u32 index)
     next += 3;
     words[next++] = VIRGL_HEADER(8, 0, 12);
     words[next++] = 0;
-    words[next++] = 3;
+    words[next++] = 6;
     words[next++] = 4;
     words[next++] = 1;
     words[next++] = 1;
@@ -141,9 +141,9 @@ static u32 append_shader(u32 *words, u32 handle, u32 kind, u32 tokens, const cha
 static int upload_triangle(long fd, u32 bo_handle)
 {
     static const u32 positions[] = {
-        0, 0x3f400000u, 0, 0x3f800000u,
-        0xbf400000u, 0xbf400000u, 0, 0x3f800000u,
-        0x3f400000u, 0xbf400000u, 0, 0x3f800000u,
+        0xbe800000u, 0x3e800000u, 0, 0x3f800000u, 0xbe800000u, 0xbe800000u, 0, 0x3f800000u,
+        0xbd800000u, 0xbe800000u, 0, 0x3f800000u, 0x3d800000u, 0x3e800000u, 0, 0x3f800000u,
+        0x3d800000u, 0xbe800000u, 0, 0x3f800000u, 0x3e800000u, 0xbe800000u, 0, 0x3f800000u,
     };
     struct drm_virtgpu_3d_transfer_to_host transfer = {
         .bo_handle = bo_handle,
@@ -160,21 +160,21 @@ static int upload_triangle(long fd, u32 bo_handle)
 
 static int readback_triangle(long fd, u32 bo_handle)
 {
-    const u32 x = SCANOUT_WIDTH / 2u;
     const u32 y = SCANOUT_HEIGHT / 2u;
-    struct drm_virtgpu_3d_transfer_from_host transfer = {
-        .bo_handle = bo_handle,
-        .box = {.x = x, .y = y, .w = 1, .h = 1, .d = 1},
-        .offset = (y * SCANOUT_WIDTH + x) * 4u,
-    };
     u8 *pixels = virgl_map_buffer(fd, bo_handle, SCANOUT_BYTES);
-    u32 offset = transfer.offset;
 
     if (!pixels)
         return -1;
-    if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
-        return -2;
-    return pixels[offset] == 143 && pixels[offset + 1] == 160 &&
-                   pixels[offset + 2] == 48 && pixels[offset + 3] == 255
-               ? 0 : -3;
+    for (u32 x = 465; x <= 530; x += 65) {
+        struct drm_virtgpu_3d_transfer_from_host transfer = {
+            .bo_handle = bo_handle, .box = {.x = x, .y = y, .w = 1, .h = 1, .d = 1},
+            .offset = (y * SCANOUT_WIDTH + x) * 4u,
+        };
+        if (sys_ioctl(fd, DRM_IOCTL_VIRTGPU_TRANSFER_FROM_HOST, &transfer) < 0)
+            return -2;
+        if (pixels[transfer.offset] != 143 || pixels[transfer.offset + 1] != 160 ||
+            pixels[transfer.offset + 2] != 48 || pixels[transfer.offset + 3] != 255)
+            return -3;
+    }
+    return 0;
 }

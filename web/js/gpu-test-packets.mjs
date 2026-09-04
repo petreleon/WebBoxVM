@@ -20,7 +20,6 @@ export function gpuPacket({
   packet.set(pixels, 32);
   return packet;
 }
-
 export function gpu3dPacket({
   canvasHeight = 240,
   canvasWidth = 320,
@@ -53,7 +52,6 @@ export function gpu3dPacket({
   indices.forEach((value, index) => view.setUint16(indexOffset + index * 2, value, true));
   return packet;
 }
-
 export function virglClearPacket({
   canvasHeight = 768,
   canvasWidth = 1024,
@@ -71,7 +69,6 @@ export function virglClearPacket({
   writeFloats(view, 20, clearColor);
   return packet;
 }
-
 export function virglDrawPacket({
   canvasHeight = 768,
   canvasWidth = 1024,
@@ -83,21 +80,23 @@ export function virglDrawPacket({
   vertices = virglTriangle(),
   viewport,
 } = {}) {
-  const packet = new Uint8Array(version === 1 ? 104 : 144);
+  const vertexCount = vertices.length / 4;
+  const state = 56 + vertices.length * 4;
+  const packet = new Uint8Array(version === 1 ? state : state + 40);
   packet.set([0x56, 0x47, 0x44, 0x31]);
   const view = new DataView(packet.buffer);
   view.setUint32(4, version, true);
   view.setUint32(8, sequence, true);
   view.setUint32(12, canvasWidth, true);
   view.setUint32(16, canvasHeight, true);
-  view.setUint32(20, 3, true);
+  view.setUint32(20, vertexCount, true);
   writeFloats(view, 24, clearColor);
   writeFloats(view, 40, drawColor);
   writeFloats(view, 56, vertices);
   if (version === 2) {
-    writeFloats(view, 104, viewport ?? [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5]);
+    writeFloats(view, state, viewport ?? [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5]);
     const values = scissor ?? [0, 0, canvasWidth, canvasHeight];
-    values.forEach((value, index) => view.setUint32(128 + index * 4, value, true));
+    values.forEach((value, index) => view.setUint32(state + 24 + index * 4, value, true));
   }
   return packet;
 }
@@ -112,22 +111,24 @@ export function virglTexturedPacket({
   vertices = texturedVirglTriangle(),
   viewport = [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5],
 } = {}) {
-  const packet = new Uint8Array(176 + texture.length);
+  const vertexCount = vertices.length / 6;
+  const state = 56 + vertices.length * 4;
+  const packet = new Uint8Array(state + 48 + texture.length);
   packet.set([0x56, 0x47, 0x44, 0x31]);
   const view = new DataView(packet.buffer);
   view.setUint32(4, 3, true);
   view.setUint32(8, sequence, true);
   view.setUint32(12, canvasWidth, true);
   view.setUint32(16, canvasHeight, true);
-  view.setUint32(20, 3, true);
+  view.setUint32(20, vertexCount, true);
   writeFloats(view, 24, clearColor);
   writeFloats(view, 40, [0, 0, 0, 0]);
   writeFloats(view, 56, vertices);
-  writeFloats(view, 128, viewport);
-  scissor.forEach((value, index) => view.setUint32(152 + index * 4, value, true));
-  view.setUint32(168, 2, true);
-  view.setUint32(172, 2, true);
-  packet.set(texture, 176);
+  writeFloats(view, state, viewport);
+  scissor.forEach((value, index) => view.setUint32(state + 24 + index * 4, value, true));
+  view.setUint32(state + 40, 2, true);
+  view.setUint32(state + 44, 2, true);
+  packet.set(texture, state + 48);
   return packet;
 }
 
@@ -140,14 +141,15 @@ export function virglTexturedMultiplyPacket({
 } = {}) {
   const sampled = leftSampler !== 0x1092 || rightSampler !== 0x1092;
   const left = virglTexturedPacket({ ...options, texture: textureLeft });
-  const offset = sampled ? 192 : 184;
+  const state = 56 + new DataView(left.buffer).getUint32(20, true) * 24;
+  const offset = sampled ? state + 64 : state + 56;
   const packet = new Uint8Array(offset + textureLeft.length + textureRight.length);
-  packet.set(left.subarray(0, 168));
+  packet.set(left.subarray(0, state + 40));
   const view = new DataView(packet.buffer);
   view.setUint32(4, sampled ? 6 : 4, true);
   if (sampled) [leftSampler, rightSampler, 2, 2, 2, 2]
-    .forEach((value, index) => view.setUint32(168 + index * 4, value, true));
-  else [168, 172, 176, 180].forEach((at) => view.setUint32(at, 2, true));
+    .forEach((value, index) => view.setUint32(state + 40 + index * 4, value, true));
+  else [40, 44, 48, 52].forEach((at) => view.setUint32(state + at, 2, true));
   packet.set(textureLeft, offset);
   packet.set(textureRight, offset + textureLeft.length);
   return packet;

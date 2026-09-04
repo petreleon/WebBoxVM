@@ -8,8 +8,10 @@ use crate::devices::virtio_gpu::three_d::virgl::{
 const STRIDE: usize = 24;
 
 pub(super) fn valid(vertices: &[u8]) -> bool {
-    geometry::positions(vertices, STRIDE).is_some_and(geometry::valid_positions)
-        && uvs(vertices).is_some()
+    geometry::valid_vertices(vertices, STRIDE)
+        && vertices
+            .chunks_exact(geometry::VERTICES * STRIDE)
+            .all(|triangle| uvs(triangle).is_some())
 }
 
 pub(super) fn draw(
@@ -20,35 +22,29 @@ pub(super) fn draw(
     viewport: [f32; 6],
     scissor: Option<Rect>,
 ) -> bool {
-    if !(1..=2).contains(&textures.len()) {
+    if !(1..=2).contains(&textures.len()) || !valid(vertices) {
         return false;
     }
-    let Some(uvs) = uvs(vertices) else {
-        return false;
-    };
-    let Some((points, (min_x, max_x, min_y, max_y))) =
-        geometry::setup(resource, rect, vertices, STRIDE, viewport, scissor)
-    else {
-        return false;
-    };
-    for y in min_y..max_y {
-        for x in min_x..max_x {
-            let px = x as f32 + 0.5;
-            let py = y as f32 + 0.5;
-            if geometry::contains(points, px, py) {
-                let Some(index) = geometry::pixel(resource, rect, x, y) else {
-                    return false;
-                };
-                let Some(pixel) = resource.pixels.get_mut(index..index + 4) else {
-                    return false;
-                };
-                geometry::source_over(
-                    pixel,
-                    sample(
-                        textures,
-                        interpolate(uvs, geometry::weights(points, px, py)),
-                    ),
-                );
+    for triangle in vertices.chunks_exact(geometry::VERTICES * STRIDE) {
+        let Some(uvs) = uvs(triangle) else { return false; };
+        let Some((points, (min_x, max_x, min_y, max_y))) =
+            geometry::setup(resource, rect, triangle, STRIDE, viewport, scissor)
+        else { return false; };
+        for y in min_y..max_y {
+            for x in min_x..max_x {
+                let px = x as f32 + 0.5;
+                let py = y as f32 + 0.5;
+                if geometry::contains(points, px, py) {
+                    let Some(index) = geometry::pixel(resource, rect, x, y) else {
+                        return false;
+                    };
+                    let Some(pixel) = resource.pixels.get_mut(index..index + 4) else {
+                        return false;
+                    };
+                    geometry::source_over(
+                        pixel, sample(textures, interpolate(uvs, geometry::weights(points, px, py))),
+                    );
+                }
             }
         }
     }
@@ -56,6 +52,9 @@ pub(super) fn draw(
 }
 
 fn uvs(vertices: &[u8]) -> Option<[[f32; 2]; geometry::VERTICES]> {
+    if vertices.len() != geometry::VERTICES * STRIDE {
+        return None;
+    }
     let mut values = [[0.0; 2]; geometry::VERTICES];
     for (uv, vertex) in values.iter_mut().zip(vertices.chunks_exact(STRIDE)) {
         for (value, bytes) in uv.iter_mut().zip(vertex[16..24].chunks_exact(4)) {

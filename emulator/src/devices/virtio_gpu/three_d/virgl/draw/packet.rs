@@ -1,5 +1,5 @@
 use super::super::SamplerConfig;
-use super::{DrawMaterial, DrawWork, TRIANGLE_VERTICES};
+use super::{DrawMaterial, DrawWork};
 
 pub(in crate::devices::virtio_gpu::three_d) fn packet(
     sequence: u32,
@@ -26,7 +26,7 @@ fn vertex_color(
     clear: [f32; 4],
     work: &DrawWork,
 ) -> Vec<u8> {
-    let mut packet = header(7, sequence, width, height);
+    let mut packet = header(7, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
@@ -41,7 +41,7 @@ fn solid(
     work: &DrawWork,
     color: [f32; 4],
 ) -> Vec<u8> {
-    let mut packet = header(2, sequence, width, height);
+    let mut packet = header(2, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain(color));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
@@ -57,7 +57,9 @@ fn textured(
     texture: &super::TextureSnapshot,
 ) -> Vec<u8> {
     let extended = texture.sampler != SamplerConfig::CLAMP_NEAREST;
-    let mut packet = header(if extended { 5 } else { 3 }, sequence, width, height);
+    let mut packet = header(
+        if extended { 5 } else { 3 }, sequence, width, height, work.vertex_count,
+    );
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
@@ -82,7 +84,9 @@ fn textured_pair(
     let extended = textures
         .iter()
         .any(|texture| texture.sampler != SamplerConfig::CLAMP_NEAREST);
-    let mut packet = header(if extended { 6 } else { 4 }, sequence, width, height);
+    let mut packet = header(
+        if extended { 6 } else { 4 }, sequence, width, height, work.vertex_count,
+    );
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
@@ -110,7 +114,7 @@ fn texture_color(
     work: &DrawWork,
     texture: &super::TextureSnapshot,
 ) -> Vec<u8> {
-    let mut packet = header(8, sequence, width, height);
+    let mut packet = header(8, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
@@ -122,9 +126,9 @@ fn texture_color(
     packet
 }
 
-fn header(version: u32, sequence: u32, width: u32, height: u32) -> Vec<u8> {
+fn header(version: u32, sequence: u32, width: u32, height: u32, vertex_count: u32) -> Vec<u8> {
     let mut packet = b"VGD1".to_vec();
-    for value in [version, sequence, width, height, TRIANGLE_VERTICES] {
+    for value in [version, sequence, width, height, vertex_count] {
         packet.extend_from_slice(&value.to_le_bytes());
     }
     packet

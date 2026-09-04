@@ -10,7 +10,7 @@ primitive, and limits exercised by this implementation.
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
 clear, one exact standard source-over blend state, and deliberately bounded
-solid-color; one generic per-vertex-RGBA triangle; nearest-clamp/repeat or
+solid-color; bounded triangle lists with generic per-vertex-RGBA; nearest-clamp/repeat or
 linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with each sampler from that finite set and one viewport/scissor.
 
 | Standard boundary | Current behavior | Deliberate limit |
@@ -21,7 +21,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
-| Presentation | Clear, solid, fixed vertex-color, texture-times-color, or one/two-texture sampled triangles through WebGPU | No multi-draw composition, depth, arbitrary blending, or sampler state |
+| Presentation | Clear, solid, fixed vertex-color, texture-times-color, or one/two-texture sampled triangle lists through WebGPU | No multi-command composition, depth, arbitrary blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
 ## Advertised and accepted shapes
@@ -87,34 +87,34 @@ generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, command 11
 and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
 occur on a clone and commit only after the complete stream validates.
 
-The accepted standard 12-word `DRAW_VBO` has count three, one instance,
+The accepted standard 12-word `DRAW_VBO` has a count from three through 1023 divisible by three, one instance,
 `PIPE_PRIM_TRIANGLES`, zero bias/start-instance/restart, and no stream-output count.
 Its indexed field is zero for consecutive VBO records, or one for a command-11
-binding that resolves exactly three little-endian u16 or u32 indices from `start`.
+binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. Each draw follows one clear in the same submission against the current
 full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots exactly three positions from the attached VBO, directly or through bounded index-buffer lookups.
-They must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and form a nondegenerate triangle.
-Vertex-color and texture-color routes snapshot three finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
+At draw validation Rust snapshots the bounded position list from the attached VBO, directly or through bounded index-buffer lookups.
+Each position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle.
+Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
 Schema 6 carries independent exact sampler state; schema 4 remains the legacy nearest-clamp pair. Later buffer, texture, or state mutation cannot alter queued browser work.
 Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use the required source-over blend object.
 
 After validation Rust sends a private `VGD1` envelope to the browser. `VGD1`
 is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
-sequence, canvas size, colors, 48 vertex bytes, viewport, and optional
-canonical top-origin scissor. Schema 3 appends 72 position/UV bytes, one 2D texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
+sequence, canvas size, colors, `16N` vertex bytes, viewport, and optional
+canonical top-origin scissor. Schema 3 appends `24N` position/UV bytes, one 2D texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
 texels for legacy nearest-clamp multiplication; schema 5 carries exact one-texture state `0x1080` or `0x3292`, its size, and texels. Schema 6 carries two sampler words, sizes, and texels.
-Schema 7 is exactly 192 bytes with three position/RGBA vertices plus viewport/scissor. Schema 8 is `228 + 4WH` bytes with three position/RGBA/UV vertices, viewport/scissor, one exact sampler, and one `W,H <= 64` BGRA texture. The browser retains schema-1 parsing only for old packets, independently validates schemas 2/3/4/5/6/7/8,
+Schema 7 is `96 + 32N` bytes with position/RGBA vertices plus viewport/scissor. Schema 8 is `108 + 40N + 4WH` bytes with position/RGBA/UV vertices, viewport/scissor, one exact sampler, and one `W,H <= 64` BGRA texture. The browser retains schema-1 parsing only for old packets, independently validates schemas 2/3/4/5/6/7/8,
 converts VirGL `z` from `[-w,w]` to WebGPU's `[0,w]`, flips `v` to raw top-origin storage, uses
 a matching address/filter sampler, applies equivalent viewport/scissor, and waits for
 `GPUQueue.onSubmittedWorkDone()`.
 
 Only a successful browser acknowledgment changes authoritative CPU state. Rust
 rechecks the VirGL context generation, clears the target in its canonical BGRA
-storage, rasterizes the same bounded triangle with source-over, and emits ordinary
+storage, rasterizes the same bounded triangle list with source-over, and emits ordinary
 scanout damage. Thus `TRANSFER_FROM_HOST_3D` sees a defined result after completion;
 failed, stale, or unacknowledged browser work changes no guest pixels.
 
@@ -137,22 +137,22 @@ and a matching capset that this renderer does not advertise.
 ## Validation retained in the repository
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
-exact source-over and sampler setup, rasterizer unbind rejection, schema-2/3/4/5/6/7/8 `VGD1`
+exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, schema-2/3/4/5/6/7/8 `VGD1`
 payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact
 independent WebGPU clamp/repeat/linear descriptors, fixed RGBA and RGBA/UV attributes, one/two padded BGRA uploads, viewport/scissor calls,
-cached pipelines, no depth texture, `draw(3)`, and queue-gated completion.
+cached pipelines, no depth texture, bounded `draw(N)`, and queue-gated completion.
 
 `scripts/virgl_guest_transport_smoke.sh` separately proves native Linux
 VirtIO-GPU/DRM/KMS transport for all three blob profiles, `cmd_size` ordering, capset discovery, R8 buffer transfer/copy,
 color transfer/readback, and the standard clear/fence path. It then creates
-the exact R32G32B32A32 VBO plus an eight-byte R8 index buffer, canonical TGSI state,
+the exact 96-byte R32G32B32A32 VBO plus a 14-byte R8 index buffer, canonical TGSI state,
 exact type-1 source-over blend and type-2 scissor-rasterizer objects, viewport/scissor,
 command-11 `SET_INDEX_BUFFER` at byte offset two, and indexed `DRAW_VBO`; it validates the schema-2
-`VGD1` envelope with the guest's `[2,1,0]` reordered vertices, resolves the
-deferred fence, and reads the blended `143,160,48,255` center plus the clear
-outside-scissor pixel back through the Linux driver. It then creates two attached
+`VGD1` envelope with the guest's `[2,1,0,5,4,3]` reordered vertices, resolves the
+deferred fence, and reads both blended `143,160,48,255` triangles plus their clear
+center gap back through the Linux driver. It then creates two attached
 R8G8B8A8 sampler-view textures and a 24-byte position/UV VBO. It validates schema-5's
 transfer-normalized BGRA and first `0x1080` at `u == 1`, then `0x3292` at `u == .5`,
 completes both, and reads `10,20,30,255` then `25,35,45,255` at the center. It then validates schema-6
