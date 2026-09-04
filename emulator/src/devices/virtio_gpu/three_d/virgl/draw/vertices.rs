@@ -27,14 +27,18 @@ pub(super) fn resolve(
         return Err(RESP_ERR_INVALID_PARAMETER);
     }
     let sources = sources(gpu, context, target, state)?;
-    let indices = if call.indexed {
+    let source_indices = if call.indexed {
         index_values(gpu, context, state, call)?
     } else {
         sequential(call.start, call.count)?
     };
-    let capacity = usize::try_from(call.count)
-        .ok()
-        .and_then(|count| count.checked_mul(vertex_bytes))
+    let indices = call
+        .primitive
+        .expand(&source_indices)
+        .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+    let capacity = indices
+        .len()
+        .checked_mul(vertex_bytes)
         .ok_or(RESP_ERR_INVALID_PARAMETER)?;
     let mut vertices = Vec::with_capacity(capacity);
     for index in indices {

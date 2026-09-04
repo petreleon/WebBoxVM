@@ -1,11 +1,13 @@
 mod material;
 mod packet;
+mod primitive;
 mod raster;
 mod solid;
 mod texture;
 mod vertices;
 use material::material;
 pub(in crate::devices::virtio_gpu::three_d) use packet::packet;
+pub(super) use primitive::Primitive;
 use vertices::resolve;
 
 use super::{DrawState, SamplerConfig, VirglContext};
@@ -13,12 +15,15 @@ use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::{RESP_ERR_INVALID_PARAMETER, Rect};
 
 pub(super) const TRIANGLE_VERTICES: u32 = 3;
-pub(super) const MAX_VIRGL_DRAW_VERTICES: u32 = 1023;
+pub(super) const MAX_VIRGL_DRAW_INPUT_VERTICES: u32 = 1023;
+pub(super) const MAX_VIRGL_DRAW_VERTICES: u32 =
+    (MAX_VIRGL_DRAW_INPUT_VERTICES - 2) * TRIANGLE_VERTICES;
 
 #[derive(Clone, Copy)]
 pub(super) struct DrawCall {
     pub start: u32,
     pub count: u32,
+    pub primitive: Primitive,
     pub indexed: bool,
 }
 
@@ -75,13 +80,24 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let vertices = resolve(self, context, resource_id, state, call, vertex_bytes)?;
+        let vertex_count = call
+            .primitive
+            .output_count(call.count)
+            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        let expected_bytes = usize::try_from(vertex_count)
+            .ok()
+            .and_then(|count| count.checked_mul(vertex_bytes))
+            .ok_or(RESP_ERR_INVALID_PARAMETER)?;
+        if vertices.len() != expected_bytes {
+            return Err(RESP_ERR_INVALID_PARAMETER);
+        }
         if !raster::valid(&vertices, &material) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         Ok(DrawWork {
             material,
             vertices,
-            vertex_count: call.count,
+            vertex_count,
             viewport: viewport.values(),
             scissor: scissor.map(|scissor| Rect {
                 x: scissor.x,

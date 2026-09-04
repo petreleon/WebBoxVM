@@ -29,8 +29,7 @@ linear-clamp one-texture; texture-times-vertex-color; or two-texture paths with 
 The capset render-format mask contains only B8G8R8A8, B8G8R8X8, A8R8G8B8,
 and X8R8G8B8. Its sampler mask adds B8G8R8A8 (1) and R8G8B8A8 (67); its vertex-buffer mask contains only
 `VIRGL_FORMAT_R32G32_FLOAT` (29) and `VIRGL_FORMAT_R32G32B32A32_FLOAT` (31),
-and its primitive mask contains only `PIPE_PRIM_TRIANGLES` (bit 4). No GLSL
-feature level is advertised.
+and its primitive mask contains `PIPE_PRIM_TRIANGLES` (bit 4) and `PIPE_PRIM_TRIANGLE_STRIP` (bit 5). No GLSL feature level is advertised.
 
 `RESOURCE_CREATE_3D` accepts only these exact resource forms:
 
@@ -87,15 +86,18 @@ generic `CLEAR` or `CLEAR_SURFACE`, `SET_VERTEX_BUFFERS`, command 11
 and command 8 `DRAW_VBO`. Parsing is bounded to 64 KiB; all context mutations
 occur on a clone and commit only after the complete stream validates.
 
-The accepted standard 12-word `DRAW_VBO` has a count from three through 1023 divisible by three, one instance,
-`PIPE_PRIM_TRIANGLES`, zero bias/start-instance/restart, and no stream-output count.
+The accepted standard 12-word `DRAW_VBO` has a source count from three through 1023, one instance,
+`PIPE_PRIM_TRIANGLES` (a multiple of three) or `PIPE_PRIM_TRIANGLE_STRIP`, zero
+bias/start-instance/restart, and no stream-output count. A strip becomes a
+triangle list with alternating first-two-vertex winding, so at most 1,023 input
+vertices become at most 3,063 normalized output vertices.
 Its indexed field is zero for consecutive VBO records, or one for a command-11
 binding that resolves exactly that many little-endian u16 or u32 indices from `start`.
 Restart and min/max hint fields are accepted but do not influence the bounded
 renderer. Each draw follows one clear in the same submission against the current
 full-scanout framebuffer; clear/copy mixing, repeat clear, and repeat draw fail transactionally.
 
-At draw validation Rust snapshots the bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups.
+At draw validation Rust snapshots the bounded position list from attached one-to-three VBO sources, directly or through bounded index-buffer lookups, then expands a strip before validation and packet construction.
 Each position must be finite, have `x`, `y`, and `z` in `[-1, 1]`, `w == 1`, and every consecutive triple must form a nondegenerate triangle.
 Vertex-color and texture-color routes snapshot finite normalized RGBA values; texture routes snapshot finite UVs in `[-8, 8]` and
 one or two attached B8G8R8A8 or R8G8B8A8 sources, each limited to 64×64. Feedback into the target is rejected.
@@ -103,7 +105,7 @@ Schema 6 carries independent exact sampler state; schema 4 remains the legacy ne
 Solid color, interpolated vertex color, sampled texels, and texture-times-interpolated-color use the required source-over blend object.
 
 After validation Rust sends a private `VGD1` envelope to the browser. `VGD1`
-is not a guest ABI or VirGL command. Schema 2 is 144 bytes: its original
+is not a guest ABI or VirGL command. Each schema validates three through 3,063 normalized list vertices. Schema 2 is 144 bytes: its original
 sequence, canvas size, colors, `16N` vertex bytes, viewport, and optional
 canonical top-origin scissor. Schema 3 appends `24N` position/UV bytes, one 2D texture size, and canonical BGRA texels; schema 4 appends two sizes and paired
 texels for legacy nearest-clamp multiplication; schema 5 carries exact one-texture state `0x1080` or `0x3292`, its size, and texels. Schema 6 carries two sampler words, sizes, and texels.
@@ -137,7 +139,7 @@ and a matching capset that this renderer does not advertise.
 ## Validation retained in the repository
 
 Rust tests prove capset bits, transactional no-clear and malformed-index rejection,
-exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle, schema-2/3/4/5/6/7/8 `VGD1`
+exact source-over and sampler setup, rasterizer unbind rejection, bounded batched-triangle and alternating strip expansion, schema-2/3/4/5/6/7/8 `VGD1`
 payloads, normalized per-vertex RGBA interpolation and texture modulation, repeat-at-one, clamp-linear midpoint, and independent two-sampler CPU sampling, R8G8B8A8-to-BGRA normalization, nonzero-offset indexes, deferred
 acknowledgment, clipped source-over raster results, viewport/scissor bounds, and `WBGF` damage.
 Browser tests prove private-envelope framing, malformed sampler rejection, exact

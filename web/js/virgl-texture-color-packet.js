@@ -1,7 +1,7 @@
 const MAGIC = [0x56, 0x47, 0x44, 0x31];
 const MAX_DIMENSION = 8192;
 const MAX_TEXTURE_DIMENSION = 64;
-const MAX_VERTEX_COUNT = 1023;
+const MAX_VERTEX_COUNT = 3063;
 const VERTICES_PER_TRIANGLE = 3;
 
 export function parseVirglTextureColorPacket(packet) {
