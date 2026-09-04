@@ -7,7 +7,7 @@ mod raster;
 mod solid;
 mod texture;
 mod vertices;
-use material::material;
+use material::{VertexTransform, material};
 pub(in crate::devices::virtio_gpu::three_d) use packet::{batch_packet, depth_batch_packet, material_batch_packet, packet};
 pub(super) use primitive::Primitive;
 use vertices::resolve;
@@ -78,7 +78,7 @@ impl VirtioGpu {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         let state = context.draw_state().ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        let (vertex_bytes, material, offset) = material(self, context, resource_id, state)?;
+        let (vertex_bytes, material, transform) = material(self, context, resource_id, state)?;
         let depth_resource = depth::validate(
             self, context, resource_id, depth_resource, state.depth, &material,
         )?;
@@ -101,8 +101,8 @@ impl VirtioGpu {
         if vertices.len() != expected_bytes {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
-        if let Some(offset) = offset {
-            if !raster::valid(&vertices, &material) || !translate_vertices(&mut vertices, offset) {
+        if let Some(transform) = transform {
+            if !raster::valid(&vertices, &material) || !transform_vertices(&mut vertices, transform) {
                 return Err(RESP_ERR_INVALID_PARAMETER);
             }
         }
@@ -127,6 +127,13 @@ impl VirtioGpu {
 
 }
 
+fn transform_vertices(vertices: &mut [u8], transform: VertexTransform) -> bool {
+    match transform {
+        VertexTransform::Offset(offset) => translate_vertices(vertices, offset),
+        VertexTransform::MultiplyColor(color) => multiply_vertex_colors(vertices, color),
+    }
+}
+
 fn translate_vertices(vertices: &mut [u8], [x, y]: [f32; 2]) -> bool {
     if !vertices.len().is_multiple_of(16) {
         return false;
@@ -138,6 +145,22 @@ fn translate_vertices(vertices: &mut [u8], [x, y]: [f32; 2]) -> bool {
             };
             let value = f32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) + delta;
             if !value.is_finite() {
+                return false;
+            }
+            bytes.copy_from_slice(&value.to_le_bytes());
+        }
+    }
+    true
+}
+
+fn multiply_vertex_colors(vertices: &mut [u8], color: [f32; 4]) -> bool {
+    if !vertices.len().is_multiple_of(32) {
+        return false;
+    }
+    for vertex in vertices.chunks_exact_mut(32) {
+        for (factor, bytes) in color.into_iter().zip(vertex[16..].chunks_exact_mut(4)) {
+            let value = f32::from_le_bytes(bytes.try_into().unwrap()) * factor;
+            if !value.is_finite() || !(0.0..=1.0).contains(&value) {
                 return false;
             }
             bytes.copy_from_slice(&value.to_le_bytes());

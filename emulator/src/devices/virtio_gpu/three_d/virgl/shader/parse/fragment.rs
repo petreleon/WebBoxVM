@@ -14,6 +14,12 @@ pub(super) fn parse(lines: &[&str]) -> Option<ShaderProgram> {
         {
             Some(ShaderProgram::FragmentVertexColor)
         }
+        [Operation::Mul(output, left, right), Operation::End]
+            if generic_input(&shape, 0) && shape.has_register("CONST[0][0]") && color_output(&shape, output)
+                && product(left, right, "IN[0]", "CONST[0][0]") =>
+        {
+            Some(ShaderProgram::FragmentVertexColorConstant)
+        }
         [Operation::Tex(temp, coordinates, sampler, target), Operation::Mov(output, source), Operation::End]
             if texture(&shape, 0) && shape::same(temp, "TEMP[0]") && shape::same(coordinates, "IN[0]")
                 && shape::same(sampler, "SAMP[0]") && target == &"2D" && color_output(&shape, output) && shape::same(source, "TEMP[0]") =>
@@ -52,6 +58,11 @@ fn color_output(shape: &shape::Shape<'_>, output: &str) -> bool {
 fn texture(shape: &shape::Shape<'_>, sampler: u32) -> bool {
     generic_input(shape, 0) && shape.has_register(&format!("TEMP[{sampler}]"))
         && shape.has_register(&format!("SAMP[{sampler}]")) && shape.has_semantic(&format!("SVIEW[{sampler}]"), "2D")
+}
+
+fn product(left: &str, right: &str, first: &str, second: &str) -> bool {
+    (shape::same(left, first) && shape::same(right, second))
+        || (shape::same(left, second) && shape::same(right, first))
 }
 
 fn texture_pair(shape: &shape::Shape<'_>) -> bool {

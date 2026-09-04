@@ -4,6 +4,7 @@ use crate::memory::PhysicalMemory;
 
 const COLOR_FRAG: &str =
     "FRAG\nDCL IN[0], GENERIC[0], LINEAR\nDCL OUT[0], COLOR[0]\nMOV OUT[0], IN[0]\nEND\n";
+const MODULATE_FRAG: &str = "FRAG\nDCL OUT[0], COLOR[0]\nDCL CONST[0][0]\nDCL IN[0], GENERIC[0], LINEAR\nMUL OUT[0].xyzw, CONST[0][0].xyzw, IN[0].xyzw\nEND\n";
 const DEPTH: u32 = 7;
 const DEPTH_SURFACE: u32 = 15;
 const DSA: u32 = 16;
@@ -25,6 +26,16 @@ fn standard_generic_vertex_colors_snapshot_and_interpolate_through_schema_seven(
     assert!(gpu.apply_3d_effect(effect));
     let center = ((384 * 1024 + 512) * 4) as usize;
     assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[64, 64, 127, 255]);
+}
+
+#[test]
+fn vertex_colors_multiply_a_fragment_constant_before_gpu_snapshot() {
+    let (mut gpu, mut mem) = prepared(); assert_response(&mut gpu, &mut mem, &submit(&modulated_color_state()), RESP_OK_NODATA);
+    upload_colors(&mut gpu); let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(constants([0.5, 0.5, 0.5, 1.0])); command.extend(draw());
+    assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA); let packet = gpu.take_3d_update();
+    assert_eq!([4, 72, 76, 80, 84].map(|at| read_u32(&packet, at)), [Some(7), Some(0.5f32.to_bits()), Some(0), Some(0), Some(1.0f32.to_bits())]);
+    gpu.resources.get_mut(&BUFFER).unwrap().pixels.fill(0); let effect = gpu.pending_3d[0].effect.clone().expect("vertex-color constant effect"); assert!(gpu.apply_3d_effect(effect));
+    let center = ((384 * 1024 + 512) * 4) as usize; assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[32, 32, 64, 255]);
 }
 
 #[test]
@@ -80,6 +91,13 @@ fn color_state() -> Vec<u32> {
     color_state_with(vertex_color_state())
 }
 
+fn modulated_color_state() -> Vec<u32> {
+    let mut state = surface_create(9, TARGET); state.extend(framebuffer(9)); state.extend(shader_create(11, 0, TEXTURED_VERT));
+    let mut fragment = shader_create(12, 1, MODULATE_FRAG); fragment[4] = 12; state.extend(fragment);
+    state.extend(shader_bind(11, 0)); state.extend(shader_bind(12, 1)); state.extend(virgl_source_over_state(13));
+    state.extend(virgl_viewport_scissor_state(14)); state.extend(vertex_color_state()); state
+}
+
 fn color_state_with(vertex_state: Vec<u32>) -> Vec<u32> {
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9));
@@ -102,6 +120,10 @@ fn vertex_color_state() -> Vec<u32> {
         vec![word(6, 0, 3), 32, 0, BUFFER],
     ]
     .concat()
+}
+
+fn constants(color: [f32; 4]) -> Vec<u32> {
+    let mut words = vec![word(12, 0, 6), 1, 0]; words.extend(color.map(f32::to_bits)); words
 }
 
 fn upload_colors(gpu: &mut super::super::VirtioGpu) {

@@ -11,12 +11,18 @@ const TEXTURED_VERTEX_BYTES: usize = 24;
 const VERTEX_COLOR_BYTES: usize = 32;
 const TEXTURE_COLOR_VERTEX_BYTES: usize = 40;
 
+#[derive(Clone, Copy)]
+pub(super) enum VertexTransform {
+    Offset([f32; 2]),
+    MultiplyColor([f32; 4]),
+}
+
 pub(super) fn material(
     gpu: &VirtioGpu,
     context: &VirglContext,
     target: u32,
     state: DrawState,
-) -> Result<(usize, DrawMaterial, Option<[f32; 2]>), u32> {
+) -> Result<(usize, DrawMaterial, Option<VertexTransform>), u32> {
     match (state.vertex_program, state.fragment_program) {
         (ShaderProgram::VertexPassthrough, ShaderProgram::FragmentSolid(bits)) => Ok((
             SOLID_VERTEX_BYTES,
@@ -34,10 +40,14 @@ pub(super) fn material(
         (ShaderProgram::VertexUniformOffset, ShaderProgram::FragmentConstant) => {
             let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
             let offset = uniform::vertex_offset(gpu, context, state.vertex_uniform)?;
-            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(color), Some(offset)))
+            Ok((SOLID_VERTEX_BYTES, DrawMaterial::Solid(color), Some(VertexTransform::Offset(offset))))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColor) => {
             Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor, None))
+        }
+        (ShaderProgram::VertexGeneric, ShaderProgram::FragmentVertexColorConstant) => {
+            let color = solid::color(uniform::resolve(gpu, context, state.fragment_constants)?)?;
+            Ok((VERTEX_COLOR_BYTES, DrawMaterial::VertexColor, Some(VertexTransform::MultiplyColor(color))))
         }
         (ShaderProgram::VertexGeneric, ShaderProgram::FragmentTextured) => Ok((
             TEXTURED_VERTEX_BYTES,
