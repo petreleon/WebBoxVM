@@ -20,7 +20,7 @@ nearest-clamp/repeat or linear-clamp one-texture; texture-times-vertex-color; or
 | Buffer resources | R8 raw vertex/index/constant plus R32G32/R32G32B32A32 float vertex storage | R8 is not a renderable vertex format |
 | Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
-| VirGL stream | Surface/framebuffer, canonical TGSI, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
+| VirGL stream | Surface/framebuffer, bounded normalized TGSI shapes, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
 | Presentation | Clear; singleton shapes plus 2–16 ordered solid/vertex-color/one-/two-texture/texture-color snapshots, with per-record DSA where depth supports the material, through one WebGPU pass | No arbitrary shader/state, blending, or sampler state |
 | Completion | CPU pixels change only after browser queue completion | Lost or stale context reports an error |
 
@@ -44,15 +44,14 @@ R8 index storage binds through command 11 `SET_INDEX_BUFFER` at index size 2 or 
 Solid draws use a format-31 position source at stride 16; textured, vertex-color, and texture-color inputs may stay
 interleaved at strides 24/32/40 or split their fixed position/RGBA/UV attributes across slots 0–2; every divisor is zero.
 
-Type-4 shader objects accept only canonical NUL-terminated TGSI text: solid or
+Type-4 shader objects accept only bounded NUL-terminated TGSI shapes: solid or
 `CONST[0][0]` passthrough/fragment-color pairs; a generic RGBA-passthrough fragment pair; a two-generic texture-times-color pair;
-a one-2D-`TEX` pair; or a two-2D-`TEX`, `MUL` pair. The latter has one generic UV input, two sampler/views, and one
-color output. Initial `OFFSET` is the total text-byte count; a continuation
+a one-2D-`TEX` pair; or a two-2D-`TEX`, `MUL` pair. Declaration order and full-vector `.xyzw` spellings normalize for those forms, while unknown operations, repeated/overlapping declarations, and ambiguous immediates fail. The latter pair has one generic UV input, two sampler/views, and one color output. Initial `OFFSET` is the total text-byte count; a continuation
 has its high bit set and names the exact next byte offset. One bounded 4 KiB
 source per vertex/fragment stage may be in flight. The only vertex-constant form adds `CONST[0][0]` to `IN[0]`; chunks must retain handle,
 stage, and token count; parser failure leaves the cloned context unchanged.
 The declared token capacity plus virglrenderer’s translation slack must fit
-the recognized TGSI. Stream output, unknown stages, and unrecognized text fail.
+the recognized shape. Stream output, unknown stages, and unrecognized text fail.
 Binding zero unbinds, and destroying a bound shader clears its stage. Command 12
 `SET_CONSTANT_BUFFER` accepts only fragment stage 1, slot zero, and exactly four finite normalized inline f32 values (or an empty binding to clear it); command 27 accepts vertex stage 0 or fragment stage 1 at slot zero with one attached R8 constant buffer, aligned offset, exact 16-byte range, and a zero range to clear.
 
@@ -159,7 +158,7 @@ from that harness.
 
 ## Next compatibility milestones
 
-1. Obtain native end-to-end execution of the newly wired `VGM1` guest phase once shell startup is available, then generalize the bounded state/shader IR rather than add more exact TGSI strings.
+1. Obtain native end-to-end execution of the newly wired `VGM1` guest phase once shell startup is available, then extend the bounded semantic IR with explicitly validated operations and state rather than add exact TGSI strings.
 2. Design blob, external-memory, and synchronization contracts before any
    Venus capset or Vulkan claim.
 

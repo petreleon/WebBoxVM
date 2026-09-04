@@ -1,42 +1,44 @@
+use super::shape::{self, Operation};
 use super::super::ShaderProgram;
 
 pub(super) fn parse(lines: &[&str]) -> Option<ShaderProgram> {
-    match lines {
-        [
-            "VERT",
-            "DCL IN[0]",
-            "DCL OUT[0], POSITION",
-            "MOV OUT[0], IN[0]",
-            "END",
-        ] => Some(ShaderProgram::VertexPassthrough),
-        [
-            "VERT",
-            "DCL IN[0]",
-            "DCL CONST[0][0]",
-            "DCL OUT[0], POSITION",
-            "ADD OUT[0], IN[0], CONST[0][0]",
-            "END",
-        ] => Some(ShaderProgram::VertexUniformOffset),
-        [
-            "VERT",
-            "DCL IN[0..1]",
-            "DCL OUT[0], POSITION",
-            "DCL OUT[1], GENERIC[0]",
-            "MOV OUT[0], IN[0]",
-            "MOV OUT[1], IN[1]",
-            "END",
-        ] => Some(ShaderProgram::VertexGeneric),
-        [
-            "VERT",
-            "DCL IN[0..2]",
-            "DCL OUT[0], POSITION",
-            "DCL OUT[1], GENERIC[0]",
-            "DCL OUT[2], GENERIC[1]",
-            "MOV OUT[0], IN[0]",
-            "MOV OUT[1], IN[1]",
-            "MOV OUT[2], IN[2]",
-            "END",
-        ] => Some(ShaderProgram::VertexTextureColor),
+    let shape = shape::parse(lines, "VERT")?;
+    match shape.operations() {
+        [Operation::Mov(output, input), Operation::End]
+            if position(&shape) && shape::same(output, "OUT[0]") && shape::same(input, "IN[0]") =>
+        {
+            Some(ShaderProgram::VertexPassthrough)
+        }
+        [Operation::Add(output, input, constant), Operation::End]
+            if position(&shape) && shape.has_register("CONST[0][0]")
+                && shape::same(output, "OUT[0]") && shape::same(input, "IN[0]") && shape::same(constant, "CONST[0][0]") =>
+        {
+            Some(ShaderProgram::VertexUniformOffset)
+        }
+        [Operation::Mov(position, input), Operation::Mov(generic_output, varying), Operation::End]
+            if generic(&shape, 1) && shape::same(position, "OUT[0]") && shape::same(input, "IN[0]")
+                && shape::same(generic_output, "OUT[1]") && shape::same(varying, "IN[1]") =>
+        {
+            Some(ShaderProgram::VertexGeneric)
+        }
+        [Operation::Mov(position, input), Operation::Mov(generic0, varying0), Operation::Mov(generic1, varying1), Operation::End]
+            if generic(&shape, 2) && shape::same(position, "OUT[0]") && shape::same(input, "IN[0]")
+                && shape::same(generic0, "OUT[1]") && shape::same(varying0, "IN[1]")
+                && shape::same(generic1, "OUT[2]") && shape::same(varying1, "IN[2]") =>
+        {
+            Some(ShaderProgram::VertexTextureColor)
+        }
         _ => None,
     }
+}
+
+fn position(shape: &shape::Shape<'_>) -> bool {
+    shape.has_optional_semantic("IN[0]", "POSITION") && shape.has_semantic("OUT[0]", "POSITION")
+}
+
+fn generic(shape: &shape::Shape<'_>, count: u32) -> bool {
+    position(shape) && (1..=count).all(|index| {
+        shape.has_optional_semantic(&format!("IN[{index}]"), &format!("GENERIC[{}]", index - 1))
+            && shape.has_semantic(&format!("OUT[{index}]"), &format!("GENERIC[{}]", index - 1))
+    })
 }

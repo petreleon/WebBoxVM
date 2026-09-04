@@ -34,6 +34,7 @@ mod virgl_sampler_repeat;
 mod virgl_sampler_state;
 mod virgl_solid_batch;
 mod virgl_shader_state;
+mod virgl_shader_shapes;
 mod virgl_split_vertex_draw;
 mod virgl_split_texture_draw;
 mod virgl_textured_draw;
