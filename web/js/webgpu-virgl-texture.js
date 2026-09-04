@@ -1,6 +1,7 @@
 import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
 import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
 import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
+import { copyTextureIfChanged } from "./webgpu-virgl-texture-upload.js?v=20260904-virgl-readback-pool-r1";
 
 const SHADER = `
 @group(0) @binding(0) var source: texture_2d<f32>;
@@ -34,6 +35,7 @@ export class VirglTextureRenderer {
   #session;
   #texture;
   #textureHeight = 0;
+  #texturePixels;
   #textureUsage;
   #textureWidth = 0;
   #vertexBuffer;
@@ -72,7 +74,7 @@ export class VirglTextureRenderer {
     this.#sampler = undefined;
     this.#samplerAddressMode = undefined;
     this.#samplerFilter = undefined;
-    this.#texture = undefined;
+    this.#texture = this.#texturePixels = undefined;
     this.#generation = 0;
     this.#textureHeight = 0;
     this.#textureWidth = 0;
@@ -112,10 +114,14 @@ export class VirglTextureRenderer {
     this.#ensureTexture(device, frame.texture);
     this.#session.configure(frame.canvasWidth, frame.canvasHeight);
     device.queue.writeBuffer(this.#vertexBuffer, 0, frame.vertices);
-    const upload = padBgraRows(frame.texture.pixels, frame.texture.width, frame.texture.height);
-    device.queue.writeTexture({ texture: this.#texture }, upload.data, {
-      bytesPerRow: upload.bytesPerRow, rowsPerImage: frame.texture.height,
-    }, { width: frame.texture.width, height: frame.texture.height, depthOrArrayLayers: 1 });
+    const pixels = copyTextureIfChanged(this.#texturePixels, frame.texture.pixels);
+    if (pixels) {
+      const upload = padBgraRows(pixels, frame.texture.width, frame.texture.height);
+      device.queue.writeTexture({ texture: this.#texture }, upload.data, {
+        bytesPerRow: upload.bytesPerRow, rowsPerImage: frame.texture.height,
+      }, { width: frame.texture.width, height: frame.texture.height, depthOrArrayLayers: 1 });
+      this.#texturePixels = pixels;
+    }
     const encoder = device.createCommandEncoder({ label: "VirGL textured triangle encoder" });
     const pass = encoder.beginRenderPass({ colorAttachments: [{
       clearValue: { r: frame.clearColor[0], g: frame.clearColor[1], b: frame.clearColor[2], a: frame.clearColor[3] },
@@ -140,8 +146,7 @@ export class VirglTextureRenderer {
         format: "bgra8unorm", label: "VirGL sampled texture", size: { width: texture.width, height: texture.height, depthOrArrayLayers: 1 },
         usage: this.#textureUsage.COPY_DST | this.#textureUsage.TEXTURE_BINDING,
       });
-      this.#textureWidth = texture.width;
-      this.#textureHeight = texture.height;
+      this.#textureWidth = texture.width; this.#textureHeight = texture.height; this.#texturePixels = this.#bindGroup = undefined;
     }
     if (this.#bindGroup) return;
     this.#bindGroup = device.createBindGroup({ entries: [
