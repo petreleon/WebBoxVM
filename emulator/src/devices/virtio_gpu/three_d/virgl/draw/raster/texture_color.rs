@@ -3,7 +3,7 @@ use crate::devices::virtio_gpu::protocol::Rect;
 use crate::devices::virtio_gpu::resource::GpuResource;
 use crate::devices::virtio_gpu::three_d::virgl::draw::TextureSnapshot;
 
-const STRIDE: usize = 40;
+pub(super) const STRIDE: usize = 40;
 
 pub(super) fn valid(vertices: &[u8]) -> bool {
     geometry::valid_vertices(vertices, STRIDE)
@@ -52,11 +52,11 @@ pub(super) fn draw(
     true
 }
 
-fn colors(vertices: &[u8]) -> Option<[[f32; 4]; geometry::VERTICES]> {
+pub(super) fn colors(vertices: &[u8]) -> Option<[[f32; 4]; geometry::VERTICES]> {
     attributes(vertices, 16, 4, |value| (0.0..=1.0).contains(&value))
 }
 
-fn uvs(vertices: &[u8]) -> Option<[[f32; 2]; geometry::VERTICES]> {
+pub(super) fn uvs(vertices: &[u8]) -> Option<[[f32; 2]; geometry::VERTICES]> {
     attributes(vertices, 32, 2, |value| (-8.0..=8.0).contains(&value))
 }
 
@@ -76,7 +76,7 @@ fn attributes<const N: usize>(
     values.into_iter().flatten().all(|value| value.is_finite() && range(value)).then_some(values)
 }
 
-fn interpolate<const N: usize>(
+pub(super) fn interpolate<const N: usize>(
     values: [[f32; N]; geometry::VERTICES],
     weights: [f32; geometry::VERTICES],
 ) -> [f32; N] {
@@ -84,6 +84,6 @@ fn interpolate<const N: usize>(
         .map(|(value, weight)| value[channel] * weight).sum())
 }
 
-fn multiply(left: [f32; 4], right: [f32; 4]) -> [f32; 4] {
+pub(super) fn multiply(left: [f32; 4], right: [f32; 4]) -> [f32; 4] {
     std::array::from_fn(|channel| left[channel] * right[channel])
 }

@@ -3,7 +3,7 @@
 #include "syscall.h"
 #include "transfer.h"
 static const char card_node[] = "/dev/dri/card0"; static const char serial_node[] = "/dev/ttyAMA0";
-static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255 depth-equal-batch=128,0,64,255 depth-mixed-batch=0,128,64,255 depth-write-mask-batch=0,128,64,255 depth-vertex-color=64,64,127,255 depth-texture=10,20,30,255\n";
+static const char pass[] = "VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-uniform-triangle constant=121,115,134,255 blob=guest+host-map+default-shadow+renderer-local texture=10,20,30,255 linear=25,35,45,255 pair=55,65,75,255 vertex=64,64,127,255 modulate=32,32,64,255 uniform-inline-vertex=147,141,58,255 depth-less=58,102,20,255 solid-batch=0,128,64,255 depth-batch=0,0,128,255 depth-equal=128,0,0,255 depth-equal-batch=128,0,64,255 depth-mixed-batch=0,128,64,255 depth-write-mask-batch=0,128,64,255 depth-vertex-color=64,64,127,255 depth-texture=10,20,30,255 depth-texture-color=32,32,64,255\n";
 static const char fail_open[] = "VIRGL_CLEAR_DEMO_FAIL open-drm\n";
 static const char fail_caps[] = "VIRGL_CLEAR_DEMO_FAIL capset\n";
 static const char fail_context[] = "VIRGL_CLEAR_DEMO_FAIL context-init\n";
@@ -29,7 +29,7 @@ static const char fail_readback[] = "VIRGL_CLEAR_DEMO_FAIL transfer-readback\n";
 static const char fail_texture_pair[] = "VIRGL_CLEAR_DEMO_FAIL texture-pair\n";
 static const char fail_vertex_color[] = "VIRGL_CLEAR_DEMO_FAIL vertex-color\n";
 static const char fail_texture_color[] = "VIRGL_CLEAR_DEMO_FAIL texture-color\n";
-static const char fail_uniform[] = "VIRGL_CLEAR_DEMO_FAIL uniform-buffer\n"; static const char fail_depth[] = "VIRGL_CLEAR_DEMO_FAIL depth-less\n"; static const char fail_batch[] = "VIRGL_CLEAR_DEMO_FAIL solid-batch\n"; static const char fail_depth_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-batch\n"; static const char fail_depth_equal[] = "VIRGL_CLEAR_DEMO_FAIL depth-equal\n"; static const char fail_depth_equal_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-equal-batch\n"; static const char fail_depth_mixed_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-mixed-batch\n"; static const char fail_depth_write_mask_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-write-mask-batch\n"; static const char fail_depth_vertex_color[] = "VIRGL_CLEAR_DEMO_FAIL depth-vertex-color\n"; static const char fail_depth_texture[] = "VIRGL_CLEAR_DEMO_FAIL depth-texture\n";
+static const char fail_uniform[] = "VIRGL_CLEAR_DEMO_FAIL uniform-buffer\n"; static const char fail_depth[] = "VIRGL_CLEAR_DEMO_FAIL depth-less\n"; static const char fail_batch[] = "VIRGL_CLEAR_DEMO_FAIL solid-batch\n"; static const char fail_depth_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-batch\n"; static const char fail_depth_equal[] = "VIRGL_CLEAR_DEMO_FAIL depth-equal\n"; static const char fail_depth_equal_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-equal-batch\n"; static const char fail_depth_mixed_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-mixed-batch\n"; static const char fail_depth_write_mask_batch[] = "VIRGL_CLEAR_DEMO_FAIL depth-write-mask-batch\n"; static const char fail_depth_vertex_color[] = "VIRGL_CLEAR_DEMO_FAIL depth-vertex-color\n"; static const char fail_depth_texture[] = "VIRGL_CLEAR_DEMO_FAIL depth-texture\n"; static const char fail_depth_texture_color[] = "VIRGL_CLEAR_DEMO_FAIL depth-texture-color\n";
 static void emit(const char *message, u64 length)
 {
     long fd = sys_open(serial_node, O_WRONLY | O_CLOEXEC);
@@ -118,7 +118,7 @@ __attribute__((noreturn, section(".text.start"))) void _start(void) {
                     stage += 57;
                 else if ((stage = virgl_run_depth_triangle(fd, &resources)) != 0) stage += 62;
                 else if ((stage = virgl_run_solid_batch(fd, &resources)) != 0) stage += 66;
-                else if ((stage = virgl_run_depth_batch(fd, &resources)) != 0) stage += 70; else if ((stage = virgl_run_depth_equal(fd, &resources)) != 0) stage += 74; else if ((stage = virgl_run_depth_equal_batch(fd, &resources)) != 0) stage += 78; else if ((stage = virgl_run_depth_mixed_batch(fd, &resources)) != 0) stage += 82; else if ((stage = virgl_run_depth_write_mask_batch(fd, &resources)) != 0) stage += 86; else if ((stage = virgl_run_depth_vertex_color_triangle(fd, &resources)) != 0) stage += 90; else if ((stage = virgl_run_depth_textured_triangle(fd, &resources)) != 0) stage += 94;
+                else if ((stage = virgl_run_depth_batch(fd, &resources)) != 0) stage += 70; else if ((stage = virgl_run_depth_equal(fd, &resources)) != 0) stage += 74; else if ((stage = virgl_run_depth_equal_batch(fd, &resources)) != 0) stage += 78; else if ((stage = virgl_run_depth_mixed_batch(fd, &resources)) != 0) stage += 82; else if ((stage = virgl_run_depth_write_mask_batch(fd, &resources)) != 0) stage += 86; else if ((stage = virgl_run_depth_vertex_color_triangle(fd, &resources)) != 0) stage += 90; else if ((stage = virgl_run_depth_textured_triangle(fd, &resources)) != 0) stage += 94; else if ((stage = virgl_run_depth_texture_color_triangle(fd, &resources)) != 0) stage += 98;
             }
         }
     }
@@ -173,7 +173,7 @@ __attribute__((noreturn, section(".text.start"))) void _start(void) {
     else if (stage >= 45 && stage <= 49) EMIT(fail_texture_pair);
     else if (stage >= 50 && stage <= 53) EMIT(fail_vertex_color);
     else if (stage >= 54 && stage <= 57) EMIT(fail_texture_color);
-    else if (stage >= 58 && stage <= 62) EMIT(fail_uniform); else if (stage >= 63 && stage <= 66) EMIT(fail_depth); else if (stage >= 67 && stage <= 70) EMIT(fail_batch); else if (stage >= 71 && stage <= 74) EMIT(fail_depth_batch); else if (stage >= 75 && stage <= 78) EMIT(fail_depth_equal); else if (stage >= 79 && stage <= 82) EMIT(fail_depth_equal_batch); else if (stage >= 83 && stage <= 86) EMIT(fail_depth_mixed_batch); else if (stage >= 87 && stage <= 90) EMIT(fail_depth_write_mask_batch); else if (stage >= 91 && stage <= 94) EMIT(fail_depth_vertex_color); else if (stage >= 95 && stage <= 98) EMIT(fail_depth_texture);
+    else if (stage >= 58 && stage <= 62) EMIT(fail_uniform); else if (stage >= 63 && stage <= 66) EMIT(fail_depth); else if (stage >= 67 && stage <= 70) EMIT(fail_batch); else if (stage >= 71 && stage <= 74) EMIT(fail_depth_batch); else if (stage >= 75 && stage <= 78) EMIT(fail_depth_equal); else if (stage >= 79 && stage <= 82) EMIT(fail_depth_equal_batch); else if (stage >= 83 && stage <= 86) EMIT(fail_depth_mixed_batch); else if (stage >= 87 && stage <= 90) EMIT(fail_depth_write_mask_batch); else if (stage >= 91 && stage <= 94) EMIT(fail_depth_vertex_color); else if (stage >= 95 && stage <= 98) EMIT(fail_depth_texture); else if (stage >= 99 && stage <= 102) EMIT(fail_depth_texture_color);
     else EMIT(fail_readback);
     if (fd >= 0) { sys_close(fd); } sys_exit(0);
 }

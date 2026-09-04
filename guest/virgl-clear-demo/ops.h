@@ -55,6 +55,7 @@ int virgl_run_depth_equal_batch(long fd, const struct virgl_resources *resources
 int virgl_run_depth_mixed_batch(long fd, const struct virgl_resources *resources);
 int virgl_run_depth_vertex_color_triangle(long fd, const struct virgl_resources *resources);
 int virgl_run_depth_textured_triangle(long fd, const struct virgl_resources *resources);
+int virgl_run_depth_texture_color_triangle(long fd, const struct virgl_resources *resources);
 int virgl_run_depth_write_mask_batch(long fd, const struct virgl_resources *resources);
 int virgl_run_solid_batch(long fd, const struct virgl_resources *resources);
 int virgl_upload_index_buffer(long fd, u32 bo_handle);

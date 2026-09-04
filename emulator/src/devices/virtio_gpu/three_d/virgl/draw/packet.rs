@@ -138,7 +138,7 @@ fn texture_color(
     work: &DrawWork,
     texture: &super::TextureSnapshot,
 ) -> Vec<u8> {
-    let mut packet = header(8, sequence, width, height, work.vertex_count);
+    let mut packet = header(if work.depth_state.is_some() { 14 } else { 8 }, sequence, width, height, work.vertex_count);
     floats(&mut packet, clear.into_iter().chain([0.0; 4]));
     packet.extend_from_slice(&work.vertices);
     state(&mut packet, work);
@@ -147,6 +147,7 @@ fn texture_color(
         packet.extend_from_slice(&value.to_le_bytes());
     }
     packet.extend_from_slice(&texture.bgra);
+    if let Some(state) = work.depth_state { floats(&mut packet, [1.0].into_iter()); packet.extend_from_slice(&state.wire().to_le_bytes()); }
     packet
 }
 

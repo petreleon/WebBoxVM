@@ -1,5 +1,6 @@
 mod depth;
 mod depth_textured;
+mod depth_texture_color;
 mod depth_vertex_color;
 mod geometry;
 mod solid;
@@ -57,6 +58,13 @@ pub(super) fn draw_depth_textured(
     viewport: [f32; 6], scissor: Option<Rect>, state: DepthState, depth_values: &mut [f32],
 ) -> bool {
     depth_textured::draw(resource, rect, vertices, texture, viewport, scissor, state, depth_values)
+}
+
+pub(super) fn draw_depth_texture_color(
+    resource: &mut GpuResource, rect: Rect, vertices: &[u8], texture: &TextureSnapshot,
+    viewport: [f32; 6], scissor: Option<Rect>, state: DepthState, depth_values: &mut [f32],
+) -> bool {
+    depth_texture_color::draw(resource, rect, vertices, texture, viewport, scissor, state, depth_values)
 }
 
 pub(super) fn draw_textured(

@@ -43,9 +43,10 @@ zero; destroying a bound state unbinds it.
 
 ## Draw, transport, and completion contract
 
-- A depth-tested solid draw requires both a bound canonical DSA state and the
-  matching depth surface. Clear is exactly `CLEAR_COLOR0 | CLEAR_DEPTH` with
-  depth clear `1.0`.
+- Each supported singleton depth draw (solid, vertex-color, one-texture, or
+  texture-color) requires both a bound canonical DSA state and the matching
+  depth surface. Clear is exactly `CLEAR_COLOR0 | CLEAR_DEPTH` with depth
+  clear `1.0`.
 - CPU rasterization compares interpolated Z after viewport mapping and writes
   the stored depth only when the DSA write bit is set; source-over blending is
   still performed after a passing read-only test.
@@ -63,11 +64,11 @@ validation error leaves the CPU-authoritative color/depth effect unapplied.
 
 ## Demonstrated boundary
 
-The guest probe is configured to emit VGB1 v5 with a write-enabled `LESS` near
-red draw followed by a read-only `GREATER` far green draw. Its harness expects
-the exact `7` then `17` DSA record words and the blended `0,128,64,255` BGRA
-result. Rust depth tests separately assert that the stored center depth remains
-`0.25` after the read-only second draw.
+The guest probe emits VGB1 v5 with a write-enabled `LESS` near red draw followed
+by a read-only `GREATER` far green draw, then singleton schema 13 one-texture
+and schema 14 texture-color `LESS` draws at z=-.5. Its harness expects the exact
+DSA words and corresponding BGRA results. Rust depth tests separately assert
+that the stored center depth is `0.25` after a passing textured modulation draw.
 
 ## Explicit exclusions
 

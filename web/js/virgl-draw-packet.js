@@ -1,7 +1,7 @@
-import { parseVirglVertexColorPacket } from "./virgl-vertex-color-packet.js?v=20260904-virgl-depth-texture-r1";
-import { parseVirglTextureColorPacket } from "./virgl-texture-color-packet.js?v=20260904-virgl-depth-texture-r1";
-import { parseVirglDepthPacket } from "./virgl-depth-packet.js?v=20260904-virgl-depth-texture-r1";
-import { parseVirglDepthTexturePacket } from "./virgl-depth-texture-packet.js?v=20260904-virgl-depth-texture-r1";
+import { parseVirglVertexColorPacket } from "./virgl-vertex-color-packet.js?v=20260904-virgl-depth-texture-color-r1";
+import { parseVirglTextureColorPacket } from "./virgl-texture-color-packet.js?v=20260904-virgl-depth-texture-color-r1";
+import { parseVirglDepthPacket } from "./virgl-depth-packet.js?v=20260904-virgl-depth-texture-color-r1";
+import { parseVirglDepthTexturePacket } from "./virgl-depth-texture-packet.js?v=20260904-virgl-depth-texture-color-r1"; import { parseVirglDepthTextureColorPacket } from "./virgl-depth-texture-color-packet.js?v=20260904-virgl-depth-texture-color-r1";
 
 const MAGIC = [0x56, 0x47, 0x44, 0x31]; // VGD1
 const MAX_DIMENSION = 8192;
@@ -31,6 +31,7 @@ export function parseVirglDrawPacket(packet) {
   if (version === 8) return parseVirglTextureColorPacket(packet);
   if (version === 9 || version === 10 || version === 11) return parseVirglDepthPacket(packet);
   if (version === 13) return parseVirglDepthTexturePacket(packet);
+  if (version === 14) return parseVirglDepthTextureColorPacket(packet);
   const sequence = view.getUint32(8, true);
   const canvasWidth = view.getUint32(12, true);
   const canvasHeight = view.getUint32(16, true);

@@ -58,6 +58,9 @@ impl VirtioGpu {
                 (DrawMaterial::Textured(texture), Some((_, state, values))) => {
                     raster::draw_depth_textured(resource, rect, vertices, texture, viewport, scissor, *state, values)
                 }
+                (DrawMaterial::TextureColor(texture), Some((_, state, values))) => {
+                    raster::draw_depth_texture_color(resource, rect, vertices, texture, viewport, scissor, *state, values)
+                }
                 (DrawMaterial::Solid(color), None) => raster::draw_solid(resource, rect, vertices, *color, viewport, scissor),
                 (DrawMaterial::VertexColor, None) => raster::draw_vertex_color(resource, rect, vertices, viewport, scissor),
                 (DrawMaterial::Textured(texture), None) => raster::draw_textured(resource, rect, vertices, std::slice::from_ref(texture), viewport, scissor),

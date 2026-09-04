@@ -56,6 +56,34 @@ export function virglDepthTexturePacket({
   return packet;
 }
 
+export function virglDepthTextureColorPacket({
+  canvasHeight = 768,
+  canvasWidth = 1024,
+  clearColor = [0.1, 0.2, 0.3, 1],
+  depthClear = 1,
+  depthCompare = 1,
+  depthWriteEnabled = true,
+  sampler = 0x1092,
+  scissor = [0, 0, canvasWidth, canvasHeight],
+  sequence = 93,
+  texture = [128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255, 128, 128, 128, 255],
+  vertices = colorTextureTriangle(),
+  viewport = [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5],
+} = {}) {
+  const vertexCount = vertices.length / 10;
+  const state = 56 + vertices.length * 4;
+  const packet = new Uint8Array(state + 60 + texture.length);
+  packet.set([0x56, 0x47, 0x44, 0x31]);
+  const view = new DataView(packet.buffer);
+  [14, sequence, canvasWidth, canvasHeight, vertexCount].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
+  writeFloats(view, 24, clearColor); writeFloats(view, 56, vertices); writeFloats(view, state, viewport);
+  scissor.forEach((value, index) => view.setUint32(state + 24 + index * 4, value, true));
+  [sampler, 2, 2].forEach((value, index) => view.setUint32(state + 40 + index * 4, value, true));
+  packet.set(texture, state + 52); view.setFloat32(state + 52 + texture.length, depthClear, true);
+  view.setUint32(state + 56 + texture.length, 1 | (depthWriteEnabled ? 2 : 0) | (depthCompare << 2), true);
+  return packet;
+}
+
 function writeFloats(view, offset, values) {
   values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
 }
@@ -66,4 +94,12 @@ function triangle() {
 
 function texturedTriangle() {
   return [0, 0.75, -0.5, 1, 0, 1, -0.75, -0.75, -0.5, 1, 0, 1, 0.75, -0.75, -0.5, 1, 0, 1];
+}
+
+function colorTextureTriangle() {
+  return [
+    0, 0.75, -0.5, 1, 1, 0, 0, 1, 0, 1,
+    -0.75, -0.75, -0.5, 1, 0, 1, 0, 1, 0, 1,
+    0.75, -0.75, -0.5, 1, 0, 0, 1, 1, 0, 1,
+  ];
 }
