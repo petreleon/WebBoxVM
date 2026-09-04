@@ -8,6 +8,7 @@ mod backing;
 mod blob;
 mod commands;
 mod completion;
+mod fence;
 mod feature;
 mod frame;
 mod mmio;

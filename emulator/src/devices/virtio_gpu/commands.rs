@@ -20,6 +20,9 @@ impl VirtioGpu {
         let Some(header) = CtrlHeader::decode(input) else {
             return immediate(CtrlHeader::default().encode(RESP_ERR_UNSPEC));
         };
+        if let Err(response) = self.validate_fence_header(header) {
+            return immediate(header.encode(response));
+        }
         let response = match header.command_type {
             CMD_GET_DISPLAY_INFO if input.len() >= CTRL_HEADER_LEN => {
                 return immediate(self.display_info_response(header));

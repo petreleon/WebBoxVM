@@ -54,6 +54,13 @@ impl VirtioGpu {
         }) else {
             return false;
         };
+        let timeline = self.pending_3d[index].timeline;
+        if self.pending_3d[..index]
+            .iter()
+            .any(|pending| pending.timeline == timeline && pending.completion.is_some())
+        {
+            return false;
+        }
         let pending = self.pending_3d.remove(index);
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");

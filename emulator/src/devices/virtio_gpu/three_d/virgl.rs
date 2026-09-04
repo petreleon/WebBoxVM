@@ -122,6 +122,7 @@ impl VirtioGpu {
         self.pending_3d_bytes += packet.len();
         self.pending_3d.push(Pending3d {
             sequence,
+            timeline: header.fence_timeline(),
             bytes: packet.len(),
             packet: Some(packet),
             completion: None,

@@ -1,4 +1,5 @@
 use super::completion::PendingCompletion;
+use super::fence::FenceTimeline;
 use super::protocol::*;
 use super::{MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS, VirtioGpu};
 
@@ -25,6 +26,7 @@ pub(super) const MAX_3D_INDICES: u32 = 12288;
 #[derive(Debug, Clone)]
 pub(super) struct Pending3d {
     pub sequence: u32,
+    pub timeline: FenceTimeline,
     pub bytes: usize,
     pub packet: Option<Vec<u8>>,
     pub completion: Option<PendingCompletion>,
@@ -117,6 +119,7 @@ impl VirtioGpu {
         self.pending_3d_bytes += packet.len();
         self.pending_3d.push(Pending3d {
             sequence,
+            timeline: header.fence_timeline(),
             bytes: packet.len(),
             packet: Some(packet),
             completion: None,

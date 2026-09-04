@@ -15,7 +15,7 @@ fn display_info_is_fixed_and_preserves_request_header() {
     assert_eq!(read_u32(&response, 4), Some(1));
     assert_eq!(read_u64(&response, 8), Some(0x1122_3344_5566_7788));
     assert_eq!(read_u32(&response, 16), Some(7));
-    assert_eq!(read_u32(&response, 20), Some(9));
+    assert_eq!(read_u32(&response, 20), Some(0));
     assert_eq!(read_u32(&response, 32), Some(SCANOUT_WIDTH));
     assert_eq!(read_u32(&response, 36), Some(SCANOUT_HEIGHT));
     assert_eq!(read_u32(&response, 40), Some(1));

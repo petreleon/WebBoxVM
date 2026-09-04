@@ -4,6 +4,7 @@ mod bounds;
 mod commands;
 mod context;
 mod default_blob;
+mod fence;
 mod features;
 mod host_visible;
 mod lifecycle;
@@ -47,10 +48,10 @@ impl super::VirtioGpu {
 fn header(command_type: u32) -> Vec<u8> {
     let mut bytes = Vec::new();
     push_u32(&mut bytes, command_type);
-    push_u32(&mut bytes, 1);
+    push_u32(&mut bytes, super::fence::FLAG_FENCE);
     push_u64(&mut bytes, 0x1122_3344_5566_7788);
     push_u32(&mut bytes, 7);
-    push_u32(&mut bytes, 9);
+    push_u32(&mut bytes, 0);
     bytes
 }
 
