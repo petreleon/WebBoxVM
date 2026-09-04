@@ -9,7 +9,7 @@ pub(super) mod packet;
 mod transfer;
 mod virgl;
 
-pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID};
+pub(super) use capset::{CAPSET_COUNT, VIRGL_CAPSET_ID, VIRGL2_CAPSET_ID};
 use packet::decode_submit;
 use virgl::{DepthState, DrawMaterial, DrawWork};
 pub(in crate::devices::virtio_gpu) use virgl::VirglContext;
@@ -118,7 +118,9 @@ impl VirtioGpu {
     ) -> Result<Option<DeferredSubmit>, u32> {
         match self.contexts.get(&header.ctx_id) {
             Some(&CAPSET_ID) => return self.submit_wbg3(header, input).map(Some),
-            Some(&VIRGL_CAPSET_ID) => return self.submit_virgl(header, input),
+            Some(&VIRGL_CAPSET_ID) | Some(&VIRGL2_CAPSET_ID) => {
+                return self.submit_virgl(header, input)
+            }
             _ => return Err(RESP_ERR_INVALID_CONTEXT_ID),
         }
     }

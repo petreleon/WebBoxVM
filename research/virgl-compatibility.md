@@ -1,11 +1,12 @@
 # VirGL compatibility track
 
-## Current verified capset-1 slice
+## Current verified VirGL capset slice
 
-WebBoxVM exposes standard VirtIO-GPU capset ID 1 before its private WBG3
-capset ID 7. It reports capset 1, version 1, with a 308-byte
-`virgl_caps_v1`-layout response. The response advertises only the formats,
-primitive, one UBO slot, and limits exercised by this implementation.
+WebBoxVM exposes standard VirtIO-GPU capset ID 1 and capset ID 2 before its
+private WBG3 capset ID 7. It reports ID 1/version 1 with a 308-byte
+`virgl_caps_v1` response and ID 2/version 2 with the current 1,376-byte
+growable `virgl_caps_v2` layout. Both advertise only formats, primitive, one
+UBO slot, and limits exercised by this implementation.
 
 This is a guest-visible VirGL wire-protocol vertical slice, not a claim that
 Mesa, OpenGL, or arbitrary VirGL workloads work. It supports a full-scanout
@@ -15,10 +16,10 @@ nearest-clamp/repeat or linear-clamp one-texture; fragment-constant-modulated te
 
 | Standard boundary | Current behavior | Deliberate limit |
 | --- | --- | --- |
-| Capset discovery | `GET_CAPSET_INFO` index 0 reports ID 1/version 1/308 bytes | No capset 2 |
+| Capset discovery | Index 0 reports ID 1/version 1/308 bytes; index 1 ID 2/version 2/1,376 bytes | No Venus capset 4 |
 | Texture resources | Packed 2D targets plus two B8G8R8A8 or R8G8B8A8 sampled resources | No mip levels, arrays, blobs, or multisampling |
 | Buffer resources | R8 raw vertex/index/constant plus R32G32/R32G32B32A32 float vertex storage | R8 is not a renderable vertex format |
-| Context lifecycle | capset-1 create, destroy, attach, and detach are tracked | No shared contexts or fences |
+| Context lifecycle | capset-1/2 create, destroy, attach, and detach share bounded state | No shared contexts or fences |
 | Resource transfer/copy | 72-byte transfers, isolated bounded command-9 uniform writes, and one bounded copy per submit | No explicit strides, blit, format conversion, or scanout copy |
 | VirGL stream | Surface/framebuffer, bounded normalized TGSI shapes, vertex/index/sampler state, inline/resource constants, blend/rasterizer, viewport/scissor, clear, and `DRAW_VBO` | No arbitrary TGSI or fixed-function state |
 | Presentation | Clear; singleton shapes plus 2–16 ordered solid/vertex-color/one-/two-texture/texture-color snapshots, with per-record DSA where depth supports the material, through one WebGPU pass; `VGB1`/`VGM1` can map final GPU color | No arbitrary shader/state, blending, or sampler state |
@@ -156,7 +157,7 @@ from that harness.
 
 1. Obtain native end-to-end execution of the newly wired `VGM1` guest phase once shell startup is available, then extend the bounded semantic IR with explicitly validated operations and state rather than add exact TGSI strings.
 2. Design blob, external-memory, and synchronization contracts before any
-   Venus capset or Vulkan claim.
+   Venus capset 4 or Vulkan claim; see [VirGL2 capset boundary](virgl2-capset.md).
 
 ## Sources
 

@@ -33,7 +33,7 @@ readback, so guest DRM transport is covered in addition to Rust/browser tests.
 
 Vertex constants, other slots, arrays, non-color values, general resource-backed
 uniform buffers, arbitrary TGSI, and any capset expansion remain unsupported.
-This is a narrow standard capset-1 transport seam, not Vulkan/Venus support.
+This is a narrow standard capset-1/2 transport seam, not Vulkan/Venus support.
 
 ## Sources
 

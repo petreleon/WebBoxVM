@@ -60,7 +60,7 @@ DMA-fence context.
 
 This only governs WebBoxVM packets that already wait for a browser completion.
 It does not yet schedule arbitrary VirtIO-GPU commands behind renderer work,
-implement a capset-2/Venus command stream, translate Vulkan, or expose Vulkan
+implement a capset-4/Venus command stream, translate Vulkan, or expose Vulkan
 external-memory primitives. Those require a real renderer protocol and host
 resource interop, neither of which browser WebGPU supplies today.
 

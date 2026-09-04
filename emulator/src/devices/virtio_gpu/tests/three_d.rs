@@ -11,7 +11,7 @@ use super::{context_create, header, response_type, submit_3d, wbg3_packet};
 use crate::memory::PhysicalMemory;
 
 #[test]
-fn features_and_private_capset_remain_advertised_with_exact_structures() {
+fn features_and_standard_and_private_capsets_have_exact_structures() {
     let mut gpu = VirtioGpu::new();
     let mut mem = PhysicalMemory::new();
     assert_eq!(
@@ -25,10 +25,10 @@ fn features_and_private_capset_remain_advertised_with_exact_structures() {
     );
     gpu.write(&mut mem, 0x014, 1, 4);
     assert_eq!(gpu.read(0x010, 4), Some(1));
-    assert_eq!(gpu.read(0x10c, 4), Some(2));
+    assert_eq!(gpu.read(0x10c, 4), Some(3));
 
     let mut info = header(CMD_GET_CAPSET_INFO);
-    push_u32(&mut info, 1);
+    push_u32(&mut info, 2);
     push_u32(&mut info, 0);
     let response = gpu.execute_command(&mut mem, &info);
     assert_eq!(response_type(&response), RESP_OK_CAPSET_INFO);

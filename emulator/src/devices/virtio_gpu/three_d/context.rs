@@ -1,5 +1,5 @@
-use super::capset::supports;
-use super::{VIRGL_CAPSET_ID, VirglContext};
+use super::capset::{is_virgl_capset, supports};
+use super::VirglContext;
 use crate::devices::virtio_gpu::protocol::*;
 use crate::devices::virtio_gpu::{MAX_CONTEXTS, VirtioGpu};
 
@@ -32,7 +32,7 @@ impl VirtioGpu {
         let generation = self.allocate_context_generation();
         self.contexts.insert(header.ctx_id, capset);
         self.context_generations.insert(header.ctx_id, generation);
-        if capset == VIRGL_CAPSET_ID {
+        if is_virgl_capset(capset) {
             let generation = self.allocate_virgl_context_generation();
             self.virgl_contexts
                 .insert(header.ctx_id, VirglContext::new(generation));
@@ -67,7 +67,7 @@ impl VirtioGpu {
         if !self.resource_exists(resource_id) {
             return RESP_ERR_INVALID_RESOURCE_ID;
         }
-        if capset != VIRGL_CAPSET_ID {
+        if !is_virgl_capset(capset) {
             return RESP_OK_NODATA;
         }
         if !self.is_virgl_resource(resource_id) && !self.blobs.contains_key(&resource_id) {

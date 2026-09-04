@@ -3,7 +3,7 @@
 ## Scope
 
 This is a compatibility increment, not a general VirGL, OpenGL, Vulkan, or
-Venus implementation. A valid standard capset-1 stream may now contain one
+Venus implementation. A valid standard capset-1/2 stream may now contain one
 color clear followed by two through sixteen solid `DRAW_VBO` commands. A
 batch is either entirely non-depth or depth-tested after a clear-one depth
 attachment. V2/V3 share one standard DSA comparison; v4 preserves one comparison per record; v5 preserves each canonical DSA comparison/write-mask pair. Each draw retains the standard state active at
