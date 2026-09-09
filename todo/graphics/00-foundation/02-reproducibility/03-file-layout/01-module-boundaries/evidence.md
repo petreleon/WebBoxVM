@@ -51,5 +51,8 @@ none for F06.1 after the recorded checks; later compatibility/performance gates 
 Decision and limits: the split makes ownership reviewable without changing the bounded protocol
 surface. It does not establish general VirGL, Mesa, Venus, OpenGL/GLES, Vulkan, or near-native work.
 
-Commit/push verification: recorded after the verified F06.1 commit and remote-SHA check.
+Commit/push verification: F06.1 completion commit
+`464b34e3d6b121a01c16305a937a995f4ff7071b` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` and the tracking ref resolved to that SHA.
+No remote CI result is claimed locally.
 Next ready task: F02.1 continues independently; F06.2 requires this leaf's completion.
