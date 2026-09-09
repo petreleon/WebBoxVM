@@ -4,7 +4,7 @@
 
 Task: F02.3.3.2
 Depends: F02.1, F02.2, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.3.1](../../01-provenance-record/README.md) and
 [F02.2](../../../02-fetch-verifier/README.md).
@@ -22,10 +22,10 @@ reviewed registry, while GLSL and ESSL specifications stay reference material.
 
 ## Checklist
 
-- [ ] Select only `opengl-gles-registry` as the registry-generator input for the sample.
-- [ ] Record its exact manifest ID, digest, license, command, generator name/version, and output hash.
-- [ ] Reject `glsl-460-spec` or `essl-320-spec` when offered as the generated-output input.
-- [ ] Keep reference specifications and any fixture output distinct; do not vendor upstream bytes.
+- [x] Select only `opengl-gles-registry` as the registry-generator input for the sample.
+- [x] Record its exact manifest ID, digest, license, command, generator name/version, and output hash.
+- [x] Reject `glsl-460-spec` or `essl-320-spec` when offered as the generated-output input.
+- [x] Keep reference specifications and any fixture output distinct; do not vendor upstream bytes.
 
 ## Verification
 

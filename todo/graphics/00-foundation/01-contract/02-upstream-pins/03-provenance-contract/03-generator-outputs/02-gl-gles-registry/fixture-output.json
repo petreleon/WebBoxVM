@@ -1,0 +1,11 @@
+{
+  "artifact": "fixture-only-gl-gles-registry-binding",
+  "generator": {
+    "name": "f02-gl-gles-fixture",
+    "version": "1"
+  },
+  "input_id": "opengl-gles-registry",
+  "input_sha256": "b9ca2cfa5c676e901c20d34af3407f1687cde0f1336a5ff7a8974d04c7494ad3",
+  "notice": "Fixture-only provenance output; no upstream registry bytes or runtime API data.",
+  "schema": 1
+}
