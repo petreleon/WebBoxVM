@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.3
 Depends: F02.3.1, F02.3.3.4.1, F02.3.3.4.2
-Evidence: pending
+Evidence: [evidence.md](evidence.md)
 
 Prerequisite lists: [F02.3.1](../../../01-provenance-record/README.md),
 [the grammar lock](../01-wgsl-grammar-inventory/README.md), and
@@ -23,11 +23,11 @@ generator, without claiming a WGSL compiler, WebGPU API binding, or guest render
 
 ## Checklist
 
-- [ ] Bind exactly one generated fixture record to the new WGSL grammar input and its license.
-- [ ] Record the generator command/version, output hash, and grammar-dialect limitation.
-- [ ] Reject the current `wgsl-spec`, `webgpu-spec`, cross-family sources, wrong generator version,
+- [x] Bind exactly one generated fixture record to the new WGSL grammar input and its license.
+- [x] Record the generator command/version, output hash, and grammar-dialect limitation.
+- [x] Reject the current `wgsl-spec`, `webgpu-spec`, cross-family sources, wrong generator version,
   input digest, and output hash offline.
-- [ ] Keep the fixture free of upstream grammar bytes and separate from WebGPU API generation.
+- [x] Keep the fixture free of upstream grammar bytes and separate from WebGPU API generation.
 
 ## Verification
 

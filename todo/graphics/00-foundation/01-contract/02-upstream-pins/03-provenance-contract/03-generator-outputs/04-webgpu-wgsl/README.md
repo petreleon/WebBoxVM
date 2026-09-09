@@ -24,7 +24,7 @@ input explicitly designated for generator use; no WebGPU/WGSL generation or runt
 
 - [x] [F02.3.3.4.1 — Lock and verify a WGSL grammar input](01-wgsl-grammar-inventory/README.md)
 - [x] [F02.3.3.4.2 — Renew inventory-bound records](02-record-renewal/README.md)
-- [ ] [F02.3.3.4.3 — Bind a WGSL grammar generator record](03-wgsl-generator-record/README.md)
+- [x] [F02.3.3.4.3 — Bind a WGSL grammar generator record](03-wgsl-generator-record/README.md)
 - [ ] [F02.3.3.4.4 — Hold the WebGPU generator-input boundary](04-webgpu-boundary/README.md)
 
 ## Verification
