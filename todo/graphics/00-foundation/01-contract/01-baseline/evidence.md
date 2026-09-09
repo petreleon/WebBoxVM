@@ -89,7 +89,8 @@ Decision and limits: this receipt completes only the reproducible starting-state
 It deliberately preserves the narrow bounded VirGL implementation and does not advertise
 OpenGL 4.6, GLES 3.2, Vulkan 1.4, Mesa compatibility, or near-native performance.
 
-Commit/push verification: the F01 documentation commit and remote SHA are verified in
-the task handoff after the post-edit checks; no remote CI result is claimed locally.
-Next ready task: run the roadmap checker after this receipt; expected independent leaves
-are F02 (upstream pins) and F06 (feasibility), subject to its dependency result.
+Commit/push verification: F01 completion commit `a6bac05fde8ff88b9378bb5e41b5751e0bb6bfaf`
+was pushed to `origin/codex/graphics-f01-baseline`; `git ls-remote` and the tracking ref
+both resolved to that SHA. No remote CI result is claimed locally.
+Next ready task: final checker output is `Ready: F02, F06`; they are independent upstream-pin
+and feasibility leaves.
