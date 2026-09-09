@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.2
 Depends: F02.3.1, F02.3.3.4.1
-Evidence: pending
+Evidence: [evidence.md](evidence.md)
 
 Prerequisite lists: [F02.3.1](../../../01-provenance-record/README.md) and
 [the WGSL grammar lock](../01-wgsl-grammar-inventory/README.md).
@@ -23,13 +23,13 @@ F02.1 `inventory.lock` SHA-256 without changing any declared source identity or 
 
 ## Checklist
 
-- [ ] Recompute the canonical raw `inventory.lock` SHA-256 after F02.3.3.4.1's accepted grammar
+- [x] Recompute the canonical raw `inventory.lock` SHA-256 after F02.3.3.4.1's accepted grammar
   change.
-- [ ] Renew F02.3.1 test fixtures, ABI sidecars, Venus/GL/Vulkan/SPIR-V fixture sidecars, and the
+- [x] Renew F02.3.1 test fixtures, ABI sidecars, Venus/GL/Vulkan/SPIR-V fixture sidecars, and the
   F06 input/output hashes to that one lock identity.
-- [ ] Prove their input IDs, digests, licenses, commands, generator versions, and artifact hashes are
+- [x] Prove their input IDs, digests, licenses, commands, generator versions, and artifact hashes are
   otherwise unchanged.
-- [ ] Run every affected focused offline suite and report exact nonzero counts.
+- [x] Run every affected focused offline suite and report exact nonzero counts.
 
 ## Verification
 
