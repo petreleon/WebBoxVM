@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.3.1
 Depends: F02.4.4.1.5.2.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [actual Docs grammar](../../02-actual-closure-identity/README.md),
 [official build witness](../../01-reproduce-pinned-html/evidence.md), and
@@ -24,12 +24,12 @@ replacement for, the official output witness.
 
 ## Checklist
 
-- [ ] Record the exact core producer argv and effective attributes before observing any inputs.
-- [ ] Observe generator reads, resolved Asciidoctor includes, and copied/postprocess assets with pinned image, read-only
+- [x] Record the exact core producer argv and effective attributes before observing any inputs.
+- [x] Observe generator reads, resolved Asciidoctor includes, and copied/postprocess assets with pinned image, read-only
   inputs, no network, and a declared observer implementation.
-- [ ] Normalize only content reads into ordered phase records with safe source/generated selectors and no rendered output
+- [x] Normalize only content reads into ordered phase records with safe source/generated selectors and no rendered output
   classified as an input.
-- [ ] Retain two ignored raw observation artifacts plus compact tracked identities; reject incomplete or unsafe observer
+- [x] Retain two ignored raw observation artifacts plus compact tracked identities; reject incomplete or unsafe observer
   records in focused tests.
 
 ## Verification
