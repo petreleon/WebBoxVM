@@ -1,6 +1,6 @@
 # F06.3 evidence
 
-Revision: F06.3.1 `6469074`, F06.3.2 `8e04cc9`, F06.3.3 scoped worktree proof
+Revision: F06.3.1 `6469074`, F06.3.2 `8e04cc9`, F06.3.3 `86148af`
 Validation: all three child receipts; generator CLI, checker fixtures, source limits, `make test`, roadmap, diff
 Result: PASS
 Artifacts: chunk generator, hermetic checker fixtures, and CLI reproducibility proof linked below
@@ -22,6 +22,7 @@ The aggregate source-limit, roadmap, whitespace, and full-suite commands exited 
 
 This aggregation proves maintenance-tool determinism and structural checking, not graphics protocol
 generation, browser execution, API compatibility, native comparison, fallback behavior, Mesa,
-OpenGL/GLES, Vulkan, WebGPU, or performance. F06.3.3 is still a scoped worktree change when this
-receipt was written; the later focused commit/push must be verified separately. Next ready task:
-F02.2.3.
+OpenGL/GLES, Vulkan, WebGPU, or performance. Commit/push verification: F06.3.3 implementation
+commit `86148af2d1a1e56969886e94e206b5536dfe8b27` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same SHA. No remote
+CI result is claimed locally. Next ready task: F02.3.1.

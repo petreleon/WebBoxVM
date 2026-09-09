@@ -1,6 +1,6 @@
 # F06.3.3 evidence
 
-Revision: `0d86321` baseline; scoped worktree proof
+Revision: `86148af2d1a1e56969886e94e206b5536dfe8b27` implementation commit
 Validation: three CLI proof cases, generator and checker-fixture suites, source limits, `make test`, roadmap, diff
 Result: PASS
 Artifacts: `scripts/test_graphics_reproducibility.py`; temporary first/second output directories are deleted after each run
@@ -44,6 +44,7 @@ F02 worktree changes were present and intentionally not modified by this proof.
 This evidence establishes stable bytes and stale/order rejection only. It does not exercise a
 browser adapter, guest workload, native reference, fallback route, Mesa, OpenGL/GLES, Vulkan,
 WebGPU, or performance behavior. It neither establishes graphics compatibility nor near-native
-performance. The focused proof is uncommitted at this receipt stage; its later commit/push and
-remote verification must be recorded separately. Next ready task after structural completion:
-F02.2.3.
+performance. Commit/push verification: implementation commit
+`86148af2d1a1e56969886e94e206b5536dfe8b27` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same SHA. No remote
+CI result is claimed locally. Next ready task: F02.3.1.

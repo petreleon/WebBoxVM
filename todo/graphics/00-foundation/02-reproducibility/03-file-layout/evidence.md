@@ -1,6 +1,6 @@
 # F06 evidence
 
-Revision: F06.1 `464b34e`, F06.2 `56cda63`, F06.3 scoped worktree proof
+Revision: F06.1 `464b34e`, F06.2 `56cda63`, F06.3 `86148af`
 Validation: child receipts; source limits, `make test`, roadmap checker, and whitespace check
 Result: PASS
 Artifacts: browser-boundary split, maintained-source limit suite, generator/checker proof documents
@@ -20,6 +20,7 @@ limit, full-suite, roadmap, and whitespace commands passed from
 
 This parent receipt covers code organization, bounded generated artifacts, and roadmap bookkeeping.
 It does not establish guest protocol correctness, browser graphics behavior, Mesa, OpenGL/GLES,
-Vulkan, WebGPU, native performance, or near-native performance. The F06.3 scoped changes are
-uncommitted at this receipt stage and require later commit/push verification. Next ready task:
-F02.2.3.
+Vulkan, WebGPU, native performance, or near-native performance. Commit/push verification: F06.3
+implementation commit `86148af2d1a1e56969886e94e206b5536dfe8b27` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same SHA. No remote
+CI result is claimed locally. Next ready task: F02.3.1.
