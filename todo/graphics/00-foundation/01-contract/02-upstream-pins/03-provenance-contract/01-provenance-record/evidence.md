@@ -10,7 +10,7 @@ Profile: record contract only; F02.3.2/.3.3 bindings and F02.3.4 fresh-cache clo
 
 The active F02.3 contract now accepts only schema-v2 sidecars bound to the exact raw
 [`inventory.lock`](../../01-input-inventory/inventory.lock) SHA-256
-`cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`. A legacy one-file
+`db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`. A legacy one-file
 inventory or schema-v1 sidecar is rejected before it can become an active binding.
 
 ## Historical v1 contract result

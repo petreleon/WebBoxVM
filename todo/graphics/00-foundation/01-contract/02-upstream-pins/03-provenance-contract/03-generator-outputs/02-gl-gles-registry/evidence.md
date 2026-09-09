@@ -10,14 +10,14 @@ Profile: fixture-only provenance binding; no GL/GLES API, runtime, guest, or bro
 
 The sole generated-input reference is `opengl-gles-registry` from the F02.1 manifest:
 
-- Inventory-lock SHA-256: `cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`.
+- Inventory-lock SHA-256: `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`.
 - Input SHA-256: `b9ca2cfa5c676e901c20d34af3407f1687cde0f1336a5ff7a8974d04c7494ad3`.
 - License: `Apache-2.0 (SPDX file notice)`.
 - Generator: `f02-gl-gles-fixture` version `1`.
 - Output: [fixture-output.json](fixture-output.json), SHA-256
   `bdcec164579481b459eee7d2ab54bc867c5f010dd5bc28e8a94635b707397d91`.
 - Sidecar: [fixture-output.provenance.json](fixture-output.provenance.json), SHA-256
-  `6bfc2af39f9923008c612aeed501cc5cf0aee80a157a86b655ec25d8b24cc5fc`.
+  `8adc5a16bf0dca72f2a0c569004436c4fce95d08f7e2030e4f075b78ebce9a9a`.
 
 The recorded command is in the sidecar and regenerates only a small identity marker. It reads the
 reviewed inventory metadata, not `gl.xml`; the tracked fixture contains no registry, GLSL, or ESSL

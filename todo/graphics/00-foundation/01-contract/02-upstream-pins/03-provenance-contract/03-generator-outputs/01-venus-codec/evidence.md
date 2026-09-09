@@ -9,7 +9,7 @@ Profile: fixture-only generator contract; no Venus guest, runtime, API, renderin
 ## Bound record
 
 The sidecar binds F02.1 raw inventory-lock SHA-256
-`cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b` solely to
+`db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e` solely to
 `venus-protocol-registry` / `d92839bc728fa9ad9a7decdc6b91df6fa1a0fb26cffae4009865f18a789e0535`
 under its recorded `Apache-2.0 OR MIT (SPDX file notice)` license. The marker byte hash is
 `4a87aaf839dce537622ca76fedbf97df1fc77cc5b1840b924772a1f10bb2fde0`.

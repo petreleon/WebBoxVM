@@ -10,7 +10,8 @@ Task ID and date: F02.3.3.4.1.1, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: ed78340d558f691ec4c525641e808654fa874616; clean tree before receipts.
 Upstream manifest revision: schema-v1 SHA-256
 8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e before the cutover; the
-canonical active provenance revision is now the raw `inventory.lock` SHA-256 above.
+canonical active provenance revision at this task's tested revision was the raw `inventory.lock`
+SHA-256 above. A later grammar-lock task may renew that current identity.
 Guest image and build hashes: not applicable; no guest was built or run.
 Browser, OS, adapter and driver: not applicable; no browser or GPU execution path was exercised.
 Exact command(s), working directory and tool versions: Python 3.14 stdlib focused suites recorded in

@@ -25,8 +25,8 @@ MANIFEST = ROOT / (
 LOCK = MANIFEST.with_name("inventory.lock")
 EXPECTED = SPEC.parent / "expected"
 EXPECTED_HASHES = {
-    "chunk-0001.md": "3570bfb1fa063f65875671df8d6f8f8f5ca850b8114f0f9394dcb511a576f47b",
-    "metadata.json": "f4ce8ccaa00f261bbdc7e0bcafb9c6c743c21d91984e3022e48839b8b771840f",
+    "chunk-0001.md": "8c7ccca58afacacdebdac8571fe766d719c470a05b80aa682efceba25d85066e",
+    "metadata.json": "dfaae1b2ec3df5fc7cc384b085ca78a11e7fcc725a761f9d22243ceae6ef29e9",
 }
 
 

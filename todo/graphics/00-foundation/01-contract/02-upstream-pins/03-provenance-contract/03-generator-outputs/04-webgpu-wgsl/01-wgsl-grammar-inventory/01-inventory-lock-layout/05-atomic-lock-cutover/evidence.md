@@ -23,8 +23,9 @@ and `scripts/test_graphics_reproducibility.py`, all with `PYTHONDONTWRITEBYTECOD
 `cargo test -p emulator --test source_file_limits --quiet`,
 `python3 scripts/check_graphics_roadmap.py`, and `git diff --check`.
 Expected result and minimum nonzero case count: one schema-v2 root plus one sorted component preserves
-all 15 raw input entries; every active provenance/F06 consumer binds the raw lock SHA-256; each focused
-suite has a nonzero passing count; hostile component and stale-identity cases fail before acceptance.
+all 15 raw input entries; every active provenance/F06 consumer binds the raw lock SHA-256 at this task's
+tested revision; each focused suite has a nonzero passing count; hostile component and stale-identity
+cases fail before acceptance.
 Actual passed/failed/skipped counts and exit codes: layout 5/0/0; F02.1 5/0/0; F02.2 15/0/0;
 transport 7/0/0; provenance 10/0/0; ABI 7/0/0; Venus 6/0/0; GL/GLES 6/0/0; Vulkan/SPIR-V 5/0/0;
 WebGPU boundary 7/0/0; chunker 9/0/0; reproducibility 4/0/0 (86/0/0 total); direct ABI and GL

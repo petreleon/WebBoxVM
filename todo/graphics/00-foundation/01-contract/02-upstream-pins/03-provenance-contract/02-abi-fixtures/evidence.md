@@ -3,7 +3,7 @@
 Revision: `16cd943eb67fa3249850870f2abc079dbe27b971` baseline plus uncommitted F02.3.2 metadata
 Validation: seven hermetic ABI-sidecar tests, six-record CLI check, source limits, `make test`, roadmap, and whitespace checks
 Result: PASS
-Artifacts: six JSON sidecars under `records/`, each bound to F02.1 inventory-lock SHA-256 `cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`
+Artifacts: six JSON sidecars under `records/`, each bound to F02.1 inventory-lock SHA-256 `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`
 Profile: provenance metadata only; no guest ABI, graphics API, rendering, or network behavior change
 
 ## Scope and provenance result
