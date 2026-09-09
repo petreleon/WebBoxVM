@@ -4,7 +4,7 @@
 
 Task: F03.1
 Depends: F02.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../02-upstream-pins/01-input-inventory/README.md).
 
@@ -22,16 +22,16 @@ without treating the current bounded renderer as support for any profile.
 
 ## Checklist
 
-- [ ] Record the final target names: OpenGL 4.6 core, GLES 3.2, and Vulkan 1.4 core; explicitly
+- [x] Record the final target names: OpenGL 4.6 core, GLES 3.2, and Vulkan 1.4 core; explicitly
   distinguish compatibility profiles, extensions, and earlier bring-up versions.
-- [ ] Define a small row schema for source locator, mandatory status, implementation owner, reference
+- [x] Define a small row schema for source locator, mandatory status, implementation owner, reference
   test, current evidence, and supported/emulated/unsupported/blocked classification.
-- [ ] Bind the schema and every future matrix artifact to the reviewed F02 inventory-lock identity and
+- [x] Bind the schema and every future matrix artifact to the reviewed F02 inventory-lock identity and
   source IDs, rejecting a stale or invented source reference.
-- [ ] Audit whether F02 pins the authoritative API/limit/format material and complete test manifests
+- [x] Audit whether F02 pins the authoritative API/limit/format material and complete test manifests
   required for all three final profiles; create a visible F02 extension blocker when it does not.
-- [ ] Add focused positive and malformed/stale-schema checks with an exact nonzero test count.
-- [ ] Run focused tests, source limits, roadmap, whitespace, required gates, and attach a receipt.
+- [x] Add focused positive and malformed/stale-schema checks with an exact nonzero test count.
+- [x] Run focused tests, source limits, roadmap, whitespace, required gates, and attach a receipt.
 
 ## Verification
 

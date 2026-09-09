@@ -1,10 +1,16 @@
-# F02 evidence
+# F02 historical F02.1–F02.3 evidence
 
 Revision: `b50dcbedd79e719ace50628daa773b8eac3cb81a` final provenance-closure implementation commit
 Validation: child receipts; fresh 17-input fetch and offline rehash; 17-cache/12-record closure; focused suites; source limits; local `make test`; roadmap; whitespace
 Result: PASS
 Artifacts: immutable F02 inventory lock and external-only fresh cache `/private/tmp/webboxvm-f0234-live.OwEDjs`
 Profile: reproducible input/provenance foundation only; no graphics runtime, browser, compatibility, or performance claim
+
+## Reopened scope
+
+F03.1 subsequently identified six unpinned target-profile normative/conformance inputs. F02 is
+therefore open through F02.4; this receipt records only the prior 17-input F02.1–F02.3 closure and
+must not be used as proof that OpenGL 4.6, GLES 3.2, or Vulkan 1.4 source coverage is complete.
 
 Task ID and date: F02, 2026-09-09 Europe/Bucharest.
 
