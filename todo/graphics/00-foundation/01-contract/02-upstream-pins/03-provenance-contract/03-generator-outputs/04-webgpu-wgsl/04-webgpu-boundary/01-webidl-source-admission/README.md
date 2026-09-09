@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.4.1
 Depends: F02.1, F02.2, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../../../../01-input-inventory/README.md),
 [F02.2](../../../../../02-fetch-verifier/README.md), and the
@@ -19,16 +19,16 @@ reference and no browser, guest, rendering, or compatibility claim is made.
 ## Starting points
 
 - [current inventory root](../../../../../01-input-inventory/manifest.toml)
-- [source records](../../../../../01-input-inventory/inputs/part-0001.toml)
+- [WebIDL source record](../../../../../01-input-inventory/inputs/part-0002.toml)
 - [F02.2 live fetch verification](../../../../../02-fetch-verifier/03-live-inventory/README.md)
 - [candidate audit](../../../../../../../../../../research/webgpu-generator-source-audit.md)
 
 ## Checklist
 
-- [ ] Verify the immutable WebIDL URL, revision, byte count, SHA-256, and W3C license signal.
-- [ ] Add a distinct `webgpu-idl` family and source without reclassifying `webgpu-spec`.
-- [ ] Regenerate the canonical F02.1 lock and prove structural validation rejects malformed input.
-- [ ] Fetch the new source through F02.2 and record a local, hash-verified live-inventory result.
+- [x] Verify the immutable WebIDL URL, revision, byte count, SHA-256, and W3C license signal.
+- [x] Add a distinct `webgpu-idl` family and source without reclassifying `webgpu-spec`.
+- [x] Regenerate the canonical F02.1 lock and prove structural validation rejects malformed input.
+- [x] Fetch the new source through F02.2 and record a local, hash-verified live-inventory result.
 
 ## Verification
 

@@ -111,32 +111,37 @@ class InventoryTests(unittest.TestCase):
             entry["immutable_url"] = entry["immutable_url"].replace(entry["revision"], "main")
         self.reject(make_mutable, "immutable HTTPS source URL")
 
-    def test_wgsl_grammar_is_separate_from_the_semantic_reference(self) -> None:
+    def test_webgpu_and_wgsl_generator_inputs_are_separate_from_references(self) -> None:
         entries = {entry["id"]: entry for entry in self.entries}
+        webgpu, webidl = entries["webgpu-spec"], entries["webgpu-idl"]
         reference, grammar = entries["wgsl-spec"], entries["wgsl-grammar-syntax"]
-        self.assertEqual(reference["source_family"], "wgsl")
-        self.assertEqual(reference["generated_code_role"], "WGSL emitter semantic reference; no generated code")
-        self.assertEqual(grammar["source_family"], "wgsl-grammar")
+        self.assertEqual(webgpu["generated_code_role"], "host API semantic reference; no generated code")
+        self.assertEqual((webidl["source_family"], webidl["license"]), ("webgpu-idl", "W3C Software License (webgpu.idl file header)"))
+        self.assertTrue(webidl["immutable_url"].endswith("/webgpu.idl"))
+        self.assertEqual(webidl["generated_code_role"], "future WebGPU WebIDL binding/interop generator input; no semantic or runtime implementation")
+        self.assertEqual((reference["source_family"], grammar["source_family"]), ("wgsl", "wgsl-grammar"))
         self.assertTrue(grammar["immutable_url"].endswith("/wgsl/syntax.bnf"))
-        self.assertEqual(grammar["license"], "W3C Software and Document License (repo LICENSE.md; document)")
-        self.assertEqual(grammar["generated_code_role"], "future WGSL grammar-input/parser-validation generator input; nonstandard BNF dialect")
+        self.assertEqual(reference["generated_code_role"], "WGSL emitter semantic reference; no generated code")
+        self.assertEqual((grammar["license"], grammar["generated_code_role"]), ("W3C Software and Document License (repo LICENSE.md; document)", "future WGSL grammar-input/parser-validation generator input; nonstandard BNF dialect"))
 
     def v2_inventory(self) -> tuple[tempfile.TemporaryDirectory, Path]:
         temporary = tempfile.TemporaryDirectory(dir=HERE)
         manifest = Path(temporary.name) / "manifest.toml"
-        part = manifest.parent / "inputs" / "part-0001.toml"
-        part.parent.mkdir()
+        parts = [manifest.parent / "inputs" / f"part-{number:04d}.toml" for number in (1, 2)]
+        parts[0].parent.mkdir()
         manifest.write_text(
             "schema = 2\ncache_root = \"$XDG_CACHE_HOME\"\ncache_note = \"fixture\"\n"
-            f"required_families = {json.dumps(sorted(FAMILIES))}\ninput_files = [\"inputs/part-0001.toml\"]\n",
+            f"required_families = {json.dumps(sorted(FAMILIES))}\ninput_files = [\"inputs/part-0001.toml\", \"inputs/part-0002.toml\"]\n",
             encoding="utf-8")
-        lines: list[str] = []
-        for entry in self.entries:
+        records: list[list[str]] = [[], []]
+        for index, entry in enumerate(self.entries):
+            lines = records[index % len(records)]
             lines.append("[[inputs]]")
             for field in sorted(FIELDS):
                 value = entry[field] if field == "bytes" else json.dumps(entry[field])
                 lines.append(f"{field} = {value}")
-        part.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        for part, lines in zip(parts, records):
+            part.write_text("\n".join(lines) + "\n", encoding="utf-8")
         manifest.with_name("inventory.lock").write_bytes(render_v2_lock(manifest))
         return temporary, manifest
 
@@ -146,7 +151,7 @@ class InventoryTests(unittest.TestCase):
         entries, revision = load(manifest)
         self.assertEqual(validate(entries), len(FAMILIES))
         self.assertEqual(revision, hashlib.sha256(manifest.with_name("inventory.lock").read_bytes()).hexdigest())
-        for name in ("manifest.toml", "inputs/part-0001.toml", "inventory.lock"):
+        for name in ("manifest.toml", "inputs/part-0001.toml", "inputs/part-0002.toml", "inventory.lock"):
             with self.subTest(name=name):
                 target = manifest.parent / name
                 original = target.read_bytes()

@@ -3,7 +3,7 @@
 Revision: `ca6900dd4e8d121f402c2031cff03491a0ad6c19` baseline; this leaf is intentionally uncommitted
 Validation: offline TOML schema/parser tests, full `make test`, roadmap check and source-file-limit check
 Result: PASS
-Artifacts: no vendor payload is tracked; the original 15-source capture and current 16-source renewal are recorded below
+Artifacts: no vendor payload is tracked; the historical 15/16-source captures and current 17-source WebIDL renewal are recorded below
 Profile: inventory only; no source was accepted into a cache and no graphics API behavior is claimed
 
 ## Inventory capture
@@ -43,6 +43,24 @@ grammar-input/parser-validation generator input; nonstandard BNF dialect`. `wgsl
 raw lock SHA-256 values are `22e5e250b3d475ef2607b2bc92b9885e2910824273d8acb7be19fc6614fc8cda`,
 `eef0b188e9e663e6be483bfedde5df27687db9b590ff2bd208ebf462b0cc6649`, and
 `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`, respectively.
+
+## WebIDL admission renewal
+
+F02.3.3.4.4.1 added `webgpu-idl` as the seventeenth, distinct `webgpu-idl` family in the new
+bounded `inputs/part-0002.toml` component. It pins GPUWeb `gh-pages` commit
+`e95743d3940e0ff3c267ab55ced9ae6120c7d416`, 38,618 bytes, and SHA-256
+`bd35b2fc04f12f7ec22a9c1ae2826060778f980d8ce45dc055b8a5a8c644266a`. Its own header supplies
+the W3C Software License signal and identifies the WebIDL as upstream-generated. The role is only
+`future WebGPU WebIDL binding/interop generator input; no semantic or runtime implementation`.
+`webgpu-spec` remains the separate `webgpu` semantic reference with no generated-code role.
+
+The new root, second component, and raw canonical lock SHA-256 values are
+`f6b4b8bc18751d4645cf638faa4958b9ddb01c5e12815ad599f7eb7ce26c4adb`,
+`c58855fd366ddd8d8b8b135f125d6f0b860bd79eb8f0d0576e937d86df656ad0`, and
+`08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6`. The 6/6 F02.1 structural
+suite now verifies that tampering either component invalidates the one canonical lock. This records
+input provenance only; it does not add a semantic validator, binding, browser API, guest API,
+renderer, compatibility claim, or performance result.
 
 ## Commands and results
 

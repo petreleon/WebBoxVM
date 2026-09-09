@@ -1,0 +1,11 @@
+[[inputs]]
+id = "webgpu-idl"
+source_family = "webgpu-idl"
+immutable_url = "https://raw.githubusercontent.com/gpuweb/gpuweb/e95743d3940e0ff3c267ab55ced9ae6120c7d416/webgpu.idl"
+revision = "e95743d3940e0ff3c267ab55ced9ae6120c7d416"
+sha256 = "bd35b2fc04f12f7ec22a9c1ae2826060778f980d8ce45dc055b8a5a8c644266a"
+bytes = 38618
+license = "W3C Software License (webgpu.idl file header)"
+local_cache = "webboxvm-graphics/f02/webgpu-idl/bd35b2fc04f12f7ec22a9c1ae2826060778f980d8ce45dc055b8a5a8c644266a.source"
+generated_code_role = "future WebGPU WebIDL binding/interop generator input; no semantic or runtime implementation"
+provenance = "https://github.com/gpuweb/gpuweb/tree/e95743d3940e0ff3c267ab55ced9ae6120c7d416"

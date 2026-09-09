@@ -1,7 +1,7 @@
 # F02.2.3 evidence
 
 Revision: `59d65bf56c88d548cea919d8e1eceab86a6e9f9a` implementation commit; scoped live-inventory run
-Validation: live 15-input fetch, offline 15-input re-hash, cache audit, focused suites, source limits, `make test`, roadmap, diff
+Validation: historical 15/16-input runs plus current live 17-input fetch, offline 17-input re-hash, cache audit, focused suites, source limits, `make test`, roadmap, diff
 Result: PASS
 Artifacts: disposable external cache `/private/tmp/webboxvm-f02-live.9GeZap`; no payload is stored in Git
 Profile: pinned-source availability and integrity only; no generator, guest, graphics API, browser, or performance claim
@@ -56,6 +56,21 @@ with a mismatch. The previous 15 rows retain their recorded identities; the adde
 The grammar's file comment identifies a nonstandard BNF dialect, so this renewal records immutable
 source integrity only; it does not establish a standard parser, compiler, WebGPU API, guest, or
 browser feature. The disposable cache was removed after the offline audit; no payload is tracked.
+
+## WebIDL admission renewal
+
+On 2026-09-09, F02.3.3.4.4.1 used fresh external cache
+`/private/tmp/webboxvm-f02-webidl-live.5QD1Hi`. The first `source_fetch.py` run fetched all 17
+declared inputs; the second reused and offline-rehashed all 17. A 17-file, 18 MiB disposable cache
+was independently inspected before removal. The new result is:
+
+| Input | State | Bytes | SHA-256 | License |
+| --- | --- | ---: | --- | --- |
+| webgpu-idl | fetched -> reused | 38618 | bd35b2fc04f12f7ec22a9c1ae2826060778f980d8ce45dc055b8a5a8c644266a | W3C Software License (webgpu.idl file header) |
+
+All prior 16 entries also fetched and rehashed under their unchanged identities. This checks pinned
+source integrity only. It does not make the upstream-generated WebIDL a semantic specification,
+browser implementation, guest API/device, renderer, compatibility result, or performance result.
 
 Commands and final local results:
 

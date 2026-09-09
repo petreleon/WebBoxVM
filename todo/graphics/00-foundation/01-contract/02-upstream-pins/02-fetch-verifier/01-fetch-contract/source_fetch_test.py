@@ -35,13 +35,13 @@ def entry(**changes) -> dict[str, object]:
 
 
 def v2_inventory(base: Path) -> Path:
-    manifest, part = base / "manifest.toml", base / "inputs" / "part-0001.toml"
-    part.parent.mkdir(parents=True)
+    manifest, parts = base / "manifest.toml", tuple(base / "inputs" / f"part-{number:04d}.toml" for number in (1, 2))
+    parts[0].parent.mkdir(parents=True)
     families = sorted(REQUIRED_FAMILIES)
     manifest.write_text(
         "schema = 2\ncache_root = \"$XDG_CACHE_HOME\"\ncache_note = \"fixture\"\n"
         + "required_families = [" + ", ".join(f'\"{family}\"' for family in families) + "]\n"
-        + "input_files = [\"inputs/part-0001.toml\"]\n", encoding="utf-8")
+        + "input_files = [\"inputs/part-0001.toml\", \"inputs/part-0002.toml\"]\n", encoding="utf-8")
     entries = []
     for number, family in enumerate(families):
         identifier, digest = f"fixture-{number}", f"{number + 1:064x}"
@@ -52,11 +52,10 @@ def v2_inventory(base: Path) -> Path:
             f'revision = "{REVISION}"\nsha256 = "{digest}"\nbytes = 1\nlicense = "fixture"\n'
             f'local_cache = "webboxvm-graphics/f02/{identifier}/{digest}.source"\n'
             'generated_code_role = "fixture"\nprovenance = "https://example.invalid/provenance"\n')
-    part.write_text("\n".join(entries), encoding="utf-8")
+    for index, part in enumerate(parts):
+        part.write_text("\n".join(entries[index::len(parts)]), encoding="utf-8")
     manifest.with_name("inventory.lock").write_bytes(render_v2_lock(manifest))
     return manifest
-
-
 class FetchContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(dir=HERE)
@@ -71,7 +70,7 @@ class FetchContractTests(unittest.TestCase):
         return path
 
     def test_committed_manifest_loads_without_network(self) -> None:
-        self.assertEqual(len(load_manifest(MANIFEST)), 16)
+        self.assertEqual(len(load_manifest(MANIFEST)), 17)
 
     def test_legacy_v1_inventory_is_rejected_before_cache_actions(self) -> None:
         legacy = self.invalid_manifest("legacy-v1")
@@ -113,7 +112,7 @@ class FetchContractTests(unittest.TestCase):
         self.assertFalse(self.cache.root.exists())
 
     def test_stale_v2_closure_is_rejected_before_cache_actions(self) -> None:
-        for number, name in enumerate(("manifest.toml", "inputs/part-0001.toml", "inventory.lock")):
+        for number, name in enumerate(("manifest.toml", "inputs/part-0001.toml", "inputs/part-0002.toml", "inventory.lock")):
             with self.subTest(name=name):
                 manifest = v2_inventory(Path(self.temporary.name) / f"v2-{number}")
                 self.assertEqual(len(load_manifest(manifest)), len(REQUIRED_FAMILIES))

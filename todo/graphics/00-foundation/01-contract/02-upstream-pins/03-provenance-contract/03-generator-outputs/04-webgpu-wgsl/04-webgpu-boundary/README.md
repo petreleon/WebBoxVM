@@ -24,7 +24,7 @@ machine-readable WebGPU input is available; no fixture or runtime claim fills th
 
 ## Checklist
 
-- [ ] [F02.3.3.4.4.1 — Admit a reviewed WebGPU WebIDL source](01-webidl-source-admission/README.md)
+- [x] [F02.3.3.4.4.1 — Admit a reviewed WebGPU WebIDL source](01-webidl-source-admission/README.md)
 - [ ] [F02.3.3.4.4.2 — Renew records after the WebIDL inventory change](02-lock-record-renewal/README.md)
 - [ ] [F02.3.3.4.4.3 — Bind a WebGPU WebIDL generator record](03-webidl-generator-record/README.md)
 - [ ] [F02.3.3.4.4.4 — Close the WebGPU generator-input boundary](04-boundary-closure/README.md)

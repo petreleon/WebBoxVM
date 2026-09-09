@@ -1,7 +1,7 @@
 # F02.2 evidence
 
 Revision: `59d65bf56c88d548cea919d8e1eceab86a6e9f9a` aggregate implementation commit
-Validation: F02.2.1 contract 13/13, F02.2.2 fixtures 7/7, F02.2.3 live fetch 15/15 then offline re-hash 15/15
+Validation: F02.2.1 contract 15/15, F02.2.2 fixtures 7/7, F02.2.3 current live fetch 17/17 then offline re-hash 17/17
 Result: PASS
 Artifacts: child receipts and the disposable F02.2.3 external cache audit
 Profile: source-acquisition contract only; no guest API, Mesa integration, browser route, or performance claim
@@ -24,3 +24,11 @@ Commit/push verification: aggregate implementation commit
 `59d65bf56c88d548cea919d8e1eceab86a6e9f9a` was pushed to
 `origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same SHA. No remote
 CI result is claimed locally. Next ready task: F02.3.1, subject to its own provenance-contract split.
+
+## WebIDL inventory renewal
+
+F02.3.3.4.4.1 added a distinct seventeenth `webgpu-idl` source and reran the F02.2.1 contract
+suite (15/15) plus F02.2.3's fresh fetch/reuse audit (17/17). Its 18 MiB cache was external and
+removed after the offline re-hash. This supplementary local result establishes only immutable byte
+integrity for an upstream-generated WebIDL binding/interop input; it does not revise F02.2's
+no-runtime scope or claim remote CI.

@@ -18,7 +18,7 @@ implemented WebGPU binding or a graphics path.
 
 ## Starting points
 
-- [WebIDL input record](../../../../../01-input-inventory/inputs/part-0001.toml)
+- [WebIDL input record](../../../../../01-input-inventory/inputs/part-0002.toml)
 - [WGSL marker precedent](../../03-wgsl-generator-record/README.md)
 - [provenance validator](../../../../01-provenance-record/provenance_record.py)
 

@@ -33,7 +33,7 @@ atomically below an explicit external cache root.
 
 ## Contract
 
-`source_model.py` parses the schema-v2 lock-bound inventory using F02.1's exact 16-family catalog
+`source_model.py` parses the schema-v2 lock-bound inventory using F02.1's exact 17-family catalog
 and constructs an `ExternalCache` only from an absolute path outside the repository. `source_cache.py` accepts only immutable HTTPS URLs
 with a 40-hex path segment, denies HTTP redirects, verifies exact byte count plus SHA-256, then
 uses `os.replace` after an fsynced temporary write. Existing cache bytes are re-hashed before use.
@@ -48,4 +48,5 @@ python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/02-fetch-verifi
 
 `source_fetch.py --cache-root ABSOLUTE_EXTERNAL_PATH` is the later live-fetch entrypoint. F02.2.1
 does not invoke it against the inventory; F02.2.2 owns network fixtures, F02.2.3 owns the historical
-15-input run, and F02.3.3.4.1.2 records the grammar renewal's 16-input run.
+15-input run, F02.3.3.4.1.2 records the grammar renewal's 16-input run, and F02.3.3.4.4.1 owns
+the current 17-input WebIDL renewal.

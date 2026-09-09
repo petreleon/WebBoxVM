@@ -52,10 +52,15 @@ class InventoryLayoutTests(unittest.TestCase):
         files = files if files is not None else ["inputs/part-0001.toml"]
         manifest = self.base / "manifest.toml"
         manifest.write_text(root(2, files), encoding="utf-8")
-        if files == ["inputs/part-0001.toml"]:
-            target = self.base / files[0]
-            target.parent.mkdir()
-            target.write_text(fragment or "\n".join(entry(family, number) for number, family in enumerate(sorted(FAMILIES))), encoding="utf-8")
+        for index, name in enumerate(files):
+            if name.startswith("../"):
+                continue
+            target = self.base / name
+            target.parent.mkdir(exist_ok=True)
+            families = sorted(FAMILIES)[index::len(files)]
+            payload = fragment if fragment is not None and index == 0 else "\n".join(
+                entry(family, index + number * len(files)) for number, family in enumerate(families))
+            target.write_text(payload, encoding="utf-8")
         return manifest
 
     def lock(self, manifest: Path) -> None:
@@ -102,6 +107,16 @@ class InventoryLayoutTests(unittest.TestCase):
                 target.write_bytes(target.read_bytes() + b"# changed\n")
                 with self.assertRaisesRegex(InventoryLayoutError, "inventory.lock"):
                     load_inventory(manifest)
+
+    def test_two_components_are_covered_by_the_one_lock(self) -> None:
+        files = ["inputs/part-0001.toml", "inputs/part-0002.toml"]
+        manifest = self.write_v2(files)
+        self.lock(manifest)
+        self.assertEqual(len(load_inventory(manifest).inputs), len(FAMILIES))
+        second = self.base / files[1]
+        second.write_bytes(second.read_bytes() + b"# changed\n")
+        with self.assertRaisesRegex(InventoryLayoutError, "inventory.lock"):
+            load_inventory(manifest)
 
     def test_unsafe_duplicate_unsorted_or_renamed_paths_are_rejected(self) -> None:
         cases = (
