@@ -4,7 +4,7 @@
 
 Task: F02.2.1
 Depends: F02.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../01-input-inventory/README.md).
 
@@ -21,12 +21,31 @@ atomically below an explicit external cache root.
 
 ## Checklist
 
-- [ ] Define cache-root, URL, redirect, revision, and atomic-write policy with no repository cache.
-- [ ] Implement modular manifest loading, byte-count/hash verification, and safe cache naming.
-- [ ] Reject malformed inputs before creating or accepting a cache entry.
-- [ ] Record focused command, nonzero test count, and observed cache layout in a receipt.
+- [x] Define cache-root, URL, redirect, revision, and atomic-write policy with no repository cache.
+- [x] Implement modular manifest loading, byte-count/hash verification, and safe cache naming.
+- [x] Reject malformed inputs before creating or accepting a cache entry.
+- [x] Record focused command, nonzero test count, and observed cache layout in a receipt.
 
 ## Verification
 
 - A declared immutable input can reach only a cache path below the caller-supplied external root.
 - Invalid URL, revision, path, or metadata is rejected before a cache entry is accepted.
+
+## Contract
+
+`source_model.py` parses only schema-v1 records using F02.1's exact 15-family catalog and constructs an `ExternalCache` only
+from an absolute path outside the repository. `source_cache.py` accepts only immutable HTTPS URLs
+with a 40-hex path segment, denies HTTP redirects, verifies exact byte count plus SHA-256, then
+uses `os.replace` after an fsynced temporary write. Existing cache bytes are re-hashed before use.
+The implementation uses only Python 3.11+ standard-library modules (`tomllib`, `urllib`, and
+`hashlib`); the manifest's `$XDG_CACHE_HOME` value is policy metadata, never an implicit destination.
+
+Run the hermetic contract suite with:
+
+```sh
+python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/02-fetch-verifier/01-fetch-contract/source_fetch_test.py
+```
+
+`source_fetch.py --cache-root ABSOLUTE_EXTERNAL_PATH` is the later live-fetch entrypoint. F02.2.1
+does not invoke it against the inventory; F02.2.2 owns network fixtures and F02.2.3 owns the live
+15-input run.
