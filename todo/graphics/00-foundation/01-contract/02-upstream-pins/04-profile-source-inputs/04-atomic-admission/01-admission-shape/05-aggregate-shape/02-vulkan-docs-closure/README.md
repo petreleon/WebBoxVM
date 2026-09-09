@@ -24,7 +24,7 @@ immutable identities; the root alone never qualifies.
 
 ## Checklist
 
-- [ ] [F02.4.4.1.5.2.1 — Specify successor raw/generated closure identity](01-successor-identity/README.md)
+- [x] [F02.4.4.1.5.2.1 — Specify successor raw/generated closure identity](01-successor-identity/README.md)
 - [ ] [F02.4.4.1.5.2.2 — Verify successor closure cache staging](02-successor-cache-verifier/README.md)
 - [ ] [F02.4.4.1.5.2.3 — Bind the actual Vulkan Docs closure](03-bind-vulkan-docs/README.md)
 
@@ -32,6 +32,6 @@ immutable identities; the root alone never qualifies.
 
 - The existing 73 observations are insufficient; this task stays open unless every required Docs member and scope input is genuinely modelled.
 - No inventory, candidate decision, F03 state, guest API, browser, CTS, conformance, or performance claim changes here.
-- Status: **BLOCKED** by a truthful multi-member/generated closure model that F02.2 cannot currently
-  express; the blocker record preserves the reproducible discovery and does not check this task off. The first
-  child may define an isolated successor fixture contract, but no child may mutate active F02.2 or V1 state.
+- Status: **BLOCKED** pending an actual complete Docs closure. The completed first child supplies only an
+  isolated synthetic identity model; the blocker record remains the discovery evidence, and no child may mutate
+  active F02.2 or V1 state before the remaining cache and actual-closure children finish.
