@@ -75,4 +75,5 @@ web-debian-arm64: iso-debian-arm64 web-pkg
 test:
 	cargo test -p emulator
 	node scripts/stamp_web_asset_version.mjs --check
+	python3 scripts/check_graphics_roadmap.py
 	find web/js -name '*.test.mjs' -exec node --test '{}' +

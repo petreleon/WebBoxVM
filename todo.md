@@ -2,6 +2,11 @@
 
 History: [sprint-history.md](sprint-history.md).
 
+## Graphics compatibility project
+
+[Nested VirGL/OpenGL and Venus/Vulkan roadmap](todo/graphics/README.md).
+Start with its worker instructions and first ready leaf; existing tasks remain below.
+
 ## Now
 - [ ] Optimize disk boot speed.
 
