@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.1.1.4
 Depends: F02.1, F06.3.3, F02.3.3.4.1.1.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [the composite-lock contract](../01-shared-layout-loader/README.md) and
 [F06.3.3](../../../../../../../../02-reproducibility/03-file-layout/03-generation-and-checker/03-reproducibility-proof/README.md).
@@ -22,11 +22,11 @@ lock, while the committed fixture stays on its current schema until the atomic c
 
 ## Checklist
 
-- [ ] Version chunk specifications and metadata so their source revision denotes the canonical
+- [x] Version chunk specifications and metadata so their source revision denotes the canonical
   inventory lock identity.
-- [ ] Make the chunk generator reject a stale lock identity without learning inventory composition.
-- [ ] Add hermetic v1/v2 fixture tests for stale locks and reproducible chunk output.
-- [ ] Leave the checked-in F06 fixture and generated metadata on their current identity until the
+- [x] Make the chunk generator reject a stale lock identity without learning inventory composition.
+- [x] Add hermetic v1/v2 fixture tests for stale locks and reproducible chunk output.
+- [x] Leave the checked-in F06 fixture and generated metadata on their current identity until the
   atomic cutover child; run focused tests and preserve the 180-line limit.
 
 ## Verification

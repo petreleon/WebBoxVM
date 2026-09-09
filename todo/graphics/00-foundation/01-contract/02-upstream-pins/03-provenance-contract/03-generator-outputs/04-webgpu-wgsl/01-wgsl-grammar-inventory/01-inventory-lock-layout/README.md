@@ -24,9 +24,9 @@ canonical lock binds every raw component byte and becomes the sole F02 provenanc
 ## Checklist
 
 - [x] [F02.3.3.4.1.1.1 — Define the shared composite inventory layout](01-shared-layout-loader/README.md)
-- [ ] [F02.3.3.4.1.1.2 — Adopt the versioned inventory in F02.1 and F02.2](02-f02-consumer-adoption/README.md)
-- [ ] [F02.3.3.4.1.1.3 — Prepare provenance consumers for the inventory revision](03-provenance-consumer-transition/README.md)
-- [ ] [F02.3.3.4.1.1.4 — Prepare reproducibility consumers for the inventory revision](04-f06-reproducibility-transition/README.md)
+- [x] [F02.3.3.4.1.1.2 — Adopt the versioned inventory in F02.1 and F02.2](02-f02-consumer-adoption/README.md)
+- [x] [F02.3.3.4.1.1.3 — Prepare provenance consumers for the inventory revision](03-provenance-consumer-transition/README.md)
+- [x] [F02.3.3.4.1.1.4 — Prepare reproducibility consumers for the inventory revision](04-f06-reproducibility-transition/README.md)
 - [ ] [F02.3.3.4.1.1.5 — Cut over components, records, and reproducibility evidence atomically](05-atomic-lock-cutover/README.md)
 
 ## Verification
