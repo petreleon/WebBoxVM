@@ -4,9 +4,11 @@
 
 Task: F06.2
 Depends: F06.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F06.1](../01-module-boundaries/README.md).
+
+Policy: [reviewed exemptions](exemptions.md).
 
 ## Outcome
 
@@ -20,13 +22,13 @@ The 180-line rule covers maintained graphics roadmap, guest, generator, and sour
 
 ## Checklist
 
-- [ ] Define tracked-root coverage and a narrow documented exemption policy for legal text and
+- [x] Define tracked-root coverage and a narrow documented exemption policy for legal text and
   immutable third-party patches with recorded provenance; do not blanket-exempt generated source.
-- [ ] Extend line-limit checks to maintained `todo`, guest, research, generator, and graphics paths;
+- [x] Extend line-limit checks to maintained `todo`, guest, research, generator, and graphics paths;
   split `research/virgl-resource-residency.md` and any touched oversized maintained file by role.
-- [ ] Add an isolated 181-line fixture plus boundary cases that prove rejection, allowed exemptions,
+- [x] Add an isolated 181-line fixture plus boundary cases that prove rejection, allowed exemptions,
   and correct physical-line counting.
-- [ ] Run the full source-limit and roadmap checks, recording exact counts and every exempt file.
+- [x] Run the full source-limit and roadmap checks, recording exact counts and every exempt file.
 
 ## Verification
 

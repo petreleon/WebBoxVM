@@ -21,7 +21,7 @@ Code, tests, generators and nested task documents remain small and discoverable.
 ## Checklist
 
 - [x] [F06.1 — Define graphics module boundaries](01-module-boundaries/README.md)
-- [ ] [F06.2 — Enforce maintained-file line limits](02-line-limit-coverage/README.md)
+- [x] [F06.2 — Enforce maintained-file line limits](02-line-limit-coverage/README.md)
 - [ ] [F06.3 — Make generated output and roadmap nesting deterministic](03-generation-and-checker/README.md)
 
 ## Verification
