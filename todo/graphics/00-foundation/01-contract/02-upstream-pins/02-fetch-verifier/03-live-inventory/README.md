@@ -4,7 +4,7 @@
 
 Task: F02.2.3
 Depends: F02.2.1, F02.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.2.1](../01-fetch-contract/README.md) and
 [F02.2.2](../02-hermetic-fixtures/README.md).
@@ -23,10 +23,10 @@ hash, license record, and declared immutable identity.
 
 ## Checklist
 
-- [ ] Fetch every manifest input into a newly created external temporary cache.
-- [ ] Record exact command output, cache paths, SHA-256 values, byte counts, and licenses.
-- [ ] Re-hash the populated cache offline and record any unavailable source as a failure/blocker.
-- [ ] Run final verifier, source-limit, roadmap, and whitespace checks before its receipt.
+- [x] Fetch every manifest input into a newly created external temporary cache.
+- [x] Record exact command output, cache paths, SHA-256 values, byte counts, and licenses.
+- [x] Re-hash the populated cache offline and record any unavailable source as a failure/blocker.
+- [x] Run final verifier, source-limit, roadmap, and whitespace checks before its receipt.
 
 ## Verification
 

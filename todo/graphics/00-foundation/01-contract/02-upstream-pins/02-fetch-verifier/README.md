@@ -4,7 +4,7 @@
 
 Task: F02.2
 Depends: F02.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../01-input-inventory/README.md).
 
@@ -22,7 +22,7 @@ A clean cache can fetch each pinned input, verify its bytes, and fail closed on 
 
 - [x] [F02.2.1 — Define the fail-closed fetch and cache contract](01-fetch-contract/README.md)
 - [x] [F02.2.2 — Prove verifier behavior with isolated fixtures](02-hermetic-fixtures/README.md)
-- [ ] [F02.2.3 — Verify the live immutable inventory](03-live-inventory/README.md)
+- [x] [F02.2.3 — Verify the live immutable inventory](03-live-inventory/README.md)
 
 ## Verification
 
