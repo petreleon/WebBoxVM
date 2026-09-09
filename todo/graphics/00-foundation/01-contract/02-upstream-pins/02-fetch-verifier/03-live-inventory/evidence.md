@@ -1,6 +1,6 @@
 # F02.2.3 evidence
 
-Revision: `7de8f34de6bd00d359bd0d437a85cf3aca470f72` baseline; scoped live-inventory run
+Revision: `59d65bf56c88d548cea919d8e1eceab86a6e9f9a` implementation commit; scoped live-inventory run
 Validation: live 15-input fetch, offline 15-input re-hash, cache audit, focused suites, source limits, `make test`, roadmap, diff
 Result: PASS
 Artifacts: disposable external cache `/private/tmp/webboxvm-f02-live.9GeZap`; no payload is stored in Git
@@ -56,4 +56,6 @@ The inherited contract suite passed 13/13 and the hermetic transport suite passe
 suite passed 6/6. `make test`, roadmap verification, and whitespace verification exited zero. The 18 MB
 cache was an explicitly disposable temporary artifact and was removed after the audit; no payload remains
 in the repository or is required for later work.
-No remote CI result is claimed locally. Commit/push verification: pending final scoped commit.
+Commit/push verification: implementation commit `59d65bf56c88d548cea919d8e1eceab86a6e9f9a`
+was pushed to `origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same
+SHA. No remote CI result is claimed locally. Next ready task: F02.3.1.

@@ -1,6 +1,6 @@
 # F02.2 evidence
 
-Revision: `7de8f34de6bd00d359bd0d437a85cf3aca470f72` baseline; aggregate receipt for scoped child work
+Revision: `59d65bf56c88d548cea919d8e1eceab86a6e9f9a` aggregate implementation commit
 Validation: F02.2.1 contract 13/13, F02.2.2 fixtures 7/7, F02.2.3 live fetch 15/15 then offline re-hash 15/15
 Result: PASS
 Artifacts: child receipts and the disposable F02.2.3 external cache audit
@@ -20,5 +20,7 @@ source_file_limits --quiet`, `make test`, `python3 scripts/check_graphics_roadma
 --check`. The local live availability result is a time-bounded source-integrity check, not proof that
 any guest driver, OpenGL/GLES, Vulkan, Venus, browser GPU route, or native-like performance works.
 
-Commit/push verification: pending final scoped commit. No remote CI result is claimed locally. Next
-ready task: F02.3, subject to its own provenance and generator-boundary verification.
+Commit/push verification: aggregate implementation commit
+`59d65bf56c88d548cea919d8e1eceab86a6e9f9a` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same SHA. No remote
+CI result is claimed locally. Next ready task: F02.3.1, subject to its own provenance-contract split.
