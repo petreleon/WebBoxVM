@@ -20,13 +20,9 @@ Generated protocol output is chunked reproducibly and deeper roadmap lists remai
 
 ## Checklist
 
-- [ ] Define deterministic generated-file chunk naming, ordering, headers, and source-manifest
-  provenance so reruns have a stable diff and each maintained chunk stays within 180 lines.
-- [ ] Add checker regression fixtures for valid nested child lists and invalid depth, links, status,
-  or line-count conditions; do not rely on a hand-inspected happy path.
-- [ ] Add a generator/checker command that fails on stale generated metadata, unstable ordering, or
-  a chunk exceeding the limit.
-- [ ] Record the fixture cases, test count, generated-output hashes, and final roadmap-check result.
+- [ ] [F06.3.1 — Build deterministic generated-file chunking](01-chunk-generator/README.md)
+- [ ] [F06.3.2 — Add isolated roadmap-checker regressions](02-checker-fixtures/README.md)
+- [ ] [F06.3.3 — Verify generated metadata and reproducibility](03-reproducibility-proof/README.md)
 
 ## Verification
 
