@@ -6,17 +6,19 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import json
 import re
 import sys
-import tomllib
+import tempfile
 import unittest
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from inventory_layout import FAMILIES, INPUT_FIELDS as FIELDS, InventoryLayoutError, load_inventory, render_v2_lock
+
 MANIFEST = HERE / "manifest.toml"
-FIELDS = frozenset(("id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license", "local_cache", "generated_code_role", "provenance"))
-FAMILIES = frozenset(("linux-uapi", "mesa-virgl", "mesa-venus", "virglrenderer", "venus-protocol", "gl-gles-registry", "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl", "vk-gl-cts", "webgpu-cts", "piglit"))
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9-]*$")
@@ -33,19 +35,8 @@ def string(value: object, field: str) -> str:
     return value
 
 
-def validate(document: object) -> int:
-    if not isinstance(document, dict):
-        fail("manifest must be a TOML table")
-    expected = {"schema", "cache_root", "cache_note", "required_families", "inputs"}
-    if set(document) != expected or document["schema"] != 1:
-        fail("manifest schema is not version 1")
-    if document["cache_root"] != "$XDG_CACHE_HOME" or not string(document["cache_note"], "cache_note"):
-        fail("cache must resolve below external $XDG_CACHE_HOME")
-    declared = document["required_families"]
-    if not isinstance(declared, list) or set(declared) != FAMILIES:
-        fail("required source-family inventory is incomplete")
-    entries = document["inputs"]
-    if not isinstance(entries, list) or not entries:
+def validate(entries: object) -> int:
+    if not isinstance(entries, (list, tuple)) or not entries:
         fail("inputs must be a nonempty array")
     ids, families = set(), set()
     for index, entry in enumerate(entries):
@@ -86,42 +77,73 @@ def validate(document: object) -> int:
     return len(entries)
 
 
-def load(path: Path = MANIFEST) -> tuple[dict[str, object], str]:
-    raw = path.read_bytes()
+def load(path: Path = MANIFEST) -> tuple[tuple[dict[str, object], ...], str]:
     try:
-        document = tomllib.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
-        fail(f"manifest cannot be parsed: {error}")
-    if not isinstance(document, dict):
-        fail("manifest must be a TOML table")
-    return document, hashlib.sha256(raw).hexdigest()
+        inventory = load_inventory(path, allow_v1=True)
+    except InventoryLayoutError as error:
+        fail(str(error))
+    return inventory.inputs, inventory.revision
 
 
 class InventoryTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.document, self.revision = load()
+        self.entries, self.revision = load()
 
     def reject(self, change, message: str) -> None:
-        document = copy.deepcopy(self.document)
-        change(document)
+        entries = list(copy.deepcopy(self.entries))
+        change(entries)
         with self.assertRaisesRegex(ValueError, message):
-            validate(document)
+            validate(entries)
 
     def test_reviewed_inventory_is_valid(self) -> None:
-        self.assertEqual(validate(self.document), len(FAMILIES))
+        self.assertEqual(validate(self.entries), len(FAMILIES))
         self.assertRegex(self.revision, r"^[0-9a-f]{64}$")
 
     def test_missing_family_is_rejected(self) -> None:
-        self.reject(lambda data: data["inputs"].pop(), "source-family coverage")
+        self.reject(lambda entries: entries.pop(), "source-family coverage")
 
     def test_bad_digest_is_rejected(self) -> None:
-        self.reject(lambda data: data["inputs"][0].update(sha256="0" * 64), "invalid sha256")
+        self.reject(lambda entries: entries[0].update(sha256="0" * 64), "invalid sha256")
 
     def test_mutable_source_reference_is_rejected(self) -> None:
-        def make_mutable(data):
-            entry = data["inputs"][0]
+        def make_mutable(entries):
+            entry = entries[0]
             entry["immutable_url"] = entry["immutable_url"].replace(entry["revision"], "main")
         self.reject(make_mutable, "immutable HTTPS source URL")
+
+    def v2_inventory(self) -> tuple[tempfile.TemporaryDirectory, Path]:
+        temporary = tempfile.TemporaryDirectory(dir=HERE)
+        manifest = Path(temporary.name) / "manifest.toml"
+        part = manifest.parent / "inputs" / "part-0001.toml"
+        part.parent.mkdir()
+        manifest.write_text(
+            "schema = 2\ncache_root = \"$XDG_CACHE_HOME\"\ncache_note = \"fixture\"\n"
+            f"required_families = {json.dumps(sorted(FAMILIES))}\ninput_files = [\"inputs/part-0001.toml\"]\n",
+            encoding="utf-8")
+        lines: list[str] = []
+        for entry in self.entries:
+            lines.append("[[inputs]]")
+            for field in sorted(FIELDS):
+                value = entry[field] if field == "bytes" else json.dumps(entry[field])
+                lines.append(f"{field} = {value}")
+        part.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        manifest.with_name("inventory.lock").write_bytes(render_v2_lock(manifest))
+        return temporary, manifest
+
+    def test_v2_closure_loads_and_rejects_stale_bytes(self) -> None:
+        temporary, manifest = self.v2_inventory()
+        self.addCleanup(temporary.cleanup)
+        entries, revision = load(manifest)
+        self.assertEqual(validate(entries), len(FAMILIES))
+        self.assertEqual(revision, hashlib.sha256(manifest.with_name("inventory.lock").read_bytes()).hexdigest())
+        for name in ("manifest.toml", "inputs/part-0001.toml", "inventory.lock"):
+            with self.subTest(name=name):
+                target = manifest.parent / name
+                original = target.read_bytes()
+                target.write_bytes(original + b"# stale\n")
+                with self.assertRaisesRegex(ValueError, "inventory.lock"):
+                    load(manifest)
+                target.write_bytes(original)
 
 
 def main() -> None:
@@ -130,8 +152,8 @@ def main() -> None:
     if parser.parse_args().self_test:
         unittest.main(argv=[sys.argv[0]])
         return
-    document, revision = load()
-    print(f"PASS: {validate(document)} immutable inputs; manifest sha256={revision}")
+    entries, revision = load()
+    print(f"PASS: {validate(entries)} immutable inputs; inventory sha256={revision}")
 
 
 if __name__ == "__main__":

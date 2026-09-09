@@ -3,23 +3,21 @@
 from __future__ import annotations
 
 import re
-import tomllib
+import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1] / "01-input-inventory"))
+from inventory_layout import FAMILIES as REQUIRED_FAMILIES, InventoryLayoutError, load_inventory
 
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 MUTABLE_REFS = frozenset(("head", "latest", "main", "master", "stable", "trunk"))
 MAX_INPUT_BYTES = 8 * 1024 * 1024
-REQUIRED_FAMILIES = frozenset((
-    "linux-uapi", "mesa-virgl", "mesa-venus", "virglrenderer", "venus-protocol",
-    "gl-gles-registry", "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl",
-    "vk-gl-cts", "webgpu-cts", "piglit",
-))
 INPUT_FIELDS = frozenset(("id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license", "local_cache", "generated_code_role", "provenance"))
-MANIFEST_FIELDS = frozenset(("schema", "cache_root", "cache_note", "required_families", "inputs"))
 
 
 class ContractError(ValueError):
@@ -109,29 +107,17 @@ def cache_name(value: str, identifier: str, digest: str) -> PurePosixPath:
 
 def load_manifest(path: Path) -> tuple[SourceInput, ...]:
     try:
-        document = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
+        inventory = load_inventory(path, allow_v1=True)
+    except InventoryLayoutError as error:
         reject(f"manifest cannot be read: {error}")
-    if not isinstance(document, dict) or set(document) != MANIFEST_FIELDS:
-        reject("manifest does not match schema version 1")
-    if (document["schema"] != 1 or document["cache_root"] != "$XDG_CACHE_HOME"
-            or not isinstance(document["cache_note"], str) or not document["cache_note"]):
-        reject("manifest does not require the external cache root")
-    entries = document["inputs"]
-    required = document["required_families"]
-    if (not isinstance(entries, list) or not entries or not isinstance(required, list)
-            or not required or any(not isinstance(value, str) or not value for value in required)
-            or len(set(required)) != len(required)):
-        reject("manifest must declare nonempty inputs")
-    if set(required) != REQUIRED_FAMILIES:
-        reject("manifest has an unapproved required source-family catalog")
+    entries = inventory.inputs
     inputs = tuple(SourceInput.from_manifest(entry) for entry in entries)
     if len({item.identifier for item in inputs}) != len(inputs):
         reject("manifest has duplicate input ids")
     if len({item.local_cache for item in inputs}) != len(inputs):
         reject("manifest has colliding cache paths")
     families = [entry["source_family"] for entry in entries]
-    if set(families) != set(required) or len(set(families)) != len(families):
+    if set(families) != REQUIRED_FAMILIES or len(set(families)) != len(families):
         reject("manifest has incomplete source-family coverage")
     return inputs
 

@@ -4,14 +4,18 @@
 from __future__ import annotations
 
 import hashlib
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from source_cache import DenyRedirect, atomic_store, verify_payload
-from source_model import ContractError, ExternalCache, MAX_INPUT_BYTES, SourceInput, load_manifest
-
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1] / "01-input-inventory"))
+
+from source_cache import DenyRedirect, atomic_store, verify_payload
+from source_model import ContractError, ExternalCache, MAX_INPUT_BYTES, REQUIRED_FAMILIES, SourceInput, load_manifest
+from inventory_layout import render_v2_lock
+
 MANIFEST = HERE.parents[1] / "01-input-inventory" / "manifest.toml"
 PAYLOAD = b"F02.2.1 verified fixture\n"
 REVISION = "a" * 40
@@ -30,9 +34,32 @@ def entry(**changes) -> dict[str, object]:
     return value
 
 
+def v2_inventory(base: Path) -> Path:
+    manifest, part = base / "manifest.toml", base / "inputs" / "part-0001.toml"
+    part.parent.mkdir(parents=True)
+    families = sorted(REQUIRED_FAMILIES)
+    manifest.write_text(
+        "schema = 2\ncache_root = \"$XDG_CACHE_HOME\"\ncache_note = \"fixture\"\n"
+        + "required_families = [" + ", ".join(f'\"{family}\"' for family in families) + "]\n"
+        + "input_files = [\"inputs/part-0001.toml\"]\n", encoding="utf-8")
+    entries = []
+    for number, family in enumerate(families):
+        identifier, digest = f"fixture-{number}", f"{number + 1:064x}"
+        entries.append(
+            "[[inputs]]\n"
+            f'id = "{identifier}"\nsource_family = "{family}"\n'
+            f'immutable_url = "https://raw.githubusercontent.com/example/fixture/{REVISION}/payload-{number}"\n'
+            f'revision = "{REVISION}"\nsha256 = "{digest}"\nbytes = 1\nlicense = "fixture"\n'
+            f'local_cache = "webboxvm-graphics/f02/{identifier}/{digest}.source"\n'
+            'generated_code_role = "fixture"\nprovenance = "https://example.invalid/provenance"\n')
+    part.write_text("\n".join(entries), encoding="utf-8")
+    manifest.with_name("inventory.lock").write_bytes(render_v2_lock(manifest))
+    return manifest
+
+
 class FetchContractTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temporary = tempfile.TemporaryDirectory()
+        self.temporary = tempfile.TemporaryDirectory(dir=HERE)
         root = Path(self.temporary.name)
         self.cache = ExternalCache.from_path(root / "cache", root / "repository")
         self.source = SourceInput.from_manifest(entry())
@@ -40,40 +67,56 @@ class FetchContractTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
+    def invalid_manifest(self, name: str) -> Path:
+        path = Path(self.temporary.name) / name / "manifest.toml"
+        path.parent.mkdir()
+        return path
+
     def test_committed_manifest_loads_without_network(self) -> None:
         self.assertEqual(len(load_manifest(MANIFEST)), 15)
 
     def test_manifest_rejects_missing_required_source_family(self) -> None:
         content = MANIFEST.read_text(encoding="utf-8").replace(' "piglit",', '', 1)
-        invalid = Path(self.temporary.name) / "missing-family.toml"
+        invalid = self.invalid_manifest("missing-family")
         invalid.write_text(content, encoding="utf-8")
-        with self.assertRaisesRegex(ContractError, "unapproved required source-family catalog"):
+        with self.assertRaisesRegex(ContractError, "source-family catalog"):
             load_manifest(invalid)
         self.assertFalse(self.cache.root.exists())
 
     def test_manifest_rejects_invented_source_family_catalog(self) -> None:
         content = MANIFEST.read_text(encoding="utf-8").replace('"piglit"', '"unapproved"')
-        invalid = Path(self.temporary.name) / "invented-family.toml"
+        invalid = self.invalid_manifest("invented-family")
         invalid.write_text(content, encoding="utf-8")
-        with self.assertRaisesRegex(ContractError, "unapproved required source-family catalog"):
+        with self.assertRaisesRegex(ContractError, "source-family catalog"):
             load_manifest(invalid)
         self.assertFalse(self.cache.root.exists())
 
     def test_manifest_rejects_duplicate_entry_source_family(self) -> None:
         content = MANIFEST.read_text(encoding="utf-8").replace(
             'source_family = "piglit"', 'source_family = "webgpu-cts"', 1)
-        invalid = Path(self.temporary.name) / "duplicate-family.toml"
+        invalid = self.invalid_manifest("duplicate-family")
         invalid.write_text(content, encoding="utf-8")
-        with self.assertRaisesRegex(ContractError, "incomplete source-family coverage"):
+        with self.assertRaisesRegex(ContractError, "duplicate id or source family"):
             load_manifest(invalid)
         self.assertFalse(self.cache.root.exists())
 
     def test_malformed_manifest_is_rejected_before_cache_creation(self) -> None:
-        invalid = Path(self.temporary.name) / "malformed.toml"
+        invalid = self.invalid_manifest("malformed")
         invalid.write_bytes(b"\xff")
-        with self.assertRaisesRegex(ContractError, "manifest cannot be read"):
+        with self.assertRaisesRegex(ContractError, "not UTF-8 TOML"):
             load_manifest(invalid)
         self.assertFalse(self.cache.root.exists())
+
+    def test_stale_v2_closure_is_rejected_before_cache_actions(self) -> None:
+        for number, name in enumerate(("manifest.toml", "inputs/part-0001.toml", "inventory.lock")):
+            with self.subTest(name=name):
+                manifest = v2_inventory(Path(self.temporary.name) / f"v2-{number}")
+                self.assertEqual(len(load_manifest(manifest)), len(REQUIRED_FAMILIES))
+                target = manifest.parent / name
+                target.write_bytes(target.read_bytes() + b"# stale\n")
+                with self.assertRaisesRegex(ContractError, "inventory.lock"):
+                    load_manifest(manifest)
+                self.assertFalse(self.cache.root.exists())
 
     def test_verified_payload_uses_declared_external_cache_path(self) -> None:
         target = atomic_store(self.cache, self.source, PAYLOAD)
