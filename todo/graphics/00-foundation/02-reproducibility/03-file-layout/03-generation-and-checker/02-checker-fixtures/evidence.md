@@ -40,6 +40,6 @@ There was one fixture-authoring failure before final validation: the malformed-d
 omitted its local receipt, so the real checker correctly reported that broken link first. Adding the
 fixture-only receipt restored the intended depth diagnostic; no production checker behavior changed.
 
-Commit/push verification: pending final scoped commit and remote SHA verification.
-No remote CI result is claimed locally. Next ready task: F06.3.3, once this receipt is committed and
-the parent structure is rechecked.
+Commit/push verification: implementation commit `8e04cc903038994f4d86485e085930afe1800a09`
+was pushed to `origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same
+SHA. No remote CI result is claimed locally. Next ready task: F06.3.3.
