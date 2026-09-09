@@ -1,0 +1,4 @@
+# Fixture-only Venus provenance marker; not protocol or runtime code.
+format=webboxvm-fixture-v1
+input-id=venus-protocol-registry
+input-sha256=d92839bc728fa9ad9a7decdc6b91df6fa1a0fb26cffae4009865f18a789e0535
