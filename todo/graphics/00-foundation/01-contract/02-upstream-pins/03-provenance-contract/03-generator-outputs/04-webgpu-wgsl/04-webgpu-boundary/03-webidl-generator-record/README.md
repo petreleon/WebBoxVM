@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.4.3
 Depends: F02.3.3.4.4.1, F02.3.3.4.4.2, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [WebIDL source admission](../01-webidl-source-admission/README.md),
 [renewed records](../02-lock-record-renewal/README.md), and the
@@ -24,10 +24,10 @@ implemented WebGPU binding or a graphics path.
 
 ## Checklist
 
-- [ ] Define a small marker and sidecar that declare the WebIDL-only input and its limitation.
-- [ ] Generate and validate them deterministically from the checked inventory identity.
-- [ ] Add positive, stale-identity, wrong-input, altered-byte, and scope-tampering tests.
-- [ ] Keep upstream bytes, a parser, runtime code, and host/guest behavior out of the artifact.
+- [x] Define a small marker and sidecar that declare the WebIDL-only input and its limitation.
+- [x] Generate and validate them deterministically from the checked inventory identity.
+- [x] Add positive, stale-identity, wrong-input, altered-byte, and scope-tampering tests.
+- [x] Keep upstream bytes, a parser, runtime code, and host/guest behavior out of the artifact.
 
 ## Verification
 
