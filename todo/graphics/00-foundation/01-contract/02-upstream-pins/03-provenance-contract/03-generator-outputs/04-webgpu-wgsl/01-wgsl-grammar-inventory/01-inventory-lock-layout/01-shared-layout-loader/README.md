@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.1.1.1
 Depends: F02.1, F02.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../../../../../01-input-inventory/README.md) and
 [F02.2](../../../../../../02-fetch-verifier/README.md).
@@ -23,13 +23,13 @@ canonical identity and rejection rules without adding an upstream source or chan
 
 ## Checklist
 
-- [ ] Define the schema-v2 root, ordered bounded-entry declaration, and deterministic
+- [x] Define the schema-v2 root, ordered bounded-entry declaration, and deterministic
   `inventory.lock` format with no payloads, absolute paths, timestamps, or output hashes.
-- [ ] Implement one stdlib-only layout loader that validates root, component names, raw hashes, and
+- [x] Implement one stdlib-only layout loader that validates root, component names, raw hashes, and
   canonical lock identity before exposing an entry or inventory revision.
-- [ ] Preserve explicit schema-v1 compatibility until the cutover and add hermetic positive and
+- [x] Preserve explicit schema-v1 compatibility until the cutover and add hermetic positive and
   negative fixtures for reordered, omitted, renamed, malformed, and byte-changed components.
-- [ ] Keep the checked F02.1 inventory unchanged and prove the focused suite has a nonzero passing
+- [x] Keep the checked F02.1 inventory unchanged and prove the focused suite has a nonzero passing
   count without starting a cache or generation action.
 
 ## Verification
