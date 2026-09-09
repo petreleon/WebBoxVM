@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "contract": "vulkan-docs-build-witness-v1",
+  "status": "build-witness-only-unadmitted",
+  "profile": "vulkan-1.4-core",
+  "role": "api-limit-format-spec",
+  "required_input_id": "vulkan-14-spec",
+  "root": {
+    "kind": "raw-source-input",
+    "id": "vulkan-14-spec",
+    "source_family": "vulkan-docs",
+    "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/vkspec.adoc",
+    "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+    "selector": "vkspec.adoc",
+    "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+    "bytes": 8685,
+    "license": "CC-BY-4.0",
+    "local_cache": "webboxvm-graphics/successor/vulkan-docs-v1/raw/vulkan-14-spec/069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0.source",
+    "generated_code_role": "Docs source",
+    "provenance": "official Vulkan-Docs v1.4.362 source root"
+  },
+  "build": {
+    "image": "khronosgroup/docker-images@sha256:f1ca671f3bdb10ad49e238b9bf28853088a21af49504498fc9084c9b4fea4762",
+    "platform": "linux/amd64",
+    "network": "none",
+    "user": "501:20",
+    "source_mount": "/vulkan:ro",
+    "work_mount": "/work:rw",
+    "generated_mount": "/work/generated",
+    "workdir": "/vulkan",
+    "home": "/tmp",
+    "path": "/opt/venv/bin:/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "safe_directory": "not-required-source-owned-by-user",
+    "environment": [
+      {"name": "LC_ALL", "value": "C"},
+      {"name": "MAKEFLAGS", "value": ""},
+      {"name": "PYTHONDONTWRITEBYTECODE", "value": "1"},
+      {"name": "TZ", "value": "UTC"}
+    ],
+    "argv": [
+      "./makeSpec", "-clean", "-spec", "core", "-version", "1.4", "-genpath", "/work/generated",
+      "SPECREVISION=1.4.362", "SPECDATE=2026-09-10 00:00:00Z",
+      "SPECREMARK=from pinned commit f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "VULKAN_API=vulkan", "EXTENSIONS=", "DIFFEXTENSIONS=", "EXTRAATTRIBS=", "IMAGEOPTS=inline",
+      "NOTEOPTS=-a editing-notes -a implementation-guide", "html"
+    ],
+    "toolchain": {
+      "python": "/opt/venv/bin/python3",
+      "python_version": "3.13.5",
+      "pyparsing_version": "3.3.1"
+    },
+    "build_sha256": "e514150a2f3acddcd674b3aeb35e394d94d4d7eec3cd90375af8df40965eb043"
+  },
+  "outputs": [
+    {
+      "kind": "rendered-output",
+      "id": "vkspec-html",
+      "producer_generation_id": "official-vulkan-docs-core-html-1-4-362",
+      "selector": "out/html/vkspec.html",
+      "sha256": "896452d3a3e4887ba1bad81a6b9b91e9b3b324e1fffbb9e1dec889d0b06ac041",
+      "bytes": 10377052,
+      "license": "LicenseRef-KhronosSpecCopyright",
+      "local_cache": "webboxvm-graphics/successor/vulkan-docs-v1/rendered/vkspec-html/896452d3a3e4887ba1bad81a6b9b91e9b3b324e1fffbb9e1dec889d0b06ac041.artifact",
+      "artifact_kind": "rendered-html",
+      "provenance": "official-pinned-container-build"
+    }
+  ],
+  "output_tree": {
+    "algorithm": "canonical-json-ordered-selector-sha256-bytes-v1",
+    "file_count": 2530,
+    "bytes": 17019466,
+    "sha256": "26e8e484d34222d9ba8a72c883ff8bb65a4e5194f399c24aa9bd5d7e47c49f32",
+    "primary_output_id": "vkspec-html",
+    "clean_run_tree_sha256s": [
+      "26e8e484d34222d9ba8a72c883ff8bb65a4e5194f399c24aa9bd5d7e47c49f32",
+      "26e8e484d34222d9ba8a72c883ff8bb65a4e5194f399c24aa9bd5d7e47c49f32"
+    ]
+  },
+  "predecessor_adapter": {
+    "kind": "v1-predecessor-only",
+    "predecessor_rules_sha256": "74300113dab0019c25b1ed629d13c7fbba720316f370a7deee1cdb86b56d91bc",
+    "predecessor_audit_sha256": "7aa23749e5af061221d3f2aced93f3f6e2ebfd3d37445ace0834cd7440ec39c3",
+    "predecessor_boundary_sha256": "a676b29421b2681e074264175dbae758dfbdb56e7edfd48b5858ba17513a1a90",
+    "candidate_root_id": "vulkan-14-spec",
+    "candidate_root_sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+    "predecessor_decision": "rejected"
+  },
+  "witness_sha256": "8cfab6fe4527f3973d7d7923ffe0922ab689fc2daf2f6e955ff7603fc8ba78d6"
+}
