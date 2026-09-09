@@ -1,0 +1,13 @@
+{
+  "chunks": [
+    {
+      "lines": 13,
+      "name": "chunk-0001.md",
+      "sha256": "9eb18a787a5a3e877317a43dd4839ac41d10d44e7598773ab625722a1a03e78b"
+    }
+  ],
+  "generator": "webboxvm.graphics-chunker.v1",
+  "input_sha256": "45a1056255833eebf7a174c8a842d4e0d23e8aaa2b4698af687301ec922f7457",
+  "manifest_revision": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "schema": 1
+}

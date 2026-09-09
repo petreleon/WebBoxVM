@@ -20,7 +20,7 @@ Generated protocol output is chunked reproducibly and deeper roadmap lists remai
 
 ## Checklist
 
-- [ ] [F06.3.1 — Build deterministic generated-file chunking](01-chunk-generator/README.md)
+- [x] [F06.3.1 — Build deterministic generated-file chunking](01-chunk-generator/README.md)
 - [ ] [F06.3.2 — Add isolated roadmap-checker regressions](02-checker-fixtures/README.md)
 - [ ] [F06.3.3 — Verify generated metadata and reproducibility](03-reproducibility-proof/README.md)
 

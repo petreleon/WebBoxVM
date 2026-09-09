@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "manifest_revision": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "records": [
+    {
+      "id": "capset-boundary",
+      "lines": [
+        "kind: fixture",
+        "role: deterministic chunking proof"
+      ]
+    },
+    {
+      "id": "source-provenance",
+      "lines": [
+        "kind: fixture",
+        "role: F02 manifest-revision header proof"
+      ]
+    }
+  ]
+}

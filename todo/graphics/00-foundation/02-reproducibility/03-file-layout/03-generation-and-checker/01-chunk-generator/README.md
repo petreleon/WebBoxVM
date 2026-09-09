@@ -4,7 +4,7 @@
 
 Task: F06.3.1
 Depends: F06.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F06.2](../../02-line-limit-coverage/README.md).
 
@@ -21,10 +21,10 @@ whose maintained outputs cannot exceed 180 physical lines.
 
 ## Checklist
 
-- [ ] Define input ordering, chunk names, headers, source-manifest revision, and output metadata.
-- [ ] Implement deterministic generation and a check mode that rejects stale or oversized chunks.
-- [ ] Add hermetic boundary tests for stable output and an over-180-line input/chunk.
-- [ ] Record command output, test count, and byte hashes without claiming generated protocol support.
+- [x] Define input ordering, chunk names, headers, source-manifest revision, and output metadata.
+- [x] Implement deterministic generation and a check mode that rejects stale or oversized chunks.
+- [x] Add hermetic boundary tests for stable output and an over-180-line input/chunk.
+- [x] Record command output, test count, and byte hashes without claiming generated protocol support.
 
 ## Verification
 
