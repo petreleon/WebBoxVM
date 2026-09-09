@@ -1,6 +1,6 @@
 # F02.2.2 evidence
 
-Revision: `8e04cc903038994f4d86485e085930afe1800a09` baseline; this scoped leaf is uncommitted
+Revision: `28b99a51013b0a6210ee1c51743d94be9c899e81` implementation commit; tests ran on its scoped worktree change
 Validation: hermetic in-memory transport suite, inherited contract suite, full `make test`, and final checks below
 Result: PASS
 Artifacts: test-only 32-byte payload, SHA-256
@@ -44,3 +44,9 @@ committed inputs; this receipt makes no claim about their present public availab
 After the completion markers were applied, the source-limit target passed 6/6, the roadmap checker
 printed `PASS: 150 documents, 98 tasks, 8 complete; links/dependencies/limits valid` and `Ready:
 F02.2.3, F06.3.3`, and `git diff --check` exited zero.
+
+Commit/push verification: implementation commit
+`28b99a51013b0a6210ee1c51743d94be9c899e81` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` resolved that branch to the same SHA. No remote
+CI result is claimed locally. Next ready task: F02.2.3, which needs a separately authorized live
+fetch and offline re-hash of all 15 pinned inputs.
