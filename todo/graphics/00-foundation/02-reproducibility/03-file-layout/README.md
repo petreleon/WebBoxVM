@@ -20,13 +20,9 @@ Code, tests, generators and nested task documents remain small and discoverable.
 
 ## Checklist
 
-- [ ] Define separate protocol, shared runtime, shader frontend/backend, platform and test-fixture
-  folders with public boundaries.
-- [ ] Extend line-limit coverage to todo, guest and generated maintained sources; split existing
-  touched oversized files by responsibility.
-- [ ] Add deterministic generator chunking and extend the roadmap checker when a new sublist depth
-  is introduced.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [ ] [F06.1 — Define graphics module boundaries](01-module-boundaries/README.md)
+- [ ] [F06.2 — Enforce maintained-file line limits](02-line-limit-coverage/README.md)
+- [ ] [F06.3 — Make generated output and roadmap nesting deterministic](03-generation-and-checker/README.md)
 
 ## Verification
 

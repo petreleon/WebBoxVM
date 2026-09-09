@@ -20,14 +20,9 @@ Protocol layouts and reference tests are reproducible instead of following mutab
 
 ## Checklist
 
-- [ ] Create a version/hash manifest for Linux UAPI, Mesa VirGL/Venus, virglrenderer/venus-protocol,
-  GL/GLES registries and API specs, GLSL/ESSL, Vulkan registry, SPIR-V grammar/environment,
-  WebGPU/WGSL and reference suites.
-- [ ] Record fetch/build commands, licenses and generated-code provenance; keep vendor downloads
-  outside maintained source.
-- [ ] Verify a fresh fetch reproduces each hash and split maintained/generated output into files of
-  at most 180 lines.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [ ] [F02.1 — Define the immutable graphics-input inventory](01-input-inventory/README.md)
+- [ ] [F02.2 — Verify isolated source fetches and hashes](02-fetch-verifier/README.md)
+- [ ] [F02.3 — Bind ABI fixtures and generators to the manifest](03-provenance-contract/README.md)
 
 ## Verification
 
