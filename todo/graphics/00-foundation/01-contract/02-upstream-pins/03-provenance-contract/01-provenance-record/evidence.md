@@ -1,6 +1,6 @@
 # F02.3.1 evidence
 
-Revision: `dc5a2bae53fd8271c25ad14ad854337c7967451e` baseline; this scoped leaf is uncommitted
+Revision: `16cd943eb67fa3249850870f2abc079dbe27b971` feature implementation
 Validation: hermetic provenance and inventory parsers, full `make test`, and final structural checks
 Result: PASS
 Artifacts: no upstream bytes, ABI fixture sidecars, or generator outputs are added
@@ -45,3 +45,7 @@ No network, external cache, fresh fetch, ABI fixture binding, generator output b
 runtime behavior is claimed. After the completion markers were applied, source limits passed 6/6, the
 roadmap checker printed `PASS: 160 documents, 102 tasks, 14 complete; links/dependencies/limits
 valid` and `Ready: F02.3.2, F02.3.3`, and `git diff --check` exited zero.
+
+The feature implementation was committed as `16cd943eb67fa3249850870f2abc079dbe27b971` and pushed
+to `origin/codex/graphics-f01-baseline`; immediately after the push, `git ls-remote origin
+refs/heads/codex/graphics-f01-baseline` returned that exact SHA. No remote CI result is asserted.
