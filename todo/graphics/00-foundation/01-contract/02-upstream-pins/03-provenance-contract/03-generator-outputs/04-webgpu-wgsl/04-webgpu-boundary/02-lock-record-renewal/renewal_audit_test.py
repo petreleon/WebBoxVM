@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the WebIDL lock renewal preserves every affected record."""
+"""Verify every current F02 provenance record binds the reviewed WebIDL lock."""
 
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ RECORDS = {
     "03-generator-outputs/03-vulkan-spirv/spirv-core-grammar.provenance.json": "e0d62d479dda06c263d301323c2b1490b8b98ba8216ffc7d816c72d18187e18d",
     "03-generator-outputs/03-vulkan-spirv/vulkan-registry.provenance.json": "e071d5673e668e820a4573661285dadaa74c1188e6ca027eecdefb9130c43e12",
     "03-generator-outputs/04-webgpu-wgsl/03-wgsl-generator-record/fixture-output.provenance.json": "29fba0e91ca64f26f4ea5627bfb333c87703edabb82843e9a2c6f452a750c4b9",
+    "03-generator-outputs/04-webgpu-wgsl/04-webgpu-boundary/03-webidl-generator-record/fixture-output.provenance.json": "99eb64f7239ee113813b1787492b34117d7e7c369390144d8770209c4301c311",
 }
 SPEC_FINGERPRINT = "16db3db47a8ddfefe60a781d9ed65e2f3d5f4c0ddb9446c2fed2b5d6b27c1ac0"
 
@@ -73,7 +74,7 @@ def chunker(spec: Path) -> subprocess.CompletedProcess[str]:
 
 
 class RenewalAuditTests(unittest.TestCase):
-    def test_records_bind_the_new_lock_and_preserve_all_other_fields(self) -> None:
+    def test_current_records_bind_the_new_lock_and_preserve_all_other_fields(self) -> None:
         revision = digest(LOCK.read_bytes())
         self.assertNotEqual(revision, OLD_LOCK)
         self.assertEqual(set(RECORDS), sidecars())
@@ -85,7 +86,7 @@ class RenewalAuditTests(unittest.TestCase):
                 self.assertEqual(nonderived_fingerprint(document), expected)
                 self.assertEqual(validate_record(path, MANIFEST)["inventory_sha256"], revision)
 
-    def test_old_lock_is_rejected_for_every_renewed_record(self) -> None:
+    def test_old_lock_is_rejected_for_every_current_record(self) -> None:
         with tempfile.TemporaryDirectory(dir=HERE) as temporary:
             root = Path(temporary)
             for index, relative in enumerate(RECORDS):

@@ -1,0 +1,13 @@
+{
+  "artifact": "fixture-only-webgpu-webidl-input-record",
+  "generator": {
+    "name": "f02-webgpu-webidl-fixture",
+    "version": "1"
+  },
+  "input_id": "webgpu-idl",
+  "input_license": "W3C Software License (webgpu.idl file header)",
+  "input_sha256": "bd35b2fc04f12f7ec22a9c1ae2826060778f980d8ce45dc055b8a5a8c644266a",
+  "limitation": "Metadata-only WebIDL input accounting; this marker neither parses WebIDL nor generates bindings or implements WebGPU.",
+  "notice": "Fixture-only provenance output; no upstream WebIDL bytes, parser, binding generator, browser API, guest device, renderer, compatibility, or performance data.",
+  "schema": 1
+}
