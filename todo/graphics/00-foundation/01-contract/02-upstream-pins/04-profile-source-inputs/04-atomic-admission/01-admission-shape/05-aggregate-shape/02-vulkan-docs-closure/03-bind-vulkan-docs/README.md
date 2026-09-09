@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3
 Depends: F02.4.4.1.5.2.2
-Evidence: pending
+Evidence: [blocker receipt](evidence.md)
 
 Prerequisite lists: the [successor cache child](../02-successor-cache-verifier/README.md),
 [Docs blocker record](../evidence.md), and [Vulkan boundary](../../../03-vulkan-boundaries/README.md).
@@ -26,7 +26,7 @@ closure twice and bind every raw/generated member, scope condition, image, and o
 - [ ] Bind source, generated, configuration, toolchain, image, exclusion, and output identities exactly.
 - [ ] Prove WSI, video, and extension scope treatment without treating observations or roots as complete members.
 - [ ] Reject divergent, missing, root-only, mutable, oversize, partial, or scope-expanded closures.
-- [ ] Record a complete proof or the first remaining concrete toolchain/closure blocker.
+- [x] Record a complete proof or the first remaining concrete toolchain/closure blocker.
 
 ## Verification
 
