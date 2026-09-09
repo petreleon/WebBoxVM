@@ -52,3 +52,8 @@ and redirect responses); F02.2.3 alone may claim a full live 15-input re-fetch a
 After the completion markers were applied, the source-limit target passed 6/6, the roadmap checker
 printed `PASS: 148 documents, 98 tasks, 6 complete; links/dependencies/limits valid` and `Ready:
 F02.2.2, F06.3.2`, and `git diff --check` exited zero.
+
+Commit/push verification: F02.2.1 completion commit
+`1e7012705ea8ff144b21718a0de20da7ed6dd75e` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` and the tracking ref resolved to that SHA.
+No remote CI result is claimed locally. Next ready tasks: F02.2.2, F06.3.2.
