@@ -22,13 +22,18 @@ promotion-metadata treatment from the reproducible official build without treati
 
 ## Checklist
 
-- [ ] Enumerate ordered raw and generated closure inputs with immutable identities and producers.
-- [ ] Bind exact core configuration, exclusions, required promotion metadata, images, and selectors.
-- [ ] Reject root-only, omitted, WSI/video/extension-expanded, malformed, or over-limit input closures.
-- [ ] Compare the captured source/input closure independently across both fresh builds.
-- [ ] Record a reproducible unadmitted input/scope receipt with nonzero counts.
+- [ ] [F02.4.4.1.5.2.3.3.1 — Observe pinned core build inputs](01-observe-pinned-build-inputs/README.md)
+- [ ] [F02.4.4.1.5.2.3.3.2 — Bind the core input and scope manifest](02-bind-core-input-scope/README.md)
+- [ ] [F02.4.4.1.5.2.3.3.3 — Compare fresh captures and record the receipt](03-compare-fresh-captures/README.md)
 
 ## Verification
 
 - A command-line core flag alone is not evidence that every included and excluded member has the required scope.
 - No rendered output, active inventory, candidate decision, F03 state, or support claim changes in this child.
+
+## Split rationale
+
+A direct include replay cannot establish generator and copied-asset reads, while a raw read trace cannot by itself
+classify conditional scope. The first child records the phase-specific observation, the second rejects an unsafe
+normalized closure, and the third compares two independent captures. The parent remains open until their aggregate
+receipt records nonzero counts without staging payloads or changing an active consumer.
