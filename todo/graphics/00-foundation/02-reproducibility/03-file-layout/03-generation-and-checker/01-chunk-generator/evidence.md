@@ -46,4 +46,7 @@ final rerun; it is not counted as a passing result. No browser adapter, guest ap
 reference, fallback, performance, Mesa, OpenGL/GLES, or Vulkan claim follows from this fixture.
 
 All new maintained files are at most 180 lines: generator 180, test 85, input 20, and outputs 13.
-Commit/push verification: pending a scoped review and commit. Next ready tasks: F02.2.2, F06.3.2.
+Commit/push verification: F06.3.1 completion commit
+`646907482bde635fbe841786d8dcc858d0d8aa75` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` and the tracking ref resolved to that SHA.
+No remote CI result is claimed locally. Next ready tasks: F02.2.2, F06.3.2.
