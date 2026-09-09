@@ -21,13 +21,18 @@ Every future protocol generator records the immutable registry input and exact g
 
 ## Checklist
 
-- [ ] Define record samples for Venus, GL/GLES, Vulkan/SPIR-V, and WebGPU/WGSL generator families.
-- [ ] Require each generated output to name its manifest input ID/digest, command, generator version,
-  license, and output hash.
-- [ ] Reject a generated record that substitutes a spec/reference input for its declared generator input.
-- [ ] Keep ungenerated reference material distinct from generated code and avoid vendoring source bytes.
+- [ ] [F02.3.3.1 — Bind a Venus codec generator record](01-venus-codec/README.md)
+- [ ] [F02.3.3.2 — Bind a GL/GLES registry generator record](02-gl-gles-registry/README.md)
+- [ ] [F02.3.3.3 — Bind Vulkan and SPIR-V generator records](03-vulkan-spirv/README.md)
+- [ ] [F02.3.3.4 — Establish the WebGPU/WGSL generator-input boundary](04-webgpu-wgsl/README.md)
 
 ## Verification
 
 - A generated-output sample resolves only to the reviewed registry or grammar input.
 - A wrong generator version, input digest, or output hash fails deterministically offline.
+
+## Split rationale
+
+Venus, GL/GLES, Vulkan/SPIR-V, and WebGPU/WGSL have separate immutable inputs and distinct
+reference-versus-generator boundaries. Each child can therefore add one honest record family and
+its negative checks without allowing a passing record for a reference-only source.
