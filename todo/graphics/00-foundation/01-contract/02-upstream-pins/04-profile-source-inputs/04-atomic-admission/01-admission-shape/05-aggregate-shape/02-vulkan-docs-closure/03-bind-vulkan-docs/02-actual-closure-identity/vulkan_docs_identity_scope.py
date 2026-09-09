@@ -12,8 +12,8 @@ EXCLUSIONS = {
     "video": ["include::{chapters}/videocoding.adoc[]"],
     "extensions": ["include::{chapters}/extensions.adoc[]"],
 }
-EXCLUDED_SELECTORS = frozenset((
-    "chapters/VK_KHR_surface/wsi.adoc", "chapters/videocoding.adoc", "chapters/extensions.adoc",
+SEMANTIC_DIRECT_EXCLUSIONS = frozenset((
+    "chapters/VK_KHR_surface/wsi.adoc", "chapters/videocoding.adoc",
 ))
 
 
@@ -59,8 +59,8 @@ def scope(value: object, members, recipe: BuildRecipe) -> None:
     excluded = value.get("excluded_members")
     if excluded != EXCLUSIONS:
         reject("Docs scope does not retain the reviewed WSI/video/extension boundary")
-    if any(item.selector in EXCLUDED_SELECTORS for item in members):
-        reject("Docs scope resolves a reviewed WSI/video/extension exclusion")
+    if any(item.selector in SEMANTIC_DIRECT_EXCLUSIONS for item in members):
+        reject("Docs scope resolves a reviewed WSI/video semantic exclusion")
     if digest(value.get("predecessor_include_list_sha256"), "Docs scope include transcript") != INCLUDE_LIST:
         reject("Docs scope does not retain the reviewed direct-include transcript")
     if digest(value.get("configuration_sha256"), "Docs scope configuration") != recipe.configuration_digest:

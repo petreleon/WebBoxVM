@@ -70,16 +70,23 @@ class DocsIdentityBindingTest(unittest.TestCase):
         value["inputs"][-1]["generation_id"] = "unrelated-generation"
         self.assert_closure_rejected(value, refresh=True)
 
-    def test_excluded_targets_cannot_enter_the_resolved_scope(self):
+    def test_wsi_and_video_targets_cannot_enter_the_resolved_scope(self):
         for identifier, selector in (
                 ("wsi-source", "chapters/VK_KHR_surface/wsi.adoc"),
-                ("video-source", "chapters/videocoding.adoc"),
-                ("extensions-source", "chapters/extensions.adoc")):
+                ("video-source", "chapters/videocoding.adoc")):
             with self.subTest(selector=selector):
                 value = closure()
                 value["inputs"].insert(2, raw(identifier, selector, "4" * 64, 42))
                 value["scope"]["ordered_input_ids"].insert(2, identifier)
                 self.assert_closure_rejected(value, refresh=True)
+
+    def test_extensions_control_input_is_not_an_extension_expansion(self):
+        value = closure()
+        value["inputs"].insert(2, raw("extensions-control", "chapters/extensions.adoc", "4" * 64, 42))
+        value["scope"]["ordered_input_ids"].insert(2, "extensions-control")
+        refresh_member_identity(value)
+        reseal_closure(value)
+        self.assertEqual(len(closure_value(value, witness_value(witness())).inputs), 4)
 
     def test_partial_or_stale_member_data_is_rejected(self):
         value = closure()
