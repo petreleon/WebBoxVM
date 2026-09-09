@@ -111,6 +111,16 @@ class InventoryTests(unittest.TestCase):
             entry["immutable_url"] = entry["immutable_url"].replace(entry["revision"], "main")
         self.reject(make_mutable, "immutable HTTPS source URL")
 
+    def test_wgsl_grammar_is_separate_from_the_semantic_reference(self) -> None:
+        entries = {entry["id"]: entry for entry in self.entries}
+        reference, grammar = entries["wgsl-spec"], entries["wgsl-grammar-syntax"]
+        self.assertEqual(reference["source_family"], "wgsl")
+        self.assertEqual(reference["generated_code_role"], "WGSL emitter semantic reference; no generated code")
+        self.assertEqual(grammar["source_family"], "wgsl-grammar")
+        self.assertTrue(grammar["immutable_url"].endswith("/wgsl/syntax.bnf"))
+        self.assertEqual(grammar["license"], "W3C Software and Document License (repo LICENSE.md; document)")
+        self.assertEqual(grammar["generated_code_role"], "future WGSL grammar-input/parser-validation generator input; nonstandard BNF dialect")
+
     def v2_inventory(self) -> tuple[tempfile.TemporaryDirectory, Path]:
         temporary = tempfile.TemporaryDirectory(dir=HERE)
         manifest = Path(temporary.name) / "manifest.toml"

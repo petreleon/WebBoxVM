@@ -44,4 +44,5 @@ Run the suite with:
 PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/02-fetch-verifier/02-hermetic-fixtures/fixture_transport_test.py
 ```
 
-This leaf does not invoke `source_fetch.py`; F02.2.3 alone owns the live 15-input inventory fetch.
+This leaf does not invoke `source_fetch.py`; F02.2.3 owns its historical 15-input fetch and
+F02.3.3.4.1.2 owns the grammar renewal's 16-input re-fetch.

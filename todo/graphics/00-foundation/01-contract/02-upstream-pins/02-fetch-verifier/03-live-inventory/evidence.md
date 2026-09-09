@@ -41,6 +41,22 @@ license record for every manifest input.
 | webgpu-cts-buffer-map | fetched -> reused | 17766 | e3d8dc9c4f5cd9cfc93a8bca688bf431c81ea1014d40d83b8b0a1139da604c19 | BSD-3-Clause (repo LICENSE.txt) |
 | piglit-gl30-bindfragdata | fetched -> reused | 6307 | 11ef8899405be1dc4ebe4a6ebe351c838c9a1c581c8446fcd971f982c059e8da | MIT (file notice; canonical COPYING) |
 
+## Grammar renewal
+
+On 2026-09-09, F02.3.3.4.1.2 renewed this evidence against a new external cache,
+`/private/tmp/webboxvm-f02-wgsl-live.E64MYf`. Its first `source_fetch.py` run fetched all 16
+declared inputs; the second run reused and offline-rehashed all 16. An independent local audit read
+each cache file and matched its declared byte count and SHA-256. No input was unavailable or accepted
+with a mismatch. The previous 15 rows retain their recorded identities; the added result is:
+
+| Input | State | Bytes | SHA-256 | License |
+| --- | --- | ---: | --- | --- |
+| wgsl-grammar-syntax | fetched -> reused | 10581 | 838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1 | W3C Software and Document License (repo LICENSE.md; document) |
+
+The grammar's file comment identifies a nonstandard BNF dialect, so this renewal records immutable
+source integrity only; it does not establish a standard parser, compiler, WebGPU API, guest, or
+browser feature. The disposable cache was removed after the offline audit; no payload is tracked.
+
 Commands and final local results:
 
 ```sh

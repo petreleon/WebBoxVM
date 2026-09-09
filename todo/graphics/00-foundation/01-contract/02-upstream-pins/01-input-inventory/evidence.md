@@ -3,7 +3,7 @@
 Revision: `ca6900dd4e8d121f402c2031cff03491a0ad6c19` baseline; this leaf is intentionally uncommitted
 Validation: offline TOML schema/parser tests, full `make test`, roadmap check and source-file-limit check
 Result: PASS
-Artifacts: no vendor payload is tracked; 15 source bytes were read from public pinned URLs in `/private/tmp`
+Artifacts: no vendor payload is tracked; the original 15-source capture and current 16-source renewal are recorded below
 Profile: inventory only; no source was accepted into a cache and no graphics API behavior is claimed
 
 ## Inventory capture
@@ -27,6 +27,22 @@ The Piglit payload is fetched from the public `intel-lgci-fdo-gitlab-mirror/mesa
 the exact canonical Mesa Piglit commit. Its `provenance` field names the canonical
 `gitlab.freedesktop.org/mesa/piglit` project; the mirror is used only because its commit-addressed
 raw endpoint was available during this capture.
+
+## Grammar renewal
+
+On 2026-09-09, F02.3.3.4.1.2 added `wgsl-grammar-syntax` as the separate sixteenth source family.
+Its immutable GPUWeb URL is pinned at `e0aff163a37eb3633ffd612e2a943ceb6196d6af`, with 10,581
+bytes and SHA-256 `838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1`. The pinned
+repository `LICENSE.md` assigns documents to the W3C Software and Document License; this is a
+repository-level document classification because `syntax.bnf` has no separate license header.
+
+The grammar's opening comment says it is not directly compatible with existing BNF parsers and uses
+pattern literals plus generalized RegEx operations. Its role is therefore only `future WGSL
+grammar-input/parser-validation generator input; nonstandard BNF dialect`. `wgsl-spec` remains the
+`wgsl` semantic reference with no generated-code role. The renewed schema-v2 root, component, and
+raw lock SHA-256 values are `22e5e250b3d475ef2607b2bc92b9885e2910824273d8acb7be19fc6614fc8cda`,
+`eef0b188e9e663e6be483bfedde5df27687db9b590ff2bd208ebf462b0cc6649`, and
+`db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`, respectively.
 
 ## Commands and results
 

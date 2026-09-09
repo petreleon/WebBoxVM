@@ -71,7 +71,7 @@ class FetchContractTests(unittest.TestCase):
         return path
 
     def test_committed_manifest_loads_without_network(self) -> None:
-        self.assertEqual(len(load_manifest(MANIFEST)), 15)
+        self.assertEqual(len(load_manifest(MANIFEST)), 16)
 
     def test_legacy_v1_inventory_is_rejected_before_cache_actions(self) -> None:
         legacy = self.invalid_manifest("legacy-v1")

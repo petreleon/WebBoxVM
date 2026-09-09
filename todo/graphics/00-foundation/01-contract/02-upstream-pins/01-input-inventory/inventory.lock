@@ -1,3 +1,3 @@
 webboxvm-f02-inventory-lock-v2
-manifest.toml sha256=5d57d9d4f9c1016a4fd50bb11b8fb859b2dcbbc8e3cdf7a9414e7b0a7ee52f86
-inputs/part-0001.toml sha256=c78503afeebdb0fbdda321f190d8ef5268948c38490fc72d1be6deaba9ab6b4a
+manifest.toml sha256=22e5e250b3d475ef2607b2bc92b9885e2910824273d8acb7be19fc6614fc8cda
+inputs/part-0001.toml sha256=eef0b188e9e663e6be483bfedde5df27687db9b590ff2bd208ebf462b0cc6649

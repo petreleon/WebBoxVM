@@ -53,12 +53,10 @@ class WebGpuBoundaryTests(unittest.TestCase):
         with self.assertRaisesRegex(BoundaryError, "WGSL"):
             validate_webgpu_generator_input(inventory, "wgsl-spec")
 
-    def test_wgsl_grammar_candidate_is_not_a_webgpu_input(self) -> None:
-        grammar = {"wgsl-grammar-candidate": {
-            "source_family": "wgsl-grammar", "generated_code_role": "future WGSL grammar generator input",
-        }}
+    def test_current_wgsl_grammar_is_not_a_webgpu_input(self) -> None:
+        grammar = load_inventory(MANIFEST)
         with self.assertRaisesRegex(BoundaryError, "WGSL"):
-            validate_webgpu_generator_input(grammar, "wgsl-grammar-candidate")
+            validate_webgpu_generator_input(grammar, "wgsl-grammar-syntax")
 
     def test_a_future_designated_webgpu_input_invalidates_this_blocker(self) -> None:
         with tempfile.TemporaryDirectory(dir=HERE) as temporary:

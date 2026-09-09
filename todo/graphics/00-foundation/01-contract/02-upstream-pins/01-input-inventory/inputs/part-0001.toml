@@ -131,6 +131,17 @@ local_cache = "webboxvm-graphics/f02/wgsl-spec/d54430daf037051f2b7c46399441b9c01
 generated_code_role = "WGSL emitter semantic reference; no generated code"
 provenance = "https://github.com/gpuweb/gpuweb/tree/e0aff163a37eb3633ffd612e2a943ceb6196d6af"
 [[inputs]]
+id = "wgsl-grammar-syntax"
+source_family = "wgsl-grammar"
+immutable_url = "https://raw.githubusercontent.com/gpuweb/gpuweb/e0aff163a37eb3633ffd612e2a943ceb6196d6af/wgsl/syntax.bnf"
+revision = "e0aff163a37eb3633ffd612e2a943ceb6196d6af"
+sha256 = "838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1"
+bytes = 10581
+license = "W3C Software and Document License (repo LICENSE.md; document)"
+local_cache = "webboxvm-graphics/f02/wgsl-grammar-syntax/838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1.source"
+generated_code_role = "future WGSL grammar-input/parser-validation generator input; nonstandard BNF dialect"
+provenance = "https://github.com/gpuweb/gpuweb/tree/e0aff163a37eb3633ffd612e2a943ceb6196d6af/wgsl"
+[[inputs]]
 id = "vk-gl-cts-api-version"
 source_family = "vk-gl-cts"
 immutable_url = "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/modules/vulkan/api/vktApiVersionCheck.cpp"

@@ -8,19 +8,28 @@ Profile: immutable-input eligibility boundary only; no WebGPU API, guest, browse
 
 Task ID and date: F02.3.3.4.4, 2026-09-09.
 
-The current F02.1 inventory-lock SHA-256 is
+At the original probe, the F02.1 inventory-lock SHA-256 was
 `cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`. Its `webgpu-spec` entry
 is a `webgpu` source family but has role `host API semantic reference; no generated code`.
 Its `wgsl-spec` entry has `wgsl` source family and role `WGSL emitter semantic reference; no
 generated code`. Neither is accepted as a WebGPU generator input. No manifest entry has the exact
 designation `future WebGPU generator input`.
 
-The offline checker reads only the local TOML inventory. It rejects any `wgsl` source before it can
-be a WebGPU generator input; its seven hermetic cases include a temporary `wgsl-grammar-candidate`
-with a generator role and prove that it is still rejected by source family. A separate temporary
+The original offline checker read only the local TOML inventory. It rejected any `wgsl` source before
+it could be a WebGPU generator input; its seven hermetic cases included a temporary grammar candidate
+with a generator role and proved that it was still rejected by source family. A separate temporary
 future WebGPU-designated entry makes the blocker assertion fail, so this receipt cannot silently
 remain valid after the inventory gains an eligible input. No upstream payload, network request,
 record sidecar, generated protocol, or runtime artifact is used.
+
+## Grammar-lock renewal
+
+F02.3.3.4.1.2 now supplies the actual `wgsl-grammar-syntax` entry under the separate
+`wgsl-grammar` family. Its current inventory-lock SHA-256 is
+`db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`; the committed-entry
+boundary test rejects it as WGSL-derived. The real probe remains three BLOCKED lines: reference-only
+`webgpu-spec`, WGSL-derived `wgsl-spec`, and no explicit WebGPU generator input. This renewed
+inventory fact does not turn the BLOCKED result into a WebGPU implementation or runtime claim.
 
 Commands, working directory, and actual result:
 

@@ -24,7 +24,8 @@ immutable byte identity.
 - [x] Define a maintained manifest schema with immutable URL, revision, SHA-256, source family,
   license, local cache location, and generated-code role for every entry.
 - [x] Add entries for Linux UAPI; Mesa/VirGL/Venus; virglrenderer/venus-protocol; GL/GLES,
-  GLSL/ESSL, Vulkan, SPIR-V, WebGPU/WGSL; and selected independent reference suites.
+  GLSL/ESSL, Vulkan, SPIR-V, WebGPU/WGSL, and a separately classified WGSL grammar; and selected
+  independent reference suites.
 - [x] Reject mutable branch-only references and keep fetched bytes outside maintained source.
 - [x] Validate manifest structure and the complete required source-family inventory with a nonzero,
   implementation-independent test.

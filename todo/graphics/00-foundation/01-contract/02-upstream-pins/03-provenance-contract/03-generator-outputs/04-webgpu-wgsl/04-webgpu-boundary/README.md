@@ -37,5 +37,5 @@ immutable WebGPU source definition is available; no fixture or runtime claim fil
 
 `webgpu_generator_boundary.py` reads only the local F02.1 manifest. It accepts a blocked result
 only while no input has the exact `future WebGPU generator input` designation, and it rejects every
-`wgsl` input—including a temporary grammar candidate—as a WebGPU generator input. Run the hermetic
+WGSL-derived input—including the accepted grammar—as a WebGPU generator input. Run the hermetic
 suite with `PYTHONDONTWRITEBYTECODE=1 python3 webgpu_generator_boundary_test.py` from this folder.

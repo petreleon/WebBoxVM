@@ -5,7 +5,7 @@ cache_note = "Resolve local_cache under this external root; F02.2 owns fetching.
 required_families = [
   "linux-uapi", "mesa-virgl", "mesa-venus",
   "virglrenderer", "venus-protocol", "gl-gles-registry",
-  "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl",
+  "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl", "wgsl-grammar",
   "vk-gl-cts", "webgpu-cts", "piglit",
 ]
 input_files = ["inputs/part-0001.toml"]

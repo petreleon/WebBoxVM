@@ -13,7 +13,7 @@ from pathlib import Path
 V1_FIELDS = frozenset(("schema", "cache_root", "cache_note", "required_families", "inputs"))
 V2_FIELDS = frozenset(("schema", "cache_root", "cache_note", "required_families", "input_files"))
 INPUT_FIELDS = frozenset(("id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license", "local_cache", "generated_code_role", "provenance"))
-FAMILIES = frozenset(("linux-uapi", "mesa-virgl", "mesa-venus", "virglrenderer", "venus-protocol", "gl-gles-registry", "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl", "vk-gl-cts", "webgpu-cts", "piglit"))
+FAMILIES = frozenset(("linux-uapi", "mesa-virgl", "mesa-venus", "virglrenderer", "venus-protocol", "gl-gles-registry", "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl", "wgsl-grammar", "vk-gl-cts", "webgpu-cts", "piglit"))
 PART = re.compile(r"inputs/part-[0-9]{4}\.toml$")
 LOCK_HEADER = b"webboxvm-f02-inventory-lock-v2\n"
 
