@@ -60,6 +60,7 @@ class WebGpuBoundaryTests(unittest.TestCase):
             f"sys.path.insert(0, {str(HERE)!r})",
             "import webgpu_generator_boundary as boundary",
             "assert boundary.INPUT_ID == 'webgpu-idl'",
+            "assert boundary.REVIEWED_WEBGPU_IDL['id'] == 'webgpu-idl'",
         ))
         result = subprocess.run(
             [sys.executable, "-c", code],
