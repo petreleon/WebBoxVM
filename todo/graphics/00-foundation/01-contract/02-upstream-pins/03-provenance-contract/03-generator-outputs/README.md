@@ -4,14 +4,15 @@
 
 Task: F02.3.3
 Depends: F02.1, F02.2, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.3.1](../01-provenance-record/README.md) and
 [F02.2](../../02-fetch-verifier/README.md).
 
 ## Outcome
 
-Every future protocol generator records the immutable registry input and exact generated output it used.
+Each completed fixture-only generator record identifies the immutable reviewed input and exact local
+output it used. Any future protocol generator must preserve that provenance boundary.
 
 ## Starting points
 
@@ -24,7 +25,7 @@ Every future protocol generator records the immutable registry input and exact g
 - [x] [F02.3.3.1 — Bind a Venus codec generator record](01-venus-codec/README.md)
 - [x] [F02.3.3.2 — Bind a GL/GLES registry generator record](02-gl-gles-registry/README.md)
 - [x] [F02.3.3.3 — Bind Vulkan and SPIR-V generator records](03-vulkan-spirv/README.md)
-- [ ] [F02.3.3.4 — Establish the WebGPU/WGSL generator-input boundary](04-webgpu-wgsl/README.md)
+- [x] [F02.3.3.4 — Establish the WebGPU/WGSL generator-input boundary](04-webgpu-wgsl/README.md)
 
 ## Verification
 
@@ -34,5 +35,5 @@ Every future protocol generator records the immutable registry input and exact g
 ## Split rationale
 
 Venus, GL/GLES, Vulkan/SPIR-V, and WebGPU/WGSL have separate immutable inputs and distinct
-reference-versus-generator boundaries. Each child can therefore add one honest record family and
-its negative checks without allowing a passing record for a reference-only source.
+reference-versus-generator boundaries. Each child adds one honest local record family and negative
+checks without allowing a passing record for a reference-only source or implying a runtime.

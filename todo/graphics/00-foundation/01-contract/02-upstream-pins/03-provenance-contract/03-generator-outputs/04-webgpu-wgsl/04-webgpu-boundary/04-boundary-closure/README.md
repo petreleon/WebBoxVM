@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.4.4
 Depends: F02.3.3.4.4.1, F02.3.3.4.4.2, F02.3.3.4.4.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [WebIDL source admission](../01-webidl-source-admission/README.md),
 [renewed records](../02-lock-record-renewal/README.md), and the
@@ -25,15 +25,17 @@ the completed foundation records no graphics runtime claim.
 
 ## Checklist
 
-- [ ] Make the boundary probe accept only the exact reviewed `webgpu-idl` role and family.
-- [ ] Add offline positive and hostile-input cases for all prohibited substitute sources.
-- [ ] Replace the blocked receipt with a complete local foundation receipt and update parent status.
-- [ ] Re-run the focused suites, source limits, full local suite, roadmap checker, and whitespace check.
+- [x] Make the boundary probe accept only the exact reviewed `webgpu-idl` identity.
+- [x] Add offline positive and hostile-input cases for all prohibited substitute sources.
+- [x] Replace the blocked receipt with a complete local foundation receipt and update parent status.
+- [x] Re-run the focused suites, source limits, full local suite, roadmap checker, and whitespace check.
 
 ## Verification
 
-- The WebIDL input passes only when its family and explicit generator role are intact.
-- Reference documents and non-WebIDL sources cannot pass by renaming or role changes alone.
+- The WebIDL input passes only when the lock-valid local inventory and every frozen reviewed
+  identity field match.
+- Reference documents, WGSL/grammar inputs, CTS inputs, and renamed or role-only spoofs reject
+  offline.
 
 ## Scope limit
 

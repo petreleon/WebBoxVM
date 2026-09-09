@@ -1,54 +1,27 @@
 # F02.3.3.4.4 evidence
 
-Revision: `b29a48b` baseline; scoped WebGPU boundary probe
-Validation: seven hermetic boundary tests, original-inventory blocker probe, source limits, `make test`, roadmap, diff
-Result: BLOCKED
-Artifacts: `webgpu_generator_boundary.py`, its hermetic test, and this local inventory-only receipt
-Profile: immutable-input eligibility boundary only; no WebGPU API, guest, browser, code-generation, or performance claim
+Revision: `babeb29974f101dff2aea428fe22172456f0e2ee` boundary closure; `4b2e852e0722aea40c51a7a9b13c8e5b66b699d2` collision regression
+Validation: boundary 9/9; marker 7/7; renewal 3/3; provenance 10/10; inventory 6/6; source limits 6/6; local `make test`; roadmap; whitespace
+Result: PASS
+Artifacts: `webgpu_generator_boundary.py`, its hermetic tests, reviewed `webgpu-idl`, marker SHA-256 `c56f2361017b8339f8a1a914898bc5ebb154c090c2ec1a13b0711b73d2afdb02`, raw lock `08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6`
+Profile: immutable local metadata-provenance eligibility only; no payload parsing, generator implementation, WebGPU API, guest, browser, renderer, compatibility, or performance behavior
 
-Task ID and date: F02.3.3.4.4, 2026-09-09.
+Task ID and date: F02.3.3.4.4, 2026-09-09 Europe/Bucharest.
 
-At the original probe, the F02.1 inventory-lock SHA-256 was
-`cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`. Its `webgpu-spec` entry
-is a `webgpu` source family but has role `host API semantic reference; no generated code`.
-Its `wgsl-spec` entry has `wgsl` source family and role `WGSL emitter semantic reference; no
-generated code`. Neither is accepted as a WebGPU generator input. No manifest entry has the exact
-designation `future WebGPU generator input`.
+The closed parent accepts exactly the frozen `webgpu-idl` WebIDL binding/interop record,
+including its immutable URL/revision, source SHA-256
+`bd35b2fc04f12f7ec22a9c1ae2826060778f980d8ce45dc055b8a5a8c644266a`, byte count, license,
+cache/provenance paths, and explicit role. It rejects every other identifier and any differing field.
+The local F02.1 layout validates its canonical raw lock before the identity comparison.
 
-The original offline checker read only the local TOML inventory. It rejected any `wgsl` source before
-it could be a WebGPU generator input; its seven hermetic cases included a temporary grammar candidate
-with a generator role and proved that it was still rejected by source family. A separate temporary
-future WebGPU-designated entry makes the blocker assertion fail, so this receipt cannot silently
-remain valid after the inventory gains an eligible input. No upstream payload, network request,
-record sidecar, generated protocol, or runtime artifact is used.
+The boundary's 9/9 suite includes the positive command-line result, all frozen-field mutations,
+semantic/WGSL/grammar/CTS substitutes, renamed role/family spoofs, a native-C spoof, malformed or
+missing inventory, stale lock, and a real sibling-module preload collision. The marker suite passed
+7/7; its provenance sidecar and output remain metadata-only. The renewal audit passed 3/3 over the
+12 current F02.3 lock-bound sidecars; generic provenance passed 10/10; inventory self-test and
+source limits each passed 6/6. `make test`, the roadmap checker, and `git diff --check`
+passed locally.
 
-## Historical grammar-lock renewal
-
-F02.3.3.4.1.2 now supplies the actual `wgsl-grammar-syntax` entry under the separate
-`wgsl-grammar` family. That renewal's inventory-lock SHA-256 was
-`db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`; the committed-entry
-boundary test rejected it as WGSL-derived. At that revision the probe printed three BLOCKED lines:
-reference-only `webgpu-spec`, WGSL-derived `wgsl-spec`, and no explicit WebGPU generator input.
-F02.3.3.4.4.1 later admits a distinct WebIDL record and F02.3.3.4.4.4 owns replacement of this
-legacy blocker probe; this historical result is not current WebIDL eligibility or runtime evidence.
-
-Commands, working directory, and actual result:
-
-```sh
-PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/03-provenance-contract/03-generator-outputs/04-webgpu-wgsl/04-webgpu-boundary/webgpu_generator_boundary_test.py
-PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/03-provenance-contract/03-generator-outputs/04-webgpu-wgsl/04-webgpu-boundary/webgpu_generator_boundary.py --manifest todo/graphics/00-foundation/01-contract/02-upstream-pins/01-input-inventory/manifest.toml
-cargo test -p emulator --test source_file_limits --quiet
-make test
-python3 scripts/check_graphics_roadmap.py
-git diff --check
-```
-
-Working directory: `/Users/petreleon/code/WebBoxVM`. The hermetic suite passed 7/7 and the source
-limit suite passed 6/6. The real probe printed three `BLOCKED:` lines: `webgpu-spec` is
-reference-only, `wgsl-spec` is WGSL, and no explicit WebGPU generator input exists. The full local
-suite, roadmap checker, and whitespace check exit successfully after this receipt is present.
-
-Historical blocker: at this probe, F02.1 did not identify a reviewed immutable WebGPU generator
-source distinct from the reference specifications. This was an intentional BLOCKED result, not a
-passing WebGPU feature. The parent remains open pending its WebIDL-record and closure children; no
-remote CI result, runtime behavior, compatibility, or performance conclusion is claimed.
+The probe loads only checked-in metadata and does not fetch or read upstream WebIDL bytes. No browser
+or GPU execution occurred. No remote CI result, WebGPU binding/API, guest-visible graphics,
+VirGL/Venus translation, profile conformance, native comparison, or performance result is claimed.
