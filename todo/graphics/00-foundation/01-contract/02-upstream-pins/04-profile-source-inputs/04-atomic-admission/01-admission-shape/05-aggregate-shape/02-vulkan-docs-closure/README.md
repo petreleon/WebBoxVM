@@ -32,6 +32,7 @@ immutable identities; the root alone never qualifies.
 
 - The existing 73 observations are insufficient; this task stays open unless every required Docs member and scope input is genuinely modelled.
 - No inventory, candidate decision, F03 state, guest API, browser, CTS, conformance, or performance claim changes here.
-- Status: **BLOCKED** pending an actual complete Docs closure. The completed first child supplies only an
-  isolated synthetic identity model; the blocker record remains the discovery evidence, and no child may mutate
-  active F02.2 or V1 state before the remaining cache and actual-closure children finish.
+- Status: **IN PROGRESS**: the fresh official core HTML route is now reproducible, but its closure grammar, complete
+  scope/input capture, witness staging, and final proof remain deliberately separate children. The completed first
+  children remain isolated successor contracts; no child may mutate active F02.2 or V1 state before an actual closure
+  truthfully models every required member and output.
