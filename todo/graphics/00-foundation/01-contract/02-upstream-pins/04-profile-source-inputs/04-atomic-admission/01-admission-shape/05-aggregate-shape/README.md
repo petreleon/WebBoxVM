@@ -22,10 +22,10 @@ all compound closures are complete, scoped, and policy-valid. Until then, it pub
 
 ## Checklist
 
-- [ ] Verify all six required IDs have exactly one valid source-shape record.
-- [ ] Verify every compound member/generated input and exclusion has an immutable bounded identity.
-- [ ] Verify no unresolved root, stale lock, or partial state has a cutover-ready result.
-- [ ] Attach the aggregate receipt with focused positive and hostile results.
+- [ ] [F02.4.4.1.5.1 — Aggregate the current pre-admission state](01-pre-admission-aggregate/README.md)
+- [ ] [F02.4.4.1.5.2 — Resolve the Vulkan Docs core closure](02-vulkan-docs-closure/README.md)
+- [ ] [F02.4.4.1.5.3 — Resolve the VCTS Vulkan-core closure](03-vcts-core-closure/README.md)
+- [ ] [F02.4.4.1.5.4 — Prove the aggregate closure admission](04-closure-admission-proof/README.md)
 
 ## Verification
 
