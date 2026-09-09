@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "contract": "successor-raw-generated-fixture-v1",
+  "status": "fixture-only-unadmitted",
+  "profile": "fixture-vulkan-docs",
+  "role": "fixture-only",
+  "required_input_id": "fixture-raw-generated-closure",
+  "root_member_id": "fixture-root",
+  "members": [
+    {
+      "kind": "raw-member",
+      "id": "fixture-root",
+      "source_family": "fixture-vulkan-docs",
+      "immutable_url": "https://raw.githubusercontent.com/example/fixture/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/root.adoc",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "bytes": 101,
+      "license": "fixture-license",
+      "local_cache": "webboxvm-graphics/successor/fixture-raw-generated-closure/raw/fixture-root/1111111111111111111111111111111111111111111111111111111111111111.source",
+      "generated_code_role": "fixture raw source",
+      "provenance": "https://example.invalid/fixture",
+      "selector": "root.adoc"
+    },
+    {
+      "kind": "raw-member",
+      "id": "fixture-registry",
+      "source_family": "fixture-vulkan-docs",
+      "immutable_url": "https://raw.githubusercontent.com/example/fixture/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/registry.xml",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "bytes": 211,
+      "license": "fixture-license",
+      "local_cache": "webboxvm-graphics/successor/fixture-raw-generated-closure/raw/fixture-registry/2222222222222222222222222222222222222222222222222222222222222222.source",
+      "generated_code_role": "fixture generator input",
+      "provenance": "https://example.invalid/fixture",
+      "selector": "registry.xml"
+    },
+    {
+      "kind": "generated-member",
+      "id": "fixture-generated",
+      "producer_member_ids": ["fixture-root", "fixture-registry"],
+      "generation_id": "fixture-generation",
+      "selector": "generated/specattribs.adoc",
+      "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "bytes": 313,
+      "license": "fixture-generated-license",
+      "local_cache": "webboxvm-graphics/successor/fixture-raw-generated-closure/generated/fixture-generated/3333333333333333333333333333333333333333333333333333333333333333.derived",
+      "generated_code_role": "fixture generated output",
+      "provenance": "https://example.invalid/fixture"
+    }
+  ],
+  "generations": [
+    {
+      "id": "fixture-generation",
+      "recipe": {
+        "argv": ["python3", "scripts/generate.py", "--core"],
+        "workdir": "generator",
+        "sha256": "c822cea724bfc96af4e32c423c014571fc1caa3a44ede28ca0cadabdc92a27ef"
+      },
+      "configuration": {
+        "attributes": [
+          {"name": "VK_BASE_VERSION_1_0", "value": "1"},
+          {"name": "VK_VERSION_1_0", "value": "1"}
+        ],
+        "sha256": "1d640b76a51b7cb10a58cdd83debf517eb6a51c8f541bc7d81381ba36c550f86"
+      },
+      "toolchain": {
+        "name": "fixture-python",
+        "version": "fixture-1",
+        "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "output_member_ids": ["fixture-generated"],
+      "output_tree_sha256": "b3f2f1a45a859c36b32fbb00fad03bfb783ef298e672de95276d73d8037ecb5f",
+      "clean_run_tree_sha256s": [
+        "b3f2f1a45a859c36b32fbb00fad03bfb783ef298e672de95276d73d8037ecb5f",
+        "b3f2f1a45a859c36b32fbb00fad03bfb783ef298e672de95276d73d8037ecb5f"
+      ]
+    }
+  ],
+  "scope": {
+    "scope_kind": "fixture-unbound-core-scope",
+    "evidence_mode": "fixture-unbound",
+    "ordered_member_ids": ["fixture-root", "fixture-registry", "fixture-generated"],
+    "generated_member_ids": ["fixture-generated"],
+    "excluded_members": {"wsi": [], "video": [], "extensions": []},
+    "configuration_sha256": "1d640b76a51b7cb10a58cdd83debf517eb6a51c8f541bc7d81381ba36c550f86",
+    "scope_sha256": "a39068212973ee0074b0f85f81ba59b7dc4425bf673994011658bab80119766e"
+  },
+  "predecessor_adapter": {
+    "kind": "v1-predecessor-only",
+    "predecessor_rules_sha256": "74300113dab0019c25b1ed629d13c7fbba720316f370a7deee1cdb86b56d91bc",
+    "predecessor_audit_sha256": "7aa23749e5af061221d3f2aced93f3f6e2ebfd3d37445ace0834cd7440ec39c3",
+    "predecessor_boundary_sha256": "a676b29421b2681e074264175dbae758dfbdb56e7edfd48b5858ba17513a1a90",
+    "candidate_root_id": "vulkan-14-spec",
+    "candidate_root_sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+    "predecessor_decision": "rejected"
+  },
+  "closure_sha256": "a5843fbcdc0f786ef7fb6b1e68dac4cba5f7f4e246108cf509777a976a2930c8"
+}
