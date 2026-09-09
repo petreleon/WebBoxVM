@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "manifest_sha256": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "inputs": [
+    {
+      "id": "spirv-core-grammar",
+      "sha256": "db8581272b63d232268094a47b68d18a0464fc911e06004d57419924fe660ba4",
+      "license": "MIT (grammar notice)"
+    }
+  ],
+  "command": "python3 fixture_generator.py spirv-core-grammar fixture/spirv-core-grammar.fixture",
+  "generator": {
+    "name": "webboxvm-provenance-fixture-generator",
+    "version": "1"
+  },
+  "artifact_kind": "generated",
+  "artifact_path": "todo/graphics/00-foundation/01-contract/02-upstream-pins/03-provenance-contract/03-generator-outputs/03-vulkan-spirv/fixture/spirv-core-grammar.fixture",
+  "output_sha256": "542b5d7575ef08cfd4b84941521be0de1fbe3bab1e71a4ebb905701296866a1a"
+}

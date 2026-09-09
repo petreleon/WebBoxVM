@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "manifest_sha256": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "inputs": [
+    {
+      "id": "vulkan-registry",
+      "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06",
+      "license": "Apache-2.0 OR MIT (SPDX file notice)"
+    }
+  ],
+  "command": "python3 fixture_generator.py vulkan-registry fixture/vulkan-registry.fixture",
+  "generator": {
+    "name": "webboxvm-provenance-fixture-generator",
+    "version": "1"
+  },
+  "artifact_kind": "generated",
+  "artifact_path": "todo/graphics/00-foundation/01-contract/02-upstream-pins/03-provenance-contract/03-generator-outputs/03-vulkan-spirv/fixture/vulkan-registry.fixture",
+  "output_sha256": "fe60ddd85bb713d27dc167ccad561b2119a68e322b8bdf27e17c84ab35d0ad12"
+}

@@ -1,0 +1,5 @@
+generator=webboxvm-provenance-fixture-generator/1
+family=vulkan-registry
+input_id=vulkan-registry
+input_sha256=cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06
+scope=provenance-fixture-only;not-protocol-code

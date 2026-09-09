@@ -1,0 +1,5 @@
+generator=webboxvm-provenance-fixture-generator/1
+family=spirv-core-grammar
+input_id=spirv-core-grammar
+input_sha256=db8581272b63d232268094a47b68d18a0464fc911e06004d57419924fe660ba4
+scope=provenance-fixture-only;not-protocol-code
