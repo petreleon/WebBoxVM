@@ -55,5 +55,8 @@ The fixture is created in an OS temporary directory named
 hardware/browser, guest image, software fallback, or performance evidence applies.
 There was no failing subcheck or blocker for this leaf.
 
-Commit/push verification: not staged, committed, or pushed; local validation only.
+Commit/push verification: F06.2 completion commit
+`56cda63dcc98b2738a00054c2bf561f281b74450` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` and the tracking ref resolved to that SHA.
+No remote CI result is claimed locally.
 Next ready task: F06.3, subject to its dependencies and the roadmap checker.
