@@ -25,13 +25,20 @@ GLES or Vulkan root to masquerade as a complete F02.2 source.
 
 ## Checklist
 
-- [ ] Map each required ID to its audited root, members, selection configuration, and core-scope limit.
-- [ ] Design a bounded logical-closure identity that binds every required member and generated input.
-- [ ] Define explicit pre/post admission rules so audit candidates remain rejected after a valid cutover.
-- [ ] Add focused hostile tests for missing, stale, oversize, duplicate, or scope-expanded closure members.
-- [ ] Record GLES-extension and Vulkan WSI/video/extension exclusions; keep cutover open if scope is unresolved.
+- [ ] [F02.4.4.1.1 — Probe the GLES rejected closure](01-gles-closure-probe/README.md)
+- [ ] [F02.4.4.1.2 — Map all required-source shapes](02-source-map/README.md)
+- [ ] [F02.4.4.1.3 — Bound unresolved Vulkan closures](03-vulkan-boundaries/README.md)
+- [ ] [F02.4.4.1.4 — Define post-cutover rules](04-post-cutover-rules/README.md)
+- [ ] [F02.4.4.1.5 — Aggregate the admission shape](05-aggregate-shape/README.md)
 
 ## Verification
 
 - A root alone never satisfies a compound source requirement, even if its URL, revision, and digest match.
 - The model preserves F02.2's byte, cache, family, and immutable-source rules without claiming support.
+
+## Split rationale
+
+The present GLES audit can support a small pre-admission probe, but it cannot establish the all-source
+mapping or post-cutover behavior while Vulkan generated/transitive and core-scope closure is unresolved.
+These children keep that proven GLES boundary independent from the source map, Vulkan blockers, and a
+future inventory transition model. No child may reclassify a rejected root or alter the inventory alone.
