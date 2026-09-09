@@ -20,13 +20,11 @@ Completion has a versioned, enumerated meaning for OpenGL, GLES and Vulkan.
 
 ## Checklist
 
-- [ ] Create small per-API matrices: draft final targets OpenGL 4.6 core, GLES 3.2 and Vulkan 1.4
-  core; record compatibility-profile and extension scope explicitly.
-- [ ] Import every mandatory command, feature, limit, format and shader requirement from the pinned
-  registries, linking each to a task and reference test.
-- [ ] Use earlier API versions for bring-up only; tag supported, emulated, unsupported and blocked
-  rows with evidence, never silently lower the final target.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [ ] [F03.1 — Define the profile scope and matrix schema](01-profile-scope/README.md)
+- [ ] [F03.2 — Import the OpenGL 4.6 core inventory](02-opengl-core/README.md)
+- [ ] [F03.3 — Import the GLES 3.2 inventory](03-gles/README.md)
+- [ ] [F03.4 — Import the Vulkan 1.4 core inventory](04-vulkan-core/README.md)
+- [ ] Run the named F05 coverage check, review every blocked row, and attach the F03 aggregate receipt.
 
 ## Verification
 
@@ -41,3 +39,11 @@ test counts (or explicit design checks), output and expected results; a planned 
 For a task that discovers a design choice, multiple independent feature families or too much work
 for one coherent commit, create child folders first using the worker instructions. Keep this parent
 open until every child and its acceptance checks pass.
+
+## Split rationale
+
+OpenGL core, GLES, and Vulkan have separate normative inputs, feature taxonomies, implementation
+lanes, and reference suites. The shared profile schema and source-sufficiency gate are deliberately
+separated from those imports; the parent verifies cross-profile ownership and test coverage only after
+F05 supplies the named check runner. This keeps a future blocked mandatory requirement visible instead
+of silently shrinking the final target.
