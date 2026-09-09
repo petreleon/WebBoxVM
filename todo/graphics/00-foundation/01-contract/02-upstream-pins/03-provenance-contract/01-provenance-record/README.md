@@ -4,7 +4,7 @@
 
 Task: F02.3.1
 Depends: F02.1, F02.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../01-input-inventory/README.md) and
 [F02.2](../../02-fetch-verifier/README.md).
@@ -21,14 +21,35 @@ A small, versioned provenance record binds a reviewed artifact to the exact veri
 
 ## Checklist
 
-- [ ] Define required record fields: manifest revision, input IDs/digests, license, command,
+- [x] Define required record fields: manifest revision, input IDs/digests, license, command,
   generator identity/version, artifact kind, and output hash.
-- [ ] Model `handwritten`, `copied-upstream`, and `generated` artifacts without calling maintained
+- [x] Model `handwritten`, `copied-upstream`, and `generated` artifacts without calling maintained
   adapters generated when no generator produced them.
-- [ ] Add a deterministic parser/validator that resolves only F02.1 input IDs and digest identities.
-- [ ] Test missing, unknown, and stale manifest or input references without network access.
+- [x] Add a deterministic parser/validator that resolves only F02.1 input IDs and digest identities.
+- [x] Test missing, unknown, and stale manifest or input references without network access.
 
 ## Verification
 
 - A valid sample resolves to the reviewed manifest SHA-256 and input identity.
 - A changed manifest SHA-256, ID, or digest fails before the record can be accepted.
+
+## Contract
+
+`provenance_record.py` reads JSON sidecars and the F02.1 TOML manifest with standard-library
+parsers only. A record has an exact schema: raw-byte manifest SHA-256; sorted input ID/SHA-256/license
+references; command; generator name/version; artifact kind/path; and output SHA-256. `generated`
+requires a generator, `copied-upstream` must have one input whose digest equals its output digest, and
+`handwritten` must use `generator: none` without reusing an input's byte identity.
+
+The canonical authority is [F02.1's manifest](../../01-input-inventory/manifest.toml): its exact raw
+bytes—not an upstream commit or cache result—provide `manifest_sha256`. This leaf validates record
+schema only and creates no real ABI artifact binding or generator-output binding.
+
+Run the hermetic suite with:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/03-provenance-contract/01-provenance-record/provenance_record_test.py
+```
+
+This leaf defines no actual ABI fixture or generator-output binding; F02.3.2 and F02.3.3 own those
+records, while F02.3.4 verifies them against the fresh F02.2 cache.
