@@ -27,7 +27,7 @@ GLES or Vulkan root to masquerade as a complete F02.2 source.
 
 - [x] [F02.4.4.1.1 — Probe the GLES rejected closure](01-gles-closure-probe/README.md)
 - [x] [F02.4.4.1.2 — Map all required-source shapes](02-source-map/README.md)
-- [ ] [F02.4.4.1.3 — Bound unresolved Vulkan closures](03-vulkan-boundaries/README.md)
+- [x] [F02.4.4.1.3 — Bound unresolved Vulkan closures](03-vulkan-boundaries/README.md)
 - [ ] [F02.4.4.1.4 — Define post-cutover rules](04-post-cutover-rules/README.md)
 - [ ] [F02.4.4.1.5 — Aggregate the admission shape](05-aggregate-shape/README.md)
 

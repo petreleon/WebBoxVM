@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.3
 Depends: F02.1, F02.2, F02.4.3, F02.4.4.1.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [Vulkan audit](../../../03-vulkan-input-audit/README.md) and the
 [required-source map](../02-source-map/README.md).
@@ -26,11 +26,11 @@ It keeps WSI, video, extensions, and oversize inputs outside any future core adm
 
 ## Checklist
 
-- [ ] Bind the Vulkan Docs root to its incomplete generated/transitive closure status.
-- [ ] Bind the VCTS root to its unpinned members, oversize inputs, and non-core scope status.
-- [ ] Record WSI, video, and extension exclusions with no fallback-to-root rule.
-- [ ] Add focused hostile checks for fabricated members, missing blockers, and scope expansion.
-- [ ] Keep both logical IDs explicitly unadmitted until every member and limit is pinned.
+- [x] Bind the Vulkan Docs root to its incomplete generated/transitive closure status.
+- [x] Bind the VCTS root to its unpinned members, oversize inputs, and non-core scope status.
+- [x] Record WSI, video, and extension exclusions with no fallback-to-root rule.
+- [x] Add focused hostile checks for fabricated members, missing blockers, and scope expansion.
+- [x] Keep both logical IDs explicitly unadmitted until every member and limit is pinned.
 
 ## Verification
 
