@@ -4,7 +4,7 @@
 
 Task: F06.3.2
 Depends: F06.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F06.2](../../02-line-limit-coverage/README.md).
 
@@ -21,10 +21,10 @@ relying on the checked-in roadmap as its only happy path.
 
 ## Checklist
 
-- [ ] Add a valid nested child-list fixture with concrete evidence and dependency metadata.
-- [ ] Add malformed depth, broken-link, parent-status, and 181-line fixture cases.
-- [ ] Assert deterministic first diagnostics and a nonzero valid/invalid test count.
-- [ ] Keep the fixture runner and every fixture source under 180 physical lines.
+- [x] Add a valid nested child-list fixture with concrete evidence and dependency metadata.
+- [x] Add malformed depth, broken-link, parent-status, and 181-line fixture cases.
+- [x] Assert deterministic first diagnostics and a nonzero valid/invalid test count.
+- [x] Keep the fixture runner and every fixture source under 180 physical lines.
 
 ## Verification
 
