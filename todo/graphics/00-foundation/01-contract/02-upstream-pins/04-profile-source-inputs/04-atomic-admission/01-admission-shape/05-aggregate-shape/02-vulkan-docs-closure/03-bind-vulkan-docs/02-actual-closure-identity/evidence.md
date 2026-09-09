@@ -1,7 +1,7 @@
 # F02.4.4.1.5.2.3.2 receipt — actual Docs identity grammar
 
-Revision: `af343ce3024a778f9d8ef89616d93699619981d8` verified implementation
-Validation: 29 focused Docs tests, 48 predecessor-contract tests, source limits, roadmap checker, and `make test`
+Revision: `bb3696c18ba4a60a928d92483addc557d22dfbed` verified implementation
+Validation: 30 focused Docs tests, 48 predecessor-contract tests, source limits, roadmap checker, and `make test`
 Result: PASS
 Artifacts: tracked witness header only; full source and two rendered trees remain ignored under `.artifacts/`
 Profile: unadmitted successor grammar only; no F02/V1 cutover, guest API, browser, CTS, conformance, or performance claim
@@ -15,10 +15,10 @@ count, SPDX `CC-BY-4.0`, the official image/toolchain, deterministic container c
 tree identities. It also retains the V1 rejected-predecessor adapter. Every public result has `admitted=False` and
 `cutover_ready=False`; nothing can enter the active F02/V1 consumer path.
 
-Focused tests: 8 positive, 12 hostile, and 9 identity-binding cases passed; the witness CLI passed. They cover duplicate
+Focused tests: 8 positive, 12 hostile, and 10 identity-binding cases passed; the witness CLI passed. They cover duplicate
 safe identities, output/source separation, immutable URLs and commits, root/predecessor substitution, schema aliases,
-recipe/configuration/generation binding, explicit WSI/video/extensions boundaries, structural partial closures, and
-active-looking states.
+recipe/configuration/generation binding, WSI/video semantic exclusions plus the extension-control boundary, structural
+partial closures, and active-looking states.
 
 Validation commands (the Python tests ran from their named task directories) were:
 
@@ -42,7 +42,8 @@ Predecessor tests passed 15+10+6+9+8 cases; source limits passed 6/6; focused te
 exited 0 (its emulator-unit portion: 1,127 passed, 3 ignored). No Rust/Wasm or browser code changed, so `make web-pkg`
 was not applicable.
 
-Boundary: this is a grammar and actual build witness, not a claimed complete Docs closure. In particular, no full
-resolved conditional or promotion-metadata selector manifest is tracked here; `.3` must capture and bind that scope,
-`.4` must stage/re-hash its complete output-tree manifest, and `.5` must prove the resulting closure. Remote CI and
-guest/browser/CTS/conformance/performance tests were not run.
+Boundary: this is a grammar and actual build witness, not a claimed complete Docs closure. The retained V1 extension
+directive is an audit boundary, not a claim that `chapters/extensions.adoc` is absent: its nested semantic branches
+remain for `.3` to evaluate. No full resolved conditional or promotion-metadata selector manifest is tracked here;
+`.3` must capture and bind that scope, `.4` must stage/re-hash its complete output-tree manifest, and `.5` must prove
+the resulting closure. Remote CI and guest/browser/CTS/conformance/performance tests were not run.

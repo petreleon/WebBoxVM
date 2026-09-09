@@ -14,8 +14,10 @@ Prerequisite lists: the [build witness](../01-reproduce-pinned-html/README.md),
 An isolated, unadmitted actual-Docs grammar distinguishes cap-limited immutable closure inputs from separately
 bounded rendered outputs, recipes, toolchain, and two-run identities without changing active F02/V1 consumers.
 
-This child validates the future closure's shape and the actual two-run build witness only. It does not claim a complete
-resolved selector set: child `.3` must capture the conditional and promotion-metadata closure before any scope proof.
+This child validates the future closure's shape and the actual two-run build witness only. It preserves the V1
+extension directive as boundary evidence while allowing its required core control source; it does not claim a complete
+resolved selector set or model nested extension branches. Child `.3` must capture the conditional and
+promotion-metadata closure before any scope proof.
 
 ## Starting points
 
