@@ -3,18 +3,22 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from validate_fixture import HERE, MANIFEST, validate_fixture
-from provenance_record import ProvenanceError
+TEST_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(TEST_DIR.parents[2] / "01-input-inventory"))
+sys.path.insert(0, str(TEST_DIR.parents[1] / "01-provenance-record"))
+
 from generate_fixture import write_fixture
-from inventory_layout import load_inventory, render_v2_lock
+from inventory_layout import load_inventory
+from provenance_record import ProvenanceError
+from validate_fixture import HERE, MANIFEST, validate_fixture
 
 SIDECAR = HERE / "fixture-output.provenance.json"
 OUTPUT = HERE / "fixture-output.json"
@@ -22,7 +26,7 @@ GENERATOR = HERE / "generate_fixture.py"
 
 
 def reference(identifier: str, manifest_path: Path = MANIFEST) -> dict[str, str]:
-    entries = load_inventory(manifest_path, allow_v1=True).inputs
+    entries = load_inventory(manifest_path).inputs
     entry = next(value for value in entries if value["id"] == identifier)
     return {"id": identifier, "sha256": entry["sha256"], "license": entry["license"]}
 
@@ -45,25 +49,20 @@ class GlGlesFixtureTests(unittest.TestCase):
     def write(self, value: dict[str, object]) -> None:
         self.record_path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
-    def reject(self, value: dict[str, object], message: str) -> None:
+    def reject(self, value: dict[str, object], message: str, manifest: Path = MANIFEST) -> None:
         candidate = self.record_path.with_name("candidate.json")
         candidate.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
         with self.assertRaisesRegex(ProvenanceError, message):
-            validate_fixture(candidate, self.output_path)
+            validate_fixture(candidate, self.output_path, manifest)
 
-    def v2_manifest(self) -> tuple[Path, Path]:
-        root = self.output_path.parent / "v2"
+    def copied_inventory(self) -> tuple[Path, Path]:
+        root = self.output_path.parent / "inventory"
         root.mkdir()
-        header, entries = MANIFEST.read_text(encoding="utf-8").split("[[inputs]]", 1)
-        manifest = root / "manifest.toml"
-        manifest.write_text(header.replace("schema = 1", "schema = 2", 1)
-                            + 'input_files = ["inputs/part-0001.toml"]\n', encoding="utf-8")
-        part = root / "inputs/part-0001.toml"
-        part.parent.mkdir()
-        part.write_text("[[inputs]]" + entries, encoding="utf-8")
+        shutil.copy2(MANIFEST, root / "manifest.toml")
+        shutil.copytree(MANIFEST.parent / "inputs", root / "inputs")
         lock = root / "inventory.lock"
-        lock.write_bytes(render_v2_lock(manifest))
-        return manifest, lock
+        shutil.copy2(MANIFEST.with_name("inventory.lock"), lock)
+        return root / "manifest.toml", lock
 
     def test_generated_fixture_matches_the_reviewed_registry_record(self) -> None:
         record = validate_fixture(self.record_path, self.output_path)
@@ -79,17 +78,17 @@ class GlGlesFixtureTests(unittest.TestCase):
         )
         self.assertEqual(regenerated.read_bytes(), OUTPUT.read_bytes())
 
-    def test_generator_accepts_a_v2_lock_and_rejects_a_stale_one(self) -> None:
-        manifest, lock = self.v2_manifest()
+    def test_generator_uses_a_lock_and_rejects_stale_identity(self) -> None:
+        manifest, lock = self.copied_inventory()
         regenerated = self.output_path.with_name("v2-regenerated.json")
         write_fixture(manifest, regenerated)
         self.assertEqual(regenerated.read_bytes(), OUTPUT.read_bytes())
         record = self.record()
-        record["schema"] = 2
-        record["inventory_sha256"] = hashlib.sha256(lock.read_bytes()).hexdigest()
-        del record["manifest_sha256"]
         self.write(record)
         self.assertEqual(validate_fixture(self.record_path, self.output_path, manifest)["schema"], 2)
+        stale = self.record()
+        stale["inventory_sha256"] = "f" * 64
+        self.reject(stale, "stale inventory", manifest)
         lock.write_bytes(lock.read_bytes() + b"# stale\n")
         with self.assertRaisesRegex(ValueError, "inventory.lock"):
             write_fixture(manifest, regenerated)

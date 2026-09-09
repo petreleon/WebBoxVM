@@ -8,7 +8,7 @@ Profile: inventory only; no source was accepted into a cache and no graphics API
 
 ## Inventory capture
 
-Date: 2026-09-09. The manifest lists exactly 15 source families: Linux UAPI; Mesa VirGL and Venus;
+Date: 2026-09-09. At this historical schema-v1 capture, the manifest listed exactly 15 source families: Linux UAPI; Mesa VirGL and Venus;
 virglrenderer; Venus protocol; GL/GLES; GLSL; ESSL; Vulkan; SPIR-V; WebGPU; WGSL; VK-GL-CTS;
 WebGPU CTS; and Piglit. Each record names a 40-hex commit in its URL, source family, per-file
 license/provenance, byte count, SHA-256, external cache path and generator/reference role.
@@ -44,7 +44,7 @@ manifest shape and complete family coverage independently of WebBoxVM's graphics
 they accept the reviewed file and reject a missing family, a zero/placeholder SHA-256 and a mutable
 `main` source URL. They perform no network access.
 
-Actual: the parser printed `PASS: 15 immutable inputs` with manifest SHA-256
+Actual at that capture: the parser printed `PASS: 15 immutable inputs` with manifest SHA-256
 `8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e`; the hermetic suite ran
 four tests and passed all four. The source-file-limit target passed 6/6. The roadmap checker passed
 with 141 documents, 95 tasks and three completed tasks, reporting `Ready: F02.2.1, F06.2`. `git

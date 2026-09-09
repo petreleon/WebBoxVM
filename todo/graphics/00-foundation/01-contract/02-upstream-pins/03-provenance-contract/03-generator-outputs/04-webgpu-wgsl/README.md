@@ -23,7 +23,7 @@ input explicitly designated for generator use; no WebGPU/WGSL generation or runt
 ## Checklist
 
 - [ ] [F02.3.3.4.1 — Lock and verify a WGSL grammar input](01-wgsl-grammar-inventory/README.md)
-- [ ] [F02.3.3.4.2 — Renew manifest-bound records](02-record-renewal/README.md)
+- [ ] [F02.3.3.4.2 — Renew inventory-bound records](02-record-renewal/README.md)
 - [ ] [F02.3.3.4.3 — Bind a WGSL grammar generator record](03-wgsl-generator-record/README.md)
 - [ ] [F02.3.3.4.4 — Hold the WebGPU generator-input boundary](04-webgpu-boundary/README.md)
 
@@ -35,6 +35,6 @@ input explicitly designated for generator use; no WebGPU/WGSL generation or runt
 ## Split rationale
 
 WGSL has a candidate syntax grammar that must first be locked and re-fetched; that changes the raw
-F02.1 manifest digest and therefore needs a distinct record-renewal pass before any WGSL fixture can
+F02.1 inventory-lock digest and therefore needs a distinct record-renewal pass before any WGSL fixture can
 be honest. No equivalent immutable WebGPU generator input is currently identified, so its boundary
 must remain independently open rather than silently treating `webgpu-spec` as generator material.

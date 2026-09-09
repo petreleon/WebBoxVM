@@ -11,8 +11,8 @@ Prerequisite lists: [the composite-lock contract](../01-shared-layout-loader/REA
 
 ## Outcome
 
-The provenance contract can validate an explicit schema-v2 `inventory_sha256` against the shared
-layout while retaining the committed schema-v1 sidecars until the one atomic data cutover.
+Before the atomic cutover, the provenance contract could validate an explicit schema-v2
+`inventory_sha256` against the shared layout while retaining the committed schema-v1 sidecars.
 
 ## Starting points
 
@@ -34,4 +34,4 @@ layout while retaining the committed schema-v1 sidecars until the one atomic dat
 ## Verification
 
 - A schema-v2 record cannot accept a schema-v1 manifest hash or a stale lock identity.
-- Existing committed schema-v1 sidecars retain their historical offline validation before cutover.
+- Existing committed schema-v1 sidecars retained their historical offline validation before cutover.

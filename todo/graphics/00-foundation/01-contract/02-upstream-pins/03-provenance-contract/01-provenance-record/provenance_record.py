@@ -47,7 +47,7 @@ def digest(value: object, field: str) -> str:
 
 def inventory_inputs(path: Path) -> tuple[int, str, dict[str, tuple[str, str]]]:
     try:
-        inventory = load_inventory(path, allow_v1=True)
+        inventory = load_inventory(path)
     except InventoryLayoutError as error:
         reject(f"inventory cannot be loaded: {error}")
     identities: dict[str, tuple[str, str]] = {}

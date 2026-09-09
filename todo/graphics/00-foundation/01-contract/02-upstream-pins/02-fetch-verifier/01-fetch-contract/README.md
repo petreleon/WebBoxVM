@@ -33,8 +33,8 @@ atomically below an explicit external cache root.
 
 ## Contract
 
-`source_model.py` parses only schema-v1 records using F02.1's exact 15-family catalog and constructs an `ExternalCache` only
-from an absolute path outside the repository. `source_cache.py` accepts only immutable HTTPS URLs
+`source_model.py` parses the schema-v2 lock-bound inventory using F02.1's exact 15-family catalog
+and constructs an `ExternalCache` only from an absolute path outside the repository. `source_cache.py` accepts only immutable HTTPS URLs
 with a 40-hex path segment, denies HTTP redirects, verifies exact byte count plus SHA-256, then
 uses `os.replace` after an fsynced temporary write. Existing cache bytes are re-hashed before use.
 The implementation uses only Python 3.11+ standard-library modules (`tomllib`, `urllib`, and

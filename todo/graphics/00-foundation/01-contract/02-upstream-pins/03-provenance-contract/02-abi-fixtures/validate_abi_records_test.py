@@ -44,11 +44,11 @@ class AbiRecordTests(unittest.TestCase):
             with self.assertRaisesRegex(checker.AbiRecordError, "selected ABI scope"):
                 checker.validate_all(records)
 
-    def test_stale_manifest_digest_is_rejected_before_artifact_acceptance(self) -> None:
+    def test_stale_inventory_digest_is_rejected_before_artifact_acceptance(self) -> None:
         temporary, records = self.copied_records()
         with temporary:
-            self.mutate(records, "guest-webgpu-uapi.json", lambda record: record.update(manifest_sha256="f" * 64))
-            with self.assertRaisesRegex(ProvenanceError, "stale manifest"):
+            self.mutate(records, "guest-webgpu-uapi.json", lambda record: record.update(inventory_sha256="f" * 64))
+            with self.assertRaisesRegex(ProvenanceError, "stale inventory"):
                 checker.validate_all(records)
 
     def test_dishonest_copied_origin_is_rejected(self) -> None:

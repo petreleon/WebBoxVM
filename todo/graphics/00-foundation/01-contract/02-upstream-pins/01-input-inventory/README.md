@@ -10,7 +10,8 @@ Prerequisite lists: [F01](../../01-baseline/README.md).
 
 ## Outcome
 
-One small, reviewable manifest names every authoritative input and immutable byte identity.
+One small, reviewable inventory index and bounded component name every authoritative input and
+immutable byte identity.
 
 ## Starting points
 
@@ -36,10 +37,12 @@ One small, reviewable manifest names every authoritative input and immutable byt
 
 ## Inventory contract
 
-[manifest.toml](manifest.toml) is schema version 1. Every `inputs` entry has exactly the ten
-required fields listed in the first checklist item. `local_cache` is relative to the external
-`$XDG_CACHE_HOME`; no fetched upstream bytes belong in the repository. The manifest's own revision
-is its exact UTF-8 SHA-256, printed by the validator rather than self-recorded.
+[manifest.toml](manifest.toml) is the schema-v2 metadata index. Its ordered component list names
+the bounded `inputs/part-0001.toml` record file, and [inventory.lock](inventory.lock) canonically
+binds the raw bytes of both files. Every `inputs` entry has exactly the ten required fields listed in
+the first checklist item. `local_cache` is relative to the external `$XDG_CACHE_HOME`; no fetched
+upstream bytes belong in the repository. The inventory revision is the raw SHA-256 of the checked
+lock, printed by the validator rather than self-recorded.
 
 Run the hermetic structural check with:
 

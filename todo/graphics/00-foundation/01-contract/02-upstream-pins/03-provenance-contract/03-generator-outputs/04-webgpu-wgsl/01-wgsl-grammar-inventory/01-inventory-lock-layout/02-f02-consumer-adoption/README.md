@@ -12,9 +12,9 @@ Prerequisite lists: [the composite-lock contract](../01-shared-layout-loader/REA
 
 ## Outcome
 
-F02.1 and F02.2 load both the current schema-v1 inventory and hermetic schema-v2 fixtures only
-through the shared layout contract. The active 15 entries, external cache behavior, and accepted
-sidecars remain unchanged until the final atomic cutover.
+At this preparation stage, F02.1 and F02.2 loaded both the then-current schema-v1 inventory and
+hermetic schema-v2 fixtures only through the shared layout contract. The active 15 entries, external
+cache behavior, and accepted sidecars remained unchanged until the final atomic cutover.
 
 ## Starting points
 
@@ -26,7 +26,7 @@ sidecars remain unchanged until the final atomic cutover.
 
 - [x] Make the F02.1 validator and F02.2 source model obtain entries and an inventory revision only
   through the shared layout loader.
-- [x] Preserve current schema-v1 behavior while adding hermetic schema-v2 layout fixtures.
+- [x] Preserve the then-current schema-v1 behavior while adding hermetic schema-v2 layout fixtures.
 - [x] Reject a stale lock or component-closure mismatch before the fetch model returns an input or
   creates an external-cache action.
 - [x] Keep network fetches, cache payloads, and accepted source identities unchanged in this
@@ -35,4 +35,4 @@ sidecars remain unchanged until the final atomic cutover.
 ## Verification
 
 - A stale lock or component closure is rejected before F02.2 can accept an input.
-- The currently checked schema-v1 inventory retains its historical behavior until the cutover.
+- The then-checked schema-v1 inventory retained its historical behavior until the cutover.

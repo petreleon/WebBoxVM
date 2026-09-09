@@ -10,17 +10,17 @@ Profile: fixture-only provenance binding; no GL/GLES API, runtime, guest, or bro
 
 The sole generated-input reference is `opengl-gles-registry` from the F02.1 manifest:
 
-- Manifest SHA-256: `8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e`.
+- Inventory-lock SHA-256: `cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`.
 - Input SHA-256: `b9ca2cfa5c676e901c20d34af3407f1687cde0f1336a5ff7a8974d04c7494ad3`.
 - License: `Apache-2.0 (SPDX file notice)`.
 - Generator: `f02-gl-gles-fixture` version `1`.
 - Output: [fixture-output.json](fixture-output.json), SHA-256
   `bdcec164579481b459eee7d2ab54bc867c5f010dd5bc28e8a94635b707397d91`.
 - Sidecar: [fixture-output.provenance.json](fixture-output.provenance.json), SHA-256
-  `9faf16c35801c89ee054960ff417a25aed948f3eb485c4a6acdf0b9fa3c83730`.
+  `6bfc2af39f9923008c612aeed501cc5cf0aee80a157a86b655ec25d8b24cc5fc`.
 
 The recorded command is in the sidecar and regenerates only a small identity marker. It reads the
-reviewed manifest metadata, not `gl.xml`; the tracked fixture contains no registry, GLSL, or ESSL
+reviewed inventory metadata, not `gl.xml`; the tracked fixture contains no registry, GLSL, or ESSL
 source bytes.
 
 ## Commands and results
@@ -34,7 +34,7 @@ cargo test -p emulator --test source_file_limits --quiet
 git diff --check
 ```
 
-The direct validator passed. The target suite passed 5/5 tests; it regenerates the fixture offline,
+The direct validator passed. The target suite passed 6/6 tests; it regenerates the fixture offline,
 rejects both semantic specifications, a wrong generator version, a stale input digest, a wrong
 sidecar output hash, and a changed fixture byte. The shared contract and inventory suites passed
 9/9 and 4/4 respectively; source limits passed 6/6; `git diff --check` passed.

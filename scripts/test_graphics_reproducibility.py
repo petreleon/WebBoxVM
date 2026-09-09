@@ -22,9 +22,11 @@ MANIFEST = ROOT / (
     "todo/graphics/00-foundation/01-contract/02-upstream-pins/"
     "01-input-inventory/manifest.toml"
 )
+LOCK = MANIFEST.with_name("inventory.lock")
+EXPECTED = SPEC.parent / "expected"
 EXPECTED_HASHES = {
-    "chunk-0001.md": "9eb18a787a5a3e877317a43dd4839ac41d10d44e7598773ab625722a1a03e78b",
-    "metadata.json": "641f57ff68a2740d68911d34a500b113bfab8899ede250ea60be8e70e9045526",
+    "chunk-0001.md": "3570bfb1fa063f65875671df8d6f8f8f5ca850b8114f0f9394dcb511a576f47b",
+    "metadata.json": "f4ce8ccaa00f261bbdc7e0bcafb9c6c743c21d91984e3022e48839b8b771840f",
 }
 
 
@@ -38,15 +40,24 @@ def invoke(script: Path, *arguments: object) -> subprocess.CompletedProcess[str]
     )
 
 
-def run_chunker(mode: str, spec: Path, output: Path, lock: Path | None = None) -> subprocess.CompletedProcess[str]:
-    flag, source = ("--source-manifest", MANIFEST) if lock is None else ("--inventory-lock", lock)
+def source_for(spec: Path) -> tuple[str, Path]:
+    schema = json.loads(spec.read_text(encoding="utf-8")).get("schema")
+    if schema == 1:
+        return "--source-manifest", MANIFEST
+    if schema == 2:
+        return "--inventory-lock", LOCK
+    raise ValueError(f"unsupported chunk specification schema: {schema!r}")
+
+
+def run_chunker(mode: str, spec: Path, output: Path, source: Path | None = None) -> subprocess.CompletedProcess[str]:
+    flag, default_source = source_for(spec)
     return invoke(
         CHUNKER,
         mode,
         "--spec",
         spec,
         flag,
-        source,
+        source or default_source,
         "--output",
         output,
     )
@@ -63,7 +74,7 @@ def hashes(output: Path) -> dict[str, str]:
 def write_v2_spec(path: Path, revision: str) -> None:
     document = json.loads(SPEC.read_text(encoding="utf-8"))
     document["schema"] = 2
-    del document["manifest_revision"]
+    document.pop("manifest_revision", None)
     document["inventory_sha256"] = revision
     path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
 
@@ -73,6 +84,11 @@ class ReproducibilityProofTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_repeated_cli_generation_has_the_recorded_hashes(self) -> None:
+        document = json.loads(SPEC.read_text(encoding="utf-8"))
+        self.assertEqual(document["schema"], 2)
+        self.assertEqual(document["inventory_sha256"], hashlib.sha256(LOCK.read_bytes()).hexdigest())
+        self.assert_ok(run_chunker("--check", SPEC, EXPECTED))
+        self.assertEqual(hashes(EXPECTED), EXPECTED_HASHES)
         with tempfile.TemporaryDirectory(prefix="webboxvm-graphics-proof-") as temporary:
             root = Path(temporary)
             first, second = root / "first", root / "second"
@@ -126,7 +142,16 @@ class ReproducibilityProofTests(unittest.TestCase):
             self.assertIn("inventory_sha256", metadata)
             self.assertNotIn("manifest_revision", metadata)
             self.assertIn("graphics-chunker.v2", (first / "chunk-0001.md").read_text(encoding="utf-8"))
-            wrong = run_chunker("--check", spec, first)
+            wrong = invoke(
+                CHUNKER,
+                "--check",
+                "--spec",
+                spec,
+                "--source-manifest",
+                MANIFEST,
+                "--output",
+                first,
+            )
             self.assertNotEqual(wrong.returncode, 0, wrong.stdout)
             self.assertIn("requires --inventory-lock", wrong.stderr)
             lock.write_bytes(b"stale raw lock\n")

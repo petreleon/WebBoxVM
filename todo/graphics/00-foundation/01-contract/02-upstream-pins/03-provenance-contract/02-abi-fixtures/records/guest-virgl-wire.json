@@ -1,6 +1,6 @@
 {
-  "schema": 1,
-  "manifest_sha256": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "schema": 2,
+  "inventory_sha256": "cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b",
   "inputs": [
     {"id": "mesa-virgl-screen", "sha256": "e558fa5550e572cffad113581b736696f33b3895e0516950181b8ff93eb38ff0", "license": "MIT (file notice)"},
     {"id": "virglrenderer-protocol", "sha256": "094a6e2b210f1d3dd0f1ac254ed8820c1d889e57d2735c0c6194dbc94f3b1ac7", "license": "MIT (file notice)"}

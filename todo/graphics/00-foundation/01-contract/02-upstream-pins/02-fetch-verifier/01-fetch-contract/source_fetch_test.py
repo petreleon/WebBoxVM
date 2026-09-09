@@ -60,12 +60,10 @@ def v2_inventory(base: Path) -> Path:
 class FetchContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(dir=HERE)
+        self.addCleanup(self.temporary.cleanup)
         root = Path(self.temporary.name)
         self.cache = ExternalCache.from_path(root / "cache", root / "repository")
         self.source = SourceInput.from_manifest(entry())
-
-    def tearDown(self) -> None:
-        self.temporary.cleanup()
 
     def invalid_manifest(self, name: str) -> Path:
         path = Path(self.temporary.name) / name / "manifest.toml"
@@ -74,6 +72,13 @@ class FetchContractTests(unittest.TestCase):
 
     def test_committed_manifest_loads_without_network(self) -> None:
         self.assertEqual(len(load_manifest(MANIFEST)), 15)
+
+    def test_legacy_v1_inventory_is_rejected_before_cache_actions(self) -> None:
+        legacy = self.invalid_manifest("legacy-v1")
+        legacy.write_text("schema = 1\n", encoding="utf-8")
+        with self.assertRaisesRegex(ContractError, "explicit compatibility"):
+            load_manifest(legacy)
+        self.assertFalse(self.cache.root.exists())
 
     def test_manifest_rejects_missing_required_source_family(self) -> None:
         content = MANIFEST.read_text(encoding="utf-8").replace(' "piglit",', '', 1)
@@ -92,10 +97,10 @@ class FetchContractTests(unittest.TestCase):
         self.assertFalse(self.cache.root.exists())
 
     def test_manifest_rejects_duplicate_entry_source_family(self) -> None:
-        content = MANIFEST.read_text(encoding="utf-8").replace(
-            'source_family = "piglit"', 'source_family = "webgpu-cts"', 1)
-        invalid = self.invalid_manifest("duplicate-family")
-        invalid.write_text(content, encoding="utf-8")
+        invalid = v2_inventory(Path(self.temporary.name) / "duplicate-family")
+        part = invalid.parent / "inputs/part-0001.toml"
+        part.write_text(part.read_text(encoding="utf-8").replace(
+            'source_family = "piglit"', 'source_family = "webgpu-cts"', 1), encoding="utf-8")
         with self.assertRaisesRegex(ContractError, "duplicate id or source family"):
             load_manifest(invalid)
         self.assertFalse(self.cache.root.exists())

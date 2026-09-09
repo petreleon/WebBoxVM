@@ -8,8 +8,8 @@ Profile: offline provenance-layout only; no upstream fetch, guest, WebGPU runtim
 
 Task ID and date: F02.3.3.4.1.1.3, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: b957a798985a5587601adb3442ea7e5428d84d96; clean tree before receipt.
-Input identity: active schema-v1 sidecars and generated artifact bytes remain unchanged; v2 coverage is
-hermetic and the active 15 F02 inputs keep their existing identities.
+Historical input identity at this receipt: active schema-v1 sidecars and generated artifact bytes
+remained unchanged; v2 coverage was hermetic and the active 15 F02 inputs kept their identities.
 Artifacts and SHA-256: `provenance_record.py`
 56e7973ba2154fe8149cd807cead684ab0e39615a8de75037601a59a785d6cf3;
 `provenance_record_test.py` b154d27ae852c8178da3166415f6166c28bb9f8648108ca56b01c1af1574dde5;

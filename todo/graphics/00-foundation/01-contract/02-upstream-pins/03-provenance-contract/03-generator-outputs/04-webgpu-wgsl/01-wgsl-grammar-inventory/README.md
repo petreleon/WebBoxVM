@@ -17,7 +17,8 @@ resolved license, or rejected with a concrete reason; F02.1/F02.2 evidence is re
 
 ## Starting points
 
-- [current immutable inventory](../../../../01-input-inventory/manifest.toml)
+- [current composite inventory root](../../../../01-input-inventory/manifest.toml)
+- [current canonical inventory lock](../../../../01-input-inventory/inventory.lock)
 - [WGSL source repository at the existing pin](https://github.com/gpuweb/gpuweb/tree/e0aff163a37eb3633ffd612e2a943ceb6196d6af/wgsl)
 - [GPUWeb license at the existing pin](https://github.com/gpuweb/gpuweb/blob/e0aff163a37eb3633ffd612e2a943ceb6196d6af/LICENSE.md)
 
@@ -33,7 +34,7 @@ resolved license, or rejected with a concrete reason; F02.1/F02.2 evidence is re
 
 ## Split rationale
 
-The current single-file manifest is already 175 lines, so a new readable entry would violate the
-180-line limit. A canonical composite lock first preserves a fail-closed inventory identity across
-small entry files; only then can the grammar input, cache proof, and downstream record renewal use
-that new identity without compressing metadata or weakening provenance.
+The pre-cutover single-file manifest was already 175 lines, so a new readable entry would have
+violated the 180-line limit. The canonical composite lock now preserves a fail-closed inventory
+identity across small entry files; the grammar input, cache proof, and downstream record renewal can
+therefore use that identity without compressing metadata or weakening provenance.

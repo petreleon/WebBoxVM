@@ -1,6 +1,6 @@
 # Generated graphics record chunk
-# generator: webboxvm.graphics-chunker.v1
-# manifest-revision: 8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e
+# generator: webboxvm.graphics-chunker.v2
+# inventory-sha256: cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b
 # record-range: capset-boundary..source-provenance
 # chunk-index: 0001
 
@@ -10,4 +10,4 @@ role: deterministic chunking proof
 
 ## source-provenance
 kind: fixture
-role: F02 manifest-revision header proof
+role: F02 inventory-lock header proof

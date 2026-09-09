@@ -27,7 +27,7 @@ Protocol layouts and reference tests are reproducible instead of following mutab
 ## Verification
 
 - A clean temporary build fetches the pinned inputs and detects a deliberately wrong hash.
-- Every ABI fixture and future code generator records the manifest revision.
+- Every ABI fixture and future code generator records the canonical inventory-lock revision.
 
 Register the exact task check through F05 before implementation completion. Bootstrap F01/F02/F05
 use direct reproducible commands and receipts until that runner exists. Record commands, nonzero

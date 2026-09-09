@@ -8,7 +8,7 @@ Profile: provenance-layout only; no upstream payload, guest, API, browser, or gr
 
 Task ID and date: F02.3.3.4.1.1.1, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: 2e4969f2b317530906ee52494ba84f0f30367f58; clean tree before receipt.
-Upstream manifest revision: schema-v1 raw SHA-256
+Historical pre-cutover manifest revision: schema-v1 raw SHA-256
 8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e.
 Guest image and build hashes: not applicable; this task neither builds nor runs a guest.
 Browser, OS, adapter and driver: not applicable; this task has no browser or GPU execution path.
@@ -29,8 +29,9 @@ or protocol behavior is measured.
 First failing subcheck or blocker, when applicable: the first roadmap run found a generated
 `01-input-inventory/__pycache__/inventory_layout.cpython-314.pyc` from an earlier local test; it was
 removed as a temporary artifact, then the checker and full suite passed. No implementation test failed.
-Decision and limits of the evidence: accept only the layout/lock contract. The checked inventory stays
-schema v1; no source is added, fetched, or reclassified, and no real graphics feature is claimed.
+Decision and limits of the evidence: accept only the layout/lock contract. At this receipt's revision,
+the checked inventory stayed schema v1; no source was added, fetched, or reclassified, and no real
+graphics feature was claimed.
 Commit/push verification: local feature commit 2e4969f2b317530906ee52494ba84f0f30367f58; not pushed
 because explicit authorization for the remote destination has not been granted.
 Next ready task: F02.3.3.4.1.1.2, with F02.3.3.4.1.1.3 and F02.3.3.4.1.1.4 independently ready after

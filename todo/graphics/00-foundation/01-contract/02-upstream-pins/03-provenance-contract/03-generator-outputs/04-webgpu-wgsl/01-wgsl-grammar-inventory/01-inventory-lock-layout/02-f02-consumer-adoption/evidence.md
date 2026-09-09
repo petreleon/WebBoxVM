@@ -8,8 +8,8 @@ Profile: offline provenance-layout only; no fetch, cache payload, guest, browser
 
 Task ID and date: F02.3.3.4.1.1.2, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: f6ce5e788fc3cfafa1015707e4b5b69226327d01; clean tree before receipt.
-Input identity: active schema-v1 inventory remains the existing 15 inputs; no source URL, revision,
-digest, byte count, cache payload, or accepted identity changed.
+Historical input identity at this receipt: the active schema-v1 inventory remained the existing 15
+inputs; no source URL, revision, digest, byte count, cache payload, or accepted identity changed.
 Artifacts and SHA-256: `validate_manifest.py`
 d3fc5e7faed4623a99385556898f6fc53b06cd0cd8a3dbccfe3d45133188867a;
 `source_model.py` f78d1d8c33e5940e9181d41a1692882ccde15b121e661ceeb30902c0ac762e65;

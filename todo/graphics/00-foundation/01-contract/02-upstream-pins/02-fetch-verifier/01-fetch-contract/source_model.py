@@ -107,7 +107,7 @@ def cache_name(value: str, identifier: str, digest: str) -> PurePosixPath:
 
 def load_manifest(path: Path) -> tuple[SourceInput, ...]:
     try:
-        inventory = load_inventory(path, allow_v1=True)
+        inventory = load_inventory(path)
     except InventoryLayoutError as error:
         reject(f"manifest cannot be read: {error}")
     entries = inventory.inputs

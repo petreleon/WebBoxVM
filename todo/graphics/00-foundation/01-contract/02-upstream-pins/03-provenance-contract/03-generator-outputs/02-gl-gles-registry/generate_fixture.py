@@ -20,7 +20,7 @@ NOTICE = "Fixture-only provenance output; no upstream registry bytes or runtime 
 
 def registry_input(manifest_path: Path) -> dict[str, object]:
     try:
-        inventory = load_inventory(manifest_path, allow_v1=True)
+        inventory = load_inventory(manifest_path)
     except InventoryLayoutError as error:
         raise ValueError(f"inventory cannot be loaded: {error}") from error
     matches = [entry for entry in inventory.inputs if entry.get("id") == INPUT_ID]

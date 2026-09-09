@@ -23,7 +23,7 @@ The completed provenance records are checked against the fresh verified cache be
 ## Checklist
 
 - [ ] Re-run provenance validation after F02.2's clean external-cache fetch and offline rehash.
-- [ ] Verify ABI and generator samples against the recorded manifest revision, IDs, digests, licenses,
+- [ ] Verify ABI and generator samples against the recorded inventory-lock identity, IDs, digests, licenses,
   commands, and output hashes.
 - [ ] Record the fresh-fetch/provenance output, nonzero test count, and unavailable input as failure.
 - [ ] Run focused tests, source limits, roadmap, whitespace, and required full gates before the receipt.

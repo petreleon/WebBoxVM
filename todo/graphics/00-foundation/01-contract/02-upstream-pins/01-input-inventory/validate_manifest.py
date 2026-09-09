@@ -79,7 +79,7 @@ def validate(entries: object) -> int:
 
 def load(path: Path = MANIFEST) -> tuple[tuple[dict[str, object], ...], str]:
     try:
-        inventory = load_inventory(path, allow_v1=True)
+        inventory = load_inventory(path)
     except InventoryLayoutError as error:
         fail(str(error))
     return inventory.inputs, inventory.revision

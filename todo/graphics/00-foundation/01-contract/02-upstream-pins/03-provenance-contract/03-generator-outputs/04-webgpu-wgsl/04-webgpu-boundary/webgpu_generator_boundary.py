@@ -31,7 +31,7 @@ def text(value: object, field: str) -> str:
 
 def load_inventory(path: Path) -> dict[str, dict[str, object]]:
     try:
-        layout = load_layout(path, allow_v1=True)
+        layout = load_layout(path)
     except InventoryLayoutError as error:
         reject(f"inventory cannot be loaded: {error}")
     inventory: dict[str, dict[str, object]] = {}

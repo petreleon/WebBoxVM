@@ -16,7 +16,8 @@ canonical lock binds every raw component byte and becomes the sole F02 provenanc
 
 ## Starting points
 
-- [current single-file inventory](../../../../../01-input-inventory/manifest.toml)
+- [current composite inventory root](../../../../../01-input-inventory/manifest.toml)
+- [current canonical inventory lock](../../../../../01-input-inventory/inventory.lock)
 - [F02.2 manifest loader](../../../../../02-fetch-verifier/01-fetch-contract/source_model.py)
 - [F02.3 record validator](../../../../01-provenance-record/provenance_record.py)
 - [F06 reproducibility proof](../../../../../../../02-reproducibility/03-file-layout/03-generation-and-checker/03-reproducibility-proof/README.md)
@@ -37,9 +38,9 @@ canonical lock binds every raw component byte and becomes the sole F02 provenanc
 
 ## Split rationale
 
-The lock format needs independent hostile-fixture tests before it can replace the active inventory.
-The three consumer preparations can stay compatible with the current inventory and have disjoint
-owners. The final cutover then updates F02.1, F02.2, F02.3, and F06 together: moving only the
+The lock format needed independent hostile-fixture tests before it could replace the active
+inventory. The three consumer preparations stayed compatible with the then-current inventory and had
+disjoint owners. The final cutover updates F02.1, F02.2, F02.3, and F06 together: moving only the
 manifest would make existing sidecars or reproducibility checks describe a different identity. The
 grammar input remains in the next sibling task, so this split neither fetches a source nor changes
 the 15 accepted input identities.

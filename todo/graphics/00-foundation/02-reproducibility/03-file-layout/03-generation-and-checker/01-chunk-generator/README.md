@@ -21,7 +21,7 @@ whose maintained outputs cannot exceed 180 physical lines.
 
 ## Checklist
 
-- [x] Define input ordering, chunk names, headers, source-manifest revision, and output metadata.
+- [x] Define input ordering, chunk names, headers, versioned source identity, and output metadata.
 - [x] Implement deterministic generation and a check mode that rejects stale or oversized chunks.
 - [x] Add hermetic boundary tests for stable output and an over-180-line input/chunk.
 - [x] Record command output, test count, and byte hashes without claiming generated protocol support.

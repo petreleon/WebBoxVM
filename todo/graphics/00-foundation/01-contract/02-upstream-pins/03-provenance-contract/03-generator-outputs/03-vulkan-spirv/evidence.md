@@ -8,8 +8,8 @@ Profile: future-generator contract fixture only; no Vulkan, SPIR-V, Venus, guest
 
 ## Bound identities and outputs
 
-Both records name F02.1 raw-manifest SHA-256
-`8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e` and generator
+Both records name F02.1 raw inventory-lock SHA-256
+`cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b` and generator
 `webboxvm-provenance-fixture-generator` version `1`.
 
 | Fixture | Sole generator input | Fixture SHA-256 |

@@ -3,35 +3,39 @@
 
 from __future__ import annotations
 
+import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[3] / "01-input-inventory"))
+
+from inventory_layout import render_v2_lock
 from webgpu_generator_boundary import (
     BoundaryError,
     audit_blocker,
     load_inventory,
     validate_webgpu_generator_input,
 )
-from inventory_layout import render_v2_lock
 
-HERE = Path(__file__).resolve().parent
 MANIFEST = HERE.parents[3] / "01-input-inventory" / "manifest.toml"
 
 
 def v2_layout(root: Path, old: str = "", new: str = "") -> tuple[Path, Path]:
-    root.mkdir()
-    header, entries = MANIFEST.read_text(encoding="utf-8").split("[[inputs]]", 1)
-    if old:
-        entries = entries.replace(old, new, 1)
+    shutil.copytree(MANIFEST.parent, root)
     manifest = root / "manifest.toml"
-    manifest.write_text(header.replace("schema = 1", "schema = 2", 1)
-                        + 'input_files = ["inputs/part-0001.toml"]\n', encoding="utf-8")
-    part = root / "inputs/part-0001.toml"
-    part.parent.mkdir()
-    part.write_text("[[inputs]]" + entries, encoding="utf-8")
     lock = root / "inventory.lock"
-    lock.write_bytes(render_v2_lock(manifest))
+    if old:
+        for part in sorted((root / "inputs").glob("*.toml")):
+            content = part.read_text(encoding="utf-8")
+            if old in content:
+                part.write_text(content.replace(old, new, 1), encoding="utf-8")
+                lock.write_bytes(render_v2_lock(manifest))
+                break
+        else:
+            raise AssertionError("fixture role is missing from copied components")
     return manifest, lock
 
 

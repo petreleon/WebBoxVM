@@ -8,8 +8,8 @@ Profile: offline reproducibility only; raw lock identity, no inventory parsing, 
 
 Task ID and date: F02.3.3.4.1.1.4, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: e80cb4a8dbad75198820efe9c9efcee15c9d880a; clean tree before receipt.
-Input identity: the checked F06 schema-v1 fixture and its generated metadata bytes remain unchanged;
-schema-v2 tests use a hermetic opaque raw lock only.
+Historical input identity at this receipt: the checked F06 schema-v1 fixture and its generated
+metadata bytes remained unchanged; schema-v2 tests used a hermetic opaque raw lock only.
 Artifacts and SHA-256: `graphics_chunk_schema.py`
 2c12e751f00cb8a59363982ab71798ccb5fa47f8c3fc15462f6e989eecfbb556;
 `graphics_chunk_output.py` 608bc1649cf433394de1f35631d13e3931d1819bee9aa4a06c73ab45802bfee5;

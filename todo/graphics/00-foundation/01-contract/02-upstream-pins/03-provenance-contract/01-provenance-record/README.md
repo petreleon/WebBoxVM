@@ -11,7 +11,7 @@ Prerequisite lists: [F02.1](../../01-input-inventory/README.md) and
 
 ## Outcome
 
-A small, versioned provenance record binds a reviewed artifact to the exact verified manifest input.
+A small, versioned provenance record binds a reviewed artifact to the exact verified inventory input.
 
 ## Starting points
 
@@ -21,28 +21,31 @@ A small, versioned provenance record binds a reviewed artifact to the exact veri
 
 ## Checklist
 
-- [x] Define required record fields: manifest revision, input IDs/digests, license, command,
+- [x] Define required record fields: inventory revision, input IDs/digests, license, command,
   generator identity/version, artifact kind, and output hash.
 - [x] Model `handwritten`, `copied-upstream`, and `generated` artifacts without calling maintained
   adapters generated when no generator produced them.
 - [x] Add a deterministic parser/validator that resolves only F02.1 input IDs and digest identities.
-- [x] Test missing, unknown, and stale manifest or input references without network access.
+- [x] Test missing, unknown, and stale inventory or input references without network access.
 
 ## Verification
 
-- A valid sample resolves to the reviewed manifest SHA-256 and input identity.
-- A changed manifest SHA-256, ID, or digest fails before the record can be accepted.
+- A valid sample resolves to the reviewed inventory-lock SHA-256 and input identity.
+- A changed inventory-lock SHA-256, ID, or digest fails before the record can be accepted.
 
 ## Contract
 
-`provenance_record.py` reads JSON sidecars and the F02.1 TOML manifest with standard-library
-parsers only. A record has an exact schema: raw-byte manifest SHA-256; sorted input ID/SHA-256/license
-references; command; generator name/version; artifact kind/path; and output SHA-256. `generated`
-requires a generator, `copied-upstream` must have one input whose digest equals its output digest, and
-`handwritten` must use `generator: none` without reusing an input's byte identity.
+`provenance_record.py` reads JSON sidecars and the F02.1 TOML inventory with standard-library
+parsers only. A schema-v2 record has an exact schema: raw `inventory.lock` SHA-256; sorted input
+ID/SHA-256/license references; command; generator name/version; artifact kind/path; and output
+SHA-256. `generated` requires a generator, `copied-upstream` must have one input whose digest equals
+its output digest, and `handwritten` must use `generator: none` without reusing an input's byte
+identity.
 
-The canonical authority is [F02.1's manifest](../../01-input-inventory/manifest.toml): its exact raw
-bytes—not an upstream commit or cache result—provide `manifest_sha256`. This leaf validates record
+The canonical authority is [F02.1's inventory lock](../../01-input-inventory/inventory.lock): its
+exact raw bytes—not an upstream commit, root manifest fragment, or cache result—provide
+`inventory_sha256`. Active consumers load only schema-v2 inventory closures; legacy schema-v1
+sidecars are parsed only far enough to reject their schema mismatch. This leaf validates record
 schema only and creates no real ABI artifact binding or generator-output binding.
 
 Run the hermetic suite with:

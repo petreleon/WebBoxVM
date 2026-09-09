@@ -1,4 +1,4 @@
-# F02.3 — Bind ABI fixtures and generators to the manifest
+# F02.3 — Bind ABI fixtures and generators to the immutable inventory
 
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
@@ -28,7 +28,7 @@ Every future ABI fixture or generated protocol artifact identifies exactly which
 
 ## Verification
 
-- A fixture/provenance sample resolves only to the verified manifest revision and fails after a
+- A fixture/provenance sample resolves only to the verified inventory-lock identity and fails after a
   deliberately changed input ID or digest.
 - The parent F02 acceptance runs a clean fetch plus the provenance check before its own receipt.
 

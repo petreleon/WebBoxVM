@@ -11,13 +11,13 @@ Prerequisite lists: [F02.1](../../../../../../01-input-inventory/README.md) and
 
 ## Outcome
 
-A stdlib-only, fail-closed layout model defines a versioned root index, bounded entry files, and a
-checked-in `inventory.lock` before the active inventory changes. Its hermetic fixtures establish the
+A stdlib-only, fail-closed layout model defined a versioned root index, bounded entry files, and a
+checked-in `inventory.lock` before the active inventory changed. Its hermetic fixtures establish the
 canonical identity and rejection rules without adding an upstream source or changing a runtime feature.
 
 ## Starting points
 
-- [current one-file inventory](../../../../../../01-input-inventory/manifest.toml)
+- [pre-cutover one-file inventory](../../../../../../01-input-inventory/manifest.toml)
 - [F02.1 structural validator](../../../../../../01-input-inventory/validate_manifest.py)
 - [F02.2 source model](../../../../../../02-fetch-verifier/01-fetch-contract/source_model.py)
 

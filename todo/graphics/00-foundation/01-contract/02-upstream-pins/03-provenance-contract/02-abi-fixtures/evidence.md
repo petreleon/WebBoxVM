@@ -3,7 +3,7 @@
 Revision: `16cd943eb67fa3249850870f2abc079dbe27b971` baseline plus uncommitted F02.3.2 metadata
 Validation: seven hermetic ABI-sidecar tests, six-record CLI check, source limits, `make test`, roadmap, and whitespace checks
 Result: PASS
-Artifacts: six JSON sidecars under `records/`, each bound to F02.1 manifest SHA-256 `8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e`
+Artifacts: six JSON sidecars under `records/`, each bound to F02.1 inventory-lock SHA-256 `cb85958df7f8e2a9b6b749f6218621d6b24b1f6de5dc9f5be3468ab5fb7ddd5b`
 Profile: provenance metadata only; no guest ABI, graphics API, rendering, or network behavior change
 
 ## Scope and provenance result
@@ -11,7 +11,7 @@ Profile: provenance metadata only; no guest ABI, graphics API, rendering, or net
 The selected maintained ABI surfaces are `guest/virgl-clear-demo/{uapi,kms,virgl}.h`,
 `guest/webgpu-demo/uapi.h`, `emulator/src/devices/virtio_gpu/three_d/capset.rs`, and
 `emulator/src/devices/virtio_gpu/tests/virgl_draw_fixture.rs`. Their adjacent F02.3.2 records bind
-the raw-byte SHA-256 of F02.1's canonical manifest, exact IDs/digests/licenses, a manual review
+the raw-byte SHA-256 of F02.1's canonical inventory lock, exact IDs/digests/licenses, a manual review
 command, `none` generator identity, and each current local artifact SHA-256.
 
 All six are maintained `handwritten` adapters or fixtures; no record claims copied upstream bytes.
@@ -23,7 +23,7 @@ a Venus generator output; that future output family remains outside this leaf.
 
 `validate_abi_records.py` calls F02.3.1's generic validator for every exact sidecar name, then
 requires the fixed artifact path, selected input-ID tuple, handwritten origin, and rehashed local
-bytes. It rejects missing or unexpected records, any known-but-wrong input, stale manifest/input
+bytes. It rejects missing or unexpected records, any known-but-wrong input, stale inventory/input
 metadata, dishonest copied origin, and a changed local artifact hash before acceptance.
 
 ## Commands and actual results
@@ -39,7 +39,7 @@ git diff --check
 
 The focused suite passed 7/7 and the CLI printed `PASS: 6 ABI provenance records`. Its negative
 cases mutate only temporary sidecars, never runtime files: unknown input, known-but-wrong Venus
-input, stale manifest digest, dishonest copied origin, changed output hash, and a missing record all
+input, stale inventory digest, dishonest copied origin, changed output hash, and a missing record all
 failed closed. Source limits passed 6/6. `make test` exited zero; its Node suite reported 337/337
 passing with zero failures, cancellations, skips, and todos. Before F02.3.2 completion markers,
 the roadmap checker passed 164 documents, 106 tasks, and 14 complete, with F02.3.2 ready; `git diff
