@@ -3,12 +3,12 @@
 Revision: fefc28123ba70dae24f8a8a640c94976ceddc632
 Validation: live 16/16 fetch + offline 16/16 rehash + focused 40/40 + boundary 7/7 + limits + full suite
 Result: PASS
-Artifacts: grammar sha256=838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1; root sha256=22e5e250b3d475ef2607b2bc92b9885e2910824273d8acb7be19fc6614fc8cda; lock sha256=db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e
+Artifacts: at the tested revision, grammar sha256=838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1; root sha256=22e5e250b3d475ef2607b2bc92b9885e2910824273d8acb7be19fc6614fc8cda; lock sha256=db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e
 Profile: immutable-source integrity and grammar classification only; no parser, compiler, WebGPU API, guest, browser, or graphics-runtime behavior
 
 Task ID and date: F02.3.3.4.1.2, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: fefc28123ba70dae24f8a8a640c94976ceddc632; clean tree before this receipt.
-Upstream manifest revision: schema-v2 raw lock SHA-256
+Upstream manifest revision at the tested commit: schema-v2 raw lock SHA-256
 db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e.
 Guest image and build hashes: not applicable; no guest was built or run.
 Browser, OS, adapter and driver: not applicable; no browser or GPU execution path was exercised.

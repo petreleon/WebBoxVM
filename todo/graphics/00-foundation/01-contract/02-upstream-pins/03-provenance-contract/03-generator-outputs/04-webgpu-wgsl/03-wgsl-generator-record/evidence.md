@@ -3,13 +3,13 @@
 Revision: 0e36b01a241bc83d3176e2821a6076e13756da2d
 Validation: direct fixture check + hermetic 10/10 + provenance/inventory/boundary suites + limits + full local suite
 Result: PASS
-Artifacts: fixture sha256=605721be432ffe189c104292c173597399236c1e226f00d5d1f5d2e1c24e5848; sidecar sha256=43fed69da001254b05dfbe2c99427c60b8d6d3e9a7016d75dc66ad63dff39e41
+Artifacts: at the tested revision, fixture sha256=605721be432ffe189c104292c173597399236c1e226f00d5d1f5d2e1c24e5848; sidecar sha256=43fed69da001254b05dfbe2c99427c60b8d6d3e9a7016d75dc66ad63dff39e41
 Profile: fixture-only WGSL grammar provenance marker; no grammar bytes, parser, compiler, WebGPU API, guest, browser, renderer, or performance behavior
 
 Task ID and date: F02.3.3.4.3, 2026-09-09 Europe/Bucharest.
 Tested commit and dirty diff hash: 0e36b01a241bc83d3176e2821a6076e13756da2d; clean before this
 receipt. The separate documentation/status receipt follows this implementation commit.
-Upstream manifest revision: schema-v2 raw `inventory.lock` SHA-256
+Upstream manifest revision at the tested commit: schema-v2 raw `inventory.lock` SHA-256
 `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`; only
 `wgsl-grammar-syntax` is bound, with SHA-256
 `838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1` and the reviewed
@@ -37,9 +37,9 @@ passed, 0 failed. `python3 scripts/check_graphics_roadmap.py` and `git diff --ch
 The hermetic fixture suite proves byte-identical regeneration from the manifest without network and
 rejects `wgsl-spec`, `webgpu-spec`, and `opengl-gles-registry`; stale lock, digest, and license;
 wrong generator version and command; changed family/role; altered output bytes; a false declared hash;
-and a tampered grammar-dialect limitation even when its replacement hash is declared. The real WebGPU
-boundary still prints: reference-only `webgpu-spec`, WGSL-derived `wgsl-spec`, and no explicit WebGPU
-generator input.
+and a tampered grammar-dialect limitation even when its replacement hash is declared. At that revision,
+the real WebGPU boundary printed: reference-only `webgpu-spec`, WGSL-derived `wgsl-spec`, and no
+explicit WebGPU generator input.
 
 Raw log/image/sample paths, SHA-256 and retrieval/reproduction instructions: the tracked fixture and
 sidecar hashes are above. Reproduce from this task folder with
@@ -59,5 +59,5 @@ parser/compiler, WebGPU binding, guest-visible API, rendering, source-fetch/cach
 or near-native performance. No remote CI was run.
 Commit/push verification: local feature commit 0e36b01a241bc83d3176e2821a6076e13756da2d; not pushed
 because explicit authorization for `https://github.com/petreleon/WebBoxVM.git` has not been granted.
-Next ready task: F02.3.3.4.4 remains explicitly BLOCKED pending a separate reviewed immutable WebGPU
-generator input; it cannot use this WGSL grammar fixture as a substitute.
+Next ready task at that revision: F02.3.3.4.4 was explicitly BLOCKED pending a separate reviewed
+immutable WebGPU generator input; it could not use this WGSL grammar fixture as a substitute.

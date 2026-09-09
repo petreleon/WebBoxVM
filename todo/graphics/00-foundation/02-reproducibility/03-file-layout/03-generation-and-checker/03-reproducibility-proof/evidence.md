@@ -17,12 +17,12 @@ sets and SHA-256 values: `chunk-0001.md`
 `8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e`. It also reads the actual
 generated chunk and asserted its physical line count was at most 180.
 
-The active fixture was renewed with the F02 composite-lock cutover. It now uses schema 2 and the
-raw lock identity `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`;
+The active fixture was renewed with the F02 WebIDL inventory change. It uses schema 2 and the
+raw lock identity `08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6`;
 its input, chunk, and metadata SHA-256 values are
-`35d74836833744aa9199fb885e6f4446cb4501b8a52a53885277374abbedab26`,
-`8c7ccca58afacacdebdac8571fe766d719c470a05b80aa682efceba25d85066e`, and
-`dfaae1b2ec3df5fc7cc384b085ca78a11e7fcc725a761f9d22243ceae6ef29e9`. The current proof selects
+`0aa0cff6e734a9cc3afe11f0d49cccbab8df66012d2050f048a20313ffd4001a`,
+`e6d0f0e680ef29a42005c5ce33343cfc88d67a29457e96473ebec296c12249c5`, and
+`4e310c17a9aaecd0ad0f60b8815f0d021afc5a6eb9cd388146a79367a101b190`. The current proof selects
 the source flag from the fixture schema, checks the tracked expected bundle, and still rejects
 temporary stale metadata and reordered input.
 

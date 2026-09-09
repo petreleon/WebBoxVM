@@ -1,6 +1,6 @@
 # Generated graphics record chunk
 # generator: webboxvm.graphics-chunker.v2
-# inventory-sha256: db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e
+# inventory-sha256: 08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6
 # record-range: capset-boundary..source-provenance
 # chunk-index: 0001
 

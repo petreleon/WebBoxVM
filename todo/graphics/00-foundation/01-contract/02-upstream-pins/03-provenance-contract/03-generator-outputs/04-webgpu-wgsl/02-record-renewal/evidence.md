@@ -3,7 +3,7 @@
 Revision: 74ff981f80e94189e373b548bf14b9f7a8ebb430
 Validation: affected offline suites + identity/stale-lock audit + source limits + full local suite
 Result: PASS
-Artifacts: canonical raw lock `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`; ten F02.3 sidecars and one F06 expected bundle renewed
+Artifacts: at the tested revision, canonical raw lock `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`; ten F02.3 sidecars and one F06 expected bundle renewed
 Profile: provenance/reproducibility record renewal only; no fetch, guest, API, browser, renderer, or performance behavior
 
 Task ID and date: F02.3.3.4.2, 2026-09-09 Europe/Bucharest.
@@ -16,16 +16,16 @@ Browser, OS, adapter and driver: not applicable; no browser or GPU execution pat
 
 ## Renewal result
 
-The raw `inventory.lock` SHA-256 was recomputed as
+At this receipt's tested revision, the raw `inventory.lock` SHA-256 was recomputed as
 `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`.
 All six ABI sidecars, the Venus sidecar, the GL/GLES sidecar, and both Vulkan/SPIR-V sidecars now
-bind that one identity. The independent audit compared each current JSON record to its pre-renewal
+then bound that one identity. The contemporaneous audit compared each JSON record to its pre-renewal
 version: every field except `inventory_sha256` is byte-for-byte structurally unchanged, including IDs,
 input digests, licenses, commands, generator versions, artifact paths, kinds, and output hashes.
 
-F06 input records are unchanged except for the lock identity. Deterministic regeneration changes only
+At that revision, F06 input records were unchanged except for the lock identity. Deterministic regeneration changed only
 lock-derived output fields: the chunk header, metadata lock, metadata input hash, and metadata chunk
-hash. Its current hashes are input `35d74836833744aa9199fb885e6f4446cb4501b8a52a53885277374abbedab26`,
+hash. Its hashes then were input `35d74836833744aa9199fb885e6f4446cb4501b8a52a53885277374abbedab26`,
 chunk `8c7ccca58afacacdebdac8571fe766d719c470a05b80aa682efceba25d85066e`, and metadata
 `dfaae1b2ec3df5fc7cc384b085ca78a11e7fcc725a761f9d22243ceae6ef29e9`.
 
@@ -51,7 +51,7 @@ task artifact was changed to address it. The renewal-focused suites themselves h
 
 Decision and limits: accept only lock-bound metadata renewal. No source identity, payload byte,
 generated fixture payload, graphics behavior, WebGPU/VirGL/Vulkan API, or runtime result changes here.
-The WGSL grammar is not a WebGPU generator input, so F02.3.3.4.4 remains BLOCKED. This is not a WGSL
+At that revision the WGSL grammar was not a WebGPU generator input, so F02.3.3.4.4 remained BLOCKED. This is not a WGSL
 parser/compiler, a guest integration, a renderer, or evidence of compatibility or near-native speed.
 No remote CI was run. The local commit is not pushed because authorization for
 `https://github.com/petreleon/WebBoxVM.git` has not been granted.

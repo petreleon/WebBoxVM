@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "inventory_sha256": "db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e",
+  "inventory_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
   "inputs": [{"id": "linux-virtio-gpu-uapi", "sha256": "7c9e2f7d47fa0b1a2c737fc5a741f57c5cf25303dd5c68c2c9738e9bb761eee6", "license": "BSD-3-Clause (pinned file's explicit BSD notice)"}],
   "command": "manual bounded virtio-gpu UAPI adapter review against Linux UAPI; no generator",
   "generator": {"name": "none", "version": "none"},

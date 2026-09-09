@@ -22,10 +22,10 @@ Its input SHA-256 is `45a1056255833eebf7a174c8a842d4e0d23e8aaa2b4698af687301ec92
 and `metadata.json` is `641f57ff68a2740d68911d34a500b113bfab8899ede250ea60be8e70e9045526`.
 
 Active schema-v2 fixture renewal: the checked input binds the current canonical raw `inventory.lock`
-SHA-256 `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`, not the root
-manifest bytes. Its input SHA-256 is `35d74836833744aa9199fb885e6f4446cb4501b8a52a53885277374abbedab26`;
-`chunk-0001.md` is `8c7ccca58afacacdebdac8571fe766d719c470a05b80aa682efceba25d85066e`; and
-`metadata.json` is `dfaae1b2ec3df5fc7cc384b085ca78a11e7fcc725a761f9d22243ceae6ef29e9`.
+SHA-256 `08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6`, not the root
+manifest bytes. Its input SHA-256 is `0aa0cff6e734a9cc3afe11f0d49cccbab8df66012d2050f048a20313ffd4001a`;
+`chunk-0001.md` is `e6d0f0e680ef29a42005c5ce33343cfc88d67a29457e96473ebec296c12249c5`; and
+`metadata.json` is `4e310c17a9aaecd0ad0f60b8815f0d021afc5a6eb9cd388146a79367a101b190`.
 
 Historical commands, working directory, and actual result:
 

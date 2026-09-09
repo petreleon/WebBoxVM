@@ -1,7 +1,7 @@
 # F02.3.3.4.4 evidence
 
 Revision: `b29a48b` baseline; scoped WebGPU boundary probe
-Validation: seven hermetic boundary tests, current-inventory blocker probe, source limits, `make test`, roadmap, diff
+Validation: seven hermetic boundary tests, original-inventory blocker probe, source limits, `make test`, roadmap, diff
 Result: BLOCKED
 Artifacts: `webgpu_generator_boundary.py`, its hermetic test, and this local inventory-only receipt
 Profile: immutable-input eligibility boundary only; no WebGPU API, guest, browser, code-generation, or performance claim
@@ -22,14 +22,15 @@ future WebGPU-designated entry makes the blocker assertion fail, so this receipt
 remain valid after the inventory gains an eligible input. No upstream payload, network request,
 record sidecar, generated protocol, or runtime artifact is used.
 
-## Grammar-lock renewal
+## Historical grammar-lock renewal
 
 F02.3.3.4.1.2 now supplies the actual `wgsl-grammar-syntax` entry under the separate
-`wgsl-grammar` family. Its current inventory-lock SHA-256 is
+`wgsl-grammar` family. That renewal's inventory-lock SHA-256 was
 `db22bb053108cb7dbd413d4ee221a8134c081c842ead538e4d5fe0c45789e75e`; the committed-entry
-boundary test rejects it as WGSL-derived. The real probe remains three BLOCKED lines: reference-only
-`webgpu-spec`, WGSL-derived `wgsl-spec`, and no explicit WebGPU generator input. This renewed
-inventory fact does not turn the BLOCKED result into a WebGPU implementation or runtime claim.
+boundary test rejected it as WGSL-derived. At that revision the probe printed three BLOCKED lines:
+reference-only `webgpu-spec`, WGSL-derived `wgsl-spec`, and no explicit WebGPU generator input.
+F02.3.3.4.4.1 later admits a distinct WebIDL record and F02.3.3.4.4.4 owns replacement of this
+legacy blocker probe; this historical result is not current WebIDL eligibility or runtime evidence.
 
 Commands, working directory, and actual result:
 
@@ -47,8 +48,7 @@ limit suite passed 6/6. The real probe printed three `BLOCKED:` lines: `webgpu-s
 reference-only, `wgsl-spec` is WGSL, and no explicit WebGPU generator input exists. The full local
 suite, roadmap checker, and whitespace check exit successfully after this receipt is present.
 
-Blocker: F02.1 does not yet identify a reviewed immutable WebGPU generator source distinct from
-the reference specifications. This is an intentional BLOCKED result, not a passing WebGPU feature.
-Keep this leaf and its parents open; F02.3.3.4.1 through F02.3.3.4.3 address the separate WGSL
-grammar and record-renewal path. No remote CI result, runtime behavior, compatibility, or
-performance conclusion is claimed.
+Historical blocker: at this probe, F02.1 did not identify a reviewed immutable WebGPU generator
+source distinct from the reference specifications. This was an intentional BLOCKED result, not a
+passing WebGPU feature. The parent remains open pending its WebIDL-record and closure children; no
+remote CI result, runtime behavior, compatibility, or performance conclusion is claimed.
