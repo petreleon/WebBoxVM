@@ -85,9 +85,9 @@ def document(path: Path, label: str) -> dict[str, object]:
     return value
 
 
-def mapped(path: Path) -> dict[str, dict[str, object]]:
+def mapped(path: Path, audits: dict[str, Path]) -> dict[str, dict[str, object]]:
     try:
-        records = MAP.validate(path)
+        records = MAP.validate(path, audits)
     except MAP.SourceMapError as error:
         reject(f"source map failed: {error}")
     source = document(path, "source map")
@@ -143,10 +143,11 @@ def boundary(value: object, source: dict[str, object], expected: tuple[object, .
     return UnadmittedBoundary(str(identifier), int(observation["count"]))
 
 
-def validate(path: Path = BOUNDARIES, source_map_path: Path = MAP.SOURCE_MAP) -> tuple[UnadmittedBoundary, ...]:
+def validate(path: Path = BOUNDARIES, source_map_path: Path = MAP.SOURCE_MAP,
+             audits: dict[str, Path] = MAP.AUDITS) -> tuple[UnadmittedBoundary, ...]:
     if not isinstance(path, Path) or not isinstance(source_map_path, Path):
         reject("Vulkan boundary has an invalid input path")
-    source = mapped(source_map_path)
+    source = mapped(source_map_path, audits)
     value = document(path, "Vulkan boundaries")
     records = value.get("boundaries")
     if set(value) != ROOT_FIELDS or type(value.get("schema")) is not int or value.get("schema") != 1 or value.get("profile") != "vulkan-1.4-core" or not isinstance(records, list):

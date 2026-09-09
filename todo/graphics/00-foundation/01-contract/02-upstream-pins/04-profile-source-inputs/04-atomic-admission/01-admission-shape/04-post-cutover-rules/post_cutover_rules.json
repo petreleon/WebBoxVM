@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "phase": "transition-design",
+  "source_shapes": [
+    {
+      "shape": "complete-single-source",
+      "pre_admission_state": "candidate-accepted",
+      "post_cutover_state": "admitted-single-source",
+      "closure_identity": "reviewed-root-identity",
+      "root_fallback": "not-applicable"
+    },
+    {
+      "shape": "bounded-unadmitted-closure",
+      "pre_admission_state": "unadmitted",
+      "post_cutover_state": "admitted-closure",
+      "closure_identity": "complete-immutable-member-and-scope-identity",
+      "root_fallback": "forbidden"
+    },
+    {
+      "shape": "unresolved-root",
+      "pre_admission_state": "unadmitted",
+      "post_cutover_state": "admitted-closure",
+      "closure_identity": "complete-immutable-member-and-scope-identity",
+      "root_fallback": "forbidden"
+    }
+  ],
+  "candidate_audit": {
+    "pre_cutover_decisions": "preserved",
+    "pre_cutover_schema": "unchanged",
+    "post_cutover_adapter": "closure-aware-successor-or-history-adapter",
+    "successor_lock": "required"
+  },
+  "atomic_cutover": {
+    "epoch": "single-global-epoch",
+    "source_set": "all-six-canonical-inputs",
+    "inventory_lock": "successor-lock-only",
+    "mixed_phase_records": "forbidden",
+    "partial_source_set": "forbidden",
+    "stale_lock_consumers": "forbidden",
+    "direct_root_substitution": "forbidden"
+  },
+  "future_artifacts": [
+    {
+      "name": "admission_closures.json",
+      "schema_version": 1,
+      "fields": [
+        "schema", "predecessor_admission_shape_sha256", "predecessor_source_map_sha256",
+        "predecessor_vulkan_boundaries_sha256", "predecessor_inventory_sha256",
+        "successor_inventory_sha256", "successor_candidate_adapter_sha256", "closures"
+      ],
+      "closure_fields": [
+        "profile",
+        "role",
+        "required_input_id",
+        "closure_kind",
+        "candidate_audit_sha256",
+        "candidate_root_id",
+        "candidate_root_sha256",
+        "candidate_root_selector",
+        "successor_adapter_entry_sha256",
+        "members",
+        "exclusions_or_core_scope",
+        "closure_sha256"
+      ],
+      "closure_kind_values": ["single-member-root", "complete-member-closure"],
+      "member_fields": [
+        "id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license",
+        "local_cache", "generated_code_role", "provenance", "selector"
+      ],
+      "scope_identity_fields": [
+        "scope_kind", "ordered_member_ids", "excluded_members",
+        "generated_or_transitive_member_ids", "configuration_sha256", "configuration_counts",
+        "scope_sha256"
+      ],
+      "predecessor_admission_shape_inputs": [
+        "source_map_sha256", "gles_closure_sha256", "gles_configurations_sha256",
+        "vulkan_boundaries_sha256", "vulkan_includes_sha256", "vulkan_references_sha256"
+      ],
+      "predecessor_admission_shape_digest": "sha256-canonical-ordered-path-and-digest-pairs-for-the-named-predecessor-inputs",
+      "closure_cardinality": "exactly-one-per-canonical-six-profile-role-required-input-id-in-source-map-order",
+      "closure_semantics": {
+        "candidate": "audit-decision-and-root-identity-exactly-preserved-and-root-is-a-member",
+        "audit_join": "each-closure-candidate-audit-and-successor-adapter-entry-match-its-profile-receipt-audit-binding",
+        "direct": "exactly-one-member-equals-audited-root-identity",
+        "compound": "root-member-plus-at-least-one-other-ordered-full-f02.2-member-unique-id-sha256-cache-and-selector",
+        "scope": "exact-reviewed-exclusions-and-core-configuration-required",
+        "scope_join": "exclusions-or-core-scope-is-an-exact-scope-identity-object-with-ordered-member-ids-equal-members-id-and-every-generated-or-transitive-id-a-listed-member-id",
+        "successor_inventory": "every-member-resolves-under-successor-lock",
+        "root_only": "forbidden-for-compound",
+        "digest": "canonical-json-closure-digest-excluding-itself-covers-every-member-and-scope-field"
+      }
+    },
+    {
+      "name": "cutover_receipt.json",
+      "schema_version": 1,
+      "fields": [
+        "schema",
+        "predecessor_admission_shape_sha256",
+        "predecessor_source_map_sha256",
+        "predecessor_vulkan_boundaries_sha256",
+        "predecessor_inventory_sha256",
+        "predecessor_audit_bundle_sha256",
+        "successor_inventory_sha256",
+        "successor_candidate_adapter_sha256",
+        "admission_closures_sha256",
+        "cutover_id",
+        "candidate_audit_bindings",
+        "consumer_bindings"
+      ],
+      "audit_binding_fields": [
+        "profile", "predecessor_audit_sha256", "predecessor_inventory_sha256",
+        "decision_preserved", "schema_unchanged", "successor_adapter_entry_sha256"
+      ],
+      "audit_binding_cardinality": "exactly-one-per-canonical-profile",
+      "audit_binding_semantics": "each-binding-preserves-current-decision-and-predecessor-lock-through-one-successor-adapter",
+      "consumer_binding_fields": [
+        "task", "consumer", "cutover_id", "successor_inventory_sha256",
+        "admission_closures_sha256", "receipt_sha256"
+      ],
+      "consumer_binding_cardinality": "exactly-four-f02.4.4.2-through-f02.4.4.5-in-order",
+      "consumer_binding_semantics": "each-exact-renew-consumer-binds-the-same-cutover-id-successor-lock-and-closures-digest",
+      "cutover_id": "sha256-canonical-predecessor-shape-inventory-audits-successor-lock-closures-and-adapter",
+      "epoch": "all-predecessor-and-successor-digests-and-consumer-locks-match-one-global-cutover"
+    }
+  ],
+  "renew_consumers": [
+    {
+      "task": "F02.4.4.2",
+      "consumer": "successor-inventory-layout-fetch-and-candidate-locks"
+    },
+    {
+      "task": "F02.4.4.3",
+      "consumer": "closed-provenance-sidecars-generators-and-f06-fixtures"
+    },
+    {
+      "task": "F02.4.4.4",
+      "consumer": "new-external-cache-and-offline-rehash"
+    },
+    {
+      "task": "F02.4.4.5",
+      "consumer": "f03-profile-and-matrix-closure-aware-source-gate"
+    }
+  ]
+}
