@@ -23,8 +23,8 @@ selector input, without treating an isolated Piglit or API-version case as a ful
 ## Checklist
 
 - [x] [F02.4.1 — Audit OpenGL 4.6 core normative and CTS inputs](01-opengl-input-audit/README.md)
-- [ ] [F02.4.2 — Audit GLES 3.2 normative and CTS inputs](02-gles-input-audit/README.md)
-- [ ] [F02.4.3 — Audit Vulkan 1.4 normative and must-pass inputs](03-vulkan-input-audit/README.md)
+- [x] [F02.4.2 — Audit GLES 3.2 normative and CTS inputs](02-gles-input-audit/README.md)
+- [x] [F02.4.3 — Audit Vulkan 1.4 normative and must-pass inputs](03-vulkan-input-audit/README.md)
 - [ ] [F02.4.4 — Atomically admit sources and renew lock consumers](04-atomic-admission/README.md)
 - [ ] Re-fetch the complete revised inventory, verify provenance closure and the F03.1 source gate,
   then attach the aggregate receipt.

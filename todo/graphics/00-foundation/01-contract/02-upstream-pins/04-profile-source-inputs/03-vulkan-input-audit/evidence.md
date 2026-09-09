@@ -81,10 +81,10 @@ resolved/transitive AsciiDoc closure with macro/conditional configuration, plus 
 closure with hashes, size policy, and explicit core-versus-WSI/extension exclusions. This receipt
 does not claim Vulkan, Venus, VirGL, Mesa, conformance, browser execution, or near-native performance.
 
-Commit/push verification: code commit `f3d7b5e520260b1bc3cc3b3d19518d8dedb587c5` exists locally.
-Its push remains blocked before transport by the host's external-remote authorization policy, so no
-new remote SHA or remote-CI result is claimed. The last verified remote SHA remains
-`8878c33797dc0d93ba08eef459979a61b11939a4`.
+Commit/push verification: code commit `f3d7b5e520260b1bc3cc3b3d19518d8dedb587c5` and its receipt
+commit `5df6eca28cd1c57193f09f37113edb665cdbcf9b` were pushed. `git ls-remote origin
+refs/heads/codex/graphics-f01-baseline` returned
+`5aaa11f250a2e7e81b0c33d7c80ebeeb87817220`, matching local HEAD. No remote-CI result is claimed.
 
 Next ready task: split F02.4.4 into admission-model, inventory-cutover, provenance-consumer,
 fresh-cache, and F03-gate leaves; F02.4 remains open.

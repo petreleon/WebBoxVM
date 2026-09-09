@@ -30,7 +30,7 @@ boundary analysis, not compatibility or execution evidence.
 - [x] Verify URL host, revision, license, byte size, and digest against the F02.2 policy.
 - [x] Add hermetic positive and hostile candidate tests without changing the shared inventory.
 - [x] Record the candidate rationale, limits, and exact selectors for F02.4.4 admission.
-- [ ] Publish the verified audit commit and record the matching remote SHA.
+- [x] Publish the verified audit commit and record the matching remote SHA.
 
 ## Verification
 

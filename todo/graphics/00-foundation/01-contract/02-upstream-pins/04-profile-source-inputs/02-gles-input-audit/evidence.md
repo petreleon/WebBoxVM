@@ -79,10 +79,10 @@ content directory `.../khronos_mustpass/main/...` as a mutable branch. The fixed
 exact raw-GitHub revision slot and the regression suite now passes 15/15. The roadmap checker then
 required a canonical `Result: PASS`; publication remains a separate unchecked action.
 
-Commit/push verification: code commit `37e2d28834beaafb1e2f5e6894330a7a91cf9c2d` exists locally.
-Its push was blocked before transport by the host's external-remote authorization policy, so no new
-remote SHA or remote-CI result is claimed. The last pre-commit verified remote SHA was
-`8878c33797dc0d93ba08eef459979a61b11939a4`.
+Commit/push verification: code commit `37e2d28834beaafb1e2f5e6894330a7a91cf9c2d` and its receipt
+commit `4debea7da2f34724eecbf647f506532648b43bc5` were pushed. `git ls-remote origin
+refs/heads/codex/graphics-f01-baseline` returned
+`5aaa11f250a2e7e81b0c33d7c80ebeeb87817220`, matching local HEAD. No remote-CI result is claimed.
 
 Decision and limits: the PDF is a reviewed candidate; the CTS descriptor remains concretely rejected
 until F02.4.4 handles its full closure. This receipt does not claim GLES support, Mesa/VirGL behavior,
