@@ -23,7 +23,7 @@ closure twice and bind every raw/generated member, scope condition, image, and o
 ## Checklist
 
 - [x] [F02.4.4.1.5.2.3.1 — Reproduce pinned official core HTML](01-reproduce-pinned-html/README.md)
-- [ ] [F02.4.4.1.5.2.3.2 — Define the actual Docs closure identity](02-actual-closure-identity/README.md)
+- [x] [F02.4.4.1.5.2.3.2 — Define the actual Docs closure identity](02-actual-closure-identity/README.md)
 - [ ] [F02.4.4.1.5.2.3.3 — Capture the core input and scope closure](03-capture-core-closure/README.md)
 - [ ] [F02.4.4.1.5.2.3.4 — Stage and verify build witnesses](04-stage-build-witnesses/README.md)
 - [ ] [F02.4.4.1.5.2.3.5 — Prove the actual Docs closure](05-actual-closure-proof/README.md)
