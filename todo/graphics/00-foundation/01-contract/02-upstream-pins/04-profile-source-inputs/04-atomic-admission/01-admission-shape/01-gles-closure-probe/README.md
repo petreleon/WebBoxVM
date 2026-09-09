@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.1
 Depends: F02.1, F02.2, F02.4.1, F02.4.2, F02.4.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [GLES audit](../../../02-gles-input-audit/README.md) and
 [F02.2](../../../../02-fetch-verifier/README.md).
@@ -25,11 +25,11 @@ rejected candidate decision.
 
 ## Checklist
 
-- [ ] Bind the audited rejected root, four core selector members, and excluded extension boundary.
-- [ ] Preserve F02.2 immutable URL, byte, cache, and selector validation for each physical member.
-- [ ] Reject root-only, stale, mutable, oversize, duplicate, configuration-drift, and scope-expanded input.
-- [ ] Make the returned state unconditionally `unadmitted`; do not expose an inventory or cache target.
-- [ ] Record the exact focused command and nonzero hostile-suite count in a receipt.
+- [x] Bind the audited rejected root, four core selector members, and excluded extension boundary.
+- [x] Preserve F02.2 immutable URL, byte, cache, and selector validation for each physical member.
+- [x] Reject root-only, stale, mutable, oversize, duplicate, configuration-drift, and scope-expanded input.
+- [x] Make the returned state unconditionally `unadmitted`; do not expose an inventory or cache target.
+- [x] Record the exact focused command and nonzero hostile-suite count in a receipt.
 
 ## Verification
 
