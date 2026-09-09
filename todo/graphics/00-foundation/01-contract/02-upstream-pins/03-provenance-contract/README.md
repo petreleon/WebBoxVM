@@ -21,16 +21,20 @@ Every future ABI fixture or generated protocol artifact identifies exactly which
 
 ## Checklist
 
-- [ ] Define a short provenance record with manifest revision, input entry IDs, source license,
-  fetch/build command, generator version, and generated-output hash.
-- [ ] Require the record for new ABI fixtures and generated protocol outputs; distinguish copied
-  upstream bytes from maintained hand-written adapters.
-- [ ] Add a deterministic test that rejects a missing, unknown, or stale manifest reference.
-- [ ] Record the fresh-fetch output, provenance test count, and any unavailable upstream input in a
-  receipt before completing this child.
+- [ ] [F02.3.1 — Define the provenance record contract](01-provenance-record/README.md)
+- [ ] [F02.3.2 — Bind ABI fixtures and adapters](02-abi-fixtures/README.md)
+- [ ] [F02.3.3 — Bind generated protocol outputs](03-generator-outputs/README.md)
+- [ ] [F02.3.4 — Verify provenance closure](04-provenance-validation/README.md)
 
 ## Verification
 
 - A fixture/provenance sample resolves only to the verified manifest revision and fails after a
   deliberately changed input ID or digest.
 - The parent F02 acceptance runs a clean fetch plus the provenance check before its own receipt.
+
+## Split rationale
+
+The shared provenance format and validator, ABI-facing hand-written or copied adapters, and future
+generator output families have independent owners and change cadence. They are split before code so
+one record format can be reviewed independently, while the two consumer families and final live
+verification remain separate, testable commitments.
