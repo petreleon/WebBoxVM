@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "profile": "vulkan-1.4-core",
+  "boundaries": [
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "api-limit-format-spec",
+      "required_input_id": "vulkan-14-spec",
+      "shape": "unresolved-root",
+      "state": "unadmitted",
+      "root_sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+      "blocker": "vulkan-docs-core-generated-closure-unadmitted",
+      "root_fallback": "forbidden",
+      "admission_requirements": [
+        "generated-and-transitive-members-pinned",
+        "macro-and-conditional-configuration-pinned",
+        "core-only-scope-bounded"
+      ],
+      "scope_exclusions": {
+        "wsi": ["include::{chapters}/VK_KHR_surface/wsi.adoc[]"],
+        "video": ["include::{chapters}/videocoding.adoc[]"],
+        "extensions": ["include::{chapters}/extensions.adoc[]"]
+      },
+      "observation": {
+        "kind": "direct-include-transcript",
+        "count": 73,
+        "sha256": "b35c3b8907a3338e688f31bfffd98c174858d31b95d88607046a07314f6e964b",
+        "boundary": "generated-attributes-transitive-closure-and-core-scope-configuration",
+        "examples": [
+          "include::{generated}/specattribs.adoc[]",
+          "include::{chapters}/VK_KHR_surface/wsi.adoc[]",
+          "include::{chapters}/extensions.adoc[]"
+        ]
+      }
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "conformance-manifest",
+      "required_input_id": "vulkan-cts-mustpass",
+      "shape": "unresolved-root",
+      "state": "unadmitted",
+      "root_sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+      "blocker": "vcts-vk-default-compound-oversize-core-scope-unadmitted",
+      "root_fallback": "forbidden",
+      "admission_requirements": [
+        "selected-member-identities-and-hashes-pinned",
+        "recursive-dependencies-pinned",
+        "core-only-selection-bounded"
+      ],
+      "scope_exclusions": {
+        "wsi": ["vk-default/wsi.txt"],
+        "video": ["vk-default/video.txt"],
+        "extensions": [
+          "vk-default/ray-query.txt",
+          "vk-default/cooperative-vector.txt",
+          "vk-default/data-graph.txt",
+          "vk-default/tensor.txt"
+        ]
+      },
+      "observation": {
+        "kind": "direct-reference-transcript",
+        "count": 98,
+        "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+        "boundary": "broader-upstream-default-includes-wsi-and-extension-groups",
+        "examples": [
+          "vk-default/wsi.txt",
+          "vk-default/video.txt",
+          "vk-default/ray-query.txt",
+          "vk-default/cooperative-vector.txt",
+          "vk-default/data-graph.txt",
+          "vk-default/tensor.txt"
+        ]
+      },
+      "oversize_inspection": {
+        "member_identities": "unpinned",
+        "max_input_bytes": 8388608,
+        "inspected_over_limit_member_count": 14,
+        "inspected_member_total_bytes": 434669348
+      }
+    }
+  ]
+}
