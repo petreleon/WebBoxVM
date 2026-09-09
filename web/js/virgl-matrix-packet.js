@@ -8,16 +8,16 @@ const STATE_BYTES = 40;
 export function parseVirglMatrixPacket(packet) {
   const view = new DataView(packet.buffer, packet.byteOffset, packet.byteLength);
   const version = view.getUint32(4, true);
-  if (packet.byteLength < VERTEX_OFFSET || ![15, 16, 17].includes(version)) throw new Error("VirGL matrix packet has invalid version or length");
+  if (packet.byteLength < VERTEX_OFFSET || ![15, 16, 17, 18].includes(version)) throw new Error("VirGL matrix packet has invalid version or length");
   const sequence = view.getUint32(8, true); const canvasWidth = view.getUint32(12, true);
   const canvasHeight = view.getUint32(16, true); const vertexCount = view.getUint32(20, true);
   if (!sequence) throw new Error("VirGL matrix packet sequence must be nonzero");
   if (!canvasWidth || !canvasHeight || canvasWidth > MAX_DIMENSION || canvasHeight > MAX_DIMENSION) throw new Error("VirGL matrix dimensions must fit the bounded target");
   if (vertexCount < 3 || vertexCount > MAX_VERTEX_COUNT || vertexCount % 3) throw new Error("VirGL matrix vertex count must be 3..3063 and divisible by 3");
-  const vertexColor = version === 16; const textured = version === 17; const stride = vertexColor ? 8 : textured ? 6 : 4;
+  const vertexColor = version === 16; const textureCount = version === 17 ? 1 : version === 18 ? 2 : 0; const textured = textureCount > 0; const stride = vertexColor ? 8 : textured ? 6 : 4;
   const state = VERTEX_OFFSET + vertexCount * stride * 4;
   if (packet.byteLength < state + STATE_BYTES || !textured && packet.byteLength !== state + STATE_BYTES) throw new Error("VirGL matrix packet has invalid length");
-  const sampled = textured ? textureFrame(view, packet, state) : undefined;
+  const sampled = textured ? textureFrames(view, packet, state, textureCount) : undefined;
   if (textured && (!sampled || packet.byteLength !== state + STATE_BYTES + sampled.byteLength)) throw new Error("VirGL matrix texture framing is invalid");
   const clearColor = color(view, 24, "clear"); const drawColor = color(view, 40, "draw");
   if ((vertexColor || textured) && ![...drawColor].every((value) => value === 0)) throw new Error("VirGL matrix reserved color must be zero");
@@ -26,10 +26,10 @@ export function parseVirglMatrixPacket(packet) {
   const vertices = floats(view, VERTEX_OFFSET, vertexCount * stride);
   if (!validProjected(vertices, matrix, stride) || vertexColor && !validColors(vertices) || textured && !validUvs(vertices)) throw new Error("VirGL matrix projection is invalid");
   return {
-    acceleration: vertexColor ? "webgpu-virgl-capset1-matrix-vertex-color" : textured ? "webgpu-virgl-capset1-matrix-texture" : "webgpu-virgl-capset1-matrix", canvasHeight, canvasWidth, capsetId: 1,
-    clearColor, drawColor, matrix, presentationLabel: vertexColor ? "VirGL capset 1 GPU matrix vertex-color triangles" : textured ? "VirGL capset 1 GPU matrix texture triangles" : "VirGL capset 1 GPU matrix triangles",
-    protocol: vertexColor ? "virgl-matrix-vertex-color" : textured ? "virgl-matrix-texture" : "virgl-draw", sequence, version, vertexCount, vertices,
-    ...(sampled ? { texture: sampled.texture } : {}),
+    acceleration: vertexColor ? "webgpu-virgl-capset1-matrix-vertex-color" : textureCount === 2 ? "webgpu-virgl-capset1-matrix-texture-multiply" : textured ? "webgpu-virgl-capset1-matrix-texture" : "webgpu-virgl-capset1-matrix", canvasHeight, canvasWidth, capsetId: 1,
+    clearColor, drawColor, matrix, presentationLabel: vertexColor ? "VirGL capset 1 GPU matrix vertex-color triangles" : textureCount === 2 ? "VirGL capset 1 GPU matrix dual-texture triangles" : textured ? "VirGL capset 1 GPU matrix texture triangles" : "VirGL capset 1 GPU matrix triangles",
+    protocol: vertexColor ? "virgl-matrix-vertex-color" : textureCount === 2 ? "virgl-matrix-texture-multiply" : textured ? "virgl-matrix-texture" : "virgl-draw", sequence, version, vertexCount, vertices,
+    ...(sampled ? textureCount === 2 ? { textures: sampled.textures } : { texture: sampled.textures[0] } : {}),
     ...viewportState(view, canvasWidth, canvasHeight, state),
   };
 }
@@ -54,12 +54,16 @@ function validUvs(vertices) {
   return vertices.every((value, index) => index % 6 < 4 || Number.isFinite(value) && value >= -8 && value <= 8);
 }
 
-function textureFrame(view, packet, state) {
-  if (packet.byteLength < state + 52) return undefined;
-  const sampler = samplerConfig(view.getUint32(state + 40, true));
-  const width = view.getUint32(state + 44, true); const height = view.getUint32(state + 48, true);
-  const pixels = width && height && width <= MAX_TEXTURE_DIMENSION && height <= MAX_TEXTURE_DIMENSION ? width * height * 4 : 0;
-  return sampler && pixels ? { byteLength: 12 + pixels, texture: { ...sampler, width, height, pixels: packet.subarray(state + 52, state + 52 + pixels) } } : undefined;
+function textureFrames(view, packet, state, count) {
+  const start = state + 40; if (packet.byteLength < start + count * 12) return undefined;
+  const samplers = Array.from({ length: count }, (_, index) => samplerConfig(view.getUint32(start + index * 4, true)));
+  const sizes = Array.from({ length: count }, (_, index) => [view.getUint32(start + count * 4 + index * 8, true), view.getUint32(start + count * 4 + index * 8 + 4, true)]);
+  if (samplers.some((sampler) => !sampler) || sizes.some(([width, height]) => !width || !height || width > MAX_TEXTURE_DIMENSION || height > MAX_TEXTURE_DIMENSION)) return undefined;
+  let offset = start + count * 12;
+  const textures = sizes.map(([width, height], index) => {
+    const pixels = width * height * 4; const texture = { ...samplers[index], width, height, pixels: packet.subarray(offset, offset + pixels) }; offset += pixels; return texture;
+  });
+  return { byteLength: offset - start, textures };
 }
 
 function samplerConfig(word) {

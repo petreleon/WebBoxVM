@@ -48,7 +48,8 @@ private schemas. Exact non-depth solid DP4 presentation uses schema 15, while
 exact generic-RGBA passthrough without fragment-constant multiplication uses
 schema 16 with raw RGBA attributes, and exact generic-UV one-texture sampling
 without modulation uses schema 17. CPU replay keeps the guest color contract
-for all three lanes.
+for those lanes; exact generic-UV two-texture multiplication uses schema 18
+with two independent sampler snapshots.
 
 ## Evidence and limits
 
@@ -79,6 +80,8 @@ an exact generic-RGBA passthrough preserves raw attributes in v16 and retains
 the transformed CPU replay result.
 `virgl_matrix_texture_draw.rs` proves the exact generic-UV one-texture form
 preserves raw UVs and a sampler snapshot in v17 while retaining CPU replay.
+Its two-texture case proves v18 retains the same raw UVs plus both sampler
+snapshots and the CPU multiplication result.
 
 That establishes this bounded guest-driver transport route alongside Rust and
 browser WebGPU-unit tests; it does not establish native guest-to-browser

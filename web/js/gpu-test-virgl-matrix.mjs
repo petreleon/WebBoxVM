@@ -69,6 +69,35 @@ export function virglMatrixTexturePacket({
   return packet;
 }
 
+export function virglMatrixTextureMultiplyPacket({
+  canvasHeight = 768,
+  canvasWidth = 1024,
+  clearColor = [0.1, 0.2, 0.3, 1],
+  leftPixels = new Uint8Array([100, 100, 100, 255]),
+  leftSampler = 0x1092,
+  leftTextureHeight = 1,
+  leftTextureWidth = 1,
+  matrix = MATRIX,
+  rightPixels = new Uint8Array([128, 128, 128, 255]),
+  rightSampler = 0x1092,
+  rightTextureHeight = 1,
+  rightTextureWidth = 1,
+  scissor = [0, 0, canvasWidth, canvasHeight],
+  sequence = 7,
+  vertices = textureTriangle(),
+  viewport = [canvasWidth / 2, canvasHeight / 2, 0.5, canvasWidth / 2, canvasHeight / 2, 0.5],
+} = {}) {
+  const vertexCount = vertices.length / 6; const state = 120 + vertices.length * 4;
+  const packet = new Uint8Array(state + 64 + leftPixels.length + rightPixels.length); const view = new DataView(packet.buffer);
+  packet.set([0x56, 0x47, 0x44, 0x31]);
+  [18, sequence, canvasWidth, canvasHeight, vertexCount].forEach((value, index) => view.setUint32(4 + index * 4, value, true));
+  floats(view, 24, clearColor); floats(view, 40, [0, 0, 0, 0]); floats(view, 56, matrix); floats(view, 120, vertices); floats(view, state, viewport);
+  scissor.forEach((value, index) => view.setUint32(state + 24 + index * 4, value, true));
+  [leftSampler, rightSampler, leftTextureWidth, leftTextureHeight, rightTextureWidth, rightTextureHeight].forEach((value, index) => view.setUint32(state + 40 + index * 4, value, true));
+  packet.set(leftPixels, state + 64); packet.set(rightPixels, state + 64 + leftPixels.length);
+  return packet;
+}
+
 function floats(view, offset, values) {
   values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
 }

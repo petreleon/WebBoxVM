@@ -1,7 +1,9 @@
 use super::super::protocol::*;
 use super::{
-    virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_scissor_state,
+    header, virgl_draw_fixture::*, virgl_source_over_state, virgl_viewport_scissor_state,
 };
+
+const RIGHT_TEXTURE: u32 = 7;
 
 const MATRIX_VERT: &str = "VERT\nDCL IN[0], POSITION\nDCL IN[1], GENERIC[0]\nDCL CONST[0..3]\nDCL OUT[0], POSITION\nDCL OUT[1], GENERIC[0]\nMOV OUT[1], IN[1]\nDP4 OUT[0].w, IN[0], CONST[3]\nDP4 OUT[0].x, IN[0], CONST[0]\nDP4 OUT[0].z, IN[0], CONST[2]\nDP4 OUT[0].y, IN[0], CONST[1]\nEND\n";
 const MATRIX: [f32; 16] = [
@@ -31,6 +33,23 @@ fn matrix_texture_keeps_raw_uvs_for_webgpu() {
     assert_eq!(&gpu.resources[&TARGET].pixels[transformed..transformed + 4], &[10, 20, 30, 255]);
 }
 
+#[test]
+fn matrix_two_textures_keep_raw_uvs_for_webgpu() {
+    let (mut gpu, mut mem) = prepared_nonresident(); attach_right_texture(&mut gpu, &mut mem);
+    assert_response(&mut gpu, &mut mem, &submit(&multiply_state()), RESP_OK_NODATA); upload_textured_vertices(&mut gpu);
+    for (resource, color) in [(TEXTURE, [100, 100, 100, 255]), (RIGHT_TEXTURE, [128, 128, 128, 255])] {
+        gpu.resources.get_mut(&resource).unwrap().pixels.chunks_exact_mut(4).for_each(|pixel| pixel.copy_from_slice(&color));
+    }
+    assert_response(&mut gpu, &mut mem, &submit(&matrix(MATRIX)), RESP_OK_NODATA);
+    let mut command = clear([0.1, 0.2, 0.3, 1.0]); command.extend(draw()); assert_response(&mut gpu, &mut mem, &submit(&command), RESP_OK_NODATA);
+    let packet = gpu.take_3d_update();
+    assert_eq!([4, 56, 136, 232, 236, 240, 248, 252].map(|at| read_u32(&packet, at)), [Some(18), Some(MATRIX[0].to_bits()), Some(0), Some(0x1092), Some(0x1092), Some(2), Some(2), Some(2)]);
+    let effect = gpu.pending_3d[0].effect.clone().expect("matrix two-texture effect"); assert!(gpu.apply_3d_effect(effect));
+    let center = ((384 * 1024 + 512) * 4) as usize; let transformed = ((400 * 1024 + 540) * 4) as usize;
+    assert_eq!(&gpu.resources[&TARGET].pixels[center..center + 4], &[77, 51, 26, 255]);
+    assert_eq!(&gpu.resources[&TARGET].pixels[transformed..transformed + 4], &[50, 50, 50, 255]);
+}
+
 fn state() -> Vec<u32> {
     let mut state = surface_create(9, TARGET); state.extend(framebuffer(9));
     let mut vertex = shader_create(11, 0, MATRIX_VERT); vertex[4] = 24;
@@ -42,6 +61,21 @@ fn state() -> Vec<u32> {
     state
 }
 
+fn multiply_state() -> Vec<u32> {
+    let mut state = surface_create(9, TARGET); state.extend(framebuffer(9));
+    let mut vertex = shader_create(11, 0, MATRIX_VERT); vertex[4] = 24; state.extend(vertex);
+    state.extend(shader_create(12, 1, TEXTURED_MULTIPLY_FRAG)); state.extend(shader_bind(11, 0)); state.extend(shader_bind(12, 1));
+    state.extend(virgl_source_over_state(13)); state.extend(virgl_viewport_scissor_state(14)); state.extend(textured_vertex_state());
+    state.extend([vec![word(1, 7, 9), 17, 0x1092, 0, 0, 0, 0, 0, 0, 0], vec![word(1, 7, 9), 19, 0x1092, 0, 0, 0, 0, 0, 0, 0], vec![word(1, 6, 6), 18, TEXTURE, 1, 0, 0, 0x688], vec![word(1, 6, 6), 20, RIGHT_TEXTURE, 1, 0, 0, 0x688], vec![word(10, 0, 4), 1, 0, 18, 20], vec![word(18, 0, 4), 1, 0, 17, 19]].concat()); state
+}
+
 fn matrix(values: [f32; 16]) -> Vec<u32> {
     let mut words = vec![word(12, 0, 18), 0, 0]; words.extend(values.map(f32::to_bits)); words
+}
+
+fn attach_right_texture(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {
+    let mut create = header(CMD_RESOURCE_CREATE_3D); for value in [RIGHT_TEXTURE, 2, 1, 1 << 3, 2, 2, 1, 1, 0, 0, 0, 0] { push_u32(&mut create, value); }
+    assert_response(gpu, mem, &create, RESP_OK_NODATA);
+    let mut attach = header(CMD_CTX_ATTACH_RESOURCE); for value in [RIGHT_TEXTURE, 0] { push_u32(&mut attach, value); }
+    assert_response(gpu, mem, &attach, RESP_OK_NODATA);
 }

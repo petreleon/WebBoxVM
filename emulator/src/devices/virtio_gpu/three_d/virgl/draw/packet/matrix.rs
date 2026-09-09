@@ -51,3 +51,23 @@ pub(super) fn texture(
     packet.extend_from_slice(&texture.bgra);
     packet
 }
+
+pub(super) fn texture_pair(
+    sequence: u32,
+    width: u32,
+    height: u32,
+    clear: [f32; 4],
+    work: &DrawWork,
+    matrix: &GpuMatrix,
+    textures: &[super::super::TextureSnapshot; 2],
+) -> Vec<u8> {
+    let mut packet = super::header(18, sequence, width, height, work.vertex_count);
+    super::floats(&mut packet, clear.into_iter().chain([0.0; 4]));
+    super::floats(&mut packet, matrix.rows.into_iter());
+    packet.extend_from_slice(&matrix.raw_vertices);
+    super::state(&mut packet, work);
+    for texture in textures { packet.extend_from_slice(&texture.sampler.wire().to_le_bytes()); }
+    for texture in textures { for value in [texture.width, texture.height] { packet.extend_from_slice(&value.to_le_bytes()); } }
+    for texture in textures { packet.extend_from_slice(&texture.bgra); }
+    packet
+}

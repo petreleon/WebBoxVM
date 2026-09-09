@@ -107,9 +107,8 @@ fn textured_pair(
     work: &DrawWork,
     textures: &[super::TextureSnapshot; 2],
 ) -> Vec<u8> {
-    let extended = textures
-        .iter()
-        .any(|texture| texture.sampler != SamplerConfig::CLAMP_NEAREST);
+    if work.depth_state.is_none() && let Some(matrix) = &work.gpu_matrix { return matrix::texture_pair(sequence, width, height, clear, work, matrix, textures); }
+    let extended = textures.iter().any(|texture| texture.sampler != SamplerConfig::CLAMP_NEAREST);
     let mut packet = header(
         if extended { 6 } else { 4 }, sequence, width, height, work.vertex_count,
     );
