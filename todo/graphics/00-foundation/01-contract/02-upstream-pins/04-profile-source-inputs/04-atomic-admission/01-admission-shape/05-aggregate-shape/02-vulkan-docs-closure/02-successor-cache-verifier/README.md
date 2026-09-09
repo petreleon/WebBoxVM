@@ -33,3 +33,13 @@ a reusable closure marker only after every ordered member and derived output reh
 
 - A partial member cache is never a closure cache hit, and no active inventory input can be reinterpreted.
 - This child supplies only isolated cache evidence; it cannot admit Docs or change guest/browser behavior.
+
+## Cache boundary
+
+- The caller supplies an absolute cache root with no symlinked component, outside the real WebBoxVM repository. Member, marker,
+  and lock traversal is descriptor-anchored with no-follow opens; every cache hit rehashes every declared member
+  and exactly compares the full self-hashed marker before returning a receipt.
+- A per-closure advisory lock coordinates participating verifier processes while staging and publishing. The caller
+  is responsible for an operationally private external cache namespace: a non-cooperating actor with write access
+  under the same UID can always replace cache files after any verifier's final rehash. A receipt therefore denotes
+  the verified cache snapshot before return; a later verification observes and rejects a changed digest or marker.
