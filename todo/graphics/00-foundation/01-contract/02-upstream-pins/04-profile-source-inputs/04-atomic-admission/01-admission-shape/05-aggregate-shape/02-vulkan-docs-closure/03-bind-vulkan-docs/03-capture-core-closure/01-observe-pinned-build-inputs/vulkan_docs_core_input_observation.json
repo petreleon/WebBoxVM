@@ -1,0 +1,61 @@
+{
+  "build_witness_sha256": "8cfab6fe4527f3973d7d7923ffe0922ab689fc2daf2f6e955ff7603fc8ba78d6",
+  "contract": "vulkan-docs-core-input-observation-v1",
+  "observation_sha256": "dbd75e819e3021e28e2bdb85eeccd675a688ffdb6692fddcd8ff58a221363554",
+  "observer_source_sha256": "7d19442b14697280050efae4f291fc1ac272ae24c703e496262089dfb3bfaa95",
+  "profile": "vulkan-1.4-core",
+  "required_input_id": "vulkan-14-spec",
+  "role": "api-limit-format-spec",
+  "runs": [
+    {
+      "artifact": "runs/observer-a-r5",
+      "derived_count": 1462,
+      "generated_tree_sha256": "26e8e484d34222d9ba8a72c883ff8bb65a4e5194f399c24aa9bd5d7e47c49f32",
+      "id": "observer-a",
+      "include_count": 1973,
+      "include_identity_sha256": "d77dcc342ef342fa516092f4034d19ef589acaf04ebd57020182efb3a9af79a9",
+      "include_trace_sha256": "9bdd4e1a79ffc224832ec58763034dcf87e9660af7652fda5193891c226ec024",
+      "input_manifest_sha256": "1896b1a211ecf82ff8b7826718ed797083fa80f41eba0a985376cef124b3056c",
+      "io_trace_sha256": "f263e0aa51baaafce451dd27ebad3f9ab387cdfa5aa14264090744f02342e13a",
+      "phase_counts": {
+        "asciidoctor": 1646,
+        "asset-copy": 81,
+        "generator": 28,
+        "make-control": 1,
+        "postprocess": 3,
+        "producer": 8
+      },
+      "primary_html_sha256": "896452d3a3e4887ba1bad81a6b9b91e9b3b324e1fffbb9e1dec889d0b06ac041",
+      "producer_argv_sha256": "9a985b9e36cdf53e7baa0a3b30c9df41d33d8feb04f8f08904532a807b4dbf3c",
+      "raw_count": 298,
+      "run_sha256": "4fdd14f649aaa2e346bd5e0d1d2f77248f4c5b0dab1ce596101872520f7f48f8",
+      "source_tree_sha256": "99cfd3132413891764f98f246567d0ce0344f2f0bb5499bfbc7fc47646fa122b"
+    },
+    {
+      "artifact": "runs/observer-b-r1",
+      "derived_count": 1462,
+      "generated_tree_sha256": "26e8e484d34222d9ba8a72c883ff8bb65a4e5194f399c24aa9bd5d7e47c49f32",
+      "id": "observer-b",
+      "include_count": 1973,
+      "include_identity_sha256": "d77dcc342ef342fa516092f4034d19ef589acaf04ebd57020182efb3a9af79a9",
+      "include_trace_sha256": "9bdd4e1a79ffc224832ec58763034dcf87e9660af7652fda5193891c226ec024",
+      "input_manifest_sha256": "1896b1a211ecf82ff8b7826718ed797083fa80f41eba0a985376cef124b3056c",
+      "io_trace_sha256": "62335512b79c31a93fa822223ed6524d3abfb7a0eb48db1be8696ce840dc91e0",
+      "phase_counts": {
+        "asciidoctor": 1646,
+        "asset-copy": 81,
+        "generator": 28,
+        "make-control": 1,
+        "postprocess": 3,
+        "producer": 8
+      },
+      "primary_html_sha256": "896452d3a3e4887ba1bad81a6b9b91e9b3b324e1fffbb9e1dec889d0b06ac041",
+      "producer_argv_sha256": "9a985b9e36cdf53e7baa0a3b30c9df41d33d8feb04f8f08904532a807b4dbf3c",
+      "raw_count": 298,
+      "run_sha256": "dd122cc5199e23aff8a26e6bd8101de61dd562a722fdb750235aa5abc77e7fe0",
+      "source_tree_sha256": "99cfd3132413891764f98f246567d0ce0344f2f0bb5499bfbc7fc47646fa122b"
+    }
+  ],
+  "schema": 1,
+  "status": "input-observation-only-unadmitted"
+}
