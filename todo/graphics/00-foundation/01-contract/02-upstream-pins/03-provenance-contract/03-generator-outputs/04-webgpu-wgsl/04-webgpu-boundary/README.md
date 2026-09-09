@@ -12,21 +12,22 @@ Prerequisite lists: [F02.1](../../../../01-input-inventory/README.md),
 
 ## Outcome
 
-WebGPU reference documents remain ineligible as generator inputs until an independently reviewed,
-immutable WebGPU source definition is available; no fixture or runtime claim fills that gap.
+WebGPU reference documents remain ineligible as generator inputs until a reviewed, immutable,
+machine-readable WebGPU input is available; no fixture or runtime claim fills that gap.
 
 ## Starting points
 
 - [current immutable inventory](../../../../01-input-inventory/manifest.toml)
 - [F02.3.1 validator](../../../01-provenance-record/README.md)
 - [GPUWeb license at the current pin](https://github.com/gpuweb/gpuweb/blob/e0aff163a37eb3633ffd612e2a943ceb6196d6af/LICENSE.md)
+- [WebGPU generator-source audit](../../../../../../../../../research/webgpu-generator-source-audit.md)
 
 ## Checklist
 
-- [ ] Audit the inventory for a WebGPU source definition distinct from `webgpu-spec`.
-- [ ] Reject `webgpu-spec`, `wgsl-spec`, and any WGSL grammar input as a WebGPU generator input.
-- [ ] Record absence of an eligible source as a blocker rather than inventing an API record.
-- [ ] Preserve all WebGPU reference material outside generated code and upstream payloads.
+- [ ] [F02.3.3.4.4.1 — Admit a reviewed WebGPU WebIDL source](01-webidl-source-admission/README.md)
+- [ ] [F02.3.3.4.4.2 — Renew records after the WebIDL inventory change](02-lock-record-renewal/README.md)
+- [ ] [F02.3.3.4.4.3 — Bind a WebGPU WebIDL generator record](03-webidl-generator-record/README.md)
+- [ ] [F02.3.3.4.4.4 — Close the WebGPU generator-input boundary](04-boundary-closure/README.md)
 
 ## Verification
 
@@ -39,3 +40,12 @@ immutable WebGPU source definition is available; no fixture or runtime claim fil
 only while no input has the exact `future WebGPU generator input` designation, and it rejects every
 WGSL-derived input—including the accepted grammar—as a WebGPU generator input. Run the hermetic
 suite with `PYTHONDONTWRITEBYTECODE=1 python3 webgpu_generator_boundary_test.py` from this folder.
+
+## Split rationale
+
+The original blocked boundary became actionable only after a separate source-definition audit found
+an immutable GPUWeb WebIDL artifact that Dawn consumes through a real generator. Admission changes
+the shared inventory and its canonical lock; all existing lock-bound records must then renew before
+a new WebIDL fixture can be honest. The final boundary check is intentionally separate so a source
+pin, record renewal, or provenance marker cannot be mistaken for a browser API, guest renderer, or
+compatibility result.
