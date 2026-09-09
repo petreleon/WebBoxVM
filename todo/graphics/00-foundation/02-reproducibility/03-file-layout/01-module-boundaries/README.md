@@ -4,7 +4,7 @@
 
 Task: F06.1
 Depends: F01
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F01](../../../01-contract/01-baseline/README.md).
 
@@ -21,15 +21,15 @@ The graphics implementation has explicit public ownership boundaries before feat
 
 ## Checklist
 
-- [ ] Define distinct protocol, shared-runtime, shader frontend/backend, browser platform, guest,
+- [x] Define distinct protocol, shared-runtime, shader frontend/backend, browser platform, guest,
   and test-fixture ownership roots with allowed dependency directions.
-- [ ] Map each existing bounded VirGL/Venus preparation seam to an owner without treating it as a
+- [x] Map each existing bounded VirGL/Venus preparation seam to an owner without treating it as a
   completed Mesa, Venus, or performance layer.
-- [ ] Define a small public boundary per root and tests that may cross it; prohibit generated
+- [x] Define a small public boundary per root and tests that may cross it; prohibit generated
   protocol output from silently becoming a hand-maintained public API.
-- [ ] Preserve `ExperimentalWebGpu3dRenderer` as a small facade while splitting its current
+- [x] Preserve `ExperimentalWebGpu3dRenderer` as a small facade while splitting its current
   dispatch/lifecycle responsibility into the defined browser-platform roots, with focused tests.
-- [ ] Record the reviewed boundary map and a search-based check that each proposed root exists or
+- [x] Record the reviewed boundary map and a search-based check that each proposed root exists or
   has an explicitly deferred creation task.
 
 ## Verification
