@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.4.2
 Depends: F02.3.3.4.4.1, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [WebIDL source admission](../01-webidl-source-admission/README.md),
 [provenance contract](../../../../01-provenance-record/README.md), and
@@ -25,10 +25,10 @@ a WebGPU feature.
 
 ## Checklist
 
-- [ ] Enumerate every committed F02.3 and F06 consumer of the inventory-lock identity.
-- [ ] Renew only the derived lock identity and required reproducibility output bytes.
-- [ ] Prove every renewed record rejects the previous lock and preserves non-derived fields.
-- [ ] Re-run the relevant provenance, reproducibility, inventory, and source-limit suites locally.
+- [x] Enumerate every committed F02.3 and F06 consumer of the inventory-lock identity.
+- [x] Renew only the derived lock identity and required reproducibility output bytes.
+- [x] Prove every renewed record rejects the previous lock and preserves non-derived fields.
+- [x] Re-run the relevant provenance, reproducibility, inventory, and source-limit suites locally.
 
 ## Verification
 
