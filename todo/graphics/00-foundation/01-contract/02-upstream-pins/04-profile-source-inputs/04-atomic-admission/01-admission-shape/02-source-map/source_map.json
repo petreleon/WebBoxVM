@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "shapes": [
+    {
+      "profile": "opengl-4.6-core",
+      "role": "api-limit-format-spec",
+      "required_input_id": "opengl-46-core-spec",
+      "shape": "complete-single-source",
+      "state": "candidate-accepted",
+      "root_sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee",
+      "root_selector": "specs/gl/glspec46.core.pdf"
+    },
+    {
+      "profile": "opengl-4.6-core",
+      "role": "conformance-manifest",
+      "required_input_id": "opengl-cts-manifest",
+      "shape": "complete-single-source",
+      "state": "candidate-accepted",
+      "root_sha256": "e28bbbbfd0f6c8d711554a01aa45819bdc7ca963c9426e997dfd1daaeb1d7b17",
+      "root_selector": "external/openglcts/data/gl_cts/data/mustpass/gl/khronos_mustpass/4.6.1.x/gl46-main.txt"
+    },
+    {
+      "profile": "gles-3.2",
+      "role": "api-limit-format-spec",
+      "required_input_id": "gles-32-spec",
+      "shape": "complete-single-source",
+      "state": "candidate-accepted",
+      "root_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c",
+      "root_selector": "specs/es/3.2/es_spec_3.2.pdf"
+    },
+    {
+      "profile": "gles-3.2",
+      "role": "conformance-manifest",
+      "required_input_id": "gles-cts-manifest",
+      "shape": "bounded-unadmitted-closure",
+      "state": "unadmitted",
+      "root_sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+      "root_selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/mustpass.xml",
+      "core_members": [
+        {"id": "gles-cts-gles2-khr-main", "sha256": "aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2", "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt"},
+        {"id": "gles-cts-gles3-khr-main", "sha256": "c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72", "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt"},
+        {"id": "gles-cts-gles31-khr-main", "sha256": "9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e", "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt"},
+        {"id": "gles-cts-gles32-khr-main", "sha256": "426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249", "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt"}
+      ],
+      "excluded_members": [
+        {"id": "gles-cts-gles32-khr-glesext", "sha256": "789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6", "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-glesext.txt"}
+      ],
+      "configuration_sha256": "ed27d6d675494a4773bb55533dc0d2916d1486d49450d3feb94743e38727a64e",
+      "core_configuration_count": 12,
+      "core_case_count": 12477,
+      "core_case_configuration_runs": 30574,
+      "excluded_configuration_count": 1,
+      "blocker": "requires-multifile-core-selector-closure"
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "api-limit-format-spec",
+      "required_input_id": "vulkan-14-spec",
+      "shape": "unresolved-root",
+      "state": "unadmitted",
+      "root_sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+      "root_selector": "vkspec.adoc",
+      "blocker": "vulkan-docs-core-generated-closure-unadmitted",
+      "observation": {
+        "kind": "direct-include-transcript",
+        "count": 73,
+        "sha256": "b35c3b8907a3338e688f31bfffd98c174858d31b95d88607046a07314f6e964b",
+        "boundary": "generated-attributes-transitive-closure-and-core-scope-configuration",
+        "examples": ["include::{generated}/specattribs.adoc[]", "include::{chapters}/VK_KHR_surface/wsi.adoc[]", "include::{chapters}/extensions.adoc[]"]
+      }
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "conformance-manifest",
+      "required_input_id": "vulkan-cts-mustpass",
+      "shape": "unresolved-root",
+      "state": "unadmitted",
+      "root_sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+      "root_selector": "external/vulkancts/mustpass/main/vk-default.txt",
+      "blocker": "vcts-vk-default-compound-oversize-core-scope-unadmitted",
+      "observation": {
+        "kind": "direct-reference-transcript",
+        "count": 98,
+        "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+        "boundary": "broader-upstream-default-includes-wsi-and-extension-groups",
+        "examples": ["vk-default/wsi.txt", "vk-default/video.txt", "vk-default/ray-query.txt", "vk-default/cooperative-vector.txt", "vk-default/data-graph.txt", "vk-default/tensor.txt"]
+      }
+    }
+  ]
+}

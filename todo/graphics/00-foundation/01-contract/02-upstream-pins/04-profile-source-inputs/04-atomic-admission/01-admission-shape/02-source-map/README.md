@@ -20,6 +20,9 @@ unproven members.
 - [candidate catalog](../../../candidate_catalog.py)
 - [OpenGL audit](../../../01-opengl-input-audit/README.md)
 - [GLES closure probe](../01-gles-closure-probe/README.md)
+- [six-source map](source_map.json)
+- [map contract](source_map_contract.py)
+- [map tests](source_map_test.py)
 
 ## Checklist
 
@@ -31,5 +34,6 @@ unproven members.
 
 ## Verification
 
+- `PYTHONDONTWRITEBYTECODE=1 python3 source_map_test.py` must report eight passing tests.
 - The map has no implicit identity, mutable upstream reference, or inventory-entry result.
 - A mapping proves only source-shape provenance; it does not satisfy F03 or run any graphics workload.
