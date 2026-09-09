@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "manifest_sha256": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "inputs": [{"id": "linux-virtio-gpu-uapi", "sha256": "7c9e2f7d47fa0b1a2c737fc5a741f57c5cf25303dd5c68c2c9738e9bb761eee6", "license": "BSD-3-Clause (pinned file's explicit BSD notice)"}],
+  "command": "manual bounded virtio-gpu UAPI adapter review against Linux UAPI; no generator",
+  "generator": {"name": "none", "version": "none"},
+  "artifact_kind": "handwritten",
+  "artifact_path": "guest/virgl-clear-demo/uapi.h",
+  "output_sha256": "0f580565fd03864bbe22e2c9669daffda9d19e5dbd5b2e76f02ad68ebd3c8120"
+}

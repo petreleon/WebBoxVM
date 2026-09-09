@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "manifest_sha256": "8f81ece8dc895698f2715493c927b3f5ad10f24a9f20f1b48d82405a4a9a288e",
+  "inputs": [{"id": "virglrenderer-protocol", "sha256": "094a6e2b210f1d3dd0f1ac254ed8820c1d889e57d2735c0c6194dbc94f3b1ac7", "license": "MIT (file notice)"}],
+  "command": "manual VirGL capset adapter review against virglrenderer protocol; no generator",
+  "generator": {"name": "none", "version": "none"},
+  "artifact_kind": "handwritten",
+  "artifact_path": "emulator/src/devices/virtio_gpu/three_d/capset.rs",
+  "output_sha256": "3b40ebef512ce33c8f53c0bd9cf815596e95f9c07204abe151460ebee71eacfb"
+}

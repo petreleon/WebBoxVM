@@ -4,7 +4,7 @@
 
 Task: F02.3.2
 Depends: F02.1, F02.2, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.3.1](../01-provenance-record/README.md) and
 [F02.2](../../02-fetch-verifier/README.md).
@@ -22,10 +22,10 @@ ABI-adjacent fixtures and maintained adapters declare their reviewed upstream in
 
 ## Checklist
 
-- [ ] Inventory current ABI-facing headers, fixtures, and adapters that need a provenance record.
-- [ ] Bind each record to exact verified Linux, VirGL, virglrenderer, or Venus inputs as applicable.
-- [ ] Mark copied upstream bytes separately from maintained hand-written protocol adapters.
-- [ ] Add a focused check that every selected ABI record resolves through F02.3.1's validator.
+- [x] Inventory current ABI-facing headers, fixtures, and adapters that need a provenance record.
+- [x] Bind each record to exact verified Linux, VirGL, virglrenderer, or Venus inputs as applicable.
+- [x] Mark copied upstream bytes separately from maintained hand-written protocol adapters.
+- [x] Add a focused check that every selected ABI record resolves through F02.3.1's validator.
 
 ## Verification
 
