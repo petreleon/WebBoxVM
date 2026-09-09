@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
 from provenance_record import ProvenanceError, validate_record
+from inventory_layout import render_v2_lock
 
 HERE = Path(__file__).resolve().parent
 MANIFEST = HERE.parents[1] / "01-input-inventory" / "manifest.toml"
@@ -33,9 +35,16 @@ def sample() -> dict[str, object]:
     }
 
 
+def v2_sample(revision: str) -> dict[str, object]:
+    record = sample()
+    record["schema"], record["inventory_sha256"] = 2, revision
+    del record["manifest_sha256"]
+    return record
+
+
 class ProvenanceRecordTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.temporary = tempfile.TemporaryDirectory()
+        self.temporary = tempfile.TemporaryDirectory(dir=HERE)
         self.record_path = Path(self.temporary.name) / "record.json"
 
     def tearDown(self) -> None:
@@ -44,10 +53,24 @@ class ProvenanceRecordTests(unittest.TestCase):
     def write(self, record: object) -> None:
         self.record_path.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
 
-    def reject(self, record: object, message: str) -> None:
+    def reject(self, record: object, message: str, manifest: Path = MANIFEST) -> None:
         self.write(record)
         with self.assertRaisesRegex(ProvenanceError, message):
-            validate_record(self.record_path, MANIFEST)
+            validate_record(self.record_path, manifest)
+
+    def v2_layout(self) -> tuple[Path, Path]:
+        root = self.record_path.parent / "v2"
+        root.mkdir()
+        header, entries = MANIFEST.read_text(encoding="utf-8").split("[[inputs]]", 1)
+        manifest = root / "manifest.toml"
+        manifest.write_text(header.replace("schema = 1", "schema = 2", 1)
+                            + 'input_files = ["inputs/part-0001.toml"]\n', encoding="utf-8")
+        part = root / "inputs/part-0001.toml"
+        part.parent.mkdir()
+        part.write_text("[[inputs]]" + entries, encoding="utf-8")
+        lock = root / "inventory.lock"
+        lock.write_bytes(render_v2_lock(manifest))
+        return manifest, lock
 
     def test_valid_handwritten_record_binds_manifest_identity(self) -> None:
         record = sample()
@@ -118,6 +141,22 @@ class ProvenanceRecordTests(unittest.TestCase):
         self.record_path.write_text("{", encoding="utf-8")
         with self.assertRaisesRegex(ProvenanceError, "record cannot be read"):
             validate_record(self.record_path, MANIFEST)
+
+    def test_v2_records_bind_the_lock_and_reject_legacy_or_stale_state(self) -> None:
+        manifest, lock = self.v2_layout()
+        record = v2_sample(hashlib.sha256(lock.read_bytes()).hexdigest())
+        self.write(record)
+        self.assertEqual(validate_record(self.record_path, manifest)["inventory_sha256"], record["inventory_sha256"])
+        self.reject(v2_sample(MANIFEST_SHA256), "stale inventory", manifest)
+        legacy = v2_sample(record["inventory_sha256"])
+        legacy["manifest_sha256"] = MANIFEST_SHA256
+        self.reject(legacy, "schema version 2", manifest)
+        self.reject(sample(), "does not match inventory", manifest)
+        unknown = v2_sample(record["inventory_sha256"])
+        unknown["inputs"][0]["id"] = "undeclared-component-input"
+        self.reject(unknown, "unknown", manifest)
+        lock.write_bytes(lock.read_bytes() + b"# stale\n")
+        self.reject(record, "inventory.lock", manifest)
 
 
 if __name__ == "__main__":

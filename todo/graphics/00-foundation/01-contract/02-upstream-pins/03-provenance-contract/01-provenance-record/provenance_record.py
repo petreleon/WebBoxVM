@@ -2,22 +2,23 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
-import tomllib
+import sys
 from pathlib import Path, PurePosixPath
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1] / "01-input-inventory"))
+
+from inventory_layout import InventoryLayoutError, load_inventory  # noqa: E402
+
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
-RECORD_FIELDS = frozenset((
+V1_RECORD_FIELDS = frozenset((
     "schema", "manifest_sha256", "inputs", "command", "generator", "artifact_kind",
     "artifact_path", "output_sha256",
 ))
-MANIFEST_FIELDS = frozenset(("schema", "cache_root", "cache_note", "required_families", "inputs"))
-MANIFEST_INPUT_FIELDS = frozenset((
-    "id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license",
-    "local_cache", "generated_code_role", "provenance",
-))
+V2_RECORD_FIELDS = V1_RECORD_FIELDS - {"manifest_sha256"} | {"inventory_sha256"}
+RECORD_FIELDS = {1: V1_RECORD_FIELDS, 2: V2_RECORD_FIELDS}
 INPUT_FIELDS = frozenset(("id", "sha256", "license"))
 GENERATOR_FIELDS = frozenset(("name", "version"))
 KINDS = frozenset(("handwritten", "copied-upstream", "generated"))
@@ -44,35 +45,20 @@ def digest(value: object, field: str) -> str:
     return value
 
 
-def manifest_inputs(path: Path) -> tuple[str, dict[str, tuple[str, str]]]:
+def inventory_inputs(path: Path) -> tuple[int, str, dict[str, tuple[str, str]]]:
     try:
-        raw = path.read_bytes()
-        document = tomllib.loads(raw.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
-        reject(f"manifest cannot be read: {error}")
-    if (not isinstance(document, dict) or set(document) != MANIFEST_FIELDS
-            or type(document.get("schema")) is not int or document["schema"] != 1):
-        reject("manifest does not match F02.1 schema version 1")
-    families = document["required_families"]
-    if (document["cache_root"] != "$XDG_CACHE_HOME" or not isinstance(document["cache_note"], str)
-            or not document["cache_note"] or not isinstance(families, list) or not families
-            or any(not isinstance(family, str) or not family for family in families)
-            or len(set(families)) != len(families)):
-        reject("manifest does not declare the F02.1 external-cache contract")
-    entries = document["inputs"]
-    if not isinstance(entries, list) or not entries:
-        reject("manifest has no declared inputs")
+        inventory = load_inventory(path, allow_v1=True)
+    except InventoryLayoutError as error:
+        reject(f"inventory cannot be loaded: {error}")
     identities: dict[str, tuple[str, str]] = {}
-    for entry in entries:
-        if not isinstance(entry, dict) or set(entry) != MANIFEST_INPUT_FIELDS:
-            reject("manifest input does not match F02.1 schema")
+    for entry in inventory.inputs:
         identifier = string(entry.get("id"), "manifest input id")
         identity = (digest(entry.get("sha256"), f"manifest input {identifier} sha256"),
                     string(entry.get("license"), f"manifest input {identifier} license"))
         if identifier in identities:
             reject(f"manifest has duplicate input {identifier}")
         identities[identifier] = identity
-    return hashlib.sha256(raw).hexdigest(), identities
+    return inventory.schema, inventory.revision, identities
 
 
 def load_record(path: Path) -> dict[str, object]:
@@ -80,9 +66,11 @@ def load_record(path: Path) -> dict[str, object]:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         reject(f"record cannot be read: {error}")
-    if (not isinstance(value, dict) or set(value) != RECORD_FIELDS
-            or type(value.get("schema")) is not int or value["schema"] != 1):
-        reject("record does not match provenance schema version 1")
+    schema = value.get("schema") if isinstance(value, dict) else None
+    if type(schema) is not int or schema not in RECORD_FIELDS:
+        reject("record does not match provenance schema version 1 or 2")
+    if set(value) != RECORD_FIELDS[schema]:
+        reject(f"record does not match provenance schema version {schema}")
     return value
 
 
@@ -95,9 +83,12 @@ def safe_artifact_path(value: object) -> str:
 
 def validate_record(record_path: Path, manifest_path: Path) -> dict[str, object]:
     record = load_record(record_path)
-    revision, identities = manifest_inputs(manifest_path)
-    if digest(record["manifest_sha256"], "manifest_sha256") != revision:
-        reject("record has a stale manifest_sha256")
+    inventory_schema, revision, identities = inventory_inputs(manifest_path)
+    if record["schema"] != inventory_schema:
+        reject("record schema version does not match inventory schema")
+    revision_field = "manifest_sha256" if inventory_schema == 1 else "inventory_sha256"
+    if digest(record[revision_field], revision_field) != revision:
+        reject(f"record has a stale {revision_field}")
     kind = string(record["artifact_kind"], "artifact_kind")
     if kind not in KINDS:
         reject("artifact_kind is unknown")

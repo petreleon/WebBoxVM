@@ -5,14 +5,13 @@ from __future__ import annotations
 
 import argparse
 import sys
-import tomllib
 from pathlib import Path
 
-INPUT_FIELDS = frozenset((
-    "id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license",
-    "local_cache", "generated_code_role", "provenance",
-))
-MANIFEST_FIELDS = frozenset(("schema", "cache_root", "cache_note", "required_families", "inputs"))
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[3] / "01-input-inventory"))
+
+from inventory_layout import InventoryLayoutError, load_inventory as load_layout  # noqa: E402
+
 WEBGPU_GENERATOR_ROLE = "future WebGPU generator input"
 
 
@@ -32,22 +31,11 @@ def text(value: object, field: str) -> str:
 
 def load_inventory(path: Path) -> dict[str, dict[str, object]]:
     try:
-        document = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
-        reject(f"manifest cannot be read: {error}")
-    if (not isinstance(document, dict) or set(document) != MANIFEST_FIELDS
-            or type(document.get("schema")) is not int or document["schema"] != 1):
-        reject("manifest does not match the F02.1 schema version")
-    if (document["cache_root"] != "$XDG_CACHE_HOME"
-            or not isinstance(document["cache_note"], str) or not document["cache_note"]):
-        reject("manifest does not retain the F02.1 external-cache contract")
-    entries = document["inputs"]
-    if not isinstance(entries, list) or not entries:
-        reject("manifest has no input inventory")
+        layout = load_layout(path, allow_v1=True)
+    except InventoryLayoutError as error:
+        reject(f"inventory cannot be loaded: {error}")
     inventory: dict[str, dict[str, object]] = {}
-    for entry in entries:
-        if not isinstance(entry, dict) or set(entry) != INPUT_FIELDS:
-            reject("manifest input does not match the F02.1 schema")
+    for entry in layout.inputs:
         identifier = text(entry["id"], "input id")
         text(entry["source_family"], f"input {identifier} source_family")
         text(entry["generated_code_role"], f"input {identifier} generated_code_role")

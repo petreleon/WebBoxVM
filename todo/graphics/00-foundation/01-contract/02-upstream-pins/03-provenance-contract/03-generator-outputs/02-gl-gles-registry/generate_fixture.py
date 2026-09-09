@@ -5,8 +5,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import tomllib
+import sys
 from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[2] / "01-input-inventory"))
+
+from inventory_layout import InventoryLayoutError, load_inventory  # noqa: E402
 
 INPUT_ID = "opengl-gles-registry"
 GENERATOR = {"name": "f02-gl-gles-fixture", "version": "1"}
@@ -14,8 +19,11 @@ NOTICE = "Fixture-only provenance output; no upstream registry bytes or runtime 
 
 
 def registry_input(manifest_path: Path) -> dict[str, object]:
-    document = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
-    matches = [entry for entry in document.get("inputs", []) if entry.get("id") == INPUT_ID]
+    try:
+        inventory = load_inventory(manifest_path, allow_v1=True)
+    except InventoryLayoutError as error:
+        raise ValueError(f"inventory cannot be loaded: {error}") from error
+    matches = [entry for entry in inventory.inputs if entry.get("id") == INPUT_ID]
     if len(matches) != 1:
         raise ValueError(f"manifest must contain exactly one {INPUT_ID} input")
     entry = matches[0]
