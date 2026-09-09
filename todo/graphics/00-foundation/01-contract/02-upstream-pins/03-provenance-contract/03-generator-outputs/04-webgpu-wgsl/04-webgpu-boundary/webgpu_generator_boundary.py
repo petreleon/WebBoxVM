@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Fail closed while F02.1 lacks an explicit WebGPU generator input."""
+"""Accept only the reviewed WebGPU WebIDL provenance input."""
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -12,11 +13,23 @@ sys.path.insert(0, str(HERE.parents[3] / "01-input-inventory"))
 
 from inventory_layout import InventoryLayoutError, load_inventory as load_layout  # noqa: E402
 
-WEBGPU_GENERATOR_ROLE = "future WebGPU generator input"
+
+def load_reviewed_webidl_identity() -> tuple[str, dict[str, object]]:
+    """Load the sibling marker under a name no other task can preempt."""
+    marker = HERE / "03-webidl-generator-record" / "validate_fixture.py"
+    spec = importlib.util.spec_from_file_location("f02_webgpu_webidl_marker", marker)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load reviewed WebIDL marker: {marker}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.INPUT_ID, module.SOURCE
+
+
+INPUT_ID, REVIEWED_WEBGPU_IDL = load_reviewed_webidl_identity()
 
 
 class BoundaryError(ValueError):
-    """The inventory cannot support a WebGPU generator record yet."""
+    """The inventory does not identify exactly the reviewed WebIDL input."""
 
 
 def reject(message: str) -> None:
@@ -45,38 +58,22 @@ def load_inventory(path: Path) -> dict[str, dict[str, object]]:
     return inventory
 
 
-def validate_webgpu_generator_input(inventory: dict[str, dict[str, object]], identifier: str) -> None:
+def validate_webgpu_generator_input(
+    inventory: dict[str, dict[str, object]], identifier: str,
+) -> dict[str, object]:
+    if identifier != INPUT_ID:
+        reject(f"input {identifier} is not the reviewed WebGPU WebIDL generator input")
     entry = inventory.get(identifier)
     if entry is None:
         reject(f"input {identifier} is not in the immutable inventory")
-    family = entry["source_family"]
-    role = entry["generated_code_role"]
-    if family in ("wgsl", "wgsl-grammar"):
-        reject(f"input {identifier} is WGSL-derived and cannot be a WebGPU generator input")
-    if family != "webgpu":
-        reject(f"input {identifier} is not a WebGPU source definition")
-    if role != WEBGPU_GENERATOR_ROLE:
-        reject(f"input {identifier} is reference-only or lacks the WebGPU generator designation")
+    for field, expected in REVIEWED_WEBGPU_IDL.items():
+        if entry.get(field) != expected:
+            reject(f"input {INPUT_ID} has unexpected {field}")
+    return entry
 
 
-def audit_blocker(path: Path) -> tuple[str, ...]:
-    inventory = load_inventory(path)
-    reasons = []
-    for identifier in ("webgpu-spec", "wgsl-spec"):
-        try:
-            validate_webgpu_generator_input(inventory, identifier)
-        except BoundaryError as error:
-            reasons.append(str(error))
-        else:
-            reject(f"input {identifier} unexpectedly cleared the WebGPU boundary")
-    eligible = [
-        identifier for identifier, entry in inventory.items()
-        if entry["source_family"] == "webgpu"
-        and entry["generated_code_role"] == WEBGPU_GENERATOR_ROLE
-    ]
-    if eligible:
-        reject("inventory now has an eligible WebGPU generator input: " + ", ".join(sorted(eligible)))
-    return tuple(reasons)
+def audit_boundary(path: Path) -> dict[str, object]:
+    return validate_webgpu_generator_input(load_inventory(path), INPUT_ID)
 
 
 def main() -> None:
@@ -84,9 +81,8 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path, required=True)
     args = parser.parse_args()
     try:
-        for reason in audit_blocker(args.manifest):
-            print(f"BLOCKED: {reason}")
-        print("BLOCKED: no explicit WebGPU generator input is present")
+        audit_boundary(args.manifest)
+        print("PASS: reviewed WebGPU WebIDL generator input is valid")
     except BoundaryError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(2)
