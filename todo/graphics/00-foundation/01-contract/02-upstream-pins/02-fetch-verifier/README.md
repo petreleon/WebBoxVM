@@ -20,13 +20,9 @@ A clean cache can fetch each pinned input, verify its bytes, and fail closed on 
 
 ## Checklist
 
-- [ ] Implement a small standard-library fetch/hash verifier with an explicit external cache root;
-  it must never vendor downloads into maintained source.
-- [ ] Add isolated fixtures for successful fetches, wrong SHA-256, wrong revision metadata, and
-  unavailable input, with stable non-network test inputs.
-- [ ] Run a fresh temporary-cache fetch of every manifest entry and record exact command output,
-  cache paths, checksums, and licenses in its receipt.
-- [ ] Keep verifier, fixtures, and generated reports modular and at most 180 physical lines each.
+- [ ] [F02.2.1 — Define the fail-closed fetch and cache contract](01-fetch-contract/README.md)
+- [ ] [F02.2.2 — Prove verifier behavior with isolated fixtures](02-hermetic-fixtures/README.md)
+- [ ] [F02.2.3 — Verify the live immutable inventory](03-live-inventory/README.md)
 
 ## Verification
 
