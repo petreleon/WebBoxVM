@@ -4,7 +4,7 @@
 
 Task: F01
 Depends: none
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,13 +19,13 @@ A new worker can distinguish committed support, local edits, old claims, and fre
 
 ## Checklist
 
-- [ ] Record git revision, dirty paths, current capsets and implemented feature limits in a short
+- [x] Record git revision, dirty paths, current capsets and implemented feature limits in a short
   baseline receipt; preserve unrelated edits.
-- [ ] Run the existing graphics suites and capture the first failing subcheck, including current
+- [x] Run the existing graphics suites and capture the first failing subcheck, including current
   matrix-texture work; reconcile stale prose against output.
-- [ ] Record toolchain versions, available disk hashes and unavailable prerequisites; do not label
+- [x] Record toolchain versions, available disk hashes and unavailable prerequisites; do not label
   old results as rerun.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [x] Run the verification below, review the result, and attach the completed evidence receipt.
 
 ## Verification
 

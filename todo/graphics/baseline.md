@@ -2,15 +2,16 @@
 
 [Roadmap](README.md) · [Primary sources](sources.md)
 
-Read-only inspection date: 2026-09-09. HEAD was `1354ed2` on `main`, with existing
-uncommitted matrix/two-texture work and associated documentation/tests. F01 must
-refresh this snapshot; the roadmap creation did not validate that graphics change.
+The initial planning snapshot named `1354ed2` with uncommitted matrix/two-texture
+work. F01 refreshed it on 2026-09-09 at clean `1026812` (`dd84070` is its bounded
+v18 matrix/two-texture ancestor); that older snapshot is historical, not current.
 
-Follow-up on 2026-09-09: `dd84070` completed the bounded v18 matrix/two-texture
-change. Validation passed 1,146 Rust tests (three ignored), 336 browser-module
-tests, both Wasm packages and an Apple Metal WebGPU pixel probe. See the
-[retained browser evidence](../../research/virgl-validation.md). This does not
-complete any of the broader compatibility or performance roadmap tasks.
+Fresh F01 checks passed 133 focused Rust VirGL tests and 212 top-level browser-module
+tests. Its full `make test` rerun passed 1,146 Rust tests (three ignored) and 336
+browser-module tests. The retained Apple Metal WebGPU probe is still historical, not
+rerun by F01. See the [F01 receipt](00-foundation/01-contract/01-baseline/evidence.md)
+and [retained browser evidence](../../research/virgl-validation.md). This does not
+complete any broader compatibility or performance task.
 
 ## Confirmed from current code
 
