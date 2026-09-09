@@ -60,3 +60,8 @@ The manifest is not a vendored checkout or proof that the selected APIs work. It
 reviewed source files used to define later protocol, generator and reference-runner inputs. A new
 input must be added as a fresh committed URL/revision/hash/byte/license/provenance record, then
 the required-family test must be deliberately updated. The next dependent leaf is F02.2.
+
+Commit/push verification: F02.1 completion commit
+`67a793ec3bbbf959e4fccab44144d3bd2eb0e8b3` was pushed to
+`origin/codex/graphics-f01-baseline`; `git ls-remote` and the tracking ref resolved to that SHA.
+No remote CI result is claimed locally. The next ready leaf is F02.2.1.
