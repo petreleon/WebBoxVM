@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.2
 Depends: F02.4.4.1.5.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [successor identity child](../01-successor-identity/README.md),
 [F02.2 cache rules](../../../../../../02-fetch-verifier/01-fetch-contract/source_cache.py), and the
@@ -23,11 +23,11 @@ a reusable closure marker only after every ordered member and derived output reh
 
 ## Checklist
 
-- [ ] Stage raw and generated fixture members under an explicit external cache root.
-- [ ] Require every member's digest, bytes, recipe/configuration, and toolchain identity before completion.
-- [ ] Rehash reused members and reject partial, stale, reordered, or cross-closure completion markers.
-- [ ] Keep active F02.2 cache paths and loaders untouched while proving the isolated successor path.
-- [ ] Add hermetic positive/hostile tests and a focused PASS receipt.
+- [x] Stage raw and generated fixture members under an explicit external cache root.
+- [x] Require every member's digest, bytes, recipe/configuration, and toolchain identity before completion.
+- [x] Rehash reused members and reject partial, stale, reordered, or cross-closure completion markers.
+- [x] Keep active F02.2 cache paths and loaders untouched while proving the isolated successor path.
+- [x] Add hermetic positive/hostile tests and a focused PASS receipt.
 
 ## Verification
 

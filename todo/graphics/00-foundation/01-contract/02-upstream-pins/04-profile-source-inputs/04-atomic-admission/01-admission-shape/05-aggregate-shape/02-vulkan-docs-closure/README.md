@@ -25,7 +25,7 @@ immutable identities; the root alone never qualifies.
 ## Checklist
 
 - [x] [F02.4.4.1.5.2.1 — Specify successor raw/generated closure identity](01-successor-identity/README.md)
-- [ ] [F02.4.4.1.5.2.2 — Verify successor closure cache staging](02-successor-cache-verifier/README.md)
+- [x] [F02.4.4.1.5.2.2 — Verify successor closure cache staging](02-successor-cache-verifier/README.md)
 - [ ] [F02.4.4.1.5.2.3 — Bind the actual Vulkan Docs closure](03-bind-vulkan-docs/README.md)
 
 ## Verification
