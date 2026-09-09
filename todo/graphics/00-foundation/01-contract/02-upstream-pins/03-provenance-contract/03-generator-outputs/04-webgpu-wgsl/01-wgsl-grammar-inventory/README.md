@@ -24,7 +24,7 @@ resolved license, or rejected with a concrete reason; F02.1/F02.2 evidence is re
 
 ## Checklist
 
-- [ ] [F02.3.3.4.1.1 — Migrate the inventory to a composite lock](01-inventory-lock-layout/README.md)
+- [x] [F02.3.3.4.1.1 — Migrate the inventory to a composite lock](01-inventory-lock-layout/README.md)
 - [ ] [F02.3.3.4.1.2 — Lock and fetch the WGSL grammar](02-wgsl-grammar-lock/README.md)
 
 ## Verification

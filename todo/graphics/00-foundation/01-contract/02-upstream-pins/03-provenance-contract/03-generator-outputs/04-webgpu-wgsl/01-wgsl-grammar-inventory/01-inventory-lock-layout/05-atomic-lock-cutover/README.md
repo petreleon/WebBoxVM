@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.1.1.5
 Depends: F02.3.3.4.1.1.2, F02.3.3.4.1.1.3, F02.3.3.4.1.1.4
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1/F02.2 adoption](../02-f02-consumer-adoption/README.md),
 [provenance transition](../03-provenance-consumer-transition/README.md), and
@@ -24,13 +24,13 @@ commit, leaving no active consumer half-migrated.
 
 ## Checklist
 
-- [ ] Move the existing 15 inputs unchanged into sorted bounded components, replace the root with
+- [x] Move the existing 15 inputs unchanged into sorted bounded components, replace the root with
   schema-v2 metadata, and regenerate the checked-in canonical lock.
-- [ ] Renew every checked-in F02.3 sidecar and F06 fixture/metadata to the one canonical inventory
+- [x] Renew every checked-in F02.3 sidecar and F06 fixture/metadata to the one canonical inventory
   revision in the same commit.
-- [ ] Prove component reorder, omission, rename, byte mutation, stale record, and stale generated
+- [x] Prove component reorder, omission, rename, byte mutation, stale record, and stale generated
   metadata fail closed.
-- [ ] Run focused F02.1/F02.2/F02.3/F06 suites, `make test`, source-limit, roadmap, and whitespace
+- [x] Run focused F02.1/F02.2/F02.3/F06 suites, `make test`, source-limit, roadmap, and whitespace
   checks; record component/lock hashes and exact results in this child receipt.
 
 ## Verification

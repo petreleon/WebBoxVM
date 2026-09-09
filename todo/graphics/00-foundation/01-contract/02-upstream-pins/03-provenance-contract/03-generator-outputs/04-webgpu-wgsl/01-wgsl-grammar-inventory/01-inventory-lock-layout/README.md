@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.1.1
 Depends: F02.1, F02.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../../../../01-input-inventory/README.md) and
 [F02.2](../../../../../02-fetch-verifier/README.md).
@@ -28,7 +28,7 @@ canonical lock binds every raw component byte and becomes the sole F02 provenanc
 - [x] [F02.3.3.4.1.1.2 — Adopt the versioned inventory in F02.1 and F02.2](02-f02-consumer-adoption/README.md)
 - [x] [F02.3.3.4.1.1.3 — Prepare provenance consumers for the inventory revision](03-provenance-consumer-transition/README.md)
 - [x] [F02.3.3.4.1.1.4 — Prepare reproducibility consumers for the inventory revision](04-f06-reproducibility-transition/README.md)
-- [ ] [F02.3.3.4.1.1.5 — Cut over components, records, and reproducibility evidence atomically](05-atomic-lock-cutover/README.md)
+- [x] [F02.3.3.4.1.1.5 — Cut over components, records, and reproducibility evidence atomically](05-atomic-lock-cutover/README.md)
 
 ## Verification
 
