@@ -1,0 +1,175 @@
+# F02.1 source inventory. Payloads are never stored in this repository.
+schema = 1
+cache_root = "$XDG_CACHE_HOME"
+cache_note = "Resolve local_cache under this external root; F02.2 owns fetching."
+required_families = [
+  "linux-uapi", "mesa-virgl", "mesa-venus",
+  "virglrenderer", "venus-protocol", "gl-gles-registry",
+  "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl",
+  "vk-gl-cts", "webgpu-cts", "piglit",
+]
+[[inputs]]
+id = "linux-virtio-gpu-uapi"
+source_family = "linux-uapi"
+immutable_url = "https://raw.githubusercontent.com/torvalds/linux/adc218676eef25575469234709c2d87185ca223a/include/uapi/linux/virtio_gpu.h"
+revision = "adc218676eef25575469234709c2d87185ca223a"
+sha256 = "7c9e2f7d47fa0b1a2c737fc5a741f57c5cf25303dd5c68c2c9738e9bb761eee6"
+bytes = 11554
+license = "BSD-3-Clause (pinned file's explicit BSD notice)"
+local_cache = "webboxvm-graphics/f02/linux-virtio-gpu-uapi/7c9e2f7d47fa0b1a2c737fc5a741f57c5cf25303dd5c68c2c9738e9bb761eee6.source"
+generated_code_role = "virtio-gpu ABI reference; no generated code"
+provenance = "https://github.com/torvalds/linux/tree/adc218676eef25575469234709c2d87185ca223a"
+[[inputs]]
+id = "mesa-virgl-screen"
+source_family = "mesa-virgl"
+immutable_url = "https://gitlab.freedesktop.org/mesa/mesa/-/raw/06f9e28304d5d3f109c33535c1c25b9df5769af2/src/gallium/drivers/virgl/virgl_screen.c"
+revision = "06f9e28304d5d3f109c33535c1c25b9df5769af2"
+sha256 = "e558fa5550e572cffad113581b736696f33b3895e0516950181b8ff93eb38ff0"
+bytes = 42906
+license = "MIT (file notice)"
+local_cache = "webboxvm-graphics/f02/mesa-virgl-screen/e558fa5550e572cffad113581b736696f33b3895e0516950181b8ff93eb38ff0.source"
+generated_code_role = "VirGL guest-driver behavior reference; no generated code"
+provenance = "https://gitlab.freedesktop.org/mesa/mesa/-/tree/06f9e28304d5d3f109c33535c1c25b9df5769af2"
+[[inputs]]
+id = "mesa-venus-device"
+source_family = "mesa-venus"
+immutable_url = "https://gitlab.freedesktop.org/mesa/mesa/-/raw/06f9e28304d5d3f109c33535c1c25b9df5769af2/src/virtio/vulkan/vn_device.c"
+revision = "06f9e28304d5d3f109c33535c1c25b9df5769af2"
+sha256 = "68f06ca4ddc2d5a62bebaa469fc43dc5e66e640eec57d46f38172327d087a4c4"
+bytes = 23220
+license = "MIT (SPDX file notice)"
+local_cache = "webboxvm-graphics/f02/mesa-venus-device/68f06ca4ddc2d5a62bebaa469fc43dc5e66e640eec57d46f38172327d087a4c4.source"
+generated_code_role = "Venus guest-driver behavior reference; no generated code"
+provenance = "https://gitlab.freedesktop.org/mesa/mesa/-/tree/06f9e28304d5d3f109c33535c1c25b9df5769af2"
+[[inputs]]
+id = "virglrenderer-protocol"
+source_family = "virglrenderer"
+immutable_url = "https://gitlab.freedesktop.org/virgl/virglrenderer/-/raw/ca50e008863837e094747a69974dde3ae148aeaa/src/virgl_protocol.h"
+revision = "ca50e008863837e094747a69974dde3ae148aeaa"
+sha256 = "094a6e2b210f1d3dd0f1ac254ed8820c1d889e57d2735c0c6194dbc94f3b1ac7"
+bytes = 30358
+license = "MIT (file notice)"
+local_cache = "webboxvm-graphics/f02/virglrenderer-protocol/094a6e2b210f1d3dd0f1ac254ed8820c1d889e57d2735c0c6194dbc94f3b1ac7.source"
+generated_code_role = "VirGL wire ABI reference; no generated code"
+provenance = "https://gitlab.freedesktop.org/virgl/virglrenderer/-/tree/ca50e008863837e094747a69974dde3ae148aeaa"
+[[inputs]]
+id = "venus-protocol-registry"
+source_family = "venus-protocol"
+immutable_url = "https://gitlab.freedesktop.org/virgl/venus-protocol/-/raw/ca19b6358d7cc491bc3e4de76f04c6700876a8fa/xmls/VK_MESA_venus_protocol.xml"
+revision = "ca19b6358d7cc491bc3e4de76f04c6700876a8fa"
+sha256 = "d92839bc728fa9ad9a7decdc6b91df6fa1a0fb26cffae4009865f18a789e0535"
+bytes = 20989
+license = "Apache-2.0 OR MIT (SPDX file notice)"
+local_cache = "webboxvm-graphics/f02/venus-protocol-registry/d92839bc728fa9ad9a7decdc6b91df6fa1a0fb26cffae4009865f18a789e0535.source"
+generated_code_role = "future Venus codec generator input"
+provenance = "https://gitlab.freedesktop.org/virgl/venus-protocol/-/tree/ca19b6358d7cc491bc3e4de76f04c6700876a8fa"
+[[inputs]]
+id = "opengl-gles-registry"
+source_family = "gl-gles-registry"
+immutable_url = "https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/1cdd228e34966dd6b95bd203e9f84faba0f371a1/xml/gl.xml"
+revision = "1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+sha256 = "b9ca2cfa5c676e901c20d34af3407f1687cde0f1336a5ff7a8974d04c7494ad3"
+bytes = 2774722
+license = "Apache-2.0 (SPDX file notice)"
+local_cache = "webboxvm-graphics/f02/opengl-gles-registry/b9ca2cfa5c676e901c20d34af3407f1687cde0f1336a5ff7a8974d04c7494ad3.source"
+generated_code_role = "future GL/GLES registry generator input"
+provenance = "https://github.com/KhronosGroup/OpenGL-Registry/tree/1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+[[inputs]]
+id = "glsl-460-spec"
+source_family = "glsl"
+immutable_url = "https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/1cdd228e34966dd6b95bd203e9f84faba0f371a1/specs/gl/GLSLangSpec.4.60.pdf"
+revision = "1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+sha256 = "b22b0c0967a1254c8a3487394d8a3bf72cd8a35a872a43c8a01e03bab3eeb468"
+bytes = 5520366
+license = "Khronos conditional spec reproduction license (PDF p. iv)"
+local_cache = "webboxvm-graphics/f02/glsl-460-spec/b22b0c0967a1254c8a3487394d8a3bf72cd8a35a872a43c8a01e03bab3eeb468.source"
+generated_code_role = "GLSL semantic reference; no generated code"
+provenance = "https://github.com/KhronosGroup/OpenGL-Registry/tree/1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+[[inputs]]
+id = "essl-320-spec"
+source_family = "essl"
+immutable_url = "https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/1cdd228e34966dd6b95bd203e9f84faba0f371a1/specs/es/3.2/GLSL_ES_Specification_3.20.pdf"
+revision = "1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+sha256 = "e9a04262013f6447844ed8724456bb63081cd61e249859a0abbd6ce05979be43"
+bytes = 4724914
+license = "Khronos conditional spec reproduction license (PDF p. iv)"
+local_cache = "webboxvm-graphics/f02/essl-320-spec/e9a04262013f6447844ed8724456bb63081cd61e249859a0abbd6ce05979be43.source"
+generated_code_role = "ESSL semantic reference; no generated code"
+provenance = "https://github.com/KhronosGroup/OpenGL-Registry/tree/1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+[[inputs]]
+id = "vulkan-registry"
+source_family = "vulkan"
+immutable_url = "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/xml/vk.xml"
+revision = "f84d432d5b8912362f96f581f29bbc4f3c8c7843"
+sha256 = "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06"
+bytes = 3309653
+license = "Apache-2.0 OR MIT (SPDX file notice)"
+local_cache = "webboxvm-graphics/f02/vulkan-registry/cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06.source"
+generated_code_role = "future Vulkan registry/codec generator input"
+provenance = "https://github.com/KhronosGroup/Vulkan-Docs/tree/f84d432d5b8912362f96f581f29bbc4f3c8c7843"
+[[inputs]]
+id = "spirv-core-grammar"
+source_family = "spirv"
+immutable_url = "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Headers/0d25db97cb9b8f725e4c95e4553001710e7fc39d/include/spirv/unified1/spirv.core.grammar.json"
+revision = "0d25db97cb9b8f725e4c95e4553001710e7fc39d"
+sha256 = "db8581272b63d232268094a47b68d18a0464fc911e06004d57419924fe660ba4"
+bytes = 612052
+license = "MIT (grammar notice)"
+local_cache = "webboxvm-graphics/f02/spirv-core-grammar/db8581272b63d232268094a47b68d18a0464fc911e06004d57419924fe660ba4.source"
+generated_code_role = "future SPIR-V decoder generator input"
+provenance = "https://github.com/KhronosGroup/SPIRV-Headers/tree/0d25db97cb9b8f725e4c95e4553001710e7fc39d"
+[[inputs]]
+id = "webgpu-spec"
+source_family = "webgpu"
+immutable_url = "https://raw.githubusercontent.com/gpuweb/gpuweb/e0aff163a37eb3633ffd612e2a943ceb6196d6af/spec/index.bs"
+revision = "e0aff163a37eb3633ffd612e2a943ceb6196d6af"
+sha256 = "85e732c1589c911ede74faccaefa439fb6222b96d86d352b9e44c7dc347d96a5"
+bytes = 848425
+license = "W3C Software and Document License (repo LICENSE.md)"
+local_cache = "webboxvm-graphics/f02/webgpu-spec/85e732c1589c911ede74faccaefa439fb6222b96d86d352b9e44c7dc347d96a5.source"
+generated_code_role = "host API semantic reference; no generated code"
+provenance = "https://github.com/gpuweb/gpuweb/tree/e0aff163a37eb3633ffd612e2a943ceb6196d6af"
+[[inputs]]
+id = "wgsl-spec"
+source_family = "wgsl"
+immutable_url = "https://raw.githubusercontent.com/gpuweb/gpuweb/e0aff163a37eb3633ffd612e2a943ceb6196d6af/wgsl/index.bs"
+revision = "e0aff163a37eb3633ffd612e2a943ceb6196d6af"
+sha256 = "d54430daf037051f2b7c46399441b9c01931f2374caf5ed8780686defacf44d4"
+bytes = 924614
+license = "W3C Software and Document License (repo LICENSE.md)"
+local_cache = "webboxvm-graphics/f02/wgsl-spec/d54430daf037051f2b7c46399441b9c01931f2374caf5ed8780686defacf44d4.source"
+generated_code_role = "WGSL emitter semantic reference; no generated code"
+provenance = "https://github.com/gpuweb/gpuweb/tree/e0aff163a37eb3633ffd612e2a943ceb6196d6af"
+[[inputs]]
+id = "vk-gl-cts-api-version"
+source_family = "vk-gl-cts"
+immutable_url = "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/modules/vulkan/api/vktApiVersionCheck.cpp"
+revision = "f6a29701220f34dd1407513bfe80d74ca7b392ce"
+sha256 = "875ca8c0d65dd8a1024c8e504fe433305151f6afda9e95b6f58c967441a6fd07"
+bytes = 36614
+license = "Apache-2.0 (file notice)"
+local_cache = "webboxvm-graphics/f02/vk-gl-cts-api-version/875ca8c0d65dd8a1024c8e504fe433305151f6afda9e95b6f58c967441a6fd07.source"
+generated_code_role = "independent Vulkan/GL/GLES reference runner input"
+provenance = "https://github.com/KhronosGroup/VK-GL-CTS/tree/f6a29701220f34dd1407513bfe80d74ca7b392ce"
+[[inputs]]
+id = "webgpu-cts-buffer-map"
+source_family = "webgpu-cts"
+immutable_url = "https://raw.githubusercontent.com/gpuweb/cts/de0f06a6e1ab4b4399359007e5b67fe07eecf163/src/webgpu/api/operation/buffers/map.spec.ts"
+revision = "de0f06a6e1ab4b4399359007e5b67fe07eecf163"
+sha256 = "e3d8dc9c4f5cd9cfc93a8bca688bf431c81ea1014d40d83b8b0a1139da604c19"
+bytes = 17766
+license = "BSD-3-Clause (repo LICENSE.txt)"
+local_cache = "webboxvm-graphics/f02/webgpu-cts-buffer-map/e3d8dc9c4f5cd9cfc93a8bca688bf431c81ea1014d40d83b8b0a1139da604c19.source"
+generated_code_role = "independent WebGPU reference runner input"
+provenance = "https://github.com/gpuweb/cts/tree/de0f06a6e1ab4b4399359007e5b67fe07eecf163"
+[[inputs]]
+id = "piglit-gl30-bindfragdata"
+source_family = "piglit"
+immutable_url = "https://raw.githubusercontent.com/intel-lgci-fdo-gitlab-mirror/mesa.piglit/81f9eac8cc0b8b12ace3629a24e934aac8f2c37c/tests/spec/gl-3.0/api/bindfragdata-link-error.c"
+revision = "81f9eac8cc0b8b12ace3629a24e934aac8f2c37c"
+sha256 = "11ef8899405be1dc4ebe4a6ebe351c838c9a1c581c8446fcd971f982c059e8da"
+bytes = 6307
+license = "MIT (file notice; canonical COPYING)"
+local_cache = "webboxvm-graphics/f02/piglit-gl30-bindfragdata/11ef8899405be1dc4ebe4a6ebe351c838c9a1c581c8446fcd971f982c059e8da.source"
+generated_code_role = "independent OpenGL reference runner input"
+provenance = "https://gitlab.freedesktop.org/mesa/piglit/-/tree/81f9eac8cc0b8b12ace3629a24e934aac8f2c37c"
