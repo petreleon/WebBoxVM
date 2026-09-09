@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.1.2
 Depends: F02.2, F02.3.3.4.1.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.2](../../../../../02-fetch-verifier/README.md) and
 [the composite-lock migration](../01-inventory-lock-layout/README.md).
@@ -23,13 +23,13 @@ recorded truthfully.
 
 ## Checklist
 
-- [ ] Add only the verified grammar input with immutable URL, commit, SHA-256, byte count, license,
+- [x] Add only the verified grammar input with immutable URL, commit, SHA-256, byte count, license,
   external cache path, and narrowly stated grammar-generator role.
-- [ ] Keep the candidate in its own approved grammar family; preserve the existing `wgsl-spec` role as
+- [x] Keep the candidate in its own approved grammar family; preserve the existing `wgsl-spec` role as
   semantic reference material.
-- [ ] Fetch all declared inputs into a new external cache, then offline-rehash them; record the
+- [x] Fetch all declared inputs into a new external cache, then offline-rehash them; record the
   16th grammar result and every unavailable input as a failure.
-- [ ] Regenerate the canonical lock and renew F02.1/F02.2 receipt facts without retaining payloads.
+- [x] Regenerate the canonical lock and renew F02.1/F02.2 receipt facts without retaining payloads.
 
 ## Verification
 
