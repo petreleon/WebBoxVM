@@ -1,0 +1,13 @@
+{
+  "artifact": "fixture-only-wgsl-grammar-binding",
+  "generator": {
+    "name": "f02-wgsl-grammar-fixture",
+    "version": "1"
+  },
+  "input_id": "wgsl-grammar-syntax",
+  "input_license": "W3C Software and Document License (repo LICENSE.md; document)",
+  "input_sha256": "838b6fd1d01e4efd06e233200479d57667e8f8ba74783598e51f8f6195f762a1",
+  "limitation": "Nonstandard BNF dialect only; this marker neither parses nor compiles WGSL.",
+  "notice": "Fixture-only provenance output; no upstream grammar bytes, parser, compiler, or WebGPU API data.",
+  "schema": 1
+}
