@@ -4,7 +4,7 @@
 
 Task: F02.3.3.4.4
 Depends: F02.1, F02.2, F02.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../../../../01-input-inventory/README.md),
 [F02.2](../../../../02-fetch-verifier/README.md), and
@@ -32,3 +32,10 @@ immutable WebGPU source definition is available; no fixture or runtime claim fil
 
 - A reference-only or WGSL-only input cannot validate as a WebGPU generator input offline.
 - This child stays open until the immutable inventory contains an honest WebGPU generator input.
+
+## Blocker probe
+
+`webgpu_generator_boundary.py` reads only the local F02.1 manifest. It accepts a blocked result
+only while no input has the exact `future WebGPU generator input` designation, and it rejects every
+`wgsl` input—including a temporary grammar candidate—as a WebGPU generator input. Run the hermetic
+suite with `PYTHONDONTWRITEBYTECODE=1 python3 webgpu_generator_boundary_test.py` from this folder.
