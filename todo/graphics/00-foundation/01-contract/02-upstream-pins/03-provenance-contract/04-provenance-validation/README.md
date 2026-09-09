@@ -4,7 +4,7 @@
 
 Task: F02.3.4
 Depends: F02.2, F02.3.1, F02.3.2, F02.3.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.2](../../02-fetch-verifier/README.md),
 [F02.3.2](../02-abi-fixtures/README.md), and [F02.3.3](../03-generator-outputs/README.md).
@@ -22,11 +22,11 @@ The completed provenance records are checked against the fresh verified cache be
 
 ## Checklist
 
-- [ ] Re-run provenance validation after F02.2's clean external-cache fetch and offline rehash.
-- [ ] Verify ABI and generator samples against the recorded inventory-lock identity, IDs, digests, licenses,
+- [x] Re-run provenance validation after F02.2's clean external-cache fetch and offline rehash.
+- [x] Verify ABI and generator samples against the recorded inventory-lock identity, IDs, digests, licenses,
   commands, and output hashes.
-- [ ] Record the fresh-fetch/provenance output, nonzero test count, and unavailable input as failure.
-- [ ] Run focused tests, source limits, roadmap, whitespace, and required full gates before the receipt.
+- [x] Record the fresh-fetch/provenance output, nonzero test count, and unavailable input as failure.
+- [x] Run focused tests, source limits, roadmap, whitespace, and required full gates before the receipt.
 
 ## Verification
 

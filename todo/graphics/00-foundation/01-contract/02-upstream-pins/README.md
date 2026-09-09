@@ -4,7 +4,7 @@
 
 Task: F02
 Depends: F01
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F01](../01-baseline/README.md).
 
@@ -22,7 +22,7 @@ Protocol layouts and reference tests are reproducible instead of following mutab
 
 - [x] [F02.1 — Define the immutable graphics-input inventory](01-input-inventory/README.md)
 - [x] [F02.2 — Verify isolated source fetches and hashes](02-fetch-verifier/README.md)
-- [ ] [F02.3 — Bind ABI fixtures and generators to the manifest](03-provenance-contract/README.md)
+- [x] [F02.3 — Bind ABI fixtures and generators to the manifest](03-provenance-contract/README.md)
 
 ## Verification
 

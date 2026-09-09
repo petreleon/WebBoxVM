@@ -4,7 +4,7 @@
 
 Task: F02.3
 Depends: F02.1, F02.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F02.1](../01-input-inventory/README.md) and
 [F02.2](../02-fetch-verifier/README.md).
@@ -24,7 +24,7 @@ Every future ABI fixture or generated protocol artifact identifies exactly which
 - [x] [F02.3.1 — Define the provenance record contract](01-provenance-record/README.md)
 - [x] [F02.3.2 — Bind ABI fixtures and adapters](02-abi-fixtures/README.md)
 - [x] [F02.3.3 — Bind generated protocol outputs](03-generator-outputs/README.md)
-- [ ] [F02.3.4 — Verify provenance closure](04-provenance-validation/README.md)
+- [x] [F02.3.4 — Verify provenance closure](04-provenance-validation/README.md)
 
 ## Verification
 
