@@ -92,13 +92,16 @@ class OpenGlAuditTests(unittest.TestCase):
                 CONTRACT.validate(path, "opengl-4.6-core")
 
     def test_exact_metadata_cannot_be_rewritten(self) -> None:
-        for field, replacement in (("license", "false license"), ("generated_code_role", "false role"),
-                                   ("provenance", "https://example.invalid/false")):
+        mutations = (("license", "false license", "reviewed exact"),
+                     ("generated_code_role", "false role", "reviewed exact"),
+                     ("provenance", "https://example.invalid/false", "reviewed exact"),
+                     ("local_cache", "webboxvm-graphics/f02/other/x.source", "F02.2 policy"))
+        for field, replacement, message in mutations:
             with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary:
                 path = Path(temporary) / "candidates.json"
                 shutil.copyfile(AUDIT, path)
                 self.change(path, lambda value: value["candidates"][0]["entry"].update({field: replacement}))
-                with self.assertRaisesRegex(CONTRACT.AuditError, "reviewed exact"):
+                with self.assertRaisesRegex(CONTRACT.AuditError, message):
                     CONTRACT.validate(path, "opengl-4.6-core")
 
     def test_accepted_compound_or_stale_audit_is_rejected(self) -> None:
