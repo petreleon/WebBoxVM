@@ -11,11 +11,12 @@ from urllib.parse import urlsplit
 
 HERE = Path(__file__).resolve().parent
 MANIFEST = HERE.parent / "01-input-inventory/manifest.toml"
+PROFILE_CONTRACT = HERE.parent.parent / "03-feature-matrix/01-profile-scope/profile_contract.py"
 
 
-def source_api_loader():
-    """Load the reviewed audit adapter without a cached-basename substitution."""
-    spec = importlib.util.spec_from_file_location("f024_audit_source_api", HERE / "audit_source_api.py")
+def reviewed_module(name: str, path: Path):
+    """Load a reviewed sibling without a cached-basename substitution."""
+    spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise RuntimeError("candidate audit source adapter cannot load")
     module = importlib.util.module_from_spec(spec)
@@ -25,19 +26,13 @@ def source_api_loader():
     except Exception:
         sys.modules.pop(spec.name, None)
         raise
-    return module.source_api
+    return module
 
 
-source_api = source_api_loader()
+source_api = reviewed_module("f024_audit_source_api", HERE / "audit_source_api.py").source_api
+CATALOG = reviewed_module("f024_candidate_catalog", HERE / "candidate_catalog.py").CATALOG
+PROFILE = reviewed_module("f024_profile_contract", PROFILE_CONTRACT)
 FAMILIES, load_inventory, ContractError, SourceInput = source_api()
-TARGETS = {
-    "opengl-4.6-core": (("opengl-46-core-spec", "api-limit-format-spec"),
-                          ("opengl-cts-manifest", "conformance-manifest")),
-    "gles-3.2": (("gles-32-spec", "api-limit-format-spec"),
-                   ("gles-cts-manifest", "conformance-manifest")),
-    "vulkan-1.4-core": (("vulkan-14-spec", "api-limit-format-spec"),
-                          ("vulkan-cts-mustpass", "conformance-manifest")),
-}
 ROOT_FIELDS = frozenset(("schema", "profile", "inventory_sha256", "candidates"))
 CANDIDATE_FIELDS = frozenset(("required_input_id", "role", "decision", "entry", "selector",
                               "selector_case_count", "coverage", "admission_blocker"))
@@ -79,13 +74,31 @@ def source(entry: object):
         reject(f"candidate violates F02.2 policy: {error}")
 
 
-def candidate(value: object, expected: tuple[str, str], seen_families: set[str]) -> str:
+def requirements(profile: str, requirements_path: Path = PROFILE.REQUIREMENTS_PATH) -> tuple[tuple[str, str], ...]:
+    if not isinstance(profile, str):
+        reject("candidate audit has an unknown target profile")
+    try:
+        PROFILE.validate(requirements_path=requirements_path)
+    except Exception as error:
+        reject(f"canonical F03 requirements are invalid: {error}")
+    value = PROFILE.document(requirements_path)
+    expected = tuple((item["required_input_id"], item["role"]) for item in value["requirements"]
+                     if item["profile"] == profile)
+    if not expected:
+        reject("candidate audit has an unknown target profile")
+    return expected
+
+
+def candidate(value: object, profile: str, expected: tuple[str, str], seen_families: set[str]) -> str:
     if not isinstance(value, dict) or set(value) != CANDIDATE_FIELDS:
         reject("candidate has an unexpected schema")
     identifier, role = expected
     if value["required_input_id"] != identifier or value["role"] != role:
         reject("candidate does not match the reviewed requirement")
     item = source(value["entry"])
+    exact = CATALOG.get(profile, {}).get(identifier)
+    if not isinstance(exact, dict):
+        reject("candidate has no reviewed exact identity")
     if item.identifier != identifier:
         reject("candidate entry id does not match the required input")
     family = value["entry"].get("source_family") if isinstance(value["entry"], dict) else None
@@ -94,7 +107,7 @@ def candidate(value: object, expected: tuple[str, str], seen_families: set[str])
     if not isinstance(family, str):
         reject("candidate source family is invalid")
     seen_families.add(family)
-    selector(value["selector"], item.url)
+    selector_value = selector(value["selector"], item.url)
     count, decision, coverage, blocker = (value[field] for field in
                                           ("selector_case_count", "decision", "coverage", "admission_blocker"))
     if type(count) is not int or count < 0:
@@ -105,6 +118,12 @@ def candidate(value: object, expected: tuple[str, str], seen_families: set[str])
         reject("candidate has an invalid decision or coverage")
     if not isinstance(blocker, str):
         reject("candidate admission_blocker is invalid")
+    fields = ("source_family", "immutable_url", "revision", "sha256", "bytes")
+    if any(value["entry"][field] != exact[field] for field in fields):
+        reject("candidate does not match the reviewed exact identity")
+    if (selector_value, count, decision, coverage, blocker) != tuple(exact[field] for field in
+                                                                      ("selector", "selector_case_count", "decision", "coverage", "admission_blocker")):
+        reject("candidate does not match the reviewed exact selector identity")
     if decision == "accepted" and (coverage != "complete-single-file" or blocker):
         reject("accepted candidate must be a complete unblocked single source")
     if decision == "rejected" and (coverage != "compound-unadmitted" or not blocker):
@@ -113,9 +132,7 @@ def candidate(value: object, expected: tuple[str, str], seen_families: set[str])
 
 
 def validate(path: Path, profile: str) -> tuple[str, ...]:
-    expected = TARGETS.get(profile)
-    if expected is None:
-        reject("candidate audit has an unknown target profile")
+    expected = requirements(profile)
     value = document(path)
     if set(value) != ROOT_FIELDS or value.get("schema") != 1 or value.get("profile") != profile:
         reject("candidate audit does not match schema version 1")
@@ -129,7 +146,7 @@ def validate(path: Path, profile: str) -> tuple[str, ...]:
     if not isinstance(records, list) or len(records) != len(expected):
         reject("candidate audit does not have exactly the required candidates")
     families: set[str] = set()
-    return tuple(candidate(record, requirement, families) for record, requirement in zip(records, expected))
+    return tuple(candidate(record, profile, requirement, families) for record, requirement in zip(records, expected))
 
 
 def main() -> None:
