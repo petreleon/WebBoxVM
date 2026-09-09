@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.2
 Depends: F02.1, F02.2, F02.4.1, F02.4.2, F02.4.3, F02.4.4.1.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F03 requirements](../../../../../03-feature-matrix/01-profile-scope/source_requirements.json)
 and the source audits.
@@ -26,11 +26,11 @@ unproven members.
 
 ## Checklist
 
-- [ ] Enumerate exactly the six canonical required IDs and their audited root identities.
-- [ ] Bind accepted single-source records separately from compound logical closures.
-- [ ] Bind every known physical member, configuration, and core-scope limit to its logical ID.
-- [ ] Reject omissions, role swaps, stale roots, and an unresolved root posing as a member set.
-- [ ] Record each unresolved generated or transitive member as a blocker rather than inventing it.
+- [x] Enumerate exactly the six canonical required IDs and their audited root identities.
+- [x] Bind accepted single-source records separately from compound logical closures.
+- [x] Bind every known physical member, configuration, and core-scope limit to its logical ID.
+- [x] Reject omissions, role swaps, stale roots, and an unresolved root posing as a member set.
+- [x] Record each unresolved generated or transitive member as a blocker rather than inventing it.
 
 ## Verification
 
