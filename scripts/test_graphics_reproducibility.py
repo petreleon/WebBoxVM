@@ -38,14 +38,15 @@ def invoke(script: Path, *arguments: object) -> subprocess.CompletedProcess[str]
     )
 
 
-def run_chunker(mode: str, spec: Path, output: Path) -> subprocess.CompletedProcess[str]:
+def run_chunker(mode: str, spec: Path, output: Path, lock: Path | None = None) -> subprocess.CompletedProcess[str]:
+    flag, source = ("--source-manifest", MANIFEST) if lock is None else ("--inventory-lock", lock)
     return invoke(
         CHUNKER,
         mode,
         "--spec",
         spec,
-        "--source-manifest",
-        MANIFEST,
+        flag,
+        source,
         "--output",
         output,
     )
@@ -57,6 +58,14 @@ def hashes(output: Path) -> dict[str, str]:
         for path in sorted(output.iterdir(), key=lambda path: path.name)
         if path.is_file()
     }
+
+
+def write_v2_spec(path: Path, revision: str) -> None:
+    document = json.loads(SPEC.read_text(encoding="utf-8"))
+    document["schema"] = 2
+    del document["manifest_revision"]
+    document["inventory_sha256"] = revision
+    path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
 
 
 class ReproducibilityProofTests(unittest.TestCase):
@@ -101,6 +110,29 @@ class ReproducibilityProofTests(unittest.TestCase):
             changed = run_chunker("--check", reordered, root / "other")
             self.assertNotEqual(changed.returncode, 0, changed.stdout)
             self.assertIn("records must be uniquely ordered by id", changed.stderr)
+
+    def test_v2_raw_lock_cli_is_reproducible_and_rejects_stale_identity(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="webboxvm-graphics-v2-proof-") as temporary:
+            root = Path(temporary)
+            lock, spec = root / "inventory.lock", root / "input-v2.json"
+            lock.write_bytes(b"raw lock only; the F02 loader owns its composition\n")
+            write_v2_spec(spec, hashlib.sha256(lock.read_bytes()).hexdigest())
+            first, second = root / "first", root / "second"
+            self.assert_ok(run_chunker("--write", spec, first, lock))
+            self.assert_ok(run_chunker("--write", spec, second, lock))
+            self.assertEqual(hashes(first), hashes(second))
+            metadata = json.loads((first / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["schema"], 2)
+            self.assertIn("inventory_sha256", metadata)
+            self.assertNotIn("manifest_revision", metadata)
+            self.assertIn("graphics-chunker.v2", (first / "chunk-0001.md").read_text(encoding="utf-8"))
+            wrong = run_chunker("--check", spec, first)
+            self.assertNotEqual(wrong.returncode, 0, wrong.stdout)
+            self.assertIn("requires --inventory-lock", wrong.stderr)
+            lock.write_bytes(b"stale raw lock\n")
+            stale = run_chunker("--check", spec, first, lock)
+            self.assertNotEqual(stale.returncode, 0, stale.stdout)
+            self.assertIn("inventory lock identity does not match", stale.stderr)
 
     def test_real_roadmap_checker_fixture_suite_remains_green(self) -> None:
         result = invoke(CHECKER_FIXTURES)
