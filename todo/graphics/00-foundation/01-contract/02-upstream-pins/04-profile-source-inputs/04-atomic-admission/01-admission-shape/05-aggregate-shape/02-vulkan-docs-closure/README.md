@@ -24,15 +24,14 @@ immutable identities; the root alone never qualifies.
 
 ## Checklist
 
-- [ ] Enumerate the recursive generated/transitive core closure from the pinned Docs root without treating observations as members.
-- [ ] Bind every candidate member to F02.2 URL, revision, digest, bytes, license, cache, and selector policy.
-- [ ] Bind macro/conditional configuration and preserve WSI, video, and extension exclusions exactly.
-- [ ] Reject root-only, incomplete, mutable, oversize, or scope-expanded closure data with focused tests.
-- [ ] Record either a reproducible complete closure proof or the first concrete unresolved blocker.
+- [ ] [F02.4.4.1.5.2.1 — Specify successor raw/generated closure identity](01-successor-identity/README.md)
+- [ ] [F02.4.4.1.5.2.2 — Verify successor closure cache staging](02-successor-cache-verifier/README.md)
+- [ ] [F02.4.4.1.5.2.3 — Bind the actual Vulkan Docs closure](03-bind-vulkan-docs/README.md)
 
 ## Verification
 
 - The existing 73 observations are insufficient; this task stays open unless every required Docs member and scope input is genuinely modelled.
 - No inventory, candidate decision, F03 state, guest API, browser, CTS, conformance, or performance claim changes here.
 - Status: **BLOCKED** by a truthful multi-member/generated closure model that F02.2 cannot currently
-  express; the blocker record preserves the reproducible discovery and does not check this task off.
+  express; the blocker record preserves the reproducible discovery and does not check this task off. The first
+  child may define an isolated successor fixture contract, but no child may mutate active F02.2 or V1 state.
