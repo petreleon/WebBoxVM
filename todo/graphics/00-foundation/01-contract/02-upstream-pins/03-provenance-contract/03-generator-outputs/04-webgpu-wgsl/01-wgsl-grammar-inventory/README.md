@@ -23,13 +23,17 @@ resolved license, or rejected with a concrete reason; F02.1/F02.2 evidence is re
 
 ## Checklist
 
-- [ ] Verify the raw `wgsl/syntax.bnf` bytes, immutable URL, SHA-256, and byte count through F02.2.
-- [ ] Classify its exact repository license and its limited grammar-generator role without calling it a
-  WebGPU API definition or general WGSL emitter.
-- [ ] Renew F02.1 inventory and F02.2 live-cache evidence for the changed raw manifest revision.
-- [ ] Keep source bytes outside the repository and record the nonstandard BNF-dialect limitation.
+- [ ] [F02.3.3.4.1.1 — Migrate the inventory to a composite lock](01-inventory-lock-layout/README.md)
+- [ ] [F02.3.3.4.1.2 — Lock and fetch the WGSL grammar](02-wgsl-grammar-lock/README.md)
 
 ## Verification
 
 - An unavailable or mismatched grammar input leaves this child and F02.3.3.4 open.
 - A successful fetch and offline rehash identify one exact external-cache payload only.
+
+## Split rationale
+
+The current single-file manifest is already 175 lines, so a new readable entry would violate the
+180-line limit. A canonical composite lock first preserves a fail-closed inventory identity across
+small entry files; only then can the grammar input, cache proof, and downstream record renewal use
+that new identity without compressing metadata or weakening provenance.
