@@ -4,7 +4,7 @@
 
 Task: F06.3.3
 Depends: F06.3.1, F06.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [F06.3.1](../01-chunk-generator/README.md) and
 [F06.3.2](../02-checker-fixtures/README.md).
@@ -22,10 +22,10 @@ expanded roadmap checker remains structurally deterministic.
 
 ## Checklist
 
-- [ ] Generate the same ordered input twice and record matching chunk/metadata SHA-256 values.
-- [ ] Prove stale metadata and a changed ordering fail the checker command.
-- [ ] Run generator, fixture suite, source limit, roadmap, and whitespace checks.
-- [ ] Record fixtures, exact output hashes, revisions, and blockers in a receipt.
+- [x] Generate the same ordered input twice and record matching chunk/metadata SHA-256 values.
+- [x] Prove stale metadata and a changed ordering fail the checker command.
+- [x] Run generator, fixture suite, source limit, roadmap, and whitespace checks.
+- [x] Record fixtures, exact output hashes, revisions, and blockers in a receipt.
 
 ## Verification
 
