@@ -3,10 +3,10 @@
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.1
-Depends: F02
+Depends: F02.1
 Evidence: pending
 
-Prerequisite lists: [F02](../../02-upstream-pins/README.md).
+Prerequisite lists: [F02.1](../../02-upstream-pins/01-input-inventory/README.md).
 
 ## Outcome
 
@@ -41,3 +41,20 @@ without treating the current bounded renderer as support for any profile.
   untested OpenGL, GLES, Venus, or Vulkan feature.
 - A missing authoritative source or case catalog produces a concrete F02 blocker; it cannot become a
   fabricated inventory row or a lower final profile.
+
+## Maintained contract
+
+`profile_scope.json` fixes only the three final target scopes. They remain `blocked`: while any of
+the six exact sources is absent the blocker is `inventory-sources-incomplete`; after an F02 lock
+renewal admits all six, it must change to `matrix-incomplete`, not to profile support.
+
+`source_requirements.json` names those six future inventory IDs and the reviewed existing inputs
+they extend. `validate_profile_scope.py` rejects a stale lock, a substituted ID, a missing role, or
+an invented related source; its current live result is intentionally `BLOCKED`.
+
+Future F03.2–F03.4 artifacts use `matrix_contract.py` through
+`validate_profile_scope.py --matrix PATH`. Every row binds a normative source and a distinct,
+profile-specific CTS/must-pass source by ID, revision, and digest, plus a concrete locator, owner,
+test selector, status, blocker, and local `evidence.md` receipt. The contract rejects cross-profile
+sources, placeholders, stale identities, unsupported schema fields, and a supported/emulated row
+without concrete evidence. It validates a row's shape and provenance, not coverage or runtime support.

@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "inventory_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+  "requirements": [
+    {
+      "profile": "opengl-4.6-core",
+      "role": "api-limit-format-spec",
+      "required_input_id": "opengl-46-core-spec",
+      "related_input_ids": ["opengl-gles-registry", "glsl-460-spec"]
+    },
+    {
+      "profile": "opengl-4.6-core",
+      "role": "conformance-manifest",
+      "required_input_id": "opengl-cts-manifest",
+      "related_input_ids": ["piglit-gl30-bindfragdata"]
+    },
+    {
+      "profile": "gles-3.2",
+      "role": "api-limit-format-spec",
+      "required_input_id": "gles-32-spec",
+      "related_input_ids": ["opengl-gles-registry", "essl-320-spec"]
+    },
+    {
+      "profile": "gles-3.2",
+      "role": "conformance-manifest",
+      "required_input_id": "gles-cts-manifest",
+      "related_input_ids": ["piglit-gl30-bindfragdata"]
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "api-limit-format-spec",
+      "required_input_id": "vulkan-14-spec",
+      "related_input_ids": ["vulkan-registry", "spirv-core-grammar"]
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "conformance-manifest",
+      "required_input_id": "vulkan-cts-mustpass",
+      "related_input_ids": ["vk-gl-cts-api-version"]
+    }
+  ]
+}

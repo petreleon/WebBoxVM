@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "inventory_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+  "profiles": [
+    {
+      "id": "opengl-4.6-core",
+      "api": "OpenGL",
+      "version": "4.6",
+      "scope": "core-only",
+      "compatibility": "excluded",
+      "extensions": "not-promised",
+      "status": "blocked",
+      "blocker": "inventory-sources-incomplete"
+    },
+    {
+      "id": "gles-3.2",
+      "api": "GLES",
+      "version": "3.2",
+      "scope": "core-only",
+      "compatibility": "desktop-compatibility-excluded",
+      "extensions": "not-promised",
+      "status": "blocked",
+      "blocker": "inventory-sources-incomplete"
+    },
+    {
+      "id": "vulkan-1.4-core",
+      "api": "Vulkan",
+      "version": "1.4",
+      "scope": "core-only",
+      "compatibility": "wsi-and-portability-separate",
+      "extensions": "promoted-provenance-only",
+      "status": "blocked",
+      "blocker": "inventory-sources-incomplete"
+    }
+  ],
+  "row_fields": [
+    "profile", "requirement_kind", "name", "mandatory", "source_id", "source_revision",
+    "source_sha256", "source_locator", "condition", "owner_task", "test_source_id",
+    "test_source_revision", "test_source_sha256", "test_selector", "status", "evidence", "blocker"
+  ],
+  "statuses": ["supported", "emulated", "unsupported", "blocked"]
+}
