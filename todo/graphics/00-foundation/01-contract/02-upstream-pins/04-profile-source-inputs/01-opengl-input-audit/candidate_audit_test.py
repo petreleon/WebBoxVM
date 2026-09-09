@@ -91,6 +91,16 @@ class OpenGlAuditTests(unittest.TestCase):
             with self.assertRaisesRegex(CONTRACT.AuditError, "selector count"):
                 CONTRACT.validate(path, "opengl-4.6-core")
 
+    def test_exact_metadata_cannot_be_rewritten(self) -> None:
+        for field, replacement in (("license", "false license"), ("generated_code_role", "false role"),
+                                   ("provenance", "https://example.invalid/false")):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary:
+                path = Path(temporary) / "candidates.json"
+                shutil.copyfile(AUDIT, path)
+                self.change(path, lambda value: value["candidates"][0]["entry"].update({field: replacement}))
+                with self.assertRaisesRegex(CONTRACT.AuditError, "reviewed exact"):
+                    CONTRACT.validate(path, "opengl-4.6-core")
+
     def test_accepted_compound_or_stale_audit_is_rejected(self) -> None:
         temporary, path = self.copied()
         with temporary:

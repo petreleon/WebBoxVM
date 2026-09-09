@@ -118,7 +118,8 @@ def candidate(value: object, profile: str, expected: tuple[str, str], seen_famil
         reject("candidate has an invalid decision or coverage")
     if not isinstance(blocker, str):
         reject("candidate admission_blocker is invalid")
-    fields = ("source_family", "immutable_url", "revision", "sha256", "bytes")
+    fields = ("source_family", "immutable_url", "revision", "sha256", "bytes", "license", "local_cache",
+              "generated_code_role", "provenance")
     if any(value["entry"][field] != exact[field] for field in fields):
         reject("candidate does not match the reviewed exact identity")
     if (selector_value, count, decision, coverage, blocker) != tuple(exact[field] for field in
