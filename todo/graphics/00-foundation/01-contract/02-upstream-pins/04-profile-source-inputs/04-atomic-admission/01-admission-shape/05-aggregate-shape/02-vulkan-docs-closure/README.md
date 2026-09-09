@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2
 Depends: F02.2, F02.4.3, F02.4.4.1.3
-Evidence: pending
+Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [Vulkan boundary](../../03-vulkan-boundaries/README.md),
 [F02 source policy](../../../../../02-fetch-verifier/01-fetch-contract/source_model.py), and
@@ -34,3 +34,5 @@ immutable identities; the root alone never qualifies.
 
 - The existing 73 observations are insufficient; this task stays open unless every required Docs member and scope input is genuinely modelled.
 - No inventory, candidate decision, F03 state, guest API, browser, CTS, conformance, or performance claim changes here.
+- Status: **BLOCKED** by a truthful multi-member/generated closure model that F02.2 cannot currently
+  express; the blocker record preserves the reproducible discovery and does not check this task off.

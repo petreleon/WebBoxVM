@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.3
 Depends: F02.2, F02.4.3, F02.4.4.1.3
-Evidence: pending
+Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [VCTS boundary](../../03-vulkan-boundaries/README.md),
 [F02 source policy](../../../../../02-fetch-verifier/01-fetch-contract/source_model.py), and
@@ -33,3 +33,5 @@ The broad `vk-default` root is never an eligible substitute for recursively pinn
 
 - The existing 98 observations and 434,669,348 aggregate inspected bytes are not an immutable closure.
 - No inventory, candidate decision, F03 state, guest API, browser, CTS, conformance, or performance claim changes here.
+- Status: **BLOCKED** by the absence of an upstream Vulkan-1.4-core selector and policy-violating
+  `vk-default` members; the blocker record preserves the reproduction and does not check this task off.
