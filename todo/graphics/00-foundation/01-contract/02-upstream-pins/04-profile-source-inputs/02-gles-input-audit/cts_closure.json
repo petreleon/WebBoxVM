@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "profile": "gles-3.2",
+  "candidate_id": "gles-cts-manifest",
+  "candidate_sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+  "included": [
+    {
+      "id": "gles-cts-gles2-khr-main",
+      "source_family": "gles-cts-component",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2",
+      "bytes": 38127,
+      "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+      "local_cache": "webboxvm-graphics/f02/gles-cts-gles2-khr-main/aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2.source",
+      "generated_code_role": "GLES CTS core selector component; generated status not asserted",
+      "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt",
+      "case_count": 473,
+      "reason": "core"
+    },
+    {
+      "id": "gles-cts-gles3-khr-main",
+      "source_family": "gles-cts-component",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72",
+      "bytes": 443126,
+      "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+      "local_cache": "webboxvm-graphics/f02/gles-cts-gles3-khr-main/c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72.source",
+      "generated_code_role": "GLES CTS core selector component; generated status not asserted",
+      "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt",
+      "case_count": 6498,
+      "reason": "core"
+    },
+    {
+      "id": "gles-cts-gles31-khr-main",
+      "source_family": "gles-cts-component",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e",
+      "bytes": 288777,
+      "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+      "local_cache": "webboxvm-graphics/f02/gles-cts-gles31-khr-main/9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e.source",
+      "generated_code_role": "GLES CTS core selector component; generated status not asserted",
+      "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt",
+      "case_count": 4101,
+      "reason": "core"
+    },
+    {
+      "id": "gles-cts-gles32-khr-main",
+      "source_family": "gles-cts-component",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249",
+      "bytes": 105294,
+      "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+      "local_cache": "webboxvm-graphics/f02/gles-cts-gles32-khr-main/426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249.source",
+      "generated_code_role": "GLES CTS core selector component; generated status not asserted",
+      "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "case_count": 1405,
+      "reason": "core"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "gles-cts-gles32-khr-glesext",
+      "source_family": "gles-cts-component",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-glesext.txt",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6",
+      "bytes": 81374,
+      "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+      "local_cache": "webboxvm-graphics/f02/gles-cts-gles32-khr-glesext/789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6.source",
+      "generated_code_role": "GLES CTS optional-extension selector component; generated status not asserted",
+      "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-glesext.txt",
+      "case_count": 1097,
+      "reason": "optional-extension"
+    }
+  ],
+  "core_case_count": 12477
+}

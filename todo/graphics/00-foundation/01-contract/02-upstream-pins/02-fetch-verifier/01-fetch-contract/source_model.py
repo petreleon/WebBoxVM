@@ -80,18 +80,21 @@ def immutable_url(value: str, revision: str, identifier: str) -> str:
     parts = tuple(path_parts[1:]) if path_parts and not path_parts[0] else ()
     if not parts or any(not part or part in (".", "..") for part in parts):
         reject(f"input {identifier} URL has an unsafe path")
-    if MUTABLE_REFS.intersection(part.lower() for part in parts):
-        reject(f"input {identifier} URL has a mutable branch reference")
     if parsed.hostname == "raw.githubusercontent.com":
-        valid = len(parts) >= 4 and parts[2] == revision
+        reference = parts[2] if len(parts) >= 3 else ""
+        valid = len(parts) >= 4 and reference == revision
     elif parsed.hostname == "gitlab.freedesktop.org":
         try:
             marker = parts.index("-")
         except ValueError:
             marker = -1
+        reference = parts[marker + 2] if marker >= 0 and len(parts) > marker + 2 else ""
         valid = marker >= 2 and tuple(parts[marker:marker + 3]) == ("-", "raw", revision) and marker + 3 < len(parts)
     else:
+        reference = ""
         valid = False
+    if reference.lower() in MUTABLE_REFS:
+        reject(f"input {identifier} URL has a mutable branch reference")
     if not valid:
         reject(f"input {identifier} URL does not use a pinned raw source path")
     return value

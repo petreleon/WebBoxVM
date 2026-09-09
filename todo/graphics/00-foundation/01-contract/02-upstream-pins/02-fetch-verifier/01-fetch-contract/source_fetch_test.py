@@ -3,10 +3,8 @@
 
 from __future__ import annotations
 
-import hashlib
-import sys
-import tempfile
-import unittest
+import hashlib, sys
+import tempfile, unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -56,6 +54,7 @@ def v2_inventory(base: Path) -> Path:
         part.write_text("\n".join(entries[index::len(parts)]), encoding="utf-8")
     manifest.with_name("inventory.lock").write_bytes(render_v2_lock(manifest))
     return manifest
+
 class FetchContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(dir=HERE)
@@ -143,6 +142,8 @@ class FetchContractTests(unittest.TestCase):
         for value in urls:
             with self.subTest(value=value), self.assertRaises(ContractError):
                 SourceInput.from_manifest(entry(immutable_url=value))
+        allowed = entry(immutable_url=f"https://raw.githubusercontent.com/example/fixture/{REVISION}/directory/main/payload")
+        self.assertEqual(SourceInput.from_manifest(allowed).url, allowed["immutable_url"])
 
     def test_unsafe_cache_root_or_name_is_rejected(self) -> None:
         root = Path(self.temporary.name)

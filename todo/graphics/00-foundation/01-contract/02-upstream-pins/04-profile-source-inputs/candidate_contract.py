@@ -135,7 +135,8 @@ def candidate(value: object, profile: str, expected: tuple[str, str], seen_famil
 def validate(path: Path, profile: str) -> tuple[str, ...]:
     expected = requirements(profile)
     value = document(path)
-    if set(value) != ROOT_FIELDS or value.get("schema") != 1 or value.get("profile") != profile:
+    if (set(value) != ROOT_FIELDS or type(value.get("schema")) is not int
+            or value["schema"] != 1 or value.get("profile") != profile):
         reject("candidate audit does not match schema version 1")
     try:
         revision = load_inventory(MANIFEST).revision

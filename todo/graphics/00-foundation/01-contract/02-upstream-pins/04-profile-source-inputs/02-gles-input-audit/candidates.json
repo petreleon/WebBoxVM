@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "profile": "gles-3.2",
+  "inventory_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+  "candidates": [
+    {
+      "required_input_id": "gles-32-spec",
+      "role": "api-limit-format-spec",
+      "decision": "accepted",
+      "entry": {
+        "id": "gles-32-spec",
+        "source_family": "gles-32-spec",
+        "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/1cdd228e34966dd6b95bd203e9f84faba0f371a1/specs/es/3.2/es_spec_3.2.pdf",
+        "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+        "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c",
+        "bytes": 2198754,
+        "license": "Khronos conditional spec reproduction license (PDF p. iv)",
+        "local_cache": "webboxvm-graphics/f02/gles-32-spec/5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c.source",
+        "generated_code_role": "GLES 3.2 normative API reference; no generated code",
+        "provenance": "https://github.com/KhronosGroup/OpenGL-Registry/tree/1cdd228e34966dd6b95bd203e9f84faba0f371a1"
+      },
+      "selector": "specs/es/3.2/es_spec_3.2.pdf",
+      "selector_case_count": 0,
+      "coverage": "complete-single-file",
+      "admission_blocker": ""
+    },
+    {
+      "required_input_id": "gles-cts-manifest",
+      "role": "conformance-manifest",
+      "decision": "rejected",
+      "entry": {
+        "id": "gles-cts-manifest",
+        "source_family": "gles-cts",
+        "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/mustpass.xml",
+        "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+        "sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+        "bytes": 4284,
+        "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-manifest/9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96.source",
+        "generated_code_role": "GLES CTS generated compound selector descriptor; no code is imported",
+        "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80"
+      },
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/mustpass.xml",
+      "selector_case_count": 12477,
+      "coverage": "compound-unadmitted",
+      "admission_blocker": "requires-multifile-core-selector-closure"
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "profile": "gles-3.2",
+  "candidate_id": "gles-cts-manifest",
+  "candidate_sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+  "configurations": [
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": false,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": false,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": false,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=113 --deqp-surface-height=47 --deqp-base-seed=2 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=-1 --deqp-base-seed=3 --deqp-gl-config-name=rgba8888d24s8 --deqp-surface-type=fbo --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=-1 --deqp-surface-height=64 --deqp-base-seed=3 --deqp-gl-config-name=rgba8888d24s8 --deqp-surface-type=fbo --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": false,
+      "reason": "core"
+    },
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=113 --deqp-surface-height=47 --deqp-base-seed=2 --deqp-watchdog=disable",
+      "name": "khr-main",
+      "os": "any",
+      "use_for_first_egl_config": false,
+      "reason": "core"
+    }
+  ],
+  "excluded_configurations": [
+    {
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-glesext.txt",
+      "command_line": "--deqp-screen-rotation=unspecified --deqp-surface-width=64 --deqp-surface-height=64 --deqp-base-seed=1 --deqp-watchdog=disable",
+      "name": "khr-glesext",
+      "os": "any",
+      "use_for_first_egl_config": true,
+      "reason": "optional-extension"
+    }
+  ],
+  "core_configuration_count": 12,
+  "core_case_configuration_runs": 30574,
+  "excluded_configuration_count": 1
+}
