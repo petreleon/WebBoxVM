@@ -25,7 +25,7 @@ prove cache freshness, or alter F03.
 
 ## Checklist
 
-- [ ] [F02.4.4.1.5.4.4.1 — Define the derived-Docs successor policy](01-derived-docs-policy/README.md)
+- [x] [F02.4.4.1.5.4.4.1 — Define the derived-Docs successor policy](01-derived-docs-policy/README.md)
 - [ ] [F02.4.4.1.5.4.4.2 — Prove the derived-Docs source closure](02-derived-docs-closure/README.md)
 - [ ] [F02.4.4.1.5.4.4.3 — Separate source sufficiency from release conformance](03-source-release-boundary/README.md)
 - [ ] [F02.4.4.1.5.4.4.4 — Reconcile the final aggregate admission](04-final-aggregate-reconciliation/README.md)

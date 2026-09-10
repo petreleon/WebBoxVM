@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.1
 Depends: F02.4.4.1.5.4.3, F02.4.4.1.5.5
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [blocked-state receipt](../../03-blocked-state-receipt/README.md), the
 [V2 source contract](../../../05-vulkan-source-contract-v2/README.md), and the existing
@@ -24,12 +24,12 @@ that VCTS is a core-only selector. The target remains Vulkan 1.4 core.
 
 ## Checklist
 
-- [ ] Freeze the exact raw-tree, recipe, builder, configuration, two-run, and core-scope identities.
-- [ ] Require every raw source member to meet the 8 MiB cap while keeping rendered artifacts separately bounded.
-- [ ] Define authoritative per-member license, attribution, role, provenance, and producer-lineage obligations.
-- [ ] Forbid root-only, mutable, alias, output-as-source, VCTS-as-Docs, and false-ready records.
-- [ ] Keep inventory, cache freshness, F03, support, conformance, certification, and performance state false.
-- [ ] Add focused positive and hostile policy tests with a bounded decision receipt.
+- [x] Freeze the exact raw-tree, recipe, builder, configuration, two-run, and core-scope identities.
+- [x] Require every raw source member to meet the 8 MiB cap while keeping rendered artifacts separately bounded.
+- [x] Define authoritative per-member license, attribution, role, provenance, and producer-lineage obligations.
+- [x] Forbid root-only, mutable, alias, output-as-source, VCTS-as-Docs, and false-ready records.
+- [x] Keep inventory, cache freshness, F03, support, conformance, certification, and performance state false.
+- [x] Add focused positive and hostile policy tests with a bounded decision receipt.
 
 ## Verification
 
