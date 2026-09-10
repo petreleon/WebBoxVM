@@ -29,12 +29,15 @@ prove cache freshness, or alter F03.
 - [ ] [F02.4.4.1.5.4.4.2 — Prove the derived-Docs source closure](02-derived-docs-closure/README.md)
 - [ ] [F02.4.4.1.5.4.4.3 — Separate source sufficiency from release conformance](03-source-release-boundary/README.md)
 - [ ] [F02.4.4.1.5.4.4.4 — Reconcile the final aggregate admission](04-final-aggregate-reconciliation/README.md)
+- [ ] [F02.4.4.1.5.4.4.5 — Resolve the independent GLES/VCTS closure policies](05-independent-suite-closures/README.md)
+- [ ] [F02.4.4.1.5.4.4.6 — Define the successor inventory transition](06-successor-inventory-transition/README.md)
 
 ## Verification
 
-- Current state: **BLOCKED** — V2 verifies an external Khronos suite but preserves `admitted=false`,
-  `cutover_ready=false`, and `satisfies_vulkan_14_core_manifest=false`; Docs remains provenance, not an
-  admitted implementation source. This task stays unchecked until that separate source truth changes.
+- Current state: **BLOCKED** — the first live blocker is the GLES CTS multi-file closure; Docs remains
+  provenance rather than an admitted implementation source, and V2 preserves `admitted=false`,
+  `cutover_ready=false`, and `satisfies_vulkan_14_core_manifest=false`. This task stays unchecked until
+  all three independent source truths change through their own policies.
 - `admission_closures.json` and every downstream cutover/F03 effect remain reserved for F02.4.4.2–.5.
 
 ## Split rationale

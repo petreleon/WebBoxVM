@@ -10,16 +10,26 @@
     "repository": "KhronosGroup/Vulkan-Docs",
     "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
     "root_selector": "vkspec.adoc",
+    "root_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/vkspec.adoc",
+    "root_sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
     "raw_member_max_bytes": 8388608,
     "tree_identity_required": true,
-    "immutable_https_required": true
+    "immutable_https_required": true,
+    "tree_manifest_contract": "vulkan-docs-derived-source-tree-v1"
+  },
+  "anchors": {
+    "build_witness_sha256": "eaaaeee1286c73f06f06d522ed225a593274d943f496c92179bcdc8260823069",
+    "scope_manifest_sha256": "82a258127c28e00277c0548ebbd2da2c13f383dc5bc0756a742f910736a61730",
+    "capture_comparison_sha256": "7fac74d8b2dcb56bbb2caa4c52f570be254984babe71e9c18ae52e76a4545aed"
   },
   "build": {
     "required_argv_tokens": ["./makeSpec", "-spec", "core", "-version", "1.4", "html"],
     "pinned_builder_required": true,
     "network": "none",
     "two_fresh_runs_required": true,
-    "scope_manifest_required": true
+    "scope_manifest_required": true,
+    "clean_build_required": true,
+    "isolated_generated_path_required": true
   },
   "generated": {
     "rendered_output_may_satisfy_source": false,
@@ -43,7 +53,8 @@
     "near_native": false,
     "admitted": false,
     "admission_eligible": false,
-    "cutover_ready": false
+    "cutover_ready": false,
+    "satisfies_vulkan_14_core_manifest": false
   },
-  "policy_sha256": "aa35bdc4086b555d77698dc3fc90ae7ca6165bf42f9a10a9b7b22f57379a07bb"
+  "policy_sha256": "9aac96fcdc340a31e77f44318fd32dbd673eb90551b5ac090d21d8b3a53078aa"
 }

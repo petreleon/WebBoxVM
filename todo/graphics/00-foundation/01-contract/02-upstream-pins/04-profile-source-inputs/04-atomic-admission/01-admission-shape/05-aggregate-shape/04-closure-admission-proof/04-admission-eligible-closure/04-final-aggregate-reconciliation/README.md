@@ -3,11 +3,13 @@
 [Parent task](../README.md)
 
 Task: F02.4.4.1.5.4.4.4
-Depends: F02.4.4.1.5.4.4.2, F02.4.4.1.5.4.4.3
+Depends: F02.4.4.1.5.4.4.2, F02.4.4.1.5.4.4.3, F02.4.4.1.5.4.4.5, F02.4.4.1.5.4.4.6
 Evidence: pending
 
 Prerequisite lists: the [derived Docs closure](../02-derived-docs-closure/README.md), the
 [source/release boundary](../03-source-release-boundary/README.md), and the
+[independent suite policies](../05-independent-suite-closures/README.md), the
+[successor inventory transition](../06-successor-inventory-transition/README.md), and the
 [blocked-state receipt](../../03-blocked-state-receipt/README.md).
 
 ## Outcome

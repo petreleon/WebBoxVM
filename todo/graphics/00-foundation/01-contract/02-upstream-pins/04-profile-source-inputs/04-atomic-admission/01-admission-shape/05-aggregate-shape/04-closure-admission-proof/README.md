@@ -12,9 +12,10 @@ Prerequisite lists: every [aggregate child](../README.md), the
 ## Outcome
 
 One final fail-closed aggregate may derive an admission-eligible closure state only after all six
-logical inputs are complete, immutable, scoped, and valid under their V1 or V2 source policy. It
-first freezes its grammar, then seals the actual blocked state; neither a passing validator nor a
-recorded VCTS cache can imply inventory cutover, fresh cache proof, or F03 transition.
+logical inputs are complete, immutable, scoped, and valid under their native V1/V2 policy or an
+explicitly versioned successor policy. It first freezes its grammar, then seals the actual blocked
+state; neither a passing validator nor a recorded VCTS cache can imply inventory cutover, fresh
+cache proof, or F03 transition.
 
 ## Starting points
 
@@ -32,5 +33,6 @@ recorded VCTS cache can imply inventory cutover, fresh cache proof, or F03 trans
 
 - A contract, reconciler, or blocked-state receipt may PASS for faithfully preserving a bounded state;
   that is not an admission PASS. The final child may pass only after every live role has a valid policy.
-- A retained Docs provenance boundary, stale V2 receipt, or incomplete VCTS closure keeps this list,
-  its parent, and F02.4.4.2 incomplete.
+- A retained Docs provenance boundary, stale V2 receipt, or incomplete GLES/VCTS closure keeps this
+  list, its parent, and F02.4.4.2 incomplete. A successor grammar may consume a successor envelope
+  only after it preserves the frozen blocked-state receipt as historical evidence rather than rewriting it.

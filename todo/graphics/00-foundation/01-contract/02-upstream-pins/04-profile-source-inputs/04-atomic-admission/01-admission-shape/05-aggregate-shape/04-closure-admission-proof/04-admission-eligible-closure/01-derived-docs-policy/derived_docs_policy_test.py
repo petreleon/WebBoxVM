@@ -36,17 +36,19 @@ class DerivedDocsPolicyTest(unittest.TestCase):
 
     def test_policy_is_exactly_unadmitted(self) -> None:
         result = contract.policy()
-        self.assertEqual(result.source_revision, contract.REVISION)
-        self.assertEqual(result.source_member_cap, 8 * 1024 * 1024)
+        self.assertEqual(result, self.value["policy_sha256"])
 
     def test_scope_source_and_builder_tampering_are_rejected(self) -> None:
         cases = (
             (lambda value: value.__setitem__("profile", "vulkan-1.3-core"), "unexpected contract"),
+            (lambda value: value.__setitem__("schema", True), "unexpected contract"),
+            (lambda value: value.__setitem__("schema", 1.0), "unexpected contract"),
             (lambda value: value["source"].__setitem__("revision", "a" * 40), "reviewed immutable"),
             (lambda value: value["source"].__setitem__("raw_member_max_bytes", 1), "8 MiB"),
             (lambda value: value["source"].__setitem__("tree_identity_required", False), "root-only"),
             (lambda value: value["build"].__setitem__("network", "host"), "networked"),
             (lambda value: value["build"].__setitem__("required_argv_tokens", []), "core build route"),
+            (lambda value: value["anchors"].__setitem__("scope_manifest_sha256", "a" * 64), "scope_manifest"),
         )
         for mutate, pattern in cases:
             with self.subTest(pattern=pattern):
@@ -59,6 +61,7 @@ class DerivedDocsPolicyTest(unittest.TestCase):
             (lambda value: value["vcts"].__setitem__("can_satisfy_docs", True), "VCTS"),
             (lambda value: value["vcts"].__setitem__("local_core_selector_allowed", True), "VCTS"),
             (lambda value: value["effects"].__setitem__("admitted", True), "active, support, or release"),
+            (lambda value: value["effects"].__setitem__("satisfies_vulkan_14_core_manifest", True), "active, support, or release"),
         )
         for mutate, pattern in cases:
             with self.subTest(pattern=pattern):
@@ -69,6 +72,7 @@ class DerivedDocsPolicyTest(unittest.TestCase):
         altered["policy_sha256"] = "a" * 64
         with self.assertRaisesRegex(contract.PolicyError, "sha256"):
             contract.policy_value(altered)
+        self.reject(lambda value: value.__setitem__("source_requirements_sha256", "a" * 64), "reviewed F03")
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             duplicate = root / "duplicate.json"
@@ -76,16 +80,12 @@ class DerivedDocsPolicyTest(unittest.TestCase):
             with self.assertRaisesRegex(contract.PolicyError, "duplicate JSON key"):
                 contract.policy(duplicate)
             oversized = root / "oversized.json"
-            oversized.write_bytes(b"x" * (contract.MAX_POLICY_BYTES + 1))
+            oversized.write_bytes(b"x" * (contract.MAX_DOCUMENT_BYTES + 1))
             with self.assertRaisesRegex(contract.PolicyError, "bounded size"):
                 contract.policy(oversized)
-            requirements = root / "requirements.json"
-            requirements.write_bytes(contract.REQUIREMENTS.read_bytes() + b"\n")
-            with self.assertRaisesRegex(contract.PolicyError, "F03 source requirements"):
-                contract.policy(requirements=requirements)
 
     def test_cli_is_read_only_and_reports_unadmitted_state(self) -> None:
-        watched = (contract.POLICY, contract.REQUIREMENTS)
+        watched = (contract.POLICY, contract.REQUIREMENTS, *(path for path, _ in contract.ANCHORS.values()))
         before = {path: path.read_bytes() for path in watched}
         result = subprocess.run([sys.executable, str(HERE / "derived_docs_policy.py")], text=True,
                                 capture_output=True, check=False)
