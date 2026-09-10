@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.3.2
 Depends: F02.4.4.1.5.2.3.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [input observer](../01-observe-pinned-build-inputs/README.md),
 [actual Docs grammar](../../02-actual-closure-identity/README.md), and
@@ -23,13 +23,13 @@ manifest. It distinguishes required extension control and promotion metadata fro
 
 ## Checklist
 
-- [ ] Bind ordered raw immutable identities, derived identities, producer coverage, per-member caps, and exact core
+- [x] Bind ordered raw immutable identities, derived identities, producer coverage, per-member caps, and exact core
   configuration without treating an output as a source.
-- [ ] Bind WSI/video false branches, required extension-control inputs, inactive individual extension branches, images,
+- [x] Bind WSI/video false branches, required extension-control inputs, inactive individual extension branches, images,
   and the four core-promotion metadata inputs.
-- [ ] Reject root-only, omitted, duplicate, malformed, over-limit, unsafe-path, stale-producer, WSI/video, or
+- [x] Reject root-only, omitted, duplicate, malformed, over-limit, unsafe-path, stale-producer, WSI/video, or
   extension-expanded manifests before exposing a result.
-- [ ] Add focused positive and hostile fixtures that keep all public results unadmitted and not cutover-ready.
+- [x] Add focused positive and hostile fixtures that keep all public results unadmitted and not cutover-ready.
 
 ## Verification
 

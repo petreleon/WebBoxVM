@@ -23,7 +23,7 @@ promotion-metadata treatment from the reproducible official build without treati
 ## Checklist
 
 - [x] [F02.4.4.1.5.2.3.3.1 — Observe pinned core build inputs](01-observe-pinned-build-inputs/README.md)
-- [ ] [F02.4.4.1.5.2.3.3.2 — Bind the core input and scope manifest](02-bind-core-input-scope/README.md)
+- [x] [F02.4.4.1.5.2.3.3.2 — Bind the core input and scope manifest](02-bind-core-input-scope/README.md)
 - [ ] [F02.4.4.1.5.2.3.3.3 — Compare fresh captures and record the receipt](03-compare-fresh-captures/README.md)
 
 ## Verification
