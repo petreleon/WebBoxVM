@@ -26,4 +26,12 @@ jobs:
           set -euo pipefail
           rel='todo/graphics/00-foundation/01-contract/02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/02-proof-lineage-trace/lineage_github_witness.py'
           git -C "$GITHUB_WORKSPACE" cat-file blob "$GITHUB_SHA:$rel" > "$RUNNER_TEMP/lineage_github_witness.py"
-          python3 -I "$RUNNER_TEMP/lineage_github_witness.py" "$GITHUB_WORKSPACE"
+          set +e
+          detail="$(python3 -I "$RUNNER_TEMP/lineage_github_witness.py" "$GITHUB_WORKSPACE" 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$detail"
+          if [ "$status" -ne 0 ]; then
+            echo "::error title=Docs lineage witness failed::${detail//$'\n'/ }"
+            exit "$status"
+          fi
