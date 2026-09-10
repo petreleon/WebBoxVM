@@ -15,7 +15,10 @@ proof grammar.
 ## Starting points
 
 - [ptrace primitive](../observer/lineage_ptrace_probe.c)
+- [bounded C fixture](../observer/lineage_ptrace_fixture.c)
+- [bounded C collector](../observer/lineage_ptrace_fixture_collector.c)
 - [fixture wire normalizer](../lineage_synthetic_normalize.py)
+- [collector-pipe binder](../lineage_synthetic_collect.py)
 - [event grammar](../lineage_events.py)
 - [binder](../lineage_bind.py)
 
@@ -29,4 +32,10 @@ proof grammar.
 ## Verification
 
 - No Docs source or build is mounted or invoked; a fixture result remains `observed-unadmitted`.
+- The fixture accepts only a three-byte raw input. The collector captures it while the fixture is stopped, requires the
+  same raw identity after every tracee exits, and only then emits matching raw/output identities through its own pipe.
+  This is not a Docs snapshot or provenance assertion.
+- `argv_sha256` is a static fixture-profile sentinel required by the frozen grammar, not an observed Docs argv hash.
+- Root paths require `O_NOFOLLOW` and exact fixture flags; aliases or alternate I/O through a tracked descriptor fail closed.
+- The local Docker runner mounts an unpinned worktree source and is diagnostic only; it cannot become hosted authority.
 - The collector must require the existing no-privilege, no-network policy and fail closed on a missing trace primitive.
