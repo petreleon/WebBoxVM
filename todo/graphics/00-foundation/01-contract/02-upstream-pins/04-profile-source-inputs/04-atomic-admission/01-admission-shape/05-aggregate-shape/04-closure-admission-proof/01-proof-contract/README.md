@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.1
 Depends: F02.4.4.1.5.1, F02.4.4.1.5.5
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [pre-admission aggregate](../../01-pre-admission-aggregate/README.md),
 [V2 handoff](../../05-vulkan-source-contract-v2/05-aggregate-handoff/README.md), and
@@ -24,11 +24,11 @@ fresh-cache, and F03 readiness, all of which remain false for the current state.
 
 ## Checklist
 
-- [ ] Fix the canonical six profile, role, and required-ID tuples in their F03 order with no aliases or surplus.
-- [ ] Define distinct regular-source and canonical-suite envelopes without inventing per-member V2 F02.2 fields.
-- [ ] Prohibit V2 from satisfying `vulkan-14-spec` or recasting `vk-default` as a Vulkan-1.4-core selector.
-- [ ] Enforce terminal false readiness flags and reject missing, reordered, duplicate, mixed-policy, or extra fields.
-- [ ] Run focused positive and hostile grammar tests and attach a small receipt.
+- [x] Fix the canonical six profile, role, and required-ID tuples in their F03 order with no aliases or surplus.
+- [x] Define distinct regular-source and canonical-suite envelopes without inventing per-member V2 F02.2 fields.
+- [x] Prohibit V2 from satisfying `vulkan-14-spec` or recasting `vk-default` as a Vulkan-1.4-core selector.
+- [x] Enforce terminal false readiness flags and reject missing, reordered, duplicate, mixed-policy, or extra fields.
+- [x] Run focused positive and hostile grammar tests and attach a small receipt.
 
 ## Verification
 
