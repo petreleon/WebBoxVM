@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.5.3.2
 Depends: F02.4.4.1.5.5.3.1, F02.4.4.1.5.5.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [the cache contract](../01-cache-contract/README.md) and
 [the V2 selector identity](../../02-canonical-suite-schema/vcts_root_identity.json).
@@ -22,11 +22,11 @@ records the validated ledger/receipt metadata, then proves the same cache offlin
 
 ## Checklist
 
-- [ ] Fetch the 3,347-byte root and every one of its 98 pinned direct members by streamed HTTPS.
-- [ ] Record exact bytes, SHA-256, Git blob SHA-1, ordered ledger digest, aggregate bytes, and cache receipt.
-- [ ] Re-run offline verification against the same external cache with no transport requests.
-- [ ] Record the exact first network/cache failure as BLOCKED or FAIL; do not fabricate an unavailable member.
-- [ ] Keep payloads outside Git and attach reproducible receipt evidence with no API/performance claim.
+- [x] Fetch the 3,347-byte root and every one of its 98 pinned direct members by streamed HTTPS.
+- [x] Record exact bytes, SHA-256, Git blob SHA-1, ordered ledger digest, aggregate bytes, and cache receipt.
+- [x] Re-run offline verification against the same external cache with no transport requests.
+- [x] Record the exact first network/cache failure as BLOCKED or FAIL; do not fabricate an unavailable member.
+- [x] Keep payloads outside Git and attach reproducible receipt evidence with no API/performance claim.
 
 ## Verification
 

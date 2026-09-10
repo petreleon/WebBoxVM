@@ -26,7 +26,7 @@ read-only, and gives F03 a truthful source-availability path without claiming co
 
 - [x] [F02.4.4.1.5.5.1 — Record the V2 policy decision](01-policy-decision/README.md)
 - [x] [F02.4.4.1.5.5.2 — Define the canonical-suite schema](02-canonical-suite-schema/README.md)
-- [ ] [F02.4.4.1.5.5.3 — Verify the external closure cache](03-external-closure-cache/README.md)
+- [x] [F02.4.4.1.5.5.3 — Verify the external closure cache](03-external-closure-cache/README.md)
 - [x] [F02.4.4.1.5.5.4 — Freeze coverage-report taxonomy](04-coverage-taxonomy/README.md)
 - [ ] [F02.4.4.1.5.5.5 — Hand off the V2 aggregate](05-aggregate-handoff/README.md)
 
