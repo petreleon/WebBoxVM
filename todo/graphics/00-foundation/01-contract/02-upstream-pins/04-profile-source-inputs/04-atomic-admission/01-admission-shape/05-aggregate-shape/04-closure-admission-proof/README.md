@@ -13,7 +13,8 @@ Prerequisite lists: every [aggregate child](../README.md), the
 
 One final fail-closed aggregate may derive an admission-eligible closure state only after all six
 logical inputs are complete, immutable, scoped, and valid under their V1 or V2 source policy. It
-cannot claim the later inventory cutover, cache proof, or F03 transition.
+first freezes its grammar, then seals the actual blocked state; neither a passing validator nor a
+recorded VCTS cache can imply inventory cutover, fresh cache proof, or F03 transition.
 
 ## Starting points
 
@@ -22,14 +23,14 @@ cannot claim the later inventory cutover, cache proof, or F03 transition.
 
 ## Checklist
 
-- [ ] Reconcile exactly one complete closure identity for every canonical profile, role, and required input.
-- [ ] Validate typed scope/exclusion joins, predecessor shape digest, audit-history adapter, and each
-  applicable V1/V2 policy without treating a superseded record as PASS.
-- [ ] Reject missing, duplicate, root-only, stale, mixed-lock, or partial closure/receipt inputs.
-- [ ] Derive no inventory-ready or F03-ready result; attach focused positive and hostile evidence.
+- [ ] [F02.4.4.1.5.4.1 — Freeze the admission-proof contract](01-proof-contract/README.md)
+- [ ] [F02.4.4.1.5.4.2 — Reconcile current evidence fail-closed](02-reconcile-current-evidence/README.md)
+- [ ] [F02.4.4.1.5.4.3 — Seal the blocked-state receipt](03-blocked-state-receipt/README.md)
+- [ ] [F02.4.4.1.5.4.4 — Establish an admission-eligible closure](04-admission-eligible-closure/README.md)
 
 ## Verification
 
-- This child may pass only after the V2 contract has concrete PASS evidence and proves its own inputs.
+- A contract, reconciler, or blocked-state receipt may PASS for faithfully preserving a bounded state;
+  that is not an admission PASS. The final child may pass only after every live role has a valid policy.
 - A retained Docs provenance boundary, stale V2 receipt, or incomplete VCTS closure keeps this list,
   its parent, and F02.4.4.2 incomplete.
