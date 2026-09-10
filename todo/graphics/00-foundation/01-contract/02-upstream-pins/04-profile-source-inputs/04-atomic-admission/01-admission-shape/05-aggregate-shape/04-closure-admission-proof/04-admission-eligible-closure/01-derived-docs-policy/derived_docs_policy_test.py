@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -46,7 +47,9 @@ class DerivedDocsPolicyTest(unittest.TestCase):
             (lambda value: value["source"].__setitem__("revision", "a" * 40), "reviewed immutable"),
             (lambda value: value["source"].__setitem__("raw_member_max_bytes", 1), "8 MiB"),
             (lambda value: value["source"].__setitem__("tree_identity_required", False), "root-only"),
+            (lambda value: value["source"].__setitem__("tree_identity_required", 1), "root-only"),
             (lambda value: value["build"].__setitem__("network", "host"), "networked"),
+            (lambda value: value["build"].__setitem__("pinned_builder_required", 1), "unpinned"),
             (lambda value: value["build"].__setitem__("required_argv_tokens", []), "core build route"),
             (lambda value: value["anchors"].__setitem__("scope_manifest_sha256", "a" * 64), "scope_manifest"),
         )
@@ -57,8 +60,10 @@ class DerivedDocsPolicyTest(unittest.TestCase):
     def test_output_license_vcts_and_effect_tampering_are_rejected(self) -> None:
         cases = (
             (lambda value: value["generated"].__setitem__("rendered_output_may_satisfy_source", True), "generated-output"),
+            (lambda value: value["generated"].__setitem__("output_member_max_bytes", 33554432.0), "generated-output"),
             (lambda value: value["generated"].__setitem__("authoritative_license_expression_required", False), "license"),
             (lambda value: value["vcts"].__setitem__("can_satisfy_docs", True), "VCTS"),
+            (lambda value: value["vcts"].__setitem__("can_satisfy_docs", 0), "VCTS"),
             (lambda value: value["vcts"].__setitem__("local_core_selector_allowed", True), "VCTS"),
             (lambda value: value["effects"].__setitem__("admitted", True), "active, support, or release"),
             (lambda value: value["effects"].__setitem__("satisfies_vulkan_14_core_manifest", True), "active, support, or release"),
@@ -83,6 +88,14 @@ class DerivedDocsPolicyTest(unittest.TestCase):
             oversized.write_bytes(b"x" * (contract.MAX_DOCUMENT_BYTES + 1))
             with self.assertRaisesRegex(contract.PolicyError, "bounded size"):
                 contract.policy(oversized)
+            fifo = root / "policy.fifo"
+            os.mkfifo(fifo)
+            with self.assertRaisesRegex(contract.PolicyError, "regular file"):
+                contract.policy(fifo)
+            link = root / "policy-link.json"
+            link.symlink_to(contract.POLICY)
+            with self.assertRaisesRegex(contract.PolicyError, "regular file"):
+                contract.policy(link)
 
     def test_cli_is_read_only_and_reports_unadmitted_state(self) -> None:
         watched = (contract.POLICY, contract.REQUIREMENTS, *(path for path, _ in contract.ANCHORS.values()))

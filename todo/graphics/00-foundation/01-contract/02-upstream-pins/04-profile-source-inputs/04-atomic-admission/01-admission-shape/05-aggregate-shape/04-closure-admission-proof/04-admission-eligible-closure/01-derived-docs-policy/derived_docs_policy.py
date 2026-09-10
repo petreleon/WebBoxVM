@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import stat
 import sys
 from pathlib import Path
 
@@ -29,10 +31,8 @@ EFFECTS = frozenset(("inventory_changed", "cache_freshness_proved", "f03_changed
                      "conformant", "certified", "near_native", "admitted", "admission_eligible",
                      "cutover_ready", "satisfies_vulkan_14_core_manifest"))
 
-
 class PolicyError(ValueError):
     """The policy cannot be used as a trusted successor boundary."""
-
 
 def reject(message: str) -> None:
     raise PolicyError(message)
@@ -46,10 +46,14 @@ def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
         result[key] = value
     return result
 
-
 def bounded_bytes(path: Path, label: str) -> bytes:
     try:
-        with path.open("rb") as source:
+        if not stat.S_ISREG(path.lstat().st_mode):
+            reject(f"{label} is not a regular file")
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with os.fdopen(descriptor, "rb") as source:
+            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                reject(f"{label} is not a regular file")
             result = source.read(MAX_DOCUMENT_BYTES + 1)
     except OSError as error:
         reject(f"{label} cannot be read: {error}")
@@ -76,6 +80,10 @@ def exact(value: object, fields: frozenset[str], label: str) -> dict[str, object
     if not isinstance(value, dict) or set(value) != fields:
         reject(f"{label} has an invalid schema")
     return value
+
+
+def fixed(value: dict[str, object], expected: tuple[tuple[str, object, type], ...]) -> bool:
+    return all(type(value.get(key)) is kind and value[key] == item for key, item, kind in expected)
 
 
 def digest(value: object, label: str) -> str:
@@ -107,7 +115,6 @@ def require_anchors(value: object) -> None:
         if digest(anchors[key], key) != expected or hashlib.sha256(bounded_bytes(path, key)).hexdigest() != expected:
             reject(f"policy does not bind the reviewed {key}")
 
-
 def policy_value(value: object) -> str:
     fields = frozenset(("schema", "contract", "status", *TARGET_FIELDS, "source_requirements_sha256",
                         "source", "anchors", "build", "generated", "vcts", "effects", "policy_sha256"))
@@ -123,9 +130,8 @@ def policy_value(value: object) -> str:
             "KhronosGroup/Vulkan-Docs", REVISION, "vkspec.adoc",
             f"https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/{REVISION}/vkspec.adoc", ROOT_SHA256):
         reject("policy does not retain the reviewed immutable Docs root")
-    if tuple(source.get(key) for key in ("raw_member_max_bytes", "tree_identity_required",
-                                         "immutable_https_required", "tree_manifest_contract")) != (
-            MAX_SOURCE_MEMBER_BYTES, True, True, "vulkan-docs-derived-source-tree-v1"):
+    if not fixed(source, (("raw_member_max_bytes", MAX_SOURCE_MEMBER_BYTES, int), ("tree_identity_required", True, bool),
+                          ("immutable_https_required", True, bool), ("tree_manifest_contract", "vulkan-docs-derived-source-tree-v1", str))):
         reject("policy permits a root-only, mutable, or over-cap 8 MiB source")
     require_anchors(policy["anchors"])
     build = exact(policy["build"], frozenset(("required_argv_tokens", "pinned_builder_required", "network",
@@ -133,21 +139,21 @@ def policy_value(value: object) -> str:
                   "isolated_generated_path_required")), "build")
     if build.get("required_argv_tokens") != ["./makeSpec", "-spec", "core", "-version", "1.4", "html"]:
         reject("policy does not require the Vulkan 1.4 core build route")
-    if tuple(build.get(key) for key in ("pinned_builder_required", "network", "two_fresh_runs_required",
-                                        "scope_manifest_required", "clean_build_required",
-                                        "isolated_generated_path_required")) != (True, "none", True, True, True, True):
+    if not fixed(build, (("pinned_builder_required", True, bool), ("network", "none", str),
+                         ("two_fresh_runs_required", True, bool), ("scope_manifest_required", True, bool),
+                         ("clean_build_required", True, bool), ("isolated_generated_path_required", True, bool))):
         reject("policy permits an unpinned, networked, incomplete, or shared build")
     generated = exact(policy["generated"], frozenset(("rendered_output_may_satisfy_source",
                       "output_member_max_bytes", "authoritative_license_expression_required",
                       "attribution_manifest_required", "producer_lineage_required")), "generated")
-    if tuple(generated.get(key) for key in ("rendered_output_may_satisfy_source", "output_member_max_bytes",
-                                            "authoritative_license_expression_required", "attribution_manifest_required",
-                                            "producer_lineage_required")) != (False, 32 * 1024 * 1024, True, True, True):
+    if not fixed(generated, (("rendered_output_may_satisfy_source", False, bool), ("output_member_max_bytes", 32 * 1024 * 1024, int),
+                             ("authoritative_license_expression_required", True, bool), ("attribution_manifest_required", True, bool),
+                             ("producer_lineage_required", True, bool))):
         reject("policy weakens generated-output, license, or lineage separation")
     vcts = exact(policy["vcts"], frozenset(("can_satisfy_docs", "local_core_selector_allowed",
                  "canonical_suite_scope")), "vcts")
-    if tuple(vcts.get(key) for key in ("can_satisfy_docs", "local_core_selector_allowed", "canonical_suite_scope")) != (
-            False, False, "broader-than-vulkan-1.4-core"):
+    if not fixed(vcts, (("can_satisfy_docs", False, bool), ("local_core_selector_allowed", False, bool),
+                        ("canonical_suite_scope", "broader-than-vulkan-1.4-core", str))):
         reject("policy misrepresents VCTS as a Docs or core-selector source")
     effects = exact(policy["effects"], EFFECTS, "effects")
     if any(item is not False for item in effects.values()):
@@ -156,7 +162,6 @@ def policy_value(value: object) -> str:
     if digest(policy["policy_sha256"], "policy_sha256") != actual:
         reject("policy sha256 does not bind its contents")
     return actual
-
 
 def policy(path: Path = POLICY) -> str:
     return policy_value(document(path))
@@ -169,7 +174,6 @@ def main() -> None:
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(2)
     print(f"POLICY: {REVISION} raw-cap={MAX_SOURCE_MEMBER_BYTES} unadmitted")
-
 
 if __name__ == "__main__":
     main()
