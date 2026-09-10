@@ -71,8 +71,22 @@ Vulkan configurations. Current `api.txt` remains 32,673,653 B, so even a newer u
 or scope failure. GitHub release records add no attached core-only artifact. This recheck changes no pin, policy,
 or blocker status.
 
+## Android CTS alternative audit
+
+The 11,410-B [Android CTS manifest](https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/android/cts/main/mustpass.xml#L72-L83)
+is not an alternate `vulkan-cts-mustpass`: it combines EGL/GLES packages with dated `dEQP-VK` 2019--2026 lists
+and two incremental lists. Its [official generator](https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/scripts/build_android_mustpass.py#L395-L460)
+states that the yearly files are cumulative Android deltas; no one file claims complete Vulkan 1.4 core coverage.
+
+The closest current root, `vk-main-2026-03-01.txt`, has 66 members totaling 99,129,543 B and two over-cap files;
+it also selects WSI, ray-tracing, cooperative-vector, data-graph, mesh-shader, and tensor groups. The cumulative
+Android suite includes the 2019 delta, whose `api.txt` and `pipeline.txt` both exceed the cap. Android's generator
+also filters not-applicable tests, issues, waivers, and non-Android WSI, so it is a platform-specific filtered
+suite rather than a Khronos assertion of complete Vulkan core scope. Replacing the F03-required
+`vulkan-cts-mustpass` with it would be a source-contract redesign, not an F02.2 unblock.
+
 Commands and limits: Python 3.14.6 reran the existing F02.2 policy, Vulkan audit, include, and boundary suites
 (15/10/6/9). The existing source audit provides the reproducible 98-selector transcript; this record adds exact
-pinned tree sizes. The external selector recheck used `git ls-remote --tags` plus immutable commit trees; it did
-not promote a tag, fetch payloads into F02 cache, run remote CI, CTS, guest execution, browser execution,
-conformance, or performance measurement. This is a concrete mandatory blocker, not a PASS receipt.
+pinned tree sizes. The external selector and Android audits used immutable commit trees; they did not promote a
+tag, fetch payloads into F02 cache, run remote CI, CTS, guest execution, browser execution, conformance, or
+performance measurement. This is a concrete mandatory blocker, not a PASS receipt.
