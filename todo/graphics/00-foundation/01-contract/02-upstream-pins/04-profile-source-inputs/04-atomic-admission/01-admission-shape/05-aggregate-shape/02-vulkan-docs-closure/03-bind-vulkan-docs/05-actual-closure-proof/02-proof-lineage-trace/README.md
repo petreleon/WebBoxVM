@@ -23,11 +23,11 @@ sealed read-only observer.
 
 ## Checklist
 
-- [ ] Freeze an event grammar for process instance, parent/exec, ordered in-scope reads, writes/finalization, and rename.
-- [ ] Implement a bounded syscall-level collector with a capability gate and self-tests, split into files of at most 180 lines.
-- [ ] Bind each final generated input to exactly one writer plus its own and causal-ancestor reads before child start.
-- [ ] Reject absent/multiple writers, unsafe temporary or renamed paths, mutation, cycles, missing producers, and path escape.
-- [ ] Preserve source/image/network confinement; record BLOCKED if tracing needs privilege or a Docker-policy relaxation.
+- [x] [F02.4.4.1.5.2.3.5.2.1 — Freeze the proof-only grammar and binder](01-grammar-and-binder/README.md)
+- [x] [F02.4.4.1.5.2.3.5.2.2 — Validate the bounded ptrace capability primitive](02-capability-primitive/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.2.3 — Collect a real synthetic syscall fixture](03-synthetic-syscall-collector/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.2.4 — Witness the synthetic collector on hosted Docker](04-hosted-synthetic-witness/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.2.5 — Bind the collector to an authorized Docs replay](05-docs-collector-binding/README.md)
 
 ## Verification
 
@@ -56,3 +56,11 @@ sealed read-only observer.
   available to a Docs collector: no Docs source/build/argv was present, no lineage was captured, and the Docker
   daemon, unprotected branch, and unattested GitHub log remain outside the authority model. F02 and every parent
   task remain **BLOCKED**.
+
+## Split rationale
+
+The existing grammar/binder and narrow capability gate are separately verifiable, but a real syscall collector has
+independent wire, path/fd-state, normalization, hosted-fixture, and authorized-Docs-replay responsibilities. The
+split prevents a synthetic trace from being misrepresented as a Docs capture: only `.3` and `.4` may prove a
+collector mechanism, while `.5` remains dependent on authoritative per-member metadata. This parent stays open
+until all five children and the original proof requirements are satisfied.
