@@ -1,0 +1,108 @@
+{
+  "build_witness_sha256": "8cfab6fe4527f3973d7d7923ffe0922ab689fc2daf2f6e955ff7603fc8ba78d6",
+  "capture": {
+    "artifact": "runs/observer-a-r5",
+    "normalized_sha256": "ec26645c8f8b4560f2882240ae4fab0ffb51ca4bacdc04f6d9ae363f48affc52",
+    "run_id": "observer-a",
+    "run_sha256": "4fdd14f649aaa2e346bd5e0d1d2f77248f4c5b0dab1ce596101872520f7f48f8"
+  },
+  "conditions": {
+    "configuration_inputs": {
+      "identity_sha256": "436cc614b0b9b4e4cfd0c29294cc155128bcc8c194a89346ee8b95a35b0f85ba",
+      "selectors": ["generated/specattribs.adoc"]
+    },
+    "extension_controls": {
+      "identity_sha256": "e5ba7e5c73fb646d1b72931656dc3b29f68720e7538d9459cd6288f51a5fa9cc",
+      "selectors": [
+        "chapters/extensions.adoc",
+        "appendices/extensions.adoc",
+        "generated/meta/current_extensions_appendix.adoc",
+        "generated/meta/deprecated_extensions_guard_macro.adoc",
+        "generated/meta/current_extension_appendices_toc.adoc",
+        "generated/meta/current_extension_appendices.adoc",
+        "generated/meta/provisional_extensions_appendix.adoc",
+        "generated/meta/provisional_extensions_guard_macro.adoc",
+        "generated/meta/deprecated_extensions_appendix.adoc"
+      ]
+    },
+    "identity_sha256": "80346ab17cb923a26dea2c87126ac869f44120a39fdcedf0d823ae5d789a924f",
+    "images": {
+      "bytes": 1182290,
+      "count": 42,
+      "identity_sha256": "473d5fb010f6b81a84ce70c0eafca08f77016074f556418482e524b9fc9145bb"
+    },
+    "individual_extension_branches": {
+      "includes": 0,
+      "prefixes": ["appendices/VK_", "chapters/VK_"],
+      "records": 0,
+      "selectors": [
+        "chapters/descriptorheaps.adoc",
+        "chapters/descriptorbuffers.adoc",
+        "chapters/fragmentdensitymapops.adoc",
+        "chapters/VK_ARM_tensors/tensorops.adoc",
+        "chapters/gpa_interface.adoc",
+        "chapters/VK_NV_mesh_shader/mesh.adoc",
+        "chapters/VK_HUAWEI_cluster_culling_shader/clusterculling.adoc",
+        "chapters/device_generated_commands/generatedcommands.adoc",
+        "chapters/VK_KHR_deferred_host_operations/deferred_host_operations.adoc",
+        "chapters/accelstructures.adoc",
+        "chapters/VK_AMDX_dense_geometry_format/dense_geometry_format.adoc",
+        "chapters/VK_KHR_opacity_micromap/micromaps.adoc",
+        "chapters/raytraversal.adoc",
+        "chapters/raytracing.adoc",
+        "chapters/memory_decompression.adoc",
+        "chapters/VK_NV_optical_flow/optical_flow.adoc",
+        "chapters/executiongraphs.adoc",
+        "chapters/VK_NV_external_compute_queue/VK_NV_external_compute_queue.adoc",
+        "chapters/VK_ARM_data_graph/graphs.adoc"
+      ]
+    },
+    "promotions": {
+      "identity_sha256": "b708d63f1012ea6b334a84ddced0a47f8c705098f50f649fb0af59f1e3965bf5",
+      "selectors": [
+        "generated/meta/promoted_extensions_VK_VERSION_1_1.adoc",
+        "generated/meta/promoted_extensions_VK_VERSION_1_2.adoc",
+        "generated/meta/promoted_extensions_VK_VERSION_1_3.adoc",
+        "generated/meta/promoted_extensions_VK_VERSION_1_4.adoc"
+      ]
+    },
+    "video": {"includes": 0, "records": 0},
+    "wsi": {"includes": 0, "records": 0}
+  },
+  "configuration_sha256": "733f0e65d740e6dded26fc0c525987fa81a6e6c51bf2f757995f7923586b472e",
+  "contract": "vulkan-docs-core-input-scope-v1",
+  "includes": {
+    "count": 1973,
+    "identity_sha256": "d77dcc342ef342fa516092f4034d19ef589acaf04ebd57020182efb3a9af79a9"
+  },
+  "inputs": {
+    "derived_count": 1462,
+    "derived_identity_sha256": "e193954347147564ed1e744aa2e52d23d2009cb64687beaed02ac3e088dcd287",
+    "input_manifest_sha256": "1896b1a211ecf82ff8b7826718ed797083fa80f41eba0a985376cef124b3056c",
+    "raw_count": 298,
+    "raw_identity_sha256": "3c5b9b8f9164cfb9561f3753b1a8df454a8403369f0e608b752c33330201c6b8"
+  },
+  "manifest_sha256": "f02a7616df46be9fa6f1c261ce876ddde24cbe905766f2ddbb51a16ed2ce94d9",
+  "observation_sha256": "dbd75e819e3021e28e2bdb85eeccd675a688ffdb6692fddcd8ff58a221363554",
+  "producer": {
+    "generation_id": "official-vulkan-docs-core-html-1-4-362",
+    "identity_sha256": "55826829bb914167c843597043228255e6ec798866f9226c62dc11be7449653a",
+    "phase_counts": {
+      "asciidoctor": 1646,
+      "asset-copy": 81,
+      "generator": 28,
+      "make-control": 1,
+      "postprocess": 3,
+      "producer": 8
+    },
+    "producer_argv_sha256": "9a985b9e36cdf53e7baa0a3b30c9df41d33d8feb04f8f08904532a807b4dbf3c",
+    "source_tree_sha256": "99cfd3132413891764f98f246567d0ce0344f2f0bb5499bfbc7fc47646fa122b"
+  },
+  "profile": "vulkan-1.4-core",
+  "required_input_id": "vulkan-14-spec",
+  "role": "api-limit-format-spec",
+  "schema": 1,
+  "scope_identity_sha256": "9c0e5fb53986b22ee5d774de350127cdecfe11c021d39106a20a106203ef3339",
+  "scope_receipt_sha256": "5e325743b658de94e9d738397e971b37d3fb70bdc8b29770fbd469609330817b",
+  "status": "input-scope-only-unadmitted"
+}
