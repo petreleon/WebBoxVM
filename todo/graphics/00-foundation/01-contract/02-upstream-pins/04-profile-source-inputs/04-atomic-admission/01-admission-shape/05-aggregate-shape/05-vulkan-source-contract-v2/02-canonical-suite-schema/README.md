@@ -13,12 +13,17 @@ Prerequisite lists: [the V2 decision](../01-policy-decision/README.md) and the
 
 A separate V2 schema makes the small immutable selector root a regular source input while modelling
 its large test-data closure as a canonical upstream suite. It does not alter the V1 manifest schema.
+The ledger begins with the exact ordered 98-member selector expansion, then has a canonical recursive
+tail; the next task will verify its actual externally cached bytes.
 
 ## Starting points
 
 - [VCTS V1 transcript](../../../../../03-vulkan-input-audit/mustpass_references.json)
 - [F02 fetch policy](../../../../../../02-fetch-verifier/01-fetch-contract/source_model.py)
 - [candidate contract](../../../../../candidate_contract.py)
+- [pinned V2 root](vcts_root_identity.json)
+- [identity validator](canonical_suite_identity.py) · [ledger validator](canonical_suite_ledger.py)
+- [hermetic schema tests](canonical_suite_contract_test.py)
 
 ## Checklist
 
@@ -30,5 +35,5 @@ its large test-data closure as a canonical upstream suite. It does not alter the
 
 ## Verification
 
-- The schema rejects a root-only, mutable, reordered, mixed-commit, or locally filtered suite.
+- The schema rejects a root-only, mutable, reordered, mixed-commit, or locally root-filtered suite.
 - It does not say that `vk-default` is an upstream Vulkan-1.4-core selector.
