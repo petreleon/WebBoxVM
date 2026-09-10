@@ -22,13 +22,11 @@ megabytes into the repository or holding it in memory. A receipt binds the cache
 
 ## Checklist
 
-- [ ] Download and hash each declared member by stream into a temporary external-cache target.
-- [ ] Require atomic rename only after byte count and hash match the same pinned commit ledger.
-- [ ] Rehash offline and bind ordered members, include edges, limits, and aggregate digest in a receipt.
-- [ ] Reject redirects, symlinks, path escape, partial cache, stale cache, and resource-limit violations.
-- [ ] Keep the full suite outside Git and attach focused positive and hostile evidence.
+- [x] [F02.4.4.1.5.5.3.1 — Define the streaming cache contract](01-cache-contract/README.md)
+- [ ] [F02.4.4.1.5.5.3.2 — Capture the live closure](02-live-closure/README.md)
 
 ## Verification
 
-- A prior cache cannot make a missing, altered, redirected, or out-of-limit member pass.
+- The contract rejects a missing, altered, redirected, or out-of-limit member; the live child proves it
+  against the whole pinned closure.
 - Passing establishes reproducible test-suite input availability, never guest compatibility or speed.
