@@ -15,7 +15,7 @@ HERE = Path(__file__).resolve().parent
 TOKEN = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 WORK_PREFIX = "f02.4.4.1.5.2.3.5.2-ptrace-probe-"
 SOURCE = HERE / "observer/lineage_ptrace_probe.c"
-SOURCE_SHA256 = "35f7f8f3bedb243be57769c788f91406fc5b4127aded39fd162516892088144f"
+SOURCE_SHA256 = "76c5fd93ca9c56fd48d8f02a037e87fa3c0d72ff13ba360ffcae44203ff9da89"
 
 
 def _repository() -> Path:

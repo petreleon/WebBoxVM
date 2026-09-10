@@ -72,7 +72,7 @@ int main(void) {
         close(pipefd[0]);
         if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) != 0) {
             error = errno;
-            (void)write(pipefd[1], &error, sizeof(error));
+            if (write(pipefd[1], &error, sizeof(error)) != (ssize_t)sizeof(error)) _exit(81);
             _exit(77);
         }
         close(pipefd[1]);

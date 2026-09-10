@@ -42,6 +42,8 @@ class LineageProbeTest(unittest.TestCase):
         for token in ("PTRACE_GET_SYSCALL_INFO", "PTRACE_SYSCALL_INFO_ENTRY", "PTRACE_SYSCALL_INFO_EXIT",
                       "PTRACE_O_TRACEFORK", "PTRACE_O_TRACEEXEC", "PTRACE_EVENT_FORK", "PTRACE_EVENT_EXEC"):
             self.assertIn(token, text)
+        self.assertIn("if (write(pipefd[1], &error, sizeof(error))", text)
+        self.assertNotIn("(void)write(pipefd[1]", text)
 
     def test_rejects_inconsistent_or_malformed_gate_results(self):
         with self.assertRaises(LineageError): decode(0, f'{{"contract":"{CONTRACT}","status":"blocked","stage":"child-traceme","errno":38}}')
