@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.2.2
 Depends: F02.4.4.1.5.4.4.2.1
-Evidence: pending
+Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [historical anchor](../01-successor-closure-anchor/README.md) and the retained
 [metadata blocker](../../../../02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/01-authoritative-member-metadata/README.md).
@@ -27,7 +27,7 @@ cannot fill a derived field.
 - [ ] Require complete license, attribution, role, provenance, and producer coverage without defaults.
 - [ ] Reject raw-to-derived inheritance, partial manifests, stale sources, aliases, and invented labels.
 - [ ] Preserve all source, inventory, F03, support, conformance, certification, and performance effects false.
-- [ ] Attach hostile proof or retain the first external-authority blocker.
+- [x] Retain the first external-authority blocker with hostile proof.
 
 ## Verification
 
