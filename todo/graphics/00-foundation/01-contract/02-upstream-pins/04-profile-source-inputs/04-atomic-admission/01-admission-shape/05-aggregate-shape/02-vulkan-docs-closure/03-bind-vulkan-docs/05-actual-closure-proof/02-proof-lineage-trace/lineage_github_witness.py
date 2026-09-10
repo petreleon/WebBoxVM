@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,7 @@ PROBE_CONTRACT = "webboxvm-graphics-ptrace-capability-v3"
 REPOSITORY = "petreleon/WebBoxVM"
 REF = "refs/heads/codex/graphics-f01-baseline"
 SOURCE = "todo/graphics/00-foundation/01-contract/02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/02-proof-lineage-trace/observer/lineage_ptrace_probe.c"
+REVIEWED_SOURCE_SHA256 = "76c5fd93ca9c56fd48d8f02a037e87fa3c0d72ff13ba360ffcae44203ff9da89"
 SHA = re.compile(r"[0-9a-f]{40}")
 
 
@@ -81,14 +83,29 @@ def exact_source(root: Path, value: Anchor) -> tuple[str, bytes]:
     blob = git_text(root, "rev-parse", "--verify", f"{value.commit}:{SOURCE}")
     if not SHA.fullmatch(blob):
         reject("source blob identity is invalid")
-    return blob, git_blob(root, blob)
+    payload = git_blob(root, blob)
+    if hashlib.sha256(payload).hexdigest() != REVIEWED_SOURCE_SHA256:
+        reject("source blob is not the reviewed ptrace gate")
+    return blob, payload
 
 
-def probe(payload: bytes) -> dict[str, object]:
+def host() -> dict[str, str]:
+    compiler = shutil.which("gcc")
+    if not compiler:
+        reject("GitHub runner has no gcc")
+    result = subprocess.run([compiler, "-dumpfullversion", "-dumpversion"], text=True, capture_output=True, check=False)
+    if result.returncode or not result.stdout.strip():
+        reject("GitHub runner cannot identify gcc")
+    kernel = os.uname()
+    return {"kernel": f"{kernel.sysname} {kernel.release} {kernel.machine}", "gcc": os.path.realpath(compiler),
+            "gcc_version": result.stdout.strip()}
+
+
+def probe(payload: bytes, compiler: str = "gcc") -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix="webboxvm-ptrace-") as directory:
         root = Path(directory); source, binary = root / "probe.c", root / "probe"
         source.write_bytes(payload)
-        build = subprocess.run(["gcc", "-std=c11", "-O2", "-Wall", "-Werror", str(source), "-o", str(binary)],
+        build = subprocess.run([compiler, "-std=c11", "-O2", "-Wall", "-Werror", str(source), "-o", str(binary)],
                                text=True, capture_output=True, check=False)
         if build.returncode:
             detail = " ".join(build.stderr.strip().splitlines()[-3:])[:480]
@@ -105,11 +122,11 @@ def probe(payload: bytes) -> dict[str, object]:
     return value
 
 
-def receipt(value: Anchor, blob: str, payload: bytes, result: dict[str, object]) -> dict[str, object]:
+def receipt(value: Anchor, blob: str, payload: bytes, system: dict[str, str], result: dict[str, object]) -> dict[str, object]:
     return {"contract": CONTRACT, "status": "observed-unadmitted", "anchor": {"repository": REPOSITORY,
             "ref": REF, "commit": value.commit, "workflow_commit": value.workflow_commit, "source_path": SOURCE,
-            "source_blob": blob, "source_sha256": hashlib.sha256(payload).hexdigest(), "source_bytes": len(payload)},
-            "runner": {"environment": "github-hosted", "os": "Linux", "arch": "X64"},
+            "source_blob": blob, "source_sha256": REVIEWED_SOURCE_SHA256, "source_bytes": len(payload)},
+            "runner": {"environment": "github-hosted", "os": "Linux", "arch": "X64", **system},
             "run": {"id": value.run_id, "attempt": value.attempt}, "probe": result}
 
 
@@ -117,8 +134,8 @@ def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("usage: lineage_github_witness.py WORKSPACE")
     try:
-        value = anchor(dict(os.environ)); blob, payload = exact_source(Path(sys.argv[1]), value)
-        print(json.dumps(receipt(value, blob, payload, probe(payload)), sort_keys=True, separators=(",", ":")))
+        value = anchor(dict(os.environ)); blob, payload = exact_source(Path(sys.argv[1]), value); system = host()
+        print(json.dumps(receipt(value, blob, payload, system, probe(payload, system["gcc"])), sort_keys=True, separators=(",", ":")))
     except WitnessError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(2)

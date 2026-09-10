@@ -6,6 +6,7 @@ from __future__ import annotations
 import subprocess
 import tempfile
 import unittest
+from hashlib import sha256
 from pathlib import Path
 from unittest.mock import patch
 
@@ -40,18 +41,21 @@ class GitHubWitnessTest(unittest.TestCase):
             command(root, "config", "user.name", "test"); source.write_bytes(b"anchored source\n")
             command(root, "add", "."); command(root, "commit", "-qm", "anchor")
             commit = command(root, "rev-parse", "HEAD")
-            blob, payload = exact_source(root, Anchor(commit, commit, "1", "1"))
-            self.assertEqual(payload, b"anchored source\n")
-            self.assertEqual(blob, command(root, "rev-parse", f"{commit}:{SOURCE}"))
-            source.write_bytes(b"changed worktree\n")
             with self.assertRaises(WitnessError): exact_source(root, Anchor(commit, commit, "1", "1"))
+            with patch("lineage_github_witness.REVIEWED_SOURCE_SHA256", sha256(b"anchored source\n").hexdigest()):
+                blob, payload = exact_source(root, Anchor(commit, commit, "1", "1"))
+                self.assertEqual(payload, b"anchored source\n")
+                self.assertEqual(blob, command(root, "rev-parse", f"{commit}:{SOURCE}"))
+                source.write_bytes(b"changed worktree\n")
+                with self.assertRaises(WitnessError): exact_source(root, Anchor(commit, commit, "1", "1"))
 
     def test_receipt_keeps_success_as_unadmitted_observation(self):
         result = {"contract": PROBE_CONTRACT, "status": "blocked", "stage": "parent-fork-exec-complete", "errno": 0}
-        value = receipt(Anchor("a" * 40, "a" * 40, "17", "1"), "b" * 40, b"source", result)
+        value = receipt(Anchor("a" * 40, "a" * 40, "17", "1"), "b" * 40, b"source", {"gcc": "/gcc"}, result)
         self.assertEqual(value["status"], "observed-unadmitted")
         self.assertEqual(value["probe"], result)
         self.assertEqual(value["anchor"]["source_path"], SOURCE)
+        self.assertEqual(value["anchor"]["source_sha256"], "76c5fd93ca9c56fd48d8f02a037e87fa3c0d72ff13ba360ffcae44203ff9da89")
 
     def test_compiler_failure_has_a_bounded_diagnostic(self):
         failure = subprocess.CompletedProcess([], 1, "", "first\nsecond\nthird\nfourth")

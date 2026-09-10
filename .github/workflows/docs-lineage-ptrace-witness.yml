@@ -35,3 +35,4 @@ jobs:
             echo "::error title=Docs lineage witness failed::${detail//$'\n'/ }"
             exit "$status"
           fi
+          echo "::notice title=Docs lineage ptrace witness::$detail"
