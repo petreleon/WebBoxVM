@@ -1,7 +1,7 @@
 # F02.4.4.1.5.5.4 evidence
 
 Revision: 1ba52d1f30197a99516f61119812742e9db87de0
-Validation: taxonomy/report 4/4 + checker unit 10/10 + source limits 6/6 + task diff/line checks
+Validation: taxonomy/report 4/4 + checker unit 10/10 + `make test` (Rust 1,127 pass/3 ignored; Node 337 pass)
 Result: PASS
 Artifacts: taxonomy canonical sha256=752a3ae5ff10ea0d9f9a2638c0d1612fb7af3d376dabad1601f8b9c1e76cb2f7;
 validator file sha256=23fcc496f7b849c26a75a29757eafd10c312b6f76cc1f2a19b1b5b69b42b4d79;
@@ -19,15 +19,15 @@ Upstream manifest revision: annotated `vulkan-cts-1.4.6.2` tag object
 Guest image and build hashes: not applicable; this task validates source/report metadata only.
 Browser, OS, adapter and driver: not applicable; no browser or GPU route was exercised.
 Exact command(s), working directory and tool versions: from `/Users/petreleon/code/WebBoxVM`, Python
-3.14.6 ran `coverage_taxonomy_test.py` and `scripts/test_check_graphics_roadmap.py`; `git diff --check`
-and a physical-line count covered this task directory.
+3.14.6 ran `coverage_taxonomy_test.py` and `scripts/test_check_graphics_roadmap.py`; `make test`, `git diff
+--check`, and a physical-line count covered the full task and repository checks.
 Expected result and minimum nonzero case count: four hermetic methods must preserve all 98 real direct
 selector paths plus one synthetic recursive tail, classify only six explicit non-core selectors, emit
 both diagnostic report modes, and reject missing, duplicate, reordered, hash-modified, stale,
 reclassified, and filtered data.
-Actual passed/failed/skipped counts and exit codes: taxonomy/report 4/0/0, checker 10/0/0, and source
-limits 6/0/0 all exited 0. All six maintained task files are at most 179 physical lines; scoped
-whitespace check exited 0.
+Actual passed/failed/skipped counts and exit codes: taxonomy/report 4/0/0 and checker 10/0/0 exited 0.
+`make test` exited 0: Rust 1,127/0/3, source limits 6/0/0, and Node 337/0/0. All six maintained task
+files are at most 179 physical lines; scoped whitespace check exited 0.
 Negative/reference checks and observed output: the fixture records 0 core, 1 WSI, 1 video, 4 extension,
 and 93 unknown members. `unknown` is non-core, and a zero-test member makes a diagnostic incomplete,
 not clean. Re-sealed stale, reordered, reclassified, and hash-modified reports still fail because the
@@ -37,9 +37,8 @@ capture was retained. Reproduce with `python3 .../04-coverage-taxonomy/coverage_
 taxonomy JSON, validator, report builder, and test SHA-256 values are above.
 Software fallback detection and actual execution route: not applicable; no guest/browser execution ran.
 Performance conditions and frozen protocol version, when applicable: not applicable; no workload ran.
-First failing subcheck or blocker, when applicable: task-local validation had no failure. The full-roadmap
-check is deferred until the independent cache-contract worker finishes its in-progress source-limit cleanup;
-the task-local tests and checker unit passed at the recorded commit.
+First failing subcheck or blocker, when applicable: none. The full-worktree `make test` exited 0 and its
+roadmap subcheck reported 295 documents, 178 tasks, 49 PASS-complete, 27 superseded, with `.3.1` next ready.
 Decision and limits of the evidence: six V1-observed non-core selectors receive exact VCTS paths and
 locators. No filename is inferred to be Vulkan 1.4 core; all other direct or recursive members remain
 unknown. A clean complete-suite diagnostic is not a compatibility, conformance, or Khronos certification claim.
