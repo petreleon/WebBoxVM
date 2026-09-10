@@ -54,17 +54,25 @@ whose recursively selected core members have explicit scope and each fit policy.
 opaque-file splitting would require an explicit source-contract redesign before it could be considered; neither
 is a substitute for the canonical current root.
 
-## 2026-09-10 upstream recheck
+## 2026-09-10 official selector recheck
 
-The untagged `main` commit `659bbe6987197b4ff7ac20011261b92009286100` still exposes only `vk-default.txt`,
-`vk-fraction-mandatory-tests.txt`, and Vulkan-SC's `vksc-default.txt`; the
+A read-only audit of all 25 annotated `vulkan-cts-1.4.*` tags, from `1.4.0.0` through the pinned `1.4.6.2`, found
+only `vk-default.txt`, `vk-fraction-mandatory-tests.txt`, and Vulkan-SC's `vksc-default.txt` as Vulkan-list roots.
+The [official tag refs](https://api.github.com/repos/KhronosGroup/VK-GL-CTS/git/matching-refs/tags/vulkan-cts-1.4.)
+and [pinned directory](https://api.github.com/repos/KhronosGroup/VK-GL-CTS/contents/external/vulkancts/mustpass/main?ref=f6a29701220f34dd1407513bfe80d74ca7b392ce)
+contain no immutable `vulkan-1.4-core` selector. Every historical `vk-default` includes `wsi.txt` and `video.txt`,
+so its broader scope is an upstream fact rather than a local filtering choice.
+
+The untagged `main` commit `659bbe6987197b4ff7ac20011261b92009286100` has the same three roots. Its
 [official README](https://github.com/KhronosGroup/VK-GL-CTS/blob/659bbe6987197b4ff7ac20011261b92009286100/external/vulkancts/README.md#L249-L270)
-names `vk-default` as the Vulkan mustpass. The fraction list is only mandatory `dEQP-VK.info.*` metadata for
+names `vk-default` as the Vulkan mustpass; the fraction list is only mandatory `dEQP-VK.info.*` metadata for
 parallel fractions, not a core selector. The generator still has only `default` and `fraction-mandatory-tests`
 Vulkan configurations. Current `api.txt` remains 32,673,653 B, so even a newer untagged tree cannot cure the cap
-or scope failure. This read-only recheck changes no pin, policy, or blocker status.
+or scope failure. GitHub release records add no attached core-only artifact. This recheck changes no pin, policy,
+or blocker status.
 
-Commands and limits: Python 3.14.6 ran the existing F02.2 policy, Vulkan audit, include, and boundary suites
+Commands and limits: Python 3.14.6 reran the existing F02.2 policy, Vulkan audit, include, and boundary suites
 (15/10/6/9). The existing source audit provides the reproducible 98-selector transcript; this record adds exact
-pinned tree sizes. Remote CI, CTS, guest execution, browser execution, conformance, and performance measurement
-were not run. This is a concrete mandatory blocker, not a PASS receipt.
+pinned tree sizes. The external selector recheck used `git ls-remote --tags` plus immutable commit trees; it did
+not promote a tag, fetch payloads into F02 cache, run remote CI, CTS, guest execution, browser execution,
+conformance, or performance measurement. This is a concrete mandatory blocker, not a PASS receipt.
