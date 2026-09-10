@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "kind": "independent-suite-successor-policy-v1",
+  "status": "policy-only-unadmitted",
+  "anchors": {
+    "candidate_audit_document_sha256": "3d1d6d523026bdeb5e16c967750237f64a6fc134893348620c0bc4c58aff1a52",
+    "gles_closure_document_sha256": "bddd72baeea2da31912004f428392f41621a2d1fb85737cf9f9c287214452c5d",
+    "gles_configurations_document_sha256": "ed27d6d675494a4773bb55533dc0d2916d1486d49450d3feb94743e38727a64e",
+    "vcts_handoff_document_sha256": "2df7570fc80b1b02f0f031c3517c05b97baa5a10911f47bfb0f19937712ee0db",
+    "vcts_taxonomy_document_sha256": "825d7e6765b01a5b094ad59ccc9e6a61bff940f84b57afbd441e559a783f352d",
+    "blocked_receipt_document_sha256": "1b15139349b59c05830707a5b2283be4dd5db823231ce874e7c4b436c4b72660",
+    "reconciler_document_sha256": "ef946aef7ebccabfc97de409aa59491dc748fc78c4c7b0cf446eeec49a451a71",
+    "source_requirements_document_sha256": "a9535611bab654034357d1578c3a2035caa09fda8090114df0867ac6d7fbeca5",
+    "inventory_lock_document_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6"
+  },
+  "gles": {
+    "candidate_id": "gles-cts-manifest",
+    "candidate_sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+    "decision": "rejected",
+    "blocker": "requires-multifile-core-selector-closure",
+    "core_members": [
+      ["gles-cts-gles2-khr-main", "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt", "aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2", 38127],
+      ["gles-cts-gles3-khr-main", "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt", "c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72", 443126],
+      ["gles-cts-gles31-khr-main", "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt", "9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e", 288777],
+      ["gles-cts-gles32-khr-main", "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt", "426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249", 105294]
+    ],
+    "core_case_count": 12477,
+    "core_configuration_count": 12,
+    "core_case_configuration_runs": 30574,
+    "excluded_extension": ["gles-cts-gles32-khr-glesext", "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-glesext.txt", "789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6", 81374],
+    "excluded_configuration_count": 1,
+    "successor_closure_ready": false,
+    "future_requirements": [
+      "complete-immutable-successor-closure",
+      "per-member-f02-2-validation",
+      "fresh-authorized-capture-and-offline-replay"
+    ]
+  },
+  "vcts": {
+    "canonical_suite_id": "vulkan-cts-mustpass",
+    "root_identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+    "handoff_sha256": "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee",
+    "taxonomy_sha256": "752a3ae5ff10ea0d9f9a2638c0d1612fb7af3d376dabad1601f8b9c1e76cb2f7",
+    "member_count": 98,
+    "member_total_bytes": 434669348,
+    "category_counts": {"core": 0, "wsi": 1, "video": 1, "extension": 4, "unknown": 92},
+    "selector_scope": "khronos-default-mustpass-broader-than-vulkan-1.4-core",
+    "local_filtering": "forbidden",
+    "f02_source_member_cap_bytes": 8388608,
+    "v2_diagnostic_member_cap_bytes": 67108864,
+    "over_f02_cap_member_count": 14,
+    "local_selector_allowed": false,
+    "taxonomy_is_conformance": false,
+    "core_manifest_ready": false,
+    "future_requirements": [
+      "khronos-published-immutable-vulkan-1.4-core-manifest",
+      "complete-recursive-f02-2-member-validation",
+      "no-local-selector-or-taxonomy-substitution"
+    ]
+  },
+  "effects": {
+    "active_inventory_changed": false,
+    "cache_freshness_proved": false,
+    "f03_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false,
+    "supported": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false
+  },
+  "policy_sha256": "da10dbc51230b2495f7c24c100055ab91970a92217b43f2895ec5cfa2ead459b"
+}
