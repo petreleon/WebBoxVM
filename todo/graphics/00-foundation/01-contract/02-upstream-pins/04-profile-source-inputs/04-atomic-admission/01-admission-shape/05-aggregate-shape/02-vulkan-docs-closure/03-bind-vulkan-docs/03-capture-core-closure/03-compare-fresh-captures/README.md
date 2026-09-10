@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.3.3
 Depends: F02.4.4.1.5.2.3.3.1, F02.4.4.1.5.2.3.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [input observer](../01-observe-pinned-build-inputs/README.md),
 [input/scope model](../02-bind-core-input-scope/README.md), and
@@ -24,13 +24,13 @@ staging or re-hashing its payload tree.
 
 ## Checklist
 
-- [ ] Capture two fresh, independently located source/output observations and validate each through the input/scope
+- [x] Capture two fresh, independently located source/output observations and validate each through the input/scope
   grammar.
-- [ ] Require equal normalized input, condition, producer, and scope identities while rejecting reused locations,
+- [x] Require equal normalized input, condition, producer, and scope identities while rejecting reused locations,
   stale/copy records, or any difference.
-- [ ] Bind the known two-run output-tree identity as a witness relation only; leave output-tree staging and re-hashing to
+- [x] Bind the known two-run output-tree identity as a witness relation only; leave output-tree staging and re-hashing to
   child `.4`.
-- [ ] Record a tracked receipt with nonzero raw/derived/condition/promotion counts and ignored full artifacts, then run
+- [x] Record a tracked receipt with nonzero raw/derived/condition/promotion counts and ignored full artifacts, then run
   focused tests, roadmap, source-limit, and project regression checks.
 
 ## Verification

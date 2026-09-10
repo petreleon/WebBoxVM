@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.3
 Depends: F02.4.4.1.5.2.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [actual Docs grammar](../02-actual-closure-identity/README.md),
 [Docs include audit](../../../../../../03-vulkan-input-audit/README.md), and [Vulkan boundary](../../../../03-vulkan-boundaries/README.md).
@@ -24,7 +24,7 @@ promotion-metadata treatment from the reproducible official build without treati
 
 - [x] [F02.4.4.1.5.2.3.3.1 — Observe pinned core build inputs](01-observe-pinned-build-inputs/README.md)
 - [x] [F02.4.4.1.5.2.3.3.2 — Bind the core input and scope manifest](02-bind-core-input-scope/README.md)
-- [ ] [F02.4.4.1.5.2.3.3.3 — Compare fresh captures and record the receipt](03-compare-fresh-captures/README.md)
+- [x] [F02.4.4.1.5.2.3.3.3 — Compare fresh captures and record the receipt](03-compare-fresh-captures/README.md)
 
 ## Verification
 
