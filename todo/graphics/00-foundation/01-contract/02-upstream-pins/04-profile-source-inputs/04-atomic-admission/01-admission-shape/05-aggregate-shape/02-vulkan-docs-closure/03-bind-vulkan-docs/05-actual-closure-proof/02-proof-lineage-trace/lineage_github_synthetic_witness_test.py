@@ -82,6 +82,8 @@ class GitHubSyntheticWitnessTest(unittest.TestCase):
         value = decoded(completed())
         self.assertEqual((value["rows"], value["records"][-1]), (19, {"kind": "terminal", "status": "observed-unadmitted"}))
         altered = wire(); altered[16]["hex"] = "626164"
+        blocked = subprocess.CompletedProcess([], 77, b'{"kind":"terminal","status":"blocked","stage":"syscall-entry"}\n', b"source-envelope-verified\n")
+        with self.assertRaisesRegex(WitnessError, "syscall-entry"): decoded(blocked)
         for result in (completed(altered), completed(code=77), completed(stderr=b""), completed(wire()[:-1])):
             with self.assertRaises(WitnessError): decoded(result)
         duplicate = completed().stdout.splitlines(); duplicate[0] = b'{"kind":"process","kind":"process","pid":10,"parent":null,"argv_sha256":"' + ARGV.encode() + b'"}'

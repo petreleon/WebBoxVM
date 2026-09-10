@@ -134,7 +134,7 @@ def unique(items):
 
 
 def decoded(result: subprocess.CompletedProcess[bytes]) -> dict[str, object]:
-    if result.returncode != 0: reject(f"synthetic collector did not return zero: {result.returncode}")
+    if result.returncode != 0: reject(f"synthetic collector did not return zero: {result.returncode}; {detail(result.stdout.decode('utf-8', 'replace'))}")
     if result.stderr != b"source-envelope-verified\n" or not isinstance(result.stdout, bytes) or not result.stdout.endswith(b"\n"):
         reject("container did not attest the source envelope")
     try: rows = [json.loads(line.decode("utf-8"), object_pairs_hook=unique, parse_constant=lambda _: reject("collector JSON is nonfinite")) for line in result.stdout.splitlines()]
