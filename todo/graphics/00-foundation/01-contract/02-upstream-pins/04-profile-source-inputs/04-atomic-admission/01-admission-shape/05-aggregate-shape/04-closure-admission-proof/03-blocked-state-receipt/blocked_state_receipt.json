@@ -1,0 +1,148 @@
+{
+  "blockers": [
+    [
+      "gles-cts-manifest",
+      "requires-multifile-core-selector-closure"
+    ],
+    [
+      "vulkan-14-spec",
+      "vulkan-docs-core-generated-closure-unadmitted"
+    ],
+    [
+      "vulkan-cts-mustpass",
+      "vcts-vk-default-compound-oversize-core-scope-unadmitted"
+    ]
+  ],
+  "docs_generated_artifacts": "outside-admitted-implementation-source-closure",
+  "first_blocker": [
+    "gles-cts-manifest",
+    "requires-multifile-core-selector-closure"
+  ],
+  "inventory_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+  "kind": "blocked-admission-state-receipt",
+  "profile": "proof-of-correctly-blocked-admission-state",
+  "readiness": {
+    "admission_eligible": false,
+    "cutover_ready": false,
+    "f03_ready": false,
+    "fresh_cache_ready": false,
+    "inventory_ready": false
+  },
+  "receipt_sha256": "9ff372bcfeb83538882da396b2ecbb0801703ca55a1b0dd38fa7ab51d4bf501a",
+  "roles": [
+    [
+      "opengl-4.6-core",
+      "api-limit-format-spec",
+      "opengl-46-core-spec",
+      "v1-regular-source"
+    ],
+    [
+      "opengl-4.6-core",
+      "conformance-manifest",
+      "opengl-cts-manifest",
+      "v1-regular-source"
+    ],
+    [
+      "gles-3.2",
+      "api-limit-format-spec",
+      "gles-32-spec",
+      "v1-regular-source"
+    ],
+    [
+      "gles-3.2",
+      "conformance-manifest",
+      "gles-cts-manifest",
+      "v1-regular-compound"
+    ],
+    [
+      "vulkan-1.4-core",
+      "api-limit-format-spec",
+      "vulkan-14-spec",
+      "v1-docs-unresolved-boundary"
+    ],
+    [
+      "vulkan-1.4-core",
+      "conformance-manifest",
+      "vulkan-cts-mustpass",
+      "v1-vcts-boundary-plus-v2-diagnostic"
+    ]
+  ],
+  "schema": 1,
+  "selector_scope": "khronos-default-mustpass-broader-than-vulkan-1.4-core",
+  "state": "blocked",
+  "v1_digests": [
+    [
+      "rules",
+      "74300113dab0019c25b1ed629d13c7fbba720316f370a7deee1cdb86b56d91bc"
+    ],
+    [
+      "source-map",
+      "7f3ee1a9e4faeb201de3775517f64d3f32f8b0805fd45b4efcfbea017b770785"
+    ],
+    [
+      "boundaries",
+      "a676b29421b2681e074264175dbae758dfbdb56e7edfd48b5858ba17513a1a90"
+    ],
+    [
+      "audit:opengl-4.6-core",
+      "2ee3465335928146c016e570d9bed6b9b9369aed12e6847b2726149a2610d2a5"
+    ],
+    [
+      "audit:gles-3.2",
+      "3d1d6d523026bdeb5e16c967750237f64a6fc134893348620c0bc4c58aff1a52"
+    ],
+    [
+      "audit:vulkan-1.4-core",
+      "7aa23749e5af061221d3f2aced93f3f6e2ebfd3d37445ace0834cd7440ec39c3"
+    ]
+  ],
+  "v1_v2_bridge": [
+    "external/vulkancts/mustpass/main/vk-default.txt",
+    "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+    "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4"
+  ],
+  "v2_digests": [
+    [
+      "handoff_sha256",
+      "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee"
+    ],
+    [
+      "root_identity_sha256",
+      "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218"
+    ],
+    [
+      "tree_plan_sha256",
+      "77875b165876a3cf37450667c7e9c23e177bff8a7795e0d48b4214e202064804"
+    ],
+    [
+      "ledger_sha256",
+      "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0"
+    ],
+    [
+      "cache_receipt_sha256",
+      "56fd45c16f1f1e1c68bfc76f3853215eaff08c71ec60e5ceb85c5ecb26ef8437"
+    ],
+    [
+      "capture_receipt_sha256",
+      "48c4d54d8738a8eab526347bc8080c245bb9cef269b66011e32116f78f481599"
+    ],
+    [
+      "taxonomy_sha256",
+      "752a3ae5ff10ea0d9f9a2638c0d1612fb7af3d376dabad1601f8b9c1e76cb2f7"
+    ]
+  ],
+  "v2_member_count": 98,
+  "v2_member_total_bytes": 434669348,
+  "v2_state": [
+    false,
+    false,
+    false
+  ],
+  "validator_digests": {
+    "pre_admission_validator_sha256": "e51f2b402fca1ea54ff464f83fd673b15fe57fc2b0c0102f40724d8c9cc6e834",
+    "proof_contract_sha256": "b9b5b0b4d06f326cc156b3ecd4fc840a77b3ba44656a89977fb6a3f6c620afa2",
+    "reconciler_sha256": "ef946aef7ebccabfc97de409aa59491dc748fc78c4c7b0cf446eeec49a451a71",
+    "source_requirements_sha256": "a9535611bab654034357d1578c3a2035caa09fda8090114df0867ac6d7fbeca5",
+    "v2_handoff_validator_sha256": "4781bd3347a1b9f3f701c432f5c85f26a1fe13b1d55008fd94f9079ddf165493"
+  }
+}
