@@ -1,6 +1,6 @@
 # F02.4.4.1.5.5.3.1 evidence
 
-Revision: f67def4b91fcd740d8eecc5cc330bf5cd7ee563f plus task-local reviewed working-tree files
+Revision: 82d4951e0d01a0072bddfd42a664eb12cd639e70
 Validation: cache contract 5/5 + `make test` (Rust 1,127 pass/3 ignored; Node 337 pass)
 Result: PASS
 Artifacts: contract sha256=35926a5078b4e1aedc73bd8d91319f4bf690b83f774a46fba5dc71067dce1195;
@@ -10,8 +10,8 @@ test sha256=f67fc06631343a99d72b681a4e22bb57ceb1758b044d257f742047429629d3b9
 Profile: hermetic external-cache mechanics only; no live VCTS payload, CTS, guest, browser, or performance run
 
 Task ID and date: F02.4.4.1.5.5.3.1, 2026-09-10 Europe/Bucharest.
-Tested commit and dirty diff hash: base `f67def4b91fcd740d8eecc5cc330bf5cd7ee563f`; the listed cache
-contract files, parent split, and this receipt were reviewed before integration.
+Tested commit and dirty diff hash: `82d4951e0d01a0072bddfd42a664eb12cd639e70`; task-local paths
+were clean after the commit.
 Pinned identity consumed by the fixture: annotated `vulkan-cts-1.4.6.2` tag object
 `42c723aa10d2652590f02741827aef43b0421d23`, peeled commit
 `f6a29701220f34dd1407513bfe80d74ca7b392ce`, root SHA-256
@@ -37,5 +37,6 @@ First failing subcheck or blocker: none for this contract leaf. Its POSIX `/dev/
 the real 98-member capture, fresh-cache requirement, Git-tree membership proof, and offline receipt remain `.3.2`.
 Decision and limits of evidence: PASS means secure synthetic cache mechanics and an unadmitted marker only;
 it does not admit a VCTS source, classify Vulkan core, run CTS, establish conformance, or measure speed.
-Commit/push verification: deferred to the owning integration worker.
+Commit/push verification: `82d4951e0d01a0072bddfd42a664eb12cd639e70` was pushed; `git ls-remote`
+returned that exact SHA for `refs/heads/codex/graphics-f01-baseline`.
 Next ready task: F02.4.4.1.5.5.3.2 — capture the live closure.
