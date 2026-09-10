@@ -27,11 +27,12 @@ Profile: structural fixture
 """
 
 
-def task(identifier: str, boxes: str) -> str:
+def task(identifier: str, boxes: str, deps: str = "none", metadata: str = "") -> str:
     return f"""# Fixture {identifier}
 
 Task: {identifier}
-Depends: none
+Depends: {deps}
+{metadata}
 Evidence: [receipt](evidence.md)
 
 ## Outcome
@@ -119,6 +120,48 @@ class RoadmapCheckerTests(unittest.TestCase):
             write(root, "ignored.pyc", "line\n" * 181)
             write(root, "maintained.py", "line\n" * 181)
         self.assert_first_error(prepare, "maintained.py: exceeds 180 physical lines")
+
+    def test_superseded_task_requires_an_active_successor(self) -> None:
+        def prepare(root: Path) -> None:
+            write(root, "README.md", task("R04", "- [ ] legacy", metadata="Status: superseded"))
+            write(root, "evidence.md", receipt())
+        self.assert_first_error(prepare, "superseded task needs Superseded-by")
+
+    def test_inherited_supersession_is_closed_but_never_pass_complete(self) -> None:
+        with self.fixture_root() as temporary:
+            root = Path(temporary)
+            write(root, "README.md", "# Fixture\n\n- [x] [old](old/README.md)\n- [x] [new](new/README.md)\n")
+            write(root, "old/README.md", task("R05", "- [ ] [child](child/README.md)",
+                                                metadata="Status: superseded\nSuperseded-by: R06"))
+            write(root, "old/child/README.md", task("R05.1", "- [ ] legacy child"))
+            write(root, "new/README.md", task("R06", "- [x] replacement"))
+            write(root, "old/evidence.md", receipt())
+            write(root, "old/child/evidence.md", receipt())
+            write(root, "new/evidence.md", receipt())
+            result = run(root)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("1 PASS-complete, 2 superseded", result.stdout)
+            self.assertIn("Ready: none", result.stdout)
+
+    def test_active_task_cannot_depend_on_a_superseded_task(self) -> None:
+        def prepare(root: Path) -> None:
+            write(root, "README.md", "# Fixture\n\n- [x] [old](old/README.md)\n- [ ] [new](new/README.md)\n- [x] [replacement](replacement/README.md)\n")
+            write(root, "old/README.md", task("R07", "- [ ] legacy", metadata="Status: superseded\nSuperseded-by: R09"))
+            write(root, "new/README.md", task("R08", "- [ ] work", deps="R07"))
+            write(root, "replacement/README.md", task("R09", "- [x] replacement"))
+            write(root, "old/evidence.md", receipt())
+            write(root, "new/evidence.md", receipt())
+            write(root, "replacement/evidence.md", receipt())
+        self.assert_first_error(prepare, "active task depends on superseded R07")
+
+    def test_superseded_checked_task_keeps_its_receipt_validation(self) -> None:
+        def prepare(root: Path) -> None:
+            write(root, "README.md", "# Fixture\n\n- [x] [old](old/README.md)\n- [x] [new](new/README.md)\n")
+            write(root, "old/README.md", task("R10", "- [x] legacy", metadata="Status: superseded\nSuperseded-by: R11"))
+            write(root, "old/evidence.md", "Result: BLOCKED\n")
+            write(root, "new/README.md", task("R11", "- [x] replacement"))
+            write(root, "new/evidence.md", receipt())
+        self.assert_first_error(prepare, "missing concrete Revision")
 
 
 if __name__ == "__main__":

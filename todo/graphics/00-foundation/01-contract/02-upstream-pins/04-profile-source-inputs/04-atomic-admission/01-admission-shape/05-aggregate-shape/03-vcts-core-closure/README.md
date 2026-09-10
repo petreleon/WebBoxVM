@@ -5,6 +5,8 @@
 Task: F02.4.4.1.5.3
 Depends: F02.2, F02.4.3, F02.4.4.1.3
 Evidence: [blocker record](evidence.md)
+Status: superseded
+Superseded-by: F02.4.4.1.5.5
 
 Prerequisite lists: the [VCTS boundary](../../03-vulkan-boundaries/README.md),
 [F02 source policy](../../../../../02-fetch-verifier/01-fetch-contract/source_model.py), and
@@ -14,6 +16,9 @@ Prerequisite lists: the [VCTS boundary](../../03-vulkan-boundaries/README.md),
 
 Either establish a complete F02.2-valid Vulkan 1.4 core mustpass closure or retain the exact blocker.
 The broad `vk-default` root is never an eligible substitute for recursively pinned, core-only members.
+
+This is retained as the V1 historical route. V2 uses the immutable Khronos root as a canonical suite
+descriptor, but never mislabels it as an upstream Vulkan-1.4-core selector.
 
 ## Starting points
 

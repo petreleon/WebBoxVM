@@ -23,7 +23,8 @@ bounded, rehashed offline, and consumed by the revised provenance validator with
 ## Checklist
 
 - [ ] Fetch every new identity and required closure member into a newly created external cache.
-- [ ] Verify declared bytes, SHA-256, license, selector boundary, and size policy before reuse.
+- [ ] Verify the root's declared bytes, SHA-256, license, selector boundary, and size policy; verify
+  each V2 suite member by its declared immutable identity rather than inventing a member license.
 - [ ] Rehash offline and reject incomplete, stale, redirected, oversize, or scope-expanded closures.
 - [ ] Run the revised provenance closure against that cache and record exact nonzero results.
 - [ ] Keep all upstream payloads and large generated material outside the repository.

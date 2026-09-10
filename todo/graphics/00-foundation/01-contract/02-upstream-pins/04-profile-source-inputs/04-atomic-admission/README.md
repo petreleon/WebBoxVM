@@ -12,9 +12,9 @@ the three source audits, and [F06](../../../../02-reproducibility/03-file-layout
 ## Outcome
 
 A future atomic cutover may admit all six reviewed logical sources only after every compound source
-has a closure-aware model that satisfies F02.2. Rejected audit roots cannot enter the inventory merely
-because their top-level URL is pinned. Once that condition is met, the inventory, provenance,
-generator, reproducibility, cache, and F03.1 consumers renew in one validated cutover.
+has a closure-aware model that satisfies its explicit V1 or V2 source policy. Rejected audit roots
+cannot enter the inventory merely because their top-level URL is pinned. Once that condition is met,
+the inventory, provenance, generator, reproducibility, cache, and F03.1 consumers renew together.
 
 ## Starting points
 
@@ -33,6 +33,8 @@ generator, reproducibility, cache, and F03.1 consumers renew in one validated cu
 ## Verification
 
 - No consumer accepts an old lock, stale source identity, partial cache, or pre-cutover generated data.
+- A canonical upstream suite is distinct from a regular source input; its V2 closure receipt must be
+  validated without relaxing the regular F02.2 source policy.
 - The cutover proves source provenance only: it does not mark a graphics profile, guest API, browser
   route, conformance run, or performance result as supported.
 

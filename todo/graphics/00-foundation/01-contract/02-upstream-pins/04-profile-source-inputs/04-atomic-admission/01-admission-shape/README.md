@@ -13,7 +13,7 @@ Prerequisite lists: the three [source audits](../README.md) and
 
 A fail-closed source model distinguishes a pinned root from an admissible logical closure. It defines
 pre-admission candidate semantics and post-admission inventory semantics without allowing a rejected
-GLES or Vulkan root to masquerade as a complete F02.2 source.
+GLES or Vulkan root to masquerade as a complete regular source or canonical upstream suite.
 
 ## Starting points
 
@@ -34,11 +34,12 @@ GLES or Vulkan root to masquerade as a complete F02.2 source.
 ## Verification
 
 - A root alone never satisfies a compound source requirement, even if its URL, revision, and digest match.
-- The model preserves F02.2's byte, cache, family, and immutable-source rules without claiming support.
+- The model preserves F02.2's byte, cache, family, and immutable-source rules for regular inputs;
+  V2 must prove its separate canonical-suite boundary without claiming support.
 
 ## Split rationale
 
 The present GLES audit can support a small pre-admission probe, but it cannot establish the all-source
-mapping or post-cutover behavior while Vulkan generated/transitive and core-scope closure is unresolved.
-These children keep that proven GLES boundary independent from the source map, Vulkan blockers, and a
-future inventory transition model. No child may reclassify a rejected root or alter the inventory alone.
+mapping or post-cutover behavior while the V1 Vulkan closure policy is blocked. These children keep that
+proven GLES boundary independent from the source map, the retained V1 evidence, and the V2 inventory
+transition model. No child may reclassify a rejected root or alter the inventory alone.

@@ -1,40 +1,26 @@
 #!/usr/bin/env python3
 """Check nested graphics tasks, dependencies, receipts, links and line limits."""
-
 import re
 import sys
 from pathlib import Path
 from urllib.parse import unquote
-
 REPO = Path(__file__).resolve().parents[1]
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else REPO / "todo/graphics"
 BOX = re.compile(r"^- \[([ x])\] (.+)$", re.M)
 LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-errors = []
-pages = {}
-tasks = {}
-
-
+errors, pages, tasks = [], {}, {}
 def fail(path, message):
     errors.append(f"{path}: {message}")
-
-
 def field(body, name):
     match = re.search(rf"^{name}: (.+)$", body, re.M)
     return match.group(1).strip() if match else ""
-
-
 def target(path, link):
     if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", link) or link.startswith("#"):
         return None
     return (path.parent / unquote(link.split("#", 1)[0])).resolve()
-
-
-def complete(path):
+def checked(path):
     boxes = BOX.findall(pages.get(path, ""))
     return bool(boxes) and all(mark == "x" for mark, _ in boxes)
-
-
 if not ROOT.is_dir():
     sys.exit(f"Roadmap directory is missing: {ROOT}")
 for path in sorted(ROOT.rglob("*")):
@@ -77,33 +63,76 @@ for path in sorted(ROOT.rglob("*")):
             fail(path, f"missing {heading}")
     if not boxes:
         fail(path, "task has no checkboxes")
-    if complete(path.resolve()):
-        evidence = LINK.search(field(body, "Evidence"))
-        receipt = target(path, evidence.group(1)) if evidence else None
-        if receipt is None or not receipt.is_file():
-            fail(path, "completed task needs a local evidence receipt")
-        else:
-            receipt_body = receipt.read_text()
-            for name in ("Revision", "Validation", "Result", "Artifacts", "Profile"):
-                value = field(receipt_body, name)
-                if not value or value.lower() in ("pending", "todo", "tbd"):
-                    fail(receipt, f"missing concrete {name}")
-            if field(receipt_body, "Result") != "PASS":
-                fail(receipt, "completed checklist requires Result: PASS")
-
+statuses = {}
+successors = {}
+for path, body in pages.items():
+    if path.name != "README.md" and not field(body, "Task"):
+        continue
+    statuses[path] = field(body, "Status") or "active"
+    successors[path] = field(body, "Superseded-by")
+    if statuses[path] not in ("active", "superseded"):
+        fail(path, f"invalid Status: {statuses[path]}")
+def superseded(path):
+    if statuses.get(path) == "superseded":
+        return True
+    directory = path.parent
+    while True:
+        if statuses.get(directory / "README.md") == "superseded":
+            return True
+        if directory == ROOT:
+            return False
+        directory = directory.parent
+passing = {}
+checking = set()
+def complete(path):
+    if path in passing:
+        return passing[path]
+    if superseded(path) or not checked(path) or path in checking:
+        return False
+    checking.add(path)
+    result = all(not (match := LINK.fullmatch(label)) or
+                 (dest := target(path, match.group(1))) in pages and complete(dest)
+                 for _, label in BOX.findall(pages.get(path, "")))
+    checking.remove(path)
+    passing[path] = result
+    return result
+for path, status in statuses.items():
+    if status != "superseded":
+        continue
+    successor = successors[path]
+    if not successor:
+        fail(path, "superseded task needs Superseded-by")
+    elif successor not in tasks:
+        fail(path, f"unknown superseding task {successor}")
+    elif superseded(tasks[successor][0]):
+        fail(path, "Superseded-by must reference an active task")
+for ident, (path, _) in tasks.items():
+    if not checked(path):
+        continue
+    evidence = LINK.search(field(pages[path], "Evidence"))
+    receipt = target(path, evidence.group(1)) if evidence else None
+    if receipt is None or not receipt.is_file():
+        fail(path, "completed task needs a local evidence receipt")
+        continue
+    receipt_body = receipt.read_text()
+    for name in ("Revision", "Validation", "Result", "Artifacts", "Profile"):
+        value = field(receipt_body, name)
+        if not value or value.lower() in ("pending", "todo", "tbd"):
+            fail(receipt, f"missing concrete {name}")
+    if field(receipt_body, "Result") != "PASS":
+        fail(receipt, "completed checklist requires Result: PASS")
 for ident, (path, deps) in tasks.items():
     for dep in deps:
         if dep not in tasks:
             fail(path, f"unknown dependency {dep}")
         elif tasks[dep][0].parent in path.parents:
             fail(path, f"task depends on its own ancestor {dep}")
+        elif not superseded(path) and superseded(tasks[dep][0]):
+            fail(path, f"active task depends on superseded {dep}")
         elif complete(path) and not complete(tasks[dep][0]):
             fail(path, f"completed task depends on incomplete {dep}")
-
 visited = set()
 active = []
-
-
 def visit(ident):
     if ident in active:
         fail(tasks[ident][0], "dependency cycle: " + " -> ".join(active + [ident]))
@@ -115,8 +144,6 @@ def visit(ident):
         visit(dep)
     active.pop()
     visited.add(ident)
-
-
 for ident in tasks:
     visit(ident)
 linked_lists = set()
@@ -134,8 +161,8 @@ for path, body in pages.items():
         if dest.parent.parent != path.parent or dest.name != "README.md":
             fail(path, "child list must live in an immediate subfolder")
         linked_lists.add(dest)
-        if (mark == "x") != complete(dest):
-            fail(path, f"checkbox does not match child completion: {link.group(1)}")
+        if not superseded(path) and (mark == "x") != (complete(dest) or superseded(dest)):
+            fail(path, f"checkbox does not match child completion or supersession: {link.group(1)}")
 for path in pages:
     if path.name == "README.md" and path != ROOT / "README.md" and path not in linked_lists:
         fail(path, "list is not linked from a parent checkbox")
@@ -145,8 +172,9 @@ if errors:
     print("\n".join(errors), file=sys.stderr)
     sys.exit(1)
 ready = [ident for ident, (path, deps) in tasks.items()
-         if not complete(path) and all(complete(tasks[dep][0]) for dep in deps)
+         if not superseded(path) and not complete(path) and all(complete(tasks[dep][0]) for dep in deps)
          and not any(LINK.fullmatch(label) for _, label in BOX.findall(pages[path]))]
 done = sum(complete(path) for path, _ in tasks.values())
-print(f"PASS: {len(pages)} documents, {len(tasks)} tasks, {done} complete; links/dependencies/limits valid")
+obsolete = sum(superseded(path) for path, _ in tasks.values())
+print(f"PASS: {len(pages)} documents, {len(tasks)} tasks, {done} PASS-complete, {obsolete} superseded; links/dependencies/limits valid")
 print("Ready: " + (", ".join(ready) if ready else "none"))

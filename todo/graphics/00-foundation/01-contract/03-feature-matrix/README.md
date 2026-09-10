@@ -21,6 +21,7 @@ Completion has a versioned, enumerated meaning for OpenGL, GLES and Vulkan.
 ## Checklist
 
 - [x] [F03.1 — Define the profile scope and matrix schema](01-profile-scope/README.md)
+- [ ] [F03.5 — Adopt source-contract v2](05-source-contract-v2/README.md)
 - [ ] [F03.2 — Import the OpenGL 4.6 core inventory](02-opengl-core/README.md)
 - [ ] [F03.3 — Import the GLES 3.2 inventory](03-gles/README.md)
 - [ ] [F03.4 — Import the Vulkan 1.4 core inventory](04-vulkan-core/README.md)

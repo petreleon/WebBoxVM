@@ -3,11 +3,11 @@
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.4
-Depends: F02, F03.1
+Depends: F02, F03.5
 Evidence: pending
 
 Prerequisite lists: [F02](../../02-upstream-pins/README.md) and
-[F03.1](../01-profile-scope/README.md).
+[F03.5](../05-source-contract-v2/README.md).
 
 ## Outcome
 
@@ -21,6 +21,7 @@ requirement has a stable source locator, an implementation owner, and a referenc
 - [Vulkan CTS input](../../02-upstream-pins/01-input-inventory/manifest.toml)
 - [Venus feasibility evidence](../../../../../../research/venus-foundations.md)
 - [profile schema](../01-profile-scope/README.md)
+- [source-contract v2](../05-source-contract-v2/README.md)
 
 ## Checklist
 
@@ -32,8 +33,9 @@ requirement has a stable source locator, an implementation owner, and a referenc
   conformance reference test; retain missing mappings as unassigned or blocked.
 - [ ] Classify current browser and Venus feasibility evidence without inventing capset 4, Vulkan
   properties, synchronization, external-memory, or device support.
-- [ ] Keep this leaf blocked if F03.1 finds a required authoritative source or complete CTS manifest
-  missing; do not infer one from a registry fragment or isolated API-version file.
+- [ ] Keep this leaf blocked if F03.5 has not admitted a required authoritative source or canonical
+  CTS suite closure; do not infer a Vulkan 1.4 core inventory from a registry fragment, locally
+  filtered selector, or isolated API-version file.
 - [ ] Add focused extraction/coverage/negative tests, run required gates, and attach a receipt.
 
 ## Verification

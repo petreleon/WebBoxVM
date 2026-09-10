@@ -12,8 +12,9 @@ closure-aware admission model, and the fresh-cache proof.
 ## Outcome
 
 Only after a closure-aware inventory and fresh cache exist, F03's lock-bound inputs may transition
-from `inventory-sources-incomplete` to `matrix-incomplete`. The gate proves source availability, not
-feature semantics, runtime execution, conformance, or performance.
+from `inventory-sources-incomplete` to `matrix-incomplete`. It consumes ordinary source identities and
+the V2 canonical-suite receipt without treating either as feature semantics, runtime execution,
+conformance, or performance.
 
 ## Starting points
 
@@ -24,7 +25,8 @@ feature semantics, runtime execution, conformance, or performance.
 
 ## Checklist
 
-- [ ] Make F03 require an admitted closure, not only a singular source ID, for each required role.
+- [ ] Make F03 require an admitted closure, not only a singular source ID, for each required role;
+  accept the V2 canonical-suite receipt only with its immutable root and complete closure identity.
 - [ ] Renew lock-bound source JSON and preserve the canonical profile/requirement ordering.
 - [ ] Transition only the source blocker to `matrix-incomplete` after the fresh-cache proof.
 - [ ] Add positive and hostile tests for stale locks, root-only substitutes, and mixed closures.

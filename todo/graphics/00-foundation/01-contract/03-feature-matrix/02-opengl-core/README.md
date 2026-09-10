@@ -3,11 +3,11 @@
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.2
-Depends: F02, F03.1
+Depends: F02, F03.5
 Evidence: pending
 
 Prerequisite lists: [F02](../../02-upstream-pins/README.md) and
-[F03.1](../01-profile-scope/README.md).
+[F03.5](../05-source-contract-v2/README.md).
 
 ## Outcome
 
@@ -31,8 +31,8 @@ stable source locator, an implementation owner, and a reference-test obligation.
   conformance reference test; leave absent mappings visibly unassigned or blocked.
 - [ ] Classify current bounded VirGL behavior only where present evidence supports it; do not advertise
   an untested row as supported or silently replace it with a lower bring-up version.
-- [ ] Keep this leaf blocked if F03.1 finds the authoritative API/limit/format source or complete test
-  manifest missing; do not infer it from the registry or one isolated test case.
+- [ ] Keep this leaf blocked if F03.5 has not admitted the authoritative API/limit/format source and
+  complete conformance-suite closure; do not infer either from the registry or one isolated test case.
 - [ ] Add focused extraction/coverage/negative tests, run required gates, and attach a receipt.
 
 ## Verification
