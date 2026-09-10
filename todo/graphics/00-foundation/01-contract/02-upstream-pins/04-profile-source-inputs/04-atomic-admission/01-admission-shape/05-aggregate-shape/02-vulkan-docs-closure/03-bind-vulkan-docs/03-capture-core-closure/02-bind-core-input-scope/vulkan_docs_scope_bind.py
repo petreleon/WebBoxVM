@@ -12,7 +12,7 @@ from vulkan_docs_scope_model import (
     PINNED_IO_TRACES, PINNED_NORMALIZED, PINNED_OBSERVATION, PINNED_PHASE_COUNTS, PINNED_RUNS, RAW,
     CaptureExpectation, ScopeManifest, reject,
 )
-from vulkan_docs_scope_parse import canonical, digest, document, file_digest, identifier, positive, require_safe_child, selector
+from vulkan_docs_scope_parse import canonical, digest, document, document_digest, file_digest, identifier, positive, require_safe_child, selector
 from vulkan_docs_scope_records import normalized
 from vulkan_docs_scope_semantics import conditions, derived_rows, raw_rows
 
@@ -152,5 +152,5 @@ def bind_capture(observation_path: Path, artifact_root: Path, run_id: str) -> Sc
         if file_digest(artifact_file(artifact_root, capture.artifact, name), "observer trace", MAX_TRACE_BYTES) != expected_digest:
             reject("observer trace does not match the selected header run")
     normalized_path = artifact_file(artifact_root, capture.artifact, "normalized-inputs.json")
-    return bind_value(document(normalized_path), replace(
-        capture, normalized_digest=file_digest(normalized_path, "normalized observer", MAX_DOCUMENT_BYTES)))
+    value, normalized_digest = document_digest(normalized_path, "normalized observer")
+    return bind_value(value, replace(capture, normalized_digest=normalized_digest))

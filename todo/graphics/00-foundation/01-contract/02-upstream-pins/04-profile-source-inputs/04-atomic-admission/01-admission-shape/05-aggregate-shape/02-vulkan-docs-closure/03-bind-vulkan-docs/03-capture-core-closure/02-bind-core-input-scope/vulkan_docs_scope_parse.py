@@ -15,8 +15,8 @@ if str(OBSERVER) not in sys.path:
 
 from vulkan_docs_observer_parse import canonical as observer_canonical  # noqa: E402
 from vulkan_docs_observer_parse import digest as observer_digest  # noqa: E402
-from vulkan_docs_observer_parse import document as observer_document  # noqa: E402
 from vulkan_docs_observer_parse import identifier as observer_identifier  # noqa: E402
+from vulkan_docs_observer_parse import json_value as observer_json_value  # noqa: E402
 from vulkan_docs_observer_parse import phases as observer_phases  # noqa: E402
 from vulkan_docs_observer_parse import positive as observer_positive  # noqa: E402
 from vulkan_docs_observer_parse import selector as observer_selector  # noqa: E402
@@ -38,13 +38,36 @@ def digest(value: object, label: str) -> str:
     return inherited(observer_digest, value, label)
 
 
-def document(path: Path) -> dict[str, object]:
+def document_data(data: bytes) -> dict[str, object]:
+    try:
+        value = inherited(observer_json_value, data.decode("utf-8"), "scope document")
+    except UnicodeDecodeError as error:
+        reject(f"scope document cannot be read: {error}")
+    if not isinstance(value, dict):
+        reject("scope document is not an object")
+    return value
+
+
+def document_bytes(path: Path, label: str) -> bytes:
     try:
         if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_DOCUMENT_BYTES:
-            reject("scope document is not a bounded regular file")
+            reject(f"{label} is not a bounded regular file")
+        with path.open("rb") as stream:
+            data = stream.read(MAX_DOCUMENT_BYTES + 1)
     except OSError as error:
-        reject(f"scope document cannot be read: {error}")
-    return inherited(observer_document, path)
+        reject(f"{label} cannot be read: {error}")
+    if len(data) > MAX_DOCUMENT_BYTES:
+        reject(f"{label} exceeds its explicit byte bound")
+    return data
+
+
+def document(path: Path) -> dict[str, object]:
+    return document_data(document_bytes(path, "scope document"))
+
+
+def document_digest(path: Path, label: str) -> tuple[dict[str, object], str]:
+    data = document_bytes(path, label)
+    return document_data(data), hashlib.sha256(data).hexdigest()
 
 
 def identifier(value: object, label: str) -> str:
