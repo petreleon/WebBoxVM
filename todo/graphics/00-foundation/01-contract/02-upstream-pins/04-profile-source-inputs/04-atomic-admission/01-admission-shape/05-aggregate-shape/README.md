@@ -26,7 +26,7 @@ remain historical evidence; V2 is the only active route to a later source cutove
 - [x] [F02.4.4.1.5.1 — Aggregate the current pre-admission state](01-pre-admission-aggregate/README.md)
 - [x] [F02.4.4.1.5.2 — Historical Vulkan Docs closure policy](02-vulkan-docs-closure/README.md)
 - [x] [F02.4.4.1.5.3 — Historical VCTS core-selector policy](03-vcts-core-closure/README.md)
-- [ ] [F02.4.4.1.5.5 — Define the Vulkan source-contract V2](05-vulkan-source-contract-v2/README.md)
+- [x] [F02.4.4.1.5.5 — Define the Vulkan source-contract V2](05-vulkan-source-contract-v2/README.md)
 - [ ] [F02.4.4.1.5.4 — Prove the aggregate closure admission](04-closure-admission-proof/README.md)
 
 ## Verification

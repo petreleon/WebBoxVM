@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.5
 Depends: F02.2, F02.4.3, F02.4.4.1.3, F02.4.4.1.5.1, F03.1
-Evidence: pending
+Evidence: [evidence.md](evidence.md)
 
 Prerequisite lists: the [V1 aggregate](../README.md), [Vulkan audit](../../../../03-vulkan-input-audit/README.md),
 and [F03.1](../../../../../../03-feature-matrix/01-profile-scope/README.md).
@@ -28,7 +28,7 @@ read-only, and gives F03 a truthful source-availability path without claiming co
 - [x] [F02.4.4.1.5.5.2 — Define the canonical-suite schema](02-canonical-suite-schema/README.md)
 - [x] [F02.4.4.1.5.5.3 — Verify the external closure cache](03-external-closure-cache/README.md)
 - [x] [F02.4.4.1.5.5.4 — Freeze coverage-report taxonomy](04-coverage-taxonomy/README.md)
-- [ ] [F02.4.4.1.5.5.5 — Hand off the V2 aggregate](05-aggregate-handoff/README.md)
+- [x] [F02.4.4.1.5.5.5 — Hand off the V2 aggregate](05-aggregate-handoff/README.md)
 
 ## Verification
 

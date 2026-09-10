@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.5.5
 Depends: F02.4.4.1.5.5.3, F02.4.4.1.5.5.4
-Evidence: pending adapter receipt
+Evidence: [evidence.md](evidence.md)
 
 Prerequisite lists: [the external cache proof](../03-external-closure-cache/README.md),
 [the taxonomy](../04-coverage-taxonomy/README.md), and the [aggregate proof](../../04-closure-admission-proof/README.md).
@@ -25,11 +25,11 @@ closure; this handoff imports and resolves no Docs artifact.
 
 ## Checklist
 
-- [ ] Bind the V2 root, closure ledger, cache receipt, and taxonomy digest into one handoff identity.
-- [ ] Require all V2 receipt fields before the aggregate proof can consume the suite.
-- [ ] Reject V1/V2 mixing, stale root identity, partial closure, and taxonomy/ledger mismatch.
-- [ ] Document that Docs generated artifacts remain outside the admitted implementation-source closure.
-- [ ] Run focused adapter tests and attach a receipt for F02.4.4.1.5.5.5.
+- [x] Bind the V2 root, closure ledger, cache receipt, and taxonomy digest into one handoff identity.
+- [x] Require all V2 receipt fields before the aggregate proof can consume the suite.
+- [x] Reject V1/V2 mixing, stale root identity, partial closure, and taxonomy/ledger mismatch.
+- [x] Document that Docs generated artifacts remain outside the admitted implementation-source closure.
+- [x] Run focused adapter tests and attach a receipt for F02.4.4.1.5.5.5.
 
 ## Verification
 
