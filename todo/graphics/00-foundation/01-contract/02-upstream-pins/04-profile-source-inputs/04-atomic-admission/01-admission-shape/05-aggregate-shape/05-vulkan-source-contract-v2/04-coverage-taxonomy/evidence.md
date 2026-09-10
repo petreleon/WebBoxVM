@@ -1,6 +1,6 @@
 # F02.4.4.1.5.5.4 evidence
 
-Revision: aa0584b904172e691662e8e862e3965fe0ba498f plus task-local reviewed working-tree files
+Revision: 1ba52d1f30197a99516f61119812742e9db87de0
 Validation: taxonomy/report 4/4 + checker unit 10/10 + source limits 6/6 + task diff/line checks
 Result: PASS
 Artifacts: taxonomy canonical sha256=752a3ae5ff10ea0d9f9a2638c0d1612fb7af3d376dabad1601f8b9c1e76cb2f7;
@@ -10,8 +10,8 @@ test file sha256=2d771a82f75501c6a17ab1f00af75e64805adf7ddfa8093b7ccb0f4c3f86992
 Profile: planning-only V2 Vulkan CTS coverage taxonomy; no guest, CTS, browser, or performance run
 
 Task ID and date: F02.4.4.1.5.5.4, 2026-09-10 Europe/Bucharest.
-Tested commit and dirty diff hash: base `aa0584b904172e691662e8e862e3965fe0ba498f`; this task's four
-uncommitted implementation/test files were reviewed by the listed SHA-256 values before integration.
+Tested commit and dirty diff hash: `1ba52d1f30197a99516f61119812742e9db87de0`; task-local paths were
+clean after the commit. Independent cache-contract work remained uncommitted and outside this task scope.
 Upstream manifest revision: annotated `vulkan-cts-1.4.6.2` tag object
 `42c723aa10d2652590f02741827aef43b0421d23`, peeled commit
 `f6a29701220f34dd1407513bfe80d74ca7b392ce`; root `vk-default.txt` SHA-256
@@ -37,11 +37,12 @@ capture was retained. Reproduce with `python3 .../04-coverage-taxonomy/coverage_
 taxonomy JSON, validator, report builder, and test SHA-256 values are above.
 Software fallback detection and actual execution route: not applicable; no guest/browser execution ran.
 Performance conditions and frozen protocol version, when applicable: not applicable; no workload ran.
-First failing subcheck or blocker, when applicable: the first full-roadmap check at this moment was an
-unrelated concurrent `03-external-closure-cache/02-live-closure/README.md` broken link. The task-local
-tests and checker unit test passed; integration must rerun the roadmap checker after that link is fixed.
+First failing subcheck or blocker, when applicable: task-local validation had no failure. The full-roadmap
+check is deferred until the independent cache-contract worker finishes its in-progress source-limit cleanup;
+the task-local tests and checker unit passed at the recorded commit.
 Decision and limits of the evidence: six V1-observed non-core selectors receive exact VCTS paths and
 locators. No filename is inferred to be Vulkan 1.4 core; all other direct or recursive members remain
 unknown. A clean complete-suite diagnostic is not a compatibility, conformance, or Khronos certification claim.
-Commit/push verification: deferred to the owning integration worker; this subtask was instructed not to commit.
+Commit/push verification: `1ba52d1f30197a99516f61119812742e9db87de0` was pushed; `git ls-remote`
+returned that exact SHA for `refs/heads/codex/graphics-f01-baseline`.
 Next ready task: F02.4.4.1.5.5.5 — hand off the V2 aggregate after the closure-cache receipt is integrated.
