@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "contract": "source-sufficiency-release-boundary-v1",
+  "status": "future-source-contract-required",
+  "source_requirements_sha256": "a9535611bab654034357d1578c3a2035caa09fda8090114df0867ac6d7fbeca5",
+  "source_roles": [
+    ["opengl-4.6-core", "api-limit-format-spec", "opengl-46-core-spec"],
+    ["opengl-4.6-core", "conformance-manifest", "opengl-cts-manifest"],
+    ["gles-3.2", "api-limit-format-spec", "gles-32-spec"],
+    ["gles-3.2", "conformance-manifest", "gles-cts-manifest"],
+    ["vulkan-1.4-core", "api-limit-format-spec", "vulkan-14-spec"],
+    ["vulkan-1.4-core", "conformance-manifest", "vulkan-cts-mustpass"]
+  ],
+  "future_source_contract": {
+    "version": "source-contract-v3",
+    "bind_every_profile_role": true,
+    "exact_closure_identity_required": true,
+    "source_sufficient": false,
+    "f03_transition_allowed": false
+  },
+  "vulkan_sources": {
+    "derived_docs_policy_sha256": "9aac96fcdc340a31e77f44318fd32dbd673eb90551b5ac090d21d8b3a53078aa",
+    "vcts_handoff_sha256": "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee",
+    "vk_xml": {
+      "selector": "xml/vk.xml",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06",
+      "bytes": 3309653,
+      "license": "Apache-2.0 OR MIT (SPDX file notice)",
+      "version_marker": "VK_VERSION_1_4",
+      "classification": "compact-registry-metadata",
+      "normative_docs_or_cts": false,
+      "may_satisfy_source_role": false,
+      "may_satisfy_release_evidence": false
+    },
+    "generated_docs": {
+      "may_satisfy_source": false,
+      "may_satisfy_release_evidence": false
+    }
+  },
+  "vk_default_diagnostics": {
+    "selector": "external/vulkancts/mustpass/main/vk-default.txt",
+    "scope": "khronos-default-mustpass-broader-than-vulkan-1.4-core",
+    "local_filtering": "forbidden",
+    "categories": ["core", "wsi", "video", "extension", "unknown"],
+    "categories_change_selector": false,
+    "reports_are_conformance": false
+  },
+  "release_evidence": {
+    "independent_evidence_required": [
+      "guest-compatibility",
+      "native-reference",
+      "cts-execution",
+      "browser-execution",
+      "performance-measurement"
+    ],
+    "all_present": false,
+    "release_claim_permitted": false
+  },
+  "prohibitions": [
+    "local-core-selector",
+    "category-report-as-conformance",
+    "docs-output-as-source",
+    "docs-output-as-release-evidence",
+    "registry-metadata-as-docs-or-cts",
+    "false-release-flag"
+  ],
+  "effects": {
+    "source_sufficient": false,
+    "matrix_may_use_source": false,
+    "inventory_changed": false,
+    "f03_changed": false,
+    "supported": false,
+    "guest_compatible": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false,
+    "release_ready": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false
+  },
+  "boundary_sha256": "7cc44e773bb45e61535f535c93640547dfddead6b0b2f0bb23cc73c62ec06485"
+}
