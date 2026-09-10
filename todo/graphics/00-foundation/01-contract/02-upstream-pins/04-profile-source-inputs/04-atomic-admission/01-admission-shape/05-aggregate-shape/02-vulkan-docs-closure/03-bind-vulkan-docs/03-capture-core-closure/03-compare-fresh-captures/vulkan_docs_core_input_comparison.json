@@ -1,0 +1,57 @@
+{
+  "captures": [
+    {
+      "artifact": "runs/observer-a-r5",
+      "include_trace_sha256": "9bdd4e1a79ffc224832ec58763034dcf87e9660af7652fda5193891c226ec024",
+      "io_trace_sha256": "f263e0aa51baaafce451dd27ebad3f9ab387cdfa5aa14264090744f02342e13a",
+      "normalized_sha256": "ec26645c8f8b4560f2882240ae4fab0ffb51ca4bacdc04f6d9ae363f48affc52",
+      "run_id": "observer-a",
+      "run_sha256": "4fdd14f649aaa2e346bd5e0d1d2f77248f4c5b0dab1ce596101872520f7f48f8"
+    },
+    {
+      "artifact": "runs/observer-b-r1",
+      "include_trace_sha256": "9bdd4e1a79ffc224832ec58763034dcf87e9660af7652fda5193891c226ec024",
+      "io_trace_sha256": "62335512b79c31a93fa822223ed6524d3abfb7a0eb48db1be8696ce840dc91e0",
+      "normalized_sha256": "ec26645c8f8b4560f2882240ae4fab0ffb51ca4bacdc04f6d9ae363f48affc52",
+      "run_id": "observer-b",
+      "run_sha256": "dd122cc5199e23aff8a26e6bd8101de61dd562a722fdb750235aa5abc77e7fe0"
+    }
+  ],
+  "comparison_sha256": "f76e489565365d2b326185d2f4d511422c8b83b6b084fee0f90cd3b5646cc9ce",
+  "contract": "vulkan-docs-core-capture-comparison-v1",
+  "counts": {
+    "capture_count": 2,
+    "condition_count": 7,
+    "derived_count": 1462,
+    "extension_control_count": 9,
+    "image_count": 42,
+    "include_count": 1973,
+    "promotion_count": 4,
+    "raw_count": 298
+  },
+  "identities": {
+    "build_witness_sha256": "8cfab6fe4527f3973d7d7923ffe0922ab689fc2daf2f6e955ff7603fc8ba78d6",
+    "conditions_identity_sha256": "80346ab17cb923a26dea2c87126ac869f44120a39fdcedf0d823ae5d789a924f",
+    "configuration_sha256": "733f0e65d740e6dded26fc0c525987fa81a6e6c51bf2f757995f7923586b472e",
+    "derived_identity_sha256": "e193954347147564ed1e744aa2e52d23d2009cb64687beaed02ac3e088dcd287",
+    "include_identity_sha256": "d77dcc342ef342fa516092f4034d19ef589acaf04ebd57020182efb3a9af79a9",
+    "input_manifest_sha256": "1896b1a211ecf82ff8b7826718ed797083fa80f41eba0a985376cef124b3056c",
+    "normalized_sha256": "ec26645c8f8b4560f2882240ae4fab0ffb51ca4bacdc04f6d9ae363f48affc52",
+    "producer_identity_sha256": "55826829bb914167c843597043228255e6ec798866f9226c62dc11be7449653a",
+    "raw_identity_sha256": "3c5b9b8f9164cfb9561f3753b1a8df454a8403369f0e608b752c33330201c6b8",
+    "scope_identity_sha256": "9c0e5fb53986b22ee5d774de350127cdecfe11c021d39106a20a106203ef3339"
+  },
+  "observation_sha256": "dbd75e819e3021e28e2bdb85eeccd675a688ffdb6692fddcd8ff58a221363554",
+  "output_witness": {
+    "bytes": 17019466,
+    "file_count": 2530,
+    "primary_html_sha256": "896452d3a3e4887ba1bad81a6b9b91e9b3b324e1fffbb9e1dec889d0b06ac041",
+    "relation": "two-distinct-observations-known-witness-only",
+    "tree_sha256": "26e8e484d34222d9ba8a72c883ff8bb65a4e5194f399c24aa9bd5d7e47c49f32"
+  },
+  "profile": "vulkan-1.4-core",
+  "required_input_id": "vulkan-14-spec",
+  "role": "api-limit-format-spec",
+  "schema": 1,
+  "status": "input-comparison-only-unadmitted"
+}
