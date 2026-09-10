@@ -22,7 +22,9 @@ The binder rejects absent producers, forged or duplicate-ID scopes, raw scope ex
 duplicate writers, mutation after close, mismatched or escaping temporary/rename paths, pre-final derived reads, PID
 reuse, events after `exec`, noncanonical IDs, stale receipts, and active states. It keeps the 200,000-event / 32 MiB
 bounds and rejects producer cycles. The implementation is separate from the sealed `03-capture-core-closure` observer;
-no new trace has been captured.
+no Docs trace has been captured. The separate synthetic hosted trace is recorded by its completed
+[`03-synthetic-syscall-collector`](03-synthetic-syscall-collector/evidence.md) and
+[`04-hosted-synthetic-witness`](04-hosted-synthetic-witness/evidence.md) children; it remains unadmitted.
 
 Focused contract command, run from this directory:
 

@@ -110,17 +110,17 @@ First failing subcheck: actual-grammar member provenance cannot be produced from
 read-only observations. The prerequisite bytes, scope, witness, and two-capture comparison remain
 consistent but are not a complete actual Docs closure.
 
-Decision and limits: leave every checkbox in this leaf and its parents open. Do not label the
-staging marker, the source/input snapshot, or the generated-output observation as an actual closure;
-all remain `unadmitted` and `cutover_ready=False`. No inventory, candidate decision, F03 state,
-guest API, browser, CTS, conformance, or performance claim changes here. This is a mandatory
-provenance-model blocker, not a PASS or an artifact-availability exemption.
+Decision and limits: the nested synthetic fixture children `.5.2.3` and `.5.2.4` are complete with their own
+unadmitted receipts, but no Docs closure checkbox is complete. Do not label the staging marker, source/input snapshot,
+or generated-output observation as an actual closure; all remain `unadmitted` and `cutover_ready=False`. No inventory,
+candidate decision, F03 state, guest API, browser, CTS, conformance, or performance claim changes here. This is a
+mandatory provenance-model blocker, not a PASS or an artifact-availability exemption.
 
-The split children must first reify authoritative member metadata, then add a separate proof-only tracer with
-process ancestry plus generated-file write/rename events. They must run two fresh pinned builds and justify every
-derived producer edge before materializing a full actual-grammar manifest. Only after hostile tests reject omitted,
-ambiguous, reordered, scope-expanded, or invented provenance may they restage all 1,760 inputs, both output trees,
-and a strict marker before proving the closure remains unadmitted.
+The remaining Docs-binding child must first reify authoritative member metadata, then run an authorized Docs replay
+with process ancestry plus generated-file write/rename events. It must run two fresh pinned builds and justify every
+Docs derived producer edge before materializing a full actual-grammar manifest. Only after hostile tests reject
+omitted, ambiguous, reordered, scope-expanded, or invented provenance may it restage all 1,760 inputs, both output
+trees, and a strict marker before proving the closure remains unadmitted.
 
 Original-receipt repository gates: `make test` exited zero with 1,127 Rust tests passed, 3 ignored,
 source-file limits 6/6 passed, and 337 Node tests passed. `git diff --check` exited zero.
@@ -130,5 +130,5 @@ its own current gate record rather than relabeling these historic results. Remot
 
 The roadmap checker may label F02.4.4.1.5.2.3.5.1 and F02.4.4.1.5.2.3.5.2 `Ready` because their declared
 dependencies are complete. That is bookkeeping/dependency-ready only, not an executable closure successor:
-their respective blocker receipts retain absent derived-license authority and an unavailable trusted tracer. No
+their respective blocker receipts retain absent derived-license authority and an unavailable trusted Docs tracer. No
 closure successor is executable under the current pinned evidence and no-privilege container route.

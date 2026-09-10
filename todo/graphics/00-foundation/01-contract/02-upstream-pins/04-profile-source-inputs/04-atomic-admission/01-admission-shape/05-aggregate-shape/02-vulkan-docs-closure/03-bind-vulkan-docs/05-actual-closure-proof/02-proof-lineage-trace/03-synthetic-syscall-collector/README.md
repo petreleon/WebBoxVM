@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.5.2.3
 Depends: F02.4.4.1.5.2.3.5.2.1, F02.4.4.1.5.2.3.5.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -24,10 +24,10 @@ proof grammar.
 
 ## Checklist
 
-- [ ] Trace only a collector-spawned fixture and descendants with bounded process, fd, path, and event state.
-- [ ] Emit wire records solely through the collector pipe and map only `/vulkan`, `/work/temporary`, and `/work/generated`.
-- [ ] Normalize one successful writer/close/rename/final/derived-read sequence into the proof grammar and binder.
-- [ ] Reject partial, escaped, duplicated, mutated, malformed, or lifecycle-invalid fixture traces in focused tests.
+- [x] Trace only a collector-spawned fixture and descendants with bounded process, fd, path, and event state.
+- [x] Emit wire records solely through the collector pipe and map only `/vulkan`, `/work/temporary`, and `/work/generated`.
+- [x] Normalize one successful writer/close/rename/final/derived-read sequence into the proof grammar and binder.
+- [x] Reject partial, escaped, duplicated, mutated, malformed, or lifecycle-invalid fixture traces in focused tests.
 
 ## Verification
 

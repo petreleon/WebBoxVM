@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.5.2.4
 Depends: F02.4.4.1.5.2.3.5.2.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -22,10 +22,10 @@ unadmitted, self-validating fixture receipt under the already validated pinned-i
 
 ## Checklist
 
-- [ ] Anchor every executed helper, C source, and fixture byte to the workflow commit before Docker starts.
-- [ ] Preserve pinned image, `--pull=never`, no network, user `501:20`, and no privilege/security relaxations.
-- [ ] Require an exact collector terminal receipt and reject a runtime or malformed trace as workflow failure.
-- [ ] Record the public run separately from local tests without promoting the fixture into Docs lineage evidence.
+- [x] Anchor every executed helper, C source, and fixture byte to the workflow commit before Docker starts.
+- [x] Preserve pinned image, `--pull=never`, no network, user `501:20`, and no privilege/security relaxations.
+- [x] Require an exact collector terminal receipt and reject a runtime or malformed trace as workflow failure.
+- [x] Record the public run separately from local tests without promoting the fixture into Docs lineage evidence.
 
 ## Verification
 

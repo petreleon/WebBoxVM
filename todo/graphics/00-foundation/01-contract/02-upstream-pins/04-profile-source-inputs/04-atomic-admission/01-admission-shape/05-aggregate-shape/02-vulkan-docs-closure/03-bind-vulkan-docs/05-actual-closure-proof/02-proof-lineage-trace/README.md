@@ -25,8 +25,8 @@ sealed read-only observer.
 
 - [x] [F02.4.4.1.5.2.3.5.2.1 — Freeze the proof-only grammar and binder](01-grammar-and-binder/README.md)
 - [x] [F02.4.4.1.5.2.3.5.2.2 — Validate the bounded ptrace capability primitive](02-capability-primitive/README.md)
-- [ ] [F02.4.4.1.5.2.3.5.2.3 — Collect a real synthetic syscall fixture](03-synthetic-syscall-collector/README.md)
-- [ ] [F02.4.4.1.5.2.3.5.2.4 — Witness the synthetic collector on hosted Docker](04-hosted-synthetic-witness/README.md)
+- [x] [F02.4.4.1.5.2.3.5.2.3 — Collect a real synthetic syscall fixture](03-synthetic-syscall-collector/README.md)
+- [x] [F02.4.4.1.5.2.3.5.2.4 — Witness the synthetic collector on hosted Docker](04-hosted-synthetic-witness/README.md)
 - [ ] [F02.4.4.1.5.2.3.5.2.5 — Bind the collector to an authorized Docs replay](05-docs-collector-binding/README.md)
 
 ## Verification
@@ -35,14 +35,12 @@ sealed read-only observer.
 - Public proof receipts rebind the sealed capture from paths/run ID, and all raw/derived IDs must be reversible from
   their selectors; a manually constructed scope is never receipt authority.
 - Do not add `--privileged`, `SYS_PTRACE`, seccomp relaxation, writable source, or an active consumer to obtain a trace.
-- Status: **BLOCKED**. The same pinned image and no-privilege security flags return `ENOSYS` for child
-  `PTRACE_TRACEME`; this gate deliberately does not reproduce a full Docs mount/build topology. The bounded parser
-  and hostile tests remain proof-only scaffolding. Docker daemon path mounts also cannot issue a trusted positive
-  capability result without an anchored execution client. GitHub run
-  [`34449710520`](https://github.com/petreleon/WebBoxVM/actions/runs/34449710520) separately observed the reviewed
-  direct-host primitive from immutable Git blobs, but it is `observed-unadmitted`: it is neither the pinned image,
-  network-confined, nor a Docs-build trace. It trusts GitHub job isolation, `git`, `gcc`, and no hostile same-UID
-  peer; the unprotected branch and unattested log prevent it from becoming lineage or closure authority.
+- Status: **BLOCKED for Docs lineage and closure**. Local Docker diagnostics are non-authoritative, while GitHub run
+  [`34464021075`](https://github.com/petreleon/WebBoxVM/actions/runs/34464021075) executed the Git-blob-anchored C
+  collector in the pinned, no-privilege image and emitted its exact 19-row synthetic receipt. That proves only the
+  fixed fixture mechanism: it has no Docs mount, build, argv, or authoritative per-member metadata. It remains
+  `observed-unadmitted`; GitHub job isolation, Docker, `git`, `gcc`, the unprotected branch, and the public log are
+  outside the Docs closure authority model.
 - The separate GitHub-hosted pinned-image Docker primitive witness is intentionally narrower than a Docs build: it
   has an empty read-only `/vulkan`, a temporary `/work`, and only the reviewed C gate over stdin. It neither mounts
   Docs nor sets deterministic Docs inputs or runs the Docs argv. It validates the source-envelope byte count and
