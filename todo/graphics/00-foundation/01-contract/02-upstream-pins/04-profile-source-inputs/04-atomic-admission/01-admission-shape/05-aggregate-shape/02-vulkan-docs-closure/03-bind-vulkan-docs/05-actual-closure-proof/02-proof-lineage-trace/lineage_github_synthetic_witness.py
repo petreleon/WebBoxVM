@@ -21,9 +21,9 @@ HELPER = f"{BASE}/lineage_github_synthetic_witness.py"
 IMAGE = "khronosgroup/docker-images@sha256:f1ca671f3bdb10ad49e238b9bf28853088a21af49504498fc9084c9b4fea4762"
 SPECS = (
     ("lineage_ptrace_state.h", f"{BASE}/observer/lineage_ptrace_state.h", 1163, "fa5ea08f44c2446c0904468ab0545e54a8e13b5a23096180e586499fff2ea6c5"),
-    ("lineage_ptrace_state.c", f"{BASE}/observer/lineage_ptrace_state.c", 9016, "7c3395a55c69a609f407cd1e4c59a0216fc7fb4233120b006cb4d6da1c180555"),
+    ("lineage_ptrace_state.c", f"{BASE}/observer/lineage_ptrace_state.c", 9108, "19c92931ccc956942bd626c46dd8e45c871559f65f0cf9eacfd09d918a4f2fd4"),
     ("lineage_ptrace_fixture.c", f"{BASE}/observer/lineage_ptrace_fixture.c", 1577, "9c0dfa754641e8ac7b4559c8e0b6d642f088979535230c4ad63f019313b27e7a"),
-    ("lineage_ptrace_fixture_collector.c", f"{BASE}/observer/lineage_ptrace_fixture_collector.c", 6994, "1c512224472fbbc26f12bb292282aea8feaf7f09d4a81cd340c968469690d825"),
+    ("lineage_ptrace_fixture_collector.c", f"{BASE}/observer/lineage_ptrace_fixture_collector.c", 7166, "08112299a1252d3eaf832b04b1a57c5fbc8ae3da14833461188b00a1d626169c"),
     ("lineage_ptrace_fixture.raw.hex", f"{BASE}/observer/lineage_ptrace_fixture.raw.hex", 7, "4447db2af9610585bd237a01f1f8adc303015710968fc7db64106a12d886153d"),
 )
 RAW_HEX, RAW = b"726177\n", b"raw"

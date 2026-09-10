@@ -31,8 +31,8 @@ static int die(const struct lpc_state *state, const char *stage) {
     (void)fflush(stdout); return 77;
 }
 
-static int entry_die(const struct lpc_state *state, long number) {
-    char stage[48]; (void)snprintf(stage, sizeof(stage), "syscall-entry-%ld", number);
+static int entry_die(const struct lpc_state *state, long number, int result, const uint64_t *args) {
+    char stage[96]; (void)snprintf(stage, sizeof(stage), "syscall-entry-%ld-%d-%ld-%lx-%lo", number, result, (long)args[0], (unsigned long)args[2], (unsigned long)args[3]);
     return die(state, stage);
 }
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
         signal = WSTOPSIG(status); event = status >> 16;
         if (signal == (SIGTRAP | 0x80)) {
             if (syscall_stop(waited, &info)) return die(&state, "syscall-info");
-            if (info.op == PTRACE_SYSCALL_INFO_ENTRY && lpc_entry(&state, waited, (long)info.entry.nr, info.entry.args)) return entry_die(&state, (long)info.entry.nr);
+            if (info.op == PTRACE_SYSCALL_INFO_ENTRY) { int result = lpc_entry(&state, waited, (long)info.entry.nr, info.entry.args); if (result) return entry_die(&state, (long)info.entry.nr, result, info.entry.args); }
             if (info.op == PTRACE_SYSCALL_INFO_EXIT && lpc_exit(&state, waited, (long)info.exit.rval)) return die(&state, "syscall-exit");
             if (info.op != PTRACE_SYSCALL_INFO_ENTRY && info.op != PTRACE_SYSCALL_INFO_EXIT) return die(&state, "syscall-direction");
             if (resume(waited, 0)) return die(&state, "syscall-resume");

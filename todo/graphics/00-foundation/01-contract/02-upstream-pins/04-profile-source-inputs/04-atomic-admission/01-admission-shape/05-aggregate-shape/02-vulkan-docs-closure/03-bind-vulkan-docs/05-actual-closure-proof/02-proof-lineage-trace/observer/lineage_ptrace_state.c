@@ -66,13 +66,13 @@ static int read_path(pid_t pid, unsigned long long address, char *path) {
     for (offset = 0; offset < LPC_PATH; offset += sizeof(long)) {
         long word; size_t index;
         errno = 0; word = ptrace(PTRACE_PEEKDATA, pid, (char *)(unsigned long)address + offset, NULL);
-        if (word == -1 && errno) return -1;
+        if (word == -1 && errno) return -2;
         for (index = 0; index < sizeof(word) && offset + index < LPC_PATH; ++index) {
             path[offset + index] = ((char *)&word)[index];
-            if (!path[offset + index]) return safe(path) ? root(path) : -1;
+            if (!path[offset + index]) return safe(path) ? root(path) : -3;
         }
     }
-    return -1;
+    return -3;
 }
 
 static int pending(struct lpc_process *item, enum lpc_call kind) {
@@ -113,7 +113,8 @@ int lpc_entry(struct lpc_state *state, pid_t pid, long number, const uint64_t *a
     if (item == NULL) return -1;
     if (number == SYS_openat) {
         first = read_path(pid, args[1], item->pending.old);
-        if (first <= 0) return first ? -1 : live(item) || item->pending.kind ? -1 : 0;
+        if (first < 0) return first;
+        if (!first) return live(item) || item->pending.kind ? -1 : 0;
         if ((long)args[0] != AT_FDCWD || !fixture_path(first, item->pending.old) || !expected_open(first, (long)args[2]) ||
             (first == 2 ? args[3] != 0600 : args[3] != 0) || pending(item, LPC_OPEN)) return -1;
         item->pending.flags = (long)(args[2] & O_ACCMODE); return 0;
@@ -127,6 +128,7 @@ int lpc_entry(struct lpc_state *state, pid_t pid, long number, const uint64_t *a
     }
     if (number == SYS_renameat) {
         first = read_path(pid, args[1], item->pending.old); second = read_path(pid, args[3], item->pending.new);
+        if (first < 0 || second < 0) return first < 0 ? first : second;
         if (!first && !second) return live(item) || item->pending.kind ? -1 : 0;
         if (first != 2 || second != 3 || !fixture_path(first, item->pending.old) || !fixture_path(second, item->pending.new) ||
             (long)args[0] != AT_FDCWD || (long)args[2] != AT_FDCWD || pending(item, LPC_RENAME)) return -1;
