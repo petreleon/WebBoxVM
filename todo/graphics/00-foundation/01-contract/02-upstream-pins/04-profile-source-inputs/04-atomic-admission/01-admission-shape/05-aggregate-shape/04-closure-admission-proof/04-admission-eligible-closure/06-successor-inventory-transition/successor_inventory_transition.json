@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "contract": "vulkan-docs-successor-inventory-transition-v1",
+  "status": "design-only-unadmitted",
+  "predecessor": {
+    "schema": 2,
+    "lock_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+    "families": [
+      "linux-uapi", "mesa-virgl", "mesa-venus", "virglrenderer", "venus-protocol",
+      "gl-gles-registry", "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl",
+      "wgsl-grammar", "vk-gl-cts", "webgpu-cts", "piglit", "webgpu-idl"
+    ],
+    "legacy_fields": [
+      "id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license",
+      "local_cache", "generated_code_role", "provenance"
+    ],
+    "preserve_predecessor_raw_records": true,
+    "active_inventory_changed": false,
+    "successor_schema_required": 3
+  },
+  "successor": {
+    "schema": 3,
+    "contract": "vulkan-docs-successor-inventory-v3",
+    "new_family": "vulkan-docs",
+    "retains_family": "vulkan",
+    "legacy_vulkan_alias_allowed": false,
+    "root_selector": "vkspec.adoc",
+    "root_sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+    "raw_member_max_bytes": 8388608,
+    "raw_member_fields": [
+      "id", "source_family", "immutable_url", "revision", "sha256", "bytes", "license",
+      "local_cache", "generated_code_role", "provenance", "selector", "source_role", "closure_sha256"
+    ],
+    "family_cardinality": "one-wrapper-with-ordered-raw-members",
+    "minimum_members": 2,
+    "root_and_nonroot_required": true,
+    "immutable_https_required": true,
+    "pinned_revision_required": true,
+    "active_cache_grammar_compatible": false,
+    "cache_template": "webboxvm-graphics/f02-successor/vulkan-docs/{closure_sha256}/{id}/{sha256}.source",
+    "generated_outputs_are_raw_sources": false
+  },
+  "closure": {
+    "policy_document_sha256": "86abe34a6c9c9b08707a1b85cc75e9366af5eca1bb90d3f68a86e7eb8d23f4e7",
+    "policy_sha256": "9aac96fcdc340a31e77f44318fd32dbd673eb90551b5ac090d21d8b3a53078aa",
+    "historical_anchor_document_sha256": "18635158b68d98665006d3420faed5341f66b4d7591ee70ff525e8538f6f1d5d",
+    "historical_anchor_sha256": "65aa77910560fb32624d78c584857fab130769d408df2ece3d4a967cc983aa7c",
+    "source_release_boundary_document_sha256": "4544bc95c6021fd85d134eea5d4f2913d4fdaf810e9058d74d220dda7d1cdc40",
+    "source_release_boundary_sha256": "7cc44e773bb45e61535f535c93640547dfddead6b0b2f0bb23cc73c62ec06485",
+    "fresh_complete_raw_closure_required": true,
+    "root_and_nonroot_required": true,
+    "ordered_member_ids_required": true,
+    "raw_closure_sha256_required": true,
+    "historical_counts_are_current": false
+  },
+  "generated": {
+    "output_can_be_raw_source": false,
+    "per_member_authority_fields": [
+      "license-expression", "attribution", "role", "provenance", "producer-lineage"
+    ],
+    "authority_manifest_sha256_required": true,
+    "authority_ledger_must_cover_every_raw_member": true,
+    "write_lineage_sha256_required": true
+  },
+  "cutover": {
+    "atomic_f02_1_f02_2_revalidation_required": true,
+    "active_mutation_permitted_by_this_record": false,
+    "shape_fixture_is_admission_evidence": false,
+    "f03_transition_allowed": false,
+    "admission_requires_full_closure_authority_and_lineage": true
+  },
+  "effects": {
+    "active_inventory_changed": false,
+    "f02_2_bypassed": false,
+    "cache_freshness_proved": false,
+    "f03_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false,
+    "supported": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false
+  },
+  "transition_sha256": "d9317d418f6c13f4c85275bffb1a01139eb036e7ddf5853a347dde84d69273c5"
+}
