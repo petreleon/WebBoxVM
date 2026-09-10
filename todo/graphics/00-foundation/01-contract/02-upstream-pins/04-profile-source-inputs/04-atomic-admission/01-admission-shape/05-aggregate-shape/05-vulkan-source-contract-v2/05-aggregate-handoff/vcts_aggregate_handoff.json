@@ -1,0 +1,20 @@
+{
+  "admitted": false,
+  "cache_receipt_sha256": "56fd45c16f1f1e1c68bfc76f3853215eaff08c71ec60e5ceb85c5ecb26ef8437",
+  "capture_receipt_sha256": "48c4d54d8738a8eab526347bc8080c245bb9cef269b66011e32116f78f481599",
+  "cutover_ready": false,
+  "docs_generated_artifacts": "outside-admitted-implementation-source-closure",
+  "handoff_sha256": "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee",
+  "kind": "canonical-upstream-suite-handoff",
+  "ledger_sha256": "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0",
+  "local_filtering": "forbidden",
+  "member_count": 98,
+  "member_total_bytes": 434669348,
+  "root_identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+  "satisfies_vulkan_14_core_manifest": false,
+  "schema": 1,
+  "selector_scope": "khronos-default-mustpass-broader-than-vulkan-1.4-core",
+  "status": "verified-canonical-suite-receipt-unadmitted",
+  "taxonomy_sha256": "752a3ae5ff10ea0d9f9a2638c0d1612fb7af3d376dabad1601f8b9c1e76cb2f7",
+  "tree_plan_sha256": "77875b165876a3cf37450667c7e9c23e177bff8a7795e0d48b4214e202064804"
+}

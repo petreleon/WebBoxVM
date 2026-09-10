@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.5.5
 Depends: F02.4.4.1.5.5.3, F02.4.4.1.5.5.4
-Evidence: pending
+Evidence: pending adapter receipt
 
 Prerequisite lists: [the external cache proof](../03-external-closure-cache/README.md),
 [the taxonomy](../04-coverage-taxonomy/README.md), and the [aggregate proof](../../04-closure-admission-proof/README.md).
@@ -13,6 +13,9 @@ Prerequisite lists: [the external cache proof](../03-external-closure-cache/READ
 
 One V2 adapter presents a verified canonical-suite receipt to the aggregate admission proof while
 leaving the V1 inventory, contracts, and blocker evidence read-only until a later atomic cutover.
+It verifies the recorded external-cache receipt without claiming a fresh fetch or payload availability.
+Historical generated Vulkan Docs remain provenance material outside the admitted implementation-source
+closure; this handoff imports and resolves no Docs artifact.
 
 ## Starting points
 
@@ -26,7 +29,7 @@ leaving the V1 inventory, contracts, and blocker evidence read-only until a late
 - [ ] Require all V2 receipt fields before the aggregate proof can consume the suite.
 - [ ] Reject V1/V2 mixing, stale root identity, partial closure, and taxonomy/ledger mismatch.
 - [ ] Document that Docs generated artifacts remain outside the admitted implementation-source closure.
-- [ ] Run focused adapter tests and attach a receipt for F02.4.4.1.5.4.
+- [ ] Run focused adapter tests and attach a receipt for F02.4.4.1.5.5.5.
 
 ## Verification
 

@@ -1,0 +1,21 @@
+{
+  "admitted": false,
+  "cutover_ready": false,
+  "kind": "canonical-upstream-suite-cache-receipt",
+  "ledger_sha256": "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0",
+  "limits": {
+    "max_depth": 8,
+    "max_ledger_json_bytes": 262144,
+    "max_member_bytes": 67108864,
+    "max_members": 128,
+    "max_total_bytes": 536870912
+  },
+  "member_count": 98,
+  "member_order_sha256": "5a489bf4aaa192f386af83aca7cde608ec4575b51be5a4aa4602d74e241c561c",
+  "member_total_bytes": 434669348,
+  "receipt_sha256": "56fd45c16f1f1e1c68bfc76f3853215eaff08c71ec60e5ceb85c5ecb26ef8437",
+  "root_identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+  "root_sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+  "schema": 1,
+  "status": "external-cache-verified-unadmitted"
+}
