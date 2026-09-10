@@ -23,15 +23,15 @@ unadmitted until all aggregate roles are independently valid.
 
 ## Checklist
 
-- [ ] Capture matching raw/derived source, recipe, builder, configuration, scope, and rendered-output identities.
-- [ ] Prove complete authoritative license, attribution, role, provenance, and producer lineage for every member.
-- [ ] Rehash all cap-valid inputs in an isolated external cache and reject mutations, omissions, aliases, and races.
-- [ ] Preserve exact Vulkan 1.4 core/WSI/video/extension treatment without scope expansion or erosion.
-- [ ] Reject root-only, provenance-only, output-as-input, stale-run, and partial-closure evidence.
-- [ ] Attach focused positive and hostile PASS evidence without setting aggregate admission or F03 state.
+- [ ] [F02.4.4.1.5.4.4.2.1 — Anchor the historical successor closure evidence](01-successor-closure-anchor/README.md)
+- [ ] [F02.4.4.1.5.4.4.2.2 — Establish derived-member authority](02-derived-member-authority/README.md)
+- [ ] [F02.4.4.1.5.4.4.2.3 — Capture authorized write lineage](03-authorized-write-lineage/README.md)
+- [ ] [F02.4.4.1.5.4.4.2.4 — Rehash and reconcile the successor closure](04-rehash-and-reconcile/README.md)
 
 ## Verification
 
 - A complete Docs closure proves only the `vulkan-14-spec` source role under its successor envelope.
 - The independent GLES CTS and Vulkan CTS obligations remain live; this child cannot call the product
   compatible, conformant, certified, or near-native.
+- Historical witnesses show two matching observations but are not the two fresh authorized replays required
+  by the successor policy. Missing per-derived authority and write lineage remain distinct blockers.
