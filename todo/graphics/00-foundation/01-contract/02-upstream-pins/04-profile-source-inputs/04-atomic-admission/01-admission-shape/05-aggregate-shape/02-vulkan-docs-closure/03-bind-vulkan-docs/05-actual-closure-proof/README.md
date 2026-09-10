@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.5
 Depends: F02.4.4.1.5.2.3.3, F02.4.4.1.5.2.3.4
-Evidence: pending
+Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [captured core closure](../03-capture-core-closure/README.md),
 [staged witnesses](../04-stage-build-witnesses/README.md), and [Docs parent](../../README.md).
@@ -32,3 +32,6 @@ without reclassifying any root, output, inventory, or support claim.
 
 - A PASS proves source-closure evidence only; later aggregate admission still also requires the VCTS core closure.
 - This task cannot mark Vulkan API, guest, browser, CTS, conformance, or performance work complete.
+- Status: **BLOCKED** because the observed member records cannot be truthfully projected into the actual Docs
+  grammar: identity/license/cache/provenance fields and derived `producer_input_ids` are absent. The blocker
+  record preserves the revalidation and does not check this task off.
