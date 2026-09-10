@@ -112,6 +112,14 @@ class RoadmapCheckerTests(unittest.TestCase):
             write(root, "notes.md", "line\n" * 181)
         self.assert_first_error(prepare, "notes.md: exceeds 180 physical lines")
 
+    def test_python_cache_is_ignored_but_maintained_source_is_not(self) -> None:
+        def prepare(root: Path) -> None:
+            valid_fixture(root)
+            write(root, "__pycache__/ignored.py", "line\n" * 181)
+            write(root, "ignored.pyc", "line\n" * 181)
+            write(root, "maintained.py", "line\n" * 181)
+        self.assert_first_error(prepare, "maintained.py: exceeds 180 physical lines")
+
 
 if __name__ == "__main__":
     unittest.main()

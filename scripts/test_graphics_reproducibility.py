@@ -162,7 +162,7 @@ class ReproducibilityProofTests(unittest.TestCase):
     def test_real_roadmap_checker_fixture_suite_remains_green(self) -> None:
         result = invoke(CHECKER_FIXTURES)
         self.assert_ok(result)
-        self.assertIn("Ran 5 tests", result.stderr)
+        self.assertIn("Ran 6 tests", result.stderr)
         self.assertIn("OK", result.stderr)
 
 
