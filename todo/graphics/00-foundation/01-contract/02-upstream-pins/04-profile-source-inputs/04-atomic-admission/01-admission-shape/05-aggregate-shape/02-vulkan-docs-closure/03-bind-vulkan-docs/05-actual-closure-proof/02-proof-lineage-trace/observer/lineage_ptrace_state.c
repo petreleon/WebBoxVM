@@ -157,4 +157,5 @@ int lpc_exit(struct lpc_state *state, pid_t pid, long result) {
 int lpc_exec(struct lpc_state *state, pid_t pid) { struct lpc_process *item = process(state, pid); return item == NULL || live(item) || item->pending.kind ? -1 : emit(state, "exec", pid, ",\"argv_sha256\":\"" ARGV "\""); }
 int lpc_exit_process(struct lpc_state *state, pid_t pid, int code) { struct lpc_process *item = process(state, pid); if (item == NULL || live(item) || item->pending.kind || code) return -1; item->used = 0; return emit(state, "exit", pid, ""); }
 int lpc_empty(const struct lpc_state *state) { int index; for (index = 0; index < LPC_PROCS; ++index) if (state->processes[index].used) return 0; return 1; }
+int lpc_known(const struct lpc_state *state, pid_t pid) { int index; for (index = 0; index < LPC_PROCS; ++index) if (state->processes[index].used && state->processes[index].pid == pid) return 1; return 0; }
 void lpc_kill(const struct lpc_state *state) { int index; for (index = 0; index < LPC_PROCS; ++index) if (state->processes[index].used) (void)kill(state->processes[index].pid, SIGKILL); }

@@ -66,7 +66,7 @@ static int snapshot(const char *path, const struct image *value) {
 
 int main(int argc, char **argv) {
     const unsigned long options = PTRACE_O_TRACESYSGOOD | PTRACE_O_TRACEFORK | PTRACE_O_TRACEVFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEEXEC | PTRACE_O_EXITKILL;
-    struct lpc_state state; struct syscall_info info; struct image raw, after, output; int status; pid_t initial, waited;
+    struct lpc_state state; struct syscall_info info; struct image raw, after, output; int status; pid_t initial, waited, stopped = 0;
     setvbuf(stdout, NULL, _IONBF, 0); lpc_init(&state, stdout);
     if (argc != 2 || strcmp(argv[1], "/work/fixture")) return die(&state, "fixture-argv");
     initial = fork(); if (initial < 0) return die(&state, "fork");
@@ -89,18 +89,21 @@ int main(int argc, char **argv) {
             if (info.op != PTRACE_SYSCALL_INFO_ENTRY && info.op != PTRACE_SYSCALL_INFO_EXIT) return die(&state, "syscall-direction");
             if (resume(waited, 0)) return die(&state, "syscall-resume");
         } else if (signal == SIGTRAP && event == PTRACE_EVENT_FORK) {
-            if (ptrace(PTRACE_GETEVENTMSG, waited, NULL, &message) || !message || lpc_fork(&state, waited, (pid_t)message) || resume(waited, 0)) return die(&state, "fork-event");
+            if (ptrace(PTRACE_GETEVENTMSG, waited, NULL, &message) || !message || (stopped && stopped != (pid_t)message) || lpc_fork(&state, waited, (pid_t)message) || resume(waited, 0) || (stopped && resume(stopped, 0))) return die(&state, "fork-event");
+            stopped = 0;
         } else if (signal == SIGTRAP && event == PTRACE_EVENT_EXEC) {
             if (lpc_exec(&state, waited) || resume(waited, 0)) return die(&state, "exec-event");
         } else if (signal == SIGTRAP && (event == PTRACE_EVENT_VFORK || event == PTRACE_EVENT_CLONE)) {
             return die(&state, "unsupported-child-event");
         } else if (signal == SIGSTOP) {
-            if (resume(waited, 0)) return die(&state, "child-stop");
+            if (lpc_known(&state, waited)) { if (resume(waited, 0)) return die(&state, "child-stop"); }
+            else if (stopped) return die(&state, "multiple-child-stops");
+            else { stopped = waited; continue; }
         } else if (signal == SIGCHLD) {
-            if (resume(waited, SIGCHLD)) return die(&state, "sigchld");
+            if (resume(waited, 0)) return die(&state, "sigchld");
         } else return die(&state, "unexpected-stop");
     }
-    if (image("/vulkan/raw.adoc", &after) || !stable(&raw.stat, &after.stat) || memcmp(raw.bytes, after.bytes, sizeof(raw.bytes)) ||
+    if (stopped || image("/vulkan/raw.adoc", &after) || !stable(&raw.stat, &after.stat) || memcmp(raw.bytes, after.bytes, sizeof(raw.bytes)) ||
         image("/work/generated/out.adoc", &output) || memcmp(raw.bytes, output.bytes, sizeof(raw.bytes)) ||
         snapshot("/vulkan/raw.adoc", &raw) || snapshot("/work/generated/out.adoc", &output)) return die(&state, "post-exit-snapshot");
     puts("{\"kind\":\"terminal\",\"status\":\"observed-unadmitted\"}");

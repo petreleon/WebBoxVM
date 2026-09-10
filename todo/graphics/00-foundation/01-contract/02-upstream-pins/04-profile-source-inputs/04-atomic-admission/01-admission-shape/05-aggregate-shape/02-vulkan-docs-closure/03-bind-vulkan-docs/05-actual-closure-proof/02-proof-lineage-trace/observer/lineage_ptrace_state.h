@@ -42,6 +42,7 @@ int lpc_exit(struct lpc_state *, pid_t, long);
 int lpc_exec(struct lpc_state *, pid_t);
 int lpc_exit_process(struct lpc_state *, pid_t, int);
 int lpc_empty(const struct lpc_state *);
+int lpc_known(const struct lpc_state *, pid_t);
 void lpc_kill(const struct lpc_state *);
 
 #endif

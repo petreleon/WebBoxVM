@@ -14,7 +14,10 @@ unadmitted, self-validating fixture receipt under the already validated pinned-i
 ## Starting points
 
 - [hosted primitive witness](../lineage_github_docker_witness.py)
+- [hosted synthetic witness](../lineage_github_synthetic_witness.py)
 - [synthetic collector child](../03-synthetic-syscall-collector/README.md)
+- [tracked raw-fixture encoding](../observer/lineage_ptrace_fixture.raw.hex)
+- [hosted workflow](../../../../../../../../../../../../../../.github/workflows/docs-lineage-ptrace-witness.yml)
 - [proof receipt](../lineage_contract.py)
 
 ## Checklist
@@ -27,4 +30,6 @@ unadmitted, self-validating fixture receipt under the already validated pinned-i
 ## Verification
 
 - The remote receipt must prove only the self-contained fixture and explicitly retain Docker/runner trust limits.
+- The raw fixture's hex blob is verified before the host creates the exact three-byte, read-only `/vulkan/raw.adoc`
+  mount; it remains fixture-only and unadmitted.
 - A green workflow without a valid terminal receipt is a failure, never a capability result.

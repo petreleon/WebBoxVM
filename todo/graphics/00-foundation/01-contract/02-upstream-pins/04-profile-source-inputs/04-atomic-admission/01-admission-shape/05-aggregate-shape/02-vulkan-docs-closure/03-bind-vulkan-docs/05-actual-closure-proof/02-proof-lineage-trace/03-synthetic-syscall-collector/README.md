@@ -38,4 +38,6 @@ proof grammar.
 - `argv_sha256` is a static fixture-profile sentinel required by the frozen grammar, not an observed Docs argv hash.
 - Root paths require `O_NOFOLLOW` and exact fixture flags; aliases or alternate I/O through a tracked descriptor fail closed.
 - The local Docker runner mounts an unpinned worktree source and is diagnostic only; it cannot become hosted authority.
+- This bounded state machine observes a fixed fixture, not arbitrary hostile code; immutable source blobs are mandatory for the
+  hosted witness boundary.
 - The collector must require the existing no-privilege, no-network policy and fail closed on a missing trace primitive.
