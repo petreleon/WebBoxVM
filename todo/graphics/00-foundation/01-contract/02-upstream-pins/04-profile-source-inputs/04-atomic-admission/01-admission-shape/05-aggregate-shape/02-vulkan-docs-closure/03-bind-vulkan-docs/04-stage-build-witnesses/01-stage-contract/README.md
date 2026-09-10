@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.4.1
 Depends: F02.4.4.1.5.2.3.2, F02.4.4.1.5.2.3.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [actual Docs grammar](../../02-actual-closure-identity/README.md),
 [bound input scope](../../03-capture-core-closure/02-bind-core-input-scope/README.md), and
@@ -24,11 +24,11 @@ and comparison while isolating all cache payloads outside WebBoxVM.
 
 ## Checklist
 
-- [ ] Bind image, platform, argv, environment, mounts, recipe/toolchain, source identities, scope/comparison identities, and both run IDs.
-- [ ] Require an absolute, non-root, non-symlinked external cache root outside this repository; reject aliases, traversal, and active-looking status.
-- [ ] Define canonical relative selectors and descriptor-safe regular-file reads and writes using no-follow traversal and atomic no-overwrite publication.
-- [ ] Define self-hashed plan and marker records whose status remains `staging-only-unadmitted`, `admitted=false`, and `cutover_ready=false`.
-- [ ] Add positive and hostile filesystem, root, selector, witness-field, plan, and marker-shape regressions with a compact receipt.
+- [x] Bind image, platform, argv, environment, mounts, recipe/toolchain, source identities, scope/comparison identities, and both run IDs.
+- [x] Require an absolute, non-root, non-symlinked external cache root outside this repository; reject aliases, traversal, and active-looking status.
+- [x] Define canonical relative selectors and descriptor-safe regular-file reads and writes using no-follow traversal and atomic no-overwrite publication.
+- [x] Define self-hashed plan and marker records whose status remains `staging-only-unadmitted`, `admitted=false`, and `cutover_ready=false`.
+- [x] Add positive and hostile filesystem, root, selector, witness-field, plan, and marker-shape regressions with a compact receipt.
 
 ## Verification
 

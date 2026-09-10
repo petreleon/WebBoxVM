@@ -22,7 +22,7 @@ then reject any stale, divergent, partial, or substituted evidence.
 
 ## Checklist
 
-- [ ] [F02.4.4.1.5.2.3.4.1 — Define the isolated staging contract](01-stage-contract/README.md)
+- [x] [F02.4.4.1.5.2.3.4.1 — Define the isolated staging contract](01-stage-contract/README.md)
 - [ ] [F02.4.4.1.5.2.3.4.2 — Stage and verify captured core inputs](02-stage-core-inputs/README.md)
 - [ ] [F02.4.4.1.5.2.3.4.3 — Stage both bounded output witnesses](03-stage-output-witnesses/README.md)
 - [ ] [F02.4.4.1.5.2.3.4.4 — Publish and reuse the staged witness cache](04-verify-staged-cache/README.md)
