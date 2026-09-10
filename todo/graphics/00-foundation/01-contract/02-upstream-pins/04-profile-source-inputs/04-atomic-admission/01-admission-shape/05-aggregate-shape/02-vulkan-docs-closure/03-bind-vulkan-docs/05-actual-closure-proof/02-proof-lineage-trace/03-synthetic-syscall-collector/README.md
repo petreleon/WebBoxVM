@@ -15,6 +15,7 @@ proof grammar.
 ## Starting points
 
 - [ptrace primitive](../observer/lineage_ptrace_probe.c)
+- [fixture wire normalizer](../lineage_synthetic_normalize.py)
 - [event grammar](../lineage_events.py)
 - [binder](../lineage_bind.py)
 
