@@ -6,7 +6,7 @@ import hashlib
 import sys
 from pathlib import Path
 
-from vulkan_docs_scope_model import ScopeError, reject
+from vulkan_docs_scope_model import MAX_DOCUMENT_BYTES, ScopeError, reject
 
 HERE = Path(__file__).resolve().parent
 OBSERVER = HERE.parent / "01-observe-pinned-build-inputs"
@@ -39,6 +39,11 @@ def digest(value: object, label: str) -> str:
 
 
 def document(path: Path) -> dict[str, object]:
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_DOCUMENT_BYTES:
+            reject("scope document is not a bounded regular file")
+    except OSError as error:
+        reject(f"scope document cannot be read: {error}")
     return inherited(observer_document, path)
 
 
@@ -68,11 +73,15 @@ def nonnegative(value: object, label: str, maximum: int) -> int:
     return value
 
 
-def file_digest(path: Path, label: str) -> str:
+def file_digest(path: Path, label: str, maximum: int) -> str:
     try:
-        if path.is_symlink() or not path.is_file():
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > maximum:
             reject(f"{label} is not a regular file")
-        return hashlib.sha256(path.read_bytes()).hexdigest()
+        result = hashlib.sha256()
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                result.update(chunk)
+        return result.hexdigest()
     except OSError as error:
         reject(f"{label} cannot be read: {error}")
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -18,6 +19,8 @@ if str(IDENTITY) not in sys.path:
 
 from vulkan_docs_identity_build import GENERATION_ID, ROOT  # noqa: E402
 from vulkan_docs_identity_members import DOCS_COMMIT  # noqa: E402
+
+GENERATED_EXTENSION = re.compile(r"/(?:vk|Vk).*?[A-Z]{2,}\.adoc$")
 
 
 def raw_rows(records: tuple[dict[str, object], ...]) -> list[dict[str, object]]:
@@ -56,6 +59,14 @@ def absent(records, includes, selector: str) -> dict[str, int]:
     return {"records": count, "includes": include_count}
 
 
+def individual_extension(row, inactive: set[str]) -> bool:
+    name = row["selector"]
+    return (name.startswith(INDIVIDUAL_PREFIXES) or name in inactive or (row["kind"] == DERIVED and
+            (name.startswith("generated/meta/VK_") or
+             (name.startswith("generated/interfaces/VK_") and not name.startswith("generated/interfaces/VK_VERSION_")) or
+             GENERATED_EXTENSION.search(name))))
+
+
 def conditions(records: tuple[dict[str, object], ...], includes: tuple[dict[str, object], ...]) -> dict[str, object]:
     index = {(row["kind"], row["selector"]): row for row in records}
     root = index.get((RAW, ROOT_SELECTOR))
@@ -65,8 +76,8 @@ def conditions(records: tuple[dict[str, object], ...], includes: tuple[dict[str,
     promotions = selected(index, includes, PROMOTIONS, "promotions")
     config = selected(index, includes, tuple((DERIVED, item) for item in CONFIG_INPUTS), "configuration-inputs")
     inactive = set(INACTIVE_EXTENSION_SELECTORS)
-    individual_records = [row for row in records if row["selector"].startswith(INDIVIDUAL_PREFIXES) or row["selector"] in inactive]
-    individual_includes = [row for row in includes if row["selector"].startswith(INDIVIDUAL_PREFIXES) or row["selector"] in inactive]
+    individual_records = [row for row in records if individual_extension(row, inactive)]
+    individual_includes = [row for row in includes if individual_extension(row, inactive)]
     if individual_records or individual_includes:
         reject("core scope resolves individual extension semantics")
     image_rows = [row for row in records if row["kind"] == RAW and row["selector"].startswith(IMAGE_PREFIX)]

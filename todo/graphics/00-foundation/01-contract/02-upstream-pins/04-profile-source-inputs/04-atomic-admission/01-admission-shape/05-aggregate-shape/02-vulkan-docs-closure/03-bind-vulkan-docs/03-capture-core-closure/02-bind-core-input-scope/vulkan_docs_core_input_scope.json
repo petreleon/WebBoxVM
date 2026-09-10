@@ -2,6 +2,8 @@
   "build_witness_sha256": "8cfab6fe4527f3973d7d7923ffe0922ab689fc2daf2f6e955ff7603fc8ba78d6",
   "capture": {
     "artifact": "runs/observer-a-r5",
+    "include_trace_sha256": "9bdd4e1a79ffc224832ec58763034dcf87e9660af7652fda5193891c226ec024",
+    "io_trace_sha256": "f263e0aa51baaafce451dd27ebad3f9ab387cdfa5aa14264090744f02342e13a",
     "normalized_sha256": "ec26645c8f8b4560f2882240ae4fab0ffb51ca4bacdc04f6d9ae363f48affc52",
     "run_id": "observer-a",
     "run_sha256": "4fdd14f649aaa2e346bd5e0d1d2f77248f4c5b0dab1ce596101872520f7f48f8"
@@ -82,7 +84,7 @@
     "raw_count": 298,
     "raw_identity_sha256": "3c5b9b8f9164cfb9561f3753b1a8df454a8403369f0e608b752c33330201c6b8"
   },
-  "manifest_sha256": "f02a7616df46be9fa6f1c261ce876ddde24cbe905766f2ddbb51a16ed2ce94d9",
+  "manifest_sha256": "daf4202280c13fda2612f9f16400db5eb24a57fb2250fe4fc9b1b469754934ed",
   "observation_sha256": "dbd75e819e3021e28e2bdb85eeccd675a688ffdb6692fddcd8ff58a221363554",
   "producer": {
     "generation_id": "official-vulkan-docs-core-html-1-4-362",
@@ -103,6 +105,6 @@
   "role": "api-limit-format-spec",
   "schema": 1,
   "scope_identity_sha256": "9c0e5fb53986b22ee5d774de350127cdecfe11c021d39106a20a106203ef3339",
-  "scope_receipt_sha256": "5e325743b658de94e9d738397e971b37d3fb70bdc8b29770fbd469609330817b",
+  "scope_receipt_sha256": "45e6b595d02acf045588962eb0071435701b7c862b2f2182822981231d7a791b",
   "status": "input-scope-only-unadmitted"
 }

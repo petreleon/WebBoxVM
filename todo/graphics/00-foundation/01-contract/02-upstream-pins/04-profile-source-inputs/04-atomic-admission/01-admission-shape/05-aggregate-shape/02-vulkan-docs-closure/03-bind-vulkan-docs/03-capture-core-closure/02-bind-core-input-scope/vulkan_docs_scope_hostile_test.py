@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from vulkan_docs_scope_bind import artifact_file, bind_value
+from vulkan_docs_scope_bind import _bind_fixture, artifact_file
 from vulkan_docs_scope_contract import compact, receipt_value
 from vulkan_docs_scope_fixture import expectation, refresh, row, valid
 from vulkan_docs_scope_model import DERIVED, EXTENSION_CONTROLS, PROMOTIONS, RAW, ScopeError
@@ -21,14 +21,16 @@ def drop(value: dict[str, object], selector: str) -> None:
 
 
 class ScopeHostileTest(unittest.TestCase):
-    def rejected(self, mutate, refresh_capture: bool = False) -> None:
+    def rejected(self, mutate, refresh_capture: bool = False, message: str | None = None) -> None:
         value, capture = valid()
         mutate(value)
         if refresh_capture:
             refresh(value)
             capture = expectation(value)
-        with self.assertRaises(ScopeError):
-            bind_value(value, capture)
+        with self.assertRaises(ScopeError) as error:
+            _bind_fixture(value, capture)
+        if message:
+            self.assertIn(message, str(error.exception))
 
     def test_root_only_or_required_scope_omissions_are_rejected(self):
         self.rejected(lambda value: (value.__setitem__("records", value["records"][:1]), value.__setitem__("includes", [])), True)
@@ -52,6 +54,9 @@ class ScopeHostileTest(unittest.TestCase):
                 (RAW, "chapters/looks-safe.adoc?mutable=1"), (RAW, "chapters/looks-safe.adoc#fragment")):
             with self.subTest(selector=selector):
                 self.rejected(lambda value, item=row(kind, selector): value["records"].append(item), True)
+        self.rejected(lambda value: value["records"].append(
+            row(DERIVED, "generated/api/protos/vkGetPhysicalDeviceExternalImageFormatPropertiesNV.adoc")), True,
+            "individual extension semantics")
 
     def test_wsi_video_and_stale_root_or_producer_are_rejected(self):
         for selector in ("chapters/VK_KHR_surface/wsi.adoc", "chapters/videocoding.adoc"):
@@ -62,11 +67,11 @@ class ScopeHostileTest(unittest.TestCase):
                                                                        row(RAW, "vkspec.adoc")), True)
         value, capture = valid()
         with self.assertRaises(ScopeError):
-            bind_value(value, replace(capture, producer_digest="f" * 64))
+            _bind_fixture(value, replace(capture, producer_digest="f" * 64))
 
     def test_resealed_receipt_cannot_change_configuration_or_state(self):
         value, capture = valid()
-        scope = bind_value(value, capture)
+        scope = _bind_fixture(value, capture)
         receipt = compact(scope)
         receipt["configuration_sha256"] = "f" * 64
         payload = dict(receipt)

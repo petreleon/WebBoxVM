@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import hashlib
 
-from vulkan_docs_scope_bind import bind_value
+from vulkan_docs_scope_bind import _bind_fixture
 from vulkan_docs_scope_model import (
     CONFIG_INPUTS, DERIVED, EXTENSION_CONTROLS, IMAGE_COUNT, PHASES, PROMOTIONS, RAW, CaptureExpectation,
 )
@@ -62,7 +62,7 @@ def normalized() -> dict[str, object]:
 def expectation(value: dict[str, object], identifier: str = "fixture-a", artifact: str = "runs/fixture-a",
                 observation: str = "1" * 64, run: str = "2" * 64, normalized_digest: str = "3" * 64) -> CaptureExpectation:
     return CaptureExpectation(
-        observation, identifier, artifact, run, normalized_digest, SOURCE_TREE[2], TREE[2], OUTPUT["sha256"],
+        observation, identifier, artifact, run, normalized_digest, "4" * 64, "5" * 64, SOURCE_TREE[2], TREE[2], OUTPUT["sha256"],
         producer_digest(), value["raw_count"], value["derived_count"], len(value["includes"]),
         dict(value["phase_counts"]), value["input_manifest_sha256"], value["include_identity_sha256"],
     )
@@ -75,4 +75,4 @@ def valid() -> tuple[dict[str, object], CaptureExpectation]:
 
 def bound() -> tuple[dict[str, object], CaptureExpectation, object]:
     value, capture = valid()
-    return value, capture, bind_value(copy.deepcopy(value), capture)
+    return value, capture, _bind_fixture(copy.deepcopy(value), capture)

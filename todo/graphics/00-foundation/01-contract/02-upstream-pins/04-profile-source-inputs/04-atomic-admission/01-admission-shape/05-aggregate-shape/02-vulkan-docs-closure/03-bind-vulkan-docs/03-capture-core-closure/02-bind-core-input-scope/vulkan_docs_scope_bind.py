@@ -7,7 +7,10 @@ import sys
 from pathlib import Path
 
 from vulkan_docs_scope_model import (
-    DERIVED, MANIFEST_FIELDS, MAX_INCLUDES, MAX_RECORDS, PHASES, RAW, CaptureExpectation, ScopeManifest, reject,
+    DERIVED, MANIFEST_FIELDS, MAX_DOCUMENT_BYTES, MAX_INCLUDES, MAX_RECORDS, MAX_TRACE_BYTES, PHASES,
+    PINNED_INCLUDE_IDENTITY, PINNED_INCLUDE_TRACES, PINNED_INPUT_COUNTS, PINNED_INPUT_MANIFEST,
+    PINNED_IO_TRACES, PINNED_NORMALIZED, PINNED_OBSERVATION, PINNED_PHASE_COUNTS, PINNED_RUNS, RAW,
+    CaptureExpectation, ScopeManifest, reject,
 )
 from vulkan_docs_scope_parse import canonical, digest, document, file_digest, identifier, positive, require_safe_child, selector
 from vulkan_docs_scope_records import normalized
@@ -42,9 +45,12 @@ def expected(observation_path: Path, run_id: str) -> CaptureExpectation:
     if len(rows) != 1:
         reject("selected observer run is absent or ambiguous")
     row = rows[0]
+    if observed.digest != PINNED_OBSERVATION or (row.get("artifact"), row.get("run_sha256")) != PINNED_RUNS.get(identity):
+        reject("observer header does not retain a reviewed pinned capture")
     return CaptureExpectation(
         observed.digest, identity, selector(row.get("artifact"), "selected observer artifact"),
-        digest(row.get("run_sha256"), "selected observer run sha256"), "", row["source_tree_sha256"],
+        digest(row.get("run_sha256"), "selected observer run sha256"), "", row["io_trace_sha256"],
+        row["include_trace_sha256"], row["source_tree_sha256"],
         row["generated_tree_sha256"], row["primary_html_sha256"], row["producer_argv_sha256"], row["raw_count"],
         row["derived_count"], row["include_count"], dict(row["phase_counts"]), row["input_manifest_sha256"],
         row["include_identity_sha256"],
@@ -63,11 +69,12 @@ def artifact_file(root: Path, artifact: str, name: str) -> Path:
     return require_safe_child(root, f"{artifact}/observer/{name}", "observer artifact")
 
 
-def validate_expected(value: CaptureExpectation):
+def validate_expected(value: CaptureExpectation, pinned: bool):
     identifier(value.identifier, "selected observer run")
     selector(value.artifact, "selected observer artifact")
-    for field in ("observation_digest", "run_digest", "normalized_digest", "source_tree_digest", "generated_tree_digest",
-                  "primary_html_digest", "producer_digest", "input_manifest_digest", "include_digest"):
+    for field in ("observation_digest", "run_digest", "normalized_digest", "io_trace_digest", "include_trace_digest",
+                  "source_tree_digest", "generated_tree_digest", "primary_html_digest", "producer_digest",
+                  "input_manifest_digest", "include_digest"):
         digest(getattr(value, field), f"selected observer {field}")
     if (value.source_tree_digest, value.generated_tree_digest, value.primary_html_digest, value.producer_digest) != (
             SOURCE_TREE[2], TREE[2], OUTPUT["sha256"], exact_producer_digest()):
@@ -80,11 +87,28 @@ def validate_expected(value: CaptureExpectation):
         reject("selected observer run has an invalid phase-count schema")
     if any(positive(item, "selected observer phase count", MAX_RECORDS) > sum(counts[:2]) for item in value.phase_counts.values()):
         reject("selected observer run has an invalid phase count")
+    if pinned and (value.observation_digest != PINNED_OBSERVATION or
+                   (value.artifact, value.run_digest) != PINNED_RUNS.get(value.identifier) or
+                   counts != PINNED_INPUT_COUNTS or value.phase_counts != PINNED_PHASE_COUNTS or
+                   (value.input_manifest_digest, value.include_digest) != (PINNED_INPUT_MANIFEST, PINNED_INCLUDE_IDENTITY) or
+                   (value.normalized_digest, value.io_trace_digest, value.include_trace_digest) != (
+                       PINNED_NORMALIZED.get(value.identifier), PINNED_IO_TRACES.get(value.identifier),
+                       PINNED_INCLUDE_TRACES.get(value.identifier))):
+        reject("core scope is not anchored to the reviewed pinned normalized capture")
     return inherited(witness)
 
 
 def bind_value(value: object, capture: CaptureExpectation) -> ScopeManifest:
-    build_witness = validate_expected(capture)
+    return bind(value, capture, True)
+
+
+def _bind_fixture(value: object, capture: CaptureExpectation) -> ScopeManifest:
+    """Internal test helper; the public binder always requires the pinned capture."""
+    return bind(value, capture, False)
+
+
+def bind(value: object, capture: CaptureExpectation, pinned: bool) -> ScopeManifest:
+    build_witness = validate_expected(capture, pinned)
     records, includes = normalized(value, capture)
     raw, derived = raw_rows(records), derived_rows(records)
     if len(raw) < 2 or not derived:
@@ -103,7 +127,8 @@ def bind_value(value: object, capture: CaptureExpectation) -> ScopeManifest:
     }
     scope_digest = canonical(semantic, "webboxvm-graphics-vulkan-docs-core-scope-v1")
     capture_value = {"run_id": capture.identifier, "artifact": capture.artifact, "run_sha256": capture.run_digest,
-                     "normalized_sha256": capture.normalized_digest}
+                     "normalized_sha256": capture.normalized_digest, "io_trace_sha256": capture.io_trace_digest,
+                     "include_trace_sha256": capture.include_trace_digest}
     manifest = {
         "schema": 1, "contract": "vulkan-docs-core-input-scope-manifest-v1", "status": "input-scope-only-unadmitted",
         **{key: semantic[key] for key in ("profile", "role", "required_input_id", "build_witness_sha256", "configuration_sha256",
@@ -122,5 +147,10 @@ def bind_capture(observation_path: Path, artifact_root: Path, run_id: str) -> Sc
     local = inherited(observer_run, document(run_path))
     if (local.identifier, local.digest) != (capture.identifier, capture.run_digest):
         reject("observer artifact run does not match the selected header run")
+    for name, expected_digest in (("io-events.jsonl", capture.io_trace_digest),
+                                  ("resolved-includes.jsonl", capture.include_trace_digest)):
+        if file_digest(artifact_file(artifact_root, capture.artifact, name), "observer trace", MAX_TRACE_BYTES) != expected_digest:
+            reject("observer trace does not match the selected header run")
     normalized_path = artifact_file(artifact_root, capture.artifact, "normalized-inputs.json")
-    return bind_value(document(normalized_path), replace(capture, normalized_digest=file_digest(normalized_path, "normalized observer")))
+    return bind_value(document(normalized_path), replace(
+        capture, normalized_digest=file_digest(normalized_path, "normalized observer", MAX_DOCUMENT_BYTES)))
