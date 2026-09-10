@@ -13,7 +13,9 @@ Prerequisite lists: the [blocked-state receipt](../03-blocked-state-receipt/READ
 
 One later active, complete, policy-valid successor closure may turn the six-role aggregate
 admission-eligible without substituting V2 VCTS for Docs or weakening the immutable scope rules.
-It still cannot perform inventory cutover, prove cache freshness, or alter F03.
+The successor separates a reproducible Vulkan-Docs core source closure from the canonical full CTS
+diagnostic suite and from release-conformance claims. It still cannot perform inventory cutover,
+prove cache freshness, or alter F03.
 
 ## Starting points
 
@@ -23,11 +25,10 @@ It still cannot perform inventory cutover, prove cache freshness, or alter F03.
 
 ## Checklist
 
-- [ ] Establish an explicit active successor policy and complete immutable closure for `vulkan-14-spec`.
-- [ ] Reconcile all six roles through their native V1 or V2 envelopes without aliases, root-only substitutes, or scope erosion.
-- [ ] Prove the real result `admission_eligible=true` while retaining no inventory, fresh-cache, cutover, or F03 claim.
-- [ ] Reject a Docs provenance-only record, VCTS-as-Docs substitution, stale evidence, and false-ready promotion.
-- [ ] Run focused positive and hostile tests and attach exact PASS evidence.
+- [ ] [F02.4.4.1.5.4.4.1 — Define the derived-Docs successor policy](01-derived-docs-policy/README.md)
+- [ ] [F02.4.4.1.5.4.4.2 — Prove the derived-Docs source closure](02-derived-docs-closure/README.md)
+- [ ] [F02.4.4.1.5.4.4.3 — Separate source sufficiency from release conformance](03-source-release-boundary/README.md)
+- [ ] [F02.4.4.1.5.4.4.4 — Reconcile the final aggregate admission](04-final-aggregate-reconciliation/README.md)
 
 ## Verification
 
@@ -35,3 +36,11 @@ It still cannot perform inventory cutover, prove cache freshness, or alter F03.
   `cutover_ready=false`, and `satisfies_vulkan_14_core_manifest=false`; Docs remains provenance, not an
   admitted implementation source. This task stays unchecked until that separate source truth changes.
 - `admission_closures.json` and every downstream cutover/F03 effect remain reserved for F02.4.4.2–.5.
+
+## Split rationale
+
+Khronos publishes a canonical VCTS suite, but not an immutable core-only selector that can replace it;
+Vulkan-Docs can reproduce a core document, but its generated output is not a raw F02.2 source. The
+children make those different evidence roles explicit. A source-sufficiency decision may enable only
+traceable planning or implementation inputs; release conformance, Khronos certification, inventory
+admission, and F03 transition remain separate and false until their independent proofs exist.
