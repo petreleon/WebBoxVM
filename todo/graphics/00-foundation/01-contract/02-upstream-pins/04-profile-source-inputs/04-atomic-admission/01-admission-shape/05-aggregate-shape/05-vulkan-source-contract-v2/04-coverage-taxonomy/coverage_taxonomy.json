@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "kind": "vulkan-cts-coverage-taxonomy",
+  "suite_identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+  "suite_revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+  "direct_member_paths_sha256": "9f0e41be554a324bb0db2137a2fb44775689c6e5bf4bc70c1b4f8988d37f7b9a",
+  "categories": {
+    "core": {
+      "core_eligible": true,
+      "meaning": "reviewed Vulkan 1.4 core evidence only"
+    },
+    "wsi": {
+      "core_eligible": false,
+      "meaning": "window-system integration evidence"
+    },
+    "video": {
+      "core_eligible": false,
+      "meaning": "Vulkan video evidence"
+    },
+    "extension": {
+      "core_eligible": false,
+      "meaning": "named extension-group evidence"
+    },
+    "unknown": {
+      "core_eligible": false,
+      "meaning": "unreviewed scope; never core evidence"
+    }
+  },
+  "rules": [
+    {
+      "id": "wsi-selector",
+      "category": "wsi",
+      "path": "external/vulkancts/mustpass/main/vk-default/wsi.txt",
+      "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/wsi.txt"
+    },
+    {
+      "id": "video-selector",
+      "category": "video",
+      "path": "external/vulkancts/mustpass/main/vk-default/video.txt",
+      "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/video.txt"
+    },
+    {
+      "id": "cooperative-vector-selector",
+      "category": "extension",
+      "path": "external/vulkancts/mustpass/main/vk-default/cooperative-vector.txt",
+      "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/cooperative-vector.txt"
+    },
+    {
+      "id": "data-graph-selector",
+      "category": "extension",
+      "path": "external/vulkancts/mustpass/main/vk-default/data-graph.txt",
+      "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/data-graph.txt"
+    },
+    {
+      "id": "ray-query-selector",
+      "category": "extension",
+      "path": "external/vulkancts/mustpass/main/vk-default/ray-query.txt",
+      "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/ray-query.txt"
+    },
+    {
+      "id": "tensor-selector",
+      "category": "extension",
+      "path": "external/vulkancts/mustpass/main/vk-default/tensor.txt",
+      "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/tensor.txt"
+    }
+  ],
+  "fallback": {
+    "id": "unknown-by-default",
+    "category": "unknown",
+    "reason": "no reviewed Vulkan 1.4 core mapping exists for this suite member",
+    "source_locator": "https://github.com/KhronosGroup/VK-GL-CTS/blob/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default.txt"
+  },
+  "taxonomy_sha256": "752a3ae5ff10ea0d9f9a2638c0d1612fb7af3d376dabad1601f8b9c1e76cb2f7"
+}
