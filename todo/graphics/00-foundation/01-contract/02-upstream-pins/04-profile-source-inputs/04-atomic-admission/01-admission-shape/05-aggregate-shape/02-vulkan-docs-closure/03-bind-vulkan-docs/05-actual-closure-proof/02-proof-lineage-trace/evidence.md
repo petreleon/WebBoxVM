@@ -1,9 +1,10 @@
 # F02.4.4.1.5.2.3.5.2 blocker record — proof-level lineage trace
 
-Revision: tested atop `af430ce647621edc9eb8113a4bc6a49875b005b6`
-Validation: 22 focused positive/hostile contract tests; sealed 298-member scope probe; pinned-image no-privilege Docker gate
+Revision: hosted witness source `cf1ae29e4885eb730c668d65a769cb22fcf1a543`
+Validation: 26 focused positive/hostile/witness tests; sealed 298-member scope probe; Docker gate; GitHub-hosted direct primitive witness
 Result: BLOCKED
 Artifacts: historical ignored `...ptrace-probe-r2`; fresh `...ptrace-probe-r9` compiled, reported, then was removed
+Remote receipt: [GitHub Actions run 34449710520](https://github.com/petreleon/WebBoxVM/actions/runs/34449710520), public check annotation
 Profile: unadmitted Docs provenance evidence only; no source, output, cache, or consumer state changes
 
 Task ID and date: F02.4.4.1.5.2.3.5.2, 2026-09-10 Europe/Bucharest.
@@ -27,12 +28,13 @@ Focused contract command, run from this directory:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  lineage_test.py lineage_hostile_test.py lineage_probe_test.py -v
+  lineage_test.py lineage_hostile_test.py lineage_probe_test.py lineage_github_witness_test.py -v
 ```
 
-It passed 22/22 tests: three positive lineage/receipt checks, ten hostile scope/lifecycle/receipt checks, and nine
-Docker gate confinement, source-identity, and decoder checks. The sealed capture probe separately reported `SCOPE:
-298 raw, proof-lineage-only-unadmitted`. Every new Python and C source file is at most 139 physical lines.
+It passed 26/26 tests: three positive lineage/receipt checks, ten hostile scope/lifecycle/receipt checks, nine
+Docker gate confinement/source-identity/decoder checks, and four hosted-witness anchor/blob/receipt checks. The
+sealed capture probe separately reported `SCOPE: 298 raw, proof-lineage-only-unadmitted`. Current source files are
+at most 145 physical lines.
 
 Repository integration also ran `make test` successfully: 1,151 Rust tests passed, 3 were ignored, and 337 Node
 tests passed with no failures. This proof-only task does not change Rust, Wasm, browser, guest, or API behavior.
@@ -61,10 +63,23 @@ PYTHONDONTWRITEBYTECODE=1 python3 lineage_probe.py \
 
 The `-r9` pathname did not exist before invocation; the gate created it only for that one probe. It was removed after
 this reproduction. The command exited 77 by design after the child `PTRACE_TRACEME` gate returned errno 38 (`ENOSYS`).
-This is the first failing subcheck: the tested pinned-image/no-privilege route does not expose the syscall tracing
-primitive required for the collector. Even if it did, the current Docker daemon path-mount route would remain unable
-to issue a trusted positive receipt until its execution inputs/client are anchored. The pinned image has `gcc` but no
-`strace`; no approved trusted syscall collector is available.
+This is the first failing subcheck for the tested pinned-image/no-privilege route. Its Docker daemon path mount also
+cannot issue a trusted positive receipt until inputs/client are anchored. The pinned image has `gcc` but no `strace`.
+
+## Hosted primitive witness
+
+Run 34449710520 succeeded on GitHub-hosted Ubuntu x64. Its immutable-blob receipt binds commit `cf1ae29e...`, C blob
+`a510acda419260f6e5cca12523f3a7a8c807b155`, SHA-256
+`76c5fd93ca9c56fd48d8f02a037e87fa3c0d72ff13ba360ffcae44203ff9da89`, 6,700 bytes, Linux
+`6.17.0-1022-azure x86_64`, and `/usr/bin/x86_64-linux-gnu-gcc-13` 13.3.0. The exact C gate reached
+`parent-fork-exec-complete`, returning its deliberately fail-closed `{status:"blocked",errno:0}` terminal record.
+The workflow reads both helper and C from `GITHUB_SHA` Git blobs, not the checkout paths, and emits only
+`observed-unadmitted`; it never converts that record into `available` or a lineage receipt.
+
+This proves only the direct-host child/getpid/fork/exec primitive under GitHub runner isolation. It assumes the
+provider, `git`, `gcc`, private temporary root, and no hostile same-UID peer; it has no pinned Docs image, network
+confinement, actual Docs build, durable artifact attestation, or protected branch. It therefore cannot discharge
+the full collector, two fresh captures, derived `producer_input_ids`, or any parent checkbox.
 
 Do not replace this gate with `LD_PRELOAD`: it can miss direct syscalls and static executables, lacks reliable
 parent/exec lineage, and its writable trace file could be target-controlled. Do not relax Docker confinement to pass.

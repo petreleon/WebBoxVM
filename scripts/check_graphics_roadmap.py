@@ -40,6 +40,8 @@ if not ROOT.is_dir():
 for path in sorted(ROOT.rglob("*")):
     if not path.is_file():
         continue
+    if "__pycache__" in path.parts or path.suffix == ".pyc":
+        continue
     try:
         body = path.read_text()
     except (UnicodeError, OSError) as error:

@@ -38,4 +38,8 @@ sealed read-only observer.
 - Status: **BLOCKED**. The same pinned image and no-privilege security flags return `ENOSYS` for child
   `PTRACE_TRACEME`; this gate deliberately does not reproduce a full Docs mount/build topology. The bounded parser
   and hostile tests remain proof-only scaffolding. Docker daemon path mounts also cannot issue a trusted positive
-  capability result without an anchored execution client; no syscall collector or fresh lineage capture ran.
+  capability result without an anchored execution client. GitHub run
+  [`34449710520`](https://github.com/petreleon/WebBoxVM/actions/runs/34449710520) separately observed the reviewed
+  direct-host primitive from immutable Git blobs, but it is `observed-unadmitted`: it is neither the pinned image,
+  network-confined, nor a Docs-build trace. It trusts GitHub job isolation, `git`, `gcc`, and no hostile same-UID
+  peer; the unprotected branch and unattested log prevent it from becoming lineage or closure authority.

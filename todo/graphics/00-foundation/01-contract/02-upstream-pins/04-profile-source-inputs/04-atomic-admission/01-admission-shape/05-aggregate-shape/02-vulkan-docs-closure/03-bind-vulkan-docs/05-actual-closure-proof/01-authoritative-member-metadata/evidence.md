@@ -74,6 +74,9 @@ tests passed with no failures. This static reifier does not change Rust, Wasm, b
 sealed read trace supplies a per-member license authority, so assigning one universal license would be fabricated.
 No current input or output manifest supplies an authoritative derived role/provenance mapping either.
 `producer_input_ids` remains a separate lineage obligation for F02.4.4.1.5.2.3.5.2 and is not inferred here.
+A fresh pinned-source audit confirmed all 1,462 `generated/*` payloads lack SPDX/copyright text and `REUSE.toml` has
+no generated-tree annotation. The official CI archive for this commit covers `gen`/`genrat`, not this exact `gencore`
+profile, and has only an archive digest: it cannot become a per-member license, role, provenance, or producer record.
 
 No cache was created, no payload was admitted, and no root/output/inventory/support claim changed. A future
 authorized policy must provide an exact source and applicability for every derived static field before the lineage

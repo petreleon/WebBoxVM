@@ -54,6 +54,16 @@ whose recursively selected core members have explicit scope and each fit policy.
 opaque-file splitting would require an explicit source-contract redesign before it could be considered; neither
 is a substitute for the canonical current root.
 
+## 2026-09-10 upstream recheck
+
+The untagged `main` commit `659bbe6987197b4ff7ac20011261b92009286100` still exposes only `vk-default.txt`,
+`vk-fraction-mandatory-tests.txt`, and Vulkan-SC's `vksc-default.txt`; the
+[official README](https://github.com/KhronosGroup/VK-GL-CTS/blob/659bbe6987197b4ff7ac20011261b92009286100/external/vulkancts/README.md#L249-L270)
+names `vk-default` as the Vulkan mustpass. The fraction list is only mandatory `dEQP-VK.info.*` metadata for
+parallel fractions, not a core selector. The generator still has only `default` and `fraction-mandatory-tests`
+Vulkan configurations. Current `api.txt` remains 32,673,653 B, so even a newer untagged tree cannot cure the cap
+or scope failure. This read-only recheck changes no pin, policy, or blocker status.
+
 Commands and limits: Python 3.14.6 ran the existing F02.2 policy, Vulkan audit, include, and boundary suites
 (15/10/6/9). The existing source audit provides the reproducible 98-selector transcript; this record adds exact
 pinned tree sizes. Remote CI, CTS, guest execution, browser execution, conformance, and performance measurement
