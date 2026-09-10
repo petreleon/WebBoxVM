@@ -7,8 +7,9 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from lineage_github_witness import Anchor, PROBE_CONTRACT, SOURCE, WitnessError, anchor, exact_source, receipt
+from lineage_github_witness import Anchor, PROBE_CONTRACT, SOURCE, WitnessError, anchor, exact_source, probe, receipt
 
 
 def environment(**changed: str) -> dict[str, str]:
@@ -51,6 +52,12 @@ class GitHubWitnessTest(unittest.TestCase):
         self.assertEqual(value["status"], "observed-unadmitted")
         self.assertEqual(value["probe"], result)
         self.assertEqual(value["anchor"]["source_path"], SOURCE)
+
+    def test_compiler_failure_has_a_bounded_diagnostic(self):
+        failure = subprocess.CompletedProcess([], 1, "", "first\nsecond\nthird\nfourth")
+        with patch("lineage_github_witness.subprocess.run", return_value=failure):
+            with self.assertRaisesRegex(WitnessError, "second third fourth"):
+                probe(b"int main(void) { return 0; }")
 
 
 if __name__ == "__main__":

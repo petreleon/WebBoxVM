@@ -91,7 +91,8 @@ def probe(payload: bytes) -> dict[str, object]:
         build = subprocess.run(["gcc", "-std=c11", "-O2", "-Wall", "-Werror", str(source), "-o", str(binary)],
                                text=True, capture_output=True, check=False)
         if build.returncode:
-            reject("compiler rejected the anchored probe blob")
+            detail = " ".join(build.stderr.strip().splitlines()[-3:])[:480]
+            reject(f"compiler rejected the anchored probe blob: {detail or build.returncode}")
         result = subprocess.run([str(binary)], text=True, capture_output=True, check=False)
     try:
         value = json.loads(result.stdout.strip())
