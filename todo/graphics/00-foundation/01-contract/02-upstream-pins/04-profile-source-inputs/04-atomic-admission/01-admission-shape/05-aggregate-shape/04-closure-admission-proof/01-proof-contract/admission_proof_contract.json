@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "kind": "aggregate-admission-proof-contract",
+  "source_requirements_sha256": "a9535611bab654034357d1578c3a2035caa09fda8090114df0867ac6d7fbeca5",
+  "roles": [
+    {"profile": "opengl-4.6-core", "role": "api-limit-format-spec", "required_input_id": "opengl-46-core-spec", "envelope": "v1-regular-source"},
+    {"profile": "opengl-4.6-core", "role": "conformance-manifest", "required_input_id": "opengl-cts-manifest", "envelope": "v1-regular-source"},
+    {"profile": "gles-3.2", "role": "api-limit-format-spec", "required_input_id": "gles-32-spec", "envelope": "v1-regular-source"},
+    {"profile": "gles-3.2", "role": "conformance-manifest", "required_input_id": "gles-cts-manifest", "envelope": "v1-regular-compound"},
+    {"profile": "vulkan-1.4-core", "role": "api-limit-format-spec", "required_input_id": "vulkan-14-spec", "envelope": "v1-docs-unresolved-boundary"},
+    {"profile": "vulkan-1.4-core", "role": "conformance-manifest", "required_input_id": "vulkan-cts-mustpass", "envelope": "v1-vcts-boundary-plus-v2-diagnostic"}
+  ],
+  "states": {
+    "admission_eligible": false,
+    "inventory_ready": false,
+    "fresh_cache_ready": false,
+    "cutover_ready": false,
+    "f03_ready": false
+  },
+  "contract_sha256": "a101364e2ed3c53e5aeb62d7152de3a4c00734521023d522f88e514840eb634b"
+}
