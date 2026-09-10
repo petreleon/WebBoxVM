@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "contract": "vulkan-docs-derived-member-authority-gate-v1",
+  "status": "external-authority-unavailable",
+  "profile": "vulkan-1.4-core",
+  "role": "api-limit-format-spec",
+  "required_input_id": "vulkan-14-spec",
+  "anchor_sha256": "65aa77910560fb32624d78c584857fab130769d408df2ece3d4a967cc983aa7c",
+  "expected_derived_count": 1462,
+  "identity_fields": ["selector", "sha256", "bytes", "generation_id"],
+  "authority_fields": [
+    "license_expression",
+    "attribution",
+    "source_role",
+    "provenance",
+    "producer_authority"
+  ],
+  "prohibitions": [
+    "defaults",
+    "raw-to-derived-inheritance",
+    "output-to-source-inheritance",
+    "uniform-invented-labels",
+    "aliases"
+  ],
+  "external_authority_manifest": null,
+  "facts": {
+    "authority_manifest_present": false,
+    "all_derived_fields_authoritative": false,
+    "source_role_proved": false
+  },
+  "effects": {
+    "inventory_changed": false,
+    "cache_freshness_proved": false,
+    "f03_changed": false,
+    "supported": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false,
+    "satisfies_vulkan_14_core_manifest": false
+  },
+  "gate_sha256": "5989f8f2f1649640256a835916625760e24f6ab94fafe2412316e995c6219c5b"
+}
