@@ -115,7 +115,7 @@ int lpc_entry(struct lpc_state *state, pid_t pid, long number, const uint64_t *a
         first = read_path(pid, args[1], item->pending.old);
         if (first < 0) return first;
         if (!first) return live(item) || item->pending.kind ? -1 : 0;
-        if ((long)args[0] != AT_FDCWD || !fixture_path(first, item->pending.old) || !expected_open(first, (long)args[2]) ||
+        if ((uint32_t)args[0] != (uint32_t)AT_FDCWD || !fixture_path(first, item->pending.old) || !expected_open(first, (long)args[2]) ||
             (first == 2 ? args[3] != 0600 : args[3] != 0) || pending(item, LPC_OPEN)) return -1;
         item->pending.flags = (long)(args[2] & O_ACCMODE); return 0;
     }
@@ -131,7 +131,7 @@ int lpc_entry(struct lpc_state *state, pid_t pid, long number, const uint64_t *a
         if (first < 0 || second < 0) return first < 0 ? first : second;
         if (!first && !second) return live(item) || item->pending.kind ? -1 : 0;
         if (first != 2 || second != 3 || !fixture_path(first, item->pending.old) || !fixture_path(second, item->pending.new) ||
-            (long)args[0] != AT_FDCWD || (long)args[2] != AT_FDCWD || pending(item, LPC_RENAME)) return -1;
+            (uint32_t)args[0] != (uint32_t)AT_FDCWD || (uint32_t)args[2] != (uint32_t)AT_FDCWD || pending(item, LPC_RENAME)) return -1;
         return 0;
     }
     return live(item) || item->pending.kind ? -1 : 0;

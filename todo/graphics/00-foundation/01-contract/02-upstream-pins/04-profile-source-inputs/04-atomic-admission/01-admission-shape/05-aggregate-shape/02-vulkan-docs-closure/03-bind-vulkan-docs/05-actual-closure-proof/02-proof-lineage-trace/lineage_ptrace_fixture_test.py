@@ -27,7 +27,7 @@ class PtraceFixtureTest(unittest.TestCase):
         state = (OBSERVER / "lineage_ptrace_state.c").read_text(encoding="utf-8")
         for token in ("SYS_openat", "SYS_read", "SYS_write", "SYS_close", "SYS_renameat", "O_NOFOLLOW", "fork()", "execl"):
             self.assertIn(token, fixture)
-        for token in ("PTRACE_PEEKDATA", "LPC_PATH", "LPC_FDS", "SYS_openat", "SYS_renameat", "fixture_path", "O_NOFOLLOW", "args[2] != 64", "args[2] != 3", "result != 3", "live(item) || item->pending.kind"):
+        for token in ("PTRACE_PEEKDATA", "LPC_PATH", "LPC_FDS", "SYS_openat", "SYS_renameat", "fixture_path", "O_NOFOLLOW", "(uint32_t)args[0] != (uint32_t)AT_FDCWD", "(uint32_t)args[2] != (uint32_t)AT_FDCWD", "args[2] != 64", "args[2] != 3", "result != 3", "live(item) || item->pending.kind"):
             self.assertIn(token, state)
         self.assertNotIn("system(", fixture)
 
