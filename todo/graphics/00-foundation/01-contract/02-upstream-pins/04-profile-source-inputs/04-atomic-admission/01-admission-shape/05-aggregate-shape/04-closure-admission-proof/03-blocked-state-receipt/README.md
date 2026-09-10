@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.3
 Depends: F02.4.4.1.5.4.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [current evidence reconciler](../02-reconcile-current-evidence/README.md)
 and [parent admission proof](../README.md).
@@ -23,11 +23,11 @@ was checked, not a future successor inventory, cache proof, cutover, or F03 deci
 
 ## Checklist
 
-- [ ] Seal the typed blocked result and every referenced input digest under one bounded, self-hashed receipt.
-- [ ] Require no inventory-ready, fresh-cache-ready, cutover-ready, or F03-ready flags in the receipt.
-- [ ] Reject tampered receipt fields, stale inputs, output self-hash mismatch, and any ready-state substitution.
-- [ ] Demonstrate that validation and receipt sealing do not change source-map, inventory, or F03 artifacts.
-- [ ] Run focused CLI and hostile tests and attach a small receipt.
+- [x] Seal the typed blocked result and every referenced input digest under one bounded, self-hashed receipt.
+- [x] Require no inventory-ready, fresh-cache-ready, cutover-ready, or F03-ready flags in the receipt.
+- [x] Reject tampered receipt fields, stale inputs, output self-hash mismatch, and any ready-state substitution.
+- [x] Demonstrate that validation and receipt sealing do not change source-map, inventory, or F03 artifacts.
+- [x] Run focused CLI and hostile tests and attach a small receipt.
 
 ## Verification
 

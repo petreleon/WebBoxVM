@@ -25,7 +25,7 @@ recorded VCTS cache can imply inventory cutover, fresh cache proof, or F03 trans
 
 - [x] [F02.4.4.1.5.4.1 — Freeze the admission-proof contract](01-proof-contract/README.md)
 - [x] [F02.4.4.1.5.4.2 — Reconcile current evidence fail-closed](02-reconcile-current-evidence/README.md)
-- [ ] [F02.4.4.1.5.4.3 — Seal the blocked-state receipt](03-blocked-state-receipt/README.md)
+- [x] [F02.4.4.1.5.4.3 — Seal the blocked-state receipt](03-blocked-state-receipt/README.md)
 - [ ] [F02.4.4.1.5.4.4 — Establish an admission-eligible closure](04-admission-eligible-closure/README.md)
 
 ## Verification
