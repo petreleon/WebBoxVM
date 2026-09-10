@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.2.1
 Depends: F02.4.4.1.5.4.4.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [derived-Docs policy](../../01-derived-docs-policy/README.md) and retained
 [historical Docs witnesses](../../../../02-vulkan-docs-closure/03-bind-vulkan-docs/README.md).
@@ -23,12 +23,12 @@ observations or rendered output as a fresh successor closure.
 
 ## Checklist
 
-- [ ] Bind the self-hashed successor policy and each immutable historical-record byte identity.
-- [ ] Require exact Vulkan 1.4 core role, raw/derived counts, build configuration, and unadmitted statuses.
-- [ ] Keep the historical rendered output separate from every source-role claim.
-- [ ] Mark historical evidence, role proof, admission, cutover, and release effects false.
-- [ ] Reject stale anchors, altered counts/statuses, output-as-source, and false-ready records with focused tests.
-- [ ] Attach a bounded receipt without changing F02 inventory, F03, or aggregate admission.
+- [x] Bind the self-hashed successor policy and each immutable historical-record byte identity.
+- [x] Require exact Vulkan 1.4 core role, raw/derived counts, build configuration, and unadmitted statuses.
+- [x] Keep the historical rendered output separate from every source-role claim.
+- [x] Mark historical evidence, role proof, admission, cutover, and release effects false.
+- [x] Reject stale anchors, altered counts/statuses, output-as-source, and false-ready records with focused tests.
+- [x] Attach a bounded receipt without changing F02 inventory, F03, or aggregate admission.
 
 ## Verification
 
