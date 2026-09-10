@@ -23,12 +23,9 @@ category report as Khronos conformance. Until then it retains their exact blocke
 
 ## Checklist
 
-- [ ] Define an immutable, scope-complete GLES CTS successor closure with per-member cap and license provenance.
-- [ ] Preserve the complete immutable `vk-default` root and report its core/WSI/video/extension boundary.
-- [ ] Establish a truthful future core-manifest condition without claiming a locally filtered selector is Khronos CTS.
-- [ ] Reject root-only, partial, stale, scope-eroded, VCTS-as-Docs, and category-as-conformance evidence.
-- [ ] Keep inventory, F03, support, certification, and performance effects false until a later atomic transition.
-- [ ] Attach focused positive and hostile evidence, or retain the first external-policy blocker.
+- [ ] [Freeze the independent-suite successor boundary](01-successor-boundary/README.md)
+- [ ] [Resolve the GLES immutable successor closure](02-gles-successor-closure/README.md)
+- [ ] [Establish the VCTS core-manifest condition](03-vcts-core-manifest/README.md)
 
 ## Verification
 
