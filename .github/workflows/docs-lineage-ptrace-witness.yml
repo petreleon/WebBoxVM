@@ -1,4 +1,4 @@
-name: Docs lineage ptrace witness
+name: Docs ptrace capability witnesses
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/docs-lineage-ptrace-witness.yml
       - todo/graphics/00-foundation/01-contract/02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/02-proof-lineage-trace/lineage_github_witness.py
+      - todo/graphics/00-foundation/01-contract/02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/02-proof-lineage-trace/lineage_github_docker_witness.py
       - todo/graphics/00-foundation/01-contract/02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/02-proof-lineage-trace/observer/lineage_ptrace_probe.c
 
 permissions:
@@ -37,3 +38,18 @@ jobs:
             exit "$status"
           fi
           echo "::notice title=Docs lineage ptrace witness::$detail"
+      - name: Emit a pinned-image Docker ptrace primitive witness
+        run: |
+          set -euo pipefail
+          rel='todo/graphics/00-foundation/01-contract/02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/02-vulkan-docs-closure/03-bind-vulkan-docs/05-actual-closure-proof/02-proof-lineage-trace/lineage_github_docker_witness.py'
+          git -C "$GITHUB_WORKSPACE" cat-file blob "$GITHUB_SHA:$rel" > "$RUNNER_TEMP/lineage_github_docker_witness.py"
+          set +e
+          detail="$(python3 -I "$RUNNER_TEMP/lineage_github_docker_witness.py" "$GITHUB_WORKSPACE" 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$detail"
+          if [ "$status" -ne 0 ]; then
+            echo "::error title=Docs pinned-image Docker primitive failed::${detail//$'\n'/ }"
+            exit "$status"
+          fi
+          echo "::notice title=Docs pinned-image Docker ptrace primitive::$detail"

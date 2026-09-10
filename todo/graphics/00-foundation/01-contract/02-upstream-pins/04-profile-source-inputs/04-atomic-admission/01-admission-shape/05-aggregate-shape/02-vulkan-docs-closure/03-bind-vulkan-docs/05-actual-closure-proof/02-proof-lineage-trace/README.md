@@ -43,3 +43,10 @@ sealed read-only observer.
   direct-host primitive from immutable Git blobs, but it is `observed-unadmitted`: it is neither the pinned image,
   network-confined, nor a Docs-build trace. It trusts GitHub job isolation, `git`, `gcc`, and no hostile same-UID
   peer; the unprotected branch and unattested log prevent it from becoming lineage or closure authority.
+- The separate GitHub-hosted pinned-image Docker primitive witness is intentionally narrower than a Docs build: it
+  has an empty read-only `/vulkan`, a temporary `/work`, and only the reviewed C gate over stdin. It neither mounts
+  Docs nor sets deterministic Docs inputs or runs the Docs argv. It validates the source-envelope byte count and
+  SHA-256 inside the container before compilation, uses `--network none` and `--pull=never` after its pinned-image
+  preflight, and fails rather than emits a receipt if Docker cannot produce the terminal primitive record. Even an
+  observed result is only a capability prerequisite; it cannot establish a collector trace, Docs provenance, or
+  closure, and still trusts the Docker daemon plus the existing GitHub-run limitations.
