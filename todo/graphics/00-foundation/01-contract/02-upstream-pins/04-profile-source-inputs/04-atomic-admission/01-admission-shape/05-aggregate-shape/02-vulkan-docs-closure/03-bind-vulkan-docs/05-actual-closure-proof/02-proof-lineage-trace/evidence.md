@@ -1,10 +1,10 @@
 # F02.4.4.1.5.2.3.5.2 blocker record — proof-level lineage trace
 
-Revision: hosted witness source `cf1ae29e4885eb730c668d65a769cb22fcf1a543`
-Validation: 26 focused positive/hostile/witness tests; sealed 298-member scope probe; Docker gate; GitHub-hosted direct primitive witness
+Revision: direct-host witness `cf1ae29e4885eb730c668d65a769cb22fcf1a543`; pinned-image primitive `e5106dae12f1988339cadcb59402c453cd5e1888`
+Validation: 33 focused positive/hostile/witness tests; sealed 298-member scope probe; Docker gate; GitHub-hosted direct and pinned-image primitives
 Result: BLOCKED
 Artifacts: historical ignored `...ptrace-probe-r2`; fresh `...ptrace-probe-r9` compiled, reported, then was removed
-Remote receipt: [GitHub Actions run 34449710520](https://github.com/petreleon/WebBoxVM/actions/runs/34449710520), public check annotation
+Remote receipts: [direct-host run 34449710520](https://github.com/petreleon/WebBoxVM/actions/runs/34449710520) and [pinned-image run 34453881443](https://github.com/petreleon/WebBoxVM/actions/runs/34453881443), public check annotations
 Profile: unadmitted Docs provenance evidence only; no source, output, cache, or consumer state changes
 
 Task ID and date: F02.4.4.1.5.2.3.5.2, 2026-09-10 Europe/Bucharest.
@@ -31,10 +31,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
   lineage_test.py lineage_hostile_test.py lineage_probe_test.py lineage_github_witness_test.py -v
 ```
 
-It passed 26/26 tests: three positive lineage/receipt checks, ten hostile scope/lifecycle/receipt checks, nine
-Docker gate confinement/source-identity/decoder checks, and four hosted-witness anchor/blob/receipt checks. The
-sealed capture probe separately reported `SCOPE: 298 raw, proof-lineage-only-unadmitted`. Current source files are
-at most 145 physical lines.
+It passed 33/33 tests: three positive lineage/receipt checks, ten hostile scope/lifecycle/receipt checks, nine
+Docker gate confinement/source-identity/decoder checks, four direct-host anchor/blob/receipt checks, and seven
+pinned-image primitive anchor/envelope/policy/failure/receipt checks. The sealed capture probe separately reported
+`SCOPE: 298 raw, proof-lineage-only-unadmitted`. Current source files are at most 175 physical lines.
 
 Repository integration also ran `make test` successfully: 1,151 Rust tests passed, 3 were ignored, and 337 Node
 tests passed with no failures. This proof-only task does not change Rust, Wasm, browser, guest, or API behavior.
@@ -80,6 +80,31 @@ This proves only the direct-host child/getpid/fork/exec primitive under GitHub r
 provider, `git`, `gcc`, private temporary root, and no hostile same-UID peer; it has no pinned Docs image, network
 confinement, actual Docs build, durable artifact attestation, or protected branch. It therefore cannot discharge
 the full collector, two fresh captures, derived `producer_input_ids`, or any parent checkbox.
+
+## Hosted pinned-image Docker primitive witness
+
+Run [34453881443](https://github.com/petreleon/WebBoxVM/actions/runs/34453881443), attempt 1, succeeded on a
+GitHub-hosted Linux x64 runner. Its immutable receipt binds both `commit` and `workflow_commit` to
+`e5106dae12f1988339cadcb59402c453cd5e1888`, helper blob
+`394f7057564df0c9db14cd6ed8679fb88c4e4b53`, C blob `a510acda419260f6e5cca12523f3a7a8c807b155`, SHA-256
+`76c5fd93ca9c56fd48d8f02a037e87fa3c0d72ff13ba360ffcae44203ff9da89`, and 6,700 bytes. The runner reported
+Linux `6.17.0-1022-azure x86_64`; Docker client/server was `28.0.4/28.0.4`, and the pinned
+`khronosgroup/docker-images@sha256:f1ca671f3bdb10ad49e238b9bf28853088a21af49504498fc9084c9b4fea4762`
+image had config ID `sha256:cb99714e571afcf7a1efe3b163413b74dec34a004b62014ce1f0c7618bd07da5`.
+
+The helper read its C source from the reviewed Git blob, streamed a fixed source envelope and C bytes over stdin,
+and required the container to verify the stated 6,700 bytes and SHA-256 before compiling. The actual container run
+used the pinned image, `--pull=never`, `--network none`, `--platform linux/amd64`, and `--user 501:20`; `/vulkan`
+was empty/read-only and `/work` was temporary/read-write. Only the separate pinned-image preflight could use host
+network. No `--privileged`, `--cap-add`, `--security-opt`, writable Docs source, or Docs build argv was used.
+
+Its terminal C record was `{status:"blocked",stage:"parent-fork-exec-complete",errno:0}`; the helper consequently
+recorded `status: observed-unadmitted` and `outcome: pinned-image-ptrace-observed`. This observes only the reviewed
+parent/child/getpid/fork/exec primitive under that bounded default-Docker policy. It does not establish that ptrace
+is available to a Docs collector, nor does it mount Docs, set deterministic Docs inputs, execute Docs argv, capture
+read/write/rename lineage, bind a generated input to one writer, create `producer_input_ids`, or prove Docs
+provenance or closure. Docker-daemon trust and the unprotected/unattested GitHub-run limitations remain. Therefore
+F02.4.4.1.5.2.3.5.2 and every parent task remain **BLOCKED**.
 
 Do not replace this gate with `LD_PRELOAD`: it can miss direct syscalls and static executables, lacks reliable
 parent/exec lineage, and its writable trace file could be target-controlled. Do not relax Docker confinement to pass.

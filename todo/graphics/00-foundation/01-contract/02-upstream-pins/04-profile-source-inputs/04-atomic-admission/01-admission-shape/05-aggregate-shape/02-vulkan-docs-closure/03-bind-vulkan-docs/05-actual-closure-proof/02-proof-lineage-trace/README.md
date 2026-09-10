@@ -50,3 +50,9 @@ sealed read-only observer.
   preflight, and fails rather than emits a receipt if Docker cannot produce the terminal primitive record. Even an
   observed result is only a capability prerequisite; it cannot establish a collector trace, Docs provenance, or
   closure, and still trusts the Docker daemon plus the existing GitHub-run limitations.
+- Run [34453881443](https://github.com/petreleon/WebBoxVM/actions/runs/34453881443) observed that bounded primitive:
+  the reviewed C gate reached `parent-fork-exec-complete` with `errno: 0` and outcome
+  `pinned-image-ptrace-observed`, while its receipt remained `observed-unadmitted`. It does **not** mean `ptrace` is
+  available to a Docs collector: no Docs source/build/argv was present, no lineage was captured, and the Docker
+  daemon, unprotected branch, and unattested GitHub log remain outside the authority model. F02 and every parent
+  task remain **BLOCKED**.
