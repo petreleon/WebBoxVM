@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.2
 Depends: F02.4.4.1.5.4.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [proof contract](../01-proof-contract/README.md),
 [pre-admission aggregate](../../01-pre-admission-aggregate/README.md), and
@@ -24,11 +24,11 @@ the V2 suite's broader-than-core scope, and all V2 false state bits.
 
 ## Checklist
 
-- [ ] Revalidate current V1 and V2 inputs through their own validators, never a copied receipt or self-hash alone.
-- [ ] Bind canonical order, predecessor/audit joins, V2 root/tree/ledger/cache/live/taxonomy identities, and false flags.
-- [ ] Report exactly the real first blocked role without treating Docs provenance or a V1 record as admission evidence.
-- [ ] Reject stale, partial, root-only, scope-eroded, V1/V2-substituted, tampered, or false-ready input.
-- [ ] Run focused positive and hostile tests and attach a small receipt.
+- [x] Revalidate current V1 and V2 inputs through their own validators, never a copied receipt or self-hash alone.
+- [x] Bind canonical order, predecessor/audit joins, V2 root/tree/ledger/cache/live/taxonomy identities, and false flags.
+- [x] Report exactly the real first blocked role without treating Docs provenance or a V1 record as admission evidence.
+- [x] Reject stale, partial, root-only, scope-eroded, V1/V2-substituted, tampered, or false-ready input.
+- [x] Run focused positive and hostile tests and attach a small receipt.
 
 ## Verification
 
