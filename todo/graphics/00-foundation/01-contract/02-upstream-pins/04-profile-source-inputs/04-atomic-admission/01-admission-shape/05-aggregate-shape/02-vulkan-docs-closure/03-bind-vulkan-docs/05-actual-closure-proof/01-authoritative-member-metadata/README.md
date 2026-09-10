@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.5.1
 Depends: F02.4.4.1.5.2.3.3.2, F02.4.4.1.5.2.3.3.3
-Evidence: pending
+Evidence: [blocker receipt](evidence.md)
 
 Prerequisite lists: the [actual Docs grammar](../../02-actual-closure-identity/README.md),
 [captured records](../../03-capture-core-closure/README.md), and the [blocker record](../evidence.md).
@@ -32,3 +32,5 @@ that a generated payload is licensed, cached, or produced unless the pinned evid
 
 - SPDX/REUSE evidence must be evaluated against the full pinned source tree; it is not a runtime input observation.
 - A uniform generated license, role, or provenance label is forbidden unless its source and applicability are explicit.
+- Status: **BLOCKED**. Raw static facts are reified from the sealed source tree, but no authority establishes the
+  first missing derived static field, `license`, for all 1,462 generated members. This child remains unchecked.

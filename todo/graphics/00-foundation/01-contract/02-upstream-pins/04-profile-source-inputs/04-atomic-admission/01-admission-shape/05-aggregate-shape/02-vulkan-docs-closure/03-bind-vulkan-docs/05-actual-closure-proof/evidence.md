@@ -1,14 +1,17 @@
 # F02.4.4.1.5.2.3.5 blocker record
 
-Revision: 40dcf2f2521fcdb698316d47b58bb0352ae1429d
-Validation: live witness/scope/comparison contracts passed; field/cache probes; repository gates passed
+Baseline revision: `40dcf2f2521fcdb698316d47b58bb0352ae1429d`; child integration atop
+`af430ce647621edc9eb8113a4bc6a49875b005b6`
+Validation: baseline live witness/scope/comparison contracts passed; field/cache probes; child blockers below
 Result: BLOCKED
 Artifacts: plan `5dcc55e3cd979010d73142e7dde13361e0b36f64ff42aaa1e436a8a5eab5de77`;
 observation and live artifact root named below; no actual-grammar closure manifest exists
 Profile: Vulkan 1.4-core Docs source-closure proof only; staging and all observed facts remain unadmitted
 
 Task ID and date: F02.4.4.1.5.2.3.5, 2026-09-10 Europe/Bucharest.
-Tested commit and baseline: `40dcf2f2521fcdb698316d47b58bb0352ae1429d`; `git status --short` was empty.
+The original receipt was tested at `40dcf2f2521fcdb698316d47b58bb0352ae1429d` with an empty worktree.
+The child records below were added atop `af430ce647621edc9eb8113a4bc6a49875b005b6`; their validation
+is separately recorded in their evidence files.
 
 The live observation was
 `../03-capture-core-closure/01-observe-pinned-build-inputs/vulkan_docs_core_input_observation.json`.
@@ -119,10 +122,13 @@ derived producer edge before materializing a full actual-grammar manifest. Only 
 ambiguous, reordered, scope-expanded, or invented provenance may they restage all 1,760 inputs, both output trees,
 and a strict marker before proving the closure remains unadmitted.
 
-Repository gates after recording this receipt: `make test` exited zero with 1,127 Rust tests passed,
-3 ignored, source-file limits 6/6 passed, and 337 Node tests passed. `git diff --check` exited zero.
+Original-receipt repository gates: `make test` exited zero with 1,127 Rust tests passed, 3 ignored,
+source-file limits 6/6 passed, and 337 Node tests passed. `git diff --check` exited zero.
 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_graphics_roadmap.py` exited zero with
-`PASS: 267 documents, 159 tasks, 59 complete; links/dependencies/limits valid`. Remote CI was not run.
+`PASS: 267 documents, 159 tasks, 59 complete; links/dependencies/limits valid`. The child integration has
+its own current gate record rather than relabeling these historic results. Remote CI was not run.
 
-Next ready tasks: F02.4.4.1.5.2.3.5.1 and F02.4.4.1.5.2.3.5.2; retain this task as the exact blocker until
-their successors complete the actual closure proof.
+The roadmap checker may label F02.4.4.1.5.2.3.5.1 and F02.4.4.1.5.2.3.5.2 `Ready` because their declared
+dependencies are complete. That is bookkeeping/dependency-ready only, not an executable closure successor:
+their respective blocker receipts retain absent derived-license authority and an unavailable trusted tracer. No
+closure successor is executable under the current pinned evidence and no-privilege container route.

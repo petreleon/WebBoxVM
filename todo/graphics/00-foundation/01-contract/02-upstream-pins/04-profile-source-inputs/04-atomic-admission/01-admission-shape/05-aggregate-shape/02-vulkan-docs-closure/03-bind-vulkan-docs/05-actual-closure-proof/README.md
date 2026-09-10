@@ -34,6 +34,8 @@ without reclassifying any root, output, inventory, or support claim.
 - This task cannot mark Vulkan API, guest, browser, CTS, conformance, or performance work complete.
 - Status: **BLOCKED** because observed records alone cannot establish a complete actual Docs grammar. Reifiable
   raw metadata and proof-level derived lineage are separated below; no child changes this task's unadmitted state.
+  Child `.5.1` records the missing derived license authority and child `.5.2` records the unavailable trusted
+  syscall-tracing primitive; neither blocker receipt is a PASS.
 
 ## Split rationale
 

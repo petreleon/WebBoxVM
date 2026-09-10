@@ -4,15 +4,16 @@
 
 Task: F02.4.4.1.5.2.3.5.2
 Depends: F02.4.4.1.5.2.3.3.2, F02.4.4.1.5.2.3.3.3
-Evidence: pending
+Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [sealed read observer](../../03-capture-core-closure/01-observe-pinned-build-inputs/README.md),
 [actual Docs grammar](../../02-actual-closure-identity/README.md), and the [blocker record](../evidence.md).
 
 ## Outcome
 
-Build a separate proof-only lineage collector that can bind each final derived input to a successful writer and a
-conservative, ordered observed dependency set, without modifying the sealed read-only observer.
+Specify, then build when the capability gate permits, a separate proof-only lineage collector that can bind each final
+derived input to a successful writer and a conservative, ordered observed dependency set, without modifying the
+sealed read-only observer.
 
 ## Starting points
 
@@ -31,4 +32,10 @@ conservative, ordered observed dependency set, without modifying the sealed read
 ## Verification
 
 - `producer_input_ids` is a conservative observed-process dependency set, never inferred minimal semantic dataflow.
+- Public proof receipts rebind the sealed capture from paths/run ID, and all raw/derived IDs must be reversible from
+  their selectors; a manually constructed scope is never receipt authority.
 - Do not add `--privileged`, `SYS_PTRACE`, seccomp relaxation, writable source, or an active consumer to obtain a trace.
+- Status: **BLOCKED**. The same pinned image and no-privilege security flags return `ENOSYS` for child
+  `PTRACE_TRACEME`; this gate deliberately does not reproduce a full Docs mount/build topology. The bounded parser
+  and hostile tests remain proof-only scaffolding. Docker daemon path mounts also cannot issue a trusted positive
+  capability result without an anchored execution client; no syscall collector or fresh lineage capture ran.
