@@ -1,0 +1,35 @@
+{
+  "admitted": false,
+  "cache_receipt_sha256": "56fd45c16f1f1e1c68bfc76f3853215eaff08c71ec60e5ceb85c5ecb26ef8437",
+  "cutover_ready": false,
+  "kind": "vcts-live-closure-capture-receipt",
+  "ledger_sha256": "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0",
+  "member_count": 98,
+  "member_total_bytes": 434669348,
+  "offline_verification": {
+    "cache_receipt_sha256": "56fd45c16f1f1e1c68bfc76f3853215eaff08c71ec60e5ceb85c5ecb26ef8437",
+    "member_count": 98,
+    "member_total_bytes": 434669348,
+    "raw_https_requests": 0,
+    "status": "passed",
+    "verify_calls": 1
+  },
+  "raw_streams": {
+    "git_blob_sha1_verified_streams": 99,
+    "member_streams": 98,
+    "raw_https_requests": 99,
+    "root_streams": 1,
+    "sha256_verified_streams": 99,
+    "total_bytes": 434672695,
+    "total_streams": 99
+  },
+  "receipt_sha256": "48c4d54d8738a8eab526347bc8080c245bb9cef269b66011e32116f78f481599",
+  "root_bytes": 3347,
+  "root_git_blob_sha1": "365c6bf5fa66e22b8a62139e317da41765ab7ae0",
+  "root_identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+  "root_sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+  "satisfies_vulkan_14_core_manifest": false,
+  "schema": 1,
+  "status": "external-cache-offline-verified-unadmitted",
+  "tree_plan_sha256": "77875b165876a3cf37450667c7e9c23e177bff8a7795e0d48b4214e202064804"
+}
