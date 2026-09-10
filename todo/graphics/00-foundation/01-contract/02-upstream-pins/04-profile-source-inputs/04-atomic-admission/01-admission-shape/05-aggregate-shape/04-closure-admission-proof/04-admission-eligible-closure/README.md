@@ -30,7 +30,7 @@ prove cache freshness, or alter F03.
 - [x] [F02.4.4.1.5.4.4.3 — Separate source sufficiency from release conformance](03-source-release-boundary/README.md)
 - [ ] [F02.4.4.1.5.4.4.4 — Reconcile the final aggregate admission](04-final-aggregate-reconciliation/README.md)
 - [ ] [F02.4.4.1.5.4.4.5 — Resolve the independent GLES/VCTS closure policies](05-independent-suite-closures/README.md)
-- [ ] [F02.4.4.1.5.4.4.6 — Define the successor inventory transition](06-successor-inventory-transition/README.md)
+- [x] [F02.4.4.1.5.4.4.6 — Define the successor inventory transition](06-successor-inventory-transition/README.md)
 
 ## Verification
 

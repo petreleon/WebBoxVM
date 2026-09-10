@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.6
 Depends: F02.4.4.1.5.4.4.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [derived-Docs policy](../01-derived-docs-policy/README.md), the active
 [F02 inventory schema](../../../../../../../01-input-inventory/README.md), and the
@@ -24,12 +24,12 @@ It remains a design boundary until the exact schema, cache, and closure proof pa
 
 ## Checklist
 
-- [ ] Define a versioned inventory schema/family/cardinality transition for cap-valid Vulkan-Docs members.
-- [ ] Bind immutable URLs, revisions, digests, byte counts, license expressions, roles, and safe external-cache names.
-- [ ] Preserve all active inventory identities and reject mixed old/new schema, aliases, duplicate families, or root-only imports.
-- [ ] Require the complete successor Docs closure before a proposed inventory record can become admitted.
-- [ ] Keep active F02.1/F02.2, cache freshness, F03, and all implementation/release states unchanged.
-- [ ] Add focused positive and hostile transition tests with an unadmitted policy receipt.
+- [x] Define a versioned inventory schema/family/cardinality transition for cap-valid Vulkan-Docs members.
+- [x] Bind immutable URLs, revisions, digests, byte counts, license expressions, roles, and safe external-cache names.
+- [x] Preserve all active inventory identities and reject mixed old/new schema, aliases, duplicate families, or root-only imports.
+- [x] Require the complete successor Docs closure before a proposed inventory record can become admitted.
+- [x] Keep active F02.1/F02.2, cache freshness, F03, and all implementation/release states unchanged.
+- [x] Add focused positive and hostile transition tests with an unadmitted policy receipt.
 
 ## Verification
 
