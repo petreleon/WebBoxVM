@@ -23,7 +23,7 @@ SPECS = (
     ("lineage_ptrace_state.h", f"{BASE}/observer/lineage_ptrace_state.h", 1163, "fa5ea08f44c2446c0904468ab0545e54a8e13b5a23096180e586499fff2ea6c5"),
     ("lineage_ptrace_state.c", f"{BASE}/observer/lineage_ptrace_state.c", 9016, "7c3395a55c69a609f407cd1e4c59a0216fc7fb4233120b006cb4d6da1c180555"),
     ("lineage_ptrace_fixture.c", f"{BASE}/observer/lineage_ptrace_fixture.c", 1577, "9c0dfa754641e8ac7b4559c8e0b6d642f088979535230c4ad63f019313b27e7a"),
-    ("lineage_ptrace_fixture_collector.c", f"{BASE}/observer/lineage_ptrace_fixture_collector.c", 6797, "6b62fb8551ae680e45ed0ee21f5dd66d88eb685d6e59426f5ccf0d6f49c40813"),
+    ("lineage_ptrace_fixture_collector.c", f"{BASE}/observer/lineage_ptrace_fixture_collector.c", 6994, "1c512224472fbbc26f12bb292282aea8feaf7f09d4a81cd340c968469690d825"),
     ("lineage_ptrace_fixture.raw.hex", f"{BASE}/observer/lineage_ptrace_fixture.raw.hex", 7, "4447db2af9610585bd237a01f1f8adc303015710968fc7db64106a12d886153d"),
 )
 RAW_HEX, RAW = b"726177\n", b"raw"

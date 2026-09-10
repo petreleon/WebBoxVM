@@ -17,7 +17,7 @@ class PtraceFixtureTest(unittest.TestCase):
 
     def test_collector_requires_child_traceme_directional_syscalls_and_safe_snapshot(self):
         text = (OBSERVER / "lineage_ptrace_fixture_collector.c").read_text(encoding="utf-8")
-        for token in ("PTRACE_TRACEME", "PTRACE_GET_SYSCALL_INFO", "PTRACE_O_TRACEFORK", "PTRACE_O_EXITKILL", "PTRACE_EVENT_FORK", "PTRACE_EVENT_EXEC", "lpc_known", "multiple-child-stops", "dup2(null, STDIN_FILENO)", "PR_SET_DUMPABLE", "pre-run-snapshot", "post-exit-snapshot"):
+        for token in ("PTRACE_TRACEME", "PTRACE_GET_SYSCALL_INFO", "PTRACE_O_TRACEFORK", "PTRACE_O_EXITKILL", "PTRACE_EVENT_FORK", "PTRACE_EVENT_EXEC", "lpc_known", "multiple-child-stops", "entry_die", "dup2(null, STDIN_FILENO)", "PR_SET_DUMPABLE", "pre-run-snapshot", "post-exit-snapshot"):
             self.assertIn(token, text)
         self.assertLess(text.index("snapshot(\"/vulkan/raw.adoc\", &raw)"), text.index("observed-unadmitted"))
         self.assertNotIn("LD_PRELOAD", text)
