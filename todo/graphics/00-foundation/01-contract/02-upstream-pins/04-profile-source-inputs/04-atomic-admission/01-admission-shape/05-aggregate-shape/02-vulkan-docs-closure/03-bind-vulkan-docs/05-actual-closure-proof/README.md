@@ -22,16 +22,22 @@ without reclassifying any root, output, inventory, or support claim.
 
 ## Checklist
 
-- [ ] Revalidate every source input, generated input, rendered output, recipe, scope, and predecessor binding.
-- [ ] Confirm two fresh build witnesses and staged identities agree exactly under the actual Docs grammar.
-- [ ] Reject all declared hostile closure, cache, scope, output, and active-consumer substitutions.
-- [ ] Record the complete unadmitted closure proof or its exact first remaining blocker.
-- [ ] Update only this parent and immediate Docs status after inspecting all required evidence.
+- [ ] [F02.4.4.1.5.2.3.5.1 — Authoritative member metadata](01-authoritative-member-metadata/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.2 — Proof-level lineage trace](02-proof-lineage-trace/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.3 — Capture fresh lineage](03-capture-fresh-lineage/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.4 — Reify the actual member closure](04-reify-actual-member-closure/README.md)
+- [ ] [F02.4.4.1.5.2.3.5.5 — Restage and cross-prove](05-restage-and-cross-prove/README.md)
 
 ## Verification
 
 - A PASS proves source-closure evidence only; later aggregate admission still also requires the VCTS core closure.
 - This task cannot mark Vulkan API, guest, browser, CTS, conformance, or performance work complete.
-- Status: **BLOCKED** because the observed member records cannot be truthfully projected into the actual Docs
-  grammar: identity/license/cache/provenance fields and derived `producer_input_ids` are absent. The blocker
-  record preserves the revalidation and does not check this task off.
+- Status: **BLOCKED** because observed records alone cannot establish a complete actual Docs grammar. Reifiable
+  raw metadata and proof-level derived lineage are separated below; no child changes this task's unadmitted state.
+
+## Split rationale
+
+The current observer is sealed and its C trace is already 173/180 lines. Static member metadata and
+output-to-producer lineage are separate proof obligations, so this five-child split keeps both contracts bounded.
+Only the final child may turn the blocker record into a PASS, and only if it proves the closure without widening
+scope, cache authority, or support claims.

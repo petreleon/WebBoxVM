@@ -79,9 +79,13 @@ read/pread/readv/`mmap(PROT_READ)`/fread/fgets/copy/sendfile/splice events and p
 does not capture generated-file writes, renames, or a producer-input-to-output edge. Its direct
 `SYS_write` use emits the trace itself, not a build-output provenance event.
 
-Thus the required IDs, licenses, cache paths, roles, provenance, and all 1,462 derived producer
-edges cannot be reconstructed honestly from the present observations. Mapping them from selectors
-or hashes would invent semantic facts and violate this task's no-reclassification condition.
+The observed records cannot themselves supply an exact actual-grammar manifest. Raw `source_family`, revision,
+and URL are mechanically fixed by the pinned source contract; 171 selected raw files have direct SPDX headers and
+the other 127 have pinned `REUSE.toml` annotations. Those raw facts still need an explicit, full-tree reifier; they
+must not be treated as runtime-observation fields. No corresponding authority currently supplies derived licenses,
+roles, cache/provenance policy, or an output-to-producer mapping. In particular, all 1,462 derived producer edges
+cannot be reconstructed honestly from the present observations. Mapping derived facts from selectors or hashes
+would invent semantic claims and violate this task's no-reclassification condition.
 
 An auxiliary retained-cache check did not change that first blocker. At validation time,
 `/private/tmp/webboxvm-input-stage.V2seBM` verified its 298 raw plus 1,462 derived input snapshot:
@@ -109,10 +113,10 @@ all remain `unadmitted` and `cutover_ready=False`. No inventory, candidate decis
 guest API, browser, CTS, conformance, or performance claim changes here. This is a mandatory
 provenance-model blocker, not a PASS or an artifact-availability exemption.
 
-A future authorized child must run two fresh pinned builds with proof-only capture of generated-file
-writes/renames and each producing process's input set, then justify every missing identity field and
-producer edge in a full actual-grammar manifest. Only after hostile tests reject omitted, ambiguous,
-reordered, scope-expanded, or invented provenance may it restage all 1,760 inputs, both output trees,
+The split children must first reify authoritative member metadata, then add a separate proof-only tracer with
+process ancestry plus generated-file write/rename events. They must run two fresh pinned builds and justify every
+derived producer edge before materializing a full actual-grammar manifest. Only after hostile tests reject omitted,
+ambiguous, reordered, scope-expanded, or invented provenance may they restage all 1,760 inputs, both output trees,
 and a strict marker before proving the closure remains unadmitted.
 
 Repository gates after recording this receipt: `make test` exited zero with 1,127 Rust tests passed,
@@ -120,5 +124,5 @@ Repository gates after recording this receipt: `make test` exited zero with 1,12
 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_graphics_roadmap.py` exited zero with
 `PASS: 267 documents, 159 tasks, 59 complete; links/dependencies/limits valid`. Remote CI was not run.
 
-Next ready task: none in this Docs branch until the provenance-capture design is authorized; retain this
-task as the exact blocker while the roadmap checker selects independent work.
+Next ready tasks: F02.4.4.1.5.2.3.5.1 and F02.4.4.1.5.2.3.5.2; retain this task as the exact blocker until
+their successors complete the actual closure proof.
