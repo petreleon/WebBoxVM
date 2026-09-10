@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "contract": "vulkan-docs-successor-closure-anchor-v1",
+  "status": "historical-anchor-unadmitted",
+  "profile": "vulkan-1.4-core",
+  "role": "api-limit-format-spec",
+  "required_input_id": "vulkan-14-spec",
+  "policy_sha256": "9aac96fcdc340a31e77f44318fd32dbd673eb90551b5ac090d21d8b3a53078aa",
+  "historical": {
+    "build_witness_sha256": "8cfab6fe4527f3973d7d7923ffe0922ab689fc2daf2f6e955ff7603fc8ba78d6",
+    "scope_receipt_sha256": "45e6b595d02acf045588962eb0071435701b7c862b2f2182822981231d7a791b",
+    "comparison_sha256": "f76e489565365d2b326185d2f4d511422c8b83b6b084fee0f90cd3b5646cc9ce"
+  },
+  "counts": {
+    "raw": 298,
+    "derived": 1462,
+    "captures": 2,
+    "output_files": 2530
+  },
+  "facts": {
+    "historical_evidence_is_fresh_closure": false,
+    "rendered_output_can_satisfy_source": false,
+    "source_role_proved": false
+  },
+  "effects": {
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false,
+    "f03_changed": false,
+    "supported": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false
+  },
+  "anchor_sha256": "65aa77910560fb32624d78c584857fab130769d408df2ece3d4a967cc983aa7c"
+}
