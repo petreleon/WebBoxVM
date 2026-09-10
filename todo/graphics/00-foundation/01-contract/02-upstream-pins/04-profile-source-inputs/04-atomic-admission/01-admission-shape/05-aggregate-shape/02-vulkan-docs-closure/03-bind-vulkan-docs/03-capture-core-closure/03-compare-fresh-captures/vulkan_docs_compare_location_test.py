@@ -95,8 +95,14 @@ class ComparisonLocationTest(unittest.TestCase):
             self.layout(root)
             with patch("vulkan_docs_compare_locations.distinct", wraps=distinct) as checked:
                 independent_locations(root, pair())
-        labels = [call.args[2] for call in checked.call_args_list]
-        self.assertEqual(labels.count("source/output"), 4)
+        matrix = [call.args[:2] for call in checked.call_args_list if call.args[2] == "source/output"]
+        self.assertEqual(len(matrix), 4)
+        self.assertEqual({tuple(value.relative_to(root).as_posix() for value in row) for row in matrix}, {
+            ("sources/observer-a", "runs/observer-a/generated"),
+            ("sources/observer-a", "runs/observer-b/generated"),
+            ("sources/observer-b", "runs/observer-a/generated"),
+            ("sources/observer-b", "runs/observer-b/generated"),
+        })
 
 
 if __name__ == "__main__":
