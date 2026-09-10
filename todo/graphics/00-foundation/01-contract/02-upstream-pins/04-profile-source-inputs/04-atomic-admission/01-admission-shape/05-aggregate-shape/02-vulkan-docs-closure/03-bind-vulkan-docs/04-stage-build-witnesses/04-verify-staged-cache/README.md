@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.2.3.4.4
 Depends: F02.4.4.1.5.2.3.4.2, F02.4.4.1.5.2.3.4.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: [staged core inputs](../02-stage-core-inputs/README.md) and
 [staged output witnesses](../03-stage-output-witnesses/README.md).
@@ -22,11 +22,11 @@ rehashes every cached input and both independently staged output witnesses.
 
 ## Checklist
 
-- [ ] Bind scope, comparison, build-witness, canonical 1,760-input manifest, both 2,530-file output manifests, and both run identities in one marker.
-- [ ] Before initial marker publication and every successful reuse, rehash all 1,760 staged input entries and both complete 2,530-file output-witness trees.
-- [ ] Reject missing, stale, divergent, partial, reordered, cross-closure, self-digest-mutated, active-looking, or raced marker/cache state.
-- [ ] Exercise an initial stage and successful reuse beneath a safe external root; record expected/actual nonzero counts, never payloads.
-- [ ] Add positive and hostile cache-reuse, marker, output, cross-closure, stale, partial, and publication-race regressions; then aggregate this parent.
+- [x] Bind scope, comparison, build-witness, canonical 1,760-input manifest, both 2,530-file output manifests, and both run identities in one marker.
+- [x] Before initial marker publication and every successful reuse, rehash all 1,760 staged input entries and both complete 2,530-file output-witness trees.
+- [x] Reject missing, stale, divergent, partial, reordered, cross-closure, self-digest-mutated, active-looking, or raced marker/cache state.
+- [x] Exercise an initial stage and successful reuse beneath a safe external root; record expected/actual nonzero counts, never payloads.
+- [x] Add positive and hostile cache-reuse, marker, output, cross-closure, stale, partial, and publication-race regressions; then aggregate this parent.
 
 ## Verification
 
