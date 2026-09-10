@@ -22,13 +22,19 @@ then reject any stale, divergent, partial, or substituted evidence.
 
 ## Checklist
 
-- [ ] Stage cap-valid source members and separately bounded outputs with descriptor-safe paths.
-- [ ] Bind image, platform, argv, environment, mounts, recipe, and both clean-run tree identities.
-- [ ] Rehash every cached member and reject missing, stale, divergent, partial, or cross-closure markers.
-- [ ] Add hostile filesystem, identity, scope, output, and cache-reuse regressions.
-- [ ] Record a reproducible unadmitted staging receipt with nonzero cases.
+- [ ] [F02.4.4.1.5.2.3.4.1 — Define the isolated staging contract](01-stage-contract/README.md)
+- [ ] [F02.4.4.1.5.2.3.4.2 — Stage and verify captured core inputs](02-stage-core-inputs/README.md)
+- [ ] [F02.4.4.1.5.2.3.4.3 — Stage both bounded output witnesses](03-stage-output-witnesses/README.md)
+- [ ] [F02.4.4.1.5.2.3.4.4 — Publish and reuse the staged witness cache](04-verify-staged-cache/README.md)
 
 ## Verification
 
 - A cache receipt cannot replace either required fresh official build.
 - No active F02 cache, inventory, V1 grammar, F03 state, guest, browser, CTS, or performance behavior changes here.
+
+## Split rationale
+
+The boundary contract, input payloads, full output payloads, and reusable cache marker have separate trust and
+resource boundaries. The second child handles 1,760 cap-valid core inputs; the third separately handles both
+clean-run output trees; the fourth can publish only after both prior payload receipts rehash. This parent remains open
+until its aggregate receipt binds all four without changing an active consumer.
