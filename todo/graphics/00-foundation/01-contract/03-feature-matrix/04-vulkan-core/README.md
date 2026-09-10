@@ -25,21 +25,18 @@ requirement has a stable source locator, an implementation owner, and a referenc
 
 ## Checklist
 
-- [ ] Extract Vulkan 1.4 core commands, features, limits, formats, synchronization, and SPIR-V rules
-  from the pinned inputs into the shared row schema with exact source locators.
-- [ ] Record the core profile, adopted extension policy, required WSI and external-memory boundaries,
-  and bring-up versions explicitly; do not treat a host-only blob profile as Venus support.
-- [ ] Link every mandatory row to a downstream implementation task and independent native/guest or
-  conformance reference test; retain missing mappings as unassigned or blocked.
-- [ ] Classify current browser and Venus feasibility evidence without inventing capset 4, Vulkan
-  properties, synchronization, external-memory, or device support.
-- [ ] Keep this leaf blocked if F03.5 has not admitted a required authoritative source or canonical
-  CTS suite closure; do not infer a Vulkan 1.4 core inventory from a registry fragment, locally
-  filtered selector, or isolated API-version file.
-- [ ] Add focused extraction/coverage/negative tests, run required gates, and attach a receipt.
+- [ ] [F03.4.1 — Enumerate the Vulkan registry inventory](01-registry-inventory/README.md)
+- [ ] [F03.4.2 — Attach Docs provenance and CTS diagnostics](02-provenance-diagnostics/README.md)
 
 ## Verification
 
 - No mandatory Vulkan 1.4 core row lacks a source locator, owner, or reference-test plan.
 - A stale registry/grammar/CTS identity, missing row, duplicate row, or unproven supported row fails
-  the focused check.
+  the focused check. The split preserves that vk.xml is not a normative-spec or CTS-selector substitute.
+
+## Split rationale
+
+The registry can enumerate technical API facts before a full source-contract cutover, whereas raw Docs
+citations establish normative provenance and the canonical CTS suite supplies only broad diagnostics.
+Keeping these tasks separate prevents a registry fragment, generated Docs, or local CTS filtering from
+silently claiming the complete Vulkan 1.4 core inventory.
