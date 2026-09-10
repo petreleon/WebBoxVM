@@ -13,7 +13,7 @@
   "boundaries": [
     "extensions-excluded",
     "wsi-excluded",
-    "external-memory-excluded",
+    "external-memory-extension-paths-excluded",
     "spirv-grammar-separate",
     "bring-up-unimplemented"
   ],
@@ -28,5 +28,5 @@
     "certified": false,
     "near_native": false
   },
-  "scaffold_sha256": "39b2df10a3f88aa89017d2086d290e323bf786ed483b7900771afdfbde75fca1"
+  "scaffold_sha256": "d78af318e0bd4a0bccdc29d1686bcd969de6f4cec7762ebaef88f0fdfdaae562"
 }

@@ -17,7 +17,7 @@ LOCATOR = re.compile(
     r"(?:/(?:require|deprecate)\[[1-9][0-9]*\]/(?:command|enum|feature|type)\[[1-9][0-9]*\])?$")
 KINDS = frozenset(("command", "enum", "feature", "type", "version-marker"))
 CONTAINERS = frozenset(("require", "deprecate"))
-BOUNDARIES = ("extensions-excluded", "wsi-excluded", "external-memory-excluded",
+BOUNDARIES = ("extensions-excluded", "wsi-excluded", "external-memory-extension-paths-excluded",
               "spirv-grammar-separate", "bring-up-unimplemented")
 EFFECTS = ("project_complete_docs_role", "project_cts_selector", "project_release_claim",
            "supported", "emulated", "conformant", "certified", "near_native")
