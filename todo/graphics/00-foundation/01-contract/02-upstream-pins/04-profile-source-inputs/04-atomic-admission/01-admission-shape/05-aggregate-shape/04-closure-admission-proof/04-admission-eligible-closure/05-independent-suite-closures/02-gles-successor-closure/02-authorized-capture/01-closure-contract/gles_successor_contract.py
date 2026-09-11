@@ -107,7 +107,8 @@ def expected() -> dict[str, object]:
     source = {"revision": revision, "raw_url_prefix": raw_prefix, "provenance": root["provenance"],
               "license": root["license"], "root_source_family": root["source_family"],
               "member_source_family": core[0]["source_family"], "member_max_bytes": 8 * 1024 * 1024,
-              "successor_cache_template": "webboxvm-graphics/f02-successor/gles-cts/{closure_sha256}/{id}/{sha256}.source"}
+              "cache_template": "webboxvm-graphics/f02/{id}/{sha256}.source",
+              "active_f02_cache_grammar_compatible": True}
     rows = [*core, *excluded]
     if (root["immutable_url"] != raw_prefix + root["selector"] or root["bytes"] > source["member_max_bytes"]
             or any(row["revision"] != revision or row["immutable_url"] != raw_prefix + row["selector"]
@@ -115,14 +116,17 @@ def expected() -> dict[str, object]:
            or row["source_family"] != source["member_source_family"]
            or row["bytes"] > source["member_max_bytes"] for row in rows)):
         reject("reviewed GLES members do not share the pinned source policy")
+    if any(row["local_cache"] != source["cache_template"].format(id=row["id"], sha256=row["sha256"])
+           for row in [root, *rows]):
+        reject("reviewed GLES members do not use the F02 cache grammar")
     values = anchors()
     anchor = values
     root_value, core_values, excluded_value = member(root, counts[1]), [member(row, row["case_count"]) for row in core], member(excluded[0], excluded[0]["case_count"])
     closure_seed = {"profile": "gles-3.2", "source": source, "root": root_value, "core_members": core_values,
                     "excluded_extension": excluded_value, "configurations_document_sha256": anchor["configurations_document_sha256"]}
     closure_sha256 = digest(closure_seed, "")
-    cache = {row["id"]: source["successor_cache_template"].format(closure_sha256=closure_sha256,
-             id=row["id"], sha256=row["sha256"]) for row in [root_value, *core_values, excluded_value]}
+    cache = {row["id"]: source["cache_template"].format(id=row["id"], sha256=row["sha256"])
+             for row in [root_value, *core_values, excluded_value]}
     closure = {"profile": "gles-3.2", "family": "gles-cts", "root": root_value, "core_members": core_values,
                "excluded_extension": excluded_value, "configuration_document_sha256": anchor["configurations_document_sha256"],
                "core_configuration_count": counts[2], "core_case_configuration_runs": counts[3],

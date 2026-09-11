@@ -23,7 +23,8 @@
     "root_source_family": "gles-cts",
     "member_source_family": "gles-cts-component",
     "member_max_bytes": 8388608,
-    "successor_cache_template": "webboxvm-graphics/f02-successor/gles-cts/{closure_sha256}/{id}/{sha256}.source"
+    "cache_template": "webboxvm-graphics/f02/{id}/{sha256}.source",
+    "active_f02_cache_grammar_compatible": true
   },
   "closure": {
     "profile": "gles-3.2",
@@ -78,14 +79,14 @@
     "excluded_configuration_count": 1,
     "root_and_nonroot_required": true,
     "optional_extension_excluded": true,
-    "closure_sha256": "9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468",
+    "closure_sha256": "fcca79aa08ca156cddca92b624e66513526109219b84b253bd513879f34419c4",
     "successor_cache_paths": {
-      "gles-cts-manifest": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-manifest/9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96.source",
-      "gles-cts-gles2-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles2-khr-main/aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2.source",
-      "gles-cts-gles3-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles3-khr-main/c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72.source",
-      "gles-cts-gles31-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles31-khr-main/9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e.source",
-      "gles-cts-gles32-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles32-khr-main/426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249.source",
-      "gles-cts-gles32-khr-glesext": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles32-khr-glesext/789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6.source"
+      "gles-cts-manifest": "webboxvm-graphics/f02/gles-cts-manifest/9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96.source",
+      "gles-cts-gles2-khr-main": "webboxvm-graphics/f02/gles-cts-gles2-khr-main/aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2.source",
+      "gles-cts-gles3-khr-main": "webboxvm-graphics/f02/gles-cts-gles3-khr-main/c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72.source",
+      "gles-cts-gles31-khr-main": "webboxvm-graphics/f02/gles-cts-gles31-khr-main/9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e.source",
+      "gles-cts-gles32-khr-main": "webboxvm-graphics/f02/gles-cts-gles32-khr-main/426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249.source",
+      "gles-cts-gles32-khr-glesext": "webboxvm-graphics/f02/gles-cts-gles32-khr-glesext/789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6.source"
     }
   },
   "producer": {
@@ -125,5 +126,5 @@
     "performance_claimed": false,
     "satisfies_vulkan_14_core_manifest": false
   },
-  "contract_sha256": "ed5bad3c8d59fe2ae67852d5a475c10a8e173af92174c421a660d7109637daba"
+  "contract_sha256": "4a9369fe82f427a61e6b8c402af30abf1cbffe6f5590f7a17b273c86ba5ae772"
 }

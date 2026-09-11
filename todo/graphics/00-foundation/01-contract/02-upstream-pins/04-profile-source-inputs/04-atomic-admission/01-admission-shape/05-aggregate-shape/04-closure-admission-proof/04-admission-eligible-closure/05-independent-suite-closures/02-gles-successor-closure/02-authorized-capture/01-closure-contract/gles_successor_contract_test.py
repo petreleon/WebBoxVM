@@ -66,6 +66,7 @@ class ContractTests(unittest.TestCase):
             lambda value: value["source"].__setitem__("revision", "0" * 40),
             lambda value: value["closure"]["core_members"].pop(),
             lambda value: value["closure"]["root"].__setitem__("bytes", 1),
+            lambda value: value["source"].__setitem__("cache_template", "webboxvm-graphics/f02-successor/{id}/{sha256}.source"),
             lambda value: value["closure"]["successor_cache_paths"].pop("gles-cts-gles3-khr-main"),
             lambda value: value["producer"].__setitem__("output_attestation_present", True),
             lambda value: value["capture"].__setitem__("active_cache_freshness_proved", True),
