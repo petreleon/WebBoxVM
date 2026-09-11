@@ -10,7 +10,8 @@ Prerequisite lists: [F01](../../01-contract/01-baseline/README.md), [F02](../../
 
 ## Outcome
 
-Each future leaf can name an exact one-command check and produce an inspectable receipt.
+Each future leaf can name an exact one-command check and produce an inspectable receipt once its
+profile-bound registration is admitted.
 
 ## Starting points
 
@@ -21,23 +22,19 @@ Each future leaf can name an exact one-command check and produce an inspectable 
 
 ## Checklist
 
-- [ ] Create scripts/graphics/check.py with named device, browser, wasm, guest and conformance
-  checks in small helper modules.
-- [ ] Record command, revision, dirty diff hash, tool versions, duration, exit status, expected test
-  count and artifact hashes; fail on zero matched tests.
-- [ ] Make missing assets/browser/native hardware explicit blocked results; add a documented command
-  per leaf before checking it complete.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [ ] [F05.1 — Implement the profile-independent runner substrate](01-generic-runner/README.md)
+- [ ] [F05.2 — Register profile-bound graphics checks](02-profile-bound-registration/README.md)
 
 ## Verification
 
-- The runner propagates a deliberately failing child command and rejects empty test selection.
-- Existing make test and make web-pkg are runnable lanes; a native guest smoke is labeled
-  transport-only.
+- F05 remains incomplete until both children pass and their combined verification preserves failing-child,
+  empty-selection and missing-prerequisite behavior.
+- Existing make test and make web-pkg remain runnable lanes; the native guest smoke remains transport-only.
 
-Register the exact task check through F05 before implementation completion. Bootstrap F01/F02/F05
-use direct reproducible commands and receipts until that runner exists. Record commands, nonzero
-test counts (or explicit design checks), output and expected results; a planned check is not PASS.
+Register the exact task check through F05.2 before profile-bound implementation completion. Bootstrap
+F01/F02/F05.1 use direct reproducible commands and receipts until the generic substrate exists. Record
+commands, nonzero test counts (or explicit design checks), output and expected results; a planned check
+is not PASS.
 
 For a task that discovers a design choice, multiple independent feature families or too much work
 for one coherent commit, create child folders first using the worker instructions. Keep this parent
