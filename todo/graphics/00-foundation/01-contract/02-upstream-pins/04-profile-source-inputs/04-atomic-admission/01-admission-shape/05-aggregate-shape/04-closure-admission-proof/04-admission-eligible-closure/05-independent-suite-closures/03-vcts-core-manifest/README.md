@@ -25,12 +25,10 @@ can turn it into Khronos core conformance evidence.
 
 ## Checklist
 
-- [ ] Obtain a Khronos-published immutable Vulkan 1.4 core manifest with explicit core scope and provenance.
-- [ ] Validate its complete recursive selection under F02.2, including per-member cap, license, and cache policy.
-- [ ] Preserve the full immutable `vk-default` diagnostic and its reported WSI, video, extension, and unknown boundary.
-- [ ] Reject local selector derivation, taxonomy promotion, root-only evidence, opaque splitting, and VCTS-as-Docs.
-- [ ] Reproduce a fresh scope-complete closure and offline replay without changing the V2 handoff's false state.
-- [ ] Record focused evidence or retain the first upstream selector or policy blocker.
+- [ ] [Recheck the official upstream selector and retain its blocker](01-upstream-selector-recheck/README.md)
+- [ ] [Validate an authoritative explicit-core manifest when Khronos publishes one](02-validate-authoritative-core-manifest/README.md)
+- [ ] [Capture and replay the future core closure](03-capture-and-replay-core-closure/README.md)
+- [ ] [Reconcile the future VCTS condition atomically](04-reconcile-vcts-condition/README.md)
 
 ## Verification
 
