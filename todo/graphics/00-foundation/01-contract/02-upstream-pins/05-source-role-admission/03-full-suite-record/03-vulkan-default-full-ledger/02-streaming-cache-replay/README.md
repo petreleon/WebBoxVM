@@ -4,7 +4,7 @@
 
 Task: F02.5.3.3.2
 Depends: F02.5.3.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -18,11 +18,11 @@ including members above 8 MiB, then replay it offline without changing source au
 
 ## Checklist
 
-- [ ] Use bounded streaming verification rather than the small-input source fetcher.
-- [ ] Bind cache paths to exact member identity and reject symlink or path escape.
-- [ ] Verify Git blob SHA-1, SHA-256, bytes, order, and aggregate replay.
-- [ ] Reject tampered, missing, mixed-revision, or oversize-in-policy members.
-- [ ] Keep every raw member outside the local 8 MiB transform cap.
+- [x] Use bounded streaming verification rather than the small-input source fetcher.
+- [x] Bind cache paths to exact member identity and reject symlink or path escape.
+- [x] Verify Git blob SHA-1, SHA-256, bytes, order, and aggregate replay.
+- [x] Reject tampered, missing, mixed-revision, or oversize-in-policy members.
+- [x] Keep every raw member outside the local 8 MiB transform cap.
 
 ## Verification
 

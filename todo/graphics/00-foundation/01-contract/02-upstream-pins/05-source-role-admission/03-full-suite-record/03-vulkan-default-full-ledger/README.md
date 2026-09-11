@@ -20,7 +20,7 @@ uncategorized paths. The ledger is not a claim that all entries are Vulkan core.
 ## Checklist
 
 - [x] [F02.5.3.3.1 — Bind the Vulkan ledger and observed taxonomy](01-vulkan-ledger-taxonomy/README.md)
-- [ ] [F02.5.3.3.2 — Prove streaming cache replay](02-streaming-cache-replay/README.md)
+- [x] [F02.5.3.3.2 — Prove streaming cache replay](02-streaming-cache-replay/README.md)
 - [ ] [F02.5.3.3.3 — Refresh the full Vulkan suite and receipt](03-fresh-full-suite-receipt/README.md)
 
 ## Verification
