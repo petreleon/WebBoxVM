@@ -4,7 +4,7 @@
 
 Task: F02.5.3.1
 Depends: F02.5.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,14 +20,14 @@ role; only its Khronos selector field may be true.
 
 ## Checklist
 
-- [ ] Re-fetch each immutable root into an empty cache and verify exact bytes and digest.
-- [ ] Bind the two OpenGL-family roots to 067e8832315e79817ede1c4863804e440f5d1c80.
-- [ ] Bind Vulkan vk-default.txt to release vulkan-cts-1.4.6.2 at f6a29701220f34dd1407513bfe80d74ca7b392ce.
-- [ ] Reject mutable revisions, wrong paths, false unfiltered status, and non-Khronos root roles.
-- [ ] Record that Vulkan vk-default is a full default root, not a Khronos Vulkan-1.4-core-only selector.
+- [x] Re-fetch each immutable root into an empty cache and verify exact bytes and digest.
+- [x] Bind the two OpenGL-family roots to 067e8832315e79817ede1c4863804e440f5d1c80.
+- [x] Bind Vulkan vk-default.txt to release vulkan-cts-1.4.6.2 at f6a29701220f34dd1407513bfe80d74ca7b392ce.
+- [x] Reject mutable revisions, wrong paths, false unfiltered status, and non-Khronos root roles.
+- [x] Record that Vulkan vk-default is a full default root, not a Khronos Vulkan-1.4-core-only selector.
 
 ## Verification
 
-Each root is streamed from its immutable URL, has Khronos authority and producer, is
-unfiltered, and makes no API support, conformance, certification, profile, or
-performance claim.
+Each root is fetched from its immutable URL, re-hashed from cache, has Khronos authority
+and producer, is unfiltered, and makes no API support, conformance, certification,
+profile, or performance claim.
