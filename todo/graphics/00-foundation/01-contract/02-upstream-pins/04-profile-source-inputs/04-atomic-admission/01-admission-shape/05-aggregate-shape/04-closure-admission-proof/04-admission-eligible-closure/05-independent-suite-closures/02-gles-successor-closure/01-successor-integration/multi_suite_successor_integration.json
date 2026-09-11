@@ -1,0 +1,63 @@
+{
+  "schema": 4,
+  "contract": "multi-suite-successor-integration-v4",
+  "status": "design-only-unadmitted",
+  "predecessor": {
+    "active_schema": 2,
+    "inventory_lock_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+    "active_families": [
+      "linux-uapi", "mesa-virgl", "mesa-venus", "virglrenderer", "venus-protocol", "gl-gles-registry",
+      "glsl", "essl", "vulkan", "spirv", "webgpu", "wgsl", "wgsl-grammar", "vk-gl-cts",
+      "webgpu-cts", "piglit", "webgpu-idl"
+    ],
+    "active_inventory_changed": false
+  },
+  "docs": {
+    "transition_sha256": "d9317d418f6c13f4c85275bffb1a01139eb036e7ddf5853a347dde84d69273c5",
+    "successor_schema": 3,
+    "family": "vulkan-docs",
+    "independently_admitted": false,
+    "complete_closure_required": true,
+    "fresh_authority_and_lineage_required": true
+  },
+  "gles": {
+    "boundary_policy_sha256": "da10dbc51230b2495f7c24c100055ab91970a92217b43f2895ec5cfa2ead459b",
+    "profile": "gles-3.2",
+    "candidate_id": "gles-cts-manifest",
+    "candidate_sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+    "family": "gles-cts",
+    "core_member_count": 4,
+    "configuration_count": 12,
+    "extension_exclusion_required": true,
+    "per_member_max_bytes": 8388608,
+    "successor_closure_ready": false,
+    "fresh_capture_required": true
+  },
+  "aggregate": {
+    "target_schema": 4,
+    "wrapper_families": ["vulkan-docs", "gles-cts"],
+    "active_family_alias_allowed": false,
+    "one_wrapper_per_family": true,
+    "root_and_nonroot_required": true,
+    "independent_closures_required": true,
+    "cross_wrapper_substitution_allowed": false,
+    "atomic_f02_f03_revalidation_required": true,
+    "active_mutation_permitted": false,
+    "cache_freshness_proved": false
+  },
+  "effects": {
+    "active_inventory_changed": false,
+    "cache_freshness_proved": false,
+    "f03_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false,
+    "supported": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false
+  },
+  "integration_sha256": "d22eeadf9da86ccd79493e348d7809d090d01dbf91c9a4e4316b6db92d2caf7c"
+}
