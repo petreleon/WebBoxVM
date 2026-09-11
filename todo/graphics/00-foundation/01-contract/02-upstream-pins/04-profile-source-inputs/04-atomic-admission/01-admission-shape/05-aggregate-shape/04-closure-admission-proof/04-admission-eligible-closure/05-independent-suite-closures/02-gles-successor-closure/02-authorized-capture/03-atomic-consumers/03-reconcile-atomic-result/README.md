@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.2.3.3
 Depends: F02.4.4.1.5.4.4.5.2.2.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [consumer revalidation](../02-revalidate-consumers/README.md), the
 [Docs transition](../../../../../06-successor-inventory-transition/README.md), and the
@@ -24,11 +24,11 @@ captured successor erase another lane's blocker or claim admission/F03 readiness
 
 ## Checklist
 
-- [ ] Bind the same capture, F02/F03 consumer result, Docs transition, and VCTS handoff in one self-checked record.
-- [ ] Preserve the exact Docs and VCTS unadmitted boundaries, scope limits, and no-local-filter rule.
-- [ ] Reject partial, stale, cross-wrapper, reordered, or false-promotion aggregate records.
-- [ ] Record the complete blocked state and unchanged blockers with no active/F03 mutation.
-- [ ] Add focused positive and hostile tests; run regression, source-limit, whitespace, and roadmap checks.
+- [x] Bind the same capture, F02/F03 consumer result, Docs transition, and VCTS handoff in one self-checked record.
+- [x] Preserve the exact Docs and VCTS unadmitted boundaries, scope limits, and no-local-filter rule.
+- [x] Reject partial, stale, cross-wrapper, reordered, or false-promotion aggregate records.
+- [x] Record the complete blocked state and unchanged blockers with no active/F03 mutation.
+- [x] Add focused positive and hostile tests; run regression, source-limit, whitespace, and roadmap checks.
 
 ## Verification
 

@@ -24,7 +24,7 @@ category report as Khronos conformance. Until then it retains their exact blocke
 ## Checklist
 
 - [x] [Freeze the independent-suite successor boundary](01-successor-boundary/README.md)
-- [ ] [Resolve the GLES immutable successor closure](02-gles-successor-closure/README.md)
+- [x] [Resolve the GLES immutable successor closure](02-gles-successor-closure/README.md)
 - [ ] [Establish the VCTS core-manifest condition](03-vcts-core-manifest/README.md)
 
 ## Verification

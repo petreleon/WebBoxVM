@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2
 Depends: F02.2, F02.4.2, F02.4.4.1.5.4.4.5.1
-Evidence: pending; child evidence: [successor integration](01-successor-integration/evidence.md)
+Evidence: [receipt](evidence.md); child evidence: [successor integration](01-successor-integration/evidence.md), [authorized capture](02-authorized-capture/evidence.md)
 
 Prerequisite lists: the [successor boundary](../01-successor-boundary/README.md), the
 [GLES closure probe](../../../../../01-gles-closure-probe/README.md), and the
@@ -26,7 +26,7 @@ proof exists; a partial or locally reconstructed closure is not a substitute.
 ## Checklist
 
 - [x] [Define a coexistence-safe GLES successor integration](01-successor-integration/README.md)
-- [ ] [Capture and atomically admit the immutable GLES closure](02-authorized-capture/README.md)
+- [x] [Capture and atomically admit the immutable GLES closure](02-authorized-capture/README.md)
 
 ## Verification
 
