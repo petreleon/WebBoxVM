@@ -13,6 +13,7 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+TEMP_ROOT = Path("/private/tmp") if Path("/private/tmp").is_dir() else Path(tempfile.gettempdir()).resolve()
 sys.path.insert(0, str(HERE))
 import derived_member_authority_gate as gate
 
@@ -61,7 +62,7 @@ class DerivedMemberAuthorityGateTest(unittest.TestCase):
             gate.require_authority_manifest(fabricated)
 
     def test_duplicate_oversize_and_nonregular_gate_paths_are_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as temporary:
             root = Path(temporary)
             duplicate = root / "duplicate.json"
             duplicate.write_text(gate.RECORD.read_text().replace('"schema": 1', '"schema": 1, "schema": 1', 1))
@@ -77,8 +78,12 @@ class DerivedMemberAuthorityGateTest(unittest.TestCase):
                 gate.gate(fifo)
             link = root / "gate-link.json"
             link.symlink_to(gate.RECORD)
-            with self.assertRaisesRegex(gate.AuthorityError, "regular file"):
+            with self.assertRaisesRegex(gate.AuthorityError, "safely opened"):
                 gate.gate(link)
+            redirect = root / "redirect"
+            redirect.symlink_to(gate.HERE, target_is_directory=True)
+            with self.assertRaisesRegex(gate.AuthorityError, "safely opened"):
+                gate.gate(redirect / gate.RECORD.name)
 
     def test_cli_is_read_only_and_reports_blocked_state(self) -> None:
         watched = (gate.RECORD, gate.closure_anchor.RECORD, *gate.closure_anchor.source_policy.ANCHORS.values())

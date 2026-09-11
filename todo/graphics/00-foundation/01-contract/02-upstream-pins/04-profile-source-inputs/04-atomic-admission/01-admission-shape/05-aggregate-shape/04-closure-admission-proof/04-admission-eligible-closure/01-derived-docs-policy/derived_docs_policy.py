@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
-import stat
 import sys
 from pathlib import Path
+
+from safe_reader import ReaderError, bounded_bytes as safely_bounded_bytes
 
 HERE = Path(__file__).resolve().parent
 POLICY = HERE / "derived_docs_policy.json"
@@ -48,18 +48,9 @@ def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
 
 def bounded_bytes(path: Path, label: str) -> bytes:
     try:
-        if not stat.S_ISREG(path.lstat().st_mode):
-            reject(f"{label} is not a regular file")
-        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-        with os.fdopen(descriptor, "rb") as source:
-            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
-                reject(f"{label} is not a regular file")
-            result = source.read(MAX_DOCUMENT_BYTES + 1)
-    except OSError as error:
-        reject(f"{label} cannot be read: {error}")
-    if len(result) > MAX_DOCUMENT_BYTES:
-        reject(f"{label} exceeds its bounded size")
-    return result
+        return safely_bounded_bytes(path, label, MAX_DOCUMENT_BYTES)
+    except ReaderError as error:
+        reject(str(error))
 
 
 def decoded(raw: bytes, label: str) -> dict[str, object]:

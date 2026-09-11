@@ -14,6 +14,7 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+TEMP_ROOT = Path("/private/tmp") if Path("/private/tmp").is_dir() else Path(tempfile.gettempdir()).resolve()
 sys.path.insert(0, str(HERE))
 import derived_docs_policy as contract
 
@@ -78,7 +79,7 @@ class DerivedDocsPolicyTest(unittest.TestCase):
         with self.assertRaisesRegex(contract.PolicyError, "sha256"):
             contract.policy_value(altered)
         self.reject(lambda value: value.__setitem__("source_requirements_sha256", "a" * 64), "reviewed F03")
-        with tempfile.TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as temporary:
             root = Path(temporary)
             duplicate = root / "duplicate.json"
             duplicate.write_text(contract.POLICY.read_text().replace('"schema": 1', '"schema": 1, "schema": 1', 1))
@@ -94,8 +95,12 @@ class DerivedDocsPolicyTest(unittest.TestCase):
                 contract.policy(fifo)
             link = root / "policy-link.json"
             link.symlink_to(contract.POLICY)
-            with self.assertRaisesRegex(contract.PolicyError, "regular file"):
+            with self.assertRaisesRegex(contract.PolicyError, "safely opened"):
                 contract.policy(link)
+            redirect = root / "redirect"
+            redirect.symlink_to(contract.HERE, target_is_directory=True)
+            with self.assertRaisesRegex(contract.PolicyError, "safely opened"):
+                contract.policy(redirect / contract.POLICY.name)
 
     def test_cli_is_read_only_and_reports_unadmitted_state(self) -> None:
         watched = (contract.POLICY, contract.REQUIREMENTS, *(path for path, _ in contract.ANCHORS.values()))

@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
+TEMP_ROOT = Path("/private/tmp") if Path("/private/tmp").is_dir() else Path(tempfile.gettempdir()).resolve()
 sys.path.insert(0, str(HERE))
 import successor_closure_anchor as anchor
 
@@ -61,7 +62,7 @@ class SuccessorClosureAnchorTest(unittest.TestCase):
 
     def test_policy_hash_document_and_nonregular_paths_are_rejected(self) -> None:
         self.reject(lambda value: value.__setitem__("policy_sha256", "a" * 64), "derived Docs policy")
-        with tempfile.TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as temporary:
             root = Path(temporary)
             duplicate = root / "duplicate.json"
             duplicate.write_text(anchor.RECORD.read_text().replace('"schema": 1', '"schema": 1, "schema": 1', 1))
@@ -77,8 +78,12 @@ class SuccessorClosureAnchorTest(unittest.TestCase):
                 anchor.anchor(fifo)
             link = root / "anchor-link.json"
             link.symlink_to(anchor.RECORD)
-            with self.assertRaisesRegex(anchor.AnchorError, "regular file"):
+            with self.assertRaisesRegex(anchor.AnchorError, "safely opened"):
                 anchor.anchor(link)
+            redirect = root / "redirect"
+            redirect.symlink_to(anchor.HERE, target_is_directory=True)
+            with self.assertRaisesRegex(anchor.AnchorError, "safely opened"):
+                anchor.anchor(redirect / anchor.RECORD.name)
 
     def test_historical_status_configuration_and_output_swaps_are_rejected(self) -> None:
         self.reject_history(lambda build, scope, comparison: build.__setitem__("status", "admitted"), "configuration")
