@@ -111,10 +111,16 @@ class SourceRoleContractTests(unittest.TestCase):
                 validate_catalog(catalog(*records))
 
     def test_registry_metadata_stays_an_upstream_nonselector(self):
-        self.assertEqual(validate_catalog(catalog(upstream(scope="registry-metadata"))),
+        registry = upstream(scope="registry-metadata", immutable_url=raw("Vulkan-Docs", "xml/vk.xml"))
+        self.assertEqual(validate_catalog(catalog(registry)),
                          ("vulkan-spec",))
         with self.assertRaises(RoleError):
-            validate_catalog(catalog(upstream(scope="registry-metadata", claims=claims(True))))
+            validate_catalog(catalog(upstream(scope="registry-metadata", claims=claims(True),
+                                              immutable_url=raw("Vulkan-Docs", "xml/vk.xml"))))
+        for value in (upstream(scope="registry-metadata"),
+                      upstream(immutable_url=raw("Vulkan-Docs", "xml/vk.xml"))):
+            with self.subTest(value=value), self.assertRaises(RoleError):
+                validate_catalog(catalog(value))
 
     def test_transform_requires_local_producer_canonical_argv_inputs_and_size_cap(self):
         cases = (transform(authority="Khronos"), transform(command=["sh", "-c", "curl https://bad"]),

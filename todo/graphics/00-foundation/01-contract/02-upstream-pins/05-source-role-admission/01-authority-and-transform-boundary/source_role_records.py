@@ -36,7 +36,7 @@ FULL_SUITES = {
     "vulkan-1.4-core": ("vulkan-cts-default", "VK-GL-CTS",
                          "external/vulkancts/mustpass/main/vk-default.txt"),
 }
-
+REGISTRY_METADATA = ("Vulkan-Docs", "xml/vk.xml")
 
 class RoleError(ValueError):
     """A record would conflate source authority with qualification."""
@@ -61,12 +61,10 @@ def digest(value: object, name: str = "sha256") -> str:
         reject(f"{name} must be a nonzero SHA-256")
     return value
 
-
 def positive(value: object, name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
         reject(f"{name} must be a positive integer")
     return value
-
 
 def artifact(value: object, name: str = "artifact") -> str:
     value = text(value, name)
@@ -153,9 +151,11 @@ def record_shape(record: object) -> str:
     fields(record, expected, "record")
     identifier = common(record, kind == "full-suite-root")
     if kind == "upstream-source":
-        _revision, _repository, path = upstream_identity(record)
+        _revision, repository, path = upstream_identity(record)
         if (record["authority"], record["producer"]) != ("Khronos", "Khronos") or record["scope"] not in UPSTREAM_SCOPES:
             reject("upstream source has an invalid authority boundary")
+        if ((repository, path) == REGISTRY_METADATA) != (record["scope"] == "registry-metadata"):
+            reject("registry metadata must be the Vulkan Docs vk.xml identity")
         if record["scope"] == "suite-member":
             identity(record["suite_root_id"], "suite_root_id")
             if text(record["member_path"], "member_path") != path:

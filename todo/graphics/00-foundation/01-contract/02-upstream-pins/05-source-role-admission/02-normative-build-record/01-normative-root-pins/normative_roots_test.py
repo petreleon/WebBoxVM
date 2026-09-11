@@ -2,6 +2,8 @@
 """Focused hostile checks for the F02.5.2.1 normative-root catalog."""
 
 import unittest
+import tempfile
+from pathlib import Path
 
 from normative_roots import EXPECTED, ROOTS, RootError, catalog, provenance, source_input, validate_normative_catalog
 
@@ -33,7 +35,7 @@ class NormativeRootsTests(unittest.TestCase):
 
     def test_rejects_mutable_or_foreign_identity_and_terms_changes(self):
         cases = []
-        mutable = catalog(); mutable["records"][0]["immutable_url"] = mutable["records"][0]["immutable_url"].replace(EXPECTED["opengl-46-spec"]["revision"], "main"); cases.append(mutable)
+        mutable = catalog(); mutable["records"][0]["immutable_url"] = mutable["records"][0]["immutable_url"].replace(EXPECTED["opengl-46-core-spec"]["revision"], "main"); cases.append(mutable)
         foreign = catalog(); foreign["records"][1]["immutable_url"] = foreign["records"][1]["immutable_url"].replace("KhronosGroup", "Elsewhere"); cases.append(foreign)
         for field, value in (("license", ""), ("attribution", "WebBoxVM"), ("sha256", "0" * 64), ("bytes", 1)):
             changed = catalog(); changed["records"][2][field] = value; cases.append(changed)
@@ -47,6 +49,17 @@ class NormativeRootsTests(unittest.TestCase):
         with self.assertRaises(RootError):
             validate_normative_catalog(changed)
         self.assertFalse(ROOTS[0]["claims"]["api_support"])
+
+    def test_fresh_refresh_rejects_any_preexisting_cache_content(self):
+        from normative_roots import fetch_and_verify
+        for relative in ("unexpected", ROOTS[0]["artifact"]):
+            with self.subTest(relative=relative), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary) / "cache"
+                target = root / relative
+                target.parent.mkdir(parents=True)
+                target.write_bytes(b"old")
+                with self.assertRaises(RootError):
+                    fetch_and_verify(catalog(), root, 1)
 
 
 if __name__ == "__main__":

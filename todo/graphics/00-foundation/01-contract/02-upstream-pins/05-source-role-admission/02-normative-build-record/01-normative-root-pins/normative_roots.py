@@ -18,6 +18,7 @@ from source_model import ContractError, ExternalCache, SourceInput, repository_r
 from source_role_artifacts import verify_catalog  # noqa: E402
 from source_role_contract import validate_catalog  # noqa: E402
 from source_role_records import RoleError  # noqa: E402
+from normative_notices import NoticeError, verify_notices  # noqa: E402
 
 NO_CLAIMS = {"khronos_selector": False, "api_support": False, "conformance": False,
              "certification": False, "profile_support": False, "performance": False}
@@ -42,14 +43,14 @@ def root(identifier: str, url: str, revision: str, digest: str, size: int, licen
 OPENGL_REVISION = "1cdd228e34966dd6b95bd203e9f84faba0f371a1"
 VULKAN_REVISION = "f84d432d5b8912362f96f581f29bbc4f3c8c7843"
 ROOTS = (
-    root("opengl-46-spec", f"https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/{OPENGL_REVISION}/specs/gl/glspec46.core.pdf",
+    root("opengl-46-core-spec", f"https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/{OPENGL_REVISION}/specs/gl/glspec46.core.pdf",
          OPENGL_REVISION, "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee", 3003752,
-         "Khronos OpenGL 4.6 Core Profile Specification reproduction terms (PDF p. iv)",
-         "Copyright 2006-2022 The Khronos Group Inc.; conditional reproduction notice, PDF p. iv", "normative-source"),
+         "Khronos OpenGL 4.6 Core Profile Specification reproduction terms (PDF file page 3)",
+         "Copyright 2006-2022 The Khronos Group Inc.; conditional reproduction notice, PDF file page 3", "normative-source"),
     root("gles-32-spec", f"https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/{OPENGL_REVISION}/specs/es/3.2/es_spec_3.2.pdf",
          OPENGL_REVISION, "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c", 2198754,
-         "Khronos OpenGL ES 3.2 Specification reproduction terms (PDF p. iv)",
-         "Copyright 2006-2022 The Khronos Group Inc.; conditional reproduction notice, PDF p. iv", "normative-source"),
+         "Khronos OpenGL ES 3.2 Specification reproduction terms (PDF file page 2)",
+         "Copyright 2006-2022 The Khronos Group Inc.; conditional reproduction notice, PDF file page 2", "normative-source"),
     root("vulkan-14-spec", f"https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/{VULKAN_REVISION}/vkspec.adoc",
          VULKAN_REVISION, "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0", 8685,
          "CC-BY-4.0 (vkspec.adoc SPDX-License-Identifier)",
@@ -94,16 +95,28 @@ def source_input(record: dict[str, object]) -> SourceInput:
                                       "provenance": provenance(record)})
 
 
+def require_fresh_cache(root: Path) -> None:
+    if root.exists() and (not root.is_dir() or any(root.iterdir())):
+        raise RootError("fresh cache root must be missing or an empty directory")
+
+
 def fetch_and_verify(value: object, cache_root: Path, timeout: float) -> list[tuple[str, str, Path]]:
     if timeout <= 0:
         raise RootError("timeout must be positive")
     validate_normative_catalog(value)
     cache = ExternalCache.from_path(cache_root, repository_root(HERE))
+    require_fresh_cache(cache.root)
     results = []
     for record in value["records"]:
         path, reused = fetch_to_cache(cache, source_input(record), timeout)
+        if reused:
+            raise RootError("fresh source refresh unexpectedly reused a cache target")
         results.append((record["id"], "reused" if reused else "fetched", path))
     verify_catalog(value, cache.root)
+    try:
+        verify_notices({identifier: path for identifier, _state, path in results})
+    except NoticeError as error:
+        raise RootError(str(error)) from error
     return results
 
 
@@ -115,7 +128,7 @@ def main() -> None:
     try:
         for identifier, state, path in fetch_and_verify(catalog(), args.cache_root, args.timeout):
             print(f"PASS: {identifier} {state} {path}")
-    except (ContractError, RoleError, RootError) as error:
+    except (ContractError, NoticeError, RoleError, RootError) as error:
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(2)
 

@@ -86,6 +86,7 @@ graphics-source-role-test:
 
 graphics-normative-root-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/05-source-role-admission/02-normative-build-record/01-normative-root-pins/normative_roots_test.py
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/05-source-role-admission/02-normative-build-record/01-normative-root-pins/normative_notices_test.py
 
 test: graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test
 	cargo test -p emulator
