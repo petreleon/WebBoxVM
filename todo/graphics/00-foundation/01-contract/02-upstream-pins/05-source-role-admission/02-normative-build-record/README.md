@@ -4,7 +4,7 @@
 
 Task: F02.5.2
 Depends: F02.5.1
-Evidence: pending
+Evidence: [aggregate receipt](evidence.md)
 
 ## Outcome
 
@@ -22,7 +22,7 @@ WebBoxVM-produced rather than an imagined Khronos per-output manifest.
 
 - [x] [F02.5.2.1 — Pin and re-fetch normative roots](01-normative-root-pins/README.md)
 - [x] [F02.5.2.2 — Build a bounded local Vulkan 1.4 definition](02-vulkan-local-definition/README.md)
-- [ ] [F02.5.2.3 — Admit records and publish the no-claim receipt](03-admission-receipt/README.md)
+- [x] [F02.5.2.3 — Admit records and publish the no-claim receipt](03-admission-receipt/README.md)
 
 ## Verification
 

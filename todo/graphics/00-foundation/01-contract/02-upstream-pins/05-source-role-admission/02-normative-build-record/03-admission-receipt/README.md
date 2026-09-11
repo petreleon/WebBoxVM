@@ -4,7 +4,7 @@
 
 Task: F02.5.2.3
 Depends: F02.5.1, F02.5.2.1, F02.5.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,10 +20,10 @@ conformance, certification, profile support, and performance false.
 
 ## Checklist
 
-- [ ] Bind the local artifact to exact input identities and canonical source-builder argv.
-- [ ] Validate actual cached source and artifact bytes before consumer admission.
-- [ ] Test false authority, source substitution, partial inputs, and all prohibited positive claims.
-- [ ] Attach the audited receipt and complete the parent only after its checks pass.
+- [x] Bind the local artifact to exact input identities and canonical source-builder argv.
+- [x] Validate actual cached source and artifact bytes before consumer admission.
+- [x] Test false authority, source substitution, partial inputs, and all prohibited positive claims.
+- [x] Attach the audited receipt and complete the parent only after its checks pass.
 
 ## Verification
 
