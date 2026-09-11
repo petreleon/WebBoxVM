@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.2.3.1
 Depends: F02.4.4.1.5.4.4.5.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [capture receipt](../../02-capture-and-replay/evidence.md), the
 [closure contract](../../01-closure-contract/README.md), and the [successor integration](../../../01-successor-integration/README.md).
@@ -23,11 +23,11 @@ captured-unadmitted marker as active cache freshness, source admission, or an F0
 
 ## Checklist
 
-- [ ] Bind the exact marker body and its six ordered source identities to the frozen closure contract.
-- [ ] Keep the F02 cache grammar separate from the successor-only marker namespace.
-- [ ] Require a complete offline replay before a live external cache can satisfy the binding.
-- [ ] Reject marker substitution, stale contract/configuration identity, partial member lists, and claimed readiness.
-- [ ] Add bounded positive and hostile tests without modifying active inventory, F03, or support state.
+- [x] Bind the exact marker body and its six ordered source identities to the frozen closure contract.
+- [x] Keep the F02 cache grammar separate from the successor-only marker namespace.
+- [x] Require a complete offline replay before a live external cache can satisfy the binding.
+- [x] Reject marker substitution, stale contract/configuration identity, partial member lists, and claimed readiness.
+- [x] Add bounded positive and hostile tests without modifying active inventory, F03, or support state.
 
 ## Verification
 

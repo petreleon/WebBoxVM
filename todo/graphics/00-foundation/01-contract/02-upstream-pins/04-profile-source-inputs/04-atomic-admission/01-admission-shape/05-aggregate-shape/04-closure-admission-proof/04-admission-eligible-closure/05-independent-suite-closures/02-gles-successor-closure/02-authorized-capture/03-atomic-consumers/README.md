@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.2.3
 Depends: F02.4.4.1.5.4.4.5.2.2.2
-Evidence: pending
+Evidence: pending; child evidence: [sealed capture binding](01-bind-sealed-capture/evidence.md)
 
 Prerequisite lists: the [complete GLES capture](../02-capture-and-replay/README.md), the
 [multi-suite successor integration](../../01-successor-integration/README.md), and the
@@ -24,7 +24,7 @@ the global support state while those other mandatory conditions remain false.
 
 ## Checklist
 
-- [ ] [Bind the sealed GLES capture](01-bind-sealed-capture/README.md)
+- [x] [Bind the sealed GLES capture](01-bind-sealed-capture/README.md)
 - [ ] [Revalidate the F02 and F03 consumers](02-revalidate-consumers/README.md)
 - [ ] [Reconcile the atomic blocked result](03-reconcile-atomic-result/README.md)
 
