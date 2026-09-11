@@ -90,6 +90,7 @@ graphics-normative-root-test:
 
 graphics-vulkan-definition-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/05-source-role-admission/02-normative-build-record/02-vulkan-local-definition/webboxvm_source_builder_test.py
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/05-source-role-admission/02-normative-build-record/02-vulkan-local-definition/vulkan_definition_contract_test.py
 
 test: graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test graphics-vulkan-definition-test
 	cargo test -p emulator
