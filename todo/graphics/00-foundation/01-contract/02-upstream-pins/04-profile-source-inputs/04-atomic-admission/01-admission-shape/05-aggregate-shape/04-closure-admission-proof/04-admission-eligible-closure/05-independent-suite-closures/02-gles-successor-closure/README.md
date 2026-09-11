@@ -25,12 +25,8 @@ proof exists; a partial or locally reconstructed closure is not a substitute.
 
 ## Checklist
 
-- [ ] Obtain a policy-authorized immutable closure whose selected members, scope, and producer are explicit.
-- [ ] Validate every physical member's URL, revision, digest, bytes, license, provenance, cache, and 8 MiB cap.
-- [ ] Bind all required configurations and retain the explicit optional-extension exclusion.
-- [ ] Reproduce a fresh complete capture and offline replay without root-only or partial substitution.
-- [ ] Reject stale, mutable, duplicate, over-cap, configuration-drift, and scope-expanded evidence.
-- [ ] Record focused evidence or retain the first external closure-authority blocker.
+- [ ] [Define a coexistence-safe GLES successor integration](01-successor-integration/README.md)
+- [ ] [Capture and atomically admit the immutable GLES closure](02-authorized-capture/README.md)
 
 ## Verification
 
