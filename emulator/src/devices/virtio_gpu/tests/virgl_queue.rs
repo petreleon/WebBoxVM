@@ -31,9 +31,12 @@ fn queued_resident_capable_framebuffer_clear_waits_for_ack_before_mutating_scano
     assert_eq!(&gpu.resources[&4].pixels[..4], &[0, 0, 0, 0]);
     let packet = gpu.take_3d_update();
     assert_eq!(&packet[..4], b"VGC1");
+    assert_eq!(packet.len(), 40);
+    assert_eq!([4, 36].map(|offset| read_u32(&packet, offset)), [Some(2), Some(0)]);
     let sequence = read_u32(&packet, 8).expect("VGC1 sequence");
 
     assert!(gpu.complete_3d(&mut mem, sequence, true));
+    assert!(!gpu.resident_resources.contains_key(&4));
     assert_eq!(&gpu.resources[&4].pixels[..4], &[191, 128, 64, 255]);
     assert_eq!(mem.read(USED + 2, 2), Some(1));
     assert_eq!(mem.read(RESPONSE, 4), Some(RESP_OK_NODATA as u64));

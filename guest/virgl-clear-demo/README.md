@@ -52,7 +52,7 @@ creates standard DSA state `DEPTH_TEST|DEPTH_WRITE|LESS`, clears color plus
 depth to one, and draws a near triangle before an overlapping far triangle.
 The final center must be a single source-over blend `58,102,20,255`. It then
 clears once and emits half-alpha red then half-alpha green standard solid
-`DRAW_VBO`s; the ordered source-over center is `0,128,64,255` in BGRA. It then clears color/depth once and draws half-alpha red near before half-alpha green far; `LESS` leaves the center at `0,0,128,255`. A final standard `DEPTH_TEST|DEPTH_WRITE|EQUAL` state clears depth to one, draws a half-alpha blue triangle at z=1, and requires `128,0,0,255` BGRA. It then repeats `EQUAL` at z=1 for half-alpha red then blue, requiring the shared-comparison batch center `128,0,64,255`, then switches `LESS` z=-.5 to `GREATER` z=.5 and requires `0,128,64,255`. Its V5 batch uses write-enabled `LESS` state 7 followed by read-only `GREATER` state 17, then schema-12 read-only `LESS` position/RGBA depth state, retaining `64,64,127,255`. Finally it uses sampled position/UV and position/RGBA/UV VBOs at z=-.5 under write-enabled `LESS` DSA 7, clears depth to one, and requires `10,20,30,255` then `32,32,64,255` while proving guest texture and modulation DSA transport. It then clears once more and emits a far half-alpha solid red draw followed by a near gray texture-modulated vertex-color draw; their ordered standard stream must become one depth-tested mixed-material `VGM1` batch and retain `32,32,64,255` at the center.
+`DRAW_VBO`s; the ordered source-over center is `0,128,64,255` in BGRA. It then clears color/depth once and draws half-alpha red near before half-alpha green far; `LESS` leaves the center at `0,0,128,255`. A final standard `DEPTH_TEST|DEPTH_WRITE|EQUAL` state clears depth to one, draws a half-alpha blue triangle at z=1, and requires `128,0,0,255` BGRA. It then repeats `EQUAL` at z=1 for half-alpha red then blue, requiring the shared-comparison batch center `128,0,64,255`, then switches `LESS` z=-.5 to `GREATER` z=.5 and requires `0,128,64,255`. Its V5 batch uses write-enabled `LESS` state 7 followed by read-only `GREATER` state 17, then schema-12 read-only `LESS` position/RGBA depth state, retaining `64,64,127,255`. Finally it uses sampled position/UV and position/RGBA/UV VBOs at z=-.5 under write-enabled `LESS` DSA 7, clears depth to one, and requires `10,20,30,255` then `32,32,64,255` while proving guest texture and modulation DSA transport. It then clears once more and emits a far half-alpha red solid followed by a near stage-0-UBO-translated gray texture × constant draw; their depth-tested `VGM1` batch retains `64,64,64,255` at the center.
 
 The wait matters: WebBoxVM completes the guest submission only after the
 browser WebGPU queue reports completion. Closing the context before that point
@@ -79,20 +79,19 @@ VIRGL_TEXTURE_DEMO_PASS card0 capset=1 rings=2:ring1-clear mesh=2x-constant-unif
 ```
 
 That marker appears only after all guest fences resolve. The native harness
-first validates the scanout upload `WBGF`, then validates and completes `VGC1`,
-captures its clear `WBGF`, validates schema-2 `VGD1` with the inline color, six reordered vertices,
-viewport, scissor, and its indexed two-triangle batch, then requires its `121,115,134,255` `WBGF`.
-It next validates two schema-5 packets: repeat at `u == 1`, then clamp/linear at
-`u == .5`, each with its position/UV VBO and normalized 2×2 BGRA snapshot from raw
-RGBA. Schema 6 then verifies independent left-linear/right-repeat sampling at `[1,.625]`
-and requires `55,65,75,255` at the center. Schema 7 then checks the generic
-position/RGBA VBO and requires interpolated `64,64,127,255`; schema 8 then checks the 40-byte position/RGBA/UV stride, gray sampler snapshot, and modulated `32,32,64,255` center before the marker.
-Finally, after the guest's two command-9 write/readback proofs, it accepts another
-schema-2 packet only with the offset-four UBO color and shifted vertex positions,
-then accepts schema 9 only with Z32 depth state, clear-one, and near-before-far
-vertices. It requires the one-blend `58,102,20,255` center, then validates the
-private `VGB1` envelope from the two standard draws and its ordered
-`0,128,64,255` center, then validates VGB1 v2 with standard clear-one depth and near-before-far records, requiring the `0,0,128,255` center. It then validates schema 10 with standard `EQUAL`, z=1 vertices, black clear, and `128,0,0,255` BGRA, followed by VGB1 v3 shared-`EQUAL` red/blue records and `128,0,64,255`, VGB1 v4 `LESS`/`GREATER`, VGB1 v5 canonical words `7`/`17`, schema 12 position/RGBA depth state `5` and `64,64,127,255`, schema 13 position/UV clear-one DSA `7` and `10,20,30,255`, then schema 14 position/RGBA/UV clear-one DSA `7` and `32,32,64,255`, followed by the exact 364-byte depth-tested `VGM1` solid/texture-constant sequence translated by its stage-0 UBO and its `64,64,64,255` center before PASS.
+first validates the scanout upload `WBGF`, then accepts exact initial resident
+candidates: `VGC1 v2` with zero predecessor; `VGB1 v6` inline/UBO singleton
+and two-draw forms; and `VGM1 v2` repeat/linear texture, paired texture,
+vertex-color, and texture-color forms. It completes those packets through
+`complete_gpu_3d`, deliberately exercising CPU fallback and exact `WBGF`
+pixel checks. This is native guest-transport evidence, not browser WebGPU
+evidence and not a call to `gpu_3d_complete_resident`.
+
+It then validates the legacy depth and batch forms: schema 9 Z32 `LESS`,
+VGB1 depth, schema 10 `EQUAL`, VGB1 v3/v4/v5 comparisons, schemas 12–14
+vertex/material forms, and the exact 364-byte depth-tested `VGM1` solid/
+texture-constant sequence. Their expected BGRA results—including the final
+`64,64,64,255` center—must all be present before PASS.
 
 The fixed dimensions, one scanout target, one small byte buffer, and one small
 off-screen copy are intentional. A mode, format, KMS, resource, or command

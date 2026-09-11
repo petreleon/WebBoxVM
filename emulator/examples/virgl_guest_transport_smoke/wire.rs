@@ -9,29 +9,25 @@ pub(super) fn demo_script(binary: &[u8]) -> String {
         .push_str("WEBBOXVM_VIRGL_EOF\rchmod 0755 /tmp/virgl-clear-demo\r/tmp/virgl-clear-demo\r");
     script
 }
-pub(super) fn vgc1_sequence(packet: &[u8]) -> Result<u32, String> {
-    if packet.len() != 36
-        || packet.get(..4) != Some(b"VGC1")
-        || read_u32(packet, 4) != Some(1)
-        || read_u32(packet, 12) != Some(1024)
-        || read_u32(packet, 16) != Some(768)
-        || !words_are(
-            packet,
-            20,
-            &[0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000],
-        )
-    {
-        return Err("guest emitted an invalid standard VirGL clear packet".into());
-    }
-    read_u32(packet, 8)
-        .filter(|sequence| *sequence != 0)
-        .ok_or_else(|| "VGC1 packet has no nonzero sequence".into())
-}
 pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
     match packet.get(..4) {
         Some(magic) if magic == b"VGC1" => vgc1_sequence(packet).map(VirglPacket::Clear),
+        Some(magic) if magic == b"VGM1" && read_u32(packet, 4) == Some(2) => match resident_material_sequence(packet)? {
+            ResidentMaterial::Texture(sequence, mode) => Ok(VirglPacket::TexturedDraw(sequence, mode)),
+            ResidentMaterial::Pair(sequence) => Ok(VirglPacket::TexturePairDraw(sequence)),
+            ResidentMaterial::VertexColor(sequence) => Ok(VirglPacket::VertexColorDraw(sequence)),
+            ResidentMaterial::TextureColor(sequence) => Ok(VirglPacket::TextureColorDraw(sequence)),
+        },
         Some(magic) if magic == b"VGM1" => material_batch_sequence(packet).map(VirglPacket::MaterialBatch),
         Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(1) => batch_sequence(packet).map(VirglPacket::SolidBatch),
+        Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(6) => match packet.len() {
+            204 => match resident_solid_packet(packet)? {
+                ResidentSolid::Draw(sequence) => Ok(VirglPacket::Draw(sequence)),
+                ResidentSolid::Uniform(sequence) => Ok(VirglPacket::UniformDraw(sequence)),
+            },
+            264 => batch_sequence(packet).map(VirglPacket::SolidBatch),
+            _ => Err("guest emitted an unsupported initial resident VGB1 size".into()),
+        },
         Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(2) => depth_batch_sequence(packet).map(VirglPacket::DepthBatch),
         Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(3) => depth_equal_batch_sequence(packet).map(VirglPacket::DepthEqualBatch),
         Some(magic) if magic == b"VGB1" && read_u32(packet, 4) == Some(4) => depth_mixed_batch_sequence(packet).map(VirglPacket::DepthMixedBatch),
@@ -50,7 +46,10 @@ pub(super) fn virgl_packet(packet: &[u8]) -> Result<VirglPacket, String> {
             Some(13) => depth_texture_sequence(packet).map(VirglPacket::DepthTextureDraw), Some(14) => depth_texture_color_sequence(packet).map(VirglPacket::DepthTextureColorDraw),
             _ => Err("guest emitted an unsupported VGD1 packet version".into()),
         },
-        _ => Err("guest emitted an unsupported VirGL browser packet".into()),
+        _ => Err(format!(
+            "guest emitted an unsupported VirGL browser packet: magic={:?}, version={:?}, bytes={}",
+            packet.get(..4), read_u32(packet, 4), packet.len(),
+        )),
     }
 }
 pub(super) fn is_clear_readback(packet: &[u8]) -> bool {
@@ -146,17 +145,20 @@ fn base64_lines(bytes: &[u8]) -> String {
         .map(|line| format!("{}\r", std::str::from_utf8(line).unwrap()))
         .collect()
 }
-#[path = "wire/batch.rs"] mod batch; #[path = "wire/draw.rs"] mod draw;
+#[path = "wire/batch.rs"] mod batch; #[path = "wire/clear.rs"] mod clear; #[path = "wire/draw.rs"] mod draw;
+#[path = "wire/resident_material.rs"] mod resident_material; #[path = "wire/resident_solid.rs"] mod resident_solid;
 #[path = "wire/depth.rs"] mod depth; #[path = "wire/depth_texture.rs"] mod depth_texture; #[path = "wire/depth_texture_color.rs"] mod depth_texture_color; #[path = "wire/depth_equal.rs"] mod depth_equal;
 #[path = "wire/depth_equal_batch.rs"] mod depth_equal_batch; #[path = "wire/depth_vertex_color.rs"] mod depth_vertex_color;
 #[path = "wire/material_batch.rs"] mod material_batch;
-#[path = "wire/texture.rs"] mod texture; #[path = "wire/texture_pair.rs"] mod texture_pair;
-#[path = "wire/vertex_color.rs"] mod vertex_color; #[path = "wire/texture_color.rs"] mod texture_color;
+#[path = "wire/texture.rs"] mod texture; #[path = "wire/texture_pair.rs"] mod texture_pair; #[path = "wire/vertex_color.rs"] mod vertex_color; #[path = "wire/texture_color.rs"] mod texture_color;
 
 pub(crate) use batch::{is_depth_batch_readback, is_solid_batch_readback};
 use batch::{batch_sequence, depth_batch_sequence};
+use clear::vgc1_sequence;
 pub(crate) use draw::{is_triangle_readback, is_uniform_readback};
 use draw::{uniform_sequence, vgd1_sequence};
+use resident_material::{sequence as resident_material_sequence, ResidentMaterial};
+use resident_solid::{packet as resident_solid_packet, ResidentSolid};
 pub(crate) use depth::is_depth_readback;
 use depth::depth_sequence;
 pub(crate) use depth_texture::is_depth_texture_readback; pub(crate) use depth_texture_color::is_depth_texture_color_readback;

@@ -1,6 +1,6 @@
 use super::{frame_pixels, read_u32, words_are};
 
-const VERTICES: &[u32] = &[
+pub(super) const VERTICES: &[u32] = &[
     0, 0x3f40_0000, 0, 0x3f80_0000, 0x3f80_0000, 0, 0, 0x3f80_0000, 0, 0x3f80_0000,
     0xbf40_0000, 0xbf40_0000, 0, 0x3f80_0000, 0, 0x3f80_0000, 0, 0x3f80_0000, 0, 0x3f80_0000,
     0x3f40_0000, 0xbf40_0000, 0, 0x3f80_0000, 0, 0, 0x3f80_0000, 0x3f80_0000, 0, 0x3f80_0000,

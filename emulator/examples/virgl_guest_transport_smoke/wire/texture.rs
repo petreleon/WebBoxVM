@@ -6,7 +6,7 @@ pub(crate) enum TextureMode {
     Linear,
 }
 
-const VERTICES: &[u32] = &[
+pub(super) const VERTICES: &[u32] = &[
     0,
     0x3f40_0000,
     0,
@@ -34,7 +34,7 @@ const VIEWPORT: &[u32] = &[
     0x43c0_0000,
     0x3f00_0000,
 ];
-const TEXTURE: &[u8] = &[
+pub(super) const TEXTURE: &[u8] = &[
     10, 20, 30, 255, 40, 50, 60, 255, 70, 80, 90, 255, 100, 110, 120, 255,
 ];
 

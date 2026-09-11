@@ -7,7 +7,8 @@ const DEPTH_FAR: [u32; 12] = [0, 0x3f40_0000, 0x3f00_0000, 0x3f80_0000, 0xbf40_0
 
 pub(super) fn batch_sequence(packet: &[u8]) -> Result<u32, String> {
     if packet.len() != 264 || packet.get(..4) != Some(b"VGB1")
-        || [4, 12, 16, 20, 24].into_iter().zip([1, 1024, 768, 2, 0]).any(|(at, want)| read_u32(packet, at) != Some(want))
+        || !matches!([read_u32(packet, 4), read_u32(packet, 24)], [Some(1), Some(0)] | [Some(6), Some(1)])
+        || [12, 16, 20].into_iter().zip([1024, 768, 2]).any(|(at, want)| read_u32(packet, at) != Some(want))
         || !words_are(packet, 28, &[0, 0, 0, 0x3f80_0000]) || read_u32(packet, 44) != Some(0)
         || !draw(packet, 48, [0x3f80_0000, 0, 0, 0x3f00_0000], &VERTICES)
         || !draw(packet, 156, [0, 0x3f80_0000, 0, 0x3f00_0000], &VERTICES)
@@ -50,4 +51,29 @@ pub(crate) fn is_depth_batch_readback(packet: &[u8]) -> bool {
         let center = (384 * 1024 + 512) * 4;
         pixels[..4] == [0, 0, 0, 255] && pixels[center..center + 4] == [0, 0, 128, 255]
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn put(packet: &mut [u8], offset: usize, values: &[u32]) {
+        for (index, value) in values.iter().enumerate() { packet[offset + index * 4..][..4].copy_from_slice(&value.to_le_bytes()); }
+    }
+
+    fn packet(version: u32, flags: u32) -> Vec<u8> {
+        let mut packet = vec![0; 264]; packet[..4].copy_from_slice(b"VGB1");
+        put(&mut packet, 4, &[version, 7, 1024, 768, 2, flags]); put(&mut packet, 28, &[0, 0, 0, 0x3f80_0000]);
+        for (offset, color) in [(48, [0x3f80_0000, 0, 0, 0x3f00_0000]), (156, [0, 0x3f80_0000, 0, 0x3f00_0000])] {
+            put(&mut packet, offset, &[3]); put(&mut packet, offset + 4, &color); put(&mut packet, offset + 20, &VIEWPORT);
+            put(&mut packet, offset + 44, &[448, 336, 128, 96]); put(&mut packet, offset + 60, &VERTICES);
+        }
+        packet
+    }
+
+    #[test]
+    fn accepts_only_legacy_or_initial_resident_solid_batches() {
+        assert_eq!(batch_sequence(&packet(1, 0)), Ok(7)); assert_eq!(batch_sequence(&packet(6, 1)), Ok(7));
+        assert!(batch_sequence(&packet(1, 1)).is_err()); assert!(batch_sequence(&packet(6, 0)).is_err());
+    }
 }

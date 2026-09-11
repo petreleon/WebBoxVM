@@ -21,7 +21,7 @@ static u32 stream(u32 *words, const struct virgl_resources *resources); static u
 
 int virgl_run_material_batch(long fd, const struct virgl_resources *resources)
 {
-    static const u8 expected[] = {32, 32, 64, 255};
+    static const u8 expected[] = {64, 64, 64, 255};
     if (upload(fd, resources) != 0) return 1;
     if (submit(fd, resources) != 0) return 2;
     if (virgl_wait_for_resource(fd, resources->scanout_bo) != 0) return 3;

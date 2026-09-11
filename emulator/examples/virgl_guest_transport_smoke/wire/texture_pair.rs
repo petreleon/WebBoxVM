@@ -1,6 +1,6 @@
 use super::{frame_pixels, read_u32, words_are};
 
-const VERTICES: &[u32] = &[
+pub(super) const VERTICES: &[u32] = &[
     0, 0x3f40_0000, 0, 0x3f80_0000, 0x3f80_0000, 0x3f20_0000,
     0xbf40_0000, 0xbf40_0000, 0, 0x3f80_0000, 0x3f80_0000, 0x3f20_0000,
     0x3f40_0000, 0xbf40_0000, 0, 0x3f80_0000, 0x3f80_0000, 0x3f20_0000,
@@ -8,10 +8,10 @@ const VERTICES: &[u32] = &[
 const VIEWPORT: &[u32] = &[
     0x4380_0000, 0x4340_0000, 0x3f00_0000, 0x4400_0000, 0x43c0_0000, 0x3f00_0000,
 ];
-const LEFT: &[u8] = &[
+pub(super) const LEFT: &[u8] = &[
     10, 20, 30, 255, 40, 50, 60, 255, 70, 80, 90, 255, 100, 110, 120, 255,
 ];
-const RIGHT: &[u8] = &[
+pub(super) const RIGHT: &[u8] = &[
     255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255,
 ];
 

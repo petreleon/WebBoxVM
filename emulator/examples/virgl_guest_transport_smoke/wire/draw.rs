@@ -1,9 +1,9 @@
 use super::{frame_pixels, read_u32, words_are};
 
-const CLEAR: [u32; 4] = [0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000];
-const INLINE: [u32; 4] = [0x3f4c_cccd, 0x3ecc_cccd, 0x3e4c_cccd, 0x3f00_0000];
-const UNIFORM: [u32; 4] = [0x3e4c_cccd, 0x3f19_999a, 0x3ecccccd, 0x3f00_0000];
-const INLINE_VERTICES: [u32; 24] = [
+pub(super) const CLEAR: [u32; 4] = [0x3e80_0000, 0x3f00_0000, 0x3f40_0000, 0x3f80_0000];
+pub(super) const INLINE: [u32; 4] = [0x3f4c_cccd, 0x3ecc_cccd, 0x3e4c_cccd, 0x3f00_0000];
+pub(super) const UNIFORM: [u32; 4] = [0x3e4c_cccd, 0x3f19_999a, 0x3ecccccd, 0x3f00_0000];
+pub(super) const INLINE_VERTICES: [u32; 24] = [
     0xbd80_0000,
     0xbe80_0000,
     0,
@@ -29,7 +29,7 @@ const INLINE_VERTICES: [u32; 24] = [
     0,
     0x3f80_0000,
 ];
-const UNIFORM_VERTICES: [u32; 24] = [
+pub(super) const UNIFORM_VERTICES: [u32; 24] = [
     0xbda0_0000,
     0xbe80_0000,
     0,
@@ -55,7 +55,7 @@ const UNIFORM_VERTICES: [u32; 24] = [
     0,
     0x3f80_0000,
 ];
-const VIEWPORT: [u32; 6] = [
+pub(super) const VIEWPORT: [u32; 6] = [
     0x4380_0000,
     0x4340_0000,
     0x3f00_0000,
