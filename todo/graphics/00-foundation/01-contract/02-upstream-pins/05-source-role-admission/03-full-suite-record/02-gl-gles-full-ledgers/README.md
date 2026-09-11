@@ -19,7 +19,7 @@ root-referenced list, configuration, and gles32-khr-glesext boundary asset.
 
 ## Checklist
 
-- [ ] [F02.5.3.2.1 — Ledger the GL flat sequence](01-gl-flat-ledger/README.md)
+- [x] [F02.5.3.2.1 — Ledger the GL flat sequence](01-gl-flat-ledger/README.md)
 - [ ] [F02.5.3.2.2 — Ledger the GLES complete closure](02-gles-full-closure-ledger/README.md)
 - [ ] [F02.5.3.2.3 — Receipt the GL/GLES ledgers](03-gl-gles-no-claim-receipt/README.md)
 

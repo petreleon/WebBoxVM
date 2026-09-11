@@ -4,7 +4,7 @@
 
 Task: F02.5.3.2.1
 Depends: F02.5.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ is a no-claim WebBoxVM observation.
 
 ## Checklist
 
-- [ ] Fetch the exact root into a fresh external cache and verify its pinned identity.
-- [ ] Parse 19,714 unique ordered nonblank case lines without normalizing their bytes.
-- [ ] Bind count and sequence digest to the root identity.
-- [ ] Reject omitted, duplicated, reordered, substituted, or malformed cases.
-- [ ] Keep the raw root and local observation under distinct authorities.
+- [x] Fetch the exact root into a fresh external cache and verify its pinned identity.
+- [x] Parse 19,714 unique ordered nonblank case lines without normalizing their bytes.
+- [x] Bind count and sequence digest to the root identity.
+- [x] Reject omitted, duplicated, reordered, substituted, or malformed cases.
+- [x] Keep the raw root and local observation under distinct authorities.
 
 ## Verification
 
