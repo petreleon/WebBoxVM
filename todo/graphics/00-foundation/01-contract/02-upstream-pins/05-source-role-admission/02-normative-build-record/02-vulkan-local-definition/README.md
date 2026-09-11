@@ -4,7 +4,7 @@
 
 Task: F02.5.2.2
 Depends: F02.5.1, F02.5.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -18,12 +18,20 @@ boundaries, and names WebBoxVM—not Khronos—as its producer.
 - [shared role contract](../../01-authority-and-transform-boundary/source_role_contract.py)
 - [pinned Vulkan build instructions](https://github.com/KhronosGroup/Vulkan-Docs/blob/main/BUILD.adoc)
 
+## Exact boundary
+
+The local record has WebBoxVM as both authority and producer. It binds the immutable
+vkspec.adoc locator, the vk.xml facts source, the bounded source-builder, CPython
+runtime, offline logical argv, compact JSON serialization, and exact output digest. It
+does not reproduce Vulkan prose or call the artifact a Khronos selector, compatibility
+result, qualification, profile support, or performance result.
+
 ## Checklist
 
-- [ ] Define an exact no-network builder argv, tool identity, inputs, output digest, and source locators.
-- [ ] Extract only documented `VK_VERSION_1_4` XML facts; preserve extension facts as separate boundaries.
-- [ ] Rebuild from verified inputs and reject an altered builder, input, output, or claimed selector role.
-- [ ] Keep the local output at or below 8 MiB and make no compatibility or performance claim.
+- [x] Define an exact no-network builder argv, tool identity, inputs, output digest, and source locators.
+- [x] Extract only documented VK_VERSION_1_4 XML facts; preserve extension facts as separate boundaries.
+- [x] Rebuild from verified inputs and reject an altered builder, input, output, or claimed selector role.
+- [x] Keep the local output at or below 8 MiB and make no compatibility or performance claim.
 
 ## Verification
 

@@ -20,14 +20,14 @@ replace the full suite or be called a Vulkan-1.4-core Khronos selector.
 
 ## Checklist
 
-- [ ] Re-fetch and verify the released GL, GLES, and Vulkan root selectors and source revisions.
-- [ ] Record all included suite categories, including Vulkan WSI, video, and extensions, without relabeling.
-- [ ] Keep any WebBoxVM case map, catalog, or byte-preserving shard separate from selector authority.
-- [ ] Require each local shard to be at most 8 MiB and prove byte-for-byte reassembly against its upstream blob.
-- [ ] Reject filtered, reordered, incomplete, mutable, or falsely core-only suite records with focused tests.
-- [ ] Attach a receipt that states no CTS case was executed and no conformance claim follows.
+- [ ] [F02.5.3.1 — Pin canonical full-suite roots](01-canonical-full-suite-roots/README.md)
+- [ ] [F02.5.3.2 — Ledger the complete GL and GLES suites](02-gl-gles-full-ledgers/README.md)
+- [ ] [F02.5.3.3 — Ledger the unfiltered Vulkan default suite](03-vulkan-default-full-ledger/README.md)
+- [ ] [F02.5.3.4 — Build local shards and publish a no-claim receipt](04-local-shards-and-no-claim-receipt/README.md)
 
 ## Verification
 
 - The acceptance record identifies the exact unmodified upstream full suite. A caller-selected subset
   may be useful for regression work, but cannot satisfy a profile's full-suite obligation.
+- The 8 MiB cap applies only to WebBoxVM transforms. It does not erase, split, or relabel an upstream
+  root or member, and no Vulkan default-suite record is described as a Khronos core-only selector.
