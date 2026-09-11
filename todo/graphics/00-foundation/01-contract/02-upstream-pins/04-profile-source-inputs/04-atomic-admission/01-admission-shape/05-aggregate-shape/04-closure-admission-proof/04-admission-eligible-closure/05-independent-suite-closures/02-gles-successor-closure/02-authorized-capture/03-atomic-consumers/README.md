@@ -24,11 +24,9 @@ the global support state while those other mandatory conditions remain false.
 
 ## Checklist
 
-- [ ] Bind the sealed GLES capture to the successor aggregate without active-v2 aliasing or mutation.
-- [ ] Revalidate each F02 and F03 consumer against the same capture and preserve independent Docs/VCTS states.
-- [ ] Reject partial, stale, cross-wrapper, non-atomic, and false-promotion transitions.
-- [ ] Record the exact resulting eligible or blocked state and all unchanged mandatory blockers.
-- [ ] Add focused positive and hostile tests; run the required regression and roadmap checks.
+- [ ] [Bind the sealed GLES capture](01-bind-sealed-capture/README.md)
+- [ ] [Revalidate the F02 and F03 consumers](02-revalidate-consumers/README.md)
+- [ ] [Reconcile the atomic blocked result](03-reconcile-atomic-result/README.md)
 
 ## Verification
 
