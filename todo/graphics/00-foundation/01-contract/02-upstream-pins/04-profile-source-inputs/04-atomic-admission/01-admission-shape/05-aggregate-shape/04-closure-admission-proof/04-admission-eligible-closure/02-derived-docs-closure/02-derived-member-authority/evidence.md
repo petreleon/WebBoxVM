@@ -65,4 +65,6 @@ and GLES CTS closure blockers.
 Commit/push verification: 873bec9a is local on codex/graphics-f01-baseline. Remote publication and CI
 remain unrun: a fresh explicit authorization is required before pushing after the prior rejection.
 
-Next independent ready task: F02.4.4.1.5.4.4.3 — separate source sufficiency from release conformance.
+Current routing: no roadmap leaf is executable while this external authority and the independently
+blocked VCTS manifest remain unavailable. Recheck this child only when Khronos publishes applicability-bound
+per-member authority; do not treat this record as source admission or a substitute for the open work.

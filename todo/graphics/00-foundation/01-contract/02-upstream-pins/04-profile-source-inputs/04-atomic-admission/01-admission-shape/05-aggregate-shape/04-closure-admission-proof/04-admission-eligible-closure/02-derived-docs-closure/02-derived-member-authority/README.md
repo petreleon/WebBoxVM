@@ -4,6 +4,8 @@
 
 Task: F02.4.4.1.5.4.4.2.2
 Depends: F02.4.4.1.5.4.4.2.1
+Status: blocked
+Blocked-by: external/khronos-derived-member-authority-manifest
 Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [historical anchor](../01-successor-closure-anchor/README.md) and the retained

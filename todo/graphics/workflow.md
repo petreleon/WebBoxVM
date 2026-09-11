@@ -8,8 +8,9 @@ checkboxes start empty. Old implementations may be reused after current verifica
 ## Choose work
 
 1. Read this file, then run `python3 scripts/check_graphics_roadmap.py` from the repo root.
-2. Open the first ready leaf in the relevant lane. Follow its `Depends` IDs and linked
-   prerequisite receipts. Folder numbers describe organization, not a global serial order.
+2. Open the first ready leaf in the relevant lane. A `Blocked` entry records an external condition and
+   is not executable until its source changes. Follow `Depends` IDs and linked prerequisite receipts.
+   Folder numbers describe organization, not a global serial order.
 3. Check `git status --short` and read the listed starting points and pinned sources.
    Keep pre-existing edits intact. Record the baseline revision and dirty diff hash.
 4. Work on one behavior per coherent commit. Different workers may own independent

@@ -38,6 +38,11 @@ or FAIL otherwise and leave the completion checkbox open. A rejected optional
 optimization can have PASS for the experiment protocol while its decision explicitly
 says REJECTED; its acceleration feature and overall target are not thereby achieved.
 
+An externally blocked leaf may declare `Status: blocked` and
+`Blocked-by: external/<stable-slug>`. It must retain an open checklist, have only
+PASS-complete dependencies, and link a local `Result: BLOCKED` receipt. The checker
+prints it under `Blocked`, not `Ready`.
+
 `Revision` identifies the tested code, not an untested later HEAD. `Validation` names
 the exact command or linked command log. `Artifacts` includes hashes and retrievable
 or reproducible evidence. `Profile` states API version, enabled features and workload,

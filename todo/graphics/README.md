@@ -47,5 +47,5 @@ python3 scripts/check_graphics_roadmap.py
 ```
 
 The checker validates links, dependency IDs/cycles, receipts on completed tasks, parent/child status
-and the 180-line limit. It prints ready task IDs. It checks bookkeeping, not whether implementation
-evidence is truthful; a worker must inspect the tests and output.
+and the 180-line limit. It prints ready tasks and declared external blockers. It checks bookkeeping,
+not whether implementation evidence is truthful; a worker must inspect the tests and output.

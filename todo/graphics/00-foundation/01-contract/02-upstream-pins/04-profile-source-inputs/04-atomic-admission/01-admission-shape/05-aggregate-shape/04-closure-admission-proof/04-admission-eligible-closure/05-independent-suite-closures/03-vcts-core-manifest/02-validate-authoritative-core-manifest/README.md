@@ -4,7 +4,9 @@
 
 Task: F02.4.4.1.5.4.4.5.3.2
 Depends: F02.4.3, F02.4.4.1.5.5, F02.4.4.1.5.4.4.5.1, F02.4.4.1.5.4.4.5.3.1
-Evidence: pending
+Status: blocked
+Blocked-by: external/khronos-vulkan-14-core-vcts-manifest
+Evidence: [blocker record](evidence.md)
 
 ## Outcome
 
