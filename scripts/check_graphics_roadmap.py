@@ -3,9 +3,9 @@
 import re
 import sys
 from pathlib import Path
-from graphics_roadmap_common import BLOCKED_BY, BOX, LINK, checked, field, has_child_links, receipt_problems, target
-REPO = Path(__file__).resolve().parents[1]
-ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else REPO / "todo/graphics"
+from graphics_roadmap_common import (BLOCKED_BY, BOX, LINK, checked, child_satisfied, field,
+                                     has_child_links, has_sibling_successor, receipt_problems, target)
+ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / "todo/graphics"
 errors, pages, tasks = [], {}, {}
 def fail(path, message):
     errors.append(f"{path}: {message}")
@@ -84,8 +84,8 @@ def complete(path):
     if superseded(path) or statuses.get(path) == "blocked" or not checked(pages.get(path, "")) or path in checking:
         return False
     checking.add(path)
-    result = all(not (match := LINK.fullmatch(label)) or
-                 (dest := target(path, match.group(1))) in pages and complete(dest)
+    result = all(not (match := LINK.fullmatch(label)) or (dest := target(path, match.group(1))) in pages
+                 and child_satisfied(path, dest, pages, tasks, successors, complete, superseded)
                  for _, label in BOX.findall(pages.get(path, "")))
     checking.remove(path)
     passing[path] = result
@@ -127,8 +127,7 @@ for _, (path, deps) in tasks.items():
         fail(path, "blocked task requires every dependency PASS-complete")
     for source, message in receipt_problems(path, body, "BLOCKED", "blocked task needs a local evidence receipt", "blocked task requires Result: BLOCKED", local=True):
         fail(source, message)
-visited = set()
-active = []
+visited, active = set(), []
 def visit(ident):
     if ident in active:
         fail(tasks[ident][0], "dependency cycle: " + " -> ".join(active + [ident]))
@@ -157,6 +156,8 @@ for path, body in pages.items():
         if dest.parent.parent != path.parent or dest.name != "README.md":
             fail(path, "child list must live in an immediate subfolder")
         linked_lists.add(dest)
+        if not superseded(path) and not has_sibling_successor(path, dest, pages, tasks, successors):
+            fail(path, "superseded child successor must be a sibling checkbox")
         if not superseded(path) and (mark == "x") != (complete(dest) or superseded(dest)):
             fail(path, f"checkbox does not match child completion or supersession: {link.group(1)}")
 for path in pages:

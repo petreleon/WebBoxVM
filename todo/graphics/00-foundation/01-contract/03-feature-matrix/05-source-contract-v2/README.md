@@ -3,11 +3,11 @@
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.5
-Depends: F03.1, F02.4.4.5
+Depends: F03.1, F02.5.4
 Evidence: pending
 
 Prerequisite lists: [F03.1](../01-profile-scope/README.md) and
-[F02.4.4.5](../../02-upstream-pins/04-profile-source-inputs/04-atomic-admission/05-f03-gate/README.md).
+[F02.5.4](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md).
 
 ## Outcome
 
@@ -17,17 +17,17 @@ compatibility, conformance, performance, and Khronos certification.
 
 ## Starting points
 
-- [F02 F03-gate transition](../../02-upstream-pins/04-profile-source-inputs/04-atomic-admission/05-f03-gate/README.md)
+- [F02 role-aware source cutover](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md)
 - [F03 profile contract](../01-profile-scope/profile_contract.py)
 - [source requirements](../01-profile-scope/source_requirements.json)
 - [matrix contract](../01-profile-scope/matrix_contract.py)
 
 ## Checklist
 
-- [ ] Consume F02.4.4.5's atomic admitted-source identities and closure receipts for every required
-  profile role; reject a stale, partial, mixed, root-only, or substituted source contract.
-- [ ] Bind `vulkan-cts-mustpass` to the canonical upstream suite root and its admitted closure, not a
-  locally filtered "core-only" selector, isolated CTS file, or unverified aggregate.
+- [ ] Consume F02.5.4's atomic role-aware source identities and receipts for every required profile
+  role; reject a stale, partial, mixed, root-only, or substituted source contract.
+- [ ] Bind `vulkan-cts-mustpass` to the canonical unfiltered upstream suite root and its admitted
+  record, not a locally filtered "core-only" selector, isolated CTS file, or unverified aggregate.
 - [ ] Keep Vulkan 1.4 core as the inventory target while recording core, WSI, video, and extension
   suite categories only as auditable coverage/reporting boundaries; classification must not alter CTS.
 - [ ] Preserve `matrix-incomplete` as a source-sufficiency state only; it must not promote a matrix

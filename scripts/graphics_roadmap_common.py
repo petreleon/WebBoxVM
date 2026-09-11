@@ -31,6 +31,26 @@ def has_child_links(body: str) -> bool:
     return any(LINK.fullmatch(label) for _, label in BOX.findall(body))
 
 
+def child_targets(path: Path, body: str) -> set[Path | None]:
+    return {target(path, match.group(1)) for _, label in BOX.findall(body)
+            if (match := LINK.fullmatch(label))}
+
+
+def child_satisfied(parent: Path, child: Path, pages: dict[Path, str], tasks, successors,
+                    complete, superseded) -> bool:
+    if complete(child):
+        return True
+    successor = successors.get(child)
+    return bool(successor in tasks and superseded(child)
+                and tasks[successor][0] in child_targets(parent, pages[parent])
+                and complete(tasks[successor][0]))
+
+
+def has_sibling_successor(parent: Path, child: Path, pages: dict[Path, str], tasks, successors) -> bool:
+    successor = successors.get(child)
+    return not successor or successor not in tasks or tasks[successor][0] in child_targets(parent, pages[parent])
+
+
 def receipt_problems(
     path: Path, body: str, expected: str, missing: str, result: str, local: bool = False
 ) -> tuple[tuple[Path, str], ...]:

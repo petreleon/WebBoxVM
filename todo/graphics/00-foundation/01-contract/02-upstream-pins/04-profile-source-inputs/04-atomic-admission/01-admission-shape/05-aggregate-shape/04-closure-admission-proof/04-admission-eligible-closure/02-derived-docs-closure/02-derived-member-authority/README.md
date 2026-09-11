@@ -4,8 +4,6 @@
 
 Task: F02.4.4.1.5.4.4.2.2
 Depends: F02.4.4.1.5.4.4.2.1
-Status: blocked
-Blocked-by: external/khronos-derived-member-authority-manifest
 Evidence: [blocker record](evidence.md)
 
 Prerequisite lists: the [historical anchor](../01-successor-closure-anchor/README.md) and the retained
@@ -33,5 +31,6 @@ cannot fill a derived field.
 
 ## Verification
 
-- Current evidence is blocked: 1,462 derived members lack authoritative license, role, provenance, and
-  producer evidence. This child stays unchecked until that authority exists and applies to each member.
+- Historical external blocker: 1,462 derived members lack authoritative license, role, provenance, and
+  producer evidence. F02.5 replaces this impossible upstream-authority demand with a local, labeled
+  derivation attestation; this retained child is no longer an active blocker.

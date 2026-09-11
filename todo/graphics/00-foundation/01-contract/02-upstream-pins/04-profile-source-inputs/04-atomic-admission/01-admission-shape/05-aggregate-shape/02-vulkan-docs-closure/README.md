@@ -5,8 +5,6 @@
 Task: F02.4.4.1.5.2
 Depends: F02.2, F02.4.3, F02.4.4.1.3
 Evidence: [blocker record](evidence.md)
-Status: superseded
-Superseded-by: F02.4.4.1.5.5
 
 Prerequisite lists: the [Vulkan boundary](../../03-vulkan-boundaries/README.md),
 [F02 source policy](../../../../../02-fetch-verifier/01-fetch-contract/source_model.py), and

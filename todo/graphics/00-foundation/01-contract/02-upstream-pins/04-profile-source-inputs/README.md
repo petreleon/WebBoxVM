@@ -4,6 +4,8 @@
 
 Task: F02.4
 Depends: F02.1, F02.2, F03.1
+Status: superseded
+Superseded-by: F02.5
 Evidence: pending
 
 Prerequisite lists: [F02.1](../01-input-inventory/README.md),
@@ -36,6 +38,7 @@ selector input, without treating an isolated Piglit or API-version case as a ful
 - Admission changes the inventory and all lock consumers atomically; the renewed F03.1 source gate
   may pass while all three profiles remain visibly `matrix-incomplete`.
 
-The current inventory permits one entry for each exact source family. F02.4.4 must either add the
-six reviewed logical families coherently or make a separately tested schema migration; it must not
-silently reuse an unrelated family or weaken cardinality validation.
+The current inventory permits one entry for each exact source family. This historical plan required
+Khronos to publish per-derived-output authority and a Vulkan-1.4-core CTS selector that do not exist.
+[F02.5](../05-source-role-admission/README.md) preserves the target profiles, immutable source pins,
+and full unmodified suite requirement while separating upstream authority from WebBoxVM transforms.

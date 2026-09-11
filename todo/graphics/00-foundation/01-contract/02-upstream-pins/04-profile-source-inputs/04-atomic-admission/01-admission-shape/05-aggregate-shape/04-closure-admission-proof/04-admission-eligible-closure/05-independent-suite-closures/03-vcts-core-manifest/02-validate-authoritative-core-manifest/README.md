@@ -4,8 +4,6 @@
 
 Task: F02.4.4.1.5.4.4.5.3.2
 Depends: F02.4.3, F02.4.4.1.5.5, F02.4.4.1.5.4.4.5.1, F02.4.4.1.5.4.4.5.3.1
-Status: blocked
-Blocked-by: external/khronos-vulkan-14-core-vcts-manifest
 Evidence: [blocker record](evidence.md)
 
 ## Outcome
@@ -28,5 +26,5 @@ or a Docs artifact as a substitute.
 
 ## Verification
 
-- This child remains open until the authoritative artifact exists and validates.
-- Its success does not capture content, change F02/F03, or execute a conformance suite.
+- Historical external blocker: no Khronos-published Vulkan-1.4-core manifest exists. F02.5 preserves
+  the unmodified upstream suite and labels any WebBoxVM core coverage map as local, not authoritative.

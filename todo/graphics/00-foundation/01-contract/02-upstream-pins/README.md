@@ -24,7 +24,8 @@ main. F02.4 extends that foundation with the target-profile sources discovered b
 - [x] [F02.1 — Define the immutable graphics-input inventory](01-input-inventory/README.md)
 - [x] [F02.2 — Verify isolated source fetches and hashes](02-fetch-verifier/README.md)
 - [x] [F02.3 — Bind ABI fixtures and generators to the manifest](03-provenance-contract/README.md)
-- [ ] [F02.4 — Pin target-profile normative sources and conformance manifests](04-profile-source-inputs/README.md)
+- [x] [F02.4 — Historical closure-admission plan](04-profile-source-inputs/README.md)
+- [ ] [F02.5 — Admit source roles without conflating authority](05-source-role-admission/README.md)
 
 ## Verification
 
@@ -36,7 +37,9 @@ use direct reproducible commands and receipts until that runner exists. Record c
 test counts (or explicit design checks), output and expected results; a planned check is not PASS.
 
 The prior [F02 receipt](evidence.md) remains historical evidence for the 17-input F02.1–F02.3
-closure only. It is not evidence that the six F03.1 profile sources are pinned.
+closure only. It is not evidence that the six F03.1 profile sources are pinned. F02.5 replaces
+F02.4's impossible demand for Khronos to attest every WebBoxVM-derived output; it retains immutable
+Khronos source roots, local reproducibility, and unmodified full-suite qualification.
 
 For a task that discovers a design choice, multiple independent feature families or too much work
 for one coherent commit, create child folders first using the worker instructions. Keep this parent

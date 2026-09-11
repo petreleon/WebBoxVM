@@ -3,11 +3,11 @@
 [Parent task](../README.md)
 
 Task: F03.4.2
-Depends: F03.4.1, F03.5, F02.4.4.1.5.4.4.3
+Depends: F03.4.1, F03.5, F02.5.4
 Evidence: pending
 
 Prerequisite lists: [the registry inventory](../01-registry-inventory/README.md), [F03 source-contract
-v2](../../05-source-contract-v2/README.md), and [the V2 taxonomy](../../../02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/05-vulkan-source-contract-v2/04-coverage-taxonomy/README.md).
+v2](../../05-source-contract-v2/README.md), and [the role-aware source cutover](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md).
 
 ## Outcome
 
@@ -19,7 +19,7 @@ core-only CTS selector or conformance claim.
 
 - [registry inventory](../01-registry-inventory/README.md)
 - [F03 source-contract v2](../../05-source-contract-v2/README.md)
-- [V2 taxonomy](../../../02-upstream-pins/04-profile-source-inputs/04-atomic-admission/01-admission-shape/05-aggregate-shape/05-vulkan-source-contract-v2/04-coverage-taxonomy/README.md)
+- [role-aware source cutover](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md)
 
 ## Checklist
 

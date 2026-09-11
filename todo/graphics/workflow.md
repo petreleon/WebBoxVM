@@ -52,6 +52,14 @@ Do not cram many unrelated behaviors into the existing checklist.
    on the original parent ID, which stays open until all children and final checks pass.
 6. Re-run the roadmap checker. Attach an aggregate receipt before completing the parent.
 
+## Supersede a task without erasing its history
+
+Use `Status: superseded` and `Superseded-by: ID` only when a successor preserves the original
+outcome with a more executable design. Link the historical child as checked and its active successor
+as a sibling checkbox of the same parent. The checker treats the historical link as structurally
+closed, but the parent remains open until the successor passes. A superseded task is never PASS
+evidence, cannot satisfy an active dependency, and must retain its receipt when it was checked.
+
 Every list has a `README.md` entry point. Keep 2–6 children per ordinary list, at most
 eight phase links in the root, and at most 180 physical lines in every maintained file.
 Split by responsibility; minification or giant generated lines do not satisfy the intent.

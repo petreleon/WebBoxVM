@@ -13,7 +13,7 @@ WEB_THREADS_RUSTFLAGS ?= -C target-feature=+atomics,+bulk-memory -C link-arg=--s
 WASM_BINDGEN_THREADS_ROOT ?= $(ARTIFACTS_DIR)/tools/wasm-bindgen-memory64-threads
 WASM_BINDGEN_THREADS ?= $(WASM_BINDGEN_THREADS_ROOT)/bin/wasm-bindgen
 
-.PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-benchmark web-debian-arm64 graphics-runner-test test
+.PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-benchmark web-debian-arm64 graphics-roadmap-test graphics-runner-test test
 
 busybox:
 	scripts/update_busybox.sh
@@ -75,7 +75,12 @@ web-debian-arm64: iso-debian-arm64 web-pkg
 graphics-runner-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_graphics_runner.py
 
-test: graphics-runner-test
+graphics-roadmap-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_check_graphics_roadmap.py
+	PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_check_graphics_roadmap_blocked.py
+	PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_check_graphics_roadmap_supersession.py
+
+test: graphics-roadmap-test graphics-runner-test
 	cargo test -p emulator
 	node scripts/stamp_web_asset_version.mjs --check
 	python3 scripts/check_graphics_roadmap.py
