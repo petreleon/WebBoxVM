@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.2
 Depends: F02.2, F02.4.2, F02.4.4.1.5.4.4.5.2.1
-Evidence: pending
+Evidence: pending; child evidence: [closure contract](01-closure-contract/evidence.md)
 
 Prerequisite lists: the [successor integration](../01-successor-integration/README.md), the
 [GLES closure probe](../../../../../../01-gles-closure-probe/README.md), and the
@@ -24,7 +24,7 @@ validates fresh cache capture plus all F02/F03 consumers atomically.
 
 ## Checklist
 
-- [ ] [Freeze the immutable GLES closure contract](01-closure-contract/README.md)
+- [x] [Freeze the immutable GLES closure contract](01-closure-contract/README.md)
 - [ ] [Capture and replay the complete GLES closure](02-capture-and-replay/README.md)
 - [ ] [Atomically revalidate successor consumers](03-atomic-consumers/README.md)
 

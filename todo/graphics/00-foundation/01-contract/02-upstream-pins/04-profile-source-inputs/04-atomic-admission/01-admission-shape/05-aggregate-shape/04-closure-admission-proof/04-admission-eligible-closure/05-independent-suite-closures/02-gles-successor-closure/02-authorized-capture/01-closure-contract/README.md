@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.2.1
 Depends: F02.2, F02.4.2, F02.4.4.1.5.4.4.5.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [successor integration](../../01-successor-integration/README.md), the
 [GLES audit](../../../../../../../../../02-gles-input-audit/README.md), and the
@@ -14,7 +14,7 @@ Prerequisite lists: the [successor integration](../../01-successor-integration/R
 
 A successor-only, hostile-tested contract describes the pinned Khronos GLES root, its four core
 members, twelve configurations, optional-extension exclusion, and reproducible producer entrypoints.
-It remains unadmitted and cannot modify active schema-v2 or cache state.
+Its identities use the existing F02 cache grammar but it remains unadmitted and cannot write cache state.
 
 ## Starting points
 
@@ -24,11 +24,11 @@ It remains unadmitted and cannot modify active schema-v2 or cache state.
 
 ## Checklist
 
-- [ ] Bind the immutable root, four ordered core members, and optional-extension boundary to one revision.
-- [ ] Require each physical member's URL, digest, bytes, license, provenance, successor cache identity, and 8 MiB cap.
-- [ ] Bind the twelve core configurations and explicit upstream producer entrypoints without inventing output attestation.
-- [ ] Keep the contract successor-only; reject active-v2 mutation, root-only import, member omission, aliasing, and promotion.
-- [ ] Add focused positive and hostile tests that retain every effect false.
+- [x] Bind the immutable root, four ordered core members, and optional-extension boundary to one revision.
+- [x] Require each physical member's URL, digest, bytes, license, provenance, F02-compatible cache identity, and 8 MiB cap.
+- [x] Bind the twelve core configurations and explicit upstream producer entrypoints without inventing output attestation.
+- [x] Keep the contract successor-only; reject active-v2 mutation, root-only import, member omission, aliasing, and promotion.
+- [x] Add focused positive and hostile tests that retain every effect false.
 
 ## Verification
 
