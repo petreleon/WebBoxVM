@@ -34,3 +34,11 @@ inputs remain unchanged until an authorized aggregate transition renews every ma
 
 - An unchanged consumer is intentional evidence here, not an incomplete test run.
 - This child cannot change an inventory, F03 status, API feature row, or implementation claim.
+
+## Trust boundary
+
+The checked-out verifier source and its module paths are trusted local revision-controlled code, run in
+a fresh controlled Python interpreter with no untrusted `PYTHONPATH` or preloaded modules. This child
+treats its JSON receipt and declared data inputs as hostile: it opens every directory component without
+following links and binds the opened file identity before and after the bounded read. A hostile worktree
+must not execute its own verifier.

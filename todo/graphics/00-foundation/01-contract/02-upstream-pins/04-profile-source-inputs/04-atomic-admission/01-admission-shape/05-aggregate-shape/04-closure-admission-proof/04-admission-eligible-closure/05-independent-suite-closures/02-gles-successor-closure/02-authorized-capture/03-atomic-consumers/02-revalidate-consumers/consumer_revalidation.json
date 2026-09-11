@@ -1,0 +1,73 @@
+{
+  "active_f02": {
+    "captured_member_fingerprints_present": false,
+    "captured_member_ids": [
+      "gles-cts-manifest",
+      "gles-cts-gles2-khr-main",
+      "gles-cts-gles3-khr-main",
+      "gles-cts-gles31-khr-main",
+      "gles-cts-gles32-khr-main",
+      "gles-cts-gles32-khr-glesext"
+    ],
+    "captured_member_ids_present": false,
+    "input_count": 17,
+    "inventory_lock_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+    "manifest_sha256": "f6b4b8bc18751d4645cf638faa4958b9ddb01c5e12815ad599f7eb7ce26c4adb",
+    "part_sha256": [
+      "eef0b188e9e663e6be483bfedde5df27687db9b590ff2bd208ebf462b0cc6649",
+      "c58855fd366ddd8d8b8b135f125d6f0b860bd79eb8f0d0576e937d86df656ad0"
+    ],
+    "schema": 2
+  },
+  "binding": {
+    "active_alias_allowed": false,
+    "binding_document_sha256": "f765b917f8144288205fad737d68e5efd02e0665f0f8e140f0ca138ad32740aa",
+    "binding_sha256": "42a221ba44ad7f44aefc40fe876933000b452284d659db00bed5d34da6a525e7",
+    "closure_sha256": "fcca79aa08ca156cddca92b624e66513526109219b84b253bd513879f34419c4",
+    "status": "captured-unadmitted"
+  },
+  "consumer_revalidation_sha256": "d858ec3957a989da9b471b925ba6f5d4445f910a810ab3c3d897945394aa80c6",
+  "effects": {
+    "active_inventory_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cache_freshness_proved": false,
+    "certified": false,
+    "conformant": false,
+    "cutover_ready": false,
+    "f03_changed": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false,
+    "supported": false
+  },
+  "f03": {
+    "blocker": "inventory-sources-incomplete",
+    "missing_required_input_ids": [
+      "opengl-46-core-spec",
+      "opengl-cts-manifest",
+      "gles-32-spec",
+      "gles-cts-manifest",
+      "vulkan-14-spec",
+      "vulkan-cts-mustpass"
+    ],
+    "profile_status": "blocked",
+    "requirements_sha256": "a9535611bab654034357d1578c3a2035caa09fda8090114df0867ac6d7fbeca5",
+    "scope_sha256": "15fc0abd0a174db43fc6a46f17a5ae06e3376eaed0325a49b8a6e874eb1767d4"
+  },
+  "historical_receipt": {
+    "document_sha256": "1b15139349b59c05830707a5b2283be4dd5db823231ce874e7c4b436c4b72660",
+    "readiness": {
+      "admission_eligible": false,
+      "cutover_ready": false,
+      "f03_ready": false,
+      "fresh_cache_ready": false,
+      "inventory_ready": false
+    },
+    "receipt_sha256": "9ff372bcfeb83538882da396b2ecbb0801703ca55a1b0dd38fa7ab51d4bf501a",
+    "state": "blocked"
+  },
+  "kind": "f02-f03-consumer-revalidation-v1",
+  "schema": 1,
+  "status": "blocked-unchanged-consumers"
+}
