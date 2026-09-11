@@ -4,7 +4,7 @@
 
 Task: F02.5.3.2.2
 Depends: F02.5.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ boundary member, not an inferred mandatory or optional semantic classification.
 
 ## Checklist
 
-- [ ] Fetch the root and five referenced lists into a fresh external cache.
-- [ ] Bind each list's revision, bytes, SHA-256, and ordered case sequence to the root.
-- [ ] Parse all 13 configurations in XML order, including repeated main-list configurations.
-- [ ] Retain gles32-khr-glesext.txt and its configuration without a mandatory-semantics claim.
-- [ ] Reject omission, duplication, reorder, source substitution, malformed XML, or classification.
+- [x] Fetch the root and five referenced lists into a fresh external cache.
+- [x] Bind each list's revision, bytes, SHA-256, and ordered case sequence to the root.
+- [x] Parse all 13 configurations in XML order, including repeated main-list configurations.
+- [x] Retain gles32-khr-glesext.txt and its configuration without a mandatory-semantics claim.
+- [x] Reject omission, duplication, reorder, source substitution, malformed XML, or classification.
 
 ## Verification
 
