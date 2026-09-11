@@ -4,7 +4,7 @@
 
 Task: F05.1
 Depends: F01
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,14 +19,14 @@ missing prerequisites explicit without asserting any graphics profile or API sup
 
 ## Checklist
 
-- [ ] Create a small `scripts/graphics/` CLI and helper modules for named local command execution.
-- [ ] Capture command, revision, dirty-diff hash, tool versions, duration, exit status, expected count,
+- [x] Create a small `scripts/graphics/` CLI and helper modules for named local command execution.
+- [x] Capture command, revision, dirty-diff hash, tool versions, duration, exit status, expected count,
   observed count, and artifact hashes in a machine-readable local result.
-- [ ] Reject unknown or empty selections and propagate a deliberately failing child command unchanged.
-- [ ] Report missing executable, asset, browser, hardware, or permission prerequisites as explicit local
+- [x] Reject unknown or empty selections and propagate a deliberately failing child command unchanged.
+- [x] Report missing executable, asset, browser, hardware, or permission prerequisites as explicit local
   blocked results without treating them as a passing run.
-- [ ] Test success, failure, zero-match, malformed input, and missing-prerequisite behavior.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [x] Test success, failure, zero-match, malformed input, and missing-prerequisite behavior.
+- [x] Run the verification below, review the result, and attach the completed evidence receipt.
 
 ## Verification
 

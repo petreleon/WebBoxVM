@@ -22,7 +22,7 @@ profile-bound registration is admitted.
 
 ## Checklist
 
-- [ ] [F05.1 — Implement the profile-independent runner substrate](01-generic-runner/README.md)
+- [x] [F05.1 — Implement the profile-independent runner substrate](01-generic-runner/README.md)
 - [ ] [F05.2 — Register profile-bound graphics checks](02-profile-bound-registration/README.md)
 
 ## Verification
