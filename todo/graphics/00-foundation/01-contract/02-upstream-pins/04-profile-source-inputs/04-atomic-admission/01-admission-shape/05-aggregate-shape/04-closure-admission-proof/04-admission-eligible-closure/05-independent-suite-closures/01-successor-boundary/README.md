@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.1
 Depends: F02.4.4.1.5.4.4.1, F02.4.4.1.5.5
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [GLES closure probe](../../../../../01-gles-closure-probe/README.md), the
 [V2 handoff](../../../../05-vulkan-source-contract-v2/05-aggregate-handoff/README.md), and the
@@ -25,12 +25,12 @@ diagnostics without promoting either one to an admitted closure, core manifest, 
 
 ## Checklist
 
-- [ ] Freeze the separate GLES and VCTS successor forms, exact current identities, and first blocker.
-- [ ] Bind the four GLES core selectors, twelve configurations, and explicit extension exclusion as unadmitted data.
-- [ ] Preserve the complete canonical `vk-default` diagnostic and forbid local VCTS filtering or taxonomy promotion.
-- [ ] Retain F02.2's 8 MiB regular-source cap; V2 diagnostic-suite metadata is not a cap exception.
-- [ ] Reject root-only, partial, stale, scope-eroded, VCTS-as-Docs, local-selector, and category-as-conformance evidence.
-- [ ] Keep inventory, cache freshness, F03, admission, cutover, support, certification, conformance, and performance effects false.
+- [x] Freeze the separate GLES and VCTS successor forms, exact current identities, and first blocker.
+- [x] Bind the four GLES core selectors, twelve configurations, and explicit extension exclusion as unadmitted data.
+- [x] Preserve the complete canonical `vk-default` diagnostic and forbid local VCTS filtering or taxonomy promotion.
+- [x] Retain F02.2's 8 MiB regular-source cap; V2 diagnostic-suite metadata is not a cap exception.
+- [x] Reject root-only, partial, stale, scope-eroded, VCTS-as-Docs, local-selector, and category-as-conformance evidence.
+- [x] Keep inventory, cache freshness, F03, admission, cutover, support, certification, conformance, and performance effects false.
 
 ## Verification
 
