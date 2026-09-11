@@ -1,0 +1,86 @@
+{
+  "blocker": {
+    "id": "missing-khronos-published-immutable-explicit-vulkan-1.4-core-vcts-manifest",
+    "replaces_historical_global_blocker": false
+  },
+  "effects": {
+    "active_inventory_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cache_freshness_proved": false,
+    "certified": false,
+    "conformant": false,
+    "cutover_ready": false,
+    "f03_changed": false,
+    "matrix_may_use_source": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false,
+    "source_sufficient": false,
+    "supported": false
+  },
+  "kind": "vcts-upstream-selector-recheck-v1",
+  "observation": {
+    "explicit_vulkan_14_core_manifest_present": false,
+    "latest_vulkan_14_tag_at_observation": "vulkan-cts-1.4.6.2",
+    "observed_on": "2026-09-11",
+    "peeled_commit_git_oid": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+    "release_family_tags": [
+      "vulkan-cts-1.4.6.2",
+      "vulkan-cts-1.4.6.1",
+      "vulkan-cts-1.4.6.0"
+    ],
+    "repository": "KhronosGroup/VK-GL-CTS",
+    "root_directory_files": [
+      "vk-default.txt",
+      "vk-fraction-mandatory-tests.txt",
+      "vksc-default.txt"
+    ],
+    "tag_object_git_oid": "42c723aa10d2652590f02741827aef43b0421d23",
+    "vk_default": {
+      "bytes": 3347,
+      "includes_video": true,
+      "includes_wsi": true,
+      "path": "external/vulkancts/mustpass/main/vk-default.txt",
+      "scope": "khronos-default-mustpass-broader-than-vulkan-1.4-core",
+      "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4"
+    }
+  },
+  "predecessors": {
+    "active_f02": {
+      "changed": false,
+      "inventory_lock_document_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6"
+    },
+    "active_f03": {
+      "changed": false,
+      "source_requirements_document_sha256": "a9535611bab654034357d1578c3a2035caa09fda8090114df0867ac6d7fbeca5"
+    },
+    "source_release_boundary": {
+      "document_sha256": "4544bc95c6021fd85d134eea5d4f2913d4fdaf810e9058d74d220dda7d1cdc40",
+      "semantic_sha256": "7cc44e773bb45e61535f535c93640547dfddead6b0b2f0bb23cc73c62ec06485"
+    },
+    "successor_boundary": {
+      "document_sha256": "6a0a7fc4562acb63678ccfc2d6c965355bcce7b417a0483734119c84698025ff",
+      "semantic_sha256": "da10dbc51230b2495f7c24c100055ab91970a92217b43f2895ec5cfa2ead459b"
+    },
+    "v2_handoff": {
+      "document_sha256": "2df7570fc80b1b02f0f031c3517c05b97baa5a10911f47bfb0f19937712ee0db",
+      "semantic_sha256": "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee"
+    },
+    "v2_root_identity": {
+      "document_sha256": "c2fc1ee3bb8113f71c50b9da94409aba6a7dd96cd59e3a3eed508b40f701c5b3",
+      "semantic_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218"
+    }
+  },
+  "prohibitions": {
+    "local_core_selector_allowed": false,
+    "opaque_member_splitting_allowed": false,
+    "root_only_claim_allowed": false,
+    "tag_alone_sufficient": false,
+    "taxonomy_as_conformance_allowed": false,
+    "vcts_as_docs_allowed": false
+  },
+  "recheck_sha256": "0157a3c6e5015c68307f224aa236d64107d021613b93bb3d8f70c7934fb971ee",
+  "schema": 1,
+  "status": "blocked-upstream-authority-missing"
+}
