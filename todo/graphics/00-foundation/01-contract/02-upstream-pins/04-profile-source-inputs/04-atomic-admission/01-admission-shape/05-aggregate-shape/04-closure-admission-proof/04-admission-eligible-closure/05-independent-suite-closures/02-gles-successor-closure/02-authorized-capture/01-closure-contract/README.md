@@ -26,7 +26,7 @@ Its identities use the existing F02 cache grammar but it remains unadmitted and 
 
 - [x] Bind the immutable root, four ordered core members, and optional-extension boundary to one revision.
 - [x] Require each physical member's URL, digest, bytes, license, provenance, F02-compatible cache identity, and 8 MiB cap.
-- [x] Bind the twelve core configurations and explicit upstream producer entrypoints without inventing output attestation.
+- [x] Bind the twelve core configurations and upstream producer entrypoints; this raw capture neither runs nor attests their output.
 - [x] Keep the contract successor-only; reject active-v2 mutation, root-only import, member omission, aliasing, and promotion.
 - [x] Add focused positive and hostile tests that retain every effect false.
 
