@@ -4,7 +4,7 @@
 
 Task: F02.5.2.1
 Depends: F02.5.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,10 +19,10 @@ their exact bytes, digest, terms, attribution, and an external-cache re-fetch ve
 
 ## Checklist
 
-- [ ] Keep each root a distinct upstream-source record; do not silently substitute a registry or PDF.
-- [ ] Re-fetch into an explicit external cache and fail closed on URL, byte, digest, or cache-path mismatch.
-- [ ] Reject mutable, partial, unlicensed, misattributed, or locally relabeled source records.
-- [ ] Record the focused command and fresh-fetch result in a receipt.
+- [x] Keep each root a distinct upstream-source record; do not silently substitute a registry or PDF.
+- [x] Re-fetch into an explicit external cache and fail closed on URL, byte, digest, or cache-path mismatch.
+- [x] Reject mutable, partial, unlicensed, misattributed, or locally relabeled source records.
+- [x] Record the focused command and fresh-fetch result in a receipt.
 
 ## Verification
 
