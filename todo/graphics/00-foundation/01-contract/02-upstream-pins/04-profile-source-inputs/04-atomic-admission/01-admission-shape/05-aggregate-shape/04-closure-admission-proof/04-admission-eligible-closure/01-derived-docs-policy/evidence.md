@@ -66,4 +66,16 @@ Commit/push verification: the tested feature commits are local on `codex/graphic
 Remote publication and CI are unrun because prior push authorization was rejected; a new explicit
 authorization is required before pushing.
 
+## Post-receipt safety maintenance — `c6219e11`
+
+The policy reader now opens every path component through pinned directory descriptors with
+`O_DIRECTORY|O_NOFOLLOW`, checks final-name/open identity, rechecks the descriptor after the bounded
+read, and rejects non-regular or hard-linked records. The policy JSON and every false effect are unchanged.
+
+Regression validation: policy, successor-anchor, and authority-gate suites each passed 5/5, including
+final and intermediate-directory symlink attempts; source-file limits passed 6/6; roadmap tests passed
+10/10; `make test` passed 1,130 Rust tests and 337 Node tests; checker and whitespace checks passed.
+This hardens local evidence parsing only. It neither creates the missing per-derived-member authority nor
+changes source admission, guest behavior, CTS, certification, or performance state.
+
 Next ready task: F02.4.4.1.5.4.4.2 — prove the derived-Docs source closure.
