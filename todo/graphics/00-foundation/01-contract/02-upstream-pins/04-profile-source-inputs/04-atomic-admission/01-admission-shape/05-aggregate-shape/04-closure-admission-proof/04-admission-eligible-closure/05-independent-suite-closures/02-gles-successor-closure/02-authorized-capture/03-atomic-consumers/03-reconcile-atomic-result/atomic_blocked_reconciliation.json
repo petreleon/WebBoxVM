@@ -1,0 +1,104 @@
+{
+  "docs": {
+    "active_or_f03_mutation": false,
+    "independently_admitted": false,
+    "raw_member_max_bytes": 8388608,
+    "transition_sha256": "d9317d418f6c13f4c85275bffb1a01139eb036e7ddf5853a347dde84d69273c5"
+  },
+  "documents": {
+    "binding": {
+      "document_sha256": "f765b917f8144288205fad737d68e5efd02e0665f0f8e140f0ca138ad32740aa",
+      "semantic_sha256": "42a221ba44ad7f44aefc40fe876933000b452284d659db00bed5d34da6a525e7"
+    },
+    "boundary": {
+      "document_sha256": "6a0a7fc4562acb63678ccfc2d6c965355bcce7b417a0483734119c84698025ff",
+      "semantic_sha256": "da10dbc51230b2495f7c24c100055ab91970a92217b43f2895ec5cfa2ead459b"
+    },
+    "consumer": {
+      "document_sha256": "4f1f3ff488c95f8cdfe42ec0d4c1f07dbc91cd39d8cfed9d8529ac39e93326dc",
+      "semantic_sha256": "d858ec3957a989da9b471b925ba6f5d4445f910a810ab3c3d897945394aa80c6"
+    },
+    "docs": {
+      "document_sha256": "492b900c82d40d2544b7f619f26e333d33eb79122cbef1d4502b8406ac5a09d3",
+      "semantic_sha256": "d9317d418f6c13f4c85275bffb1a01139eb036e7ddf5853a347dde84d69273c5"
+    },
+    "integration": {
+      "document_sha256": "9283bc20bbba922707563625b5dbc7162881edf7c883e9a876afc8c00c98bd82",
+      "semantic_sha256": "d22eeadf9da86ccd79493e348d7809d090d01dbf91c9a4e4316b6db92d2caf7c"
+    },
+    "vcts": {
+      "document_sha256": "2df7570fc80b1b02f0f031c3517c05b97baa5a10911f47bfb0f19937712ee0db",
+      "semantic_sha256": "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee"
+    }
+  },
+  "effects": {
+    "active_inventory_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cache_freshness_proved": false,
+    "certified": false,
+    "conformant": false,
+    "cutover_ready": false,
+    "f03_changed": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false,
+    "supported": false
+  },
+  "f03": {
+    "missing_required_input_ids": [
+      "opengl-46-core-spec",
+      "opengl-cts-manifest",
+      "gles-32-spec",
+      "gles-cts-manifest",
+      "vulkan-14-spec",
+      "vulkan-cts-mustpass"
+    ],
+    "status": "blocked"
+  },
+  "gles": {
+    "binding_sha256": "42a221ba44ad7f44aefc40fe876933000b452284d659db00bed5d34da6a525e7",
+    "closure_sha256": "fcca79aa08ca156cddca92b624e66513526109219b84b253bd513879f34419c4",
+    "consumer_sha256": "d858ec3957a989da9b471b925ba6f5d4445f910a810ab3c3d897945394aa80c6",
+    "f02_f03_unchanged": true
+  },
+  "global_blockers": [
+    [
+      "vulkan-14-spec",
+      "vulkan-docs-core-generated-closure-unadmitted"
+    ],
+    [
+      "vulkan-cts-mustpass",
+      "vcts-vk-default-compound-oversize-core-scope-unadmitted"
+    ]
+  ],
+  "historical_receipt": {
+    "document_sha256": "1b15139349b59c05830707a5b2283be4dd5db823231ce874e7c4b436c4b72660",
+    "first_blocker": [
+      "gles-cts-manifest",
+      "requires-multifile-core-selector-closure"
+    ],
+    "receipt_sha256": "9ff372bcfeb83538882da396b2ecbb0801703ca55a1b0dd38fa7ab51d4bf501a",
+    "role": "historical-only"
+  },
+  "kind": "atomic-blocked-successor-reconciliation-v1",
+  "reconciliation_sha256": "6d7b8150b4fe71bdd7840a88ed9a4e35ce7192d024dec486821197fad83c5467",
+  "schema": 1,
+  "status": "atomically-blocked-unadmitted",
+  "vcts": {
+    "core_manifest_ready": false,
+    "handoff_sha256": "8b286471e95a957c7d1c9fc9cf41c26d246de86ad1a7cbffb4fb58c3fde682ee",
+    "local_filtering": "forbidden",
+    "member_count": 98,
+    "member_total_bytes": 434669348,
+    "selector_scope": "khronos-default-mustpass-broader-than-vulkan-1.4-core"
+  },
+  "wrappers": {
+    "active_alias_allowed": false,
+    "cross_wrapper_substitution_allowed": false,
+    "families": [
+      "vulkan-docs",
+      "gles-cts"
+    ]
+  }
+}
