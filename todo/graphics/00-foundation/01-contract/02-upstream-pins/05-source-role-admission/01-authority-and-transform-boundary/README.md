@@ -8,13 +8,16 @@ Evidence: pending
 
 ## Outcome
 
-One fail-closed schema distinguishes an immutable upstream source, a WebBoxVM-produced transform,
-and an unmodified full-suite root. It defines which claims each role may make and preserves the
-8 MiB limit for every WebBoxVM-maintained source fragment or transport shard.
+One fail-closed catalog distinguishes an immutable upstream source, a WebBoxVM-produced transform,
+and an unmodified full-suite root. A separate streaming verifier seals each local artifact to its
+declared digest and byte count, preserves the 8 MiB cap for each WebBoxVM fragment or transport shard,
+and reassembles shards against their upstream suite member.
 
 ## Starting points
 
 - [F02 fetch model](../../02-fetch-verifier/01-fetch-contract/source_model.py)
+- [source-role policy](source-role-policy.md)
+- [artifact verifier](source_role_artifacts.py)
 - [Vulkan audit](../../04-profile-source-inputs/03-vulkan-input-audit/README.md)
 - [source requirements](../../../03-feature-matrix/01-profile-scope/source_requirements.json)
 
