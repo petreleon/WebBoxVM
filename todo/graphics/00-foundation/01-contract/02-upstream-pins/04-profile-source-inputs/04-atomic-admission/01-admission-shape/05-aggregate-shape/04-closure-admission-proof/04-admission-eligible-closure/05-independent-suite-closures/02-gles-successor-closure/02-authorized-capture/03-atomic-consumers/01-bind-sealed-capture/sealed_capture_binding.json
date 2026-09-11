@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "kind": "gles-sealed-capture-binding-v1",
+  "status": "captured-unadmitted",
+  "integration_sha256": "d22eeadf9da86ccd79493e348d7809d090d01dbf91c9a4e4316b6db92d2caf7c",
+  "capture": {
+    "contract_sha256": "63e41c35e1f78f7eecee9241153f3cf2135cda48ca674d399a28b4310d501899",
+    "closure_sha256": "fcca79aa08ca156cddca92b624e66513526109219b84b253bd513879f34419c4",
+    "configuration_document_sha256": "ed27d6d675494a4773bb55533dc0d2916d1486d49450d3feb94743e38727a64e",
+    "marker_relative_path": "webboxvm-graphics/f02-successor/gles-cts/fcca79aa08ca156cddca92b624e66513526109219b84b253bd513879f34419c4/capture.json",
+    "marker_sha256": "3a19d46b46162f94a6d1bc96c300658d28eb42001931c63658d470c9e7214531",
+    "marker_file_sha256": "a2a9029c65eb121945a8c5d3f63418dafbbcda3fe9d6c1556a3d8d6e167edb3f",
+    "members": [
+      {
+        "id": "gles-cts-manifest",
+        "role": "root",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-manifest/9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96.source",
+        "sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+        "bytes": 4284
+      },
+      {
+        "id": "gles-cts-gles2-khr-main",
+        "role": "core",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-gles2-khr-main/aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2.source",
+        "sha256": "aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2",
+        "bytes": 38127
+      },
+      {
+        "id": "gles-cts-gles3-khr-main",
+        "role": "core",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-gles3-khr-main/c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72.source",
+        "sha256": "c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72",
+        "bytes": 443126
+      },
+      {
+        "id": "gles-cts-gles31-khr-main",
+        "role": "core",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-gles31-khr-main/9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e.source",
+        "sha256": "9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e",
+        "bytes": 288777
+      },
+      {
+        "id": "gles-cts-gles32-khr-main",
+        "role": "core",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-gles32-khr-main/426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249.source",
+        "sha256": "426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249",
+        "bytes": 105294
+      },
+      {
+        "id": "gles-cts-gles32-khr-glesext",
+        "role": "excluded-extension",
+        "local_cache": "webboxvm-graphics/f02/gles-cts-gles32-khr-glesext/789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6.source",
+        "sha256": "789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6",
+        "bytes": 81374
+      }
+    ]
+  },
+  "readiness": {
+    "active_inventory_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cache_freshness_proved": false,
+    "certified": false,
+    "conformant": false,
+    "cutover_ready": false,
+    "f03_changed": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false,
+    "supported": false
+  },
+  "binding_sha256": "42a221ba44ad7f44aefc40fe876933000b452284d659db00bed5d34da6a525e7"
+}
