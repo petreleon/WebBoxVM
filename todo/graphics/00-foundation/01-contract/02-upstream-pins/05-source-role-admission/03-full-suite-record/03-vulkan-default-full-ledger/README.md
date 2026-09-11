@@ -19,13 +19,17 @@ uncategorized paths. The ledger is not a claim that all entries are Vulkan core.
 
 ## Checklist
 
-- [ ] Build a streaming upstream cache that accepts full-suite members above 8 MiB.
-- [ ] Record all 98 ordered vk-default paths with revision, blob identity, bytes, and SHA-256.
-- [ ] Preserve WSI, video, and extension paths as observed taxonomy, leaving unknown paths unknown.
-- [ ] Reject missing, duplicated, reordered, mixed-revision, tampered, or symlinked members.
-- [ ] State the aggregate size and oversize members without filtering them from the upstream root.
+- [ ] [F02.5.3.3.1 — Bind the Vulkan ledger and observed taxonomy](01-vulkan-ledger-taxonomy/README.md)
+- [ ] [F02.5.3.3.2 — Prove streaming cache replay](02-streaming-cache-replay/README.md)
+- [ ] [F02.5.3.3.3 — Refresh the full Vulkan suite and receipt](03-fresh-full-suite-receipt/README.md)
 
 ## Verification
 
 The full root replays byte-for-byte from the immutable VCTS release. Any local storage
 optimization is deferred to F02.5.3.4 and cannot redefine selector authority.
+
+## Split rationale
+
+The exact member ledger/taxonomy, safe large-member cache, and expensive live refresh
+have different failure boundaries. The split ensures a recorded shape is not confused
+with a downloaded payload or a CTS execution result.
