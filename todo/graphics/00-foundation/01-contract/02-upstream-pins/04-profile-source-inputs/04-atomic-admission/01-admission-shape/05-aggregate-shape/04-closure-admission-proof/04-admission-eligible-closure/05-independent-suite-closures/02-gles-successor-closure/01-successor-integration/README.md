@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.1
 Depends: F02.4.2, F02.4.4.1.5.4.4.5.1, F02.4.4.1.5.4.4.6
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [independent-suite boundary](../../01-successor-boundary/README.md), the
 [Docs successor transition](../../../06-successor-inventory-transition/README.md), and the
@@ -26,12 +26,12 @@ fresh capture and atomic F02/F03 transition pass.
 
 ## Checklist
 
-- [ ] Freeze active schema-v2 and the independent Docs schema-v3 design as non-admitted predecessors.
-- [ ] Define a future aggregate wrapper shape with exactly one `vulkan-docs` and one `gles-cts` family.
-- [ ] Bind the GLES root, ordered core members, configurations, extension exclusion, and 8 MiB member rule.
-- [ ] Require separate fresh closure, cache, authority, and atomic F02/F03 revalidation conditions for each wrapper.
-- [ ] Reject aliasing, omitted wrappers, root-only import, cross-wrapper substitution, and active-state promotion.
-- [ ] Add focused positive and hostile integration tests with every effect false.
+- [x] Freeze active schema-v2 and the independent Docs schema-v3 design as non-admitted predecessors.
+- [x] Define a future aggregate wrapper shape with exactly one `vulkan-docs` and one `gles-cts` family.
+- [x] Bind the GLES root, ordered core members, configurations, extension exclusion, and 8 MiB member rule.
+- [x] Require separate fresh closure, cache, authority, and atomic F02/F03 revalidation conditions for each wrapper.
+- [x] Reject aliasing, omitted wrappers, root-only import, cross-wrapper substitution, and active-state promotion.
+- [x] Add focused positive and hostile integration tests with every effect false.
 
 ## Verification
 
