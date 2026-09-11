@@ -21,7 +21,7 @@ must-pass suites stay distinct from engineering case maps and remain mandatory a
 
 ## Checklist
 
-- [ ] [F02.5.1 — Define source authority and transform roles](01-authority-and-transform-boundary/README.md)
+- [x] [F02.5.1 — Define source authority and transform roles](01-authority-and-transform-boundary/README.md)
 - [ ] [F02.5.2 — Record normative source roots and local builds](02-normative-build-record/README.md)
 - [ ] [F02.5.3 — Record unmodified full conformance-suite roots](03-full-suite-record/README.md)
 - [ ] [F02.5.4 — Cut over inventory and source consumers atomically](04-inventory-and-consumer-cutover/README.md)

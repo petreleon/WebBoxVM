@@ -4,7 +4,7 @@
 
 Task: F02.5.1
 Depends: F02.1, F02.2, F02.3.1, F03.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -23,12 +23,12 @@ and reassembles shards against their upstream suite member.
 
 ## Checklist
 
-- [ ] Specify required immutable identity, digest, license, attribution, role, producer, and scope fields.
-- [ ] Require local transforms to name WebBoxVM as producer and their exact input identities and command.
-- [ ] Forbid a local core map, shard, or derived document from claiming Khronos authorship or conformance.
-- [ ] Define full-suite roots as unfiltered upstream selectors plus their pinned source revision.
-- [ ] Add positive and hostile schema tests, including an over-8-MiB local fragment and a false authority claim.
-- [ ] Run focused tests and attach a receipt with exact source and policy boundaries.
+- [x] Specify required immutable identity, digest, license, attribution, role, producer, and scope fields.
+- [x] Require local transforms to name WebBoxVM as producer and their exact input identities and command.
+- [x] Forbid a local core map, shard, or derived document from claiming Khronos authorship or conformance.
+- [x] Define full-suite roots as unfiltered upstream selectors plus their pinned source revision.
+- [x] Add positive and hostile schema tests, including an over-8-MiB local fragment and a false authority claim.
+- [x] Run focused tests and attach a receipt with exact source and policy boundaries.
 
 ## Verification
 
