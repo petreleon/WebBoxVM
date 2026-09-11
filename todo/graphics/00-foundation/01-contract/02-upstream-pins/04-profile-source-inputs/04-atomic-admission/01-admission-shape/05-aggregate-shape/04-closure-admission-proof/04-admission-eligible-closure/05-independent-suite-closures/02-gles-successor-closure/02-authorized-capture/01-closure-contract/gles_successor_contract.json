@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "contract": "gles-successor-closure-contract-v1",
+  "status": "design-only-unadmitted",
+  "anchors": {
+    "integration_document_sha256": "9283bc20bbba922707563625b5dbc7162881edf7c883e9a876afc8c00c98bd82",
+    "candidate_audit_document_sha256": "3d1d6d523026bdeb5e16c967750237f64a6fc134893348620c0bc4c58aff1a52",
+    "closure_document_sha256": "bddd72baeea2da31912004f428392f41621a2d1fb85737cf9f9c287214452c5d",
+    "configurations_document_sha256": "ed27d6d675494a4773bb55533dc0d2916d1486d49450d3feb94743e38727a64e"
+  },
+  "predecessor": {
+    "integration_sha256": "d22eeadf9da86ccd79493e348d7809d090d01dbf91c9a4e4316b6db92d2caf7c",
+    "active_schema": 2,
+    "inventory_lock_sha256": "08be83edf7949e0d406bd4d3b9827b6abbd91d0312e3e08fcc74b87f6786e1a6",
+    "active_family_alias_allowed": false,
+    "active_mutation_permitted": false
+  },
+  "source": {
+    "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+    "raw_url_prefix": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/067e8832315e79817ede1c4863804e440f5d1c80/",
+    "provenance": "https://github.com/KhronosGroup/VK-GL-CTS/tree/067e8832315e79817ede1c4863804e440f5d1c80",
+    "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+    "root_source_family": "gles-cts",
+    "member_source_family": "gles-cts-component",
+    "member_max_bytes": 8388608,
+    "successor_cache_template": "webboxvm-graphics/f02-successor/gles-cts/{closure_sha256}/{id}/{sha256}.source"
+  },
+  "closure": {
+    "profile": "gles-3.2",
+    "family": "gles-cts",
+    "root": {
+      "id": "gles-cts-manifest",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/mustpass.xml",
+      "sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+      "bytes": 4284,
+      "case_count": 12477
+    },
+    "core_members": [
+      {
+        "id": "gles-cts-gles2-khr-main",
+        "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles2-khr-main.txt",
+        "sha256": "aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2",
+        "bytes": 38127,
+        "case_count": 473
+      },
+      {
+        "id": "gles-cts-gles3-khr-main",
+        "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles3-khr-main.txt",
+        "sha256": "c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72",
+        "bytes": 443126,
+        "case_count": 6498
+      },
+      {
+        "id": "gles-cts-gles31-khr-main",
+        "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles31-khr-main.txt",
+        "sha256": "9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e",
+        "bytes": 288777,
+        "case_count": 4101
+      },
+      {
+        "id": "gles-cts-gles32-khr-main",
+        "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-main.txt",
+        "sha256": "426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249",
+        "bytes": 105294,
+        "case_count": 1405
+      }
+    ],
+    "excluded_extension": {
+      "id": "gles-cts-gles32-khr-glesext",
+      "selector": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/gles32-khr-glesext.txt",
+      "sha256": "789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6",
+      "bytes": 81374,
+      "case_count": 1097
+    },
+    "configuration_document_sha256": "ed27d6d675494a4773bb55533dc0d2916d1486d49450d3feb94743e38727a64e",
+    "core_configuration_count": 12,
+    "core_case_configuration_runs": 30574,
+    "excluded_configuration_count": 1,
+    "root_and_nonroot_required": true,
+    "optional_extension_excluded": true,
+    "closure_sha256": "9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468",
+    "successor_cache_paths": {
+      "gles-cts-manifest": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-manifest/9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96.source",
+      "gles-cts-gles2-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles2-khr-main/aed17d34d64047973c439835ee7cfa8a109c2159512fe1fe59fb07fc05d395f2.source",
+      "gles-cts-gles3-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles3-khr-main/c79097f9f9c69a4556e235b3301c0dc9a5d73375c05f193a6f5e127d853ace72.source",
+      "gles-cts-gles31-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles31-khr-main/9fd8e4ff51616262c567f7a9eec83f69d2d311a4293a45d2d377306d426d520e.source",
+      "gles-cts-gles32-khr-main": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles32-khr-main/426fa31d557e08e214b75fda5d9efcaec54a42cdc14d4915939a7d02ccb6f249.source",
+      "gles-cts-gles32-khr-glesext": "webboxvm-graphics/f02-successor/gles-cts/9d482eea501a0d00307b6e1ca253be2ca2b1dc8cb72e08cc6e24a566f05cd468/gles-cts-gles32-khr-glesext/789b0474c61693baaa7cbc941575f23b383e2ba3c4991b1a910e046a17a6e0e6.source"
+    }
+  },
+  "producer": {
+    "repository_revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+    "entrypoints": [
+      {
+        "selector": "external/openglcts/scripts/build_mustpass.py",
+        "role": "mustpass-project-composition"
+      },
+      {
+        "selector": "external/openglcts/scripts/mustpass.py",
+        "role": "mustpass-list-and-manifest-emission"
+      }
+    ],
+    "entrypoints_are_captured_members": false,
+    "output_attestation_present": false,
+    "fresh_execution_required": true
+  },
+  "capture": {
+    "fresh_complete_capture_required": true,
+    "offline_replay_required": true,
+    "network_during_replay_allowed": false,
+    "atomic_f02_f03_revalidation_required": true,
+    "active_cache_freshness_proved": false
+  },
+  "effects": {
+    "active_inventory_changed": false,
+    "cache_freshness_proved": false,
+    "f03_changed": false,
+    "admission_eligible": false,
+    "admitted": false,
+    "cutover_ready": false,
+    "supported": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false,
+    "performance_claimed": false,
+    "satisfies_vulkan_14_core_manifest": false
+  },
+  "contract_sha256": "ed5bad3c8d59fe2ae67852d5a475c10a8e173af92174c421a660d7109637daba"
+}
