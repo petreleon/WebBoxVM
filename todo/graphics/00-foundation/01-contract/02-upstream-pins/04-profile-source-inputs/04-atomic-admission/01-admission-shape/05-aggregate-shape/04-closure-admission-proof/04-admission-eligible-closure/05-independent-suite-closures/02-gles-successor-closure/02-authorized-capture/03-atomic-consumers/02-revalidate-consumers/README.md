@@ -4,7 +4,7 @@
 
 Task: F02.4.4.1.5.4.4.5.2.2.3.2
 Depends: F02.4.4.1.5.4.4.5.2.2.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 Prerequisite lists: the [sealed capture binding](../01-bind-sealed-capture/README.md), the
 [blocked-state receipt](../../../../../../03-blocked-state-receipt/README.md), and the
@@ -24,11 +24,11 @@ inputs remain unchanged until an authorized aggregate transition renews every ma
 
 ## Checklist
 
-- [ ] Revalidate exact active-v2 inventory identity and the non-admitting six-role proof receipt.
-- [ ] Revalidate F03's ordered source requirements and its expected `inventory-sources-incomplete` result.
-- [ ] Keep the captured GLES closure outside active F02 and F03 until a whole-transition policy authorizes it.
-- [ ] Reject active aliasing, F03 omission/substitution, stale locks, and a claimed partial consumer update.
-- [ ] Add focused positive and hostile tests while preserving all feature/profile states as blocked.
+- [x] Revalidate exact active-v2 inventory identity and the non-admitting six-role proof receipt.
+- [x] Revalidate F03's ordered source requirements and its expected `inventory-sources-incomplete` result.
+- [x] Keep the captured GLES closure outside active F02 and F03 until a whole-transition policy authorizes it.
+- [x] Reject active aliasing, F03 omission/substitution, stale locks, and a claimed partial consumer update.
+- [x] Add focused positive and hostile tests while preserving all feature/profile states as blocked.
 
 ## Verification
 
