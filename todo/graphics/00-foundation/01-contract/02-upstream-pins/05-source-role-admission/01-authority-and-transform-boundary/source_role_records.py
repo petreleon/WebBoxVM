@@ -25,7 +25,7 @@ MEMBER = UPSTREAM | frozenset(("suite_root_id", "member_path"))
 TRANSFORM = COMMON | frozenset(("inputs", "command", "artifact", "builder"))
 SHARD = TRANSFORM | frozenset(("shard",))
 FULL_SUITE = UPSTREAM | frozenset(("profile", "suite_id", "selector_path", "unfiltered"))
-UPSTREAM_SCOPES = frozenset(("normative-source", "suite-member"))
+UPSTREAM_SCOPES = frozenset(("normative-source", "registry-metadata", "suite-member"))
 LOCAL_SCOPES = frozenset(("webboxvm-core-definition", "webboxvm-derived-docs-attestation",
                           "webboxvm-engineering-map", "webboxvm-byte-preserving-shard"))
 FULL_SUITES = {

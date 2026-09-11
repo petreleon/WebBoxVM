@@ -110,6 +110,12 @@ class SourceRoleContractTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(RoleError):
                 validate_catalog(catalog(*records))
 
+    def test_registry_metadata_stays_an_upstream_nonselector(self):
+        self.assertEqual(validate_catalog(catalog(upstream(scope="registry-metadata"))),
+                         ("vulkan-spec",))
+        with self.assertRaises(RoleError):
+            validate_catalog(catalog(upstream(scope="registry-metadata", claims=claims(True))))
+
     def test_transform_requires_local_producer_canonical_argv_inputs_and_size_cap(self):
         cases = (transform(authority="Khronos"), transform(command=["sh", "-c", "curl https://bad"]),
                  transform(command=["webboxvm-source-builder", "--mode=core-definition", "@output:vk14-map"]),

@@ -20,13 +20,17 @@ WebBoxVM-produced rather than an imagined Khronos per-output manifest.
 
 ## Checklist
 
-- [ ] Re-fetch and verify each immutable normative root, revision, digest, bytes, license, and attribution.
-- [ ] Pin the Vulkan core build command, toolchain identity, source inputs, output digest, and source locators.
-- [ ] Record `vk.xml` Vulkan-1.4 feature facts separately from normative prose and extension boundaries.
-- [ ] Reject mutable, partial, unlicensed, or locally relabeled normative records with focused tests.
-- [ ] Attach a receipt that keeps API support, conformance, certification, and performance false.
+- [ ] [F02.5.2.1 — Pin and re-fetch normative roots](01-normative-root-pins/README.md)
+- [ ] [F02.5.2.2 — Build a bounded local Vulkan 1.4 definition](02-vulkan-local-definition/README.md)
+- [ ] [F02.5.2.3 — Admit records and publish the no-claim receipt](03-admission-receipt/README.md)
 
 ## Verification
 
 - Rebuilding the declared Vulkan core artifact from the exact source/toolchain either matches its record
   or fails closed; it never becomes a Khronos-published selector or a compatibility claim.
+
+## Split rationale
+
+The source pins, a WebBoxVM-produced Vulkan facts artifact, and the final admission/receipt have
+different authorities and failure modes. The split prevents a successful local extraction from being
+mistaken for proof that the normative roots were refreshed or that Khronos published a core selector.
