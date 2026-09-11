@@ -54,6 +54,8 @@ class ContractTests(unittest.TestCase):
         value = CONTRACT.validate()
         self.assertEqual(value["status"], "design-only-unadmitted")
         self.assertEqual(len(value["closure"]["core_members"]), 4)
+        self.assertFalse(value["producer"]["producer_execution_required_for_this_capture"])
+        self.assertFalse(value["producer"]["producer_execution_proved"])
         self.assertEqual(value["effects"], {name: False for name in CONTRACT.EFFECTS})
         result = subprocess.run([sys.executable, "-B", str(HERE / "gles_successor_contract.py")],
                                 capture_output=True, text=True, env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
@@ -68,6 +70,7 @@ class ContractTests(unittest.TestCase):
             lambda value: value["closure"]["root"].__setitem__("bytes", 1),
             lambda value: value["source"].__setitem__("cache_template", "webboxvm-graphics/f02-successor/{id}/{sha256}.source"),
             lambda value: value["closure"]["successor_cache_paths"].pop("gles-cts-gles3-khr-main"),
+            lambda value: value["producer"].__setitem__("producer_execution_proved", True),
             lambda value: value["producer"].__setitem__("output_attestation_present", True),
             lambda value: value["capture"].__setitem__("active_cache_freshness_proved", True),
             lambda value: value["predecessor"].__setitem__("active_mutation_permitted", True),

@@ -138,8 +138,9 @@ def expected() -> dict[str, object]:
     producer = {"repository_revision": revision, "entrypoints": [
                     {"selector": "external/openglcts/scripts/build_mustpass.py", "role": "mustpass-project-composition"},
                     {"selector": "external/openglcts/scripts/mustpass.py", "role": "mustpass-list-and-manifest-emission"}],
-                "entrypoints_are_captured_members": False, "output_attestation_present": False,
-                "fresh_execution_required": True}
+                "entrypoints_are_captured_members": False,
+                "producer_execution_required_for_this_capture": False,
+                "producer_execution_proved": False, "output_attestation_present": False}
     capture = {"fresh_complete_capture_required": True, "offline_replay_required": True,
                "network_during_replay_allowed": False, "atomic_f02_f03_revalidation_required": True,
                "active_cache_freshness_proved": False}

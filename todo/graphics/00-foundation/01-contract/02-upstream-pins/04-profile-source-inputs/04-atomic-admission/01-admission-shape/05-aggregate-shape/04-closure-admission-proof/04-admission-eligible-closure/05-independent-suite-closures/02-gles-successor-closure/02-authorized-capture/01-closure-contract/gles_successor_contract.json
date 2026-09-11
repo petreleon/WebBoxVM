@@ -102,8 +102,9 @@
       }
     ],
     "entrypoints_are_captured_members": false,
-    "output_attestation_present": false,
-    "fresh_execution_required": true
+    "producer_execution_required_for_this_capture": false,
+    "producer_execution_proved": false,
+    "output_attestation_present": false
   },
   "capture": {
     "fresh_complete_capture_required": true,
@@ -126,5 +127,5 @@
     "performance_claimed": false,
     "satisfies_vulkan_14_core_manifest": false
   },
-  "contract_sha256": "4a9369fe82f427a61e6b8c402af30abf1cbffe6f5590f7a17b273c86ba5ae772"
+  "contract_sha256": "63e41c35e1f78f7eecee9241153f3cf2135cda48ca674d399a28b4310d501899"
 }
