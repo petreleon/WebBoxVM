@@ -1,10 +1,17 @@
 # F02.4.4.1.5.4.4.5.3.1 — VCTS upstream-selector recheck
 
-Result: **BLOCKED** — `missing-khronos-published-immutable-explicit-vulkan-1.4-core-vcts-manifest`
+Revision: `9532058fe683985a8e73e76911a0cbfc06776b59` feature revision; this receipt records its probe result
+Validation: recheck 4/4; V2 handoff 8/8; successor boundary 3/3; source/release boundary 6/6; checker; diff
+Result: PASS
+Artifacts: self-hashed `upstream_selector_recheck.json`; read-only gate and hostile-test source below
+Profile: upstream-selector research probe only; no source admission, guest API, renderer, CTS, or performance claim
+
+External condition: **BLOCKED** —
+`missing-khronos-published-immutable-explicit-vulkan-1.4-core-vcts-manifest`.
 
 This is a successful verification of the blocker, not admission, Vulkan CTS execution, certification,
-guest API support, browser behavior, or a performance result. The task remains unchecked because the
-authority it requires is external and has not been published.
+guest API support, browser behavior, or a performance result. The task is complete only as a reproducible
+research probe; the required upstream authority remains external and unpublished.
 
 ## Live observation — 2026-09-11
 

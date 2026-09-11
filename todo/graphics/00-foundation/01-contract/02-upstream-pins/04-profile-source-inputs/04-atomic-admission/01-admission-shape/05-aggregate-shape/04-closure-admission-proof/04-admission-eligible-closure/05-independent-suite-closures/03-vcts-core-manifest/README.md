@@ -25,7 +25,7 @@ can turn it into Khronos core conformance evidence.
 
 ## Checklist
 
-- [ ] [Recheck the official upstream selector and retain its blocker](01-upstream-selector-recheck/README.md)
+- [x] [Recheck the official upstream selector and retain its blocker](01-upstream-selector-recheck/README.md)
 - [ ] [Validate an authoritative explicit-core manifest when Khronos publishes one](02-validate-authoritative-core-manifest/README.md)
 - [ ] [Capture and replay the future core closure](03-capture-and-replay-core-closure/README.md)
 - [ ] [Reconcile the future VCTS condition atomically](04-reconcile-vcts-condition/README.md)
