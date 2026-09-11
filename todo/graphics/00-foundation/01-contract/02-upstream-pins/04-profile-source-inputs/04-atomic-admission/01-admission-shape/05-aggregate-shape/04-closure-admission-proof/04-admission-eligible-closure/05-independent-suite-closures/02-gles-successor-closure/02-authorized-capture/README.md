@@ -24,12 +24,9 @@ validates fresh cache capture plus all F02/F03 consumers atomically.
 
 ## Checklist
 
-- [ ] Obtain a policy-authorized immutable closure whose producer, root, members, and scope are explicit.
-- [ ] Validate every physical member's URL, revision, digest, bytes, license, provenance, cache, and 8 MiB cap.
-- [ ] Bind all required configurations and retain the explicit optional-extension exclusion.
-- [ ] Reproduce a fresh complete capture and offline replay without root-only or partial substitution.
-- [ ] Atomically revalidate F02/F03 consumers without altering the independent Docs or VCTS boundaries.
-- [ ] Record focused evidence or retain the first producer, capture, or atomic-transition blocker.
+- [ ] [Freeze the immutable GLES closure contract](01-closure-contract/README.md)
+- [ ] [Capture and replay the complete GLES closure](02-capture-and-replay/README.md)
+- [ ] [Atomically revalidate successor consumers](03-atomic-consumers/README.md)
 
 ## Verification
 
