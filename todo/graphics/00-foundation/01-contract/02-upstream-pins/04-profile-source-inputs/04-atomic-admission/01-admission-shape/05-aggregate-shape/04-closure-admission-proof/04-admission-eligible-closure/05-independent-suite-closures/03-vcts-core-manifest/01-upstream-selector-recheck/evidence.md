@@ -65,7 +65,8 @@ BLOCKED: missing-khronos-published-immutable-explicit-vulkan-1.4-core-vcts-manif
 ```
 
 The tests reject re-sealed observation/scope changes, local promotion, `0` substituted for a strict
-boolean false, stale raw anchors, duplicate/non-finite JSON, oversize input, FIFO, and symlink records.
+boolean false, stale raw anchors, duplicate/non-finite JSON, oversize input, FIFO, and final or
+intermediate-directory symlink paths.
 The V2 handoff (8 tests), successor boundary (3), and source/release boundary (6) also passed.
 
 ## Required next condition

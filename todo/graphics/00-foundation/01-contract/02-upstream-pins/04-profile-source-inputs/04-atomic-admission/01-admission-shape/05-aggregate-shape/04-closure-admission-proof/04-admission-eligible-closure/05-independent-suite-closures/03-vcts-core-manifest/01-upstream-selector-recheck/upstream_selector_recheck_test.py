@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest import mock
 
 HERE = Path(__file__).resolve().parent
+TEMP_ROOT = Path("/private/tmp") if Path("/private/tmp").is_dir() else Path(tempfile.gettempdir()).resolve()
 def module(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None: raise RuntimeError(f"cannot load {path}")
@@ -13,7 +14,7 @@ def module(name: str, path: Path):
 GATE = module("f025_vcts_selector_recheck", HERE / "upstream_selector_recheck.py")
 
 class RecheckTests(unittest.TestCase):
-    def setUp(self) -> None: self.temporary = tempfile.TemporaryDirectory()
+    def setUp(self) -> None: self.temporary = tempfile.TemporaryDirectory(dir=TEMP_ROOT)
     def tearDown(self) -> None: self.temporary.cleanup()
     def copy(self, name: str) -> Path:
         path = Path(self.temporary.name) / name; path.write_bytes(GATE.RECORD.read_bytes()); return path
@@ -83,6 +84,9 @@ class RecheckTests(unittest.TestCase):
         fifo = root / "recheck.fifo"; os.mkfifo(fifo)
         with self.assertRaisesRegex(GATE.RecheckError, "regular file"): GATE.validate(fifo)
         link = root / "recheck-link.json"; link.symlink_to(GATE.RECORD)
-        with self.assertRaisesRegex(GATE.RecheckError, "regular file"): GATE.validate(link)
+        with self.assertRaisesRegex(GATE.RecheckError, "safely opened"): GATE.validate(link)
+        nested = root / "nested"; nested.mkdir(); (nested / "valid.json").write_bytes(GATE.RECORD.read_bytes())
+        redirect = root / "redirect"; redirect.symlink_to(nested, target_is_directory=True)
+        with self.assertRaisesRegex(GATE.RecheckError, "safely opened"): GATE.validate(redirect / "valid.json")
 
 if __name__ == "__main__": unittest.main(verbosity=2)

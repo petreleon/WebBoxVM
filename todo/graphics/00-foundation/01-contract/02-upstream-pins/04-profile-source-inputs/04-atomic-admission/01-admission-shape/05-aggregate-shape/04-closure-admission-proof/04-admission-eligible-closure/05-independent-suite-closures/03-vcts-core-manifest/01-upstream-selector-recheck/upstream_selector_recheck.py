@@ -40,6 +40,8 @@ def reviewed(name: str, path: Path):
     return module
 
 if not NOFOLLOW: raise RuntimeError("recheck requires no-follow file descriptors")
+DIR_FLAGS = os.O_RDONLY | os.O_DIRECTORY | NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+FILE_FLAGS = os.O_RDONLY | os.O_NONBLOCK | NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
 V2 = reviewed("f025_vcts_recheck_v2", V2_PATH)
 BOUNDARY = reviewed("f025_vcts_recheck_boundary", BOUNDARY_PATH)
 RELEASE = reviewed("f025_vcts_recheck_release", RELEASE_PATH)
@@ -56,24 +58,35 @@ def pairs(rows: list[tuple[str, object]]) -> dict[str, object]:
     return value
 def stamp(info: os.stat_result) -> tuple[int, int, int, int, int]:
     return info.st_dev, info.st_ino, info.st_size, info.st_ctime_ns, info.st_nlink
+def opened(path: Path, label: str) -> int:
+    absolute = Path(os.path.abspath(path))
+    try:
+        current = os.open(absolute.anchor, DIR_FLAGS)
+        try:
+            for part in absolute.parts[1:-1]:
+                successor = os.open(part, DIR_FLAGS, dir_fd=current); os.close(current); current = successor
+            named = os.stat(absolute.name, dir_fd=current, follow_symlinks=False)
+            descriptor = os.open(absolute.name, FILE_FLAGS, dir_fd=current)
+            if stamp(named) != stamp(os.fstat(descriptor)):
+                os.close(descriptor); reject(f"{label} changed before safe open")
+            return descriptor
+        finally: os.close(current)
+    except OSError as error: reject(f"{label} cannot be safely opened: {error}")
 def raw(path: Path, label: str, limit: int = MAX_BYTES) -> bytes:
     try:
-        named = path.lstat()
-        if not stat.S_ISREG(named.st_mode): reject(f"{label} is not a regular file")
-        descriptor = os.open(path, os.O_RDONLY | NOFOLLOW | os.O_NONBLOCK)
+        descriptor = opened(path, label)
         try:
-            opened = os.fstat(descriptor)
-            if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1 or stamp(named) != stamp(opened):
-                reject(f"{label} changed before safe open")
+            info = os.fstat(descriptor)
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1: reject(f"{label} is not a regular file")
             value = os.read(descriptor, limit + 1)
-            while len(value) <= limit and len(value) < opened.st_size:
+            while len(value) <= limit and len(value) < info.st_size:
                 chunk = os.read(descriptor, limit + 1 - len(value))
                 if not chunk: break
                 value += chunk
-            if stamp(opened) != stamp(os.fstat(descriptor)): reject(f"{label} changed during read")
+            if stamp(info) != stamp(os.fstat(descriptor)): reject(f"{label} changed during read")
         finally: os.close(descriptor)
     except OSError as error: reject(f"{label} cannot be read: {error}")
-    if len(value) > limit or len(value) != opened.st_size: reject(f"{label} exceeds its bounded size or changed during read")
+    if len(value) > limit or len(value) != info.st_size: reject(f"{label} exceeds its bounded size or changed during read")
     return value
 def document(path: Path, label: str) -> dict[str, object]:
     try:
