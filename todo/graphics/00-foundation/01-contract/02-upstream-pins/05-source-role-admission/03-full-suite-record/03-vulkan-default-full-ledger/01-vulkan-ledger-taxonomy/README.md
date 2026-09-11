@@ -4,7 +4,7 @@
 
 Task: F02.5.3.3.1
 Depends: F02.5.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ every unclassified path stays unknown rather than becoming inferred Vulkan core.
 
 ## Checklist
 
-- [ ] Bind all 98 ordered paths to the released root and one revision.
-- [ ] Record each blob SHA-1, bytes, and SHA-256 plus the aggregate identity.
-- [ ] Preserve observed WSI, video, and extension taxonomy with unknown remainder.
-- [ ] Reject missing, duplicate, reordered, mixed-revision, or altered member facts.
-- [ ] Make no CTS, core-only, or qualification claim.
+- [x] Bind all 98 ordered paths to the released root and one revision.
+- [x] Record each blob SHA-1, bytes, and SHA-256 plus the aggregate identity.
+- [x] Preserve observed WSI, video, and extension taxonomy with unknown remainder.
+- [x] Reject missing, duplicate, reordered, mixed-revision, or altered member facts.
+- [x] Make no CTS, core-only, or qualification claim.
 
 ## Verification
 
