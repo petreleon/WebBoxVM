@@ -1,4 +1,4 @@
-# F03.2.3 — Extract limit, format, shader, and extension rows
+# F03.2.3 — Record raw limit/format facts and unresolved source decisions
 
 [Parent task](../README.md) · [Worker instructions](../../../../../workflow.md)
 
@@ -8,30 +8,32 @@ Evidence: pending
 
 ## Outcome
 
-The complementary OpenGL 4.6 core limits, formats, shader rules, and extension decisions are explicit,
-source-located matrix facts. An extension remains outside the target until a recorded decision admits it.
+OpenGL 4.6 core limit and format facts form a bounded, source-located raw inventory. Separate shader and
+extension source-policy decisions stay visibly unavailable; no item becomes a Matrix v2 row until F03.2.4
+records a real implementation owner and an independent full-suite reference obligation.
 
 ## Starting points
 
 - [source-authority boundary](../01-source-authority/README.md)
-- [F03 v2 profile schema](../../01-profile-scope/profile_contract_v2.py)
+- [verified normative-PDF cache plan](../02-command-object-state-inventory/01-normative-pdf-cache/README.md)
+- [F03 v2 matrix contract](../../01-profile-scope/matrix_contract_v2.py)
+- [ownership and reference obligations](../04-ownership-and-cts-obligations/README.md)
 - [OpenGL parent task](../README.md)
 
 ## Checklist
 
-- [ ] Consume only F03.2.1-accepted locator classes for numeric limits, formats, shader semantics, and
-  extension decisions; reject a distinct unadmitted registry or language document.
-- [ ] Enumerate every mandatory core limit, format property, shader rule, and version constraint in the
-  shared row schema with its exact source locator.
-- [ ] Record each extension as adopted, excluded, or unresolved with a reason; keep compatibility-profile
-  behavior and lower-version substitutions outside the target.
-- [ ] Distinguish a required property from an optional capability, implementation observation, or future
-  feature so a missing item cannot disappear from coverage.
-- [ ] Reject missing, duplicate, stale, profile-mismatched, and falsely supported rows through focused
-  negative checks.
-- [ ] Attach a no-claim inventory receipt and keep the OpenGL profile `matrix-incomplete`.
+- [ ] [F03.2.3.1 — Extract raw limit and format facts](01-limit-format-raw-inventory/README.md)
+- [ ] [F03.2.3.2 — Ledger unadmitted shader and extension sources](02-unadmitted-shader-extension-ledger/README.md)
+- [ ] [F03.2.3.3 — Handoff raw facts and guard Matrix import](03-raw-handoff-and-import-guard/README.md)
 
 ## Verification
 
-This leaf fixes inventory facts and scope decisions only. It does not prove shader execution, format
-support, device behavior, CTS execution, a browser path, certification, or performance.
+The raw inventory and source-policy ledger remain `matrix-incomplete`. They do not establish shader
+execution, format support, device behavior, CTS execution, a browser path, certification, or performance.
+
+## Split rationale
+
+F03.2.1 admits the `limit-format` class from the sealed normative PDF, but declares `shader` and
+`extension` unavailable pending distinct source admission. The raw inventory therefore stays separate from
+that decision ledger, and neither can truthfully fill Matrix v2 owner or full-suite reference fields.
+F03.2.4.1 resolves those obligations and F03.2.4.2 alone may import verified raw facts into the matrix.
