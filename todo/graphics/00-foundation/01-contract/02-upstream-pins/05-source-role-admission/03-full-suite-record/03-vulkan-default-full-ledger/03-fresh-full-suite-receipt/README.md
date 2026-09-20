@@ -4,7 +4,7 @@
 
 Task: F02.5.3.3.3
 Depends: F02.5.3.3.1, F02.5.3.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ no-claim receipt. The raw payload is not committed, filtered, or represented as 
 
 ## Checklist
 
-- [ ] Preflight external cache space and freshness before network access.
-- [ ] Fetch and verify the root plus all 98 ordered members exactly once.
-- [ ] Replay all cache members offline with zero network reuse and one aggregate digest.
-- [ ] State aggregate bytes and oversize members without excluding them.
-- [ ] Reject a forged or positive-claim receipt and report zero CTS executions.
+- [x] Preflight external cache space and freshness before network access.
+- [x] Fetch and verify the root plus all 98 ordered members exactly once.
+- [x] Replay all cache members offline with zero network reuse and one aggregate digest.
+- [x] State aggregate bytes and oversize members without excluding them.
+- [x] Reject a forged or positive-claim receipt and report zero CTS executions.
 
 ## Verification
 

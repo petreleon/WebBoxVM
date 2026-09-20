@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "kind": "webboxvm-vulkan-full-suite-receipt",
+  "authority": "WebBoxVM",
+  "producer": "WebBoxVM",
+  "claims": {
+    "khronos_selector": false,
+    "api_support": false,
+    "conformance": false,
+    "certification": false,
+    "profile_support": false,
+    "performance": false
+  },
+  "cts_executions": 0,
+  "source_root": {
+    "kind": "full-suite-root",
+    "id": "vulkan-cts-default",
+    "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+    "bytes": 3347,
+    "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+    "attribution": "KhronosGroup/VK-GL-CTS repository; immutable upstream full-suite selector",
+    "scope": "full-conformance-suite",
+    "authority": "Khronos",
+    "producer": "Khronos",
+    "claims": {
+      "khronos_selector": true,
+      "api_support": false,
+      "conformance": false,
+      "certification": false,
+      "profile_support": false,
+      "performance": false
+    },
+    "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default.txt",
+    "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+    "artifact": "webboxvm-graphics/f02/vulkan-cts-default/b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4.source",
+    "profile": "vulkan-1.4-core",
+    "suite_id": "vulkan-cts-default",
+    "selector_path": "external/vulkancts/mustpass/main/vk-default.txt",
+    "unfiltered": true
+  },
+  "ledger": {
+    "identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+    "ledger_sha256": "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0",
+    "member_count": 98,
+    "member_total_bytes": 434669348
+  },
+  "capture": {
+    "status": "fresh-99-raw-stream-capture-and-offline-replay",
+    "failure_or_skip": {"status": "none"},
+    "network": {
+      "root_streams": 1,
+      "member_streams": 98,
+      "total_streams": 99,
+      "raw_https_requests": 99,
+      "sha256_verified_streams": 99,
+      "git_blob_sha1_verified_streams": 99,
+      "total_bytes": 434672695
+    },
+    "cache": {
+      "fresh": true,
+      "reused": false,
+      "offline_raw_https_requests": 0,
+      "replay_receipt_sha256": "bc844fe3b3c32234b3ed3ec61da8267dbc3d67ab93e73bf4455fd8e320ccfdd4"
+    },
+    "disk": {
+      "required_free_bytes": 939666249,
+      "available_free_bytes": 141272158208
+    }
+  },
+  "oversize_members": {
+    "threshold_bytes": 8388608,
+    "count": 14,
+    "largest_bytes": 61932251,
+    "members": [
+      {"path": "external/vulkancts/mustpass/main/vk-default/api.txt", "bytes": 40296059, "sha256": "a329e8606983b982a34e45f254ac871b3d46b9fce137b78efa15878a5d238a0c"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/binding-model.txt", "bytes": 21368255, "sha256": "673e35537472743bddf6e45c66260a46f592ff6f754324017b23e251ddb97676"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/fragment-shading-rate.txt", "bytes": 15710739, "sha256": "43d19833353e50c60a358bc24dd585fb12a20e6aa06f512c6b1a4836fa839ba6"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/image/host-image-copy.txt", "bytes": 10269828, "sha256": "335cd420bad90086047c1bef61f44ba138101681bf01e92caaa5080f7a1c6dba"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/pipeline/fast-linked-library.txt", "bytes": 18943120, "sha256": "7bf53c4e640c3baee52016460fe503768e92eddff2be63e053ef2f86883918fc"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/pipeline/monolithic/monolithic.txt", "bytes": 61932251, "sha256": "b572e0c4a1fd079378dd4911a1d4712e2862c1885e7f4cc2b7f4e105d3a9736a"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/pipeline/pipeline-library.txt", "bytes": 16990842, "sha256": "ec5f817e94032e42ad0a1d55d82ab0b61fe04a1f86255d342c357caf43ed72a1"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/pipeline/shader-object-unlinked-spirv/shader-object-unlinked-spirv.txt", "bytes": 55935076, "sha256": "f2e6da499985fc728ca3ca115462a04a392dc95cd61d851fe66f9b5db699fe5a"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/renderpasses.txt", "bytes": 10273402, "sha256": "5b54e0ac38678a468a2112b4735543a2cb46fcfeda7ad73e3886469beda31d73"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/robustness.txt", "bytes": 13045748, "sha256": "33ee251fd69e816d376b0babba16916505a7314fe6c9b57a8021637bc09cf191"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/shader-object/rendering.txt", "bytes": 36351931, "sha256": "c259031354cab2a8c432ed69b3006eda118e7c56f9dc8d1878ccdb6866272149"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/synchronization.txt", "bytes": 8738894, "sha256": "5bea06c50b04c87b8f4d6d5caeec0c7a876fdf3f4053c0c35140002f93aba829"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/synchronization2.txt", "bytes": 11515449, "sha256": "fe3a3f9c558429eb92d781598650f70436ec477a633c3f798c2f70c87b2536ad"},
+      {"path": "external/vulkancts/mustpass/main/vk-default/transform-feedback.txt", "bytes": 20427868, "sha256": "a687997cb23142beb36b8548ea749720c5d3bc52d3f6c7456572174de14c2792"}
+    ]
+  },
+  "states": {
+    "admitted": false,
+    "cutover_ready": false,
+    "satisfies_vulkan_14_core_manifest": false
+  },
+  "receipt_sha256": "406130b30ca18b1843962456a5309ab24d41b222213b9a9d0e1cac06b6c98bb0"
+}
