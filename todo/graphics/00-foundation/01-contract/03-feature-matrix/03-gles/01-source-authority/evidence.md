@@ -28,4 +28,6 @@ case execution occurred. Every qualification claim remains false and
 `cts_executions` remains zero. The next leaf may consume only the two derivable
 classes; separate F02 admission is required for the three unavailable classes.
 
-Commit/push verification is recorded after the validated source-boundary commit.
+Commit/push verification: source-boundary implementation committed and pushed as
+`9af5335bcf610b9024588682de565e4ed689c0ea`; `git ls-remote --heads origin
+codex/graphics-f01-baseline` matched that revision.
