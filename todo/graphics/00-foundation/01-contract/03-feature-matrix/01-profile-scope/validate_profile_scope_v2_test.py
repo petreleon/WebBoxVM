@@ -15,6 +15,7 @@ from pathlib import Path
 
 from matrix_contract_v2 import MatrixError, validate_matrix
 from profile_contract_v2 import REQUIREMENTS_PATH, SCOPE, ScopeError, validate
+import role_aware_bindings as bindings
 from role_aware_bindings import ROW_FIELDS, SOURCE_CONTRACT, SOURCE_LOCK, canonical, load_locked_source_contract
 
 HERE = Path(__file__).resolve().parent
@@ -115,9 +116,12 @@ class ProfileScopeV2Tests(unittest.TestCase):
         before = list(sys.path)
         self.assertEqual(validate(), ())
         self.assertEqual(sys.path, before)
-        code = ("import sys,types; m=types.ModuleType('role_aware_source_lock'); "
-                "m.load_locked_contract=lambda *a: (_ for _ in ()).throw(RuntimeError('decoy')); "
-                "sys.modules['role_aware_source_lock']=m; import validate_profile_scope; validate_profile_scope.main()")
+        self.assertTrue({"webboxvm_source_builder", "inventory_layout"}.issubset(bindings._BARE_MODULES))
+        code = ("import sys,types; names=('role_aware_source_lock','webboxvm_source_builder','inventory_layout'); "
+                "saved={n:types.ModuleType(n) for n in names}; saved['role_aware_source_lock'].load_locked_contract="
+                "lambda *a: (_ for _ in ()).throw(RuntimeError('decoy')); sys.modules.update(saved); "
+                "import validate_profile_scope; validate_profile_scope.main(); "
+                "assert all(sys.modules[n] is saved[n] for n in names)")
         result = subprocess.run([sys.executable, "-c", code], cwd=HERE, capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 0)
 

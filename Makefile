@@ -13,7 +13,7 @@ WEB_THREADS_RUSTFLAGS ?= -C target-feature=+atomics,+bulk-memory -C link-arg=--s
 WASM_BINDGEN_THREADS_ROOT ?= $(ARTIFACTS_DIR)/tools/wasm-bindgen-memory64-threads
 WASM_BINDGEN_THREADS ?= $(WASM_BINDGEN_THREADS_ROOT)/bin/wasm-bindgen
 
-.PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-benchmark web-debian-arm64 graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test graphics-vulkan-definition-test graphics-source-admission-test graphics-full-suite-root-test graphics-gl-flat-ledger-test graphics-gles-full-closure-ledger-test graphics-gl-gles-ledger-receipt-test graphics-vulkan-ledger-taxonomy-test graphics-vulkan-cache-replay-test graphics-vulkan-full-suite-receipt-test graphics-vulkan-local-shard-receipt-test graphics-role-aware-source-contract-test graphics-profile-source-gate-test test
+.PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-benchmark web-debian-arm64 graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test graphics-vulkan-definition-test graphics-source-admission-test graphics-full-suite-root-test graphics-gl-flat-ledger-test graphics-gles-full-closure-ledger-test graphics-gl-gles-ledger-receipt-test graphics-vulkan-ledger-taxonomy-test graphics-vulkan-cache-replay-test graphics-vulkan-full-suite-receipt-test graphics-vulkan-local-shard-receipt-test graphics-role-aware-source-contract-test graphics-profile-source-gate-test graphics-f05-source-adapter-test test
 
 busybox:
 	scripts/update_busybox.sh
@@ -128,7 +128,11 @@ graphics-profile-source-gate-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/01-profile-scope/validate_profile_scope_test.py
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/01-profile-scope/validate_profile_scope_v2_test.py
 
-test: graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test graphics-vulkan-definition-test graphics-source-admission-test graphics-full-suite-root-test graphics-gl-flat-ledger-test graphics-gles-full-closure-ledger-test graphics-gl-gles-ledger-receipt-test graphics-vulkan-ledger-taxonomy-test graphics-vulkan-cache-replay-test graphics-vulkan-full-suite-receipt-test graphics-vulkan-local-shard-receipt-test graphics-role-aware-source-contract-test graphics-profile-source-gate-test
+graphics-f05-source-adapter-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/03-future-f05-adapter-and-receipt/f05_source_adapter_test.py
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/03-future-f05-adapter-and-receipt/f05_source_aggregate_receipt_test.py
+
+test: graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test graphics-vulkan-definition-test graphics-source-admission-test graphics-full-suite-root-test graphics-gl-flat-ledger-test graphics-gles-full-closure-ledger-test graphics-gl-gles-ledger-receipt-test graphics-vulkan-ledger-taxonomy-test graphics-vulkan-cache-replay-test graphics-vulkan-full-suite-receipt-test graphics-vulkan-local-shard-receipt-test graphics-role-aware-source-contract-test graphics-profile-source-gate-test graphics-f05-source-adapter-test
 	cargo test -p emulator
 	node scripts/stamp_web_asset_version.mjs --check
 	python3 scripts/check_graphics_roadmap.py

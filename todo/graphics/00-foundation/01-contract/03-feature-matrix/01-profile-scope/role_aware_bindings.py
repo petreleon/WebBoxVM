@@ -26,7 +26,7 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _BARE_MODULES = ("role_aware_source_lock", "role_aware_source_contract", "role_aware_source_evidence",
                  "full_suite_roots", "normative_roots", "vulkan_definition_contract", "source_role_contract",
                  "source_role_records", "source_role_artifacts", "source_cache", "source_model",
-                 "normative_notices")
+                 "normative_notices", "webboxvm_source_builder", "inventory_layout")
 
 
 class BindingError(ValueError):
