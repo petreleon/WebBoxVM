@@ -45,7 +45,9 @@ Decision and limits of the evidence: command/object/state and limit/format locat
 This proves neither API support nor CTS execution, conformance, certification, browser behavior, or
 performance; `cts_executions` remains zero and every qualification claim is false.
 
-Commit/push verification: not committed or pushed by request.
+Commit/push verification: source-boundary implementation committed and pushed as
+`0ac0f5fc50193b626032447c3feb232e2e3a4e20`; `git ls-remote --heads origin
+codex/graphics-f01-baseline` matched that revision.
 
 Next ready task: F03.2.2 may consume only the two derivable classes. A separate F02 admission decision
 is required before F03.2.3 can consume shader or extension locators.
