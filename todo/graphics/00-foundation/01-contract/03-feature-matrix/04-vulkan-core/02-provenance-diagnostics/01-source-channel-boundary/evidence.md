@@ -32,6 +32,10 @@ requires `blocked`, null owner, null independent test plan, and no matrix ingres
 - `make test` — PASS: graphics targets, 1,127 Rust unit tests (3 ignored), source-file limits, and 338 Node tests.
 - `git diff --check` and `PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_graphics_roadmap.py` — PASS before this evidence update.
 
+Commit/push verification: source-channel implementation committed and pushed as
+`d23c37d37657e413fca6dc5618906144e29ba780`; `git ls-remote --heads origin
+codex/graphics-f01-baseline` matched that revision.
+
 The v2 matrix hook now rejects every Vulkan row until F03.4.2.2 admits a citation map; it gives a
 specific rejection for `xml/vk.xml` registry locators. This is a provenance guard, not a Docs locator,
 CTS selection or execution, guest/browser result, conformance/certification claim, or performance
