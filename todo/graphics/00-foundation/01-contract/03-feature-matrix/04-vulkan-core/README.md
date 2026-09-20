@@ -27,6 +27,7 @@ requirement has a stable source locator, an implementation owner, and a referenc
 
 - [x] [F03.4.1 — Enumerate the Vulkan registry inventory](01-registry-inventory/README.md)
 - [ ] [F03.4.2 — Attach Docs provenance and CTS diagnostics](02-provenance-diagnostics/README.md)
+- [ ] [F03.4.3 — Review semantic core scope, owners, and test plans](03-semantic-core-owner-and-test-plan/README.md)
 
 ## Verification
 
@@ -40,3 +41,7 @@ The registry can enumerate technical API facts after the shared source gate, whe
 establish normative provenance and the canonical CTS suite supplies only broad diagnostics.
 Keeping these tasks separate prevents a registry fragment, generated Docs, or local CTS filtering from
 silently claiming the complete Vulkan 1.4 core inventory.
+
+F03.4.2 now separates source-channel boundaries, raw Docs citations, full-suite diagnostics, and their
+aggregate receipt. F03.4.3 can then review a semantic public-core scope and assign ownership/test plans
+without relabeling the 1,458 raw registry facts as an already-complete matrix.

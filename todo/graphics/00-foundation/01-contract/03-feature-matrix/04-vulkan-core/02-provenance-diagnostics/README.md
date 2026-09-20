@@ -22,13 +22,20 @@ core-only CTS selector or conformance claim.
 
 ## Checklist
 
-- [ ] Bind raw Docs citations by revision, path, digest, license/attribution, and semantic locator.
-- [ ] Map each matrix row to the unfiltered canonical CTS taxonomy without filtering or scope relabeling.
-- [ ] Keep generated Docs, inferred authority, and unreviewed mappings out of all source roles.
-- [ ] Require independent implementation, guest/native reference, CTS, and browser evidence for release claims.
-- [ ] Reject missing provenance, mixed pins, local selectors, and false release effects with tests and a receipt.
+- [ ] [F03.4.2.1 — Seal provenance channels and the raw-to-matrix boundary](01-source-channel-boundary/README.md)
+- [ ] [F03.4.2.2 — Pin citation-only raw Docs locators](02-raw-docs-provenance/README.md)
+- [ ] [F03.4.2.3 — Bind unfiltered VCTS diagnostics](03-full-suite-diagnostics/README.md)
+- [ ] [F03.4.2.4 — Aggregate the no-claim provenance receipt](04-aggregate-no-claim-receipt/README.md)
 
 ## Verification
 
 - Passing this mapping permits only auditable planning. It does not prove guest-visible compatibility,
   Khronos certification, or near-native browser performance.
+
+## Split rationale
+
+The sealed F02 role contract admits a normative Docs root and an unfiltered full-suite root, not a
+semantic Docs closure or a core-only CTS selector. Separating the channel boundary, raw citation map,
+root-wide diagnostic report, and aggregate prevents generated Docs, an inferred row-to-case match, or a
+local filter from becoming source authority. A later semantic-core review remains responsible for actual
+matrix rows, owners, and independent test plans.
