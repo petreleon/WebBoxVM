@@ -34,8 +34,10 @@ def ref(identifier, kind="upstream-source", **changes):
     return value
 
 
-def command(identifier, scope, inputs):
-    return ["webboxvm-source-builder", f"--mode={scope.removeprefix('webboxvm-')}",
+def command(identifier, scope, inputs, bytes, shard=None):
+    flags = [] if shard is None else [f"--shard-index={shard['index']}", f"--shard-count={shard['count']}",
+                                      f"--shard-offset={shard['offset']}", f"--shard-bytes={bytes}"]
+    return ["webboxvm-source-builder", f"--mode={scope.removeprefix('webboxvm-')}", *flags,
             *(f"@input:{item['id']}" for item in inputs), f"@output:{identifier}"]
 
 
@@ -71,10 +73,11 @@ def suite_member(**changes):
 def transform(identifier="vk14-map", inputs=None, **changes):
     inputs = inputs if inputs is not None else [ref("vulkan-spec")]
     scope = changes.get("scope", "webboxvm-core-definition")
-    value = {"kind": "webboxvm-transform", "id": identifier, "sha256": DIGEST, "bytes": 42,
+    shard, bytes = changes.get("shard"), changes.get("bytes", 42)
+    value = {"kind": "webboxvm-transform", "id": identifier, "sha256": DIGEST, "bytes": bytes,
              "license": "CC-BY-4.0", "attribution": "Khronos", "scope": scope,
              "authority": "WebBoxVM", "producer": "WebBoxVM", "claims": claims(), "inputs": inputs,
-             "command": command(identifier, scope, inputs), "artifact": f"objects/{identifier}.bin",
+             "command": command(identifier, scope, inputs, bytes, shard), "artifact": f"objects/{identifier}.bin",
              "builder": builder()}
     value.update(changes)
     return value
@@ -154,9 +157,9 @@ class SourceRoleContractTests(unittest.TestCase):
         second = transform("part-1", scope="webboxvm-byte-preserving-shard", bytes=5, inputs=[ref("member")],
                            shard=metadata | {"index": 1, "offset": 5})
         self.assertEqual(validate_catalog(catalog(root, member, first, second)), ("vulkan-cts-mustpass", "member", "part-0", "part-1"))
-        for value in (catalog(member, first), catalog(root, member, first, copy.deepcopy(second))):
-            if len(value["records"]) == 4:
-                value["records"][3]["shard"]["offset"] = 4
+        wrong = catalog(root, member, first, copy.deepcopy(second)); wrong["records"][3]["shard"]["offset"] = 4
+        for value in (catalog(member, first), catalog(root, member, first), wrong,
+                      catalog(root, member, copy.deepcopy(second), copy.deepcopy(first))):
             with self.subTest(value=value), self.assertRaises(RoleError):
                 validate_catalog(value)
 

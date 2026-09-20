@@ -1,0 +1,102 @@
+{
+  "authority": "WebBoxVM",
+  "builder": {
+    "artifact": "tools/webboxvm-byte-preserving-shard-builder.py",
+    "id": "webboxvm-source-builder",
+    "sha256": "598e4d74fef57f17554912d005d41ec4a2fb9ff6d1522081c90c617e427b340b"
+  },
+  "cache": {
+    "fresh_full_suite_receipt_sha256": "406130b30ca18b1843962456a5309ab24d41b222213b9a9d0e1cac06b6c98bb0",
+    "identity_sha256": "30b272f8c563e0dabf307795c01496eb70f744514b4790439ebbfc69c7bd5218",
+    "ledger_sha256": "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0",
+    "mode": "offline-replay",
+    "raw_https_requests": 0,
+    "receipt_sha256": "bc844fe3b3c32234b3ed3ec61da8267dbc3d67ab93e73bf4455fd8e320ccfdd4"
+  },
+  "catalog_sha256": "ab2bee7197f605be6e01ee75eb775cb06016b889e682384f099aaed6361bfb33",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "kind": "webboxvm-vulkan-api-byte-preserving-shard-receipt",
+  "max_local_bytes": 8388608,
+  "mode": "byte-preserving-shard",
+  "producer": "WebBoxVM",
+  "reassembled_sha256": "a329e8606983b982a34e45f254ac871b3d46b9fce137b78efa15878a5d238a0c",
+  "receipt_sha256": "0f4452659c0e2b1a23d58e11af12786a97d6f91c87dd8da387a697766a7f90ed",
+  "schema": 1,
+  "shards": [
+    {
+      "artifact": "shards/api-0.source",
+      "bytes": 8388608,
+      "count": 5,
+      "id": "vulkan-cts-api-shard-0",
+      "index": 0,
+      "offset": 0,
+      "sha256": "0cefa07a54d2b2fac2f0238af6dd1831be1ed9055c6fa251e5d1f8c71f98eb6a"
+    },
+    {
+      "artifact": "shards/api-1.source",
+      "bytes": 8388608,
+      "count": 5,
+      "id": "vulkan-cts-api-shard-1",
+      "index": 1,
+      "offset": 8388608,
+      "sha256": "b19278faa0324968199d25a45a960988457a3537d38956b5d28a2fd96645eba5"
+    },
+    {
+      "artifact": "shards/api-2.source",
+      "bytes": 8388608,
+      "count": 5,
+      "id": "vulkan-cts-api-shard-2",
+      "index": 2,
+      "offset": 16777216,
+      "sha256": "a213735b7d3b25f3509e0fa6df88fd8060edeba4361a6877dd9809c2d5e1b625"
+    },
+    {
+      "artifact": "shards/api-3.source",
+      "bytes": 8388608,
+      "count": 5,
+      "id": "vulkan-cts-api-shard-3",
+      "index": 3,
+      "offset": 25165824,
+      "sha256": "1403a2c14aee1f8cf12ac6f1ef95b48eefe8b31d665964f81b2bb8088f40e38e"
+    },
+    {
+      "artifact": "shards/api-4.source",
+      "bytes": 6741627,
+      "count": 5,
+      "id": "vulkan-cts-api-shard-4",
+      "index": 4,
+      "offset": 33554432,
+      "sha256": "fa6ba8875dd181410b4a5da6ac4b192e7e5ab14ff2ad4ba136b40c84f39b38c5"
+    }
+  ],
+  "source_member": {
+    "blob_sha1": "9440aee9b3291b2927119c97ab44e2858a63a39b",
+    "bytes": 40296059,
+    "id": "vulkan-cts-default-api",
+    "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default/api.txt",
+    "member_path": "external/vulkancts/mustpass/main/vk-default/api.txt",
+    "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+    "sha256": "a329e8606983b982a34e45f254ac871b3d46b9fce137b78efa15878a5d238a0c"
+  },
+  "source_root": {
+    "bytes": 3347,
+    "id": "vulkan-cts-default",
+    "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+    "selector_path": "external/vulkancts/mustpass/main/vk-default.txt",
+    "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+    "unfiltered": true
+  },
+  "states": {
+    "admitted": false,
+    "cutover_ready": false,
+    "satisfies_vulkan_14_core_manifest": false
+  }
+}

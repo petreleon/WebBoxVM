@@ -13,7 +13,7 @@ CHUNK_BYTES = 1024 * 1024
 
 
 def root_path(value: object) -> Path:
-    if not isinstance(value, Path) or not value.is_absolute():
+    if not isinstance(value, Path) or not value.is_absolute() or value.is_symlink():
         reject("artifact root must be an absolute path")
     root = value.resolve(strict=False)
     if not root.is_dir():
@@ -23,6 +23,11 @@ def root_path(value: object) -> Path:
 
 def target(root: Path, key: object, name: str) -> Path:
     key = artifact(key, name)
+    current = root
+    for part in Path(key).parts:
+        current /= part
+        if current.is_symlink():
+            reject(f"{name} cannot be a symlink")
     try:
         path = (root / key).resolve(strict=True)
     except OSError:
@@ -66,7 +71,7 @@ def verify_shards(records: dict[str, dict[str, object]], paths: dict[str, Path])
             groups.setdefault(record["shard"]["source_id"], []).append(record)
     for source_id, pieces in groups.items():
         hasher, total = hashlib.sha256(), 0
-        for piece in sorted(pieces, key=lambda item: item["shard"]["index"]):
+        for piece in pieces:
             with paths[piece["id"]].open("rb") as handle:
                 while chunk := handle.read(CHUNK_BYTES):
                     total += len(chunk)

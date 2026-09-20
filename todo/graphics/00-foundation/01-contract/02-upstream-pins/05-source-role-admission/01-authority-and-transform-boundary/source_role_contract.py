@@ -28,7 +28,12 @@ def input_ids(record: dict[str, object], records: dict[str, dict[str, object]]) 
 
 def bind_command(record: dict[str, object], inputs: list[str]) -> None:
     mode = record["scope"].removeprefix("webboxvm-")
-    expected = ["webboxvm-source-builder", f"--mode={mode}", *(f"@input:{item}" for item in inputs),
+    flags: tuple[str, ...] = ()
+    if record["scope"] == "webboxvm-byte-preserving-shard":
+        piece = record["shard"]
+        flags = (f"--shard-index={piece['index']}", f"--shard-count={piece['count']}",
+                 f"--shard-offset={piece['offset']}", f"--shard-bytes={record['bytes']}")
+    expected = ["webboxvm-source-builder", f"--mode={mode}", *flags, *(f"@input:{item}" for item in inputs),
                 f"@output:{record['id']}"]
     if record["command"] != expected:
         reject("command must bind its declared inputs and output canonically")
@@ -81,7 +86,6 @@ def complete_shards(records: dict[str, dict[str, object]]) -> None:
         if record["kind"] == "webboxvm-transform" and record["scope"] == "webboxvm-byte-preserving-shard":
             groups.setdefault(record["shard"]["source_id"], []).append(record)
     for pieces in groups.values():
-        pieces.sort(key=lambda item: item["shard"]["index"])
         first, count, offset = pieces[0]["shard"], pieces[0]["shard"]["count"], 0
         if len(pieces) != count or [item["shard"]["index"] for item in pieces] != list(range(count)):
             reject("shard catalog is incomplete or reordered")
@@ -108,9 +112,9 @@ def validate_catalog(value: object) -> tuple[str, ...]:
             member_anchor(record, records)
         if record["kind"] == "webboxvm-transform":
             inputs = input_ids(record, records)
-            bind_command(record, inputs)
             if record["scope"] == "webboxvm-byte-preserving-shard":
                 shard(record, records, inputs)
+            bind_command(record, inputs)
     no_cycles(records)
     complete_shards(records)
     return tuple(records)

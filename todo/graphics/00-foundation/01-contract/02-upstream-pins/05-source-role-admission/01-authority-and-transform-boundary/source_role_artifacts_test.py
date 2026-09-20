@@ -56,6 +56,18 @@ class SourceRoleArtifactTests(unittest.TestCase):
             with self.assertRaises(RoleError):
                 verify_catalog(value, root)
 
+    def test_rejects_symlinked_artifact_roots_and_members(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory, "root"); root.mkdir()
+            value, local, _builder_path = simple(root)
+            link = Path(directory, "root-link"); link.symlink_to(root, target_is_directory=True)
+            with self.assertRaises(RoleError):
+                verify_catalog(value, link)
+            path = root / local["artifact"]; copied = root / "copied-output"
+            path.replace(copied); path.symlink_to(copied)
+            with self.assertRaises(RoleError):
+                verify_catalog(value, root)
+
     def test_rejects_an_actual_over_eight_mebibyte_transform_declared_small(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
