@@ -3,11 +3,11 @@
 [Parent task](../README.md)
 
 Task: F03.4.2
-Depends: F03.4.1, F03.5, F02.5.4
+Depends: F03.4.1, F02.5.4.2
 Evidence: pending
 
-Prerequisite lists: [the registry inventory](../01-registry-inventory/README.md), [F03 source-contract
-v2](../../05-source-contract-v2/README.md), and [the role-aware source cutover](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md).
+Prerequisite lists: [the registry inventory](../01-registry-inventory/README.md) and [the active
+role-aware gate](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md).
 
 ## Outcome
 
@@ -18,8 +18,7 @@ core-only CTS selector or conformance claim.
 ## Starting points
 
 - [registry inventory](../01-registry-inventory/README.md)
-- [F03 source-contract v2](../../05-source-contract-v2/README.md)
-- [role-aware source cutover](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md)
+- [active role-aware gate](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md)
 
 ## Checklist
 

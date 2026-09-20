@@ -3,11 +3,11 @@
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.3
-Depends: F02, F03.5
+Depends: F03.1, F02.5.4.2
 Evidence: pending
 
-Prerequisite lists: [F02](../../02-upstream-pins/README.md) and
-[F03.5](../05-source-contract-v2/README.md).
+Prerequisite lists: [F03.1](../01-profile-scope/README.md) and [the active role-aware gate]
+(../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md).
 
 ## Outcome
 
@@ -20,6 +20,7 @@ source locator, an implementation owner, and a reference-test obligation.
 - [ESSL 3.20 input](../../02-upstream-pins/01-input-inventory/manifest.toml)
 - [VirGL capability evidence](../../../../../../research/virgl-compatibility.md)
 - [profile schema](../01-profile-scope/README.md)
+- [active role-aware gate](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md)
 
 ## Checklist
 

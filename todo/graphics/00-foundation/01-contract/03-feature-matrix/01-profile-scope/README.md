@@ -44,17 +44,17 @@ without treating the current bounded renderer as support for any profile.
 
 ## Maintained contract
 
-`profile_scope.json` fixes only the three final target scopes. They remain `blocked`: while any of
-the six exact sources is absent the blocker is `inventory-sources-incomplete`; after an F02 lock
-renewal admits all six, it must change to `matrix-incomplete`, not to profile support.
+`profile_scope.json`, `source_requirements.json`, `profile_contract.py`, and `matrix_contract.py`
+remain the immutable v1 snapshot used by superseded F02.4 evidence. Their old inventory result is not
+the active source gate.
 
-`source_requirements.json` names those six future inventory IDs and the reviewed existing inputs
-they extend. `validate_profile_scope.py` rejects a stale lock, a substituted ID, a missing role, or
-an invented related source; its current live result is intentionally `BLOCKED`.
+The active successor is `profile_scope_v2.json`, `source_requirements_v2.json`, and
+`validate_profile_scope.py`. It loads F02.5.4.1 only through its raw-byte lock, binds the three exact
+normative-root/full-suite-root pairs, and returns success only while all profiles remain
+`blocked` with `matrix-incomplete`. It does not accept a manifest switch or a legacy alias.
 
-Future F03.2–F03.4 artifacts use `matrix_contract.py` through
-`validate_profile_scope.py --matrix PATH`. Every row binds a normative source and a distinct,
-profile-specific CTS/must-pass source by ID, revision, and digest, plus a concrete locator, owner,
-test selector, status, blocker, and local `evidence.md` receipt. The contract rejects cross-profile
-sources, placeholders, stale identities, unsupported schema fields, and a supported/emulated row
-without concrete evidence. It validates a row's shape and provenance, not coverage or runtime support.
+Future F03.2–F03.4 artifacts use `matrix_contract_v2.py` through the active runner. A row names only
+the two roles; the validator resolves the pinned identity, unfiltered selector, and closure through the
+same sealed binding API. It rejects auxiliary substitutes, stale headers, cross-profile roles,
+unsupported schema fields, and any supported/emulated state. This validates provenance, not coverage
+or runtime support.

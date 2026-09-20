@@ -21,10 +21,10 @@ Completion has a versioned, enumerated meaning for OpenGL, GLES and Vulkan.
 ## Checklist
 
 - [x] [F03.1 — Define the profile scope and matrix schema](01-profile-scope/README.md)
-- [ ] [F03.5 — Adopt source-contract v2](05-source-contract-v2/README.md)
 - [ ] [F03.2 — Import the OpenGL 4.6 core inventory](02-opengl-core/README.md)
 - [ ] [F03.3 — Import the GLES 3.2 inventory](03-gles/README.md)
 - [ ] [F03.4 — Import the Vulkan 1.4 core inventory](04-vulkan-core/README.md)
+- [ ] [F03.5 — Audit admitted source use across inventories](05-source-contract-v2/README.md)
 - [ ] Run the named F05 coverage check, review every blocked row, and attach the F03 aggregate receipt.
 
 ## Verification
@@ -44,7 +44,7 @@ open until every child and its acceptance checks pass.
 ## Split rationale
 
 OpenGL core, GLES, and Vulkan have separate normative inputs, feature taxonomies, implementation
-lanes, and reference suites. The shared profile schema and source-sufficiency gate are deliberately
-separated from those imports; the parent verifies cross-profile ownership and test coverage only after
-F05 supplies the named check runner. This keeps a future blocked mandatory requirement visible instead
-of silently shrinking the final target.
+lanes, and reference suites. F02.5.4.2 now owns the shared role-aware source gate; the three imports
+may proceed independently, and F03.5 later audits their actual source use rather than repeating that
+gate. The parent still verifies cross-profile ownership and test coverage after F05 supplies its named
+check runner, keeping a future blocked mandatory requirement visible instead of shrinking the target.

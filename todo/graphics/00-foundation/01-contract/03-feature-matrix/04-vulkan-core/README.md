@@ -3,11 +3,11 @@
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.4
-Depends: F02, F03.5
+Depends: F03.1, F02.5.4.2
 Evidence: pending
 
-Prerequisite lists: [F02](../../02-upstream-pins/README.md) and
-[F03.5](../05-source-contract-v2/README.md).
+Prerequisite lists: [F03.1](../01-profile-scope/README.md) and [the active role-aware gate]
+(../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md).
 
 ## Outcome
 
@@ -21,7 +21,7 @@ requirement has a stable source locator, an implementation owner, and a referenc
 - [Vulkan CTS input](../../02-upstream-pins/01-input-inventory/manifest.toml)
 - [Venus feasibility evidence](../../../../../../research/venus-foundations.md)
 - [profile schema](../01-profile-scope/README.md)
-- [source-contract v2](../05-source-contract-v2/README.md)
+- [active role-aware gate](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md)
 
 ## Checklist
 
@@ -36,7 +36,7 @@ requirement has a stable source locator, an implementation owner, and a referenc
 
 ## Split rationale
 
-The registry can enumerate technical API facts before a full source-contract cutover, whereas raw Docs
-citations establish normative provenance and the canonical CTS suite supplies only broad diagnostics.
+The registry can enumerate technical API facts after the shared source gate, whereas raw Docs citations
+establish normative provenance and the canonical CTS suite supplies only broad diagnostics.
 Keeping these tasks separate prevents a registry fragment, generated Docs, or local CTS filtering from
 silently claiming the complete Vulkan 1.4 core inventory.

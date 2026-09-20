@@ -1,45 +1,44 @@
-# F03.5 — Adopt source-contract v2
+# F03.5 — Audit admitted source use across inventories
 
 [Parent task](../README.md) · [Worker instructions](../../../../workflow.md)
 
 Task: F03.5
-Depends: F03.1, F02.5.4
+Depends: F03.1, F02.5.4.2, F03.2, F03.3, F03.4
 Evidence: pending
 
-Prerequisite lists: [F03.1](../01-profile-scope/README.md) and
-[F02.5.4](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md).
+Prerequisite lists: [F03.1](../01-profile-scope/README.md), [the active role-aware gate]
+(../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md),
+and the three imported inventories.
 
 ## Outcome
 
-F03 consumes the renewed, lock-bound source contract for every matrix input without changing the
-OpenGL 4.6 core, GLES 3.2, or Vulkan 1.4 core targets. Source availability is distinct from guest
-compatibility, conformance, performance, and Khronos certification.
+After the three inventories exist, one audit proves each actual matrix locator consumes the admitted
+role-aware binding without changing the OpenGL 4.6 core, GLES 3.2, or Vulkan 1.4 core targets. Source
+availability remains distinct from guest compatibility, conformance, performance, and certification.
 
 ## Starting points
 
-- [F02 role-aware source cutover](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/README.md)
-- [F03 profile contract](../01-profile-scope/profile_contract.py)
-- [source requirements](../01-profile-scope/source_requirements.json)
-- [matrix contract](../01-profile-scope/matrix_contract.py)
+- [active F02.5.4.2 gate](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md)
+- [F03 v2 profile contract](../01-profile-scope/profile_contract_v2.py)
+- [v2 source requirements](../01-profile-scope/source_requirements_v2.json)
+- [v2 matrix contract](../01-profile-scope/matrix_contract_v2.py)
 
 ## Checklist
 
-- [ ] Consume F02.5.4's atomic role-aware source identities and receipts for every required profile
-  role; reject a stale, partial, mixed, root-only, or substituted source contract.
-- [ ] Bind `vulkan-cts-mustpass` to the canonical unfiltered upstream suite root and its admitted
-  record, not a locally filtered "core-only" selector, isolated CTS file, or unverified aggregate.
-- [ ] Keep Vulkan 1.4 core as the inventory target while recording core, WSI, video, and extension
-  suite categories only as auditable coverage/reporting boundaries; classification must not alter CTS.
-- [ ] Preserve `matrix-incomplete` as a source-sufficiency state only; it must not promote a matrix
-  row, guest API, browser device, renderer, or test result to supported, conformant, or certified.
-- [ ] Add focused positive and hostile adoption checks, run required gates, and attach a receipt with
-  exact source identities, closure evidence, and the still-separate compatibility obligations.
+- [ ] Audit every imported row and locator through the active role-binding API.
+- [ ] Require the exact OpenGL, GLES, and Vulkan normative-root/full-suite-root pairs; reject aliases,
+  auxiliary records, stale closure evidence, cross-profile use, and filtered suite substitutions.
+- [ ] Keep Vulkan 1.4 core as the inventory target while reporting core, WSI, video, and extension
+  categories only as coverage boundaries; classification must not alter the unfiltered CTS root.
+- [ ] Preserve blocked rows and profiles absent independent implementation evidence; an audit cannot
+  promote a guest API, browser device, renderer, or test result.
+- [ ] Add focused audit checks, run required gates, and attach a receipt with identities, closure
+  evidence, and the still-separate compatibility obligations.
 
 ## Verification
 
-- F03 refuses a source contract whose canonical root, recursive closure, lock identity, or declared
-  scope differs from the F02 admission receipt.
-- A pass here proves only that matrix work may use verified source material. It is not proof of a
-  guest-visible implementation, Vulkan/OpenGL/GLES conformance, performance, or Khronos status.
+- Every imported row resolves to the immutable F02.5.4.1 identity already admitted by F02.5.4.2.
+- A pass here proves only source-use consistency, not a guest-visible implementation, conformance,
+  performance, or Khronos status.
 - The Vulkan matrix keeps its core target explicit; no local selector rewrite can hide WSI, video, or
-  extension coverage from the canonical CTS-suite record.
+  extension coverage from the canonical full-suite record.

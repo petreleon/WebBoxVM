@@ -20,7 +20,7 @@ role-aware source records. A stale, mixed, or scope-misrepresented record cannot
 ## Checklist
 
 - [x] [F02.5.4.1 — Seal the role-aware source contract](01-role-aware-source-contract/README.md)
-- [ ] [F02.5.4.2 — Bind the F03 profile gate and matrix](02-f03-gate-and-matrix-binding/README.md)
+- [x] [F02.5.4.2 — Bind the F03 profile gate and matrix](02-f03-gate-and-matrix-binding/README.md)
 - [ ] [F02.5.4.3 — Expose the future F05 adapter and aggregate receipt](03-future-f05-adapter-and-receipt/README.md)
 
 ## Verification
