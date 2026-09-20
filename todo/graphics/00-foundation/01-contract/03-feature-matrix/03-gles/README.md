@@ -26,7 +26,7 @@ source locator, an implementation owner, and a reference-test obligation.
 
 ## Checklist
 
-- [ ] [F03.3.1 — Set the GLES source-authority boundary](01-source-authority/README.md)
+- [x] [F03.3.1 — Set the GLES source-authority boundary](01-source-authority/README.md)
 - [ ] [F03.3.2 — Extract the GLES API inventory](02-api-inventory/README.md)
 - [ ] [F03.3.3 — Map shader and CTS obligations](03-shader-and-cts-obligations/README.md)
 - [ ] [F03.3.4 — Register checks and aggregate the receipt](04-registration-and-aggregate-receipt/README.md)

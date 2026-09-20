@@ -1,0 +1,98 @@
+{
+  "boundary_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "full_suite_root": {
+    "bytes": 4284,
+    "profile": "gles-3.2",
+    "record_id": "gles-cts-main",
+    "record_kind": "full-suite-root",
+    "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+    "role": "full-suite-root",
+    "scope": "full-conformance-suite",
+    "selector_path": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/mustpass.xml",
+    "selector_scope": "Khronos full root; not core-only",
+    "sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+    "suite_id": "gles-cts-main",
+    "unfiltered": true
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-gles-source-authority-boundary",
+  "locator_classes": [
+    {
+      "availability": "available",
+      "blocker": "",
+      "decision": "derivable",
+      "id": "command-state",
+      "permitted_extraction_scope": "GLES 3.2 core commands and state",
+      "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+      "source_role": "normative-root"
+    },
+    {
+      "availability": "available",
+      "blocker": "",
+      "decision": "derivable",
+      "id": "limit-format",
+      "permitted_extraction_scope": "GLES 3.2 core limits and format properties",
+      "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+      "source_role": "normative-root"
+    },
+    {
+      "availability": "unavailable",
+      "blocker": "unadmitted-distinct-source",
+      "decision": "requires-separate-admission",
+      "id": "shader",
+      "permitted_extraction_scope": "",
+      "source_locator_syntax": null,
+      "source_role": null
+    },
+    {
+      "availability": "unavailable",
+      "blocker": "unadmitted-distinct-source",
+      "decision": "requires-separate-admission",
+      "id": "precision",
+      "permitted_extraction_scope": "",
+      "source_locator_syntax": null,
+      "source_role": null
+    },
+    {
+      "availability": "unavailable",
+      "blocker": "unadmitted-distinct-source",
+      "decision": "requires-separate-admission",
+      "id": "extension",
+      "permitted_extraction_scope": "",
+      "source_locator_syntax": null,
+      "source_role": null
+    }
+  ],
+  "normative_root": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "profile": "gles-3.2",
+  "schema": 1,
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

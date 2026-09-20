@@ -4,7 +4,7 @@
 
 Task: F03.3.1
 Depends: F03.1, F02.5.4.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,16 +20,16 @@ manifest by alias, and fails closed when a required locator needs an unadmitted 
 
 ## Checklist
 
-- [ ] Load the exact GLES normative-root and full-suite-root records only through the F03 role-aware
+- [x] Load the exact GLES normative-root and full-suite-root records only through the F03 role-aware
   binding; reject a legacy manifest alias, ambient module, wrong profile, or auxiliary record.
-- [ ] Classify GLES command/state/limit/format, shader, precision, and extension locator classes as
+- [x] Classify GLES command/state/limit/format, shader, precision, and extension locator classes as
   derivable from the admitted normative root or as requiring a separately recorded source decision.
-- [ ] Record the exact revision, digest, source-locator syntax, and permitted extraction scope for each
+- [x] Record the exact revision, digest, source-locator syntax, and permitted extraction scope for each
   accepted class; do not infer ESSL authority from an unrelated record.
-- [ ] Make an unresolved class unavailable to F03.3.2 and F03.3.3 rather than replacing it with a lower
+- [x] Make an unresolved class unavailable to F03.3.2 and F03.3.3 rather than replacing it with a lower
   GLES version, desktop OpenGL behavior, or an unpinned document.
-- [ ] Add positive and hostile boundary checks for stale, mixed, reordered, legacy, and auxiliary input.
-- [ ] Attach a no-claim boundary receipt and retain `matrix-incomplete`.
+- [x] Add positive and hostile boundary checks for stale, mixed, reordered, legacy, and auxiliary input.
+- [x] Attach a no-claim boundary receipt and retain `matrix-incomplete`.
 
 ## Verification
 
