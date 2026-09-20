@@ -40,5 +40,6 @@ claims are false, CTS executions are zero, and Vulkan profile status remains blo
 
 No guest Mesa application, browser GPU path, device, CTS case, certification, native
 comparison, or performance measurement ran. The generic `make test` lane is not invoked
-by this F05 test target, avoiding recursive validation. Commit/push verification is
-recorded after the validated feature commit.
+by this F05 test target, avoiding recursive validation. Commit/push verification:
+`6e6ee1b569cd1decb90cf5495a2b3aadbada498c` was pushed and `git ls-remote --heads
+origin codex/graphics-f01-baseline` matched it.

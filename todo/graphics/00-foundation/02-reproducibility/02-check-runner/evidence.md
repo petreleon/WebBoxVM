@@ -21,5 +21,6 @@ or CTS suite is recorded as `BLOCKED`, never as PASS. A later F03 semantic leaf 
 its own normative/full-suite pair before F05 can register a profile implementation check.
 
 No guest API compatibility, browser rendering, Khronos conformance/certification, or
-near-native performance result follows from F05. Commit/push verification is recorded
-after the validated feature commit.
+near-native performance result follows from F05. Commit/push verification:
+`6e6ee1b569cd1decb90cf5495a2b3aadbada498c` was pushed and `git ls-remote --heads
+origin codex/graphics-f01-baseline` matched it.
