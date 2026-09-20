@@ -19,14 +19,17 @@ role-aware source records. A stale, mixed, or scope-misrepresented record cannot
 
 ## Checklist
 
-- [ ] Admit all six required source roles atomically and renew the inventory lock and cache contract.
-- [ ] Bind each F03 requirement to its normative root and full-suite record with exact revision and digest.
-- [ ] Register local transforms and engineering maps as non-conformance auxiliary evidence only.
-- [ ] Require any missing mandatory role, stale pin, or unmatched full-suite root to keep the profile blocked.
-- [ ] Add positive and hostile cutover tests, then run the fresh-cache and downstream consumer checks.
-- [ ] Attach an aggregate receipt and update immediate parent checkboxes only after all checks pass.
+- [ ] [F02.5.4.1 — Seal the role-aware source contract](01-role-aware-source-contract/README.md)
+- [ ] [F02.5.4.2 — Bind the F03 profile gate and matrix](02-f03-gate-and-matrix-binding/README.md)
+- [ ] [F02.5.4.3 — Expose the future F05 adapter and aggregate receipt](03-future-f05-adapter-and-receipt/README.md)
 
 ## Verification
 
 - F03 may advance from `inventory-sources-incomplete` to `matrix-incomplete` only after all roles are
   admitted. No source cutover marks a guest API, browser path, CTS run, certification, or performance pass.
+
+## Split rationale
+
+The successor inventory/lock, F03's schema-breaking consumer migration, and the later F05-facing
+adapter have independent failure boundaries. Separating them prevents the historical 17-input F02.1
+inventory and its generic 8 MiB transport rule from being mistaken for a full-suite admission contract.
