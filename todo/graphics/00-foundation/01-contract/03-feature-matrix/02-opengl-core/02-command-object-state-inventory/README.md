@@ -8,8 +8,9 @@ Evidence: pending
 
 ## Outcome
 
-The shared matrix receives the complete admitted OpenGL 4.6 core command, object, and state vocabulary
-with stable source locators. The extraction records facts and blockers, not an implementation verdict.
+The OpenGL 4.6 core command, object, state, and lifecycle vocabulary is extracted as a complete,
+reviewable raw source inventory with stable locators. A later ownership task imports those raw facts into
+the shared matrix only after it can attach real implementation owners and independent test obligations.
 
 ## Starting points
 
@@ -19,18 +20,19 @@ with stable source locators. The extraction records facts and blockers, not an i
 
 ## Checklist
 
-- [ ] Consume only locator classes accepted by F03.2.1 and preserve the exact source identity on every
-  command, object, and state row.
-- [ ] Enumerate mandatory core commands, objects, state variables, and state transitions without folding
-  compatibility-profile behavior or unrecorded extensions into the target.
-- [ ] Give every row a stable identity, source locator, requirement kind, and explicit provisional state
-  suitable for the shared schema.
-- [ ] Reject missing, duplicate, reordered, cross-profile, or source-identity-mismatched rows.
-- [ ] Keep unavailable implementation evidence and unknown behavior visibly blocked; no row becomes
-  supported merely because it was extracted.
-- [ ] Add focused extraction and hostile-input checks, then attach a no-claim inventory receipt.
+- [ ] [F03.2.2.1 — Verify the normative PDF cache](01-normative-pdf-cache/README.md)
+- [ ] [F03.2.2.2 — Extract raw command and object facts](02-command-object-raw-inventory/README.md)
+- [ ] [F03.2.2.3 — Extract raw state and lifecycle facts](03-state-and-lifecycle-raw-inventory/README.md)
+- [ ] [F03.2.2.4 — Handoff raw facts and guard matrix import](04-raw-handoff-and-import-guard/README.md)
 
 ## Verification
 
-The emitted rows are a bounded source inventory only. They leave ownership, independent test obligations,
-CTS execution, guest behavior, browser behavior, certification, and performance unresolved.
+The emitted raw facts are bounded source inventory only. They leave ownership, independent test
+obligations, CTS execution, guest behavior, browser behavior, certification, and performance unresolved.
+
+## Split rationale
+
+`matrix_contract_v2.py` requires an implementation owner and a full-suite test role, neither of which a
+PDF extraction can truthfully invent. Cache identity, command/object facts, and state/lifecycle facts are
+therefore independently fail-closed raw inputs. F03.2.4 owns the later matrix import after it maps real
+owners and reference obligations; this split does not weaken F03.2.1 or add a source to F02.

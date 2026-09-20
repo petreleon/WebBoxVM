@@ -8,9 +8,9 @@ Evidence: pending
 
 ## Outcome
 
-Every admitted OpenGL 4.6 matrix row has a downstream implementation owner and an independent native,
-guest, or conformance reference-test obligation. Missing mappings stay visible rather than shrinking the
-profile.
+Every admitted OpenGL 4.6 raw inventory fact gains a downstream implementation owner and an independent
+native, guest, or conformance reference-test obligation before it is imported into the shared matrix.
+Missing mappings stay visible rather than shrinking the profile.
 
 ## Starting points
 
@@ -20,19 +20,17 @@ profile.
 
 ## Checklist
 
-- [ ] Merge the two inventory families and reject a missing, duplicate, or source-incompatible mandatory
-  row before assigning ownership.
-- [ ] Link every mandatory row to a concrete downstream implementation task or a visibly unresolved
-  owner; do not replace a missing owner with a generic transport milestone.
-- [ ] Give each row an independent native, guest, or canonical conformance-test obligation with an exact
-  selector or documented reason it remains blocked.
-- [ ] Classify bounded VirGL evidence only where its source supports the exact row; retain unsupported or
-  unknown behavior as blocked and never substitute a lower bring-up API level.
-- [ ] Reject an empty owner, generic test plan, stale suite root, wrong profile, or row marked supported
-  without independent evidence.
-- [ ] Attach a coverage receipt with zero implied CTS executions and no qualification claims.
+- [ ] [F03.2.4.1 — Assign ownership and reference obligations](01-ownership-and-reference-obligations/README.md)
+- [ ] [F03.2.4.2 — Import the matrix and receipt coverage](02-matrix-import-and-coverage-receipt/README.md)
 
 ## Verification
 
 The coverage map plans implementation and testing; it does not execute CTS or establish guest, browser,
 certification, support, or performance behavior.
+
+## Split rationale
+
+F03.2.2 and F03.2.3 can establish source facts but cannot truthfully fill Matrix v2 owner and reference
+fields. Ownership and independent obligations are resolved first; only then does the second child import
+the verified raw families into the shared schema. F03.2.5 continues to depend on this parent rather than
+on an early, partially attributed matrix.
