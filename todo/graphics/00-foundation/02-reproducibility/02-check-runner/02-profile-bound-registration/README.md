@@ -4,12 +4,16 @@
 
 Task: F05.2
 Depends: F02, F05.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
 Frozen source and profile inputs bind each implementation leaf to exact device, browser, Wasm, guest,
 and conformance checks through the tested F05.1 substrate.
+
+The current sealed catalog has no admitted semantic implementation leaf, so it records
+`profile_implementation_count: 0`. Its Vulkan registry diagnostic and baseline lanes cannot change
+that state; a later semantic matrix leaf must supply the exact normative/full-suite pair.
 
 ## Starting points
 
@@ -19,17 +23,17 @@ and conformance checks through the tested F05.1 substrate.
 
 ## Checklist
 
-- [ ] Register each admitted leaf's exact command, profile, source revision, expected nonzero case count,
+- [x] Register each admitted leaf's exact command, profile, source revision, expected nonzero case count,
   artifact location, and required hardware/browser/guest prerequisites.
-- [ ] Bind device, browser, serial/threaded Wasm, guest, and conformance checks to frozen F02 inputs;
+- [x] Bind device, browser, serial/threaded Wasm, guest, and conformance checks to frozen F02 inputs;
   reject stale, unpinned, or profile-mismatched registrations.
-- [ ] Require missing assets, browser, native hardware, guest image, or conformance suite to remain
+- [x] Require missing assets, browser, native hardware, guest image, or conformance suite to remain
   blocked and retain their command/output rather than silently skipping them.
-- [ ] Keep existing `make test` and `make web-pkg` lanes registered separately; label the native guest
+- [x] Keep existing `make test` and `make web-pkg` lanes registered separately; label the native guest
   smoke transport-only until a later task proves standard Mesa behavior.
-- [ ] Add registration and negative tests for profile mismatch, stale pin, empty command, and missing
+- [x] Add registration and negative tests for profile mismatch, stale pin, empty command, and missing
   mandatory evidence.
-- [ ] Run the verification below, review the result, and attach the completed evidence receipt.
+- [x] Run the verification below, review the result, and attach the completed evidence receipt.
 
 ## Verification
 

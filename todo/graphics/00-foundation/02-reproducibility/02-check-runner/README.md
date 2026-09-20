@@ -4,7 +4,7 @@
 
 Task: F05
 Depends: F01, F02
-Evidence: pending
+Evidence: [aggregate receipt](evidence.md)
 
 Prerequisite lists: [F01](../../01-contract/01-baseline/README.md), [F02](../../01-contract/02-upstream-pins/README.md).
 
@@ -23,7 +23,7 @@ profile-bound registration is admitted.
 ## Checklist
 
 - [x] [F05.1 — Implement the profile-independent runner substrate](01-generic-runner/README.md)
-- [ ] [F05.2 — Register profile-bound graphics checks](02-profile-bound-registration/README.md)
+- [x] [F05.2 — Register profile-bound graphics checks](02-profile-bound-registration/README.md)
 
 ## Verification
 

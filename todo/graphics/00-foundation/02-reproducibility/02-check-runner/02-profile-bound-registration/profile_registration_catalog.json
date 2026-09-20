@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "kind": "webboxvm-f05-profile-registration",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "claims": {
+    "khronos_selector": false,
+    "api_support": false,
+    "conformance": false,
+    "certification": false,
+    "profile_support": false,
+    "performance": false
+  },
+  "cts_executions": 0,
+  "states": {
+    "profile_implementation_count": 0,
+    "profile_status": "blocked",
+    "blocker": "matrix-incomplete",
+    "api_support": false,
+    "conformance": false,
+    "certification": false,
+    "profile_support": false,
+    "performance": false,
+    "guest_api": false,
+    "browser_execution": false
+  },
+  "checks": [
+    {
+      "id": "vulkan-registry-inventory-v2",
+      "kind": "auxiliary-inventory",
+      "profile": "vulkan-1.4-core",
+      "profile_effect": "none",
+      "source": {
+        "id": "vulkan-registry",
+        "record_kind": "upstream-source",
+        "scope": "registry-metadata",
+        "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+        "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06",
+        "bytes": 3309653
+      },
+      "command": [
+        "python3",
+        "todo/graphics/00-foundation/01-contract/03-feature-matrix/04-vulkan-core/01-registry-inventory/v2/registry_inventory_live_test.py",
+        "--selector-cache-root",
+        "{selector_cache_root}"
+      ],
+      "expected_count": 1458,
+      "artifacts": [
+        "todo/graphics/00-foundation/01-contract/03-feature-matrix/04-vulkan-core/01-registry-inventory/v2/registry_inventory.json"
+      ],
+      "tools": [["python3", "--version"]],
+      "prerequisites": [{"kind": "executable", "value": "python3"}],
+      "evidence": "todo/graphics/00-foundation/01-contract/03-feature-matrix/04-vulkan-core/01-registry-inventory/evidence.md#observed-output-and-boundaries",
+      "lane": "auxiliary-inventory",
+      "requires_selector_cache": true
+    },
+    {
+      "id": "make-test",
+      "kind": "baseline",
+      "profile": null,
+      "profile_effect": "none",
+      "source": null,
+      "command": ["make", "test"],
+      "expected_count": 1,
+      "artifacts": ["Makefile"],
+      "tools": [["make", "--version"]],
+      "prerequisites": [{"kind": "executable", "value": "make"}],
+      "evidence": "todo/graphics/baseline.md#commands-that-already-exist",
+      "lane": "make-test",
+      "requires_selector_cache": false
+    },
+    {
+      "id": "web-pkg-serial",
+      "kind": "baseline",
+      "profile": null,
+      "profile_effect": "none",
+      "source": null,
+      "command": ["make", "web-pkg-serial"],
+      "expected_count": 1,
+      "artifacts": ["Makefile"],
+      "tools": [["make", "--version"]],
+      "prerequisites": [
+        {"kind": "executable", "value": "make"},
+        {"kind": "asset", "value": ".artifacts/tools/wasm-bindgen-memory64-threads/bin/wasm-bindgen"}
+      ],
+      "evidence": "todo/graphics/baseline.md#commands-that-already-exist",
+      "lane": "wasm-serial",
+      "requires_selector_cache": false
+    },
+    {
+      "id": "web-pkg-threaded",
+      "kind": "baseline",
+      "profile": null,
+      "profile_effect": "none",
+      "source": null,
+      "command": ["make", "web-pkg-threaded"],
+      "expected_count": 1,
+      "artifacts": ["Makefile"],
+      "tools": [["make", "--version"]],
+      "prerequisites": [
+        {"kind": "executable", "value": "make"},
+        {"kind": "asset", "value": ".artifacts/tools/wasm-bindgen-memory64-threads/bin/wasm-bindgen"}
+      ],
+      "evidence": "todo/graphics/baseline.md#commands-that-already-exist",
+      "lane": "wasm-threaded",
+      "requires_selector_cache": false
+    },
+    {
+      "id": "virgl-guest-transport",
+      "kind": "baseline",
+      "profile": null,
+      "profile_effect": "none",
+      "source": null,
+      "command": ["scripts/virgl_guest_transport_smoke.sh"],
+      "expected_count": 1,
+      "artifacts": ["scripts/virgl_guest_transport_smoke.sh"],
+      "tools": [["make", "--version"]],
+      "prerequisites": [
+        {"kind": "asset", "value": "output/webboxvm-final-install-compact.wbdisk"},
+        {"kind": "asset", "value": "guest/virgl-clear-demo/build/virgl-clear-demo"}
+      ],
+      "evidence": "todo/graphics/baseline.md#commands-that-already-exist",
+      "lane": "transport-only",
+      "requires_selector_cache": false
+    }
+  ],
+  "catalog_sha256": "e390118a78145dac3c5c080413317f55659ba202fc536bae377b6c2b81556cf6"
+}
