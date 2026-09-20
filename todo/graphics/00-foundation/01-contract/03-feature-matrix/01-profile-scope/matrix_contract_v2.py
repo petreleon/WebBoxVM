@@ -3,13 +3,18 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
 
 from role_aware_bindings import BindingError, ROW_FIELDS, STATUSES, binding_for, role_bindings
 
-REPO = Path(__file__).resolve().parents[6]
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[6]
+VULKAN_PROFILE = "vulkan-1.4-core"
+VULKAN_BOUNDARY = HERE.parent / "04-vulkan-core/02-provenance-diagnostics/01-source-channel-boundary/vulkan_source_channels.py"
 MATRIX_FIELDS = frozenset(("schema", "source_contract_sha256", "inventory_lock_sha256", "rows"))
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 TASK = re.compile(r"^[A-Z]+[0-9]+(?:\.[0-9]+)*$")
@@ -50,6 +55,40 @@ def evidence(path: Path, row: dict[str, object]) -> str:
     return value
 
 
+def vulkan_boundary():
+    if VULKAN_BOUNDARY.is_symlink() or not VULKAN_BOUNDARY.is_file():
+        reject("Vulkan source-channel boundary is unavailable")
+    name, prior, old_path = "f03421_vulkan_source_channels", sys.modules.get("f03421_vulkan_source_channels"), list(sys.path)
+    try:
+        sys.path.insert(0, str(VULKAN_BOUNDARY.parent))
+        spec = importlib.util.spec_from_file_location(name, VULKAN_BOUNDARY)
+        if spec is None or spec.loader is None:
+            reject("cannot load the Vulkan source-channel boundary")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        if Path(getattr(module, "__file__", "")).resolve() != VULKAN_BOUNDARY.resolve():
+            reject("Vulkan source-channel boundary resolved from an unexpected path")
+        return module
+    except MatrixError:
+        raise
+    except Exception as error:
+        reject(f"cannot load the Vulkan source-channel boundary: {error}")
+    finally:
+        sys.path[:] = old_path
+        if prior is None:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = prior
+
+
+def validate_vulkan_ingress(row: dict[str, object]) -> None:
+    try:
+        vulkan_boundary().matrix_ingress(row)
+    except ValueError as error:
+        reject(str(error))
+
+
 def validate_matrix(path: Path, source_contract: dict[str, object], profiles: set[str]) -> int:
     try:
         role_bindings(source_contract)
@@ -85,6 +124,8 @@ def validate_matrix(path: Path, source_contract: dict[str, object], profiles: se
         evidence(path, row)
         if not TASK.fullmatch(owner) or not locator:
             reject("matrix row has an invalid owner or locator")
+        if profile == VULKAN_PROFILE:
+            validate_vulkan_ingress(row)
         if row["status"] not in STATUSES or row["status"] != "blocked" or row["blocker"] != "matrix-incomplete":
             reject("matrix rows remain blocked by matrix-incomplete")
         key = (profile, kind, name, condition)

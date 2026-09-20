@@ -4,7 +4,7 @@
 
 Task: F03.4.2.1
 Depends: F03.4.1, F02.5.4.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ rows or a substitute for either mandatory source role.
 
 ## Checklist
 
-- [ ] Load `vulkan-14-spec` and `vulkan-cts-default` only through the fixed-path F03 role-aware binding.
-- [ ] Reject an F02.1 alias, ambient module, stale or mixed lock, auxiliary registry, or filtered suite root.
-- [ ] Record the root revision, digest, bytes, license/attribution, and permitted citation or diagnostic channel.
-- [ ] Prove raw registry rows have null owners/test plans and cannot enter the v2 matrix as normative rows.
-- [ ] Record that `vkspec.adoc` includes require a separately pinned citation map, not an inferred Docs closure.
-- [ ] Add hostile boundary tests and a no-claim receipt that retains `matrix-incomplete`.
+- [x] Load `vulkan-14-spec` and `vulkan-cts-default` only through the fixed-path F03 role-aware binding.
+- [x] Reject an F02.1 alias, ambient module, stale or mixed lock, auxiliary registry, or filtered suite root.
+- [x] Record the root revision, digest, bytes, license/attribution, and permitted citation or diagnostic channel.
+- [x] Prove raw registry rows have null owners/test plans and cannot enter the v2 matrix as normative rows.
+- [x] Record that `vkspec.adoc` includes require a separately pinned citation map, not an inferred Docs closure.
+- [x] Add hostile boundary tests and a no-claim receipt that retains `matrix-incomplete`.
 
 ## Verification
 

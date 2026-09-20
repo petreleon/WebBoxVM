@@ -35,10 +35,10 @@ class ProfileScopeV2Tests(unittest.TestCase):
         edit(value)
         path.write_text(json.dumps(value), encoding="utf-8")
 
-    def matrix(self) -> dict[str, object]:
+    def matrix(self, profiles=("opengl-4.6-core", "gles-3.2")) -> dict[str, object]:
         contract = load_locked_source_contract()
         rows = []
-        for profile in ("opengl-4.6-core", "gles-3.2", "vulkan-1.4-core"):
+        for profile in profiles:
             rows.append({"profile": profile, "requirement_kind": "command", "name": f"{profile}-example",
                          "mandatory": True, "source_role": "normative-root", "source_locator": "pinned-source",
                          "condition": "always", "owner_task": "G01", "test_source_role": "full-suite-root",
@@ -138,6 +138,14 @@ class ProfileScopeV2Tests(unittest.TestCase):
             edit(value)
             with self.subTest(edit=edit), self.assertRaises(ScopeError):
                 validate(matrix_path=self.write_matrix(value))
+
+    def test_vulkan_matrix_rows_need_citations_and_reject_registry_locators(self) -> None:
+        value = self.matrix(("vulkan-1.4-core",))
+        with self.assertRaisesRegex(ScopeError, "citation map"):
+            validate(matrix_path=self.write_matrix(value))
+        value["rows"][0]["source_locator"] = "xml/vk.xml#feature[@name='VK_VERSION_1_4']"
+        with self.assertRaisesRegex(ScopeError, "registry structural"):
+            validate(matrix_path=self.write_matrix(value))
 
     def test_matrix_rejects_a_root_without_its_closure_or_claim_free_state(self) -> None:
         for mutate in (lambda value: value.update(closures=[]), lambda value: value.update(cts_executions=1)):

@@ -74,6 +74,13 @@ class AggregateReceiptTests(unittest.TestCase):
         self.assertEqual(value["matrix_role_resolution"]["imported_rows"], 0)
         self.assertFalse(value["f05_boundary"]["profile_bound_registration"])
 
+    def test_f03_checks_probe_vulkan_citation_boundary(self) -> None:
+        calls = []
+        with patch.object(receipt, "_run_f03", side_effect=lambda *args: calls.append(args)):
+            receipt._f03_checks(self.admission())
+        self.assertEqual([call[1] if len(call) > 1 else None for call in calls],
+                         [None, None, "requires an admitted citation map"])
+
     def test_selector_cache_loader_ignores_decoys_and_restores_them(self) -> None:
         before = list(sys.path)
         decoys = {name: types.ModuleType(name) for name in ("webboxvm_source_builder", "inventory_layout")}

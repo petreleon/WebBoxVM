@@ -33,9 +33,13 @@ def canonical(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
-def _run_f03(arguments: list[str]) -> None:
+def _run_f03(arguments: list[str], rejection: str | None = None) -> None:
     result = subprocess.run([sys.executable, str(F03_RUNNER), *arguments], cwd=F03_RUNNER.parent,
                             capture_output=True, text=True, check=False)
+    if rejection is not None:
+        if result.returncode == 0 or rejection not in result.stdout + result.stderr:
+            reject("active F03 Vulkan citation boundary did not reject the synthetic row")
+        return
     if result.returncode != 0 or "source gate is complete; profile matrices remain blocked" not in result.stdout:
         reject("active F03 source gate did not retain the matrix-incomplete boundary")
 
@@ -49,12 +53,15 @@ def _f03_checks(admission: dict[str, object]) -> tuple[dict[str, object], dict[s
                  "mandatory": True, "source_role": "normative-root", "source_locator": "sealed-source",
                  "condition": "always", "owner_task": "F03.2", "test_source_role": "full-suite-root",
                  "status": "blocked", "evidence": "evidence.md#blocked", "blocker": "matrix-incomplete"}
-                for profile in ("opengl-4.6-core", "gles-3.2", "vulkan-1.4-core")]
+                for profile in ("opengl-4.6-core", "gles-3.2")]
         matrix = {"schema": 2, "source_contract_sha256": admission["source_contract_sha256"],
                   "inventory_lock_sha256": admission["inventory_lock_sha256"], "rows": rows}
         path = root / "matrix.json"
         path.write_text(json.dumps(matrix), encoding="utf-8")
         _run_f03(["--matrix", str(path)])
+        vulkan = dict(rows[0], profile="vulkan-1.4-core", name="vulkan-1.4-core-schema-probe")
+        path.write_text(json.dumps({**matrix, "rows": [vulkan]}), encoding="utf-8")
+        _run_f03(["--matrix", str(path)], "requires an admitted citation map")
     return ({"source_gate": "complete", "profile_status": "blocked", "blocker": "matrix-incomplete"},
             {"mode": "schema-boundary-test", "imported_rows": 0, "profile_status": "blocked",
              "blocker": "matrix-incomplete"})

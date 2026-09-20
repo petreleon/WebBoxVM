@@ -1,0 +1,126 @@
+{
+  "boundary_sha256": "dd07b39283a3e41edf217e20dbb1eec90e8e6e73b6aae748d46bb57588983683",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "docs_include_closure": "unadmitted-requires-separately-pinned-citation-map",
+  "full_suite_root": {
+    "binding": {
+      "bytes": 3347,
+      "profile": "vulkan-1.4-core",
+      "record_id": "vulkan-cts-default",
+      "record_kind": "full-suite-root",
+      "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+      "role": "full-suite-root",
+      "scope": "full-conformance-suite",
+      "selector_path": "external/vulkancts/mustpass/main/vk-default.txt",
+      "selector_scope": "Khronos full root; not core-only",
+      "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+      "suite_id": "vulkan-cts-default",
+      "unfiltered": true
+    },
+    "channel": "full-suite-diagnostic-root",
+    "identity": {
+      "artifact": "webboxvm-graphics/f02/vulkan-cts-default/b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4.source",
+      "attribution": "KhronosGroup/VK-GL-CTS repository; immutable upstream full-suite selector",
+      "bytes": 3347,
+      "id": "vulkan-cts-default",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/VK-GL-CTS/f6a29701220f34dd1407513bfe80d74ca7b392ce/external/vulkancts/mustpass/main/vk-default.txt",
+      "kind": "full-suite-root",
+      "license": "Apache-2.0 (VK-GL-CTS repository LICENSE)",
+      "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+      "scope": "full-conformance-suite",
+      "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4"
+    },
+    "permitted_use": "root-wide-diagnostic-only",
+    "role": "full-suite-root"
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-vulkan-source-channel-boundary",
+  "matrix_row_count": 0,
+  "normative_root": {
+    "binding": {
+      "bytes": 8685,
+      "profile": "vulkan-1.4-core",
+      "record_id": "vulkan-14-spec",
+      "record_kind": "upstream-source",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "role": "normative-root",
+      "scope": "normative-source",
+      "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0"
+    },
+    "channel": "raw-docs-citation-root",
+    "identity": {
+      "artifact": "webboxvm-graphics/f02/vulkan-14-spec/069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0.source",
+      "attribution": "Copyright 2014-2026 The Khronos Group Inc.; Vulkan-Docs vkspec.adoc; CC-BY-4.0",
+      "bytes": 8685,
+      "id": "vulkan-14-spec",
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/vkspec.adoc",
+      "kind": "upstream-source",
+      "license": "CC-BY-4.0 (vkspec.adoc SPDX-License-Identifier)",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "scope": "normative-source",
+      "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0"
+    },
+    "permitted_use": "requires-separately-pinned-citation-map",
+    "role": "normative-root"
+  },
+  "profile": "vulkan-1.4-core",
+  "registry": {
+    "channel": "auxiliary-registry-structural-only",
+    "identity": {
+      "admission": "auxiliary-registry-metadata",
+      "artifact": "webboxvm-graphics/f02/vulkan-registry/cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06.source",
+      "attribution": "Copyright 2015-2026 The Khronos Group Inc.; Vulkan-Docs xml/vk.xml; Apache-2.0 OR MIT",
+      "authority": "Khronos",
+      "bytes": 3309653,
+      "claims": {
+        "api_support": false,
+        "certification": false,
+        "conformance": false,
+        "khronos_selector": false,
+        "performance": false,
+        "profile_support": false
+      },
+      "cts_executions": 0,
+      "discharges_required_role": false,
+      "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/xml/vk.xml",
+      "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+      "license": "Apache-2.0 OR MIT (vk.xml SPDX license choice)",
+      "producer": "Khronos",
+      "record_kind": "upstream-source",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "scope": "registry-metadata",
+      "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06",
+      "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+      "source_id": "vulkan-registry",
+      "version_marker": "VK_VERSION_1_4"
+    },
+    "matrix_ingress": false,
+    "permitted_use": "raw-structural-inventory-only",
+    "row_policy": {
+      "implementation_owner": null,
+      "independent_test_plan": null,
+      "status": "blocked"
+    },
+    "scaffold_row_count": 0
+  },
+  "schema": 1,
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}
