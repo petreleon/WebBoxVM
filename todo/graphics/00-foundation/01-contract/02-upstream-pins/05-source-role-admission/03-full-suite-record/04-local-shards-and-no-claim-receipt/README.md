@@ -4,7 +4,7 @@
 
 Task: F02.5.3.4
 Depends: F02.5.2.2, F02.5.3.2, F02.5.3.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ receipt that keeps every support and qualification claim false.
 
 ## Checklist
 
-- [ ] Add and pin a separate byte-preserving-shard builder mode; do not relabel core-definition mode.
-- [ ] Exercise the real Vulkan api.txt member, 40,296,059 bytes, in five bounded shards.
-- [ ] Bind offsets, source identity, shard identity, and exact reassembled SHA-256.
-- [ ] Reject oversize, missing, reordered, altered, or root-mismatched shards and altered builder bytes.
-- [ ] Publish a receipt with zero CTS executions and false API support, conformance, certification, profile, and performance claims.
+- [x] Add and pin a separate byte-preserving-shard builder mode; do not relabel core-definition mode.
+- [x] Exercise the real Vulkan api.txt member, 40,296,059 bytes, in five bounded shards.
+- [x] Bind offsets, source identity, shard identity, and exact reassembled SHA-256.
+- [x] Reject oversize, missing, reordered, altered, or root-mismatched shards and altered builder bytes.
+- [x] Publish a receipt with zero CTS executions and false API support, conformance, certification, profile, and performance claims.
 
 ## Verification
 

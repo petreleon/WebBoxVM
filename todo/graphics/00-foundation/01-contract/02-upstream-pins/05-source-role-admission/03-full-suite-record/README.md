@@ -4,7 +4,7 @@
 
 Task: F02.5.3
 Depends: F02.5.1
-Evidence: pending
+Evidence: [aggregate receipt](evidence.md)
 
 ## Outcome
 
@@ -23,7 +23,7 @@ replace the full suite or be called a Vulkan-1.4-core Khronos selector.
 - [x] [F02.5.3.1 — Pin canonical full-suite roots](01-canonical-full-suite-roots/README.md)
 - [x] [F02.5.3.2 — Ledger the complete GL and GLES suites](02-gl-gles-full-ledgers/README.md)
 - [x] [F02.5.3.3 — Ledger the unfiltered Vulkan default suite](03-vulkan-default-full-ledger/README.md)
-- [ ] [F02.5.3.4 — Build local shards and publish a no-claim receipt](04-local-shards-and-no-claim-receipt/README.md)
+- [x] [F02.5.3.4 — Build local shards and publish a no-claim receipt](04-local-shards-and-no-claim-receipt/README.md)
 
 ## Verification
 
