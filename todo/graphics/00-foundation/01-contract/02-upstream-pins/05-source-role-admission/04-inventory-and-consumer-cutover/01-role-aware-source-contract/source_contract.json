@@ -1,0 +1,160 @@
+{
+  "authority": "WebBoxVM",
+  "auxiliary": [
+    {
+      "id": "vulkan-registry",
+      "receipt_sha256": null,
+      "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06"
+    },
+    {
+      "id": "vulkan-14-core-definition",
+      "receipt_sha256": null,
+      "sha256": "29b9b64f67eca6c8ddf3edd40bddcb0843c059403dd757ec3479c2939dfd7556"
+    },
+    {
+      "id": "gl-gles-full-suite-engineering-map",
+      "receipt_sha256": "778c4eeb479fa4a6169385ef0a8e75ed54bf128b2ee0d23e29ee1afdff069e95",
+      "sha256": null
+    },
+    {
+      "id": "vulkan-api-byte-preserving-shards",
+      "receipt_sha256": "0f4452659c0e2b1a23d58e11af12786a97d6f91c87dd8da387a697766a7f90ed",
+      "sha256": null
+    }
+  ],
+  "bindings": [
+    {
+      "profile": "opengl-4.6-core",
+      "record_id": "opengl-46-core-spec",
+      "role": "normative-root"
+    },
+    {
+      "profile": "opengl-4.6-core",
+      "record_id": "opengl-cts-gl46-main",
+      "role": "full-suite-root"
+    },
+    {
+      "profile": "gles-3.2",
+      "record_id": "gles-32-spec",
+      "role": "normative-root"
+    },
+    {
+      "profile": "gles-3.2",
+      "record_id": "gles-cts-main",
+      "role": "full-suite-root"
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "record_id": "vulkan-14-spec",
+      "role": "normative-root"
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "record_id": "vulkan-cts-default",
+      "role": "full-suite-root"
+    }
+  ],
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "closures": [
+    {
+      "ledger_sha256": "a88cd6b9fad2268f9ef355806cdfea1cac54994ff512b14f8292be89bd5a7517",
+      "profile": "opengl-4.6-core",
+      "receipt_sha256": "778c4eeb479fa4a6169385ef0a8e75ed54bf128b2ee0d23e29ee1afdff069e95",
+      "root_id": "opengl-cts-gl46-main"
+    },
+    {
+      "ledger_sha256": "3d4d8b10d3a46a51f0c30606430131dce8207253423e0a33c996573ffb4b3655",
+      "profile": "gles-3.2",
+      "receipt_sha256": "778c4eeb479fa4a6169385ef0a8e75ed54bf128b2ee0d23e29ee1afdff069e95",
+      "root_id": "gles-cts-main"
+    },
+    {
+      "ledger_sha256": "608d520463bfd4724e79b52ee639a12d446e14c5e8d7b3687872eaf3c4e917f0",
+      "profile": "vulkan-1.4-core",
+      "receipt_sha256": "406130b30ca18b1843962456a5309ab24d41b222213b9a9d0e1cac06b6c98bb0",
+      "root_id": "vulkan-cts-default"
+    }
+  ],
+  "cts_executions": 0,
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-role-aware-source-contract-seal",
+  "producer": "WebBoxVM",
+  "records": [
+    {
+      "bytes": 3003752,
+      "id": "opengl-46-core-spec",
+      "kind": "upstream-source",
+      "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+      "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+    },
+    {
+      "bytes": 1353085,
+      "id": "opengl-cts-gl46-main",
+      "kind": "full-suite-root",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "e28bbbbfd0f6c8d711554a01aa45819bdc7ca963c9426e997dfd1daaeb1d7b17"
+    },
+    {
+      "bytes": 2198754,
+      "id": "gles-32-spec",
+      "kind": "upstream-source",
+      "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+      "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+    },
+    {
+      "bytes": 4284,
+      "id": "gles-cts-main",
+      "kind": "full-suite-root",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96"
+    },
+    {
+      "bytes": 8685,
+      "id": "vulkan-14-spec",
+      "kind": "upstream-source",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0"
+    },
+    {
+      "bytes": 3347,
+      "id": "vulkan-cts-default",
+      "kind": "full-suite-root",
+      "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+      "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4"
+    },
+    {
+      "bytes": 3309653,
+      "id": "vulkan-registry",
+      "kind": "upstream-source",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06"
+    },
+    {
+      "bytes": 7506,
+      "id": "vulkan-14-core-definition",
+      "kind": "webboxvm-transform",
+      "revision": null,
+      "sha256": "29b9b64f67eca6c8ddf3edd40bddcb0843c059403dd757ec3479c2939dfd7556"
+    }
+  ],
+  "schema": 1,
+  "seal_sha256": "480139cc57a5ab5ef9fcd58695d66e55053d10db12cb65531100eb62ccacf7a6",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}
