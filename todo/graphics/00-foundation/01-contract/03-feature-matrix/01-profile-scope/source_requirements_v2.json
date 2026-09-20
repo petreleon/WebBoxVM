@@ -1,0 +1,79 @@
+{
+  "schema": 2,
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "requirements": [
+    {
+      "profile": "opengl-4.6-core",
+      "role": "normative-root",
+      "record_id": "opengl-46-core-spec",
+      "record_kind": "upstream-source",
+      "scope": "normative-source",
+      "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+      "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee",
+      "bytes": 3003752
+    },
+    {
+      "profile": "opengl-4.6-core",
+      "role": "full-suite-root",
+      "record_id": "opengl-cts-gl46-main",
+      "record_kind": "full-suite-root",
+      "scope": "full-conformance-suite",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "e28bbbbfd0f6c8d711554a01aa45819bdc7ca963c9426e997dfd1daaeb1d7b17",
+      "bytes": 1353085,
+      "suite_id": "opengl-cts-gl46-main",
+      "selector_path": "external/openglcts/data/gl_cts/data/mustpass/gl/khronos_mustpass/4.6.1.x/gl46-main.txt",
+      "unfiltered": true,
+      "selector_scope": "Khronos full root; not core-only"
+    },
+    {
+      "profile": "gles-3.2",
+      "role": "normative-root",
+      "record_id": "gles-32-spec",
+      "record_kind": "upstream-source",
+      "scope": "normative-source",
+      "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+      "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c",
+      "bytes": 2198754
+    },
+    {
+      "profile": "gles-3.2",
+      "role": "full-suite-root",
+      "record_id": "gles-cts-main",
+      "record_kind": "full-suite-root",
+      "scope": "full-conformance-suite",
+      "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+      "sha256": "9f466f19a26120149bab06e70596c9fff57b61d767cfdbadc7ba13934ce2ea96",
+      "bytes": 4284,
+      "suite_id": "gles-cts-main",
+      "selector_path": "external/openglcts/data/gl_cts/data/mustpass/gles/khronos_mustpass/main/mustpass.xml",
+      "unfiltered": true,
+      "selector_scope": "Khronos full root; not core-only"
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "normative-root",
+      "record_id": "vulkan-14-spec",
+      "record_kind": "upstream-source",
+      "scope": "normative-source",
+      "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+      "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0",
+      "bytes": 8685
+    },
+    {
+      "profile": "vulkan-1.4-core",
+      "role": "full-suite-root",
+      "record_id": "vulkan-cts-default",
+      "record_kind": "full-suite-root",
+      "scope": "full-conformance-suite",
+      "revision": "f6a29701220f34dd1407513bfe80d74ca7b392ce",
+      "sha256": "b689703bdc65a04764db3b9a8f6fe872b3fe94d0df68d78f6da6e5a06cfa9ed4",
+      "bytes": 3347,
+      "suite_id": "vulkan-cts-default",
+      "selector_path": "external/vulkancts/mustpass/main/vk-default.txt",
+      "unfiltered": true,
+      "selector_scope": "Khronos full root; not core-only"
+    }
+  ]
+}

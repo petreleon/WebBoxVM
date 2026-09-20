@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from validate_profile_scope import MANIFEST, REQUIREMENTS_PATH, SCOPE, ScopeError, inventory, validate
+from validate_profile_scope_v1 import MANIFEST, REQUIREMENTS_PATH, SCOPE, ScopeError, inventory, validate
 from matrix_contract import validate_matrix
 from profile_contract import PROFILES, document, profile_blocker, source_gaps
 
@@ -162,14 +162,14 @@ class ProfileScopeTests(unittest.TestCase):
     def test_malformed_matrix_cli_is_fail_closed(self) -> None:
         path = self.write_matrix({})
         result = subprocess.run(
-            [sys.executable, str(HERE / "validate_profile_scope.py"), "--matrix", str(path)],
+            [sys.executable, str(HERE / "validate_profile_scope_v1.py"), "--matrix", str(path)],
             capture_output=True, text=True, check=False,
         )
         self.assertEqual(result.returncode, 2)
         self.assertIn("FAIL: matrix does not match schema version 1", result.stderr)
         decoy = ("import sys,types; m=types.ModuleType('matrix_contract'); m.validate_matrix=lambda *a: None; "
                  f"sys.modules['matrix_contract']=m; sys.argv=['gate','--matrix',{str(path)!r}]; "
-                 "import validate_profile_scope; validate_profile_scope.main()")
+                 "import validate_profile_scope_v1; validate_profile_scope_v1.main()")
         result = subprocess.run([sys.executable, "-c", decoy], cwd=HERE, capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 2)
         self.assertIn("FAIL: matrix does not match schema version 1", result.stderr)

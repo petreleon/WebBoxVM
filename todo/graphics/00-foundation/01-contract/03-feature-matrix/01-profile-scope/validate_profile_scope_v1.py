@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed unless F03 v2 consumes the sealed role-aware source contract."""
+"""Historical F03 v1 runner retained for F02.4 reproducibility only."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 def load_contract():
-    path = Path(__file__).resolve().with_name("profile_contract_v2.py")
-    spec = importlib.util.spec_from_file_location("f03_profile_contract_v2", path)
+    path = Path(__file__).resolve().with_name("profile_contract.py")
+    spec = importlib.util.spec_from_file_location("profile_contract", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load profile contract: {path}")
     module = importlib.util.module_from_spec(spec)
@@ -29,22 +29,26 @@ def load_contract():
 
 
 contract = load_contract()
-REQUIREMENTS_PATH, SCOPE = contract.REQUIREMENTS_PATH, contract.SCOPE
-ScopeError, validate = contract.ScopeError, contract.validate
+MANIFEST, REQUIREMENTS_PATH, SCOPE = contract.MANIFEST, contract.REQUIREMENTS_PATH, contract.SCOPE
+ScopeError, inventory, validate = contract.ScopeError, contract.inventory, contract.validate
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scope", type=Path, default=SCOPE)
     parser.add_argument("--requirements", type=Path, default=REQUIREMENTS_PATH)
+    parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--matrix", type=Path)
     args = parser.parse_args()
     try:
-        validate(args.scope, args.requirements, matrix_path=args.matrix)
+        missing = validate(args.scope, args.requirements, args.manifest, args.matrix)
     except ScopeError as error:
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(2)
-    print("PASS: source gate is complete; profile matrices remain blocked")
+    if missing:
+        print("BLOCKED: missing required inventory inputs: " + ", ".join(missing))
+        raise SystemExit(3)
+    print("PASS: historical v1 source gate is complete; profile matrices remain blocked")
 
 
 if __name__ == "__main__":
