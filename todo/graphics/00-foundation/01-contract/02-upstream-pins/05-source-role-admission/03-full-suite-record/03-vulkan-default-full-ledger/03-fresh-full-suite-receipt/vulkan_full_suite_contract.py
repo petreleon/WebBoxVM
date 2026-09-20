@@ -48,7 +48,7 @@ class CountingOpener:
         if self.index >= len(self.urls) or url != self.urls[self.index]:
             reject("fresh capture raw request is missing, repeated, or outside the pinned plan")
         self.index += 1
-        return self.delegate.open(request, timeout)
+        return self.delegate.open(request, timeout=timeout)
 
     def complete(self) -> None:
         if self.index != len(self.urls):

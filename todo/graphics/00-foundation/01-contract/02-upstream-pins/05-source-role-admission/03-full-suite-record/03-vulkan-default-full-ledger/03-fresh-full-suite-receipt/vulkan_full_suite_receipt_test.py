@@ -75,7 +75,7 @@ class FreshFullSuiteTests(unittest.TestCase):
 
     def test_counter_requires_each_raw_url_once_in_order(self):
         rows = ("https://one", "https://two")
-        delegate = SimpleNamespace(open=lambda request, timeout: request.full_url)
+        delegate = SimpleNamespace(open=lambda request, *, timeout: request.full_url)
         counter = full.CountingOpener(rows, delegate)
         self.assertEqual(counter.open(SimpleNamespace(full_url=rows[0]), 1), rows[0])
         with self.assertRaises(full.FullReceiptError): counter.open(SimpleNamespace(full_url=rows[0]), 1)
@@ -101,7 +101,7 @@ class FreshFullSuiteTests(unittest.TestCase):
         cache_root, local = Path("/private/tmp/fresh-cache"), Local()
         staged = Captured(self.network["total_bytes"], local)
         raw, seen = SimpleNamespace(urls=[]), {}
-        raw.open = lambda request, timeout: raw.urls.append(request.full_url)
+        raw.open = lambda request, *, timeout: raw.urls.append(request.full_url)
         def live(*args):
             counter = args[-1]
             for url in counter.urls: counter.open(SimpleNamespace(full_url=url), 1)
