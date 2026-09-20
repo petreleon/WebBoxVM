@@ -4,7 +4,7 @@
 
 Task: F03.4.1
 Depends: F03.1, F02.5.4.2
-Evidence: pending
+Evidence: [v2 receipt](evidence.md)
 
 Prerequisite lists: [the profile schema](../../01-profile-scope/README.md) and [the active role-aware
 gate](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md).
@@ -23,11 +23,11 @@ placeholders. The internal blocks are structural lookup material, not a semantic
 
 ## Checklist
 
-- [ ] Revalidate the exact registry identity, size, SPDX expression, and Vulkan 1.4 version marker.
-- [ ] Revalidate the stable technical schema and exact source locators against F02.5.4.2.
-- [ ] Reconfirm extension, WSI, external-memory, SPIR-V, and bring-up boundaries.
-- [ ] Keep every row blocked with null owner and independent-test-plan placeholders.
-- [ ] Re-run stale, duplicate, partial, malformed, and inference-negative tests and attach a receipt.
+- [x] Revalidate the exact registry identity, size, SPDX expression, and Vulkan 1.4 version marker.
+- [x] Revalidate the stable technical schema and exact source locators against F02.5.4.2.
+- [x] Reconfirm extension, WSI, external-memory, SPIR-V, and bring-up boundaries.
+- [x] Keep every row blocked with null owner and independent-test-plan placeholders.
+- [x] Re-run stale, duplicate, partial, malformed, and inference-negative tests and attach a receipt.
 
 ## Verification
 
@@ -42,5 +42,6 @@ WSI, and external-memory extension/platform-handle paths are excluded, while cor
 remain recorded. The retained
 `vk.xml` identity and byte-for-byte row digest reject a changed, partial, reordered, or locally promoted
 inventory. This artifact intentionally is not a `matrix_contract.py` matrix: the prior
-[receipt](evidence.md) remains historical until this inventory is revalidated against F02.5.4.2's
-role-aware source contract.
+[v1 receipt](evidence-v1.md) is historical. The active v2 reader loads F02.5.4.2 only through its sealed
+role-aware binding, accepts `vulkan-registry` only as `registry-metadata`, verifies a complete fresh
+external selector cache, and still cannot discharge a normative Docs role or a CTS role.

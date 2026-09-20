@@ -16,16 +16,16 @@ requirement has a stable source locator, an implementation owner, and a referenc
 
 ## Starting points
 
-- [Vulkan registry input](../../02-upstream-pins/01-input-inventory/manifest.toml)
-- [SPIR-V grammar input](../../02-upstream-pins/01-input-inventory/manifest.toml)
-- [Vulkan CTS input](../../02-upstream-pins/01-input-inventory/manifest.toml)
+- [sealed role-aware source contract](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/01-role-aware-source-contract/README.md)
+- [active F03 role-aware gate](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md)
+- [raw registry inventory](01-registry-inventory/README.md)
 - [Venus feasibility evidence](../../../../../../research/venus-foundations.md)
 - [profile schema](../01-profile-scope/README.md)
 - [active role-aware gate](../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md)
 
 ## Checklist
 
-- [ ] [F03.4.1 — Enumerate the Vulkan registry inventory](01-registry-inventory/README.md)
+- [x] [F03.4.1 — Enumerate the Vulkan registry inventory](01-registry-inventory/README.md)
 - [ ] [F03.4.2 — Attach Docs provenance and CTS diagnostics](02-provenance-diagnostics/README.md)
 
 ## Verification
