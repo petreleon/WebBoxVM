@@ -4,7 +4,7 @@
 
 Task: F02.5.4.1
 Depends: F02.5.2, F02.5.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ WebBoxVM auxiliary evidence only, without rewriting the historical F02.1 17-inpu
 
 ## Checklist
 
-- [ ] Build one ordered catalog from the producer-validated normative and full-suite records.
-- [ ] Seal its raw lock and receipt identity; reject a stale, mixed, reordered, or duplicate record.
-- [ ] Bind every mandatory record to exact kind, revision, digest, scope, and root selector identity.
-- [ ] Preserve full-suite ledger/cache receipt links; a root selector alone cannot prove closure.
-- [ ] Register the registry, local definition, maps, and bounded shards as false-claim auxiliary evidence.
-- [ ] Add fresh-empty-cache, positive, and hostile contract tests without broadening F02.1's input cap.
+- [x] Build one ordered catalog from the producer-validated normative and full-suite records.
+- [x] Seal its raw lock and receipt identity; reject a stale, mixed, reordered, or duplicate record.
+- [x] Bind every mandatory record to exact kind, revision, digest, scope, and root selector identity.
+- [x] Preserve full-suite ledger/cache receipt links; a root selector alone cannot prove closure.
+- [x] Register the registry, local definition, maps, and bounded shards as false-claim auxiliary evidence.
+- [x] Add fresh-empty-cache, positive, and hostile contract tests without broadening F02.1's input cap.
 
 ## Verification
 
