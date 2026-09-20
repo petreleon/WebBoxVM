@@ -24,7 +24,7 @@ stable source locator, an implementation owner, and a reference-test obligation.
 
 ## Checklist
 
-- [ ] [F03.2.1 — Set the OpenGL source-authority boundary](01-source-authority/README.md)
+- [x] [F03.2.1 — Set the OpenGL source-authority boundary](01-source-authority/README.md)
 - [ ] [F03.2.2 — Extract command, object, and state rows](02-command-object-state-inventory/README.md)
 - [ ] [F03.2.3 — Extract limit, format, shader, and extension rows](03-limit-format-shader-inventory/README.md)
 - [ ] [F03.2.4 — Map implementation ownership and CTS obligations](04-ownership-and-cts-obligations/README.md)

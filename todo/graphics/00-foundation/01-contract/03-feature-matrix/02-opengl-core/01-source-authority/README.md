@@ -4,7 +4,7 @@
 
 Task: F03.2.1
 Depends: F03.1, F02.5.4.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,16 +20,16 @@ and fails closed when a required locator needs an unadmitted distinct source.
 
 ## Checklist
 
-- [ ] Load the exact OpenGL normative-root and full-suite-root records only through the F03 role-aware
+- [x] Load the exact OpenGL normative-root and full-suite-root records only through the F03 role-aware
   binding; reject a legacy manifest alias, ambient module, wrong profile, or auxiliary record.
-- [ ] Classify command/object/state, limit/format, shader, and extension locators as derivable from the
+- [x] Classify command/object/state, limit/format, shader, and extension locators as derivable from the
   admitted normative root or as requiring a separately recorded source-admission decision.
-- [ ] Record the exact revision, digest, source locator syntax, and permitted extraction scope for every
+- [x] Record the exact revision, digest, source locator syntax, and permitted extraction scope for every
   accepted class; do not infer a registry or GLSL authority from an unrelated record.
-- [ ] Make an unresolved class visibly unavailable to F03.2.2 and F03.2.3 rather than replacing it with
+- [x] Make an unresolved class visibly unavailable to F03.2.2 and F03.2.3 rather than replacing it with
   a lower API version, compatibility-profile behavior, or an unpinned document.
-- [ ] Add positive and hostile boundary checks for stale, mixed, reordered, legacy, and auxiliary input.
-- [ ] Attach a no-claim boundary receipt and retain `matrix-incomplete`.
+- [x] Add positive and hostile boundary checks for stale, mixed, reordered, legacy, and auxiliary input.
+- [x] Attach a no-claim boundary receipt and retain `matrix-incomplete`.
 
 ## Verification
 
