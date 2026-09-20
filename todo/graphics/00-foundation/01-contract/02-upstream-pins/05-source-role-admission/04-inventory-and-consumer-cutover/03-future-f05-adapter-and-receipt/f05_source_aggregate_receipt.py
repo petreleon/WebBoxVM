@@ -60,11 +60,24 @@ def _f03_checks(admission: dict[str, object]) -> tuple[dict[str, object], dict[s
              "blocker": "matrix-incomplete"})
 
 
+def source_summary(admission: dict[str, object]) -> dict[str, object]:
+    return {"source_contract_sha256": admission["source_contract_sha256"],
+            "inventory_lock_sha256": admission["inventory_lock_sha256"],
+            "record_ids": [item["id"] for item in admission["records"]],
+            "bindings": ["/".join(item[key] for key in ("profile", "role", "record_id"))
+                         for item in admission["bindings"]],
+            "closures": ["/".join(item[key] for key in ("profile", "root_id", "receipt_sha256"))
+                         for item in admission["closures"]],
+            "auxiliary_ids": [item["id"] for item in admission["auxiliary"]],
+            "claims": admission["claims"], "cts_executions": admission["cts_executions"],
+            "states": admission["states"]}
+
+
 def _body(admission: dict[str, object], cache: dict[str, object], f03: dict[str, object],
           matrix: dict[str, object]) -> dict[str, object]:
     return {"schema": 1, "kind": "webboxvm-f05-source-aggregate-receipt", "authority": "WebBoxVM",
             "producer": "WebBoxVM", "claims": dict(NO_CLAIMS), "cts_executions": 0,
-            "source_admission": copy.deepcopy(admission), "fresh_selector_cache": copy.deepcopy(cache),
+            "source_admission": source_summary(admission), "fresh_selector_cache": copy.deepcopy(cache),
             "f03_gate": f03, "matrix_role_resolution": matrix,
             "f05_boundary": {"profile_bound_registration": False, "profile_bound_check_count": 0},
             "states": {"mandatory_role_inventory_complete": True, "source_gate_complete": True,
@@ -89,7 +102,7 @@ def _checked_body(value: object) -> dict[str, object]:
     if value["claims"] != NO_CLAIMS or value["cts_executions"] != 0:
         reject("aggregate receipt promotes a qualification claim or CTS execution")
     admission = adapter.admitted_source_contract()
-    if value["source_admission"] != admission:
+    if value["source_admission"] != source_summary(admission):
         reject("aggregate receipt does not bind the complete admitted source contract")
     cache = value["fresh_selector_cache"]
     bound = {item["record_id"] for item in admission["bindings"]}

@@ -42,7 +42,11 @@ class AggregateReceiptTests(unittest.TestCase):
         return receipt.seal(receipt._body(self.admission(), self.cache(), f03, matrix))
 
     def test_receipt_is_self_hashed_and_stays_no_claim(self) -> None:
-        self.assertEqual(receipt.validate_receipt(self.value())["cts_executions"], 0)
+        checked = receipt.validate_receipt(self.value())
+        self.assertEqual(checked["cts_executions"], 0)
+        self.assertEqual(len(checked["source_admission"]["record_ids"]), 8)
+        self.assertEqual(len(checked["source_admission"]["bindings"]), 6)
+        self.assertEqual(len(checked["source_admission"]["closures"]), 3)
         edits = (
             lambda value: value.update(cts_executions=1),
             lambda value: value["claims"].update(conformance=True),

@@ -1,0 +1,114 @@
+{
+  "authority": "WebBoxVM",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "f03_gate": {
+    "blocker": "matrix-incomplete",
+    "profile_status": "blocked",
+    "source_gate": "complete"
+  },
+  "f05_boundary": {
+    "profile_bound_check_count": 0,
+    "profile_bound_registration": false
+  },
+  "fresh_selector_cache": {
+    "file_count": 9,
+    "mode": "fresh-refresh",
+    "release_proof_ids": [
+      "opengl-cts-4681-license",
+      "vulkan-cts-1462-license"
+    ],
+    "selector_record_ids": [
+      "opengl-46-core-spec",
+      "opengl-cts-gl46-main",
+      "gles-32-spec",
+      "gles-cts-main",
+      "vulkan-14-spec",
+      "vulkan-cts-default",
+      "vulkan-registry"
+    ],
+    "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3"
+  },
+  "kind": "webboxvm-f05-source-aggregate-receipt",
+  "matrix_role_resolution": {
+    "blocker": "matrix-incomplete",
+    "imported_rows": 0,
+    "mode": "schema-boundary-test",
+    "profile_status": "blocked"
+  },
+  "producer": "WebBoxVM",
+  "receipt_sha256": "85980a92e5223261e7fce6fc162e10171bd671800a5fe9d4c2460e01b68d5242",
+  "schema": 1,
+  "source_admission": {
+    "auxiliary_ids": [
+      "vulkan-registry",
+      "vulkan-14-core-definition",
+      "gl-gles-full-suite-engineering-map",
+      "vulkan-api-byte-preserving-shards"
+    ],
+    "bindings": [
+      "opengl-4.6-core/normative-root/opengl-46-core-spec",
+      "opengl-4.6-core/full-suite-root/opengl-cts-gl46-main",
+      "gles-3.2/normative-root/gles-32-spec",
+      "gles-3.2/full-suite-root/gles-cts-main",
+      "vulkan-1.4-core/normative-root/vulkan-14-spec",
+      "vulkan-1.4-core/full-suite-root/vulkan-cts-default"
+    ],
+    "claims": {
+      "api_support": false,
+      "certification": false,
+      "conformance": false,
+      "khronos_selector": false,
+      "performance": false,
+      "profile_support": false
+    },
+    "closures": [
+      "opengl-4.6-core/opengl-cts-gl46-main/778c4eeb479fa4a6169385ef0a8e75ed54bf128b2ee0d23e29ee1afdff069e95",
+      "gles-3.2/gles-cts-main/778c4eeb479fa4a6169385ef0a8e75ed54bf128b2ee0d23e29ee1afdff069e95",
+      "vulkan-1.4-core/vulkan-cts-default/406130b30ca18b1843962456a5309ab24d41b222213b9a9d0e1cac06b6c98bb0"
+    ],
+    "cts_executions": 0,
+    "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+    "record_ids": [
+      "opengl-46-core-spec",
+      "opengl-cts-gl46-main",
+      "gles-32-spec",
+      "gles-cts-main",
+      "vulkan-14-spec",
+      "vulkan-cts-default",
+      "vulkan-registry",
+      "vulkan-14-core-definition"
+    ],
+    "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+    "states": {
+      "api_support": false,
+      "blocker": "matrix-incomplete",
+      "certification": false,
+      "conformance": false,
+      "f05_profile_registration": false,
+      "performance": false,
+      "profile_status": "blocked",
+      "profile_support": false,
+      "source_contract_complete": true
+    }
+  },
+  "states": {
+    "api_support": false,
+    "browser_execution": false,
+    "certification": false,
+    "conformance": false,
+    "guest_api": false,
+    "mandatory_role_inventory_complete": true,
+    "matrix_complete": false,
+    "performance": false,
+    "profile_support": false,
+    "source_gate_complete": true
+  }
+}
