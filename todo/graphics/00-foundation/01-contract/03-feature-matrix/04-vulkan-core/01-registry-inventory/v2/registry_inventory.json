@@ -1,0 +1,57 @@
+{
+  "schema": 2,
+  "contract": "vulkan-registry-inventory-scaffold-v2",
+  "status": "blocked",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "registry": {
+    "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+    "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+    "source_id": "vulkan-registry",
+    "record_kind": "upstream-source",
+    "scope": "registry-metadata",
+    "authority": "Khronos",
+    "producer": "Khronos",
+    "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+    "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06",
+    "bytes": 3309653,
+    "license": "Apache-2.0 OR MIT (vk.xml SPDX license choice)",
+    "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/xml/vk.xml",
+    "attribution": "Copyright 2015-2026 The Khronos Group Inc.; Vulkan-Docs xml/vk.xml; Apache-2.0 OR MIT",
+    "artifact": "webboxvm-graphics/f02/vulkan-registry/cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06.source",
+    "version_marker": "VK_VERSION_1_4",
+    "claims": {
+      "api_support": false,
+      "certification": false,
+      "conformance": false,
+      "khronos_selector": false,
+      "performance": false,
+      "profile_support": false
+    },
+    "cts_executions": 0,
+    "admission": "auxiliary-registry-metadata",
+    "discharges_required_role": false
+  },
+  "boundaries": [
+    "extensions-excluded",
+    "wsi-excluded",
+    "external-memory-extension-paths-excluded",
+    "spirv-grammar-separate",
+    "bring-up-unimplemented"
+  ],
+  "rows": [],
+  "effects": {
+    "normative_docs_role": false,
+    "full_suite_root": false,
+    "cts_selection": false,
+    "project_complete_docs_role": false,
+    "project_cts_selector": false,
+    "project_release_claim": false,
+    "supported": false,
+    "emulated": false,
+    "conformant": false,
+    "certified": false,
+    "near_native": false
+  },
+  "scaffold_sha256": "5381949b525da9c38e53ea77caef724fae8803f540433d3ae60e7db95f88a427"
+}
