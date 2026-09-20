@@ -42,4 +42,5 @@ WSI, and external-memory extension/platform-handle paths are excluded, while cor
 remain recorded. The retained
 `vk.xml` identity and byte-for-byte row digest reject a changed, partial, reordered, or locally promoted
 inventory. This artifact intentionally is not a `matrix_contract.py` matrix: the prior
-[receipt](evidence.md) is historical until F02.5.4 admits the role-aware source records.
+[receipt](evidence.md) remains historical until this inventory is revalidated against F02.5.4.2's
+role-aware source contract.

@@ -4,12 +4,13 @@
 
 Task: F02.5.4
 Depends: F02.5.2, F02.5.3
-Evidence: pending
+Evidence: [aggregate receipt](evidence.md)
 
 ## Outcome
 
-The inventory, lock, profile-source gate, matrix contracts, and F05 registration consume the same
-role-aware source records. A stale, mixed, or scope-misrepresented record cannot make F03 or F05 pass.
+The inventory, lock, profile-source gate, matrix contracts, and profile-neutral future-F05 accessor
+consume the same role-aware source records. A stale, mixed, or scope-misrepresented record cannot make
+F03 or F05 pass.
 
 ## Starting points
 
@@ -21,7 +22,7 @@ role-aware source records. A stale, mixed, or scope-misrepresented record cannot
 
 - [x] [F02.5.4.1 — Seal the role-aware source contract](01-role-aware-source-contract/README.md)
 - [x] [F02.5.4.2 — Bind the F03 profile gate and matrix](02-f03-gate-and-matrix-binding/README.md)
-- [ ] [F02.5.4.3 — Expose the future F05 adapter and aggregate receipt](03-future-f05-adapter-and-receipt/README.md)
+- [x] [F02.5.4.3 — Expose the future F05 adapter and aggregate receipt](03-future-f05-adapter-and-receipt/README.md)
 
 ## Verification
 

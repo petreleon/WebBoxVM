@@ -4,7 +4,7 @@
 
 Task: F02.5.4.3
 Depends: F02.5.4.1, F02.5.4.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ downstream checks in an aggregate no-claim receipt.
 
 ## Checklist
 
-- [ ] Provide a public profile-neutral accessor for a complete admitted source contract.
-- [ ] Reject an absent, partial, stale, mixed, or auxiliary-only contract at the F05 boundary.
-- [ ] Keep F05.1 source- and profile-independent; do not fabricate a completed profile registration.
-- [ ] Run the combined fresh-cache, F03, matrix, and downstream accessor checks.
-- [ ] Publish an aggregate self-hashed receipt with zero CTS executions and all qualification claims false.
-- [ ] Update the immediate parent checkboxes only after inspecting every required result.
+- [x] Provide a public profile-neutral accessor for a complete admitted source contract.
+- [x] Reject an absent, partial, stale, mixed, or auxiliary-only contract at the F05 boundary.
+- [x] Keep F05.1 source- and profile-independent; do not fabricate a completed profile registration.
+- [x] Run the combined fresh-cache, F03, matrix, and downstream accessor checks.
+- [x] Publish an aggregate self-hashed receipt with zero CTS executions and all qualification claims false.
+- [x] Update the immediate parent checkboxes only after inspecting every required result.
 
 ## Verification
 

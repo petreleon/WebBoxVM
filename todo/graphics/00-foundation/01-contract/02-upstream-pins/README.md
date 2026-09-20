@@ -4,7 +4,7 @@
 
 Task: F02
 Depends: F01
-Evidence: pending
+Evidence: [aggregate receipt](evidence.md)
 
 Prerequisite lists: [F01](../01-baseline/README.md).
 
@@ -25,7 +25,7 @@ main. F02.4 extends that foundation with the target-profile sources discovered b
 - [x] [F02.2 — Verify isolated source fetches and hashes](02-fetch-verifier/README.md)
 - [x] [F02.3 — Bind ABI fixtures and generators to the manifest](03-provenance-contract/README.md)
 - [x] [F02.4 — Historical closure-admission plan](04-profile-source-inputs/README.md)
-- [ ] [F02.5 — Admit source roles without conflating authority](05-source-role-admission/README.md)
+- [x] [F02.5 — Admit source roles without conflating authority](05-source-role-admission/README.md)
 
 ## Verification
 

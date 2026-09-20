@@ -32,8 +32,8 @@ source locator, an implementation owner, and a reference-test obligation.
   conformance reference test; retain missing mappings as unassigned or blocked.
 - [ ] Classify current bounded behavior only from evidence, preserving earlier bring-up versions as
   milestones rather than changing the GLES 3.2 target.
-- [ ] Keep this leaf blocked if F03.5 has not admitted the authoritative API/limit/format source and
-  complete conformance-suite closure; do not infer either from the registry or one isolated test case.
+- [ ] Consume only F02.5.4.2's role-aware source gate; retain `matrix-incomplete` until this leaf records
+  its own authoritative API/limit/format locators and complete conformance-suite closure.
 - [ ] Add focused extraction/coverage/negative tests, run required gates, and attach a receipt.
 
 ## Verification
