@@ -8,9 +8,9 @@ Evidence: pending
 
 ## Outcome
 
-The shared matrix receives the complete admitted GLES 3.2 core API vocabulary: commands, objects, state,
-limits, formats, features, and explicit extension decisions, all with stable source locators. Extraction
-records facts and blockers, not an implementation verdict.
+The admitted GLES 3.2 command/state and limit/format vocabulary is extracted as reviewable raw source
+facts with stable locators. A later ownership-and-reference task may import those facts into the shared
+matrix only after it can attach real implementation owners and independent full-suite obligations.
 
 ## Starting points
 
@@ -20,21 +20,23 @@ records facts and blockers, not an implementation verdict.
 
 ## Checklist
 
-- [ ] Consume only locator classes accepted by F03.3.1 and preserve the exact source identity on every
-  API row.
-- [ ] Enumerate mandatory GLES 3.2 commands, objects, state variables, state transitions, limits, format
-  properties, and feature requirements without folding desktop OpenGL or lower-version behavior into the
-  target.
-- [ ] Record each extension as adopted, excluded, or unresolved with a reason; do not turn optional
-  capabilities into implicit GLES 3.2 core requirements.
-- [ ] Give every row a stable identity, exact source locator, requirement kind, and explicit provisional
-  state suitable for the shared schema.
-- [ ] Reject missing, duplicate, reordered, cross-profile, stale, and source-identity-mismatched rows;
-  retain unavailable implementation evidence as blocked.
-- [ ] Add focused extraction and hostile-input checks, then attach a no-claim API inventory receipt.
+- [ ] [F03.3.2.1 — Verify the normative PDF cache](01-normative-pdf-cache/README.md)
+- [ ] [F03.3.2.2 — Extract raw command, object, and state facts](02-command-object-state-raw-inventory/README.md)
+- [ ] [F03.3.2.3 — Extract raw limit and format facts](03-limit-format-raw-inventory/README.md)
+- [ ] [F03.3.2.4 — Record unavailable shader, precision, and extension decisions](04-unavailable-language-extension-ledger/README.md)
+- [ ] [F03.3.2.5 — Handoff raw facts and guard matrix import](05-raw-handoff-and-import-guard/README.md)
 
 ## Verification
 
-The emitted rows are a bounded source inventory only. They leave shader execution, ownership, independent
-test obligations, CTS execution, guest behavior, browser behavior, certification, and performance
-unresolved.
+The emitted raw facts are bounded source inventory only. They leave ownership, independent test
+obligations, CTS execution, guest behavior, browser behavior, certification, and performance unresolved.
+
+## Split rationale
+
+F03.3.1 admits only `command-state` and `limit-format` from the GLES 3.2 normative PDF. Shader,
+precision, and extension semantics require the separately unadmitted ESSL source, so their decision ledger
+is deliberately not an API extraction. `matrix_contract_v2.py` requires both a concrete implementation
+owner and a full-suite test role; raw PDF facts cannot truthfully supply either. Cache identity, raw fact
+families, unavailable-source decisions, and the import guard are therefore separate fail-closed inputs.
+F03.3.3 must establish ownership and independent obligations before any later matrix import; this split
+does not extend the sealed F02 contract or imply GLES support.
