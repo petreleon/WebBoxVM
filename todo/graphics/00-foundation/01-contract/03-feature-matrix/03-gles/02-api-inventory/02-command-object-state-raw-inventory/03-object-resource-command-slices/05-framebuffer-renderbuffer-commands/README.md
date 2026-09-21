@@ -19,11 +19,9 @@ completeness, conversion, and format behavior remain outside this declaration-on
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, domain map, and declaration grammar identities.
-- [ ] Extract only formal declarations with physical page, section, and source-order anchors.
-- [ ] Route attachment, completeness, conversions, formats, limits, and lifecycle out of command facts.
-- [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL semantics.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [ ] [F03.3.2.2.3.5.1 — Framebuffer object lifecycle, parameters, and queries](01-framebuffer-object-parameter-query-commands/README.md)
+- [ ] [F03.3.2.2.3.5.2 — Renderbuffer lifecycle, storage, and queries](02-renderbuffer-object-storage-query-commands/README.md)
+- [ ] [F03.3.2.2.3.5.3 — Framebuffer attachment and status commands](03-framebuffer-attachment-status-commands/README.md)
 
 ## Verification
 
