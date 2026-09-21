@@ -24,7 +24,7 @@ core-only CTS selector or conformance claim.
 
 - [x] [F03.4.2.1 — Seal provenance channels and the raw-to-matrix boundary](01-source-channel-boundary/README.md)
 - [ ] [F03.4.2.2 — Pin citation-only raw Docs locators](02-raw-docs-provenance/README.md)
-- [ ] [F03.4.2.3 — Bind unfiltered VCTS diagnostics](03-full-suite-diagnostics/README.md)
+- [x] [F03.4.2.3 — Bind unfiltered VCTS diagnostics](03-full-suite-diagnostics/README.md)
 - [ ] [F03.4.2.4 — Aggregate the no-claim provenance receipt](04-aggregate-no-claim-receipt/README.md)
 
 ## Verification

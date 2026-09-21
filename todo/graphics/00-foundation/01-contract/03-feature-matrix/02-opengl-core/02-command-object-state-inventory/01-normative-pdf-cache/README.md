@@ -4,7 +4,7 @@
 
 Task: F03.2.2.1
 Depends: F03.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,13 +19,13 @@ any extractor sees bytes. It proves source identity, not API behavior or a matri
 
 ## Checklist
 
-- [ ] Load F03.2.1 only through its fixed private path and accept the `command-object-state` decision.
-- [ ] Require an absolute external nonsymlink cache root and its exact identity-derived PDF path.
-- [ ] Open the PDF without following links, then verify its exact byte count and SHA-256 before parsing.
-- [ ] Reject a missing, stale, mixed, in-repository, symlinked, oversized, or wrong-profile cache payload.
-- [ ] Preserve the physical one-based PDF page count for downstream locator validation without treating it
+- [x] Load F03.2.1 only through its fixed private path and accept the `command-object-state` decision.
+- [x] Require an absolute external nonsymlink cache root and its exact identity-derived PDF path.
+- [x] Open the PDF without following links, then verify its exact byte count and SHA-256 before parsing.
+- [x] Reject a missing, stale, mixed, in-repository, symlinked, oversized, or wrong-profile cache payload.
+- [x] Preserve the physical one-based PDF page count for downstream locator validation without treating it
   as a support claim.
-- [ ] Add focused cache-boundary tests and attach a no-claim receipt.
+- [x] Add focused cache-boundary tests and attach a no-claim receipt.
 
 ## Verification
 

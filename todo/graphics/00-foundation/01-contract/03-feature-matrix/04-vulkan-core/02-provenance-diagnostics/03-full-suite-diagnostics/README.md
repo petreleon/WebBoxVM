@@ -4,7 +4,7 @@
 
 Task: F03.4.2.3
 Depends: F03.4.2.1, F02.5.3.3
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ that the broad upstream root is a Vulkan-1.4-core selector.
 
 ## Checklist
 
-- [ ] Rebind the canonical full-suite role before accepting its ledger, taxonomy, and fresh-receipt identities.
-- [ ] Preserve the complete ordered member set and observed core, WSI, video, extension, and unknown categories.
-- [ ] Represent every row relation as diagnostic-only and unassigned until independent review establishes a test obligation.
-- [ ] Prohibit local selector filtering, case selection, coverage inference, CTS execution, and scope relabeling.
-- [ ] Reject a substituted root, stale/reordered ledger, reclassified taxonomy, or promoted core/coverage state.
-- [ ] Attach a root-wide no-claim diagnostic receipt with zero CTS executions.
+- [x] Rebind the canonical full-suite role before accepting its ledger, taxonomy, and fresh-receipt identities.
+- [x] Preserve the complete ordered member set and observed core, WSI, video, extension, and unknown categories.
+- [x] Represent every row relation as diagnostic-only and unassigned until independent review establishes a test obligation.
+- [x] Prohibit local selector filtering, case selection, coverage inference, CTS execution, and scope relabeling.
+- [x] Reject a substituted root, stale/reordered ledger, reclassified taxonomy, or promoted core/coverage state.
+- [x] Attach a root-wide no-claim diagnostic receipt with zero CTS executions.
 
 ## Verification
 

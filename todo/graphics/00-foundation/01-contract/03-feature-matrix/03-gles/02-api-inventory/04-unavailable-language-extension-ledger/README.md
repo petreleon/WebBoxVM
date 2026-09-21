@@ -4,7 +4,7 @@
 
 Task: F03.3.2.4
 Depends: F03.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,16 +19,16 @@ semantics. It prevents an unadmitted ESSL source or a registry from silently bec
 
 ## Checklist
 
-- [ ] Load the exact F03.3.1 decision and retain `unadmitted-distinct-source` for shader, precision, and
+- [x] Load the exact F03.3.1 decision and retain `unadmitted-distinct-source` for shader, precision, and
   extension classes.
-- [ ] Record each unavailable class, its absent locator syntax, source-role absence, required separate
+- [x] Record each unavailable class, its absent locator syntax, source-role absence, required separate
   admission, and exact blocker without making a substitute derivation.
-- [ ] Reject ESSL aliases, `gl.xml`, desktop GLSL, lower-version sources, stale decisions, mixed profiles,
+- [x] Reject ESSL aliases, `gl.xml`, desktop GLSL, lower-version sources, stale decisions, mixed profiles,
   reordered entries, or an auxiliary source presented as an admitted class.
-- [ ] Keep unavailable semantics visible to F03.3.3 instead of dropping them or treating them as excluded
+- [x] Keep unavailable semantics visible to F03.3.3 instead of dropping them or treating them as excluded
   GLES 3.2 requirements.
-- [ ] Refuse a Matrix v2 row or supported state derived from an unavailable class.
-- [ ] Add focused ledger and hostile-input checks, then attach a no-claim receipt.
+- [x] Refuse a Matrix v2 row or supported state derived from an unavailable class.
+- [x] Add focused ledger and hostile-input checks, then attach a no-claim receipt.
 
 ## Verification
 
