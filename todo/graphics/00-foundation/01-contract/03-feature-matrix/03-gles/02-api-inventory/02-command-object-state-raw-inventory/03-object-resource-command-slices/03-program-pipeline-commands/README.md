@@ -8,8 +8,8 @@ Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory records formal program, shader-object, and program-pipeline command declarations,
-while routing ESSL semantics, precision, compilation behavior, binaries, and link behavior to explicit limits.
+Small source-only child inventories cover the classified `program-shader` family without exceeding the
+per-file limit. ESSL semantics, precision, compilation behavior, binaries, and link behavior stay routed out.
 
 ## Starting points
 
@@ -19,11 +19,10 @@ while routing ESSL semantics, precision, compilation behavior, binaries, and lin
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, domain map, grammar, and unavailable-source ledger identities.
-- [ ] Extract only formal API declarations with physical page, section, and source-order anchors.
-- [ ] Route language semantics, precision, compiler/binary behavior, limits, and lifecycle out of command facts.
-- [ ] Reject extension APIs, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [ ] [F03.3.2.2.3.3.1 — Shader and program objects](01-shader-program-objects/README.md)
+- [ ] [F03.3.2.2.3.3.2 — Interfaces, pipelines, and binaries](02-interfaces-pipelines-binaries/README.md)
+- [ ] [F03.3.2.2.3.3.3 — Uniform declaration forms](03-uniform-declaration-forms/README.md)
+- [ ] [F03.3.2.2.3.3.4 — Program queries and scope closure](04-program-queries-scope-closure/README.md)
 
 ## Verification
 
