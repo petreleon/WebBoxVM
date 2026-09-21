@@ -4,7 +4,7 @@
 
 Task: F03.2.2.5.2
 Depends: F03.2.1, F03.2.2.1, F03.2.2.5.1
-Evidence: pending
+Evidence: [evidence](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ family extraction; it does not itself count as coverage of any command family.
 
 ## Checklist
 
-- [ ] Bind the exact cache; distinguish the §2.1 C-prefix witness on page 32 from §2.2 notation on pages 32–34, and anchor §7.6.1 matrix templates on page 163.
-- [ ] Apply the documented C-binding `gl` prefix only where the PDF's rule permits it.
-- [ ] Encode the explicit template-expansion grammar, including `Uniform{1234}{if}`, with source anchors.
-- [ ] Reject guessed suffixes, unexpanded templates, duplicate generated names, and ambiguous declarations.
-- [ ] Reject registry, headers, lower profiles, extensions, GLSL, and compatibility material as substitute grammar.
-- [ ] Emit only a self-hashed normalization rule set with zero Matrix/CTS/claim fields and a receipt.
+- [x] Bind the exact cache; distinguish the §2.1 C-prefix witness on page 32 from §2.2 notation on pages 32–34, and anchor §7.6.1 matrix templates on page 163.
+- [x] Apply the documented C-binding `gl` prefix only where the PDF's rule permits it.
+- [x] Encode the explicit template-expansion grammar, including `Uniform{1234}{if}`, with source anchors.
+- [x] Reject guessed suffixes, unexpanded templates, duplicate generated names, and ambiguous declarations.
+- [x] Reject registry, headers, lower profiles, extensions, GLSL, and compatibility material as substitute grammar.
+- [x] Emit only a self-hashed normalization rule set with zero Matrix/CTS/claim fields and a receipt.
 
 ## Verification
 

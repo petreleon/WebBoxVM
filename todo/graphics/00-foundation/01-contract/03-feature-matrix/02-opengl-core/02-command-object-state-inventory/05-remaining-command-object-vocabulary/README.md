@@ -21,7 +21,7 @@ unreviewed material visibly open.
 ## Checklist
 
 - [x] [F03.2.2.5.1 — Classify the core command-declaration domain](01-command-domain-classification/README.md)
-- [ ] [F03.2.2.5.2 — Normalize literal and templated command declarations](02-template-declaration-grammar/README.md)
+- [x] [F03.2.2.5.2 — Normalize literal and templated command declarations](02-template-declaration-grammar/README.md)
 - [ ] [F03.2.2.5.3 — Extract object and resource command slices](03-object-resource-command-slices/README.md)
 - [ ] [F03.2.2.5.4 — Extract non-object command slices](04-non-object-command-slices/README.md)
 - [ ] [F03.2.2.5.5 — Aggregate command-vocabulary coverage and handoff guard](05-aggregate-coverage-handoff/README.md)

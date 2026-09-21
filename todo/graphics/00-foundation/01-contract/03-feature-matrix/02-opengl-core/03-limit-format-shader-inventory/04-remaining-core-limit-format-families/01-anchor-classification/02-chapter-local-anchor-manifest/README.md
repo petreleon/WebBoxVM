@@ -4,7 +4,7 @@
 
 Task: F03.2.3.4.1.2
 Depends: F03.2.1, F03.2.2.1, F03.2.3.1, F03.2.3.2
-Evidence: pending
+Evidence: [evidence](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ the sections, tables, and row/column scopes without treating a heading as an adm
 
 ## Checklist
 
-- [ ] Bind the sealed cache, authority, reviewed artifact, and unavailable-source ledger identities.
-- [ ] Enumerate the fixed local candidates: table 6.5; 8.2–8.27; 9.1–9.3; 10.3–10.6; 18.2, 18.4, 22.2, and 22.3.
-- [ ] Preserve exact physical page, section, table/row/column scope, source order, and why each is a candidate.
-- [ ] Keep every manifest item unclassified until the aggregate assigns one fixed route.
-- [ ] Reject missing, duplicate, reordered, broad wildcard, stale, cross-profile, or promoted entries.
-- [ ] Self-hash the raw manifest with zero Matrix rows, CTS runs, and claims; attach a receipt.
+- [x] Bind the sealed cache, authority, reviewed artifact, and unavailable-source ledger identities.
+- [x] Enumerate the fixed local candidates: table 6.5; 8.2–8.27; 9.1–9.3; 10.3–10.6; 18.2, 18.4, 22.2, and 22.3.
+- [x] Preserve exact physical page, section, table/row/column scope, source order, and why each is a candidate.
+- [x] Keep every manifest item unclassified until the aggregate assigns one fixed route.
+- [x] Reject missing, duplicate, reordered, broad wildcard, stale, cross-profile, or promoted entries.
+- [x] Self-hash the raw manifest with zero Matrix rows, CTS runs, and claims; attach a receipt.
 
 ## Verification
 

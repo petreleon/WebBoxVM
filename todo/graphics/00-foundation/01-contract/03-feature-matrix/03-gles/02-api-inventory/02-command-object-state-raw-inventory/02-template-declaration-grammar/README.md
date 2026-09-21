@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.2
 Depends: F03.3.2.1, F03.3.2.2.1
-Evidence: pending
+Evidence: [evidence](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ without importing a registry, guessing overloads, or interpreting shader-languag
 
 ## Checklist
 
-- [ ] Bind the exact source identity, locator grammar, and `command-state` authority decision.
-- [ ] Anchor literal notation and every sealed `void NAME{...}` declaration form in the PDF before any command slice consumes it.
-- [ ] Define deterministic expansion, C-binding prefix, source-order, and duplicate-rejection rules.
-- [ ] Reject guessed variants, registry signatures, extensions, desktop GL, lower versions, and ESSL semantics.
-- [ ] Keep grammar metadata distinct from a command fact, state transition, limit, format, or Matrix row.
-- [ ] Self-hash the grammar and attach a no-claim receipt with focused hostile checks.
+- [x] Bind the exact source identity, locator grammar, and `command-state` authority decision.
+- [x] Anchor literal notation and every sealed `void NAME{...}` declaration form in the PDF before any command slice consumes it.
+- [x] Define deterministic expansion, C-binding prefix, source-order, and duplicate-rejection rules.
+- [x] Reject guessed variants, registry signatures, extensions, desktop GL, lower versions, and ESSL semantics.
+- [x] Keep grammar metadata distinct from a command fact, state transition, limit, format, or Matrix row.
+- [x] Self-hash the grammar and attach a no-claim receipt with focused hostile checks.
 
 ## Verification
 
