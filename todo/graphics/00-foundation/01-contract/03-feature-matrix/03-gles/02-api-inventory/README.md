@@ -20,7 +20,7 @@ matrix only after it can attach real implementation owners and independent full-
 
 ## Checklist
 
-- [ ] [F03.3.2.1 — Verify the normative PDF cache](01-normative-pdf-cache/README.md)
+- [x] [F03.3.2.1 — Verify the normative PDF cache](01-normative-pdf-cache/README.md)
 - [ ] [F03.3.2.2 — Extract raw command, object, and state facts](02-command-object-state-raw-inventory/README.md)
 - [ ] [F03.3.2.3 — Extract raw limit and format facts](03-limit-format-raw-inventory/README.md)
 - [x] [F03.3.2.4 — Record unavailable shader, precision, and extension decisions](04-unavailable-language-extension-ledger/README.md)

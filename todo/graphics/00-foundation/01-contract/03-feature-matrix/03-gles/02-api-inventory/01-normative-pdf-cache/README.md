@@ -4,7 +4,7 @@
 
 Task: F03.3.2.1
 Depends: F03.3.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ admitted extractor sees bytes. It proves source identity, not API behavior or a 
 
 ## Checklist
 
-- [ ] Load F03.3.1 only through its fixed private path and accept `command-state` and `limit-format`.
-- [ ] Require an absolute external nonsymlink cache root and its exact identity-derived PDF path.
-- [ ] Open the PDF without following links, then verify its exact byte count and SHA-256 before parsing.
-- [ ] Reject a missing, stale, mixed, in-repository, symlinked, oversized, or wrong-profile cache payload.
-- [ ] Preserve physical one-based PDF page bounds for downstream locator validation without claiming support.
-- [ ] Add focused cache-boundary checks and attach a no-claim receipt.
+- [x] Load F03.3.1 only through its fixed private path and accept `command-state` and `limit-format`.
+- [x] Require an absolute external nonsymlink cache root and its exact identity-derived PDF path.
+- [x] Open the PDF without following links, then verify its exact byte count and SHA-256 before parsing.
+- [x] Reject a missing, stale, mixed, in-repository, symlinked, oversized, or wrong-profile cache payload.
+- [x] Preserve physical one-based PDF page bounds for downstream locator validation without claiming support.
+- [x] Add focused cache-boundary checks and attach a no-claim receipt.
 
 ## Verification
 
