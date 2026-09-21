@@ -4,7 +4,7 @@
 
 Task: F03.3.2.3
 Depends: F03.3.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,16 +19,16 @@ PDF locators. It keeps numeric and format facts distinct from command/state fact
 
 ## Checklist
 
-- [ ] Extract only core limit and format-property requirements covered by the `limit-format` decision.
-- [ ] Preserve exact units, conditions, physical PDF page, numeric section, source order, and derivation
+- [x] Extract only core limit and format-property requirements covered by the `limit-format` decision.
+- [x] Preserve exact units, conditions, physical PDF page, numeric section, source order, and derivation
   class for every raw fact.
-- [ ] Keep format support requirements distinct from an observed renderer format capability or a claim of
+- [x] Keep format support requirements distinct from an observed renderer format capability or a claim of
   implementation support.
-- [ ] Exclude command/state facts, desktop or lower-version behavior, registry entries, extensions, and
+- [x] Exclude command/state facts, desktop or lower-version behavior, registry entries, extensions, and
   unadmitted ESSL shader or precision semantics.
-- [ ] Bind ordered section coverage and serialized-size limits; reject missing, duplicate, reordered,
+- [x] Bind ordered section coverage and serialized-size limits; reject missing, duplicate, reordered,
   stale, cross-profile, or source-identity-mismatched facts.
-- [ ] Add focused raw-inventory and hostile-input checks, then attach a no-claim receipt.
+- [x] Add focused raw-inventory and hostile-input checks, then attach a no-claim receipt.
 
 ## Verification
 
