@@ -8,8 +8,8 @@ Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory records assigned literal uniform-reflection and shader/program/pipeline query declarations.
-Values, precision, state, memory barriers, lifecycle, and ESSL semantics stay out of command facts.
+A bounded raw inventory records assigned literal uniform-reflection/binding and shader/program/pipeline query declarations.
+Semantic results for values, precision, state, memory barriers, lifecycle, and ESSL stay out of command facts.
 
 ## Starting points
 
@@ -21,7 +21,7 @@ Values, precision, state, memory barriers, lifecycle, and ESSL semantics stay ou
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
 - [ ] Extract assigned literal declarations with physical page, section, and source-order anchors only.
-- [ ] Route values, precision, state, memory barriers, lifecycle, and ESSL semantics out of command facts.
+- [ ] Route semantic value, precision, state, memory-barrier, lifecycle, and ESSL facts out while retaining only formal declarations.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 

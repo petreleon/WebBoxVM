@@ -18,6 +18,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-gles-generic-sync-query-test \
 	graphics-gles-buffer-command-inventory-test \
 	graphics-gles-program-pipeline-literal-inventory-test \
+	graphics-gles-uniform-query-inventory-test \
 	graphics-gles-limit-format-raw-inventory-test \
 	graphics-vulkan-raw-docs-citations-test \
 	graphics-vulkan-no-claim-provenance-receipt-test
@@ -81,6 +82,9 @@ graphics-gles-buffer-command-inventory-test:
 
 graphics-gles-program-pipeline-literal-inventory-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/03-program-pipeline-commands/01-shader-program-pipeline-binaries/gles_program_pipeline_literal_raw_inventory_test.py
+
+graphics-gles-uniform-query-inventory-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/03-program-pipeline-commands/02-uniform-reflection-and-object-queries/gles_uniform_query_raw_inventory_test.py
 
 graphics-gles-limit-format-raw-inventory-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/03-limit-format-raw-inventory/gles_limit_format_raw_inventory_test.py
