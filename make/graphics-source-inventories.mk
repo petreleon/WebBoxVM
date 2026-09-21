@@ -6,6 +6,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-opengl-command-domain-classification-test \
 	graphics-opengl-declaration-grammar-test \
 	graphics-opengl-generic-object-sync-test \
+	graphics-opengl-buffer-command-inventory-test \
 	graphics-opengl-global-execution-sync-test \
 	graphics-opengl-draw-compute-submission-test \
 	graphics-opengl-final-table-anchor-catalog-test \
@@ -41,6 +42,9 @@ graphics-opengl-declaration-grammar-test:
 
 graphics-opengl-generic-object-sync-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/03-object-resource-command-slices/01-generic-object-sync/opengl_generic_object_sync_raw_inventory_test.py
+
+graphics-opengl-buffer-command-inventory-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/03-object-resource-command-slices/02-buffer-commands/opengl_buffer_command_inventory_test.py
 
 graphics-opengl-global-execution-sync-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/04-non-object-command-slices/01-global-execution-sync/opengl_global_execution_sync_test.py

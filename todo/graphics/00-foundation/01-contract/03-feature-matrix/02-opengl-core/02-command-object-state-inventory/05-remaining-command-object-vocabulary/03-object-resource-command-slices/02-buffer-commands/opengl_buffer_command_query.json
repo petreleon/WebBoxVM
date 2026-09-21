@@ -1,0 +1,130 @@
+{
+  "artifact_sha256": "0638dc7c8c47dcbc7bab17614af96b1022308f5783d1816ddfe4cbed36c88dc6",
+  "declaration_count": 8,
+  "declarations": [
+    {
+      "c_name": "glGetBufferParameteriv",
+      "declaration": "void GetBufferParameteriv( enum target, enum pname, int *data );",
+      "document_name": "GetBufferParameteriv",
+      "fact_id": "command:glGetBufferParameteriv",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 103,
+      "source_locator": "opengl46-core-pdf-v1:page=103;section=6.7",
+      "source_order": 31,
+      "source_page_span": [
+        103
+      ],
+      "source_sequence_position": 32
+    },
+    {
+      "c_name": "glGetBufferParameteri64v",
+      "declaration": "void GetBufferParameteri64v( enum target, enum pname, int64 *data );",
+      "document_name": "GetBufferParameteri64v",
+      "fact_id": "command:glGetBufferParameteri64v",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 103,
+      "source_locator": "opengl46-core-pdf-v1:page=103;section=6.7",
+      "source_order": 32,
+      "source_page_span": [
+        103
+      ],
+      "source_sequence_position": 33
+    },
+    {
+      "c_name": "glGetNamedBufferParameteriv",
+      "declaration": "void GetNamedBufferParameteriv( uint buffer, enum pname, int *data );",
+      "document_name": "GetNamedBufferParameteriv",
+      "fact_id": "command:glGetNamedBufferParameteriv",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 103,
+      "source_locator": "opengl46-core-pdf-v1:page=103;section=6.7",
+      "source_order": 33,
+      "source_page_span": [
+        103
+      ],
+      "source_sequence_position": 34
+    },
+    {
+      "c_name": "glGetNamedBufferParameteri64v",
+      "declaration": "void GetNamedBufferParameteri64v( uint buffer, enum pname, int64 *data );",
+      "document_name": "GetNamedBufferParameteri64v",
+      "fact_id": "command:glGetNamedBufferParameteri64v",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 104,
+      "source_locator": "opengl46-core-pdf-v1:page=104;section=6.7",
+      "source_order": 34,
+      "source_page_span": [
+        104
+      ],
+      "source_sequence_position": 35
+    },
+    {
+      "c_name": "glGetBufferSubData",
+      "declaration": "void GetBufferSubData( enum target, intptr offset, sizeiptr size, void *data );",
+      "document_name": "GetBufferSubData",
+      "fact_id": "command:glGetBufferSubData",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 104,
+      "source_locator": "opengl46-core-pdf-v1:page=104;section=6.7",
+      "source_order": 35,
+      "source_page_span": [
+        104
+      ],
+      "source_sequence_position": 36
+    },
+    {
+      "c_name": "glGetNamedBufferSubData",
+      "declaration": "void GetNamedBufferSubData( uint buffer, intptr offset, sizeiptr size, void *data );",
+      "document_name": "GetNamedBufferSubData",
+      "fact_id": "command:glGetNamedBufferSubData",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 104,
+      "source_locator": "opengl46-core-pdf-v1:page=104;section=6.7",
+      "source_order": 36,
+      "source_page_span": [
+        104
+      ],
+      "source_sequence_position": 37
+    },
+    {
+      "c_name": "glGetBufferPointerv",
+      "declaration": "void GetBufferPointerv( enum target, enum pname, const void **params );",
+      "document_name": "GetBufferPointerv",
+      "fact_id": "command:glGetBufferPointerv",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 105,
+      "source_locator": "opengl46-core-pdf-v1:page=105;section=6.7",
+      "source_order": 37,
+      "source_page_span": [
+        105
+      ],
+      "source_sequence_position": 38
+    },
+    {
+      "c_name": "glGetNamedBufferPointerv",
+      "declaration": "void GetNamedBufferPointerv( uint buffer, enum pname, const void **params );",
+      "document_name": "GetNamedBufferPointerv",
+      "fact_id": "command:glGetNamedBufferPointerv",
+      "fragment": "query",
+      "numeric_section": "6.7",
+      "physical_page": 105,
+      "source_locator": "opengl46-core-pdf-v1:page=105;section=6.7",
+      "source_order": 38,
+      "source_page_span": [
+        105
+      ],
+      "source_sequence_position": 39
+    }
+  ],
+  "declarations_sha256": "f22ed15ad6d14166ff9ed850fb7e2be623f30a1a49b2276a5aafb0fa521a3f5e",
+  "fragment_id": "query",
+  "kind": "webboxvm-opengl46-buffer-command-raw-fragment",
+  "schema": 1
+}

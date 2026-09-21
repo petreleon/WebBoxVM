@@ -1,0 +1,130 @@
+{
+  "artifact_sha256": "63d43accde5804adf45cd96d066eccf903a4b04d5aabc2d7558de5059f7c0547",
+  "declaration_count": 8,
+  "declarations": [
+    {
+      "c_name": "glMapBufferRange",
+      "declaration": "void *MapBufferRange( enum target, intptr offset, sizeiptr length, bitfield acesss );",
+      "document_name": "MapBufferRange",
+      "fact_id": "command:glMapBufferRange",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 95,
+      "source_locator": "opengl46-core-pdf-v1:page=95;section=6.3",
+      "source_order": 19,
+      "source_page_span": [
+        95
+      ],
+      "source_sequence_position": 20
+    },
+    {
+      "c_name": "glMapNamedBufferRange",
+      "declaration": "void *MapNamedBufferRange( uint buffer, intptr offset, sizeiptr length, bitfield access );",
+      "document_name": "MapNamedBufferRange",
+      "fact_id": "command:glMapNamedBufferRange",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 95,
+      "source_locator": "opengl46-core-pdf-v1:page=95;section=6.3",
+      "source_order": 20,
+      "source_page_span": [
+        95
+      ],
+      "source_sequence_position": 21
+    },
+    {
+      "c_name": "glMapBuffer",
+      "declaration": "void *MapBuffer( enum target, enum access );",
+      "document_name": "MapBuffer",
+      "fact_id": "command:glMapBuffer",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 98,
+      "source_locator": "opengl46-core-pdf-v1:page=98;section=6.3",
+      "source_order": 21,
+      "source_page_span": [
+        98
+      ],
+      "source_sequence_position": 22
+    },
+    {
+      "c_name": "glMapNamedBuffer",
+      "declaration": "void *MapNamedBuffer( uint buffer, enum access );",
+      "document_name": "MapNamedBuffer",
+      "fact_id": "command:glMapNamedBuffer",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 98,
+      "source_locator": "opengl46-core-pdf-v1:page=98;section=6.3",
+      "source_order": 22,
+      "source_page_span": [
+        98
+      ],
+      "source_sequence_position": 23
+    },
+    {
+      "c_name": "glFlushMappedBufferRange",
+      "declaration": "void FlushMappedBufferRange( enum target, intptr offset, sizeiptr length );",
+      "document_name": "FlushMappedBufferRange",
+      "fact_id": "command:glFlushMappedBufferRange",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 99,
+      "source_locator": "opengl46-core-pdf-v1:page=99;section=6.3",
+      "source_order": 23,
+      "source_page_span": [
+        99
+      ],
+      "source_sequence_position": 24
+    },
+    {
+      "c_name": "glFlushMappedNamedBufferRange",
+      "declaration": "void FlushMappedNamedBufferRange( uint buffer, intptr offset, sizeiptr length );",
+      "document_name": "FlushMappedNamedBufferRange",
+      "fact_id": "command:glFlushMappedNamedBufferRange",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 99,
+      "source_locator": "opengl46-core-pdf-v1:page=99;section=6.3",
+      "source_order": 24,
+      "source_page_span": [
+        99
+      ],
+      "source_sequence_position": 25
+    },
+    {
+      "c_name": "glUnmapBuffer",
+      "declaration": "boolean UnmapBuffer( enum target );",
+      "document_name": "UnmapBuffer",
+      "fact_id": "command:glUnmapBuffer",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 100,
+      "source_locator": "opengl46-core-pdf-v1:page=100;section=6.3",
+      "source_order": 25,
+      "source_page_span": [
+        100
+      ],
+      "source_sequence_position": 26
+    },
+    {
+      "c_name": "glUnmapNamedBuffer",
+      "declaration": "boolean UnmapNamedBuffer( uint buffer );",
+      "document_name": "UnmapNamedBuffer",
+      "fact_id": "command:glUnmapNamedBuffer",
+      "fragment": "mapping",
+      "numeric_section": "6.3",
+      "physical_page": 100,
+      "source_locator": "opengl46-core-pdf-v1:page=100;section=6.3",
+      "source_order": 26,
+      "source_page_span": [
+        100
+      ],
+      "source_sequence_position": 27
+    }
+  ],
+  "declarations_sha256": "1c9e0f61b3624b1aed3e4156634dc8ddbba47b6103afcd73bf5f6f284794d710",
+  "fragment_id": "mapping",
+  "kind": "webboxvm-opengl46-buffer-command-raw-fragment",
+  "schema": 1
+}

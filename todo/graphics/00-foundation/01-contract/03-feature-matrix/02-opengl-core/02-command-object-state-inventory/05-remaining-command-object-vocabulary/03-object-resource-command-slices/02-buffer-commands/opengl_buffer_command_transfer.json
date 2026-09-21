@@ -1,0 +1,70 @@
+{
+  "artifact_sha256": "d1665d9214cd3526f8052f8b5b3eede914f199113389205eb70d7f5373d26b51",
+  "declaration_count": 4,
+  "declarations": [
+    {
+      "c_name": "glInvalidateBufferSubData",
+      "declaration": "void InvalidateBufferSubData( uint buffer, intptr offset, sizeiptr length );",
+      "document_name": "InvalidateBufferSubData",
+      "fact_id": "command:glInvalidateBufferSubData",
+      "fragment": "transfer",
+      "numeric_section": "6.5",
+      "physical_page": 102,
+      "source_locator": "opengl46-core-pdf-v1:page=102;section=6.5",
+      "source_order": 27,
+      "source_page_span": [
+        102
+      ],
+      "source_sequence_position": 28
+    },
+    {
+      "c_name": "glInvalidateBufferData",
+      "declaration": "void InvalidateBufferData( uint buffer );",
+      "document_name": "InvalidateBufferData",
+      "fact_id": "command:glInvalidateBufferData",
+      "fragment": "transfer",
+      "numeric_section": "6.5",
+      "physical_page": 102,
+      "source_locator": "opengl46-core-pdf-v1:page=102;section=6.5",
+      "source_order": 28,
+      "source_page_span": [
+        102
+      ],
+      "source_sequence_position": 29
+    },
+    {
+      "c_name": "glCopyBufferSubData",
+      "declaration": "void CopyBufferSubData( enum readTarget, enum writeTarget, intptr readOffset, intptr writeOffset, sizeiptr size );",
+      "document_name": "CopyBufferSubData",
+      "fact_id": "command:glCopyBufferSubData",
+      "fragment": "transfer",
+      "numeric_section": "6.6",
+      "physical_page": 102,
+      "source_locator": "opengl46-core-pdf-v1:page=102;section=6.6",
+      "source_order": 29,
+      "source_page_span": [
+        102
+      ],
+      "source_sequence_position": 30
+    },
+    {
+      "c_name": "glCopyNamedBufferSubData",
+      "declaration": "void CopyNamedBufferSubData( uint readBuffer, uint writeBuffer, intptr readOffset, intptr writeOffset, sizeiptr size );",
+      "document_name": "CopyNamedBufferSubData",
+      "fact_id": "command:glCopyNamedBufferSubData",
+      "fragment": "transfer",
+      "numeric_section": "6.6",
+      "physical_page": 102,
+      "source_locator": "opengl46-core-pdf-v1:page=102;section=6.6",
+      "source_order": 30,
+      "source_page_span": [
+        102
+      ],
+      "source_sequence_position": 31
+    }
+  ],
+  "declarations_sha256": "3d55c76a4493c7d19d86f8bc89d6573ee9aaebf913464054aa245bc030c24285",
+  "fragment_id": "transfer",
+  "kind": "webboxvm-opengl46-buffer-command-raw-fragment",
+  "schema": 1
+}

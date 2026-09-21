@@ -1,0 +1,160 @@
+{
+  "artifact_sha256": "b0d760930def499d69477ea544355768f7353578b7aebb4ab832bf1e12480d9e",
+  "declaration_count": 10,
+  "declarations": [
+    {
+      "c_name": "glBufferStorage",
+      "declaration": "void BufferStorage( enum target, sizeiptr size, const void *data, bitfield flags );",
+      "document_name": "BufferStorage",
+      "fact_id": "command:glBufferStorage",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 87,
+      "source_locator": "opengl46-core-pdf-v1:page=87;section=6.2",
+      "source_order": 9,
+      "source_page_span": [
+        87
+      ],
+      "source_sequence_position": 10
+    },
+    {
+      "c_name": "glNamedBufferStorage",
+      "declaration": "void NamedBufferStorage( uint buffer, sizeiptr size, const void *data, bitfield flags );",
+      "document_name": "NamedBufferStorage",
+      "fact_id": "command:glNamedBufferStorage",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 87,
+      "source_locator": "opengl46-core-pdf-v1:page=87;section=6.2",
+      "source_order": 10,
+      "source_page_span": [
+        87
+      ],
+      "source_sequence_position": 11
+    },
+    {
+      "c_name": "glBufferData",
+      "declaration": "void BufferData( enum target, sizeiptr size, const void *data, enum usage );",
+      "document_name": "BufferData",
+      "fact_id": "command:glBufferData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 90,
+      "source_locator": "opengl46-core-pdf-v1:page=90;section=6.2",
+      "source_order": 11,
+      "source_page_span": [
+        90
+      ],
+      "source_sequence_position": 12
+    },
+    {
+      "c_name": "glNamedBufferData",
+      "declaration": "void NamedBufferData( uint buffer, sizeiptr size, const void *data, enum usage );",
+      "document_name": "NamedBufferData",
+      "fact_id": "command:glNamedBufferData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 90,
+      "source_locator": "opengl46-core-pdf-v1:page=90;section=6.2",
+      "source_order": 12,
+      "source_page_span": [
+        90
+      ],
+      "source_sequence_position": 13
+    },
+    {
+      "c_name": "glBufferSubData",
+      "declaration": "void BufferSubData( enum target, intptr offset, sizeiptr size, const void *data );",
+      "document_name": "BufferSubData",
+      "fact_id": "command:glBufferSubData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 92,
+      "source_locator": "opengl46-core-pdf-v1:page=92;section=6.2",
+      "source_order": 13,
+      "source_page_span": [
+        92
+      ],
+      "source_sequence_position": 14
+    },
+    {
+      "c_name": "glNamedBufferSubData",
+      "declaration": "void NamedBufferSubData( uint buffer, intptr offset, sizeiptr size, const void *data );",
+      "document_name": "NamedBufferSubData",
+      "fact_id": "command:glNamedBufferSubData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 92,
+      "source_locator": "opengl46-core-pdf-v1:page=92;section=6.2",
+      "source_order": 14,
+      "source_page_span": [
+        92
+      ],
+      "source_sequence_position": 15
+    },
+    {
+      "c_name": "glClearBufferSubData",
+      "declaration": "void ClearBufferSubData( enum target, enum internalformat, intptr offset, sizeiptr size, enum format, enum type, const void *data );",
+      "document_name": "ClearBufferSubData",
+      "fact_id": "command:glClearBufferSubData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 93,
+      "source_locator": "opengl46-core-pdf-v1:page=93;section=6.2",
+      "source_order": 15,
+      "source_page_span": [
+        93
+      ],
+      "source_sequence_position": 16
+    },
+    {
+      "c_name": "glClearNamedBufferSubData",
+      "declaration": "void ClearNamedBufferSubData( uint buffer, enum internalformat, intptr offset, sizeiptr size, enum format, enum type, const void *data );",
+      "document_name": "ClearNamedBufferSubData",
+      "fact_id": "command:glClearNamedBufferSubData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 93,
+      "source_locator": "opengl46-core-pdf-v1:page=93;section=6.2",
+      "source_order": 16,
+      "source_page_span": [
+        93
+      ],
+      "source_sequence_position": 17
+    },
+    {
+      "c_name": "glClearBufferData",
+      "declaration": "void ClearBufferData( enum target, enum internalformat, enum format, enum type, const void *data );",
+      "document_name": "ClearBufferData",
+      "fact_id": "command:glClearBufferData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 94,
+      "source_locator": "opengl46-core-pdf-v1:page=94;section=6.2",
+      "source_order": 17,
+      "source_page_span": [
+        94
+      ],
+      "source_sequence_position": 18
+    },
+    {
+      "c_name": "glClearNamedBufferData",
+      "declaration": "void ClearNamedBufferData( uint buffer, enum internalformat, enum format, enum type, const void *data );",
+      "document_name": "ClearNamedBufferData",
+      "fact_id": "command:glClearNamedBufferData",
+      "fragment": "storage",
+      "numeric_section": "6.2",
+      "physical_page": 94,
+      "source_locator": "opengl46-core-pdf-v1:page=94;section=6.2",
+      "source_order": 18,
+      "source_page_span": [
+        94
+      ],
+      "source_sequence_position": 19
+    }
+  ],
+  "declarations_sha256": "1fe1aee841bbe12da4e9c7dd5c023af119f9241fa2a6aa24612a36c4b9ba410d",
+  "fragment_id": "storage",
+  "kind": "webboxvm-opengl46-buffer-command-raw-fragment",
+  "schema": 1
+}

@@ -1,0 +1,173 @@
+{
+  "artifact_receipts": [
+    {"artifact_sha256": "fa48b78636f62e5dce5cd428a3a720f9deebafce8084537eb3d71fe3ae6528e8", "file": "opengl_buffer_command_binding.json", "fragment_id": "binding", "serialized_sha256": "aabe0d39ad0307c721ad03c3a9741c90a8adea6b689e12a5599b76affa2e658f"},
+    {"artifact_sha256": "b0d760930def499d69477ea544355768f7353578b7aebb4ab832bf1e12480d9e", "file": "opengl_buffer_command_storage.json", "fragment_id": "storage", "serialized_sha256": "5ea9014175e76d58137a814fcc2962372e3a9feeab7206e8e0845d1e1018f077"},
+    {"artifact_sha256": "63d43accde5804adf45cd96d066eccf903a4b04d5aabc2d7558de5059f7c0547", "file": "opengl_buffer_command_mapping.json", "fragment_id": "mapping", "serialized_sha256": "8782fb890aa5d80780ff005c4b68b6ec204a9892091627ebebe332a371a25d64"},
+    {"artifact_sha256": "d1665d9214cd3526f8052f8b5b3eede914f199113389205eb70d7f5373d26b51", "file": "opengl_buffer_command_transfer.json", "fragment_id": "transfer", "serialized_sha256": "f7b3fddc60eb1531d64406f626147a5801087cd44a8d776995dfbd100f209a00"},
+    {"artifact_sha256": "0638dc7c8c47dcbc7bab17614af96b1022308f5783d1816ddfe4cbed36c88dc6", "file": "opengl_buffer_command_query.json", "fragment_id": "query", "serialized_sha256": "9e163ac64b0beb7ee96143ef55582fdb4f1d010e2c2b740e32ea40645c39c986"}
+  ],
+  "authority_boundary_sha256": "71d1fdbe2bb51911d6fbf6fe4a5c5665681c5a4a8a265b3db840bc629762a641",
+  "baseline_binding": {
+    "excluded_command_fact_ids": [
+      "command:glCreateBuffers"
+    ],
+    "facts_sha256": "44b48f75008bbb8e23008ec40d06b2dacc59cf31c7a7d5fa851a48c1ff1f0565",
+    "inventory_sha256": "e5874fd86c1188e614f13dbb3aeeb32852819444d48656cfda3874b11c98bca6"
+  },
+  "baseline_exclusions": [
+    {
+      "declaration": "void CreateBuffers( sizei n, uint *buffers );",
+      "document_name": "CreateBuffers",
+      "fact_id": "command:glCreateBuffers",
+      "numeric_section": "6.1",
+      "physical_page": 81,
+      "source_locator": "opengl46-core-pdf-v1:page=81;section=6.1",
+      "source_page_span": [
+        81
+      ],
+      "source_sequence_position": 2
+    }
+  ],
+  "buffer_state_binding": {
+    "fact_ids": [
+      "buffer-existing-rebind",
+      "buffer-delete-current-context",
+      "array-buffer-binding-state"
+    ],
+    "facts_sha256": "968b6a33443f30b6fc1076f23f2581a5d46b17c9750a78a57422638218d07679",
+    "inventory_sha256": "8c65d749930b32fc823d3177b75edfd7c7cdf42bcc45df13ac68b431edf16500"
+  },
+  "cache_boundary_sha256": "93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "classifier_binding": {
+    "classification_sha256": "aa011d762f0765d373df5db364fa66da82dc87da075a6f257a5a3af423d77842",
+    "family_id": "buffer",
+    "route": "buffer-commands",
+    "source_scope": "6.1-6.7"
+  },
+  "cts_executions": 0,
+  "deferred_non_declaration_routes": {
+    "buffer_binding_and_deletion_transitions": "F03.2.2.3",
+    "numeric_properties_and_formats": "F03.2.3"
+  },
+  "formal_source_declaration_count": 39,
+  "grammar_binding": {
+    "c_command_prefix": "gl",
+    "normalization_sha256": "fd742314618af4b604e6dfdaf0fa997e6475355396233737ad8b18b39d3c9947"
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-opengl46-buffer-command-raw-inventory",
+  "matrix_row_count": 0,
+  "physical_pdf_pages": 851,
+  "profile": "opengl-4.6-core",
+  "raw_inventory_sha256": "12b34844f8b938fbe8b7e7c41f2a3fc7f307850d0500c9b14988511a20192074",
+  "raw_only": true,
+  "rejections": [
+    "baseline-direct-creation-duplicate",
+    "unanchored-template-or-ambiguous-declaration",
+    "extension-compatibility-registry-lower-profile-source",
+    "state-lifecycle-and-numeric-properties-deferred"
+  ],
+  "schema": 1,
+  "semantic_fact_count": 0,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_class": "command-object-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_windows": [
+    {
+      "formal_declaration_count": 9,
+      "numeric_section": "6.1",
+      "physical_pages": [
+        81,
+        82,
+        83,
+        84,
+        85,
+        86
+      ]
+    },
+    {
+      "formal_declaration_count": 10,
+      "numeric_section": "6.2",
+      "physical_pages": [
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94
+      ]
+    },
+    {
+      "formal_declaration_count": 8,
+      "numeric_section": "6.3",
+      "physical_pages": [
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ]
+    },
+    {
+      "formal_declaration_count": 0,
+      "numeric_section": "6.4",
+      "physical_pages": [
+        101
+      ]
+    },
+    {
+      "formal_declaration_count": 2,
+      "numeric_section": "6.5",
+      "physical_pages": [
+        102
+      ]
+    },
+    {
+      "formal_declaration_count": 2,
+      "numeric_section": "6.6",
+      "physical_pages": [
+        102
+      ]
+    },
+    {
+      "formal_declaration_count": 8,
+      "numeric_section": "6.7",
+      "physical_pages": [
+        103,
+        104,
+        105
+      ]
+    }
+  ],
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

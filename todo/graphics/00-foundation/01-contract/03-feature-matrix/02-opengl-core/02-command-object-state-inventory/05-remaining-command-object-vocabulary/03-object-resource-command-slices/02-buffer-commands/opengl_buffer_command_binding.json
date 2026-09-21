@@ -1,0 +1,131 @@
+{
+  "artifact_sha256": "fa48b78636f62e5dce5cd428a3a720f9deebafce8084537eb3d71fe3ae6528e8",
+  "declaration_count": 8,
+  "declarations": [
+    {
+      "c_name": "glGenBuffers",
+      "declaration": "void GenBuffers( sizei n, uint *buffers );",
+      "document_name": "GenBuffers",
+      "fact_id": "command:glGenBuffers",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 81,
+      "source_locator": "opengl46-core-pdf-v1:page=81;section=6.1",
+      "source_order": 1,
+      "source_page_span": [
+        81
+      ],
+      "source_sequence_position": 1
+    },
+    {
+      "c_name": "glDeleteBuffers",
+      "declaration": "void DeleteBuffers( sizei n, const uint *buffers );",
+      "document_name": "DeleteBuffers",
+      "fact_id": "command:glDeleteBuffers",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 82,
+      "source_locator": "opengl46-core-pdf-v1:page=82;section=6.1",
+      "source_order": 2,
+      "source_page_span": [
+        82
+      ],
+      "source_sequence_position": 3
+    },
+    {
+      "c_name": "glIsBuffer",
+      "declaration": "boolean IsBuffer( uint buffer );",
+      "document_name": "IsBuffer",
+      "fact_id": "command:glIsBuffer",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 82,
+      "source_locator": "opengl46-core-pdf-v1:page=82;section=6.1",
+      "source_order": 3,
+      "source_page_span": [
+        82
+      ],
+      "source_sequence_position": 4
+    },
+    {
+      "c_name": "glBindBuffer",
+      "declaration": "void BindBuffer( enum target, uint buffer );",
+      "document_name": "BindBuffer",
+      "fact_id": "command:glBindBuffer",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 82,
+      "source_locator": "opengl46-core-pdf-v1:page=82;section=6.1",
+      "source_order": 4,
+      "source_page_span": [
+        82
+      ],
+      "source_sequence_position": 5
+    },
+    {
+      "c_name": "glBindBufferRange",
+      "declaration": "void BindBufferRange( enum target, uint index, uint buffer, intptr offset, sizeiptr size );",
+      "document_name": "BindBufferRange",
+      "fact_id": "command:glBindBufferRange",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 84,
+      "source_locator": "opengl46-core-pdf-v1:page=84;section=6.1",
+      "source_order": 5,
+      "source_page_span": [
+        84
+      ],
+      "source_sequence_position": 6
+    },
+    {
+      "c_name": "glBindBufferBase",
+      "declaration": "void BindBufferBase( enum target, uint index, uint buffer );",
+      "document_name": "BindBufferBase",
+      "fact_id": "command:glBindBufferBase",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 84,
+      "source_locator": "opengl46-core-pdf-v1:page=84;section=6.1",
+      "source_order": 6,
+      "source_page_span": [
+        84
+      ],
+      "source_sequence_position": 7
+    },
+    {
+      "c_name": "glBindBuffersBase",
+      "declaration": "void BindBuffersBase( enum target, uint first, sizei count, const uint *buffers );",
+      "document_name": "BindBuffersBase",
+      "fact_id": "command:glBindBuffersBase",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 85,
+      "source_locator": "opengl46-core-pdf-v1:page=85;section=6.1",
+      "source_order": 7,
+      "source_page_span": [
+        85,
+        86
+      ],
+      "source_sequence_position": 8
+    },
+    {
+      "c_name": "glBindBuffersRange",
+      "declaration": "void BindBuffersRange( enum target, uint first, sizei count, const uint *buffers, const intptr *offsets, const sizeiptr *sizes );",
+      "document_name": "BindBuffersRange",
+      "fact_id": "command:glBindBuffersRange",
+      "fragment": "binding",
+      "numeric_section": "6.1",
+      "physical_page": 86,
+      "source_locator": "opengl46-core-pdf-v1:page=86;section=6.1",
+      "source_order": 8,
+      "source_page_span": [
+        86
+      ],
+      "source_sequence_position": 9
+    }
+  ],
+  "declarations_sha256": "1e590ab6f9ab6f1a859836299fd9fc348f38cf5eaa1203c3675c168373b416bc",
+  "fragment_id": "binding",
+  "kind": "webboxvm-opengl46-buffer-command-raw-fragment",
+  "schema": 1
+}
