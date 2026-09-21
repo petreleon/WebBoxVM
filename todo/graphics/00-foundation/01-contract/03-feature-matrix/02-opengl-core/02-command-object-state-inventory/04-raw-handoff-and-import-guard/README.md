@@ -3,7 +3,7 @@
 [Parent task](../README.md) · [Worker instructions](../../../../../../workflow.md)
 
 Task: F03.2.2.4
-Depends: F03.2.2.2, F03.2.2.3
+Depends: F03.2.2.2, F03.2.2.3, F03.2.2.5
 Evidence: pending
 
 ## Outcome
@@ -16,11 +16,13 @@ and independent reference obligations exist.
 
 - [command and object raw inventory](../02-command-object-raw-inventory/README.md)
 - [state and lifecycle raw inventory](../03-state-and-lifecycle-raw-inventory/README.md)
+- [remaining command and object vocabulary](../05-remaining-command-object-vocabulary/README.md)
 - [ownership and CTS parent](../../04-ownership-and-cts-obligations/README.md)
 
 ## Checklist
 
 - [ ] Aggregate exact source identity, ordered raw counts, hashes, source scopes, and exclusions.
+- [ ] Refuse completion while the direct-creation slice is the only command/object vocabulary review.
 - [ ] Reject a missing family, cross-profile source, stale cache identity, duplicate fact, or reordered
   handoff.
 - [ ] Refuse Matrix v2 emission while an implementation owner or independent reference obligation is

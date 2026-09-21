@@ -24,6 +24,7 @@ records a real implementation owner and an independent full-suite reference obli
 
 - [ ] [F03.2.3.1 — Extract raw limit and format facts](01-limit-format-raw-inventory/README.md)
 - [ ] [F03.2.3.2 — Ledger unadmitted shader and extension sources](02-unadmitted-shader-extension-ledger/README.md)
+- [ ] [F03.2.3.4 — Cover remaining core limit and format families](04-remaining-core-limit-format-families/README.md)
 - [ ] [F03.2.3.3 — Handoff raw facts and guard Matrix import](03-raw-handoff-and-import-guard/README.md)
 
 ## Verification
@@ -36,4 +37,6 @@ execution, format support, device behavior, CTS execution, a browser path, certi
 F03.2.1 admits the `limit-format` class from the sealed normative PDF, but declares `shader` and
 `extension` unavailable pending distinct source admission. The raw inventory therefore stays separate from
 that decision ledger, and neither can truthfully fill Matrix v2 owner or full-suite reference fields.
-F03.2.4.1 resolves those obligations and F03.2.4.2 alone may import verified raw facts into the matrix.
+The reviewed-table slice is not the whole core limit/format domain: F03.2.3.4 keeps remaining families
+visible. F03.2.4.1 resolves ownership obligations and F03.2.4.2 alone may import verified raw facts into
+the matrix.

@@ -20,18 +20,15 @@ infer behavior from a registry or implementation.
 
 ## Checklist
 
-- [ ] Read state variables from the normative state tables and retain table and row positions in the raw
-  condition while preserving the F03.2.1 PDF locator syntax.
-- [ ] Record only explicit lifecycle or state-transition rules with their triggering command and source
-  section; flag no inferred transition as a fact.
-- [ ] Route numeric limits and format properties to F03.2.3 instead of duplicating or silently omitting
-  them here.
-- [ ] Exclude compatibility-only state, extensions, GLSL semantics, and implementation observations.
-- [ ] Bind ordered table and section coverage to fail on a missing, duplicate, reordered, or cross-profile
-  raw fact.
-- [ ] Add focused table/prose hostile tests and attach a no-claim receipt.
+- [ ] [F03.2.2.3.1 — Buffer-binding lifecycle raw slice](01-buffer-binding-lifecycle-raw-slice/README.md)
+- [ ] [F03.2.2.3.2 — Remaining state and lifecycle families](02-other-state-lifecycle-families/README.md)
+- [ ] [F03.2.2.3.3 — Aggregate coverage and raw handoff guard](03-aggregate-raw-handoff-guard/README.md)
 
 ## Verification
 
 Chapter 23 lists queryable state but is not itself a complete transition grammar. A reviewable coverage
 manifest is required before an extractor may call its raw state/lifecycle set complete.
+
+F03.2.2.3.1 is limited to three reviewed buffer-binding facts. It explicitly records `complete=false`
+for the state/lifecycle universe and cannot complete this parent. The remaining family inventory,
+ordered source coverage, exclusions and aggregate no-claim handoff remain required below.
