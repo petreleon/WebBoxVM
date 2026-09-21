@@ -8,8 +8,8 @@ Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory expands only the source-bound matrix `Uniform` templates in section 7.6.1. Matrix values,
-types, transpose behavior, storage, precision, layout, and ESSL semantics remain out of command facts.
+A bounded raw inventory expands only the source-bound matrix `Uniform` templates in section 7.6.1. Semantic details
+about matrix values, types, transpose behavior, storage, precision, layout, and ESSL remain out of command facts.
 
 ## Starting points
 
@@ -21,7 +21,7 @@ types, transpose behavior, storage, precision, layout, and ESSL semantics remain
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
 - [ ] Expand assigned formal templates with physical page, section, and source-order anchors only.
-- [ ] Route values, types, transpose, storage, precision, layout, and ESSL semantics out of command facts.
+- [ ] Route semantic value, type, transpose, storage, precision, layout, and ESSL facts out while retaining only formal templates.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
