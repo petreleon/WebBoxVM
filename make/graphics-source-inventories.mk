@@ -24,6 +24,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-gles-program-uniform-scalar-vector-template-test \
 	graphics-gles-program-uniform-matrix-template-test \
 	graphics-gles-texture-sampler-object-parameter-test \
+	graphics-gles-texture-image-copy-subimage-test \
 	graphics-gles-limit-format-raw-inventory-test \
 	graphics-vulkan-raw-docs-citations-test \
 	graphics-vulkan-no-claim-provenance-receipt-test
@@ -105,6 +106,9 @@ graphics-gles-program-uniform-matrix-template-test:
 
 graphics-gles-texture-sampler-object-parameter-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/04-texture-sampler-commands/01-texture-sampler-objects-parameters/gles_texture_sampler_object_parameter_inventory_test.py
+
+graphics-gles-texture-image-copy-subimage-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/04-texture-sampler-commands/02-texture-image-copy-subimage-commands/gles_texture_image_copy_subimage_inventory_test.py
 
 graphics-gles-limit-format-raw-inventory-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/03-limit-format-raw-inventory/gles_limit_format_raw_inventory_test.py
