@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.4.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ sections 8.5–8.6. Formats, pixels, framebuffer behavior, dimensions, and image
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, texture domain, grammar, and unavailable-ledger identities.
-- [ ] Extract only assigned literals from pp.175, 184, 185–187, and 191–192 with source-order anchors.
-- [ ] Preserve the p.185–187 and p.191–192 declaration spans without promoting formats, pixels, or behavior.
-- [ ] Reject compressed/storage/parameter families, extensions, registry data, guessed declarations, and ESSL imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, texture domain, grammar, and unavailable-ledger identities.
+- [x] Extract only assigned literals from pp.175, 184, 185–187, and 191–192 with source-order anchors.
+- [x] Preserve the p.185–187 and p.191–192 declaration spans without promoting formats, pixels, or behavior.
+- [x] Reject compressed/storage/parameter families, extensions, registry data, guessed declarations, and ESSL imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
