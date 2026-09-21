@@ -1,0 +1,96 @@
+{
+  "cache_provenance": {"cache_boundary_sha256":"c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79","cache_layout":"webboxvm-graphics/f02/{record_id}/{sha256}.source","physical_pdf_pages":601},
+  "coverage_manifest": {
+    "complete": false,
+    "coverage_decision": "bounded-reviewed-table-rows-only",
+    "manifest_id": "gles32-reviewed-limit-format-tables-21-40-through-21-42-v1",
+    "reviewed_tables": [
+      {
+        "excluded_rows": [
+        ],
+        "included_rows": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+        "physical_page": 504,
+        "table": "21.40"
+      },
+      {
+        "excluded_rows": [
+          {"name":"MIN FRAGMENT INTERPOLATION OFFSET","numeric_section":"14.1","reason":"shader-semantics-unadmitted","route":"shader","row":1},
+          {"name":"MAX FRAGMENT INTERPOLATION OFFSET","numeric_section":"14.1","reason":"shader-semantics-unadmitted","route":"shader","row":2},
+          {"name":"FRAGMENT INTERPOLATION OFFSET BITS","numeric_section":"14.1","reason":"precision-semantics-unadmitted","route":"precision","row":3},
+          {"name":"LAYER PROVOKING VERTEX","numeric_section":"11.3.4","reason":"state-semantics-not-limit-format","route":"command-state","row":11},
+          {"name":"PRIMITIVE RESTART FOR PATCHES SUPPORTED","numeric_section":"10.3.4","reason":"boolean-capability-not-limit-format","route":"command-state","row":12}
+        ],
+        "included_rows": [4,5,6,7,8,9,10],
+        "physical_page": 505,
+        "table": "21.41"
+      },
+      {
+        "excluded_rows": [
+          {"name":"NUM PROGRAM BINARY FORMATS","numeric_section":"7.5","reason":"shader-program-semantics-unadmitted","route":"shader","row":9},
+          {"name":"PROGRAM BINARY FORMATS","numeric_section":"7.5","reason":"shader-program-semantics-unadmitted","route":"shader","row":10},
+          {"name":"NUM SHADER BINARY FORMATS","numeric_section":"7.2","reason":"shader-program-semantics-unadmitted","route":"shader","row":11},
+          {"name":"SHADER BINARY FORMATS","numeric_section":"7.2","reason":"shader-program-semantics-unadmitted","route":"shader","row":12},
+          {"name":"SHADER COMPILER","numeric_section":"11.1","reason":"shader-program-semantics-unadmitted","route":"shader","row":13},
+          {"name":"Shader data type ranges","numeric_section":"7.12","reason":"precision-semantics-unadmitted","route":"precision","row":15},
+          {"name":"Shader data type precisions","numeric_section":"7.12","reason":"precision-semantics-unadmitted","route":"precision","row":16}
+        ],
+        "included_rows": [1,2,3,4,5,6,7,8,14],
+        "physical_page": 506,
+        "table": "21.42"
+      }
+    ],
+    "unadmitted_inputs": ["shader","precision","extension","essl-320-spec","gl.xml","desktop-glsl","gles-3.1"],
+    "unreviewed_families": ["implementation-dependent tables outside-21.40-through-21.42-unclassified","chapter-local-limit-and-format-rules-outside-reviewed-table-scope-unclassified"]
+  },
+  "facts_sha256": "e5c89070fb1c686dfb3539014b61f9e22b3ae80f5f9d1da8957ac09916db9e9d",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "65db683993c68c310147dc6fc733293f20d8b7cc87fdc25071569b2a171d5639",
+  "kind": "webboxvm-gles32-bounded-limit-format-raw-inventory",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_fact_count": 34,
+  "raw_only": true,
+  "schema": 1,
+  "serialized_size_limit": 1048576,
+  "source_authority_boundary_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "limit-format",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "facts": [
+    {"derivation_class":"limit-format","kind":"limit","name":"SUBPIXEL BITS","numeric_section":"13","physical_page":504,"raw_id":"gles32-table-21-40-row-01","source_locator":"gles32-pdf-v1:page=504;section=13","source_order":1,"table":"21.40","table_row":1},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ELEMENT INDEX","numeric_section":"10.5","physical_page":504,"raw_id":"gles32-table-21-40-row-02","source_locator":"gles32-pdf-v1:page=504;section=10.5","source_order":2,"table":"21.40","table_row":2},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX 3D TEXTURE SIZE","numeric_section":"8.5","physical_page":504,"raw_id":"gles32-table-21-40-row-03","source_locator":"gles32-pdf-v1:page=504;section=8.5","source_order":3,"table":"21.40","table_row":3},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX TEXTURE SIZE","numeric_section":"8.5","physical_page":504,"raw_id":"gles32-table-21-40-row-04","source_locator":"gles32-pdf-v1:page=504;section=8.5","source_order":4,"table":"21.40","table_row":4},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ARRAY TEXTURE LAYERS","numeric_section":"8.5","physical_page":504,"raw_id":"gles32-table-21-40-row-05","source_locator":"gles32-pdf-v1:page=504;section=8.5","source_order":5,"table":"21.40","table_row":5},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX TEXTURE LOD BIAS","numeric_section":"8.14","physical_page":504,"raw_id":"gles32-table-21-40-row-06","source_locator":"gles32-pdf-v1:page=504;section=8.14","source_order":6,"table":"21.40","table_row":6},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX CUBE MAP TEXTURE SIZE","numeric_section":"8.5","physical_page":504,"raw_id":"gles32-table-21-40-row-07","source_locator":"gles32-pdf-v1:page=504;section=8.5","source_order":7,"table":"21.40","table_row":7},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX RENDERBUFFER SIZE","numeric_section":"9.2.4","physical_page":504,"raw_id":"gles32-table-21-40-row-08","source_locator":"gles32-pdf-v1:page=504;section=9.2.4","source_order":8,"table":"21.40","table_row":8},
+    {"derivation_class":"limit-format","kind":"limit","name":"ALIASED POINT SIZE RANGE","numeric_section":"13.5","physical_page":504,"raw_id":"gles32-table-21-40-row-09","source_locator":"gles32-pdf-v1:page=504;section=13.5","source_order":9,"table":"21.40","table_row":9},
+    {"derivation_class":"limit-format","kind":"limit","name":"ALIASED LINE WIDTH RANGE","numeric_section":"13.6","physical_page":504,"raw_id":"gles32-table-21-40-row-10","source_locator":"gles32-pdf-v1:page=504;section=13.6","source_order":10,"table":"21.40","table_row":10},
+    {"derivation_class":"limit-format","kind":"limit","name":"MULTISAMPLE LINE WIDTH RANGE","numeric_section":"13.6.4","physical_page":504,"raw_id":"gles32-table-21-40-row-11","source_locator":"gles32-pdf-v1:page=504;section=13.6.4","source_order":11,"table":"21.40","table_row":11},
+    {"derivation_class":"limit-format","kind":"limit","name":"MULTISAMPLE LINE WIDTH GRANULARITY","numeric_section":"13.6.4","physical_page":504,"raw_id":"gles32-table-21-40-row-12","source_locator":"gles32-pdf-v1:page=504;section=13.6.4","source_order":12,"table":"21.40","table_row":12},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX DRAW BUFFERS","numeric_section":"15.2.1","physical_page":504,"raw_id":"gles32-table-21-40-row-13","source_locator":"gles32-pdf-v1:page=504;section=15.2.1","source_order":13,"table":"21.40","table_row":13},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX FRAMEBUFFER WIDTH","numeric_section":"9.2","physical_page":504,"raw_id":"gles32-table-21-40-row-14","source_locator":"gles32-pdf-v1:page=504;section=9.2","source_order":14,"table":"21.40","table_row":14},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX FRAMEBUFFER HEIGHT","numeric_section":"9.2","physical_page":504,"raw_id":"gles32-table-21-40-row-15","source_locator":"gles32-pdf-v1:page=504;section=9.2","source_order":15,"table":"21.40","table_row":15},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX FRAMEBUFFER LAYERS","numeric_section":"9.2.1","physical_page":504,"raw_id":"gles32-table-21-40-row-16","source_locator":"gles32-pdf-v1:page=504;section=9.2.1","source_order":16,"table":"21.40","table_row":16},
+    {"derivation_class":"limit-format","kind":"format-property","name":"MAX FRAMEBUFFER SAMPLES","numeric_section":"9.2","physical_page":504,"raw_id":"gles32-table-21-40-row-17","source_locator":"gles32-pdf-v1:page=504;section=9.2","source_order":17,"table":"21.40","table_row":17},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX COLOR ATTACHMENTS","numeric_section":"9.2.7","physical_page":504,"raw_id":"gles32-table-21-40-row-18","source_locator":"gles32-pdf-v1:page=504;section=9.2.7","source_order":18,"table":"21.40","table_row":18},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VIEWPORT DIMS","numeric_section":"12.6.1","physical_page":505,"raw_id":"gles32-table-21-41-row-04","source_locator":"gles32-pdf-v1:page=505;section=12.6.1","source_order":19,"table":"21.41","table_row":4},
+    {"derivation_class":"limit-format","kind":"format-property","name":"MAX SAMPLES","numeric_section":"9.2.4","physical_page":505,"raw_id":"gles32-table-21-41-row-05","source_locator":"gles32-pdf-v1:page=505;section=9.2.4","source_order":20,"table":"21.41","table_row":5},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX SAMPLE MASK WORDS","numeric_section":"13.8.3","physical_page":505,"raw_id":"gles32-table-21-41-row-06","source_locator":"gles32-pdf-v1:page=505;section=13.8.3","source_order":21,"table":"21.41","table_row":6},
+    {"derivation_class":"limit-format","kind":"format-property","name":"MAX COLOR TEXTURE SAMPLES","numeric_section":"13.8.3","physical_page":505,"raw_id":"gles32-table-21-41-row-07","source_locator":"gles32-pdf-v1:page=505;section=13.8.3","source_order":22,"table":"21.41","table_row":7},
+    {"derivation_class":"limit-format","kind":"format-property","name":"MAX DEPTH TEXTURE SAMPLES","numeric_section":"13.8.3","physical_page":505,"raw_id":"gles32-table-21-41-row-08","source_locator":"gles32-pdf-v1:page=505;section=13.8.3","source_order":23,"table":"21.41","table_row":8},
+    {"derivation_class":"limit-format","kind":"format-property","name":"MAX INTEGER SAMPLES","numeric_section":"9.2.4","physical_page":505,"raw_id":"gles32-table-21-41-row-09","source_locator":"gles32-pdf-v1:page=505;section=9.2.4","source_order":24,"table":"21.41","table_row":9},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX SERVER WAIT TIMEOUT","numeric_section":"4.1.1","physical_page":505,"raw_id":"gles32-table-21-41-row-10","source_locator":"gles32-pdf-v1:page=505;section=4.1.1","source_order":25,"table":"21.41","table_row":10},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VERTEX ATTRIB RELATIVE OFFSET","numeric_section":"10.3","physical_page":506,"raw_id":"gles32-table-21-42-row-01","source_locator":"gles32-pdf-v1:page=506;section=10.3","source_order":26,"table":"21.42","table_row":1},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VERTEX ATTRIB BINDINGS","numeric_section":"10.3","physical_page":506,"raw_id":"gles32-table-21-42-row-02","source_locator":"gles32-pdf-v1:page=506;section=10.3","source_order":27,"table":"21.42","table_row":2},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VERTEX ATTRIB STRIDE","numeric_section":"10.3","physical_page":506,"raw_id":"gles32-table-21-42-row-03","source_locator":"gles32-pdf-v1:page=506;section=10.3","source_order":28,"table":"21.42","table_row":3},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ELEMENTS INDICES","numeric_section":"10.3","physical_page":506,"raw_id":"gles32-table-21-42-row-04","source_locator":"gles32-pdf-v1:page=506;section=10.3","source_order":29,"table":"21.42","table_row":4},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ELEMENTS VERTICES","numeric_section":"10.3","physical_page":506,"raw_id":"gles32-table-21-42-row-05","source_locator":"gles32-pdf-v1:page=506;section=10.3","source_order":30,"table":"21.42","table_row":5},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX TEXTURE BUFFER SIZE","numeric_section":"8.9","physical_page":506,"raw_id":"gles32-table-21-42-row-06","source_locator":"gles32-pdf-v1:page=506;section=8.9","source_order":31,"table":"21.42","table_row":6},
+    {"derivation_class":"limit-format","kind":"format-property","name":"NUM COMPRESSED TEXTURE FORMATS","numeric_section":"8.7","physical_page":506,"raw_id":"gles32-table-21-42-row-07","source_locator":"gles32-pdf-v1:page=506;section=8.7","source_order":32,"table":"21.42","table_row":7},
+    {"derivation_class":"limit-format","kind":"format-property","name":"COMPRESSED TEXTURE FORMATS","numeric_section":"8.7","physical_page":506,"raw_id":"gles32-table-21-42-row-08","source_locator":"gles32-pdf-v1:page=506;section=8.7","source_order":33,"table":"21.42","table_row":8},
+    {"derivation_class":"limit-format","kind":"limit","name":"TEXTURE BUFFER OFFSET ALIGNMENT","numeric_section":"8.9","physical_page":506,"raw_id":"gles32-table-21-42-row-14","source_locator":"gles32-pdf-v1:page=506;section=8.9","source_order":34,"table":"21.42","table_row":14}
+  ],
+  "source": {"bytes":2198754,"profile":"gles-3.2","record_id":"gles-32-spec","record_kind":"upstream-source","revision":"1cdd228e34966dd6b95bd203e9f84faba0f371a1","role":"normative-root","scope":"normative-source","sha256":"5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"},
+  "source_decision": {"availability":"available","blocker":"","decision":"derivable","id":"limit-format","permitted_extraction_scope":"GLES 3.2 core limits and format properties","source_locator_syntax":"gles32-pdf-v1:page=<positive-decimal>;section=<section-path>","source_role":"normative-root"}
+}
