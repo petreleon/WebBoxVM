@@ -1,15 +1,15 @@
-# F03.3.2.2.3.3.2 — Interfaces, pipelines, and binaries
+# F03.3.2.2.3.3.4 — Uniform matrix templates
 
 [Parent task](../README.md) · [Worker instructions](../../../../../../../../../workflow.md)
 
-Task: F03.3.2.2.3.3.2
+Task: F03.3.2.2.3.3.4
 Depends: F03.3.2.2.1, F03.3.2.2.2
 Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory records formal program-interface, program-pipeline, and program-binary declarations
-from sections 7.3.1–7.5. Resource interface, matching, validation, binary, and link behavior remain out.
+A bounded raw inventory expands only the source-bound matrix `Uniform` templates in section 7.6.1. Matrix values,
+types, transpose behavior, storage, precision, layout, and ESSL semantics remain out of command facts.
 
 ## Starting points
 
@@ -20,12 +20,12 @@ from sections 7.3.1–7.5. Resource interface, matching, validation, binary, and
 ## Checklist
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
-- [ ] Extract assigned formal declarations with physical page, section, and source-order anchors only.
-- [ ] Route matching, validation, resource, linking, binary, and lifecycle behavior out of command facts.
+- [ ] Expand assigned formal templates with physical page, section, and source-order anchors only.
+- [ ] Route values, types, transpose, storage, precision, layout, and ESSL semantics out of command facts.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
-Raw declarations do not establish program interface behavior, pipeline correctness, guest/browser execution,
-support, conformance, certification, or performance.
+Raw declaration forms do not establish matrix behavior, shader semantics, guest/browser execution, support,
+conformance, certification, or performance.

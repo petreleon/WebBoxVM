@@ -1,15 +1,15 @@
-# F03.3.2.2.3.3.3 — Uniform declaration forms
+# F03.3.2.2.3.3.2 — Uniform reflection and object queries
 
 [Parent task](../README.md) · [Worker instructions](../../../../../../../../../workflow.md)
 
-Task: F03.3.2.2.3.3.3
+Task: F03.3.2.2.3.3.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
 Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory records the formal uniform and program-uniform declaration forms in section 7.6.
-Grammar expansion is source-bound; uniform values, types, precision, storage, and ESSL semantics stay out.
+A bounded raw inventory records assigned literal uniform-reflection and shader/program/pipeline query declarations.
+Values, precision, state, memory barriers, lifecycle, and ESSL semantics stay out of command facts.
 
 ## Starting points
 
@@ -20,12 +20,12 @@ Grammar expansion is source-bound; uniform values, types, precision, storage, an
 ## Checklist
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
-- [ ] Extract only assigned formal templates and literals with physical page, section, and source-order anchors.
-- [ ] Route values, types, precision, storage, layout, linking, and ESSL semantics out of command facts.
+- [ ] Extract assigned literal declarations with physical page, section, and source-order anchors only.
+- [ ] Route values, precision, state, memory barriers, lifecycle, and ESSL semantics out of command facts.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
-Raw declaration forms do not establish uniform behavior, shader semantics, guest/browser execution, support,
+Raw declarations do not establish query results, precision, shader behavior, guest/browser execution, support,
 conformance, certification, or performance.

@@ -1,4 +1,4 @@
-# F03.3.2.2.3.3.1 — Shader and program objects
+# F03.3.2.2.3.3.1 — Shader, program, pipeline, and binary literals
 
 [Parent task](../README.md) · [Worker instructions](../../../../../../../../../workflow.md)
 
@@ -8,8 +8,8 @@ Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory records only the formal shader-object and program-object declarations assigned to
-sections 7.1–7.3. Shader text, compilation, linking, binary behavior, and object lifetime semantics stay out.
+A bounded raw inventory records assigned literal shader/program object, program-interface, pipeline, and binary
+declarations from sections 7.1–7.5. Compilation, linking, matching, validation, binary, and lifecycle behavior stay out.
 
 ## Starting points
 
@@ -20,12 +20,12 @@ sections 7.1–7.3. Shader text, compilation, linking, binary behavior, and obje
 ## Checklist
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
-- [ ] Extract assigned formal declarations with physical page, section, and source-order anchors only.
-- [ ] Route shader text, compilation, linking, binaries, lifecycle, and ESSL semantics out of command facts.
+- [ ] Extract assigned literal declarations with physical page, section, and source-order anchors only.
+- [ ] Route compilation, linking, matching, validation, binaries, and lifecycle behavior out of command facts.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
-Raw declarations do not establish shader or program behavior, guest/browser execution, support, conformance,
-certification, or performance.
+Raw declarations do not establish shader, program, pipeline, or binary behavior, guest/browser execution, support,
+conformance, certification, or performance.

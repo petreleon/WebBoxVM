@@ -1,15 +1,15 @@
-# F03.3.2.2.3.3.4 — Program queries and scope closure
+# F03.3.2.2.3.3.5 — Program-uniform scalar/vector templates
 
 [Parent task](../README.md) · [Worker instructions](../../../../../../../../../workflow.md)
 
-Task: F03.3.2.2.3.3.4
+Task: F03.3.2.2.3.3.5
 Depends: F03.3.2.2.1, F03.3.2.2.2
 Evidence: pending
 
 ## Outcome
 
-A bounded raw inventory records assigned program/shader/pipeline query declarations and closes the remaining
-classified chapter-7 declaration windows. Memory barriers, state tables, ESSL, precision, and behavior stay out.
+A bounded raw inventory expands only the source-bound scalar/vector `ProgramUniform` templates in section 7.6.1.
+Program state, uniform values, types, precision, storage, layout, and ESSL semantics stay out of command facts.
 
 ## Starting points
 
@@ -20,12 +20,12 @@ classified chapter-7 declaration windows. Memory barriers, state tables, ESSL, p
 ## Checklist
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
-- [ ] Extract assigned formal declarations and explicit zero-declaration windows with source anchors only.
-- [ ] Route memory barriers, state, precision, values, lifecycle, and ESSL semantics out of command facts.
+- [ ] Expand assigned formal templates with physical page, section, and source-order anchors only.
+- [ ] Route values, types, state, precision, storage, layout, and ESSL semantics out of command facts.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
-Raw declarations and empty declaration windows do not establish API behavior, guest/browser execution, support,
-conformance, certification, or performance.
+Raw declaration forms do not establish program or uniform behavior, guest/browser execution, support, conformance,
+certification, or performance.
