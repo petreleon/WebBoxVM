@@ -1,0 +1,34 @@
+{
+  "artifact_sha256": "37321c4ba7b1961702aeddf9bb1ed08ae5ee858576057ee619b06c6f0e9f998b",
+  "declaration_count": 2,
+  "declarations": [
+    {
+      "c_name": "glDispatchCompute",
+      "declaration": "void DispatchCompute( uint num groups x, uint num groups y, uint num groups z );",
+      "document_name": "DispatchCompute",
+      "fact_id": "command:glDispatchCompute",
+      "fragment": "compute",
+      "numeric_section": "19",
+      "physical_page": 568,
+      "source_locator": "opengl46-core-pdf-v1:page=568;section=19",
+      "source_order": 25,
+      "source_sequence_position": 27
+    },
+    {
+      "c_name": "glDispatchComputeIndirect",
+      "declaration": "void DispatchComputeIndirect( intptr indirect );",
+      "document_name": "DispatchComputeIndirect",
+      "fact_id": "command:glDispatchComputeIndirect",
+      "fragment": "compute",
+      "numeric_section": "19",
+      "physical_page": 569,
+      "source_locator": "opengl46-core-pdf-v1:page=569;section=19",
+      "source_order": 26,
+      "source_sequence_position": 28
+    }
+  ],
+  "declarations_sha256": "fdf2df41333fa0514b08b8f7029ef484cbe3868b550bb91012e6a26be14783f3",
+  "fragment_id": "compute",
+  "kind": "webboxvm-opengl46-draw-compute-submission-fragment",
+  "schema": 1
+}

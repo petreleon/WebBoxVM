@@ -7,6 +7,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-opengl-declaration-grammar-test \
 	graphics-opengl-generic-object-sync-test \
 	graphics-opengl-global-execution-sync-test \
+	graphics-opengl-draw-compute-submission-test \
 	graphics-opengl-final-table-anchor-catalog-test \
 	graphics-opengl-chapter-local-anchor-manifest-test \
 	graphics-opengl-aggregate-anchor-classification-test \
@@ -43,6 +44,9 @@ graphics-opengl-generic-object-sync-test:
 
 graphics-opengl-global-execution-sync-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/04-non-object-command-slices/01-global-execution-sync/opengl_global_execution_sync_test.py
+
+graphics-opengl-draw-compute-submission-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/04-non-object-command-slices/02-draw-compute-submission/opengl_draw_compute_submission_test.py
 
 graphics-opengl-final-table-anchor-catalog-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/03-limit-format-shader-inventory/04-remaining-core-limit-format-families/01-anchor-classification/01-final-table-anchors/opengl_final_table_anchor_catalog_test.py

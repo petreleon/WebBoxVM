@@ -1,0 +1,94 @@
+{
+  "artifact_sha256": "ff4afdba57eb169fbb7b81fbbe74a92594973c12e2ae27f5467632850167cca0",
+  "declaration_count": 7,
+  "declarations": [
+    {
+      "c_name": "glDrawArrays",
+      "declaration": "void DrawArrays( enum mode, int first, sizei count );",
+      "document_name": "DrawArrays",
+      "fact_id": "command:glDrawArrays",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 388,
+      "source_locator": "opengl46-core-pdf-v1:page=388;section=10.4",
+      "source_order": 1,
+      "source_sequence_position": 2
+    },
+    {
+      "c_name": "glDrawArraysInstancedBaseInstance",
+      "declaration": "void DrawArraysInstancedBaseInstance( enum mode, int first, sizei count, sizei instancecount, uint baseinstance );",
+      "document_name": "DrawArraysInstancedBaseInstance",
+      "fact_id": "command:glDrawArraysInstancedBaseInstance",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 388,
+      "source_locator": "opengl46-core-pdf-v1:page=388;section=10.4",
+      "source_order": 2,
+      "source_sequence_position": 3
+    },
+    {
+      "c_name": "glDrawArraysInstanced",
+      "declaration": "void DrawArraysInstanced( enum mode, int first, sizei count, sizei instancecount );",
+      "document_name": "DrawArraysInstanced",
+      "fact_id": "command:glDrawArraysInstanced",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 388,
+      "source_locator": "opengl46-core-pdf-v1:page=388;section=10.4",
+      "source_order": 3,
+      "source_sequence_position": 4
+    },
+    {
+      "c_name": "glDrawArraysIndirect",
+      "declaration": "void DrawArraysIndirect( enum mode, const void *indirect );",
+      "document_name": "DrawArraysIndirect",
+      "fact_id": "command:glDrawArraysIndirect",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 389,
+      "source_locator": "opengl46-core-pdf-v1:page=389;section=10.4",
+      "source_order": 4,
+      "source_sequence_position": 5
+    },
+    {
+      "c_name": "glMultiDrawArrays",
+      "declaration": "void MultiDrawArrays( enum mode, const int *first, const sizei *count, sizei drawcount );",
+      "document_name": "MultiDrawArrays",
+      "fact_id": "command:glMultiDrawArrays",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 389,
+      "source_locator": "opengl46-core-pdf-v1:page=389;section=10.4",
+      "source_order": 5,
+      "source_sequence_position": 6
+    },
+    {
+      "c_name": "glMultiDrawArraysIndirect",
+      "declaration": "void MultiDrawArraysIndirect( enum mode, const void *indirect, sizei drawcount, sizei stride );",
+      "document_name": "MultiDrawArraysIndirect",
+      "fact_id": "command:glMultiDrawArraysIndirect",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 390,
+      "source_locator": "opengl46-core-pdf-v1:page=390;section=10.4",
+      "source_order": 6,
+      "source_sequence_position": 7
+    },
+    {
+      "c_name": "glMultiDrawArraysIndirectCount",
+      "declaration": "void MultiDrawArraysIndirectCount( enum mode, const void *indirect, intptr drawcount, intptr maxdrawcount, sizei stride );",
+      "document_name": "MultiDrawArraysIndirectCount",
+      "fact_id": "command:glMultiDrawArraysIndirectCount",
+      "fragment": "array-basic",
+      "numeric_section": "10.4",
+      "physical_page": 391,
+      "source_locator": "opengl46-core-pdf-v1:page=391;section=10.4",
+      "source_order": 7,
+      "source_sequence_position": 8
+    }
+  ],
+  "declarations_sha256": "34328651a501429aecfd06dc512cbc9d94eec122d057b46e600af7a5ed248050",
+  "fragment_id": "array-basic",
+  "kind": "webboxvm-opengl46-draw-compute-submission-fragment",
+  "schema": 1
+}

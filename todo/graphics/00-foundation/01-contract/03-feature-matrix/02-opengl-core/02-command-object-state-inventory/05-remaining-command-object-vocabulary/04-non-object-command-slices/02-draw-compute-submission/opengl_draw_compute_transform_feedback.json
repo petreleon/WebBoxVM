@@ -1,0 +1,58 @@
+{
+  "artifact_sha256": "a1749c8b897f7d68dcd5a5ccadb911b6cde72bed37ec16e95c2d8bccd679ab26",
+  "declaration_count": 4,
+  "declarations": [
+    {
+      "c_name": "glDrawTransformFeedback",
+      "declaration": "void DrawTransformFeedback( enum mode, uint id );",
+      "document_name": "DrawTransformFeedback",
+      "fact_id": "command:glDrawTransformFeedback",
+      "fragment": "transform-feedback",
+      "numeric_section": "13.3.3",
+      "physical_page": 472,
+      "source_locator": "opengl46-core-pdf-v1:page=472;section=13.3.3",
+      "source_order": 21,
+      "source_sequence_position": 23
+    },
+    {
+      "c_name": "glDrawTransformFeedbackInstanced",
+      "declaration": "void DrawTransformFeedbackInstanced( enum mode, uint id, sizei instancecount );",
+      "document_name": "DrawTransformFeedbackInstanced",
+      "fact_id": "command:glDrawTransformFeedbackInstanced",
+      "fragment": "transform-feedback",
+      "numeric_section": "13.3.3",
+      "physical_page": 472,
+      "source_locator": "opengl46-core-pdf-v1:page=472;section=13.3.3",
+      "source_order": 22,
+      "source_sequence_position": 24
+    },
+    {
+      "c_name": "glDrawTransformFeedbackStream",
+      "declaration": "void DrawTransformFeedbackStream( enum mode, uint id, uint stream );",
+      "document_name": "DrawTransformFeedbackStream",
+      "fact_id": "command:glDrawTransformFeedbackStream",
+      "fragment": "transform-feedback",
+      "numeric_section": "13.3.3",
+      "physical_page": 472,
+      "source_locator": "opengl46-core-pdf-v1:page=472;section=13.3.3",
+      "source_order": 23,
+      "source_sequence_position": 25
+    },
+    {
+      "c_name": "glDrawTransformFeedbackStreamInstanced",
+      "declaration": "void DrawTransformFeedbackStreamInstanced( enum mode, uint id, uint stream, sizei instancecount );",
+      "document_name": "DrawTransformFeedbackStreamInstanced",
+      "fact_id": "command:glDrawTransformFeedbackStreamInstanced",
+      "fragment": "transform-feedback",
+      "numeric_section": "13.3.3",
+      "physical_page": 472,
+      "source_locator": "opengl46-core-pdf-v1:page=472;section=13.3.3",
+      "source_order": 24,
+      "source_sequence_position": 26
+    }
+  ],
+  "declarations_sha256": "ca1018aac611156594b551f16add489e8ccd9185c5150e73a4f482e702f5fac4",
+  "fragment_id": "transform-feedback",
+  "kind": "webboxvm-opengl46-draw-compute-submission-fragment",
+  "schema": 1
+}

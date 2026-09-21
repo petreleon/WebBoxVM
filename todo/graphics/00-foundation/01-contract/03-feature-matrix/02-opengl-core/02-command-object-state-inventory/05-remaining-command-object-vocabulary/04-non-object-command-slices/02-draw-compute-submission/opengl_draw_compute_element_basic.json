@@ -1,0 +1,82 @@
+{
+  "artifact_sha256": "89a1fcaee8c661cd8c64aa69cb0f9336b5f8e7b39f6d83264d2f0459d8fdb676",
+  "declaration_count": 6,
+  "declarations": [
+    {
+      "c_name": "glDrawElements",
+      "declaration": "void DrawElements( enum mode, sizei count, enum type, const void *indices );",
+      "document_name": "DrawElements",
+      "fact_id": "command:glDrawElements",
+      "fragment": "element-basic",
+      "numeric_section": "10.4",
+      "physical_page": 393,
+      "source_locator": "opengl46-core-pdf-v1:page=393;section=10.4",
+      "source_order": 8,
+      "source_sequence_position": 10
+    },
+    {
+      "c_name": "glDrawElementsInstancedBaseInstance",
+      "declaration": "void DrawElementsInstancedBaseInstance( enum mode, sizei count, enum type, const void *indices, sizei instancecount, uint baseinstance );",
+      "document_name": "DrawElementsInstancedBaseInstance",
+      "fact_id": "command:glDrawElementsInstancedBaseInstance",
+      "fragment": "element-basic",
+      "numeric_section": "10.4",
+      "physical_page": 393,
+      "source_locator": "opengl46-core-pdf-v1:page=393;section=10.4",
+      "source_order": 9,
+      "source_sequence_position": 11
+    },
+    {
+      "c_name": "glDrawElementsInstanced",
+      "declaration": "void DrawElementsInstanced( enum mode, sizei count, enum type, const void *indices, sizei instancecount );",
+      "document_name": "DrawElementsInstanced",
+      "fact_id": "command:glDrawElementsInstanced",
+      "fragment": "element-basic",
+      "numeric_section": "10.4",
+      "physical_page": 394,
+      "source_locator": "opengl46-core-pdf-v1:page=394;section=10.4",
+      "source_order": 10,
+      "source_sequence_position": 12
+    },
+    {
+      "c_name": "glMultiDrawElements",
+      "declaration": "void MultiDrawElements( enum mode, const sizei *count, enum type, const void * const *indices, sizei drawcount );",
+      "document_name": "MultiDrawElements",
+      "fact_id": "command:glMultiDrawElements",
+      "fragment": "element-basic",
+      "numeric_section": "10.4",
+      "physical_page": 394,
+      "source_locator": "opengl46-core-pdf-v1:page=394;section=10.4",
+      "source_order": 11,
+      "source_sequence_position": 13
+    },
+    {
+      "c_name": "glDrawRangeElements",
+      "declaration": "void DrawRangeElements( enum mode, uint start, uint end, sizei count, enum type, const void *indices );",
+      "document_name": "DrawRangeElements",
+      "fact_id": "command:glDrawRangeElements",
+      "fragment": "element-basic",
+      "numeric_section": "10.4",
+      "physical_page": 394,
+      "source_locator": "opengl46-core-pdf-v1:page=394;section=10.4",
+      "source_order": 12,
+      "source_sequence_position": 14
+    },
+    {
+      "c_name": "glDrawElementsBaseVertex",
+      "declaration": "void DrawElementsBaseVertex( enum mode, sizei count, enum type, const void *indices, int basevertex );",
+      "document_name": "DrawElementsBaseVertex",
+      "fact_id": "command:glDrawElementsBaseVertex",
+      "fragment": "element-basic",
+      "numeric_section": "10.4",
+      "physical_page": 395,
+      "source_locator": "opengl46-core-pdf-v1:page=395;section=10.4",
+      "source_order": 13,
+      "source_sequence_position": 15
+    }
+  ],
+  "declarations_sha256": "f800ac18f1a0a840a52b7ef209368e83c8b5cf5154f7d9690808052254111566",
+  "fragment_id": "element-basic",
+  "kind": "webboxvm-opengl46-draw-compute-submission-fragment",
+  "schema": 1
+}
