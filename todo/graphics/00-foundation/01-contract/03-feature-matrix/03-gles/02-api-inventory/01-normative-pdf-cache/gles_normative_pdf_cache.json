@@ -1,0 +1,42 @@
+{
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "kind": "webboxvm-gles-normative-pdf-cache",
+  "matrix_rows": 0,
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "schema": 1,
+  "source": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_classes": [
+    "command-state",
+    "limit-format"
+  ],
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}
