@@ -19,14 +19,11 @@ One self-hashed, closed classification catalog assigns every remaining candidate
 
 ## Checklist
 
-- [ ] Bind the exact cache, source authority, reviewed table artifact, and unavailable-source ledger.
-- [ ] Catalog tables 23.56–23.70 (pages 660–674) and 23.72–23.74 (pages 676–678) at row/column granularity.
-- [ ] Catalog chapter-local format and constraint families without turning headings into automatic source-class decisions.
-- [ ] Give every candidate anchor exactly one route and reject gaps, duplicates, reordered rows, and catch-all labels.
-- [ ] Preserve source page, section, table/row, source order, and explicit reason for every route.
-- [ ] Emit no facts or Matrix/CTS/claim promotion; attach a no-claim receipt.
+- [ ] [F03.2.3.4.1.1 — Catalog final-table anchors](01-final-table-anchors/README.md)
+- [ ] [F03.2.3.4.1.2 — Manifest chapter-local anchors](02-chapter-local-anchor-manifest/README.md)
+- [ ] [F03.2.3.4.1.3 — Aggregate the closed anchor classification](03-aggregate-anchor-classification/README.md)
 
 ## Verification
 
-The catalog classifies review work only. It cannot infer an API limit, shader authority, extension support,
+The aggregate classifies review work only. It cannot infer an API limit, shader authority, extension support,
 format behavior, guest/browser behavior, conformance, certification, or performance.
