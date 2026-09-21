@@ -4,7 +4,7 @@
 
 Task: F03.2.2.5.4.2
 Depends: F03.2.1, F03.2.2.1, F03.2.2.5.1, F03.2.2.5.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ Draw and compute submission declarations are bounded to §10.4 (pages 386–398)
 
 ## Checklist
 
-- [ ] Bind the exact cache, classifier, and declaration grammar.
-- [ ] Extract only formal submission declarations in the assigned pages and sections.
-- [ ] Keep primitive assembly, compute behavior, state, and output semantics outside this raw inventory.
-- [ ] Reject registry, extension, compatibility, lower-profile, guessed-template, and unanchored sources.
-- [ ] Self-hash the raw artifact; retain zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind the exact cache, classifier, and declaration grammar.
+- [x] Extract only formal submission declarations in the assigned pages and sections.
+- [x] Keep primitive assembly, compute behavior, state, and output semantics outside this raw inventory.
+- [x] Reject registry, extension, compatibility, lower-profile, guessed-template, and unanchored sources.
+- [x] Self-hash the raw artifact; retain zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 

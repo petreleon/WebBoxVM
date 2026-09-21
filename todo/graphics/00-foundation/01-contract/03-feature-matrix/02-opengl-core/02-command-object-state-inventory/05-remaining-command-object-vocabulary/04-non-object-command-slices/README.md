@@ -20,7 +20,7 @@ state-setting, draw, and query material cannot be silently omitted or confused w
 ## Checklist
 
 - [x] [F03.2.2.5.4.1 — Global execution and synchronization commands](01-global-execution-sync/README.md)
-- [ ] [F03.2.2.5.4.2 — Draw and compute submission commands](02-draw-compute-submission/README.md)
+- [x] [F03.2.2.5.4.2 — Draw and compute submission commands](02-draw-compute-submission/README.md)
 - [ ] [F03.2.2.5.4.3 — Rasterization and framebuffer state-setting commands](03-raster-framebuffer-state/README.md)
 - [ ] [F03.2.2.5.4.4 — Pixel read and copy commands](04-pixel-read-copy/README.md)
 - [ ] [F03.2.2.5.4.5 — Debug, special, and generic context-query commands](05-debug-special-context-queries/README.md)
