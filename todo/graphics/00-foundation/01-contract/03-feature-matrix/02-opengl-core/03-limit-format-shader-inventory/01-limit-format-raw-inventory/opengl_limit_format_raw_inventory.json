@@ -1,0 +1,117 @@
+{
+  "cache_provenance": {"cache_boundary_sha256":"93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101","cache_layout":"webboxvm-graphics/f02/{record_id}/{sha256}.source","physical_pdf_pages":851},
+  "coverage_manifest": {
+    "complete": false,
+    "coverage_decision": "bounded-reviewed-table-rows-only",
+    "manifest_id": "opengl46-reviewed-limit-format-tables-v1",
+    "reviewed_tables": [
+      {
+        "excluded_rows": [
+          {"name":"CONTEXT RELEASE BEHAVIOR","numeric_section":"22.2","reason":"non-limit-format-behavior","row":1},
+          {"name":"PRIMITIVE RESTART FOR PATCHES SUPPORTED","numeric_section":"10.3.6","reason":"boolean-capability-not-limit-format","row":7},
+          {"name":"MAX TEXTURE MAX ANISOTROPY","numeric_section":"8.14","reason":"extension-class-unadmitted","row":14}
+        ],
+        "included_rows": [2,3,4,5,6,8,9,10,11,12,13],
+        "physical_page": 657,
+        "table": "23.53"
+      },
+      {
+        "excluded_rows": [
+          {"name":"LAYER PROVOKING VERTEX","numeric_section":"11.3.4","reason":"state-semantics-not-limit-format","row":5},
+          {"name":"VIEWPORT INDEX PROVOKING VERTEX","numeric_section":"11.3.4","reason":"state-semantics-not-limit-format","row":6}
+        ],
+        "included_rows": [1,2,3,4,7,8,9,10,11,12,13],
+        "physical_page": 658,
+        "table": "23.54"
+      },
+      {
+        "excluded_rows": [
+          {"name":"NUM PROGRAM BINARY FORMATS","numeric_section":"7.5","reason":"shader-program-semantics-unadmitted","row":8},
+          {"name":"PROGRAM BINARY FORMATS","numeric_section":"7.5","reason":"shader-program-semantics-unadmitted","row":9},
+          {"name":"NUM SHADER BINARY FORMATS","numeric_section":"7.2","reason":"shader-program-semantics-unadmitted","row":10},
+          {"name":"SHADER BINARY FORMATS","numeric_section":"7.2","reason":"shader-program-semantics-unadmitted","row":11},
+          {"name":"SHADER COMPILER","numeric_section":"7","reason":"shader-program-semantics-unadmitted","row":12}
+        ],
+        "included_rows": [1,2,3,4,5,6,7,13,14],
+        "physical_page": 659,
+        "table": "23.55"
+      },
+      {
+        "excluded_rows": [
+        ],
+        "included_rows": [1,2],
+        "physical_page": 675,
+        "table": "23.71"
+      }
+    ],
+    "unadmitted_inputs": ["shader","extension","gl.xml","desktop-glsl","lower-opengl-profile"],
+    "unreviewed_families": ["tables-23.56-through-23.70-version-extension-or-shader-families-unclassified","chapter-local-limit-and-format-tables-outside-reviewed-table-scope-unclassified"]
+  },
+  "facts": [
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX CLIP DISTANCES","numeric_section":"13.7","physical_page":657,"raw_id":"opengl46-table-23-53-row-02","source_locator":"opengl46-core-pdf-v1:page=657;section=13.7","source_order":1,"table":"23.53","table_row":2},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX CULL DISTANCES","numeric_section":"13.7","physical_page":657,"raw_id":"opengl46-table-23-53-row-03","source_locator":"opengl46-core-pdf-v1:page=657;section=13.7","source_order":2,"table":"23.53","table_row":3},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX COMBINED CLIP AND CULL DISTANCES","numeric_section":"13.7","physical_page":657,"raw_id":"opengl46-table-23-53-row-04","source_locator":"opengl46-core-pdf-v1:page=657;section=13.7","source_order":3,"table":"23.53","table_row":4},
+    {"derivation_class":"limit-format","kind":"limit","name":"SUBPIXEL BITS","numeric_section":"14","physical_page":657,"raw_id":"opengl46-table-23-53-row-05","source_locator":"opengl46-core-pdf-v1:page=657;section=14","source_order":4,"table":"23.53","table_row":5},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ELEMENT INDEX","numeric_section":"10.4","physical_page":657,"raw_id":"opengl46-table-23-53-row-06","source_locator":"opengl46-core-pdf-v1:page=657;section=10.4","source_order":5,"table":"23.53","table_row":6},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX 3D TEXTURE SIZE","numeric_section":"8.5","physical_page":657,"raw_id":"opengl46-table-23-53-row-08","source_locator":"opengl46-core-pdf-v1:page=657;section=8.5","source_order":6,"table":"23.53","table_row":8},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX TEXTURE SIZE","numeric_section":"8.5","physical_page":657,"raw_id":"opengl46-table-23-53-row-09","source_locator":"opengl46-core-pdf-v1:page=657;section=8.5","source_order":7,"table":"23.53","table_row":9},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ARRAY TEXTURE LAYERS","numeric_section":"8.5","physical_page":657,"raw_id":"opengl46-table-23-53-row-10","source_locator":"opengl46-core-pdf-v1:page=657;section=8.5","source_order":8,"table":"23.53","table_row":10},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX TEXTURE LOD BIAS","numeric_section":"8.14","physical_page":657,"raw_id":"opengl46-table-23-53-row-11","source_locator":"opengl46-core-pdf-v1:page=657;section=8.14","source_order":9,"table":"23.53","table_row":11},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX CUBE MAP TEXTURE SIZE","numeric_section":"8.5","physical_page":657,"raw_id":"opengl46-table-23-53-row-12","source_locator":"opengl46-core-pdf-v1:page=657;section=8.5","source_order":10,"table":"23.53","table_row":12},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX RENDERBUFFER SIZE","numeric_section":"9.2.4","physical_page":657,"raw_id":"opengl46-table-23-53-row-13","source_locator":"opengl46-core-pdf-v1:page=657;section=9.2.4","source_order":11,"table":"23.53","table_row":13},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VIEWPORT DIMS","numeric_section":"13.8.1","physical_page":658,"raw_id":"opengl46-table-23-54-row-01","source_locator":"opengl46-core-pdf-v1:page=658;section=13.8.1","source_order":12,"table":"23.54","table_row":1},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VIEWPORTS","numeric_section":"13.8.1","physical_page":658,"raw_id":"opengl46-table-23-54-row-02","source_locator":"opengl46-core-pdf-v1:page=658;section=13.8.1","source_order":13,"table":"23.54","table_row":2},
+    {"derivation_class":"limit-format","kind":"limit","name":"VIEWPORT SUBPIXEL BITS","numeric_section":"13.8.1","physical_page":658,"raw_id":"opengl46-table-23-54-row-03","source_locator":"opengl46-core-pdf-v1:page=658;section=13.8.1","source_order":14,"table":"23.54","table_row":3},
+    {"derivation_class":"limit-format","kind":"limit","name":"VIEWPORT BOUNDS RANGE","numeric_section":"13.8.1","physical_page":658,"raw_id":"opengl46-table-23-54-row-04","source_locator":"opengl46-core-pdf-v1:page=658;section=13.8.1","source_order":15,"table":"23.54","table_row":4},
+    {"derivation_class":"limit-format","kind":"limit","name":"POINT SIZE RANGE","numeric_section":"14.4","physical_page":658,"raw_id":"opengl46-table-23-54-row-07","source_locator":"opengl46-core-pdf-v1:page=658;section=14.4","source_order":16,"table":"23.54","table_row":7},
+    {"derivation_class":"limit-format","kind":"limit","name":"POINT SIZE GRANULARITY","numeric_section":"14.4","physical_page":658,"raw_id":"opengl46-table-23-54-row-08","source_locator":"opengl46-core-pdf-v1:page=658;section=14.4","source_order":17,"table":"23.54","table_row":8},
+    {"derivation_class":"limit-format","kind":"limit","name":"ALIASED LINE WIDTH RANGE","numeric_section":"14.5","physical_page":658,"raw_id":"opengl46-table-23-54-row-09","source_locator":"opengl46-core-pdf-v1:page=658;section=14.5","source_order":18,"table":"23.54","table_row":9},
+    {"derivation_class":"limit-format","kind":"limit","name":"SMOOTH LINE WIDTH RANGE","numeric_section":"14.5","physical_page":658,"raw_id":"opengl46-table-23-54-row-10","source_locator":"opengl46-core-pdf-v1:page=658;section=14.5","source_order":19,"table":"23.54","table_row":10},
+    {"derivation_class":"limit-format","kind":"limit","name":"SMOOTH LINE WIDTH GRANULARITY","numeric_section":"14.5","physical_page":658,"raw_id":"opengl46-table-23-54-row-11","source_locator":"opengl46-core-pdf-v1:page=658;section=14.5","source_order":20,"table":"23.54","table_row":11},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ELEMENTS INDICES","numeric_section":"10.3","physical_page":658,"raw_id":"opengl46-table-23-54-row-12","source_locator":"opengl46-core-pdf-v1:page=658;section=10.3","source_order":21,"table":"23.54","table_row":12},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX ELEMENTS VERTICES","numeric_section":"10.3","physical_page":658,"raw_id":"opengl46-table-23-54-row-13","source_locator":"opengl46-core-pdf-v1:page=658;section=10.3","source_order":22,"table":"23.54","table_row":13},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VERTEX ATTRIB RELATIVE OFFSET","numeric_section":"10.3","physical_page":659,"raw_id":"opengl46-table-23-55-row-01","source_locator":"opengl46-core-pdf-v1:page=659;section=10.3","source_order":23,"table":"23.55","table_row":1},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VERTEX ATTRIB BINDINGS","numeric_section":"10.3","physical_page":659,"raw_id":"opengl46-table-23-55-row-02","source_locator":"opengl46-core-pdf-v1:page=659;section=10.3","source_order":24,"table":"23.55","table_row":2},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX VERTEX ATTRIB STRIDE","numeric_section":"10.3","physical_page":659,"raw_id":"opengl46-table-23-55-row-03","source_locator":"opengl46-core-pdf-v1:page=659;section=10.3","source_order":25,"table":"23.55","table_row":3},
+    {"derivation_class":"limit-format","kind":"format-property","name":"NUM COMPRESSED TEXTURE FORMATS","numeric_section":"8.7","physical_page":659,"raw_id":"opengl46-table-23-55-row-04","source_locator":"opengl46-core-pdf-v1:page=659;section=8.7","source_order":26,"table":"23.55","table_row":4},
+    {"derivation_class":"limit-format","kind":"format-property","name":"COMPRESSED TEXTURE FORMATS","numeric_section":"8.7","physical_page":659,"raw_id":"opengl46-table-23-55-row-05","source_locator":"opengl46-core-pdf-v1:page=659;section=8.7","source_order":27,"table":"23.55","table_row":5},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX TEXTURE BUFFER SIZE","numeric_section":"8.9","physical_page":659,"raw_id":"opengl46-table-23-55-row-06","source_locator":"opengl46-core-pdf-v1:page=659;section=8.9","source_order":28,"table":"23.55","table_row":6},
+    {"derivation_class":"limit-format","kind":"limit","name":"MAX RECTANGLE TEXTURE SIZE","numeric_section":"8.5","physical_page":659,"raw_id":"opengl46-table-23-55-row-07","source_locator":"opengl46-core-pdf-v1:page=659;section=8.5","source_order":29,"table":"23.55","table_row":7},
+    {"derivation_class":"limit-format","kind":"limit","name":"MIN MAP BUFFER ALIGNMENT","numeric_section":"6.3","physical_page":659,"raw_id":"opengl46-table-23-55-row-13","source_locator":"opengl46-core-pdf-v1:page=659;section=6.3","source_order":30,"table":"23.55","table_row":13},
+    {"derivation_class":"limit-format","kind":"limit","name":"TEXTURE BUFFER OFFSET ALIGNMENT","numeric_section":"8.9","physical_page":659,"raw_id":"opengl46-table-23-55-row-14","source_locator":"opengl46-core-pdf-v1:page=659;section=8.9","source_order":31,"table":"23.55","table_row":14},
+    {"derivation_class":"limit-format","kind":"format-property","name":"SAMPLES","numeric_section":"22.3","physical_page":675,"raw_id":"opengl46-table-23-71-row-01","source_locator":"opengl46-core-pdf-v1:page=675;section=22.3","source_order":32,"table":"23.71","table_row":1},
+    {"derivation_class":"limit-format","kind":"format-property","name":"NUM SAMPLE COUNTS","numeric_section":"22.3","physical_page":675,"raw_id":"opengl46-table-23-71-row-02","source_locator":"opengl46-core-pdf-v1:page=675;section=22.3","source_order":33,"table":"23.71","table_row":2}
+  ],
+  "facts_sha256": "6b140a548f5d78f4c85bc95c7b7454a6fdcd732c47b76a3a84c97862ce07bfeb",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "8518bff13ebf858ad9870f111bf80fefeb1228153f036f282af8a92653fe7646",
+  "kind": "webboxvm-opengl46-bounded-limit-format-raw-inventory",
+  "profile": "opengl-4.6-core",
+  "promotion_allowed": false,
+  "raw_fact_count": 33,
+  "raw_only": true,
+  "schema": 1,
+  "serialized_size_limit": 1048576,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_authority_boundary_sha256": "71d1fdbe2bb51911d6fbf6fe4a5c5665681c5a4a8a265b3db840bc629762a641",
+  "source_class": "limit-format",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_decision": {
+    "availability": "available",
+    "blocker": "",
+    "decision": "derivable",
+    "id": "limit-format",
+    "permitted_extraction_scope": "OpenGL 4.6 core limits and format properties",
+    "source_locator_syntax": "opengl46-core-pdf-v1:page=<positive-decimal>;section=<section-path>",
+    "source_role": "normative-root"
+  }
+}

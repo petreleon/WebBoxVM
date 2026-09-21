@@ -1,0 +1,112 @@
+{
+  "cache_boundary_sha256": "93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "complete": false,
+  "coverage_manifest": {
+    "complete_within_selected_anchors": true,
+    "exclusions": [
+      "Remaining table 23.5 rows and all other chapter 23 tables are unreviewed here.",
+      "Remaining section 6.1 prose and all other lifecycle rules are unreviewed here.",
+      "Numeric limits and format properties belong to F03.2.3; none selected here.",
+      "Compatibility profile, extensions, GLSL semantics and implementation observations excluded.",
+      "No complete OpenGL state universe, transition grammar or coverage inference."
+    ],
+    "full_state_inventory_complete": false,
+    "ordered_sources": [
+      {
+        "anchor_ids": [
+          "buffer-existing-rebind",
+          "buffer-delete-current-context"
+        ],
+        "kind": "explicit-prose-transitions",
+        "physical_page": 84,
+        "section": "6.1"
+      },
+      {
+        "anchor_ids": [
+          "array-buffer-binding-state"
+        ],
+        "kind": "state-table-row",
+        "physical_page": 609,
+        "reviewed_rows": [
+          1
+        ],
+        "section": "23",
+        "table": "23.5"
+      }
+    ],
+    "scope": "three-reviewed-facts-only"
+  },
+  "cts_executions": 0,
+  "facts": [
+    {
+      "anchor_text": "BindBuffer may also be used to bind an existing buffer object. If the bind is successful no change is made to the state of the newly bound buffer object, and any previous binding to target is broken.",
+      "id": "buffer-existing-rebind",
+      "kind": "explicit-lifecycle-transition",
+      "raw_condition": "Successful bind of an existing buffer object.",
+      "raw_fact": "Newly bound object's state unchanged; previous target binding broken.",
+      "source_locator": "opengl46-core-pdf-v1:page=84;section=6.1",
+      "source_order": 1,
+      "trigger": "BindBuffer"
+    },
+    {
+      "anchor_text": "If a buffer object is deleted while it is bound, all bindings to that object in the current context (i.e. in the thread that called DeleteBuffers) are reset to zero. Bindings to that buffer in other contexts are not affected, and the deleted buffer may continue to be used at any places it remains bound or attached, as described in section 5.1.",
+      "id": "buffer-delete-current-context",
+      "kind": "explicit-lifecycle-transition",
+      "raw_condition": "Deletion of a bound buffer object.",
+      "raw_fact": "Current-context bindings reset to zero; other contexts unaffected; see section 5.1.",
+      "source_locator": "opengl46-core-pdf-v1:page=84;section=6.1",
+      "source_order": 2,
+      "trigger": "DeleteBuffers"
+    },
+    {
+      "anchor_text": "ARRAY BUFFER BINDING Z+ GetIntegerv 0 Current buffer binding 6",
+      "id": "array-buffer-binding-state",
+      "initial_value": "0",
+      "kind": "state-table-fact",
+      "query": "GetIntegerv",
+      "raw_condition": "Table 23.5 row 1: vertex array data outside vertex array objects.",
+      "referenced_section": "6",
+      "source_locator": "opengl46-core-pdf-v1:page=609;section=23",
+      "source_order": 3,
+      "state": "ARRAY_BUFFER_BINDING",
+      "table": "23.5",
+      "table_row": 1
+    }
+  ],
+  "facts_sha256": "968b6a33443f30b6fc1076f23f2581a5d46b17c9750a78a57422638218d07679",
+  "inventory_sha256": "8c65d749930b32fc823d3177b75edfd7c7cdf42bcc45df13ac68b431edf16500",
+  "kind": "webboxvm-opengl-buffer-binding-state-lifecycle-raw-slice",
+  "matrix_rows": 0,
+  "physical_pdf_pages": 851,
+  "profile": "opengl-4.6-core",
+  "schema": 1,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_class": "command-object-state",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

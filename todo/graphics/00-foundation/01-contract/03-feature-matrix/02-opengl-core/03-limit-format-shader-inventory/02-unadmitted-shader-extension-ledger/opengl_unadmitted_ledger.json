@@ -1,0 +1,84 @@
+{
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "full_suite_root": {
+    "bytes": 1353085,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-cts-gl46-main",
+    "record_kind": "full-suite-root",
+    "revision": "067e8832315e79817ede1c4863804e440f5d1c80",
+    "role": "full-suite-root",
+    "scope": "full-conformance-suite",
+    "selector_path": "external/openglcts/data/gl_cts/data/mustpass/gl/khronos_mustpass/4.6.1.x/gl46-main.txt",
+    "selector_scope": "Khronos full root; not core-only",
+    "sha256": "e28bbbbfd0f6c8d711554a01aa45819bdc7ca963c9426e997dfd1daaeb1d7b17",
+    "suite_id": "opengl-cts-gl46-main",
+    "unfiltered": true
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-opengl-unadmitted-shader-extension-ledger",
+  "ledger_sha256": "548bfdb9070eebbeeb0e76dfe1dfa59aba46a17a243ea22cb3153119772929a3",
+  "matrix_row_count": 0,
+  "normative_root": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "profile": "opengl-4.6-core",
+  "rejected_substitutes": [
+    "desktop-glsl",
+    "glsl-460-spec",
+    "essl-320-spec",
+    "gl.xml",
+    "registry-metadata",
+    "extension-list",
+    "opengl-4.5-core",
+    "opengl-4.6-compatibility"
+  ],
+  "schema": 1,
+  "semantic_fact_count": 0,
+  "source_authority_sha256": "71d1fdbe2bb51911d6fbf6fe4a5c5665681c5a4a8a265b3db840bc629762a641",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  },
+  "unadmitted_classes": [
+    {
+      "availability": "unavailable",
+      "blocker": "unadmitted-distinct-source",
+      "decision": "requires-separate-admission",
+      "id": "shader",
+      "permitted_extraction_scope": "",
+      "source_locator_syntax": null,
+      "source_role": null
+    },
+    {
+      "availability": "unavailable",
+      "blocker": "unadmitted-distinct-source",
+      "decision": "requires-separate-admission",
+      "id": "extension",
+      "permitted_extraction_scope": "",
+      "source_locator_syntax": null,
+      "source_role": null
+    }
+  ]
+}

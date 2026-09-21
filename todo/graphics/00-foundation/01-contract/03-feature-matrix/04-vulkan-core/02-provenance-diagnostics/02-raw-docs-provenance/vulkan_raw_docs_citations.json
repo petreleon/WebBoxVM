@@ -1,0 +1,122 @@
+{
+  "authority": "WebBoxVM",
+  "cache": {
+    "file_count": 4,
+    "manifest_sha256": "abcd244addaaf80a1985d0c5d87222b8a7aabc044a41734d3c66c52fd35b13fe",
+    "mode": "sealed-external-reviewed-raw-fragments"
+  },
+  "citation_candidate_count": 2,
+  "citation_candidates": [
+    {
+      "core_coverage": "unassigned",
+      "id": "raw-docs-introduction",
+      "normative_root": {
+        "artifact": "webboxvm-graphics/f02/vulkan-14-spec/069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0.source",
+        "attribution": "Copyright 2014-2026 The Khronos Group Inc.; Vulkan-Docs vkspec.adoc; CC-BY-4.0",
+        "bytes": 8685,
+        "id": "vulkan-14-spec",
+        "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/vkspec.adoc",
+        "kind": "upstream-source",
+        "license": "CC-BY-4.0 (vkspec.adoc SPDX-License-Identifier)",
+        "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+        "scope": "normative-source",
+        "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0"
+      },
+      "raw_fragment": {
+        "attribution": "Copyright 2015-2026 The Khronos Group Inc.; Vulkan-Docs chapters/introduction.adoc; CC-BY-4.0",
+        "bytes": 15959,
+        "id": "raw-docs-introduction",
+        "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/chapters/introduction.adoc",
+        "license": "CC-BY-4.0 (raw fragment SPDX-License-Identifier)",
+        "raw_path": "chapters/introduction.adoc",
+        "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+        "root_id": "vulkan-14-spec",
+        "semantic_anchor": "[[introduction]]",
+        "sha256": "a8cff7be42b43f9cab6c150af845587d4d4f3758a4266972290735ed55ac9767"
+      },
+      "relation": "same-revision-raw-fragment; inclusion-unproven",
+      "semantic_status": "citation-candidate-only"
+    },
+    {
+      "core_coverage": "unassigned",
+      "id": "raw-docs-fundamentals-execmodel",
+      "normative_root": {
+        "artifact": "webboxvm-graphics/f02/vulkan-14-spec/069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0.source",
+        "attribution": "Copyright 2014-2026 The Khronos Group Inc.; Vulkan-Docs vkspec.adoc; CC-BY-4.0",
+        "bytes": 8685,
+        "id": "vulkan-14-spec",
+        "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/vkspec.adoc",
+        "kind": "upstream-source",
+        "license": "CC-BY-4.0 (vkspec.adoc SPDX-License-Identifier)",
+        "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+        "scope": "normative-source",
+        "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0"
+      },
+      "raw_fragment": {
+        "attribution": "Copyright 2015-2026 The Khronos Group Inc.; Vulkan-Docs chapters/fundamentals.adoc; CC-BY-4.0",
+        "bytes": 91224,
+        "id": "raw-docs-fundamentals-execmodel",
+        "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/chapters/fundamentals.adoc",
+        "license": "CC-BY-4.0 (raw fragment SPDX-License-Identifier)",
+        "raw_path": "chapters/fundamentals.adoc",
+        "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+        "root_id": "vulkan-14-spec",
+        "semantic_anchor": "[[fundamentals-execmodel]]",
+        "sha256": "70dde6bad83bd48c3438eb96a9cfc3387f53dfbdd8a1cae33a87dab1310cc0d3"
+      },
+      "relation": "same-revision-raw-fragment; inclusion-unproven",
+      "semantic_status": "citation-candidate-only"
+    }
+  ],
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-vulkan-raw-docs-citation-map",
+  "map_sha256": "2d6b3270cd4af8d14d752d593cd226c54d953aa034ce3f23cb221eecc0b22e44",
+  "matrix_rows": [],
+  "normative_binding": {
+    "bytes": 8685,
+    "profile": "vulkan-1.4-core",
+    "record_id": "vulkan-14-spec",
+    "record_kind": "upstream-source",
+    "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "069b7e6d6326969df7b4a86f189f7ba22359e93ca7aa76c23301504667d3c4b0"
+  },
+  "producer": "WebBoxVM",
+  "profile": "vulkan-1.4-core",
+  "schema": 1,
+  "scope": {
+    "core_coverage": "not-established",
+    "include_closure": "unadmitted",
+    "inferred_symbol_name_locators": "forbidden",
+    "map_role": "citation-only",
+    "matrix_row_count": 0,
+    "registry_structural_fact": {
+      "reason": "no reviewed raw Docs semantic anchor",
+      "source_locator": null,
+      "status": "blocked"
+    },
+    "rendered_docs": "forbidden"
+  },
+  "source_channel_boundary_sha256": "dd07b39283a3e41edf217e20dbb1eec90e8e6e73b6aae748d46bb57588983683",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}
