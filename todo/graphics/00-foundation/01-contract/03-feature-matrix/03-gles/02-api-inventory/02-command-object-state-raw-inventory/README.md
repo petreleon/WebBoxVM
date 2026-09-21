@@ -19,19 +19,14 @@ vocabulary in source order. It is source data, not an implementation-owner or Ma
 
 ## Checklist
 
-- [ ] Extract only core command declarations, object taxonomy, and normative state-table facts from the
-  verified PDF under the `command-state` decision.
-- [ ] Record explicit lifecycle or state-transition rules only with their triggering command and source
-  section; never infer a transition from an implementation or registry.
-- [ ] Record a stable raw identity, physical PDF page, numeric section, source order, and derivation class
-  for every fact while preserving the F03.3.1 locator syntax.
-- [ ] Exclude desktop OpenGL, lower GLES versions, registry entries, extensions, ESSL semantics, limits,
-  and format properties.
-- [ ] Bind ordered declaration and table coverage so missing, duplicate, reordered, cross-profile, or
-  source-identity-mismatched facts fail.
-- [ ] Add focused raw-inventory and hostile-input checks, then attach a no-claim receipt.
+- [ ] [F03.3.2.2.1 — Classify the command/state domain](01-command-domain-classification/README.md)
+- [ ] [F03.3.2.2.2 — Normalize literal and templated declarations](02-template-declaration-grammar/README.md)
+- [ ] [F03.3.2.2.3 — Extract object and resource command slices](03-object-resource-command-slices/README.md)
+- [ ] [F03.3.2.2.4 — Extract state and execution command slices](04-state-execution-command-slices/README.md)
+- [ ] [F03.3.2.2.5 — Aggregate command/state coverage and handoff](05-aggregate-coverage-handoff/README.md)
 
 ## Verification
 
-This child creates no Matrix v2 rows. It leaves owner, reference-test plan, CTS execution, guest, browser,
-certification, and performance state unresolved.
+Only F03.3.2.2.5 may close the classified command/state domain. Every slice remains raw-only and creates
+no Matrix v2 rows; owner, reference-test plan, CTS execution, guest/browser behavior, certification, and
+performance remain unresolved.
