@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.3
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -24,7 +24,7 @@ per-file limit. ESSL semantics, precision, compilation behavior, binaries, and l
 - [x] [F03.3.2.2.3.3.3 — Uniform scalar/vector templates](03-uniform-scalar-vector-templates/README.md)
 - [x] [F03.3.2.2.3.3.4 — Uniform matrix templates](04-uniform-matrix-templates/README.md)
 - [x] [F03.3.2.2.3.3.5 — Program-uniform scalar/vector templates](05-program-uniform-scalar-vector-templates/README.md)
-- [ ] [F03.3.2.2.3.3.6 — Program-uniform matrix templates](06-program-uniform-matrix-templates/README.md)
+- [x] [F03.3.2.2.3.3.6 — Program-uniform matrix templates](06-program-uniform-matrix-templates/README.md)
 
 ## Verification
 
