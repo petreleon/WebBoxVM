@@ -32,6 +32,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-gles-framebuffer-attachment-status-test \
 	graphics-gles-current-vertex-attribute-template-test \
 	graphics-gles-vertex-array-binding-command-test \
+	graphics-gles-vertex-array-object-lifecycle-test \
 	graphics-gles-limit-format-raw-inventory-test \
 	graphics-vulkan-raw-docs-citations-test \
 	graphics-vulkan-no-claim-provenance-receipt-test
@@ -137,6 +138,9 @@ graphics-gles-current-vertex-attribute-template-test:
 
 graphics-gles-vertex-array-binding-command-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/06-vertex-transform-feedback-commands/02-vertex-array-attribute-binding-and-primitive-restart-commands/gles_vertex_array_binding_command_inventory_test.py
+
+graphics-gles-vertex-array-object-lifecycle-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/06-vertex-transform-feedback-commands/03-vertex-array-object-lifecycle-commands/gles_vertex_array_object_lifecycle_inventory_test.py
 
 graphics-gles-limit-format-raw-inventory-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/03-limit-format-raw-inventory/gles_limit_format_raw_inventory_test.py
