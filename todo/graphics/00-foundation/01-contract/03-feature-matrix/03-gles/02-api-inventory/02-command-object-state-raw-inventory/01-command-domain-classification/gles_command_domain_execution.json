@@ -1,0 +1,142 @@
+{
+  "chunk_sha256": "320a17075324ab1d4c282a87a2ff4e7cd3cf4f6af35ab8321d1a9c4fecface9f",
+  "families": [
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 426,
+        "section": "16.1",
+        "text": "void ReadPixels( int x, int y, sizei width, sizei height, enum format, enum type, void *data );"
+      },
+      "family_kind": "declaration",
+      "id": "pixel-store-and-transfer",
+      "reason": "formal-declaration-only",
+      "route": "pixel-transfer-commands",
+      "source_order": 19,
+      "source_scope": [
+        "8.4",
+        "16"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 296,
+        "section": "10.5",
+        "text": "void DrawArrays( enum mode, int first, sizei count );"
+      },
+      "family_kind": "declaration",
+      "id": "draw",
+      "reason": "formal-declaration-only",
+      "route": "draw-raster-commands",
+      "source_order": 23,
+      "source_scope": [
+        "10.5"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 293,
+        "section": "10.3.9",
+        "text": "10.3.9 Indirect Commands in Buffer Objects"
+      },
+      "family_kind": "declaration",
+      "id": "indirect-draw",
+      "reason": "formal-declaration-only",
+      "route": "draw-raster-commands",
+      "source_order": 24,
+      "source_scope": [
+        "10.3.9"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 418,
+        "section": "15.2.3",
+        "text": "void Clear( bitfield buf );"
+      },
+      "family_kind": "declaration",
+      "id": "raster-and-framebuffer",
+      "reason": "formal-declaration-only",
+      "route": "draw-raster-commands",
+      "source_order": 28,
+      "source_scope": [
+        "13",
+        "15"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 439,
+        "section": "17",
+        "text": "void DispatchCompute( uint num groups x, uint num groups y, uint num groups z );"
+      },
+      "family_kind": "declaration",
+      "id": "compute",
+      "reason": "formal-declaration-only",
+      "route": "draw-raster-commands",
+      "source_order": 30,
+      "source_scope": [
+        "17"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 445,
+        "section": "18.2",
+        "text": "void DebugMessageCallback( DEBUGPROC callback, const void *userParam );"
+      },
+      "family_kind": "declaration",
+      "id": "debug",
+      "reason": "formal-declaration-only",
+      "route": "debug-special-query-commands",
+      "source_order": 31,
+      "source_scope": [
+        "18"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 455,
+        "section": "19.1",
+        "text": "void Hint( enum target, enum hint );"
+      },
+      "family_kind": "declaration",
+      "id": "special",
+      "reason": "formal-declaration-only",
+      "route": "debug-special-query-commands",
+      "source_order": 32,
+      "source_scope": [
+        "19"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 457,
+        "section": "20.1",
+        "text": "void GetBooleanv( enum pname, boolean *data );"
+      },
+      "family_kind": "declaration",
+      "id": "context-queries",
+      "reason": "formal-declaration-only",
+      "route": "debug-special-query-commands",
+      "source_order": 33,
+      "source_scope": [
+        "20"
+      ]
+    }
+  ],
+  "families_sha256": "9887a6d22d0d30f773999328eae2f93a72ab2a03065c2a990ae3ee0d68239eb5",
+  "family_count": 8,
+  "kind": "webboxvm-gles32-command-domain-execution",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "schema": 1
+}

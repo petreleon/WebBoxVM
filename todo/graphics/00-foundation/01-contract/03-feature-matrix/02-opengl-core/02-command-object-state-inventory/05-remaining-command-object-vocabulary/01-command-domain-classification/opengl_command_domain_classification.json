@@ -1,0 +1,171 @@
+{
+  "artifact_receipts": [
+    {
+      "artifact_id": "routes",
+      "artifact_sha256": "d9ed654c38c35ee1d42c1c24349b1dfda42fb744fab9864ffa64a417fe8d8425",
+      "file": "opengl_command_domain_routes.json",
+      "serialized_sha256": "a4ed0fa50143257c29a186890c8b1c30cec926a6cf06218295ed31b1f1548e9f"
+    },
+    {
+      "artifact_id": "baseline",
+      "artifact_sha256": "4eee98774a0629d91d096ca078b7f1c79606f972e5804c5a606e2d9468617ce4",
+      "file": "opengl_command_domain_baseline.json",
+      "serialized_sha256": "9167c84568933a4a5e8e7f62bb1751c8d9186b9d4b7d6a577b64a8efe389c814"
+    },
+    {
+      "artifact_id": "core-sync-families",
+      "artifact_sha256": "9116da29b15aa5e219b8c0a0b50c1bc6fbe68c42971a972786e066434f17f6c3",
+      "file": "opengl_command_domain_core_sync_families.json",
+      "serialized_sha256": "4793843cfa99d4f1b48cf7490ac7131e97738eac7fcb590726e0dadc75eb500a"
+    },
+    {
+      "artifact_id": "resource-vertex-families",
+      "artifact_sha256": "1885334fd02e89cc986d426586d31507a9d93e13e40b1ed9442b5880caeec188",
+      "file": "opengl_command_domain_resource_vertex_families.json",
+      "serialized_sha256": "58eb1dab208815192d6faa83d13b1020abfe11b86bf62155e702e7451552edbe"
+    },
+    {
+      "artifact_id": "program-submission-families",
+      "artifact_sha256": "6ac2da51974b22f7a8f17528144aca589350ae066e42d8cefbe0e70f9815834d",
+      "file": "opengl_command_domain_program_submission_families.json",
+      "serialized_sha256": "e910204eaf19e4f7f909287cc939e32634a10b2f1760bac1c30ca940976f37b4"
+    },
+    {
+      "artifact_id": "framebuffer-special-families",
+      "artifact_sha256": "b8380ce42853771a2f02432f8c1bc17d94cbcb637de901b349aa0a5842a8fa40",
+      "file": "opengl_command_domain_framebuffer_special_families.json",
+      "serialized_sha256": "5619e392605c75729b85b22ebae6c4816333d6b94718c9a59018acf39d0a9b83"
+    },
+    {
+      "artifact_id": "non-command-families",
+      "artifact_sha256": "f7767fd2cb24226b7965cd84e664200dcc281dd325ebc40ea78e2df7bf12e546",
+      "file": "opengl_command_domain_non_command_families.json",
+      "serialized_sha256": "d495daecbcd34e25d6d86e5609c1d4be80bb79f858cc4b8be236da988f29812b"
+    }
+  ],
+  "authority_boundary_sha256": "71d1fdbe2bb51911d6fbf6fe4a5c5665681c5a4a8a265b3db840bc629762a641",
+  "cache_boundary_sha256": "93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "classification_sha256": "aa011d762f0765d373df5db364fa66da82dc87da075a6f257a5a3af423d77842",
+  "cts_executions": 0,
+  "index_omission_crosscheck": {
+    "checked_page_count": 51,
+    "excluded_source_families": [],
+    "normalized_index_witnesses": [
+      {
+        "expected_family_id": "buffer",
+        "expected_route": "buffer-commands",
+        "physical_page": 808,
+        "term": "CreateBuffers"
+      },
+      {
+        "expected_family_id": "framebuffer-renderbuffer",
+        "expected_route": "framebuffer-renderbuffer-commands",
+        "physical_page": 808,
+        "term": "CreateFramebuffers"
+      },
+      {
+        "expected_family_id": "program-pipeline",
+        "expected_route": "program-pipeline-commands",
+        "physical_page": 808,
+        "term": "CreateProgram"
+      },
+      {
+        "expected_family_id": "program-pipeline",
+        "expected_route": "program-pipeline-commands",
+        "physical_page": 808,
+        "term": "CreateProgramPipelines"
+      },
+      {
+        "expected_family_id": "event-query-sync",
+        "expected_route": "generic-object-sync",
+        "physical_page": 808,
+        "term": "CreateQueries"
+      },
+      {
+        "expected_family_id": "framebuffer-renderbuffer",
+        "expected_route": "framebuffer-renderbuffer-commands",
+        "physical_page": 808,
+        "term": "CreateRenderbuffers"
+      },
+      {
+        "expected_family_id": "texture-sampler",
+        "expected_route": "texture-sampler-commands",
+        "physical_page": 808,
+        "term": "CreateSamplers"
+      },
+      {
+        "expected_family_id": "program-pipeline",
+        "expected_route": "program-pipeline-commands",
+        "physical_page": 808,
+        "term": "CreateShader"
+      },
+      {
+        "expected_family_id": "program-pipeline",
+        "expected_route": "program-pipeline-commands",
+        "physical_page": 808,
+        "term": "CreateShaderProgramv"
+      },
+      {
+        "expected_family_id": "texture-sampler",
+        "expected_route": "texture-sampler-commands",
+        "physical_page": 808,
+        "term": "CreateTextures"
+      },
+      {
+        "expected_family_id": "transform-feedback",
+        "expected_route": "vertex-transform-feedback-commands",
+        "physical_page": 808,
+        "term": "CreateTransformFeedbacks"
+      },
+      {
+        "expected_family_id": "vertex-array",
+        "expected_route": "vertex-transform-feedback-commands",
+        "physical_page": 808,
+        "term": "CreateVertexArrays"
+      }
+    ],
+    "physical_page_range": [
+      801,
+      851
+    ],
+    "role": "omission-crosscheck-only"
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-opengl46-command-domain-classification",
+  "matrix_row_count": 0,
+  "physical_pdf_pages": 851,
+  "profile": "opengl-4.6-core",
+  "schema": 1,
+  "serialized_size_limit": 8388608,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_class": "command-object-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

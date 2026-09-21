@@ -1,0 +1,88 @@
+{
+  "artifact_id": "baseline",
+  "artifact_sha256": "4eee98774a0629d91d096ca078b7f1c79606f972e5804c5a606e2d9468617ce4",
+  "baseline": {
+    "coverage_manifest_sha256": "f3cb21592d3bf50b17c83ebc50482871987ef39fc79795c6ae1bf64feda6c1e2",
+    "direct_creation_anchors": [
+      {
+        "fact_id": "command:glCreateBuffers",
+        "physical_page": 81,
+        "source_locator": "opengl46-core-pdf-v1:page=81;section=6.1"
+      },
+      {
+        "fact_id": "command:glCreateShader",
+        "physical_page": 110,
+        "source_locator": "opengl46-core-pdf-v1:page=110;section=7.1"
+      },
+      {
+        "fact_id": "command:glCreateProgram",
+        "physical_page": 116,
+        "source_locator": "opengl46-core-pdf-v1:page=116;section=7.3"
+      },
+      {
+        "fact_id": "command:glCreateProgramPipelines",
+        "physical_page": 145,
+        "source_locator": "opengl46-core-pdf-v1:page=145;section=7.4"
+      },
+      {
+        "fact_id": "command:glCreateTextures",
+        "physical_page": 204,
+        "source_locator": "opengl46-core-pdf-v1:page=204;section=8.1"
+      },
+      {
+        "fact_id": "command:glCreateSamplers",
+        "physical_page": 206,
+        "source_locator": "opengl46-core-pdf-v1:page=206;section=8.2"
+      },
+      {
+        "fact_id": "command:glCreateRenderbuffers",
+        "physical_page": 335,
+        "source_locator": "opengl46-core-pdf-v1:page=335;section=9.2.4"
+      },
+      {
+        "fact_id": "command:glCreateFramebuffers",
+        "physical_page": 324,
+        "source_locator": "opengl46-core-pdf-v1:page=324;section=9.2"
+      },
+      {
+        "fact_id": "command:glCreateVertexArrays",
+        "physical_page": 373,
+        "source_locator": "opengl46-core-pdf-v1:page=373;section=10.3.1"
+      },
+      {
+        "fact_id": "command:glCreateTransformFeedbacks",
+        "physical_page": 466,
+        "source_locator": "opengl46-core-pdf-v1:page=466;section=13.3.1"
+      },
+      {
+        "fact_id": "command:glCreateQueries",
+        "physical_page": 66,
+        "source_locator": "opengl46-core-pdf-v1:page=66;section=4.2.2"
+      },
+      {
+        "fact_id": "command:glFenceSync",
+        "physical_page": 58,
+        "source_locator": "opengl46-core-pdf-v1:page=58;section=4.1"
+      }
+    ],
+    "direct_creation_command_count": 12,
+    "direct_creation_command_ids": [
+      "command:glCreateBuffers",
+      "command:glCreateShader",
+      "command:glCreateProgram",
+      "command:glCreateProgramPipelines",
+      "command:glCreateTextures",
+      "command:glCreateSamplers",
+      "command:glCreateRenderbuffers",
+      "command:glCreateFramebuffers",
+      "command:glCreateVertexArrays",
+      "command:glCreateTransformFeedbacks",
+      "command:glCreateQueries",
+      "command:glFenceSync"
+    ],
+    "facts_sha256": "44b48f75008bbb8e23008ec40d06b2dacc59cf31c7a7d5fa851a48c1ff1f0565",
+    "inventory_sha256": "e5874fd86c1188e614f13dbb3aeeb32852819444d48656cfda3874b11c98bca6"
+  },
+  "kind": "webboxvm-opengl46-command-domain-artifact",
+  "schema": 1
+}

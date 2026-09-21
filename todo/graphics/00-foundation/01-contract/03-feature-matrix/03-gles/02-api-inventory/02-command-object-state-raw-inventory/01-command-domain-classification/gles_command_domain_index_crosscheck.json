@@ -1,0 +1,96 @@
+{
+  "index_omission_crosscheck": {
+    "checked_page_count": 31,
+    "normalized_index_witnesses": [
+      {
+        "expected_family_id": "command-syntax",
+        "expected_route": "declaration-grammar",
+        "physical_page": 598,
+        "term": "Uniform4f"
+      },
+      {
+        "expected_family_id": "sync",
+        "expected_route": "generic-sync-query",
+        "physical_page": 577,
+        "term": "FenceSync"
+      },
+      {
+        "expected_family_id": "buffer",
+        "expected_route": "buffer-commands",
+        "physical_page": 579,
+        "term": "GenBuffers"
+      },
+      {
+        "expected_family_id": "program-shader",
+        "expected_route": "program-pipeline-commands",
+        "physical_page": 575,
+        "term": "CreateShader"
+      },
+      {
+        "expected_family_id": "texture",
+        "expected_route": "texture-sampler-commands",
+        "physical_page": 579,
+        "term": "GenTextures"
+      },
+      {
+        "expected_family_id": "framebuffer-renderbuffer",
+        "expected_route": "framebuffer-renderbuffer-commands",
+        "physical_page": 579,
+        "term": "GenFramebuffers"
+      },
+      {
+        "expected_family_id": "vertex-array",
+        "expected_route": "vertex-transform-feedback-commands",
+        "physical_page": 579,
+        "term": "GenVertexArrays"
+      },
+      {
+        "expected_family_id": "indirect-draw",
+        "expected_route": "draw-raster-commands",
+        "physical_page": 577,
+        "term": "DrawArraysIndirect"
+      },
+      {
+        "expected_family_id": "pixel-store-and-transfer",
+        "expected_route": "pixel-transfer-commands",
+        "physical_page": 591,
+        "term": "ReadPixels"
+      },
+      {
+        "expected_family_id": "compute",
+        "expected_route": "draw-raster-commands",
+        "physical_page": 576,
+        "term": "DispatchCompute"
+      },
+      {
+        "expected_family_id": "debug",
+        "expected_route": "debug-special-query-commands",
+        "physical_page": 575,
+        "term": "DebugMessageCallback"
+      },
+      {
+        "expected_family_id": "context-queries",
+        "expected_route": "debug-special-query-commands",
+        "physical_page": 579,
+        "term": "GetBooleanv"
+      },
+      {
+        "expected_family_id": "limit-format-tables",
+        "expected_route": "limit-format-inventory",
+        "physical_page": 588,
+        "term": "MAX TEXTURE SIZE"
+      }
+    ],
+    "physical_page_range": [
+      571,
+      601
+    ],
+    "role": "omission-crosscheck-only"
+  },
+  "index_sha256": "7d5bba93a427852ab6f48993e0fb6d35b5ae83d1ba337ce60527c4bf07be085b",
+  "kind": "webboxvm-gles32-command-domain-index-crosscheck",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "schema": 1
+}

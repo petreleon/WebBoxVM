@@ -1,0 +1,171 @@
+{
+  "chunk_sha256": "dc564e051954cb7e5e1313a59ccd24ad715da7bc0ffd793e5177f7dc769c060f",
+  "families": [
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 22,
+        "section": "1.6.2",
+        "text": "1.6.2 WebGL"
+      },
+      "family_kind": "exclusion",
+      "id": "webgl",
+      "reason": "external-web-api-not-admitted-core-source",
+      "route": "explicit-exclusion",
+      "source_order": 3,
+      "source_scope": [
+        "1.6.2"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 22,
+        "section": "1.6.3",
+        "text": "1.6.3 Window System Bindings"
+      },
+      "family_kind": "exclusion",
+      "id": "window-system",
+      "reason": "outside-core-command-state-source",
+      "route": "explicit-exclusion",
+      "source_order": 4,
+      "source_scope": [
+        "1.6.3"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 22,
+        "section": "1.6.4",
+        "text": "1.6.4 OpenCL"
+      },
+      "family_kind": "exclusion",
+      "id": "opencl",
+      "reason": "external-compute-api-not-admitted-core-source",
+      "route": "explicit-exclusion",
+      "source_order": 5,
+      "source_scope": [
+        "1.6.4"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 48,
+        "section": "3",
+        "text": "Chapter 3 Dataflow Model"
+      },
+      "family_kind": "exclusion",
+      "id": "dataflow-description",
+      "reason": "descriptive-model-not-source-fact",
+      "route": "explicit-exclusion",
+      "source_order": 11,
+      "source_scope": [
+        "3"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 522,
+        "section": "A",
+        "text": "Appendix A Invariance"
+      },
+      "family_kind": "exclusion",
+      "id": "invariance-appendix",
+      "reason": "non-command-appendix-not-source-fact",
+      "route": "explicit-exclusion",
+      "source_order": 39,
+      "source_scope": [
+        "appendix-A"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 529,
+        "section": "B",
+        "text": "Appendix B Corollaries"
+      },
+      "family_kind": "exclusion",
+      "id": "corollaries-appendix",
+      "reason": "non-command-appendix-not-source-fact",
+      "route": "explicit-exclusion",
+      "source_order": 40,
+      "source_scope": [
+        "appendix-B"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 534,
+        "section": "D",
+        "text": "Appendix D Version 3.0 and Before"
+      },
+      "family_kind": "exclusion",
+      "id": "historical-profiles",
+      "reason": "not-gles-32-core-source-scope",
+      "route": "explicit-exclusion",
+      "source_order": 41,
+      "source_scope": [
+        "appendix-D",
+        "appendix-E",
+        "appendix-F",
+        "appendix-G"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "external",
+        "source_id": "desktop-gl"
+      },
+      "family_kind": "exclusion",
+      "id": "desktop-gl",
+      "reason": "cross-profile-source-not-admitted",
+      "route": "explicit-exclusion",
+      "source_order": 42,
+      "source_scope": [
+        "external:desktop-gl"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "external",
+        "source_id": "gl.xml"
+      },
+      "family_kind": "exclusion",
+      "id": "registry-header",
+      "reason": "registry-not-admitted-normative-source",
+      "route": "explicit-exclusion",
+      "source_order": 43,
+      "source_scope": [
+        "external:gl.xml"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 571,
+        "section": "Index",
+        "text": "Index"
+      },
+      "family_kind": "exclusion",
+      "id": "pdf-index",
+      "reason": "omission-crosscheck-not-fact-source",
+      "route": "explicit-exclusion",
+      "source_order": 44,
+      "source_scope": [
+        "index"
+      ]
+    }
+  ],
+  "families_sha256": "33c0345b66939ee88a483f225913fd9885ce0e558d6f1d60edbcb5ae5be878cf",
+  "family_count": 10,
+  "kind": "webboxvm-gles32-command-domain-exclusions",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "schema": 1
+}

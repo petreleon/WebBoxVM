@@ -1,0 +1,99 @@
+{
+  "artifact_id": "framebuffer-special-families",
+  "artifact_sha256": "b8380ce42853771a2f02432f8c1bc17d94cbcb637de901b349aa0a5842a8fa40",
+  "command_families": [
+    {
+      "anchor": {
+        "declaration": "void StencilFunc( enum func, int ref, uint mask );",
+        "kind": "formal-declaration",
+        "physical_page": 525,
+        "section": "17.3.3",
+        "source_locator": "opengl46-core-pdf-v1:page=525;section=17.3.3"
+      },
+      "id": "framebuffer-state",
+      "route": "raster-framebuffer-state",
+      "source_order": 22,
+      "source_scope": "17.1-17.4"
+    },
+    {
+      "anchor": {
+        "declaration": "int GetFragDataLocation( uint program, const char *name );",
+        "kind": "formal-declaration",
+        "physical_page": 519,
+        "section": "15.2.3",
+        "source_locator": "opengl46-core-pdf-v1:page=519;section=15.2.3"
+      },
+      "id": "fragment-output-query",
+      "route": "program-pipeline-commands",
+      "source_order": 23,
+      "source_scope": "15.2.3"
+    },
+    {
+      "anchor": {
+        "declaration": "void ReadPixels( int x, int y, sizei width, sizei height, enum format, enum type, void *data );",
+        "kind": "formal-declaration",
+        "physical_page": 553,
+        "section": "18.2.2",
+        "source_locator": "opengl46-core-pdf-v1:page=553;section=18.2.2"
+      },
+      "id": "pixel-read-copy",
+      "route": "pixel-read-copy",
+      "source_order": 24,
+      "source_scope": "18.2-18.4"
+    },
+    {
+      "anchor": {
+        "declaration": "void DispatchCompute( uint num groups x, uint num groups y, uint num groups z );",
+        "kind": "formal-declaration",
+        "physical_page": 568,
+        "section": "19",
+        "source_locator": "opengl46-core-pdf-v1:page=568;section=19"
+      },
+      "id": "compute-submission",
+      "route": "draw-compute-submission",
+      "source_order": 25,
+      "source_scope": "19"
+    },
+    {
+      "anchor": {
+        "declaration": "void DebugMessageCallback( DEBUGPROC callback, const void *userParam );",
+        "kind": "formal-declaration",
+        "physical_page": 574,
+        "section": "20.2",
+        "source_locator": "opengl46-core-pdf-v1:page=574;section=20.2"
+      },
+      "id": "debug",
+      "route": "debug-special-context-queries",
+      "source_order": 26,
+      "source_scope": "20.1-20.9"
+    },
+    {
+      "anchor": {
+        "declaration": "void Hint( enum target, enum hint );",
+        "kind": "formal-declaration",
+        "physical_page": 584,
+        "section": "21.5",
+        "source_locator": "opengl46-core-pdf-v1:page=584;section=21.5"
+      },
+      "id": "special-functions",
+      "route": "debug-special-context-queries",
+      "source_order": 27,
+      "source_scope": "21.5"
+    },
+    {
+      "anchor": {
+        "declaration": "void GetBooleanv( enum pname, boolean *data );",
+        "kind": "formal-declaration",
+        "physical_page": 586,
+        "section": "22.1",
+        "source_locator": "opengl46-core-pdf-v1:page=586;section=22.1"
+      },
+      "id": "context-queries",
+      "route": "debug-special-context-queries",
+      "source_order": 28,
+      "source_scope": "22.1-22.5"
+    }
+  ],
+  "kind": "webboxvm-opengl46-command-domain-artifact",
+  "schema": 1
+}

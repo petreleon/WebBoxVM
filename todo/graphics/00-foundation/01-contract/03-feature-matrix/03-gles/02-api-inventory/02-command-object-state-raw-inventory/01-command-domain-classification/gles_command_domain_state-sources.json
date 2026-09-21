@@ -1,0 +1,93 @@
+{
+  "chunk_sha256": "b2a7207f87dbd622296db4e3d6a4d0f10f7ce62f3857d7996c912173f908e834",
+  "families": [
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 464,
+        "section": "21",
+        "text": "Chapter 21 State Tables"
+      },
+      "family_kind": "state-route",
+      "id": "state-tables",
+      "reason": "table-rules-require-triggered-fact",
+      "route": "context-state-lifecycle",
+      "source_order": 34,
+      "source_scope": [
+        "21.1-21.39"
+      ]
+    },
+    {
+      "anchor": {
+        "inventory_sha256": "65db683993c68c310147dc6fc733293f20d8b7cc87fdc25071569b2a171d5639",
+        "kind": "limit",
+        "physical_page": 504,
+        "section": "21.40",
+        "text": "Table 21.40: Implementation Dependent Values"
+      },
+      "family_kind": "separate-inventory",
+      "id": "limit-format-tables",
+      "reason": "separate-bounded-limit-format-inventory",
+      "route": "limit-format-inventory",
+      "source_order": 35,
+      "source_scope": [
+        "21.40-21.42"
+      ]
+    },
+    {
+      "anchor": {
+        "inventory_sha256": "65db683993c68c310147dc6fc733293f20d8b7cc87fdc25071569b2a171d5639",
+        "kind": "limit",
+        "physical_page": 507,
+        "section": "21.43",
+        "text": "Table 21.43: Implementation Dependent Version and Extension Support"
+      },
+      "family_kind": "separate-inventory",
+      "id": "unreviewed-limit-format-tables",
+      "reason": "unreviewed-outside-bounded-limit-format-inventory",
+      "route": "limit-format-inventory",
+      "source_order": 36,
+      "source_scope": [
+        "21.43-21.57"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "heading",
+        "physical_page": 531,
+        "section": "C",
+        "text": "Appendix C Compressed Texture Image Formats"
+      },
+      "family_kind": "separate-inventory",
+      "id": "format-appendix",
+      "reason": "separate-format-source-route",
+      "route": "limit-format-inventory",
+      "source_order": 37,
+      "source_scope": [
+        "appendix-C"
+      ]
+    },
+    {
+      "anchor": {
+        "class_id": "extension",
+        "kind": "unavailable",
+        "ledger_sha256": "560de6a8c6d8102fe83e3009dd57b7558b0e86029f5e137cb8fe467f85677ea9"
+      },
+      "family_kind": "source-route",
+      "id": "extension-source",
+      "reason": "unadmitted-distinct-source",
+      "route": "extension-unavailable",
+      "source_order": 38,
+      "source_scope": [
+        "external:extension-source"
+      ]
+    }
+  ],
+  "families_sha256": "ba997491e2bd0bc04c2d4d6917e9d623c1124efae15b31e89b89731180a0ab0e",
+  "family_count": 5,
+  "kind": "webboxvm-gles32-command-domain-state-sources",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "schema": 1
+}

@@ -1,0 +1,169 @@
+{
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "chunks": [
+    {
+      "chunk_sha256": "aa2a06e50c449fc478252291401caf765fa1e17acfddc23f5d9e561dd8432025",
+      "families_sha256": "6ab5b0301b66c1ff720c2378fb7b4e52d74fe8e7aca44392efb23f852b289b24",
+      "family_count": 5,
+      "filename": "gles_command_domain_declarations.json",
+      "id": "declarations"
+    },
+    {
+      "chunk_sha256": "fa2fb55ec0ff9b8c7585abb66d763da0dbfbc354992bff9e094cf7e242e8135c",
+      "families_sha256": "1b2a1b505b917a3ab5459271ad5d14483bf62a861f06c7b38620bd21dbd4eb8b",
+      "family_count": 7,
+      "filename": "gles_command_domain_object-declarations.json",
+      "id": "object-declarations"
+    },
+    {
+      "chunk_sha256": "320a17075324ab1d4c282a87a2ff4e7cd3cf4f6af35ab8321d1a9c4fecface9f",
+      "families_sha256": "9887a6d22d0d30f773999328eae2f93a72ab2a03065c2a990ae3ee0d68239eb5",
+      "family_count": 8,
+      "filename": "gles_command_domain_execution.json",
+      "id": "execution"
+    },
+    {
+      "chunk_sha256": "edc2767144b62550626fd180f1418eb333b6d41d4faeffe815f317cd0edd99a9",
+      "families_sha256": "6bdd81edd3216f47ad01a94a77861cd1320062712dbefa258b01b6ac06b5cb19",
+      "family_count": 9,
+      "filename": "gles_command_domain_state-lifecycle.json",
+      "id": "state-lifecycle"
+    },
+    {
+      "chunk_sha256": "b2a7207f87dbd622296db4e3d6a4d0f10f7ce62f3857d7996c912173f908e834",
+      "families_sha256": "ba997491e2bd0bc04c2d4d6917e9d623c1124efae15b31e89b89731180a0ab0e",
+      "family_count": 5,
+      "filename": "gles_command_domain_state-sources.json",
+      "id": "state-sources"
+    },
+    {
+      "chunk_sha256": "dc564e051954cb7e5e1313a59ccd24ad715da7bc0ffd793e5177f7dc769c060f",
+      "families_sha256": "33c0345b66939ee88a483f225913fd9885ce0e558d6f1d60edbcb5ae5be878cf",
+      "family_count": 10,
+      "filename": "gles_command_domain_exclusions.json",
+      "id": "exclusions"
+    }
+  ],
+  "classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "index_crosscheck_receipt": {
+    "filename": "gles_command_domain_index_crosscheck.json",
+    "index_sha256": "7d5bba93a427852ab6f48993e0fb6d35b5ae83d1ba337ce60527c4bf07be085b"
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-gles32-command-domain-classification",
+  "limit_format_inventory_sha256": "65db683993c68c310147dc6fc733293f20d8b7cc87fdc25071569b2a171d5639",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "routes": [
+    {
+      "id": "declaration-grammar",
+      "route_kind": "grammar",
+      "target": "F03.3.2.2.2"
+    },
+    {
+      "id": "generic-sync-query",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.3.1"
+    },
+    {
+      "id": "buffer-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.3.2"
+    },
+    {
+      "id": "program-pipeline-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.3.3"
+    },
+    {
+      "id": "texture-sampler-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.3.4"
+    },
+    {
+      "id": "framebuffer-renderbuffer-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.3.5"
+    },
+    {
+      "id": "vertex-transform-feedback-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.3.6"
+    },
+    {
+      "id": "context-state-lifecycle",
+      "route_kind": "state",
+      "target": "F03.3.2.2.4.1"
+    },
+    {
+      "id": "draw-raster-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.4.2"
+    },
+    {
+      "id": "pixel-transfer-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.4.3"
+    },
+    {
+      "id": "debug-special-query-commands",
+      "route_kind": "declaration",
+      "target": "F03.3.2.2.4.4"
+    },
+    {
+      "id": "limit-format-inventory",
+      "route_kind": "separate-inventory",
+      "target": "F03.3.2.3"
+    },
+    {
+      "id": "shader-unavailable",
+      "route_kind": "unavailable",
+      "target": "F03.3.2.4:shader"
+    },
+    {
+      "id": "precision-unavailable",
+      "route_kind": "unavailable",
+      "target": "F03.3.2.4:precision"
+    },
+    {
+      "id": "extension-unavailable",
+      "route_kind": "unavailable",
+      "target": "F03.3.2.4:extension"
+    },
+    {
+      "id": "explicit-exclusion",
+      "route_kind": "excluded",
+      "target": "F03.3.1"
+    }
+  ],
+  "schema": 1,
+  "scope_fence": "source-routing-only",
+  "source": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_decision": {
+    "availability": "available",
+    "blocker": "",
+    "decision": "derivable",
+    "id": "command-state",
+    "permitted_extraction_scope": "GLES 3.2 core commands and state",
+    "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+    "source_role": "normative-root"
+  },
+  "source_family_count": 44,
+  "source_family_sha256": "d5261e057a61468cfe243a761edc1a692e2418d0a5fc2cee7d443df551295a08",
+  "unavailable_ledger_sha256": "560de6a8c6d8102fe83e3009dd57b7558b0e86029f5e137cb8fe467f85677ea9"
+}

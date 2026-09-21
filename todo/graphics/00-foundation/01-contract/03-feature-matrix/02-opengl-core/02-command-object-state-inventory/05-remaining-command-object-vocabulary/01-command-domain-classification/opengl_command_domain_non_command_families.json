@@ -1,0 +1,50 @@
+{
+  "artifact_id": "non-command-families",
+  "artifact_sha256": "f7767fd2cb24226b7965cd84e664200dcc281dd325ebc40ea78e2df7bf12e546",
+  "kind": "webboxvm-opengl46-command-domain-artifact",
+  "non_command_families": [
+    {
+      "id": "state-lifecycle",
+      "reason": "declaration-returned-state-not-extracted",
+      "route": "state-lifecycle-route",
+      "source_order": 1,
+      "source_scope": "2.5;5.1-5.3;23-state-transitions"
+    },
+    {
+      "id": "limit-format",
+      "reason": "numeric-and-format-properties-not-command-declarations",
+      "route": "limit-format-route",
+      "source_order": 2,
+      "source_scope": "8.5;9.4;22.3;23-limit-format-rows;appendix-D"
+    },
+    {
+      "id": "shader-source",
+      "reason": "unadmitted-distinct-source",
+      "route": "shader-source-unavailable",
+      "source_order": 3,
+      "source_scope": "shader-language-and-compiler-semantics"
+    },
+    {
+      "id": "extension-source",
+      "reason": "unadmitted-distinct-source",
+      "route": "extension-source-unavailable",
+      "source_order": 4,
+      "source_scope": "extension-semantics-only"
+    },
+    {
+      "id": "compatibility-profile",
+      "reason": "core-profile-excludes-compatibility",
+      "route": "compatibility-profile-blocked",
+      "source_order": 5,
+      "source_scope": "2.6.14;12;16;21.1-21.4;21.6;appendix-E"
+    },
+    {
+      "id": "registry-header",
+      "reason": "not-an-admitted-normative-command-source",
+      "route": "registry-header-blocked",
+      "source_order": 6,
+      "source_scope": "appendix-K-and-header-files"
+    }
+  ],
+  "schema": 1
+}

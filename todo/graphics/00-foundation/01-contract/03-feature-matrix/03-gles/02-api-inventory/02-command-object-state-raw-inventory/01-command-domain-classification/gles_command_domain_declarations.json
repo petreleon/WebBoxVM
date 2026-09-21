@@ -1,0 +1,92 @@
+{
+  "chunk_sha256": "aa2a06e50c449fc478252291401caf765fa1e17acfddc23f5d9e561dd8432025",
+  "families": [
+    {
+      "anchor": {
+        "kind": "grammar",
+        "physical_page": 27,
+        "section": "2.2",
+        "text": "void Uniform{1234}{if}( int location, T value );"
+      },
+      "family_kind": "grammar",
+      "id": "command-syntax",
+      "reason": "grammar-not-command-fact",
+      "route": "declaration-grammar",
+      "source_order": 7,
+      "source_scope": [
+        "2.2"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 31,
+        "section": "2.3",
+        "text": "enum GetError( void );"
+      },
+      "family_kind": "declaration",
+      "id": "generic-context",
+      "reason": "formal-declaration-only",
+      "route": "generic-sync-query",
+      "source_order": 8,
+      "source_scope": [
+        "2.3"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 51,
+        "section": "4.1",
+        "text": "sync FenceSync( enum condition, bitfield flags );"
+      },
+      "family_kind": "declaration",
+      "id": "sync",
+      "reason": "formal-declaration-only",
+      "route": "generic-sync-query",
+      "source_order": 12,
+      "source_scope": [
+        "4.1"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 57,
+        "section": "4.2",
+        "text": "void GenQueries( sizei n, uint *ids );"
+      },
+      "family_kind": "declaration",
+      "id": "query",
+      "reason": "formal-declaration-only",
+      "route": "generic-sync-query",
+      "source_order": 13,
+      "source_scope": [
+        "4.2"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 68,
+        "section": "6",
+        "text": "void GenBuffers( sizei n, uint *buffers );"
+      },
+      "family_kind": "declaration",
+      "id": "buffer",
+      "reason": "formal-declaration-only",
+      "route": "buffer-commands",
+      "source_order": 14,
+      "source_scope": [
+        "6"
+      ]
+    }
+  ],
+  "families_sha256": "6ab5b0301b66c1ff720c2378fb7b4e52d74fe8e7aca44392efb23f852b289b24",
+  "family_count": 5,
+  "kind": "webboxvm-gles32-command-domain-declarations",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "schema": 1
+}

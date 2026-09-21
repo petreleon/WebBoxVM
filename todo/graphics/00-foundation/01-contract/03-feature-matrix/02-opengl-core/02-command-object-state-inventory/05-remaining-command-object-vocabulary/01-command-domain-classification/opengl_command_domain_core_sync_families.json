@@ -1,0 +1,151 @@
+{
+  "artifact_id": "core-sync-families",
+  "artifact_sha256": "9116da29b15aa5e219b8c0a0b50c1bc6fbe68c42971a972786e066434f17f6c3",
+  "command_families": [
+    {
+      "anchor": {
+        "declaration": "void Uniform{1234}{if}( int location, T value );",
+        "kind": "formal-declaration",
+        "physical_page": 33,
+        "section": "2.2",
+        "source_locator": "opengl46-core-pdf-v1:page=33;section=2.2"
+      },
+      "id": "declaration-grammar",
+      "route": "declaration-grammar",
+      "source_order": 1,
+      "source_scope": "2.2"
+    },
+    {
+      "anchor": {
+        "declaration": "void Flush( void );",
+        "kind": "formal-declaration",
+        "physical_page": 42,
+        "section": "2.3.3",
+        "source_locator": "opengl46-core-pdf-v1:page=42;section=2.3.3"
+      },
+      "id": "global-execution",
+      "route": "global-execution-sync",
+      "source_order": 2,
+      "source_scope": "2.3.1-2.3.3"
+    },
+    {
+      "anchor": {
+        "kind": "baseline-artifact",
+        "physical_page": 50,
+        "section": "2.6.1"
+      },
+      "id": "direct-creation",
+      "route": "baseline-direct-creation",
+      "source_order": 3,
+      "source_scope": "2.6.1"
+    },
+    {
+      "anchor": {
+        "declaration": "enum ClientWaitSync( sync sync, bitfield flags, uint64 timeout );",
+        "kind": "formal-declaration",
+        "physical_page": 60,
+        "section": "4.1.1",
+        "source_locator": "opengl46-core-pdf-v1:page=60;section=4.1.1"
+      },
+      "excluded_baseline_command_anchors": [
+        {
+          "fact_id": "command:glCreateQueries",
+          "physical_page": 66,
+          "section": "4.2.2",
+          "source_locator": "opengl46-core-pdf-v1:page=66;section=4.2.2"
+        },
+        {
+          "fact_id": "command:glFenceSync",
+          "physical_page": 58,
+          "section": "4.1",
+          "source_locator": "opengl46-core-pdf-v1:page=58;section=4.1"
+        }
+      ],
+      "excluded_baseline_command_ids": [
+        "command:glCreateQueries",
+        "command:glFenceSync"
+      ],
+      "id": "event-query-sync",
+      "route": "generic-object-sync",
+      "source_order": 4,
+      "source_scope": "4.1-4.3"
+    },
+    {
+      "anchor": {
+        "declaration": "void DeleteBuffers( sizei n, const uint *buffers );",
+        "kind": "formal-declaration",
+        "physical_page": 82,
+        "section": "6.1",
+        "source_locator": "opengl46-core-pdf-v1:page=82;section=6.1"
+      },
+      "excluded_baseline_command_anchors": [
+        {
+          "fact_id": "command:glCreateBuffers",
+          "physical_page": 81,
+          "section": "6.1",
+          "source_locator": "opengl46-core-pdf-v1:page=81;section=6.1"
+        }
+      ],
+      "excluded_baseline_command_ids": [
+        "command:glCreateBuffers"
+      ],
+      "id": "buffer",
+      "route": "buffer-commands",
+      "source_order": 5,
+      "source_scope": "6.1-6.7"
+    },
+    {
+      "anchor": {
+        "declaration": "void CompileShader( uint shader );",
+        "kind": "formal-declaration",
+        "physical_page": 112,
+        "section": "7.1",
+        "source_locator": "opengl46-core-pdf-v1:page=112;section=7.1"
+      },
+      "excluded_baseline_command_anchors": [
+        {
+          "fact_id": "command:glCreateShader",
+          "physical_page": 110,
+          "section": "7.1",
+          "source_locator": "opengl46-core-pdf-v1:page=110;section=7.1"
+        },
+        {
+          "fact_id": "command:glCreateProgram",
+          "physical_page": 116,
+          "section": "7.3",
+          "source_locator": "opengl46-core-pdf-v1:page=116;section=7.3"
+        },
+        {
+          "fact_id": "command:glCreateProgramPipelines",
+          "physical_page": 145,
+          "section": "7.4",
+          "source_locator": "opengl46-core-pdf-v1:page=145;section=7.4"
+        }
+      ],
+      "excluded_baseline_command_ids": [
+        "command:glCreateShader",
+        "command:glCreateProgram",
+        "command:glCreateProgramPipelines"
+      ],
+      "id": "program-pipeline",
+      "route": "program-pipeline-commands",
+      "source_order": 6,
+      "source_scope": "7.1-7.12;7.14-7.15"
+    },
+    {
+      "anchor": {
+        "declaration": "void MemoryBarrier( bitfield barriers );",
+        "kind": "formal-declaration",
+        "physical_page": 183,
+        "section": "7.13.2",
+        "source_locator": "opengl46-core-pdf-v1:page=183;section=7.13.2"
+      },
+      "id": "shader-memory-sync",
+      "route": "global-execution-sync",
+      "source_order": 7,
+      "source_scope": "7.13.2"
+    }
+  ],
+  "kind": "webboxvm-opengl46-command-domain-artifact",
+  "schema": 1
+}

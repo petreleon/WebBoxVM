@@ -1,0 +1,103 @@
+{
+  "artifact_id": "routes",
+  "artifact_sha256": "d9ed654c38c35ee1d42c1c24349b1dfda42fb744fab9864ffa64a417fe8d8425",
+  "kind": "webboxvm-opengl46-command-domain-artifact",
+  "routes": [
+    {
+      "id": "declaration-grammar",
+      "kind": "grammar",
+      "target": "F03.2.2.5.2"
+    },
+    {
+      "id": "baseline-direct-creation",
+      "kind": "baseline",
+      "target": "F03.2.2.2"
+    },
+    {
+      "id": "generic-object-sync",
+      "kind": "extract",
+      "target": "F03.2.2.5.3.1"
+    },
+    {
+      "id": "buffer-commands",
+      "kind": "extract",
+      "target": "F03.2.2.5.3.2"
+    },
+    {
+      "id": "program-pipeline-commands",
+      "kind": "extract",
+      "target": "F03.2.2.5.3.3"
+    },
+    {
+      "id": "texture-sampler-commands",
+      "kind": "extract",
+      "target": "F03.2.2.5.3.4"
+    },
+    {
+      "id": "framebuffer-renderbuffer-commands",
+      "kind": "extract",
+      "target": "F03.2.2.5.3.5"
+    },
+    {
+      "id": "vertex-transform-feedback-commands",
+      "kind": "extract",
+      "target": "F03.2.2.5.3.6"
+    },
+    {
+      "id": "global-execution-sync",
+      "kind": "extract",
+      "target": "F03.2.2.5.4.1"
+    },
+    {
+      "id": "draw-compute-submission",
+      "kind": "extract",
+      "target": "F03.2.2.5.4.2"
+    },
+    {
+      "id": "raster-framebuffer-state",
+      "kind": "extract",
+      "target": "F03.2.2.5.4.3"
+    },
+    {
+      "id": "pixel-read-copy",
+      "kind": "extract",
+      "target": "F03.2.2.5.4.4"
+    },
+    {
+      "id": "debug-special-context-queries",
+      "kind": "extract",
+      "target": "F03.2.2.5.4.5"
+    },
+    {
+      "id": "state-lifecycle-route",
+      "kind": "defer",
+      "target": "F03.2.2.3"
+    },
+    {
+      "id": "limit-format-route",
+      "kind": "defer",
+      "target": "F03.2.3"
+    },
+    {
+      "id": "shader-source-unavailable",
+      "kind": "unavailable",
+      "target": "F03.2.1:shader"
+    },
+    {
+      "id": "extension-source-unavailable",
+      "kind": "unavailable",
+      "target": "F03.2.1:extension"
+    },
+    {
+      "id": "compatibility-profile-blocked",
+      "kind": "blocked",
+      "target": "F03.2.1"
+    },
+    {
+      "id": "registry-header-blocked",
+      "kind": "blocked",
+      "target": "F03.2.1"
+    }
+  ],
+  "schema": 1
+}

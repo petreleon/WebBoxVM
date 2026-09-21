@@ -1,0 +1,146 @@
+{
+  "artifact_id": "resource-vertex-families",
+  "artifact_sha256": "1885334fd02e89cc986d426586d31507a9d93e13e40b1ed9442b5880caeec188",
+  "command_families": [
+    {
+      "anchor": {
+        "declaration": "void BindTextureUnit( uint unit, uint texture );",
+        "kind": "formal-declaration",
+        "physical_page": 204,
+        "section": "8.1",
+        "source_locator": "opengl46-core-pdf-v1:page=204;section=8.1"
+      },
+      "excluded_baseline_command_anchors": [
+        {
+          "fact_id": "command:glCreateTextures",
+          "physical_page": 204,
+          "section": "8.1",
+          "source_locator": "opengl46-core-pdf-v1:page=204;section=8.1"
+        },
+        {
+          "fact_id": "command:glCreateSamplers",
+          "physical_page": 206,
+          "section": "8.2",
+          "source_locator": "opengl46-core-pdf-v1:page=206;section=8.2"
+        }
+      ],
+      "excluded_baseline_command_ids": [
+        "command:glCreateTextures",
+        "command:glCreateSamplers"
+      ],
+      "id": "texture-sampler",
+      "route": "texture-sampler-commands",
+      "source_order": 8,
+      "source_scope": "8.1-8.26"
+    },
+    {
+      "anchor": {
+        "declaration": "void NamedFramebufferParameteri( uint framebuffer, enum pname, int param );",
+        "kind": "formal-declaration",
+        "physical_page": 327,
+        "section": "9.2.1",
+        "source_locator": "opengl46-core-pdf-v1:page=327;section=9.2.1"
+      },
+      "excluded_baseline_command_anchors": [
+        {
+          "fact_id": "command:glCreateRenderbuffers",
+          "physical_page": 335,
+          "section": "9.2.4",
+          "source_locator": "opengl46-core-pdf-v1:page=335;section=9.2.4"
+        },
+        {
+          "fact_id": "command:glCreateFramebuffers",
+          "physical_page": 324,
+          "section": "9.2",
+          "source_locator": "opengl46-core-pdf-v1:page=324;section=9.2"
+        }
+      ],
+      "excluded_baseline_command_ids": [
+        "command:glCreateRenderbuffers",
+        "command:glCreateFramebuffers"
+      ],
+      "id": "framebuffer-renderbuffer",
+      "route": "framebuffer-renderbuffer-commands",
+      "source_order": 9,
+      "source_scope": "9.2-9.8"
+    },
+    {
+      "anchor": {
+        "declaration": "void PatchParameteri( enum pname, int value );",
+        "kind": "formal-declaration",
+        "physical_page": 367,
+        "section": "10.1.15",
+        "source_locator": "opengl46-core-pdf-v1:page=367;section=10.1.15"
+      },
+      "id": "patch-vertex-state",
+      "route": "state-lifecycle-route",
+      "source_order": 10,
+      "source_scope": "10.1.15"
+    },
+    {
+      "anchor": {
+        "declaration": "void VertexAttrib{1234}{sfd}( uint index, T values );",
+        "kind": "formal-declaration",
+        "physical_page": 369,
+        "section": "10.2.1",
+        "source_locator": "opengl46-core-pdf-v1:page=369;section=10.2.1"
+      },
+      "id": "current-vertex-attribute-state",
+      "route": "state-lifecycle-route",
+      "source_order": 11,
+      "source_scope": "10.2.1"
+    },
+    {
+      "anchor": {
+        "declaration": "void VertexArrayElementBuffer( uint vaobj, uint buffer );",
+        "kind": "formal-declaration",
+        "physical_page": 373,
+        "section": "10.3.1",
+        "source_locator": "opengl46-core-pdf-v1:page=373;section=10.3.1"
+      },
+      "excluded_baseline_command_anchors": [
+        {
+          "fact_id": "command:glCreateVertexArrays",
+          "physical_page": 373,
+          "section": "10.3.1",
+          "source_locator": "opengl46-core-pdf-v1:page=373;section=10.3.1"
+        }
+      ],
+      "excluded_baseline_command_ids": [
+        "command:glCreateVertexArrays"
+      ],
+      "id": "vertex-array",
+      "route": "vertex-transform-feedback-commands",
+      "source_order": 12,
+      "source_scope": "10.3.1-10.3.11;10.5"
+    },
+    {
+      "anchor": {
+        "declaration": "void DrawArrays( enum mode, int first, sizei count );",
+        "kind": "formal-declaration",
+        "physical_page": 388,
+        "section": "10.4",
+        "source_locator": "opengl46-core-pdf-v1:page=388;section=10.4"
+      },
+      "id": "draw-submission",
+      "route": "draw-compute-submission",
+      "source_order": 13,
+      "source_scope": "10.4"
+    },
+    {
+      "anchor": {
+        "declaration": "void BeginConditionalRender( uint id, enum mode );",
+        "kind": "formal-declaration",
+        "physical_page": 403,
+        "section": "10.9",
+        "source_locator": "opengl46-core-pdf-v1:page=403;section=10.9"
+      },
+      "id": "conditional-rendering",
+      "route": "draw-compute-submission",
+      "source_order": 14,
+      "source_scope": "10.9"
+    }
+  ],
+  "kind": "webboxvm-opengl46-command-domain-artifact",
+  "schema": 1
+}

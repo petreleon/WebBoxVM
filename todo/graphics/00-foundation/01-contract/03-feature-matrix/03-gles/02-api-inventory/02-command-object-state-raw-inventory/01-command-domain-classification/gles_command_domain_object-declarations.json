@@ -1,0 +1,129 @@
+{
+  "chunk_sha256": "fa2fb55ec0ff9b8c7585abb66d763da0dbfbc354992bff9e094cf7e242e8135c",
+  "families": [
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 85,
+        "section": "7.1",
+        "text": "uint CreateShader( enum type );"
+      },
+      "family_kind": "declaration",
+      "id": "program-shader",
+      "reason": "formal-declaration-only",
+      "route": "program-pipeline-commands",
+      "source_order": 15,
+      "source_scope": [
+        "7.1-7.11.1",
+        "7.11.3-7.13.1",
+        "7.13.3-7.15"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 141,
+        "section": "7.11.2",
+        "text": "void MemoryBarrier( bitfield barriers );"
+      },
+      "family_kind": "declaration",
+      "id": "memory-barrier",
+      "reason": "formal-declaration-only",
+      "route": "generic-sync-query",
+      "source_order": 16,
+      "source_scope": [
+        "7.11.2"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 157,
+        "section": "8.1",
+        "text": "void GenTextures( sizei n, uint *textures );;"
+      },
+      "family_kind": "declaration",
+      "id": "texture",
+      "reason": "formal-declaration-only",
+      "route": "texture-sampler-commands",
+      "source_order": 17,
+      "source_scope": [
+        "8.1",
+        "8.5-8.26"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 159,
+        "section": "8.2",
+        "text": "void GenSamplers( sizei count, uint *samplers );"
+      },
+      "family_kind": "declaration",
+      "id": "sampler",
+      "reason": "formal-declaration-only",
+      "route": "texture-sampler-commands",
+      "source_order": 18,
+      "source_scope": [
+        "8.2"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 244,
+        "section": "9.2",
+        "text": "void GenFramebuffers( sizei n, uint *framebuffers );"
+      },
+      "family_kind": "declaration",
+      "id": "framebuffer-renderbuffer",
+      "reason": "formal-declaration-only",
+      "route": "framebuffer-renderbuffer-commands",
+      "source_order": 20,
+      "source_scope": [
+        "9"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 294,
+        "section": "10.4",
+        "text": "void GenVertexArrays( sizei n, uint *arrays );"
+      },
+      "family_kind": "declaration",
+      "id": "vertex-array",
+      "reason": "formal-declaration-only",
+      "route": "vertex-transform-feedback-commands",
+      "source_order": 22,
+      "source_scope": [
+        "10.2",
+        "10.3.1-10.3.8",
+        "10.4"
+      ]
+    },
+    {
+      "anchor": {
+        "kind": "declaration",
+        "physical_page": 357,
+        "section": "12.2",
+        "text": "void BeginTransformFeedback( enum primitiveMode );"
+      },
+      "family_kind": "declaration",
+      "id": "transform-feedback",
+      "reason": "formal-declaration-only",
+      "route": "vertex-transform-feedback-commands",
+      "source_order": 26,
+      "source_scope": [
+        "12.2"
+      ]
+    }
+  ],
+  "families_sha256": "1b2a1b505b917a3ab5459271ad5d14483bf62a861f06c7b38620bd21dbd4eb8b",
+  "family_count": 7,
+  "kind": "webboxvm-gles32-command-domain-object-declarations",
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_only": true,
+  "schema": 1
+}
