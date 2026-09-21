@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.5.3
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ pp.258–260, and p.269. Attachment effects, image selection, completeness, form
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, framebuffer/renderbuffer domain, grammar, and unavailable-ledger identities.
-- [ ] Extract only `FramebufferRenderbuffer`, the three `FramebufferTexture*` literals, and `CheckFramebufferStatus`.
-- [ ] Preserve discontinuous source windows, the p.256 boundary after §9.2.7, section headings, source order, and the non-`void` status return form.
-- [ ] Route attachment effects, image/level/layer selection, completeness, formats, return values, and ESSL semantics out.
-- [ ] Reject object/storage/query families, extensions, registry data, guessed templates, and ESSL imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, framebuffer/renderbuffer domain, grammar, and unavailable-ledger identities.
+- [x] Extract only `FramebufferRenderbuffer`, the three `FramebufferTexture*` literals, and `CheckFramebufferStatus`.
+- [x] Preserve discontinuous source windows, the p.256 boundary after §9.2.7, section headings, source order, and the non-`void` status return form.
+- [x] Route attachment effects, image/level/layer selection, completeness, formats, return values, and ESSL semantics out.
+- [x] Reject object/storage/query families, extensions, registry data, guessed templates, and ESSL imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
