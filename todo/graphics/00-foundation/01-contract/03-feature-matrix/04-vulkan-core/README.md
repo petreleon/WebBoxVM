@@ -26,7 +26,7 @@ requirement has a stable source locator, an implementation owner, and a referenc
 ## Checklist
 
 - [x] [F03.4.1 — Enumerate the Vulkan registry inventory](01-registry-inventory/README.md)
-- [ ] [F03.4.2 — Attach Docs provenance and CTS diagnostics](02-provenance-diagnostics/README.md)
+- [x] [F03.4.2 — Attach Docs provenance and CTS diagnostics](02-provenance-diagnostics/README.md)
 - [ ] [F03.4.3 — Review semantic core scope, owners, and test plans](03-semantic-core-owner-and-test-plan/README.md)
 
 ## Verification

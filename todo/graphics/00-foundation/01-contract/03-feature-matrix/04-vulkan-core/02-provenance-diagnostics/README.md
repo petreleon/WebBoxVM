@@ -4,7 +4,7 @@
 
 Task: F03.4.2
 Depends: F03.4.1, F02.5.4.2
-Evidence: pending
+Evidence: [aggregate receipt](04-aggregate-no-claim-receipt/evidence.md)
 
 Prerequisite lists: [the registry inventory](../01-registry-inventory/README.md) and [the active
 role-aware gate](../../../02-upstream-pins/05-source-role-admission/04-inventory-and-consumer-cutover/02-f03-gate-and-matrix-binding/README.md).
@@ -25,7 +25,7 @@ core-only CTS selector or conformance claim.
 - [x] [F03.4.2.1 — Seal provenance channels and the raw-to-matrix boundary](01-source-channel-boundary/README.md)
 - [x] [F03.4.2.2 — Pin citation-only raw Docs locators](02-raw-docs-provenance/README.md)
 - [x] [F03.4.2.3 — Bind unfiltered VCTS diagnostics](03-full-suite-diagnostics/README.md)
-- [ ] [F03.4.2.4 — Aggregate the no-claim provenance receipt](04-aggregate-no-claim-receipt/README.md)
+- [x] [F03.4.2.4 — Aggregate the no-claim provenance receipt](04-aggregate-no-claim-receipt/README.md)
 
 ## Verification
 
