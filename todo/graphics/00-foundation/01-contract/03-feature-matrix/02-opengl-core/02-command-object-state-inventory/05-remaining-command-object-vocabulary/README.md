@@ -20,12 +20,15 @@ unreviewed material visibly open.
 
 ## Checklist
 
-- [ ] Split remaining object lifecycle, mutation, query, and command families before extracting them.
-- [ ] Keep every slice raw, source-located, bounded, self-hashed, and `matrix-incomplete`.
-- [ ] Record exclusions and unreviewed families; do not call a partial vocabulary complete.
-- [ ] Supply a coverage receipt that F03.2.2.4 can reject when a family remains unclassified.
+- [ ] [F03.2.2.5.1 — Classify the core command-declaration domain](01-command-domain-classification/README.md)
+- [ ] [F03.2.2.5.2 — Normalize literal and templated command declarations](02-template-declaration-grammar/README.md)
+- [ ] [F03.2.2.5.3 — Extract object and resource command slices](03-object-resource-command-slices/README.md)
+- [ ] [F03.2.2.5.4 — Extract non-object command slices](04-non-object-command-slices/README.md)
+- [ ] [F03.2.2.5.5 — Aggregate command-vocabulary coverage and handoff guard](05-aggregate-coverage-handoff/README.md)
 
 ## Verification
 
-No slice may create a Matrix v2 row, implementation owner, test obligation, CTS result, guest/browser
-result, certification claim, or performance claim.
+Only F03.2.2.5.5 may conclude that the classified command-declaration domain is complete. It must leave
+state/lifecycle coverage incomplete until F03.2.2.3 completes. No slice may create a Matrix v2 row,
+implementation owner, test obligation, CTS result, guest/browser result, certification claim, or
+performance claim.

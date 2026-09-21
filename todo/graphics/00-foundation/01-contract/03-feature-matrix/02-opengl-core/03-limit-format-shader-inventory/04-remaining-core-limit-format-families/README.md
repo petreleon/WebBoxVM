@@ -3,7 +3,7 @@
 [Parent task](../README.md) · [Worker instructions](../../../../../../workflow.md)
 
 Task: F03.2.3.4
-Depends: F03.2.1, F03.2.2.1, F03.2.3.1
+Depends: F03.2.1, F03.2.2.1, F03.2.3.1, F03.2.3.2
 Evidence: pending
 
 ## Outcome
@@ -20,12 +20,15 @@ the raw handoff can complete.
 
 ## Checklist
 
-- [ ] Divide remaining tables and chapter-local limit/format families into reviewable source slices.
-- [ ] Retain exact PDF locators, physical pages, table/row anchors, exclusions, and explicit scope gaps.
-- [ ] Keep unavailable shader and extension source classes outside the admitted limit/format inventory.
-- [ ] Give F03.2.3.3 a receipt that prevents a partial table slice from closing the full core domain.
+- [ ] [F03.2.3.4.1 — Classify remaining anchors](01-anchor-classification/README.md)
+- [ ] [F03.2.3.4.2 — Extract non-shader core limits](02-nonshader-core-limits/README.md)
+- [ ] [F03.2.3.4.3 — Classify shader and program limit rows](03-shader-program-limit-classification/README.md)
+- [ ] [F03.2.3.4.4 — Review texture and image format families](04-texture-image-format-families/README.md)
+- [ ] [F03.2.3.4.5 — Review framebuffer, pixel, and vertex families](05-framebuffer-pixel-vertex-families/README.md)
+- [ ] [F03.2.3.4.6 — Aggregate gaps and guard the raw handoff](06-aggregate-gap-handoff/README.md)
 
 ## Verification
 
-Raw facts remain blocked and `matrix-incomplete`; they create no Matrix v2 rows, owner/test fields, CTS
-execution, guest/browser behavior, certification claim, or performance measurement.
+Only F03.2.3.4.6 can close the classified raw limit/format domain, after every anchor is covered or visibly
+routed. Raw facts remain blocked and `matrix-incomplete`; they create no Matrix v2 rows, owner/test fields,
+CTS execution, guest/browser behavior, certification claim, or performance measurement.
