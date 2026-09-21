@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.4.3
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ declarations across Chapter 8. Formats, storage, synchronization, image access, 
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, texture domain, grammar, and unavailable-ledger identities.
-- [ ] Extract only assigned literals from pp.195, 199, 201, 203–204, 222, 226–227, and 233.
-- [ ] Preserve formal source order while routing formats, storage, barriers, image access, and behavior out.
-- [ ] Reject image/copy/parameter families, extensions, registry data, guessed declarations, and ESSL imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, texture domain, grammar, and unavailable-ledger identities.
+- [x] Extract only assigned literals from pp.195, 199, 201, 203–204, 222, 226–227, and 233.
+- [x] Preserve formal source order while routing formats, storage, barriers, image access, and behavior out.
+- [x] Reject image/copy/parameter families, extensions, registry data, guessed declarations, and ESSL imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
