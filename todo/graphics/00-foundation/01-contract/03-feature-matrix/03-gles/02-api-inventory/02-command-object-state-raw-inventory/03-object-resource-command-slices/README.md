@@ -20,7 +20,7 @@ anchors while routing state, formats, limits, and unavailable ESSL semantics out
 ## Checklist
 
 - [x] [F03.3.2.2.3.1 — Extract generic, sync, and query commands](01-generic-sync-query/README.md)
-- [ ] [F03.3.2.2.3.2 — Extract buffer commands](02-buffer-commands/README.md)
+- [x] [F03.3.2.2.3.2 — Extract buffer commands](02-buffer-commands/README.md)
 - [ ] [F03.3.2.2.3.3 — Extract program and pipeline commands](03-program-pipeline-commands/README.md)
 - [ ] [F03.3.2.2.3.4 — Extract texture and sampler commands](04-texture-sampler-commands/README.md)
 - [ ] [F03.3.2.2.3.5 — Extract framebuffer and renderbuffer commands](05-framebuffer-renderbuffer-commands/README.md)

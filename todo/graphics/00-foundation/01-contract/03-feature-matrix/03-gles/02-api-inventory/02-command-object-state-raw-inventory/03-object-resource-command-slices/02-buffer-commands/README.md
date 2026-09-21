@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ and data-store behavior remain source-routed to the state/lifecycle or limit/for
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, domain map, and declaration grammar identities.
-- [ ] Extract only assigned formal declarations with physical page, section, and source-order anchors.
-- [ ] Route binding, mapping, data-store behavior, limits, and lifecycle rules out of command facts.
-- [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL semantics.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, domain map, and declaration grammar identities.
+- [x] Extract only assigned formal declarations with physical page, section, and source-order anchors.
+- [x] Route binding, mapping, data-store behavior, limits, and lifecycle rules out of command facts.
+- [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL semantics.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
