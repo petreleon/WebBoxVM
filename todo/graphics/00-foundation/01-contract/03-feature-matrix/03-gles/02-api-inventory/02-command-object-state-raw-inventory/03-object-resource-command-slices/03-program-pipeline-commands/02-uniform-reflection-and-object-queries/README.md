@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.3.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ Semantic results for values, precision, state, memory barriers, lifecycle, and E
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
-- [ ] Extract assigned literal declarations with physical page, section, and source-order anchors only.
-- [ ] Route semantic value, precision, state, memory-barrier, lifecycle, and ESSL facts out while retaining only formal declarations.
-- [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
+- [x] Extract assigned literal declarations with physical page, section, and source-order anchors only.
+- [x] Route semantic value, precision, state, memory-barrier, lifecycle, and ESSL facts out while retaining only formal declarations.
+- [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
