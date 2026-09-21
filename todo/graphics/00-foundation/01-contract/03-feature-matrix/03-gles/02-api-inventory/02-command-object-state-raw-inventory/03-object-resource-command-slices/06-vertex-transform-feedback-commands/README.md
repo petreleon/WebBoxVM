@@ -21,7 +21,7 @@ draw semantics, primitive processing, state, formats, limits, and shader behavio
 
 - [x] [F03.3.2.2.3.6.1 — Current generic vertex attribute templates](01-current-generic-attribute-templates/README.md)
 - [x] [F03.3.2.2.3.6.2 — Vertex-array attribute binding and primitive-restart commands](02-vertex-array-attribute-binding-and-primitive-restart-commands/README.md)
-- [ ] [F03.3.2.2.3.6.3 — Vertex-array object lifecycle commands](03-vertex-array-object-lifecycle-commands/README.md)
+- [x] [F03.3.2.2.3.6.3 — Vertex-array object lifecycle commands](03-vertex-array-object-lifecycle-commands/README.md)
 - [ ] [F03.3.2.2.3.6.4 — Transform-feedback object declarations](04-transform-feedback-object-declarations/README.md)
 - [ ] [F03.3.2.2.3.6.5 — Transform-feedback capture-control declarations](05-transform-feedback-capture-control-declarations/README.md)
 

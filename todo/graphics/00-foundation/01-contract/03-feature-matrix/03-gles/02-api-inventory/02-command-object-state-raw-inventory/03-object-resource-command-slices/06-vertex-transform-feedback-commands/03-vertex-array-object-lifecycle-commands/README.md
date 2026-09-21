@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.6.3
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ A bounded raw inventory covers only `GenVertexArrays`, `DeleteVertexArrays`,
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, vertex-array family, route, and grammar identities.
-- [ ] Extract only the four assigned §10.4 lifecycle literals and preserve the `boolean` return form.
-- [ ] Preserve pp.294–295, section headings, source order, and the p.295 pre-§10.5 fence.
-- [ ] Route object existence, binding, array state, drawing, and ESSL semantics out.
-- [ ] Reject configuration, transform-feedback, draw, extensions, and registry data.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, vertex-array family, route, and grammar identities.
+- [x] Extract only the four assigned §10.4 lifecycle literals and preserve the `boolean` return form.
+- [x] Preserve pp.294–295, section headings, source order, and the p.295 pre-§10.5 fence.
+- [x] Route object existence, binding, array state, drawing, and ESSL semantics out.
+- [x] Reject configuration, transform-feedback, draw, extensions, and registry data.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
