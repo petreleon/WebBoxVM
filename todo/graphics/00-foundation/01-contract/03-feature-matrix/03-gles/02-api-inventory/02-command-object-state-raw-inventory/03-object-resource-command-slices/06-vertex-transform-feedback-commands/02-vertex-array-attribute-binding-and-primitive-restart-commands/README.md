@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.6.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ literals on pp.285–291. Array contents, state effects, primitive behavior, for
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, vertex-array family, route, and grammar identities.
-- [ ] Extract only assigned §10.3.1–10.3.2 binding literals and §10.3.4 primitive-restart literals.
-- [ ] Preserve pp.285–291, section headings, return forms, and source order.
-- [ ] Route buffer association, attribute state, primitive-restart effects, formats, limits, and ESSL semantics out.
-- [ ] Reject current-value templates, VAO lifecycle, draw, transform-feedback, extensions, and registry data.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, vertex-array family, route, and grammar identities.
+- [x] Extract only assigned §10.3.1–10.3.2 binding literals and §10.3.4 primitive-restart literals.
+- [x] Preserve pp.285–291, section headings, return forms, and source order.
+- [x] Route buffer association, attribute state, primitive-restart effects, formats, limits, and ESSL semantics out.
+- [x] Reject current-value templates, VAO lifecycle, draw, transform-feedback, extensions, and registry data.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
