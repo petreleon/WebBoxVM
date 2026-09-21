@@ -1,0 +1,167 @@
+{
+  "authority_boundary_sha256": "71d1fdbe2bb51911d6fbf6fe4a5c5665681c5a4a8a265b3db840bc629762a641",
+  "cache_boundary_sha256": "93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "classification_binding": {
+    "classification_sha256": "aa011d762f0765d373df5db364fa66da82dc87da075a6f257a5a3af423d77842",
+    "family_ids": ["global-execution", "shader-memory-sync"],
+    "route": "global-execution-sync",
+    "source_orders": [2, 7]
+  },
+  "cts_executions": 0,
+  "declaration_grammar_binding": {
+    "c_command_prefix": "gl",
+    "document_command_prefix": "",
+    "normalization_sha256": "fd742314618af4b604e6dfdaf0fa997e6475355396233737ad8b18b39d3c9947"
+  },
+  "declarations": [
+    {
+      "c_name": "glGetError",
+      "declaration": "enum GetError( void );",
+      "document_name": "GetError",
+      "id": "get-error",
+      "physical_page": 38,
+      "section": "2.3.1",
+      "section_witness_physical_page": 38,
+      "source_locator": "opengl46-core-pdf-v1:page=38;section=2.3.1",
+      "source_order": 1
+    },
+    {
+      "c_name": "glGetGraphicsResetStatus",
+      "declaration": "enum GetGraphicsResetStatus( void );",
+      "document_name": "GetGraphicsResetStatus",
+      "id": "get-graphics-reset-status",
+      "physical_page": 41,
+      "section": "2.3.2",
+      "section_witness_physical_page": 41,
+      "source_locator": "opengl46-core-pdf-v1:page=41;section=2.3.2",
+      "source_order": 2
+    },
+    {
+      "c_name": "glFlush",
+      "declaration": "void Flush( void );",
+      "document_name": "Flush",
+      "id": "flush",
+      "physical_page": 42,
+      "section": "2.3.3",
+      "section_witness_physical_page": 42,
+      "source_locator": "opengl46-core-pdf-v1:page=42;section=2.3.3",
+      "source_order": 3
+    },
+    {
+      "c_name": "glFinish",
+      "declaration": "void Finish( void );",
+      "document_name": "Finish",
+      "id": "finish",
+      "physical_page": 43,
+      "section": "2.3.3",
+      "section_witness_physical_page": 42,
+      "source_locator": "opengl46-core-pdf-v1:page=43;section=2.3.3",
+      "source_order": 4
+    },
+    {
+      "c_name": "glMemoryBarrier",
+      "declaration": "void MemoryBarrier( bitfield barriers );",
+      "document_name": "MemoryBarrier",
+      "id": "memory-barrier",
+      "physical_page": 183,
+      "section": "7.13.2",
+      "section_witness_physical_page": 183,
+      "source_locator": "opengl46-core-pdf-v1:page=183;section=7.13.2",
+      "source_order": 5
+    },
+    {
+      "c_name": "glMemoryBarrierByRegion",
+      "declaration": "void MemoryBarrierByRegion( bitfield barriers );",
+      "document_name": "MemoryBarrierByRegion",
+      "id": "memory-barrier-by-region",
+      "physical_page": 187,
+      "section": "7.13.2",
+      "section_witness_physical_page": 183,
+      "source_locator": "opengl46-core-pdf-v1:page=187;section=7.13.2",
+      "source_order": 6
+    }
+  ],
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "6676b99090a0dbc2cda0d2cc349677ee4dffc34429fd89c34bd255cac913e597",
+  "kind": "webboxvm-opengl46-global-execution-sync-declaration-inventory",
+  "matrix_row_count": 0,
+  "physical_pdf_pages": 851,
+  "profile": "opengl-4.6-core",
+  "rejections": [
+    "registry-header-lower-profile-extension-compatibility",
+    "guessed-template",
+    "unanchored-or-ambiguous-declaration",
+    "ordering-visibility-state-semantics"
+  ],
+  "schema": 1,
+  "serialized_size_limit": 8388608,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_class": "command-object-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_pages": [
+    {
+      "declaration_ids": ["get-error"],
+      "physical_page": 38,
+      "section": "2.3.1",
+      "section_witness_physical_page": 38
+    },
+    {
+      "declaration_ids": ["get-graphics-reset-status"],
+      "physical_page": 41,
+      "section": "2.3.2",
+      "section_witness_physical_page": 41
+    },
+    {
+      "declaration_ids": ["flush"],
+      "physical_page": 42,
+      "section": "2.3.3",
+      "section_witness_physical_page": 42
+    },
+    {
+      "declaration_ids": ["finish"],
+      "physical_page": 43,
+      "section": "2.3.3",
+      "section_witness_physical_page": 42
+    },
+    {
+      "declaration_ids": ["memory-barrier"],
+      "physical_page": 183,
+      "section": "7.13.2",
+      "section_witness_physical_page": 183
+    },
+    {
+      "declaration_ids": ["memory-barrier-by-region"],
+      "physical_page": 187,
+      "section": "7.13.2",
+      "section_witness_physical_page": 183
+    }
+  ],
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

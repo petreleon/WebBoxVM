@@ -1,0 +1,82 @@
+{
+  "artifact_sha256": "807157805abfac3e8aad96ec920abbf17efa90f6a6e0601dea466e206fef699e",
+  "declaration_count": 6,
+  "declarations": [
+    {
+      "c_name": "glGetQueryIndexediv",
+      "declaration": "void GetQueryIndexediv( enum target, uint index, enum pname, int *params );",
+      "document_name": "GetQueryIndexediv",
+      "fact_id": "command:glGetQueryIndexediv",
+      "fragment": "query-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 69,
+      "source_locator": "opengl46-core-pdf-v1:page=69;section=4.2.3",
+      "source_order": 13,
+      "source_sequence_position": 15
+    },
+    {
+      "c_name": "glGetQueryiv",
+      "declaration": "void GetQueryiv( enum target, enum pname, int *params );",
+      "document_name": "GetQueryiv",
+      "fact_id": "command:glGetQueryiv",
+      "fragment": "query-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 14,
+      "source_sequence_position": 16
+    },
+    {
+      "c_name": "glGetQueryObjectiv",
+      "declaration": "void GetQueryObjectiv( uint id, enum pname, int *params );",
+      "document_name": "GetQueryObjectiv",
+      "fact_id": "command:glGetQueryObjectiv",
+      "fragment": "query-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 15,
+      "source_sequence_position": 17
+    },
+    {
+      "c_name": "glGetQueryObjectuiv",
+      "declaration": "void GetQueryObjectuiv( uint id, enum pname, uint *params );",
+      "document_name": "GetQueryObjectuiv",
+      "fact_id": "command:glGetQueryObjectuiv",
+      "fragment": "query-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 16,
+      "source_sequence_position": 18
+    },
+    {
+      "c_name": "glGetQueryObjecti64v",
+      "declaration": "void GetQueryObjecti64v( uint id, enum pname, int64 *params );",
+      "document_name": "GetQueryObjecti64v",
+      "fact_id": "command:glGetQueryObjecti64v",
+      "fragment": "query-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 17,
+      "source_sequence_position": 19
+    },
+    {
+      "c_name": "glGetQueryObjectui64v",
+      "declaration": "void GetQueryObjectui64v( uint id, enum pname, uint64 *params );",
+      "document_name": "GetQueryObjectui64v",
+      "fact_id": "command:glGetQueryObjectui64v",
+      "fragment": "query-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 18,
+      "source_sequence_position": 20
+    }
+  ],
+  "declarations_sha256": "13709c0d4ad2c7fa72a02e49c32b5a3d8d521eb3ff84f6cee23d6e8a3702169b",
+  "fragment_id": "query-state",
+  "kind": "webboxvm-opengl46-generic-object-sync-raw-fragment",
+  "schema": 1
+}

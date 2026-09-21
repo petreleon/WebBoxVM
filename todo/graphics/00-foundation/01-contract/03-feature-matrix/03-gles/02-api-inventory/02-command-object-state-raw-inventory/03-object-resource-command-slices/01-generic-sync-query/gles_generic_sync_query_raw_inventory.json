@@ -1,0 +1,113 @@
+{
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "domain_classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "domain_families": [
+    {"id": "generic-context", "source_order": 8},
+    {"id": "sync", "source_order": 12},
+    {"id": "query", "source_order": 13},
+    {"id": "memory-barrier", "source_order": 16}
+  ],
+  "grammar_sha256": "7de694c6169331689f8ea48127cfbc80b5dbc96fc8c74e10332267503ee711cf",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "ca43e662ada91a2c72a0265e500f2055dbec09da30defcd432ec3ced04815013",
+  "kind": "webboxvm-gles32-generic-sync-query-raw-inventory",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_entry_count": 19,
+  "raw_entries": [
+    {
+      "c_name": "glGetError", "declaration": "enum GetError( void );", "derivation_class": "literal", "family_id": "generic-context",
+      "physical_page": 31, "raw_id": "gles32-generic-sync-query-01", "section": "2.3", "source_family_order": 8, "source_locator": "gles32-pdf-v1:page=31;section=2.3", "source_order": 1, "unprefixed_name": "GetError"
+    },
+    {
+      "c_name": "glGetGraphicsResetStatus", "declaration": "enum GetGraphicsResetStatus( void );", "derivation_class": "literal", "family_id": "generic-context",
+      "physical_page": 34, "raw_id": "gles32-generic-sync-query-02", "section": "2.3", "source_family_order": 8, "source_locator": "gles32-pdf-v1:page=34;section=2.3", "source_order": 2, "unprefixed_name": "GetGraphicsResetStatus"
+    },
+    {
+      "c_name": "glFlush", "declaration": "void Flush( void );", "derivation_class": "literal", "family_id": "generic-context",
+      "physical_page": 36, "raw_id": "gles32-generic-sync-query-03", "section": "2.3", "source_family_order": 8, "source_locator": "gles32-pdf-v1:page=36;section=2.3", "source_order": 3, "unprefixed_name": "Flush"
+    },
+    {
+      "c_name": "glFinish", "declaration": "void Finish( void );", "derivation_class": "literal", "family_id": "generic-context",
+      "physical_page": 36, "raw_id": "gles32-generic-sync-query-04", "section": "2.3", "source_family_order": 8, "source_locator": "gles32-pdf-v1:page=36;section=2.3", "source_order": 4, "unprefixed_name": "Finish"
+    },
+    {
+      "c_name": "glFenceSync", "declaration": "sync FenceSync( enum condition, bitfield flags );", "derivation_class": "literal", "family_id": "sync",
+      "physical_page": 51, "raw_id": "gles32-generic-sync-query-05", "section": "4.1", "source_family_order": 12, "source_locator": "gles32-pdf-v1:page=51;section=4.1", "source_order": 5, "unprefixed_name": "FenceSync"
+    },
+    {
+      "c_name": "glDeleteSync", "declaration": "void DeleteSync( sync sync );", "derivation_class": "literal", "family_id": "sync",
+      "physical_page": 52, "raw_id": "gles32-generic-sync-query-06", "section": "4.1", "source_family_order": 12, "source_locator": "gles32-pdf-v1:page=52;section=4.1", "source_order": 6, "unprefixed_name": "DeleteSync"
+    },
+    {
+      "c_name": "glClientWaitSync", "declaration": "enum ClientWaitSync( sync sync, bitfield flags, uint64 timeout );", "derivation_class": "literal", "family_id": "sync",
+      "physical_page": 53, "raw_id": "gles32-generic-sync-query-07", "section": "4.1", "source_family_order": 12, "source_locator": "gles32-pdf-v1:page=53;section=4.1", "source_order": 7, "unprefixed_name": "ClientWaitSync"
+    },
+    {
+      "c_name": "glWaitSync", "declaration": "void WaitSync( sync sync, bitfield flags, uint64 timeout );", "derivation_class": "literal", "family_id": "sync",
+      "physical_page": 54, "raw_id": "gles32-generic-sync-query-08", "section": "4.1", "source_family_order": 12, "source_locator": "gles32-pdf-v1:page=54;section=4.1", "source_order": 8, "unprefixed_name": "WaitSync"
+    },
+    {
+      "c_name": "glGetSynciv", "declaration": "void GetSynciv( sync sync, enum pname, sizei count, sizei *length, int *values );", "derivation_class": "literal", "family_id": "sync",
+      "physical_page": 56, "raw_id": "gles32-generic-sync-query-09", "section": "4.1", "source_family_order": 12, "source_locator": "gles32-pdf-v1:page=56;section=4.1", "source_order": 9, "unprefixed_name": "GetSynciv"
+    },
+    {
+      "c_name": "glIsSync", "declaration": "boolean IsSync( sync sync );", "derivation_class": "literal", "family_id": "sync",
+      "physical_page": 56, "raw_id": "gles32-generic-sync-query-10", "section": "4.1", "source_family_order": 12, "source_locator": "gles32-pdf-v1:page=56;section=4.1", "source_order": 10, "unprefixed_name": "IsSync"
+    },
+    {
+      "c_name": "glGenQueries", "declaration": "void GenQueries( sizei n, uint *ids );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 57, "raw_id": "gles32-generic-sync-query-11", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=57;section=4.2", "source_order": 11, "unprefixed_name": "GenQueries"
+    },
+    {
+      "c_name": "glDeleteQueries", "declaration": "void DeleteQueries( sizei n, const uint *ids );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 58, "raw_id": "gles32-generic-sync-query-12", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=58;section=4.2", "source_order": 12, "unprefixed_name": "DeleteQueries"
+    },
+    {
+      "c_name": "glBeginQuery", "declaration": "void BeginQuery( enum target, uint id );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 58, "raw_id": "gles32-generic-sync-query-13", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=58;section=4.2", "source_order": 13, "unprefixed_name": "BeginQuery"
+    },
+    {
+      "c_name": "glEndQuery", "declaration": "void EndQuery( enum target );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 59, "raw_id": "gles32-generic-sync-query-14", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=59;section=4.2", "source_order": 14, "unprefixed_name": "EndQuery"
+    },
+    {
+      "c_name": "glIsQuery", "declaration": "boolean IsQuery( uint id );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 60, "raw_id": "gles32-generic-sync-query-15", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=60;section=4.2", "source_order": 15, "unprefixed_name": "IsQuery"
+    },
+    {
+      "c_name": "glGetQueryiv", "declaration": "void GetQueryiv( enum target, enum pname, int *params );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 60, "raw_id": "gles32-generic-sync-query-16", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=60;section=4.2", "source_order": 16, "unprefixed_name": "GetQueryiv"
+    },
+    {
+      "c_name": "glGetQueryObjectuiv", "declaration": "void GetQueryObjectuiv( uint id, enum pname, uint *params );", "derivation_class": "literal", "family_id": "query",
+      "physical_page": 60, "raw_id": "gles32-generic-sync-query-17", "section": "4.2", "source_family_order": 13, "source_locator": "gles32-pdf-v1:page=60;section=4.2", "source_order": 17, "unprefixed_name": "GetQueryObjectuiv"
+    },
+    {
+      "c_name": "glMemoryBarrier", "declaration": "void MemoryBarrier( bitfield barriers );", "derivation_class": "literal", "family_id": "memory-barrier",
+      "physical_page": 141, "raw_id": "gles32-generic-sync-query-18", "section": "7.11.2", "source_family_order": 16, "source_locator": "gles32-pdf-v1:page=141;section=7.11.2", "source_order": 18, "unprefixed_name": "MemoryBarrier"
+    },
+    {
+      "c_name": "glMemoryBarrierByRegion", "declaration": "void MemoryBarrierByRegion( bitfield barriers );", "derivation_class": "literal", "family_id": "memory-barrier",
+      "physical_page": 144, "raw_id": "gles32-generic-sync-query-19", "section": "7.11.2", "source_family_order": 16, "source_locator": "gles32-pdf-v1:page=144;section=7.11.2", "source_order": 19, "unprefixed_name": "MemoryBarrierByRegion"
+    }
+  ],
+  "raw_entries_sha256": "24d0136ab289d91770af48431af1aeb47ba3c8a0aa6ec104330beeb93c6208ba",
+  "raw_only": true,
+  "schema": 1,
+  "scope_fence": "formal-declaration-only",
+  "source": {
+    "bytes": 2198754, "profile": "gles-3.2", "record_id": "gles-32-spec", "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1", "role": "normative-root", "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_decision": {
+    "availability": "available", "blocker": "", "decision": "derivable", "id": "command-state",
+    "permitted_extraction_scope": "GLES 3.2 core commands and state",
+    "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>", "source_role": "normative-root"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "artifact_sha256": "cec1a31b04696242e4bc3bc2382273989e613c7ea9fe9d18b20729c3b7496217",
+  "declaration_count": 8,
+  "declarations": [
+    {
+      "c_name": "glGenQueries",
+      "declaration": "void GenQueries( sizei n, uint *ids );",
+      "document_name": "GenQueries",
+      "fact_id": "command:glGenQueries",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.2",
+      "physical_page": 65,
+      "source_locator": "opengl46-core-pdf-v1:page=65;section=4.2.2",
+      "source_order": 6,
+      "source_sequence_position": 7
+    },
+    {
+      "c_name": "glDeleteQueries",
+      "declaration": "void DeleteQueries( sizei n, const uint *ids );",
+      "document_name": "DeleteQueries",
+      "fact_id": "command:glDeleteQueries",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.2",
+      "physical_page": 66,
+      "source_locator": "opengl46-core-pdf-v1:page=66;section=4.2.2",
+      "source_order": 7,
+      "source_sequence_position": 9
+    },
+    {
+      "c_name": "glBeginQueryIndexed",
+      "declaration": "void BeginQueryIndexed( enum target, uint index, uint id );",
+      "document_name": "BeginQueryIndexed",
+      "fact_id": "command:glBeginQueryIndexed",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.2",
+      "physical_page": 67,
+      "source_locator": "opengl46-core-pdf-v1:page=67;section=4.2.2",
+      "source_order": 8,
+      "source_sequence_position": 10
+    },
+    {
+      "c_name": "glBeginQuery",
+      "declaration": "void BeginQuery( enum target, uint id );",
+      "document_name": "BeginQuery",
+      "fact_id": "command:glBeginQuery",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.2",
+      "physical_page": 68,
+      "source_locator": "opengl46-core-pdf-v1:page=68;section=4.2.2",
+      "source_order": 9,
+      "source_sequence_position": 11
+    },
+    {
+      "c_name": "glEndQueryIndexed",
+      "declaration": "void EndQueryIndexed( enum target, uint index );",
+      "document_name": "EndQueryIndexed",
+      "fact_id": "command:glEndQueryIndexed",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.2",
+      "physical_page": 68,
+      "source_locator": "opengl46-core-pdf-v1:page=68;section=4.2.2",
+      "source_order": 10,
+      "source_sequence_position": 12
+    },
+    {
+      "c_name": "glEndQuery",
+      "declaration": "void EndQuery( enum target );",
+      "document_name": "EndQuery",
+      "fact_id": "command:glEndQuery",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.2",
+      "physical_page": 69,
+      "source_locator": "opengl46-core-pdf-v1:page=69;section=4.2.2",
+      "source_order": 11,
+      "source_sequence_position": 13
+    },
+    {
+      "c_name": "glIsQuery",
+      "declaration": "boolean IsQuery( uint id );",
+      "document_name": "IsQuery",
+      "fact_id": "command:glIsQuery",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.2.3",
+      "physical_page": 69,
+      "source_locator": "opengl46-core-pdf-v1:page=69;section=4.2.3",
+      "source_order": 12,
+      "source_sequence_position": 14
+    },
+    {
+      "c_name": "glQueryCounter",
+      "declaration": "void QueryCounter( uint id, enum target );",
+      "document_name": "QueryCounter",
+      "fact_id": "command:glQueryCounter",
+      "fragment": "query-lifecycle",
+      "numeric_section": "4.3",
+      "physical_page": 73,
+      "source_locator": "opengl46-core-pdf-v1:page=73;section=4.3",
+      "source_order": 23,
+      "source_sequence_position": 25
+    }
+  ],
+  "declarations_sha256": "3ff0377b0ae79c3397dd46113819cafc35eba8d83b615a40595c6775b2f7aa08",
+  "fragment_id": "query-lifecycle",
+  "kind": "webboxvm-opengl46-generic-object-sync-raw-fragment",
+  "schema": 1
+}

@@ -1,0 +1,58 @@
+{
+  "artifact_sha256": "62df050677a4f1a9494513afa6d6eccf1024fc42400ed4c288079815e5d05474",
+  "declaration_count": 4,
+  "declarations": [
+    {
+      "c_name": "glGetQueryBufferObjectiv",
+      "declaration": "void GetQueryBufferObjectiv( uint id, uint buffer, enum pname, intptr offset );",
+      "document_name": "GetQueryBufferObjectiv",
+      "fact_id": "command:glGetQueryBufferObjectiv",
+      "fragment": "query-buffer-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 19,
+      "source_sequence_position": 21
+    },
+    {
+      "c_name": "glGetQueryBufferObjectuiv",
+      "declaration": "void GetQueryBufferObjectuiv( uint id, uint buffer, enum pname, intptr offset );",
+      "document_name": "GetQueryBufferObjectuiv",
+      "fact_id": "command:glGetQueryBufferObjectuiv",
+      "fragment": "query-buffer-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 20,
+      "source_sequence_position": 22
+    },
+    {
+      "c_name": "glGetQueryBufferObjecti64v",
+      "declaration": "void GetQueryBufferObjecti64v( uint id, uint buffer, enum pname, intptr offset );",
+      "document_name": "GetQueryBufferObjecti64v",
+      "fact_id": "command:glGetQueryBufferObjecti64v",
+      "fragment": "query-buffer-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 21,
+      "source_sequence_position": 23
+    },
+    {
+      "c_name": "glGetQueryBufferObjectui64v",
+      "declaration": "void GetQueryBufferObjectui64v( uint id, uint buffer, enum pname, intptr offset );",
+      "document_name": "GetQueryBufferObjectui64v",
+      "fact_id": "command:glGetQueryBufferObjectui64v",
+      "fragment": "query-buffer-state",
+      "numeric_section": "4.2.3",
+      "physical_page": 71,
+      "source_locator": "opengl46-core-pdf-v1:page=71;section=4.2.3",
+      "source_order": 22,
+      "source_sequence_position": 24
+    }
+  ],
+  "declarations_sha256": "65a75221fc311ea00b3d244ae50ef5fcfbd1f5722121d5cf9b9068cd8c61f842",
+  "fragment_id": "query-buffer-state",
+  "kind": "webboxvm-opengl46-generic-object-sync-raw-fragment",
+  "schema": 1
+}

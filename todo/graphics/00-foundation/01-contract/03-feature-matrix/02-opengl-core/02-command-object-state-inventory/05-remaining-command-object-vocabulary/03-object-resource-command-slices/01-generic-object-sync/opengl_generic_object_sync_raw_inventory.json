@@ -1,0 +1,172 @@
+{
+  "artifact_receipts": [
+    {
+      "artifact_sha256": "3a78066baeafb7191eb8290c9d6bb60265bcc11529d14dc1f22a07ae6cb62302",
+      "file": "opengl_generic_object_sync_raw_sync.json",
+      "fragment_id": "sync",
+      "serialized_sha256": "53a845cfa570815514fb3c5e0075e8301a3bb544f3a92cdfcc1ea3eeb3417d84"
+    },
+    {
+      "artifact_sha256": "cec1a31b04696242e4bc3bc2382273989e613c7ea9fe9d18b20729c3b7496217",
+      "file": "opengl_generic_object_sync_raw_query_lifecycle.json",
+      "fragment_id": "query-lifecycle",
+      "serialized_sha256": "349240b040fad392a1cde6422726398bb318026a5972672a839247efdc1658f0"
+    },
+    {
+      "artifact_sha256": "807157805abfac3e8aad96ec920abbf17efa90f6a6e0601dea466e206fef699e",
+      "file": "opengl_generic_object_sync_raw_query_state.json",
+      "fragment_id": "query-state",
+      "serialized_sha256": "668a66ae8b8876cf353de9a01e512f38d277c5e4b893faa5488de524d4162919"
+    },
+    {
+      "artifact_sha256": "62df050677a4f1a9494513afa6d6eccf1024fc42400ed4c288079815e5d05474",
+      "file": "opengl_generic_object_sync_raw_query_buffer_state.json",
+      "fragment_id": "query-buffer-state",
+      "serialized_sha256": "f068f9c9d465874e01cb68472fcdbd5bf1fc157c0d736b73d6bc9c06abc5f04e"
+    }
+  ],
+  "baseline_binding": {
+    "excluded_command_fact_ids": [
+      "command:glFenceSync",
+      "command:glCreateQueries"
+    ],
+    "facts_sha256": "44b48f75008bbb8e23008ec40d06b2dacc59cf31c7a7d5fa851a48c1ff1f0565",
+    "inventory_sha256": "e5874fd86c1188e614f13dbb3aeeb32852819444d48656cfda3874b11c98bca6"
+  },
+  "baseline_exclusions": [
+    {
+      "declaration": "sync FenceSync( enum condition, bitfield flags );",
+      "document_name": "FenceSync",
+      "fact_id": "command:glFenceSync",
+      "numeric_section": "4.1",
+      "physical_page": 58,
+      "source_locator": "opengl46-core-pdf-v1:page=58;section=4.1",
+      "source_sequence_position": 1
+    },
+    {
+      "declaration": "void CreateQueries( enum target, sizei n, uint *ids );",
+      "document_name": "CreateQueries",
+      "fact_id": "command:glCreateQueries",
+      "numeric_section": "4.2.2",
+      "physical_page": 66,
+      "source_locator": "opengl46-core-pdf-v1:page=66;section=4.2.2",
+      "source_sequence_position": 8
+    }
+  ],
+  "cache_boundary_sha256": "93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "claims": {
+    "api_support": false,
+    "certification": false,
+    "conformance": false,
+    "khronos_selector": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "classifier_binding": {
+    "classification_sha256": "aa011d762f0765d373df5db364fa66da82dc87da075a6f257a5a3af423d77842",
+    "direct_creation_family_id": "direct-creation",
+    "direct_creation_source_scope": "2.6.1",
+    "family_id": "event-query-sync",
+    "route": "generic-object-sync",
+    "source_scope": "4.1-4.3"
+  },
+  "cts_executions": 0,
+  "formal_source_declaration_count": 25,
+  "grammar_binding": {
+    "c_command_prefix": "gl",
+    "normalization_sha256": "fd742314618af4b604e6dfdaf0fa997e6475355396233737ad8b18b39d3c9947"
+  },
+  "kind": "webboxvm-opengl46-generic-object-sync-raw-inventory",
+  "matrix_row_count": 0,
+  "physical_pdf_pages": 851,
+  "profile": "opengl-4.6-core",
+  "raw_inventory_sha256": "ec1713ad1cdec538fb001ddccdfefe9fceaab71679bff5cff77c3f813758ea85",
+  "raw_only": true,
+  "returned_state_semantics_deferred": {
+    "declaration_ids": [
+      "command:glGetSynciv",
+      "command:glIsSync",
+      "command:glIsQuery",
+      "command:glGetQueryIndexediv",
+      "command:glGetQueryiv",
+      "command:glGetQueryObjectiv",
+      "command:glGetQueryObjectuiv",
+      "command:glGetQueryObjecti64v",
+      "command:glGetQueryObjectui64v",
+      "command:glGetQueryBufferObjectiv",
+      "command:glGetQueryBufferObjectuiv",
+      "command:glGetQueryBufferObjecti64v",
+      "command:glGetQueryBufferObjectui64v"
+    ],
+    "semantic_fact_count": 0,
+    "target": "F03.2.2.3"
+  },
+  "schema": 1,
+  "semantic_fact_count": 0,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_class": "command-object-state",
+  "source_windows": [
+    {
+      "formal_declaration_count": 0,
+      "numeric_section": "2.6.1",
+      "physical_pages": [
+        50,
+        51
+      ]
+    },
+    {
+      "formal_declaration_count": 6,
+      "numeric_section": "4.1",
+      "physical_pages": [
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    {
+      "formal_declaration_count": 18,
+      "numeric_section": "4.2",
+      "physical_pages": [
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ]
+    },
+    {
+      "formal_declaration_count": 1,
+      "numeric_section": "4.3",
+      "physical_pages": [
+        73
+      ]
+    }
+  ],
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

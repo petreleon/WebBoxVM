@@ -1,0 +1,70 @@
+{
+  "artifact_sha256": "3a78066baeafb7191eb8290c9d6bb60265bcc11529d14dc1f22a07ae6cb62302",
+  "declaration_count": 5,
+  "declarations": [
+    {
+      "c_name": "glDeleteSync",
+      "declaration": "void DeleteSync( sync sync );",
+      "document_name": "DeleteSync",
+      "fact_id": "command:glDeleteSync",
+      "fragment": "sync",
+      "numeric_section": "4.1",
+      "physical_page": 59,
+      "source_locator": "opengl46-core-pdf-v1:page=59;section=4.1",
+      "source_order": 1,
+      "source_sequence_position": 2
+    },
+    {
+      "c_name": "glClientWaitSync",
+      "declaration": "enum ClientWaitSync( sync sync, bitfield flags, uint64 timeout );",
+      "document_name": "ClientWaitSync",
+      "fact_id": "command:glClientWaitSync",
+      "fragment": "sync",
+      "numeric_section": "4.1.1",
+      "physical_page": 60,
+      "source_locator": "opengl46-core-pdf-v1:page=60;section=4.1.1",
+      "source_order": 2,
+      "source_sequence_position": 3
+    },
+    {
+      "c_name": "glWaitSync",
+      "declaration": "void WaitSync( sync sync, bitfield flags, uint64 timeout );",
+      "document_name": "WaitSync",
+      "fact_id": "command:glWaitSync",
+      "fragment": "sync",
+      "numeric_section": "4.1.1",
+      "physical_page": 61,
+      "source_locator": "opengl46-core-pdf-v1:page=61;section=4.1.1",
+      "source_order": 3,
+      "source_sequence_position": 4
+    },
+    {
+      "c_name": "glGetSynciv",
+      "declaration": "void GetSynciv( sync sync, enum pname, sizei count, sizei *length, int *values );",
+      "document_name": "GetSynciv",
+      "fact_id": "command:glGetSynciv",
+      "fragment": "sync",
+      "numeric_section": "4.1.3",
+      "physical_page": 63,
+      "source_locator": "opengl46-core-pdf-v1:page=63;section=4.1.3",
+      "source_order": 4,
+      "source_sequence_position": 5
+    },
+    {
+      "c_name": "glIsSync",
+      "declaration": "boolean IsSync( sync sync );",
+      "document_name": "IsSync",
+      "fact_id": "command:glIsSync",
+      "fragment": "sync",
+      "numeric_section": "4.1.3",
+      "physical_page": 63,
+      "source_locator": "opengl46-core-pdf-v1:page=63;section=4.1.3",
+      "source_order": 5,
+      "source_sequence_position": 6
+    }
+  ],
+  "declarations_sha256": "197c200ded156a0f5c9ee016ca0c683de1f4298aa991be9c1a96ad8d82c4caee",
+  "fragment_id": "sync",
+  "kind": "webboxvm-opengl46-generic-object-sync-raw-fragment",
+  "schema": 1
+}
