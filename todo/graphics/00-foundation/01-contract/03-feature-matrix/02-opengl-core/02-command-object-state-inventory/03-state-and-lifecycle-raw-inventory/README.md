@@ -20,7 +20,7 @@ infer behavior from a registry or implementation.
 
 ## Checklist
 
-- [ ] [F03.2.2.3.1 — Buffer-binding lifecycle raw slice](01-buffer-binding-lifecycle-raw-slice/README.md)
+- [x] [F03.2.2.3.1 — Buffer-binding lifecycle raw slice](01-buffer-binding-lifecycle-raw-slice/README.md)
 - [ ] [F03.2.2.3.2 — Remaining state and lifecycle families](02-other-state-lifecycle-families/README.md)
 - [ ] [F03.2.2.3.3 — Aggregate coverage and raw handoff guard](03-aggregate-raw-handoff-guard/README.md)
 

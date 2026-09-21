@@ -4,7 +4,7 @@
 
 Task: F03.2.2.2
 Depends: F03.2.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,15 +19,15 @@ in source order. It is source data, not an implementation-owner or Matrix v2 rec
 
 ## Checklist
 
-- [ ] Extract only formal command declarations and object taxonomy from the verified normative PDF.
-- [ ] Apply the documented C-binding `gl` prefix rule only to command names that the PDF declares without
+- [x] Extract only formal command declarations and object taxonomy from the verified normative PDF.
+- [x] Apply the documented C-binding `gl` prefix rule only to command names that the PDF declares without
   that display prefix.
-- [ ] Record a stable raw identity, physical PDF page, numeric section, source order, and derivation class
+- [x] Record a stable raw identity, physical PDF page, numeric section, source order, and derivation class
   for every command or object fact.
-- [ ] Exclude compatibility-only behavior, unadmitted registry entries, extensions, and shading-language
+- [x] Exclude compatibility-only behavior, unadmitted registry entries, extensions, and shading-language
   semantics.
-- [ ] Bind an ordered section-coverage manifest and serialized-size cap so a missing family cannot pass.
-- [ ] Reject altered pages, template-expansion mistakes, duplicate/reordered facts, and false supported
+- [x] Bind an ordered section-coverage manifest and serialized-size cap so a missing family cannot pass.
+- [x] Reject altered pages, template-expansion mistakes, duplicate/reordered facts, and false supported
   status; attach a no-claim receipt.
 
 ## Verification

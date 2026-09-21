@@ -4,7 +4,7 @@
 
 Task: F03.2.2.3.1
 Depends: F03.2.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,13 +19,13 @@ ARRAY_BUFFER_BINDING on physical page 609, table 23.5 row 1. Table facts remain 
 
 ## Checklist
 
-- [ ] Bind the exact F03.2.2.1 cache and F03.2.1 command-object-state authority through private imports.
-- [ ] Preserve physical pages, numeric section locators, triggering commands and table/row positions.
-- [ ] Verify unique ordered source anchors and a self-hashed inventory for the three reviewed facts.
-- [ ] Record `complete=false`, reviewed coverage and excluded remaining state/lifecycle families;
+- [x] Bind the exact F03.2.2.1 cache and F03.2.1 command-object-state authority through private imports.
+- [x] Preserve physical pages, numeric section locators, triggering commands and table/row positions.
+- [x] Verify unique ordered source anchors and a self-hashed inventory for the three reviewed facts.
+- [x] Record `complete=false`, reviewed coverage and excluded remaining state/lifecycle families;
   route numeric limits/formats to F03.2.3 and exclude compatibility, extensions and GLSL semantics.
-- [ ] Reject missing, ambiguous, mixed, duplicate, reordered and promoted facts with focused checks.
-- [ ] Attach a no-claim receipt after local integration validation.
+- [x] Reject missing, ambiguous, mixed, duplicate, reordered and promoted facts with focused checks.
+- [x] Attach a no-claim receipt after local integration validation.
 
 ## Verification
 

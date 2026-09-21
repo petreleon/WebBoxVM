@@ -4,7 +4,7 @@
 
 Task: F03.4.2.2
 Depends: F03.4.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ the map itself into a new source role.
 
 ## Checklist
 
-- [ ] Refresh a new external cache of the reviewed raw Docs fragments at the admitted revision; never use generated Docs.
-- [ ] Bind each accepted citation to its root identity, raw path, digest, bytes, license/attribution, and one exact semantic anchor.
-- [ ] Keep the map citation-only: it is neither a full rendered Docs closure nor an independent normative root.
-- [ ] Leave an unreviewed or ambiguous registry fact blocked rather than inferring a symbol-name locator.
-- [ ] Reject mixed revisions, bad licenses, missing/ambiguous anchors, cache escapes, generated paths, and role promotion.
-- [ ] Attach a bounded no-claim map receipt; keep full row data external when it is too large for a readable source file.
+- [x] Refresh a new external cache of the reviewed raw Docs fragments at the admitted revision; never use generated Docs.
+- [x] Bind each accepted citation to its root identity, raw path, digest, bytes, license/attribution, and one exact semantic anchor.
+- [x] Keep the map citation-only: it is neither a full rendered Docs closure nor an independent normative root.
+- [x] Leave an unreviewed or ambiguous registry fact blocked rather than inferring a symbol-name locator.
+- [x] Reject mixed revisions, bad licenses, missing/ambiguous anchors, cache escapes, generated paths, and role promotion.
+- [x] Attach a bounded no-claim map receipt; keep full row data external when it is too large for a readable source file.
 
 ## Verification
 

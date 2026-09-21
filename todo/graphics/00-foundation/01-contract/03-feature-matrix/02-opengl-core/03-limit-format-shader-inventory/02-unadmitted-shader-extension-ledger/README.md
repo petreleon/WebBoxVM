@@ -4,7 +4,7 @@
 
 Task: F03.2.3.2
 Depends: F03.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,17 +20,17 @@ an implicit F02 admission.
 
 ## Checklist
 
-- [ ] Load the fixed F03.2.1 decision and retain the exact unavailable class, source-policy reason, and
+- [x] Load the fixed F03.2.1 decision and retain the exact unavailable class, source-policy reason, and
   sealed source identity that caused it.
-- [ ] Keep `shader` and `extension` visibly unavailable until a separate F02 admission records their
+- [x] Keep `shader` and `extension` visibly unavailable until a separate F02 admission records their
   source identity, license, attribution, role, locator grammar, and allowed extraction scope.
-- [ ] Reject a GLSL document, historical registry alias, extension list, lower version, or compatibility
+- [x] Reject a GLSL document, historical registry alias, extension list, lower version, or compatibility
   behavior offered as a replacement authority.
-- [ ] Reject a modified, reordered, profile-mismatched, or silently admitted decision ledger through
+- [x] Reject a modified, reordered, profile-mismatched, or silently admitted decision ledger through
   focused hostile checks.
-- [ ] Preserve absent semantic facts and zero Matrix v2 rows rather than representing unresolved classes
+- [x] Preserve absent semantic facts and zero Matrix v2 rows rather than representing unresolved classes
   as supported, optional, or silently excluded.
-- [ ] Hand the exact unresolved decisions to F03.2.3.3 and attach a no-claim receipt.
+- [x] Hand the exact unresolved decisions to F03.2.3.3 and attach a no-claim receipt.
 
 ## Verification
 

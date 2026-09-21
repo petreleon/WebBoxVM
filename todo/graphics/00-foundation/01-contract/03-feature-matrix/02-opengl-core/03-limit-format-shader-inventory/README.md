@@ -22,8 +22,8 @@ records a real implementation owner and an independent full-suite reference obli
 
 ## Checklist
 
-- [ ] [F03.2.3.1 — Extract raw limit and format facts](01-limit-format-raw-inventory/README.md)
-- [ ] [F03.2.3.2 — Ledger unadmitted shader and extension sources](02-unadmitted-shader-extension-ledger/README.md)
+- [x] [F03.2.3.1 — Extract raw limit and format facts](01-limit-format-raw-inventory/README.md)
+- [x] [F03.2.3.2 — Ledger unadmitted shader and extension sources](02-unadmitted-shader-extension-ledger/README.md)
 - [ ] [F03.2.3.4 — Cover remaining core limit and format families](04-remaining-core-limit-format-families/README.md)
 - [ ] [F03.2.3.3 — Handoff raw facts and guard Matrix import](03-raw-handoff-and-import-guard/README.md)
 

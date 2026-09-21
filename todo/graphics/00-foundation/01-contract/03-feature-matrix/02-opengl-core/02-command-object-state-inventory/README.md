@@ -21,7 +21,7 @@ the shared matrix only after it can attach real implementation owners and indepe
 ## Checklist
 
 - [x] [F03.2.2.1 — Verify the normative PDF cache](01-normative-pdf-cache/README.md)
-- [ ] [F03.2.2.2 — Extract raw command and object facts](02-command-object-raw-inventory/README.md)
+- [x] [F03.2.2.2 — Extract raw command and object facts](02-command-object-raw-inventory/README.md)
 - [ ] [F03.2.2.3 — Extract raw state and lifecycle facts](03-state-and-lifecycle-raw-inventory/README.md)
 - [ ] [F03.2.2.5 — Cover remaining command and object vocabulary](05-remaining-command-object-vocabulary/README.md)
 - [ ] [F03.2.2.4 — Handoff raw facts and guard matrix import](04-raw-handoff-and-import-guard/README.md)
