@@ -4,7 +4,8 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-opengl-limit-format-raw-inventory-test \
 	graphics-opengl-unadmitted-ledger-test \
 	graphics-gles-normative-pdf-cache-test \
-	graphics-vulkan-raw-docs-citations-test
+	graphics-vulkan-raw-docs-citations-test \
+	graphics-vulkan-no-claim-provenance-receipt-test
 
 .PHONY: $(GRAPHICS_SOURCE_INVENTORY_TESTS)
 
@@ -25,5 +26,8 @@ graphics-gles-normative-pdf-cache-test:
 
 graphics-vulkan-raw-docs-citations-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/04-vulkan-core/02-provenance-diagnostics/02-raw-docs-provenance/vulkan_raw_docs_citations_test.py
+
+graphics-vulkan-no-claim-provenance-receipt-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/04-vulkan-core/02-provenance-diagnostics/04-aggregate-no-claim-receipt/vulkan_no_claim_provenance_receipt_test.py
 
 test: $(GRAPHICS_SOURCE_INVENTORY_TESTS)

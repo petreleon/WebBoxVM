@@ -1,0 +1,101 @@
+{
+  "claims": {
+    "api_support": false,
+    "browser_execution": false,
+    "certification": false,
+    "conformance": false,
+    "guest_execution": false,
+    "khronos_selector": false,
+    "matrix_complete": false,
+    "performance": false,
+    "profile_support": false
+  },
+  "cts_executions": 0,
+  "docs": {
+    "citation_candidate_count": 2,
+    "citation_map_sha256": "2d6b3270cd4af8d14d752d593cd226c54d953aa034ce3f23cb221eecc0b22e44",
+    "include_closure": "unadmitted",
+    "map_role": "citation-only",
+    "matrix_row_count": 0
+  },
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-vulkan-no-claim-provenance-receipt",
+  "matrix_row_count": 0,
+  "matrix_rows": [],
+  "profile": "vulkan-1.4-core",
+  "receipt_sha256": "e13083e5283ca941730c943cd7a23375abf6678fcadf7057b20d9411d89c03f0",
+  "registry": {
+    "admission": "auxiliary-registry-metadata",
+    "artifact": "webboxvm-graphics/f02/vulkan-registry/cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06.source",
+    "attribution": "Copyright 2015-2026 The Khronos Group Inc.; Vulkan-Docs xml/vk.xml; Apache-2.0 OR MIT",
+    "authority": "Khronos",
+    "boundaries": [
+      "extensions-excluded",
+      "wsi-excluded",
+      "external-memory-extension-paths-excluded",
+      "spirv-grammar-separate",
+      "bring-up-unimplemented"
+    ],
+    "bytes": 3309653,
+    "claims": {
+      "api_support": false,
+      "certification": false,
+      "conformance": false,
+      "khronos_selector": false,
+      "performance": false,
+      "profile_support": false
+    },
+    "cts_executions": 0,
+    "discharges_required_role": false,
+    "immutable_url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/f84d432d5b8912362f96f581f29bbc4f3c8c7843/xml/vk.xml",
+    "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+    "inventory_scope": "raw-direct-cumulative-vulkan-1.0-through-1.4-structural-blocks",
+    "license": "Apache-2.0 OR MIT (vk.xml SPDX license choice)",
+    "producer": "Khronos",
+    "raw_row_count": 1458,
+    "record_kind": "upstream-source",
+    "revision": "f84d432d5b8912362f96f581f29bbc4f3c8c7843",
+    "row_policy": {
+      "blocker": "source-contract-owner-and-independent-test-plan-unassigned",
+      "implementation_owner": null,
+      "independent_test_plan": null,
+      "status": "blocked"
+    },
+    "rows_sha256": "5835f804af840c6df88ee907ea98d6bec0ec2dbb9821e4e0a58a3df6864bab15",
+    "scope": "registry-metadata",
+    "sha256": "cf31c965cf6e788697139601da0c7e02a75a9b6c7ac764e7641f5521ffd9da06",
+    "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+    "source_id": "vulkan-registry",
+    "source_order": "1..1458",
+    "version_marker": "VK_VERSION_1_4"
+  },
+  "schema": 1,
+  "source_channel_boundary_sha256": "dd07b39283a3e41edf217e20dbb1eec90e8e6e73b6aae748d46bb57588983683",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  },
+  "unresolved_obligations": [
+    "admitted-Docs-closure",
+    "reviewed-semantic-core-matrix",
+    "owners-and-independent-test-plans",
+    "core-only-CTS-selection-and-execution",
+    "guest-and-browser-validation",
+    "conformance-and-certification",
+    "same-GPU-performance-measurement"
+  ],
+  "vcts": {
+    "diagnostic_sha256": "66d771723737b03f4a301db51b927ee51da89db9eaf5f2a10f8deeaf8e7f0b68",
+    "matrix_row_count": 0,
+    "member_count": 98,
+    "permitted_use": "root-wide-diagnostic-only",
+    "rows_sha256": "47fc6c455ad1bfd42c105ad8b7e4c3d4c6ab54ea962cbd28f2fc339a56f7f6af"
+  }
+}
