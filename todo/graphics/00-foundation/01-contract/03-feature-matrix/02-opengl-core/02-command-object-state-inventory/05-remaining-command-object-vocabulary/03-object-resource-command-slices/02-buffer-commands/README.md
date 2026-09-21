@@ -4,7 +4,7 @@
 
 Task: F03.2.2.5.3.2
 Depends: F03.2.1, F03.2.2.1, F03.2.2.2, F03.2.2.5.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ three prior buffer state facts and without inferring buffer lifecycle semantics.
 
 ## Checklist
 
-- [ ] Bind the exact cache, classifier, grammar, and existing buffer state artifact.
-- [ ] Extract only assigned formal command declarations with physical pages, sections, and source order.
-- [ ] Route binding/deletion transitions and numeric properties to their existing raw state or limit inventories.
-- [ ] Reject duplicate creation facts, unanchored templates, extensions, compatibility, registry, and profile substitutions.
-- [ ] Self-hash the bounded artifact; keep Matrix/CTS/owner/claim fields absent or zero and attach a receipt.
+- [x] Bind the exact cache, classifier, grammar, and existing buffer state artifact.
+- [x] Extract only assigned formal command declarations with physical pages, sections, and source order.
+- [x] Route binding/deletion transitions and numeric properties to their existing raw state or limit inventories.
+- [x] Reject duplicate creation facts, unanchored templates, extensions, compatibility, registry, and profile substitutions.
+- [x] Self-hash the bounded artifact; keep Matrix/CTS/owner/claim fields absent or zero and attach a receipt.
 
 ## Verification
 
