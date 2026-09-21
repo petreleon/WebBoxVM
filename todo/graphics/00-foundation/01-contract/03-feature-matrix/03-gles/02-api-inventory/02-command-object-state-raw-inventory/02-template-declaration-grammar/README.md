@@ -20,7 +20,7 @@ without importing a registry, guessing overloads, or interpreting shader-languag
 ## Checklist
 
 - [ ] Bind the exact source identity, locator grammar, and `command-state` authority decision.
-- [ ] Anchor literal and templated declaration notation in the PDF before any command slice consumes it.
+- [ ] Anchor literal notation and every sealed `void NAME{...}` declaration form in the PDF before any command slice consumes it.
 - [ ] Define deterministic expansion, C-binding prefix, source-order, and duplicate-rejection rules.
 - [ ] Reject guessed variants, registry signatures, extensions, desktop GL, lower versions, and ESSL semantics.
 - [ ] Keep grammar metadata distinct from a command fact, state transition, limit, format, or Matrix row.

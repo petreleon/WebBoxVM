@@ -1,0 +1,150 @@
+{
+  "authority_boundary_sha256": "71d1fdbe2bb51911d6fbf6fe4a5c5665681c5a4a8a265b3db840bc629762a641",
+  "cache_boundary_sha256": "93cf3d3526ee1b5ddceee1034ae10543804b233083c3c45c43c6f667322c2101",
+  "cache_layout": "webboxvm-graphics/f02/{record_id}/{sha256}.source",
+  "claims": {"api_support": false, "certification": false, "conformance": false, "khronos_selector": false, "performance": false, "profile_support": false},
+  "cts_executions": 0,
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "kind": "webboxvm-opengl46-declaration-normalization-grammar",
+  "matrix_row_count": 0,
+  "normalization_sha256": "fd742314618af4b604e6dfdaf0fa997e6475355396233737ad8b18b39d3c9947",
+  "physical_pdf_pages": 851,
+  "profile": "opengl-4.6-core",
+  "rules": {
+    "c_binding_prefix": {
+      "applies_only_to": "bare-source-anchored-command-names",
+      "c_command_prefix": "gl",
+      "document_command_prefix": ""
+    },
+    "formal_template_grammar": {
+      "digit_choices": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "dimension_choices": [
+        "2x3",
+        "3x2",
+        "2x4",
+        "4x2",
+        "3x4",
+        "4x3"
+      ],
+      "max_expansions": 64,
+      "type_descriptors": [
+        {
+          "suffix": "b",
+          "type": "byte"
+        },
+        {
+          "suffix": "s",
+          "type": "short"
+        },
+        {
+          "suffix": "i",
+          "type": "int"
+        },
+        {
+          "suffix": "i64",
+          "type": "int64"
+        },
+        {
+          "suffix": "f",
+          "type": "float"
+        },
+        {
+          "suffix": "d",
+          "type": "double"
+        },
+        {
+          "suffix": "ub",
+          "type": "ubyte"
+        },
+        {
+          "suffix": "us",
+          "type": "ushort"
+        },
+        {
+          "suffix": "ui",
+          "type": "uint"
+        },
+        {
+          "suffix": "ui64",
+          "type": "uint64"
+        }
+      ]
+    },
+    "literal_examples": [
+      {
+        "c_name": "glUniform4f",
+        "declaration": "void Uniform4f( int location, float v0, float v1, float v2, float v3 );",
+        "document_name": "Uniform4f",
+        "physical_page": 33,
+        "section": "2.2"
+      },
+      {
+        "c_name": "glGetFloatv",
+        "declaration": "void GetFloatv( enum pname, float *data );",
+        "document_name": "GetFloatv",
+        "physical_page": 33,
+        "section": "2.2"
+      }
+    ],
+    "rejections": [
+      "unexpanded-template",
+      "guessed-or-reordered-suffix",
+      "duplicate-generated-name",
+      "ambiguous-or-unanchored-declaration",
+      "registry-header-lower-profile-extension-glsl-compatibility"
+    ],
+    "source_pages": [
+      {"anchors": ["c-binding-prefix"], "physical_page": 32, "section": "2.1"},
+      {"anchors": ["formal-template-notation", "uniform-template", "uniform-expansion"], "physical_page": 33, "section": "2.2"},
+      {"anchors": ["descriptor-table", "continued-uniform-example"], "physical_page": 34, "section": "2.2"},
+      {"anchors": ["matrix-square-template", "matrix-nonsquare-template"], "physical_page": 163, "section": "7.6.1"}
+    ],
+    "template_examples": [
+      {
+        "c_names": [
+          "glUniform1i",
+          "glUniform1f",
+          "glUniform2i",
+          "glUniform2f",
+          "glUniform3i",
+          "glUniform3f",
+          "glUniform4i",
+          "glUniform4f"
+        ],
+        "declaration": "void Uniform{1234}{if}( int location, T value );",
+        "document_name": "Uniform{1234}{if}",
+        "physical_page": 33,
+        "section": "2.2"
+      }
+    ]
+  },
+  "schema": 1,
+  "serialized_size_limit": 8388608,
+  "source": {
+    "bytes": 3003752,
+    "profile": "opengl-4.6-core",
+    "record_id": "opengl-46-core-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "a6f65e58cd8294188dc4d5cf9d2d581468f8f2e2282101149e14083d75ea9bee"
+  },
+  "source_class": "command-object-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "states": {
+    "api_support": false,
+    "blocker": "matrix-incomplete",
+    "certification": false,
+    "conformance": false,
+    "mandatory_role_inventory_complete": true,
+    "performance": false,
+    "profile_status": "blocked",
+    "profile_support": false
+  }
+}

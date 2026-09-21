@@ -19,7 +19,7 @@ family extraction; it does not itself count as coverage of any command family.
 
 ## Checklist
 
-- [ ] Bind the exact cache and formal §2.2 declaration source pages 32–34.
+- [ ] Bind the exact cache; distinguish the §2.1 C-prefix witness on page 32 from §2.2 notation on pages 32–34, and anchor §7.6.1 matrix templates on page 163.
 - [ ] Apply the documented C-binding `gl` prefix only where the PDF's rule permits it.
 - [ ] Encode the explicit template-expansion grammar, including `Uniform{1234}{if}`, with source anchors.
 - [ ] Reject guessed suffixes, unexpanded templates, duplicate generated names, and ambiguous declarations.

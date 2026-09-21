@@ -1,0 +1,106 @@
+{
+  "candidate_count": 5,
+  "candidates": [
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-8-11",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "8.5",
+      "physical_page": 227,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=227;section=8.5",
+      "source_order": 11,
+      "table": "8.11"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-8-12",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "8.5",
+      "physical_page": 232,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=232;section=8.5",
+      "source_order": 12,
+      "table": "8.12"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-8-13",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "8.5",
+      "physical_page": 233,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=233;section=8.5",
+      "source_order": 13,
+      "table": "8.13"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-8-14",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "8.5",
+      "physical_page": 234,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=234;section=8.5",
+      "source_order": 14,
+      "table": "8.14"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-8-15",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "8.6",
+      "physical_page": 243,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=243;section=8.6",
+      "source_order": 15,
+      "table": "8.15"
+    }
+  ],
+  "candidates_sha256": "6b7b70097925681278a94a2c2e9fedc476a244be86dd4a3581aa0e03aaa0eb54",
+  "fragment_id": "texture-image",
+  "fragment_sha256": "f058cb7e3a99e28fb3c0451c30850d1984a4590aaa58d8b2d0f1fb9b9929c8c1",
+  "kind": "webboxvm-opengl46-chapter-local-anchor-fragment",
+  "profile": "opengl-4.6-core",
+  "schema": 1
+}

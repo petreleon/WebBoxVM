@@ -1,0 +1,163 @@
+{
+  "candidate_count": 8,
+  "candidates": [
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-10-3",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "10.3",
+      "physical_page": 376,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=376;section=10.3",
+      "source_order": 31,
+      "table": "10.3"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-10-4",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "10.3",
+      "physical_page": 384,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=384;section=10.3",
+      "source_order": 32,
+      "table": "10.4"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-10-5",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "10.3",
+      "physical_page": 384,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=384;section=10.3",
+      "source_order": 33,
+      "table": "10.5"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-10-6",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "10.3",
+      "physical_page": 385,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=385;section=10.3",
+      "source_order": 34,
+      "table": "10.6"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-18-2",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "18.3",
+      "physical_page": 559,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=559;section=18.3",
+      "source_order": 35,
+      "table": "18.2"
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-18-4",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "18.4",
+      "physical_page": 566,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=566;section=18.4",
+      "source_order": 36,
+      "table": "18.4"
+    },
+    {
+      "anchor_kind": "section-heading",
+      "candidate_id": "opengl46-local-section-22-3",
+      "candidate_reason": "roadmap-enumerated-section-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "section-number",
+        "heading-text"
+      ],
+      "numeric_section": "22.3",
+      "physical_page": 591,
+      "row_scope": {
+        "first": "heading",
+        "last": "heading"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=591;section=22.3",
+      "source_order": 37,
+      "table": null
+    },
+    {
+      "anchor_kind": "table-caption",
+      "candidate_id": "opengl46-local-table-22-2",
+      "candidate_reason": "roadmap-enumerated-table-anchor",
+      "classification": "unclassified",
+      "column_scope": [
+        "table-number",
+        "caption-text"
+      ],
+      "numeric_section": "22.3",
+      "physical_page": 592,
+      "row_scope": {
+        "first": "caption",
+        "last": "caption"
+      },
+      "source_locator": "opengl46-core-pdf-v1:page=592;section=22.3",
+      "source_order": 38,
+      "table": "22.2"
+    }
+  ],
+  "candidates_sha256": "1ed3f71fa6e58c70b70f5efc838112f192ad207d21d5ad410e8657b4b0811c26",
+  "fragment_id": "vertex-pixel-query",
+  "fragment_sha256": "2e7d446550d98de6f72f86a85908a0e2c3f31649ee4d7a8206b6298eba63def8",
+  "kind": "webboxvm-opengl46-chapter-local-anchor-fragment",
+  "profile": "opengl-4.6-core",
+  "schema": 1
+}

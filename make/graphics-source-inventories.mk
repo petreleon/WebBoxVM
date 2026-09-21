@@ -4,9 +4,12 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-opengl-limit-format-raw-inventory-test \
 	graphics-opengl-unadmitted-ledger-test \
 	graphics-opengl-command-domain-classification-test \
+	graphics-opengl-declaration-grammar-test \
 	graphics-opengl-final-table-anchor-catalog-test \
+	graphics-opengl-chapter-local-anchor-manifest-test \
 	graphics-gles-normative-pdf-cache-test \
 	graphics-gles-command-domain-classification-test \
+	graphics-gles-declaration-grammar-test \
 	graphics-gles-limit-format-raw-inventory-test \
 	graphics-vulkan-raw-docs-citations-test \
 	graphics-vulkan-no-claim-provenance-receipt-test
@@ -28,8 +31,14 @@ graphics-opengl-unadmitted-ledger-test:
 graphics-opengl-command-domain-classification-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/01-command-domain-classification/opengl_command_domain_classification_test.py
 
+graphics-opengl-declaration-grammar-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/02-command-object-state-inventory/05-remaining-command-object-vocabulary/02-template-declaration-grammar/opengl_declaration_grammar_test.py
+
 graphics-opengl-final-table-anchor-catalog-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/03-limit-format-shader-inventory/04-remaining-core-limit-format-families/01-anchor-classification/01-final-table-anchors/opengl_final_table_anchor_catalog_test.py
+
+graphics-opengl-chapter-local-anchor-manifest-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/03-limit-format-shader-inventory/04-remaining-core-limit-format-families/01-anchor-classification/02-chapter-local-anchor-manifest/opengl_chapter_local_anchor_manifest_test.py
 
 graphics-gles-normative-pdf-cache-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/01-normative-pdf-cache/gles_normative_pdf_cache_test.py
@@ -37,6 +46,9 @@ graphics-gles-normative-pdf-cache-test:
 graphics-gles-command-domain-classification-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/01-command-domain-classification/gles_command_domain_classification_test.py
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/01-command-domain-classification/gles_command_domain_crosschecks_test.py
+
+graphics-gles-declaration-grammar-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/02-template-declaration-grammar/gles_declaration_grammar_test.py
 
 graphics-gles-limit-format-raw-inventory-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/03-limit-format-raw-inventory/gles_limit_format_raw_inventory_test.py
