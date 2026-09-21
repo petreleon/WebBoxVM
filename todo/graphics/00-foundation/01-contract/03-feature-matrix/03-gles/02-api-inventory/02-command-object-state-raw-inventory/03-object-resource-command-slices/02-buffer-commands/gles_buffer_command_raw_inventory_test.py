@@ -59,7 +59,7 @@ class BufferCommandRawInventoryTests(unittest.TestCase):
         declarations[0] = (*declarations[0][:3], "void GenBuffersBogus( sizei n, uint *buffers );")
         with patch.object(MAP.CATALOG, "DECLARATIONS", tuple(declarations)), self.assertRaises(MAP.InventoryError):
             MAP.rendered(self.live())
-        for changed in (tuple(declarations[:-1]), tuple(reversed(MAP.CATALOG.DECLARATIONS))):
+        for changed in (tuple(MAP.CATALOG.DECLARATIONS[:-1]), tuple(reversed(MAP.CATALOG.DECLARATIONS))):
             with patch.object(MAP.CATALOG, "DECLARATIONS", changed), patch.object(MAP.CATALOG, "SEALED_DECLARATIONS_SHA256", MAP.CATALOG.declaration_sha256(changed)), self.assertRaises(MAP.InventoryError):
                 MAP.rendered(self.live())
 
