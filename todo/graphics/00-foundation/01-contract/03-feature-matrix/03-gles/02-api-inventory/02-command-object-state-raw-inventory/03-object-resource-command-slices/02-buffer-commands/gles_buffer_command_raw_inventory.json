@@ -1,0 +1,116 @@
+{
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "domain_classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "domain_families": [
+    {"id":"buffer","source_order":14}
+  ],
+  "grammar_sha256": "7de694c6169331689f8ea48127cfbc80b5dbc96fc8c74e10332267503ee711cf",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "7f68a5caeb69d64d0fbf503c2deb5f0390091b8673aac591c844905fa34119c1",
+  "kind": "webboxvm-gles32-buffer-command-raw-inventory",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_entries": [
+    {
+      "c_name": "glGenBuffers", "declaration": "void GenBuffers( sizei n, uint *buffers );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 68,
+      "raw_id": "gles32-buffer-command-01", "section": "6", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=68;section=6", "source_order": 1, "unprefixed_name": "GenBuffers"
+    },
+    {
+      "c_name": "glDeleteBuffers", "declaration": "void DeleteBuffers( sizei n, const uint *buffers );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 68,
+      "raw_id": "gles32-buffer-command-02", "section": "6", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=68;section=6", "source_order": 2, "unprefixed_name": "DeleteBuffers"
+    },
+    {
+      "c_name": "glIsBuffer", "declaration": "boolean IsBuffer( uint buffer );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 69,
+      "raw_id": "gles32-buffer-command-03", "section": "6", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=69;section=6", "source_order": 3, "unprefixed_name": "IsBuffer"
+    },
+    {
+      "c_name": "glBindBuffer", "declaration": "void BindBuffer( enum target, uint buffer );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 69,
+      "raw_id": "gles32-buffer-command-04", "section": "6.1", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=69;section=6.1", "source_order": 4, "unprefixed_name": "BindBuffer"
+    },
+    {
+      "c_name": "glBindBufferRange", "declaration": "void BindBufferRange( enum target, uint index, uint buffer, intptr offset, sizeiptr size );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 71,
+      "raw_id": "gles32-buffer-command-05", "section": "6.1.1", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=71;section=6.1.1", "source_order": 5, "unprefixed_name": "BindBufferRange"
+    },
+    {
+      "c_name": "glBindBufferBase", "declaration": "void BindBufferBase( enum target, uint index, uint buffer );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 71,
+      "raw_id": "gles32-buffer-command-06", "section": "6.1.1", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=71;section=6.1.1", "source_order": 6, "unprefixed_name": "BindBufferBase"
+    },
+    {
+      "c_name": "glBufferData", "declaration": "void BufferData( enum target, sizeiptr size, const void *data, enum usage );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 72,
+      "raw_id": "gles32-buffer-command-07", "section": "6.2", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=72;section=6.2", "source_order": 7, "unprefixed_name": "BufferData"
+    },
+    {
+      "c_name": "glBufferSubData", "declaration": "void BufferSubData( enum target, intptr offset, sizeiptr size, const void *data );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 74,
+      "raw_id": "gles32-buffer-command-08", "section": "6.2", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=74;section=6.2", "source_order": 8, "unprefixed_name": "BufferSubData"
+    },
+    {
+      "c_name": "glMapBufferRange", "declaration": "void *MapBufferRange( enum target, intptr offset, sizeiptr length, bitfield access );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 75,
+      "raw_id": "gles32-buffer-command-09", "section": "6.3", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=75;section=6.3", "source_order": 9, "unprefixed_name": "MapBufferRange"
+    },
+    {
+      "c_name": "glFlushMappedBufferRange", "declaration": "void FlushMappedBufferRange( enum target, intptr offset, sizeiptr length );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 77,
+      "raw_id": "gles32-buffer-command-10", "section": "6.3", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=77;section=6.3", "source_order": 10, "unprefixed_name": "FlushMappedBufferRange"
+    },
+    {
+      "c_name": "glUnmapBuffer", "declaration": "boolean UnmapBuffer( enum target );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 78,
+      "raw_id": "gles32-buffer-command-11", "section": "6.3.1", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=78;section=6.3.1", "source_order": 11, "unprefixed_name": "UnmapBuffer"
+    },
+    {
+      "c_name": "glCopyBufferSubData", "declaration": "void CopyBufferSubData( enum readtarget, enum writetarget, intptr readoffset, intptr writeoffset, sizeiptr size );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 79,
+      "raw_id": "gles32-buffer-command-12", "section": "6.5", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=79;section=6.5", "source_order": 12, "unprefixed_name": "CopyBufferSubData"
+    },
+    {
+      "c_name": "glGetBufferParameteriv", "declaration": "void GetBufferParameteriv( enum target, enum pname, int *data );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 80,
+      "raw_id": "gles32-buffer-command-13", "section": "6.6", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=80;section=6.6", "source_order": 13, "unprefixed_name": "GetBufferParameteriv"
+    },
+    {
+      "c_name": "glGetBufferParameteri64v", "declaration": "void GetBufferParameteri64v( enum target, enum pname, int64 *data );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 80,
+      "raw_id": "gles32-buffer-command-14", "section": "6.6", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=80;section=6.6", "source_order": 14, "unprefixed_name": "GetBufferParameteri64v"
+    },
+    {
+      "c_name": "glGetBufferPointerv", "declaration": "void GetBufferPointerv( enum target, enum pname, void **params );",
+      "derivation_class": "literal", "family_id": "buffer", "physical_page": 80,
+      "raw_id": "gles32-buffer-command-15", "section": "6.6", "source_family_order": 14,
+      "source_locator": "gles32-pdf-v1:page=80;section=6.6", "source_order": 15, "unprefixed_name": "GetBufferPointerv"
+    }
+  ],
+  "raw_entries_sha256": "a7dfa0193404298ca1b6ff23079dca8f3f917283da079565de8b05db239dd4af",
+  "raw_entry_count": 15,
+  "raw_only": true,
+  "schema": 1,
+  "scope_fence": "formal-declaration-only",
+  "source": {"bytes":2198754,"profile":"gles-3.2","record_id":"gles-32-spec","record_kind":"upstream-source","revision":"1cdd228e34966dd6b95bd203e9f84faba0f371a1","role":"normative-root","scope":"normative-source","sha256":"5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"},
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_decision": {"availability":"available","blocker":"","decision":"derivable","id":"command-state","permitted_extraction_scope":"GLES 3.2 core commands and state","source_locator_syntax":"gles32-pdf-v1:page=<positive-decimal>;section=<section-path>","source_role":"normative-root"}
+}
