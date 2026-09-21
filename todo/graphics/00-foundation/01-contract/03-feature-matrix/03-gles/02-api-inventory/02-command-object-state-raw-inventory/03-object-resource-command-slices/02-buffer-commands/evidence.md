@@ -40,6 +40,13 @@ buffer declarations; source-only`. Full `make test` passed, including 1,127 Rust
 unit tests and 338 web tests. Source limits passed 6/6; diff and roadmap checks
 passed.
 
+Regression-test supplement: `53f92c1d193f8d93608e2aea78b7ca67eecdd5de`,
+parent `74fda400ecf27884e6acf2309df1a546e2df8916`; patch SHA-256
+`eef0d24b4f291dcf3b785e896de632c703321c0c0622ea42290bd0f7d77c9588`.
+It makes the omitted-valid-list case independent of the preceding bogus-name
+case. The focused test remained 7/7; the full local suite again passed 1,127
+Rust tests (3 ignored), 338 web tests, source limits 6/6, diff, and roadmap.
+
 Negative checks reject altered/omitted/reordered literals even when resealed, a
 real cross-family `GenQueries` declaration, both p.69 section relabels, domain
 anchor drift, cache or private-loader substitution, stale/duplicate/symlinked
@@ -49,8 +56,8 @@ Decision and limits: this creates no API support, buffer behavior, binding,
 mapping, lifetime, data-store, visibility, guest/browser, conformance,
 certification, or performance claim. It has no Matrix or CTS execution.
 
-Commit/push verification: `c83c95f0` was pushed to
-`origin/codex/graphics-f01-baseline`; remote SHA matched. `gh run list --commit
-c83c95f0 --limit 10` returned no runs.
+Commit/push verification: `c83c95f0` and `53f92c1d` were pushed to
+`origin/codex/graphics-f01-baseline`; each remote SHA matched. `gh run list
+--commit` for each revision returned no runs.
 
 Next ready task: F03.3.2.2.3.3.
