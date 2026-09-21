@@ -9,7 +9,7 @@ Evidence: pending
 ## Outcome
 
 A bounded raw inventory expands only the source-bound scalar/vector `ProgramUniform` templates in section 7.6.1.
-Program state, uniform values, types, precision, storage, layout, and ESSL semantics stay out of command facts.
+Semantic details about program state, uniform values, types, precision, storage, layout, and ESSL stay out of command facts.
 
 ## Starting points
 
@@ -21,7 +21,7 @@ Program state, uniform values, types, precision, storage, layout, and ESSL seman
 
 - [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
 - [ ] Expand assigned formal templates with physical page, section, and source-order anchors only.
-- [ ] Route values, types, state, precision, storage, layout, and ESSL semantics out of command facts.
+- [ ] Route semantic value, type, state, precision, storage, layout, and ESSL facts out while retaining only formal templates.
 - [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
