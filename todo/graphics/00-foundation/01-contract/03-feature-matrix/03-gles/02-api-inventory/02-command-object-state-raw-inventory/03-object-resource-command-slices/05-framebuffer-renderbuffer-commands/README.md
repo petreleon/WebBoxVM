@@ -19,7 +19,7 @@ completeness, conversion, and format behavior remain outside this declaration-on
 
 ## Checklist
 
-- [ ] [F03.3.2.2.3.5.1 — Framebuffer object lifecycle, parameters, and queries](01-framebuffer-object-parameter-query-commands/README.md)
+- [x] [F03.3.2.2.3.5.1 — Framebuffer object lifecycle, parameters, and queries](01-framebuffer-object-parameter-query-commands/README.md)
 - [ ] [F03.3.2.2.3.5.2 — Renderbuffer lifecycle, storage, and queries](02-renderbuffer-object-storage-query-commands/README.md)
 - [ ] [F03.3.2.2.3.5.3 — Framebuffer attachment and status commands](03-framebuffer-attachment-status-commands/README.md)
 
