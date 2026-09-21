@@ -4,7 +4,7 @@
 
 Task: F03.2.2.5.3.1
 Depends: F03.2.1, F03.2.2.1, F03.2.2.2, F03.2.2.5.2
-Evidence: pending
+Evidence: [evidence](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ anchored in §§2.6.1 and 4.1–4.3 (physical pages 50–51 and 58–73), exclud
 
 ## Checklist
 
-- [ ] Bind the exact cache, classifier, grammar, and direct-creation baseline identities.
-- [ ] Extract only formal declarations in the assigned sections with physical-page and source-order anchors.
-- [ ] Keep object-specific query declarations distinct from returned state and route the latter to F03.2.2.3.
-- [ ] Reject duplicate baseline facts, guessed templates, extensions, compatibility, registry, and lower-profile sources.
-- [ ] Self-hash the bounded raw artifact; retain zero Matrix/CTS/claim fields and attach a receipt.
+- [x] Bind the exact cache, classifier, grammar, and direct-creation baseline identities.
+- [x] Extract only formal declarations in the assigned sections with physical-page and source-order anchors.
+- [x] Keep object-specific query declarations distinct from returned state and route the latter to F03.2.2.3.
+- [x] Reject duplicate baseline facts, guessed templates, extensions, compatibility, registry, and lower-profile sources.
+- [x] Self-hash the bounded raw artifact; retain zero Matrix/CTS/claim fields and attach a receipt.
 
 ## Verification
 

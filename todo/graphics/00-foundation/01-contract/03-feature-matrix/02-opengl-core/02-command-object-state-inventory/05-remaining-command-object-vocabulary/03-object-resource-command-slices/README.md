@@ -19,7 +19,7 @@ slices. State transitions and shader-language semantics remain outside these dec
 
 ## Checklist
 
-- [ ] [F03.2.2.5.3.1 — Generic object and synchronization command declarations](01-generic-object-sync/README.md)
+- [x] [F03.2.2.5.3.1 — Generic object and synchronization command declarations](01-generic-object-sync/README.md)
 - [ ] [F03.2.2.5.3.2 — Buffer command declarations](02-buffer-commands/README.md)
 - [ ] [F03.2.2.5.3.3 — Program and pipeline command declarations](03-program-pipeline-commands/README.md)
 - [ ] [F03.2.2.5.3.4 — Texture and sampler command declarations](04-texture-sampler-commands/README.md)

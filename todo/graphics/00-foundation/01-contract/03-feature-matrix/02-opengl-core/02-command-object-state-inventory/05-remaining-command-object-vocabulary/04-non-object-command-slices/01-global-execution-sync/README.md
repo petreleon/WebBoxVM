@@ -4,7 +4,7 @@
 
 Task: F03.2.2.5.4.1
 Depends: F03.2.1, F03.2.2.1, F03.2.2.5.1, F03.2.2.5.2
-Evidence: pending
+Evidence: [evidence](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ Global execution and synchronization command declarations from §§2.3.1–2.3.3
 
 ## Checklist
 
-- [ ] Bind the exact cache, classifier, and declaration grammar.
-- [ ] Extract only assigned formal declarations with page, section, and source-order anchors.
-- [ ] Keep ordering, visibility, state, and synchronization behavior out of this declaration inventory.
-- [ ] Reject registry, extension, compatibility, lower-profile, guessed-template, and unanchored sources.
-- [ ] Self-hash the raw artifact; retain zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind the exact cache, classifier, and declaration grammar.
+- [x] Extract only assigned formal declarations with page, section, and source-order anchors.
+- [x] Keep ordering, visibility, state, and synchronization behavior out of this declaration inventory.
+- [x] Reject registry, extension, compatibility, lower-profile, guessed-template, and unanchored sources.
+- [x] Self-hash the raw artifact; retain zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
