@@ -9,6 +9,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-opengl-global-execution-sync-test \
 	graphics-opengl-final-table-anchor-catalog-test \
 	graphics-opengl-chapter-local-anchor-manifest-test \
+	graphics-opengl-aggregate-anchor-classification-test \
 	graphics-gles-normative-pdf-cache-test \
 	graphics-gles-command-domain-classification-test \
 	graphics-gles-declaration-grammar-test \
@@ -48,6 +49,9 @@ graphics-opengl-final-table-anchor-catalog-test:
 
 graphics-opengl-chapter-local-anchor-manifest-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/03-limit-format-shader-inventory/04-remaining-core-limit-format-families/01-anchor-classification/02-chapter-local-anchor-manifest/opengl_chapter_local_anchor_manifest_test.py
+
+graphics-opengl-aggregate-anchor-classification-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/02-opengl-core/03-limit-format-shader-inventory/04-remaining-core-limit-format-families/01-anchor-classification/03-aggregate-anchor-classification/opengl_closed_anchor_classification_test.py
 
 graphics-gles-normative-pdf-cache-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/01-normative-pdf-cache/gles_normative_pdf_cache_test.py
