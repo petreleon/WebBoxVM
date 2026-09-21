@@ -41,4 +41,8 @@ selection, coverage inference, and CTS execution are forbidden.
 - `cargo test -p emulator --test source_file_limits --quiet`, `git diff --check`, and
   `PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_graphics_roadmap.py` — PASS.
 
+Commit/push verification: the implementation was pushed as
+`4cedc1e530de3b212ff4a1d651fbd67094eef6ed`; `git ls-remote --heads origin
+codex/graphics-f01-baseline` matched that revision.
+
 No guest image, Vulkan CTS binary, browser session, native comparison, or performance protocol ran.

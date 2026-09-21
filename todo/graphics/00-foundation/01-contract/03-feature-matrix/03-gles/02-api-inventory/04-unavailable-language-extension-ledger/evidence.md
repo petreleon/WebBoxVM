@@ -31,3 +31,7 @@ or performance result was produced.
 - `cargo test -p emulator --test source_file_limits --quiet` — 6 tests passed.
 - `make test` — passed: graphics checks, 1,127 Rust tests (3 ignored), and 338 Node tests.
 - `git diff --check` and the graphics-roadmap checker passed before this receipt update.
+
+Commit/push verification: the implementation was pushed as
+`4cedc1e530de3b212ff4a1d651fbd67094eef6ed`; `git ls-remote --heads origin
+codex/graphics-f01-baseline` matched that revision.

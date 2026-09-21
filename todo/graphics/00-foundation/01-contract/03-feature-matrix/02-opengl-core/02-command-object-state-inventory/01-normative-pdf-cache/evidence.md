@@ -42,5 +42,7 @@ all qualification claims are false, CTS executions and matrix rows are zero, and
 
 `pdfinfo version 26.02.0` was the local page-count route. No guest image, browser session, renderer,
 OpenGL call, CTS case, source extraction, owner mapping, matrix import, conformance/certification claim,
-or performance measurement ran. No commit or push was requested. F03.2.2.2 may consume only this
-verified raw byte source and remains unable to add a matrix row.
+or performance measurement ran. Commit/push verification: the implementation was pushed as
+`4cedc1e530de3b212ff4a1d651fbd67094eef6ed`; `git ls-remote --heads origin
+codex/graphics-f01-baseline` matched that revision. F03.2.2.2 may consume only this verified raw byte
+source and remains unable to add a matrix row.
