@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.4.1
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ templates from sections 8.1–8.2. Parameter values, object state, sampling, and
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, texture/sampler domains, grammar, and unavailable-ledger identities.
-- [ ] Extract p.157–161 object literals and only the three p.160 sampler-parameter templates.
-- [ ] Preserve formal source locations and expansion order while routing values, state, sampling, and lifetime out.
-- [ ] Reject sampler queries, texture-unit state, extensions, registry data, guessed templates, and ESSL imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, texture/sampler domains, grammar, and unavailable-ledger identities.
+- [x] Extract p.157–161 object literals and only the three p.160 sampler-parameter templates.
+- [x] Preserve formal source locations and expansion order while routing values, state, sampling, and lifetime out.
+- [x] Reject sampler queries, texture-unit state, extensions, registry data, guessed templates, and ESSL imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
