@@ -19,7 +19,7 @@ vocabulary in source order. It is source data, not an implementation-owner or Ma
 
 ## Checklist
 
-- [ ] [F03.3.2.2.1 — Classify the command/state domain](01-command-domain-classification/README.md)
+- [x] [F03.3.2.2.1 — Classify the command/state domain](01-command-domain-classification/README.md)
 - [ ] [F03.3.2.2.2 — Normalize literal and templated declarations](02-template-declaration-grammar/README.md)
 - [ ] [F03.3.2.2.3 — Extract object and resource command slices](03-object-resource-command-slices/README.md)
 - [ ] [F03.3.2.2.4 — Extract state and execution command slices](04-state-execution-command-slices/README.md)

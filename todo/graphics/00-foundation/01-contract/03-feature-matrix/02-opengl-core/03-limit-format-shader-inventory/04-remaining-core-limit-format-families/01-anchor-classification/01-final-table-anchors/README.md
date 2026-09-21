@@ -4,7 +4,7 @@
 
 Task: F03.2.3.4.1.1
 Depends: F03.2.1, F03.2.2.1, F03.2.3.1, F03.2.3.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ It does not presume a source class from the title of a table.
 
 ## Checklist
 
-- [ ] Bind the sealed cache, authority, reviewed artifact, and unavailable-source ledger identities.
-- [ ] Catalog rows/columns in 23.56–23.70 (physical pages 660–674) and 23.72–23.74 (676–678).
-- [ ] Assign exactly one fixed route and explicit reason to every candidate; reject table-title inference.
-- [ ] Preserve page, numeric section, table/row/column anchor, source order, and no catch-all route.
-- [ ] Reject missing, duplicate, reordered, stale, cross-profile, or promoted catalog entries.
-- [ ] Self-hash the raw classification with zero Matrix rows, CTS runs, and claims; attach a receipt.
+- [x] Bind the sealed cache, authority, reviewed artifact, and unavailable-source ledger identities.
+- [x] Catalog rows/columns in 23.56–23.70 (physical pages 660–674) and 23.72–23.74 (676–678).
+- [x] Assign exactly one fixed route and explicit reason to every candidate; reject table-title inference.
+- [x] Preserve page, numeric section, table/row/column anchor, source order, and no catch-all route.
+- [x] Reject missing, duplicate, reordered, stale, cross-profile, or promoted catalog entries.
+- [x] Self-hash the raw classification with zero Matrix rows, CTS runs, and claims; attach a receipt.
 
 ## Verification
 

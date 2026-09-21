@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.1
 Depends: F03.3.2.1
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ explicit exclusion.
 
 ## Checklist
 
-- [ ] Bind the exact authority, cache, source identity, page count, and `command-state` decision.
-- [ ] Classify each source family once, including command syntax, object taxonomy, lifecycle, commands, and state tables.
-- [ ] Use the physical PDF index only to find omissions; future facts require formal declaration or table anchors.
-- [ ] Preserve fixed routes for limit/format, unavailable ESSL semantics, extensions, lower profiles, and desktop GL.
-- [ ] Reject missing, duplicate, reordered, overlapping, wildcard, or catch-all classifications.
-- [ ] Self-hash the raw map with zero Matrix rows, CTS runs, ownership, support, or performance claims.
+- [x] Bind the exact authority, cache, source identity, page count, and `command-state` decision.
+- [x] Classify each source family once, including command syntax, object taxonomy, lifecycle, commands, and state tables.
+- [x] Use the physical PDF index only to find omissions; future facts require formal declaration or table anchors.
+- [x] Preserve fixed routes for limit/format, unavailable ESSL semantics, extensions, lower profiles, and desktop GL.
+- [x] Reject missing, duplicate, reordered, overlapping, wildcard, or catch-all classifications.
+- [x] Self-hash the raw map with zero Matrix rows, CTS runs, ownership, support, or performance claims.
 
 ## Verification
 
