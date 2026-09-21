@@ -20,7 +20,7 @@ the raw handoff can complete.
 
 ## Checklist
 
-- [ ] [F03.2.3.4.1 — Classify remaining anchors](01-anchor-classification/README.md)
+- [x] [F03.2.3.4.1 — Classify remaining anchors](01-anchor-classification/README.md)
 - [ ] [F03.2.3.4.2 — Extract non-shader core limits](02-nonshader-core-limits/README.md)
 - [ ] [F03.2.3.4.3 — Classify shader and program limit rows](03-shader-program-limit-classification/README.md)
 - [ ] [F03.2.3.4.4 — Review texture and image format families](04-texture-image-format-families/README.md)

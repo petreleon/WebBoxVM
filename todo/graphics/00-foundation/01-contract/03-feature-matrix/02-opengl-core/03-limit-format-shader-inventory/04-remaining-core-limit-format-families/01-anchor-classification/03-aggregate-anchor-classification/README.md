@@ -4,7 +4,7 @@
 
 Task: F03.2.3.4.1.3
 Depends: F03.2.3.4.1.1, F03.2.3.4.1.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -20,12 +20,12 @@ exactly one route: `covered`, `eligible-unreviewed`, `route-to-state`, `shader-u
 
 ## Checklist
 
-- [ ] Require exact child receipts, profile, cache, authority, reviewed-artifact, and ledger identities.
-- [ ] Bind every child candidate once with its immutable source locator and one fixed route/reason.
-- [ ] Route coverage to F03.2.3.4.2–F03.2.3.4.5 or an explicit non-admitted/state boundary.
-- [ ] Reject gaps, duplicates, overlaps, reordering, catch-all labels, stale child hashes, and promotions.
-- [ ] Keep all rows raw-only with zero Matrix rows, CTS runs, ownership, support, or performance fields.
-- [ ] Attach the aggregate receipt; only it may close F03.2.3.4.1.
+- [x] Require exact child receipts, profile, cache, authority, reviewed-artifact, and ledger identities.
+- [x] Bind every child candidate once with its immutable source locator and one fixed route/reason.
+- [x] Route coverage to F03.2.3.4.2–F03.2.3.4.5 or an explicit non-admitted/state boundary.
+- [x] Reject gaps, duplicates, overlaps, reordering, catch-all labels, stale child hashes, and promotions.
+- [x] Keep all rows raw-only with zero Matrix rows, CTS runs, ownership, support, or performance fields.
+- [x] Attach the aggregate receipt; only it may close F03.2.3.4.1.
 
 ## Verification
 

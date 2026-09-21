@@ -4,7 +4,7 @@
 
 Task: F03.2.3.4.1
 Depends: F03.2.1, F03.2.2.1, F03.2.3.1, F03.2.3.2
-Evidence: pending
+Evidence: [aggregate receipt](03-aggregate-anchor-classification/evidence.md)
 
 ## Outcome
 
@@ -21,7 +21,7 @@ One self-hashed, closed classification catalog assigns every remaining candidate
 
 - [x] [F03.2.3.4.1.1 — Catalog final-table anchors](01-final-table-anchors/README.md)
 - [x] [F03.2.3.4.1.2 — Manifest chapter-local anchors](02-chapter-local-anchor-manifest/README.md)
-- [ ] [F03.2.3.4.1.3 — Aggregate the closed anchor classification](03-aggregate-anchor-classification/README.md)
+- [x] [F03.2.3.4.1.3 — Aggregate the closed anchor classification](03-aggregate-anchor-classification/README.md)
 
 ## Verification
 
