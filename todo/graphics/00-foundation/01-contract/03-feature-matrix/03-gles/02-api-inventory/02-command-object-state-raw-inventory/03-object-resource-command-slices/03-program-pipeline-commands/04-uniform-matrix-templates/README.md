@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.3.4
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ about matrix values, types, transpose behavior, storage, precision, layout, and 
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
-- [ ] Expand assigned formal templates with physical page, section, and source-order anchors only.
-- [ ] Route semantic value, type, transpose, storage, precision, layout, and ESSL facts out while retaining only formal templates.
-- [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, object-declaration domain, grammar, and unavailable-ledger identities.
+- [x] Expand assigned formal templates with physical page, section, and source-order anchors only.
+- [x] Route semantic value, type, transpose, storage, precision, layout, and ESSL facts out while retaining only formal templates.
+- [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 

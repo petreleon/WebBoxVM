@@ -22,7 +22,7 @@ per-file limit. ESSL semantics, precision, compilation behavior, binaries, and l
 - [x] [F03.3.2.2.3.3.1 — Shader, program, pipeline, and binary literals](01-shader-program-pipeline-binaries/README.md)
 - [x] [F03.3.2.2.3.3.2 — Uniform reflection and object queries](02-uniform-reflection-and-object-queries/README.md)
 - [x] [F03.3.2.2.3.3.3 — Uniform scalar/vector templates](03-uniform-scalar-vector-templates/README.md)
-- [ ] [F03.3.2.2.3.3.4 — Uniform matrix templates](04-uniform-matrix-templates/README.md)
+- [x] [F03.3.2.2.3.3.4 — Uniform matrix templates](04-uniform-matrix-templates/README.md)
 - [ ] [F03.3.2.2.3.3.5 — Program-uniform scalar/vector templates](05-program-uniform-scalar-vector-templates/README.md)
 - [ ] [F03.3.2.2.3.3.6 — Program-uniform matrix templates](06-program-uniform-matrix-templates/README.md)
 
