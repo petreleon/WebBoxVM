@@ -27,6 +27,7 @@ GRAPHICS_SOURCE_INVENTORY_TESTS := \
 	graphics-gles-texture-image-copy-subimage-test \
 	graphics-gles-texture-extended-command-test \
 	graphics-gles-texture-parameter-query-template-test \
+	graphics-gles-framebuffer-object-parameter-query-test \
 	graphics-gles-limit-format-raw-inventory-test \
 	graphics-vulkan-raw-docs-citations-test \
 	graphics-vulkan-no-claim-provenance-receipt-test
@@ -117,6 +118,9 @@ graphics-gles-texture-extended-command-test:
 
 graphics-gles-texture-parameter-query-template-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/04-texture-sampler-commands/04-texture-parameter-query-templates/gles_texture_parameter_query_template_inventory_test.py
+
+graphics-gles-framebuffer-object-parameter-query-test:
+	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/03-object-resource-command-slices/05-framebuffer-renderbuffer-commands/01-framebuffer-object-parameter-query-commands/gles_framebuffer_object_command_inventory_test.py
 
 graphics-gles-limit-format-raw-inventory-test:
 	PYTHONDONTWRITEBYTECODE=1 python3 todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/03-limit-format-raw-inventory/gles_limit_format_raw_inventory_test.py
