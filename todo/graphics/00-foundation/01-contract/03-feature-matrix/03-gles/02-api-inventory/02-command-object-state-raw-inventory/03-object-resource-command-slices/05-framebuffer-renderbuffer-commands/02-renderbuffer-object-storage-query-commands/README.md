@@ -4,12 +4,12 @@
 
 Task: F03.3.2.2.3.5.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [evidence](evidence.md)
 
 ## Outcome
 
 A bounded raw inventory covers only assigned renderbuffer lifecycle, storage, and query declarations on pp.252–256.
-Storage allocation, multisampling, formats, dimensions, contents, values, and attachment behavior stay out.
+Storage allocation behavior, multisampling behavior, formats, dimensions, contents, values, and attachment behavior stay out.
 
 ## Starting points
 
@@ -19,12 +19,12 @@ Storage allocation, multisampling, formats, dimensions, contents, values, and at
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, framebuffer/renderbuffer domain, grammar, and unavailable-ledger identities.
-- [ ] Extract only assigned renderbuffer bind/object/storage/query literals from pp.252–256.
-- [ ] Preserve source order, section boundaries, the p.256 boundary before §9.2.7, and the non-`void` `IsRenderbuffer` return form.
-- [ ] Route allocation, multisampling, formats, dimensions, contents, query values, attachments, and ESSL semantics out.
-- [ ] Reject framebuffer/attachment/status families, extensions, registry data, guessed declarations, and ESSL imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, framebuffer/renderbuffer domain, grammar, and unavailable-ledger identities.
+- [x] Extract only assigned renderbuffer bind/object/storage/query literals from pp.252–256.
+- [x] Preserve source order, section boundaries, the p.256 boundary before §9.2.7, and the non-`void` `IsRenderbuffer` return form.
+- [x] Route allocation, multisampling, formats, dimensions, contents, query values, attachments, and ESSL semantics out.
+- [x] Reject framebuffer/attachment/status families, extensions, registry data, guessed declarations, and ESSL imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
