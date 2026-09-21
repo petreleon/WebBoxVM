@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.4
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -22,7 +22,7 @@ formats, completeness, sampling behavior, pixel layout, and state to their dedic
 - [x] [F03.3.2.2.3.4.1 — Texture and sampler objects plus parameter templates](01-texture-sampler-objects-parameters/README.md)
 - [x] [F03.3.2.2.3.4.2 — Texture image, copy, and subimage commands](02-texture-image-copy-subimage-commands/README.md)
 - [x] [F03.3.2.2.3.4.3 — Compressed, storage, buffer, mipmap, and image commands](03-compressed-storage-buffer-mipmap-image-commands/README.md)
-- [ ] [F03.3.2.2.3.4.4 — Texture parameter and query templates](04-texture-parameter-query-templates/README.md)
+- [x] [F03.3.2.2.3.4.4 — Texture parameter and query templates](04-texture-parameter-query-templates/README.md)
 
 ## Verification
 

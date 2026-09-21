@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.4.4
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,11 @@ A bounded raw inventory expands only the assigned texture parameter and query te
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, texture domain, grammar, and unavailable-ledger identities.
-- [ ] Expand only the assigned p.206, p.209, and p.210 formal templates with source-order anchors.
-- [ ] Route parameter values, query results, types, texture state, levels, and ESSL semantics out of facts.
-- [ ] Reject sampler templates/queries, extensions, registry data, guessed templates, and ESSL-source imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, texture domain, grammar, and unavailable-ledger identities.
+- [x] Expand only the assigned p.206, p.209, and p.210 formal templates with source-order anchors.
+- [x] Route parameter values, query results, types, texture state, levels, and ESSL semantics out of facts.
+- [x] Reject sampler templates/queries, extensions, registry data, guessed templates, and ESSL-source imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
