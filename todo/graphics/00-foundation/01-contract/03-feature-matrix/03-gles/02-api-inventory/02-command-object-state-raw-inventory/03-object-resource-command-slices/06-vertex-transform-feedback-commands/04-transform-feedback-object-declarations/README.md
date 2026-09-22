@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.6.4
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ pp.354–356. Object effects, captured output, buffer behavior, and state stay o
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, transform-feedback family, route, and grammar identities.
-- [ ] Extract only assigned §12.2.1 generation, deletion, query, and binding literals.
-- [ ] Preserve pp.354–356, section headings, source order, and the `boolean` return form.
-- [ ] Route object effects, buffers, capture, primitive processing, state, and ESSL semantics out.
-- [ ] Reject vertex-array, program varying, capture-control, draw, extensions, and registry data.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, transform-feedback family, route, and grammar identities.
+- [x] Extract only assigned §12.2.1 generation, deletion, query, and binding literals.
+- [x] Preserve pp.354–356, section headings, source order, and the `boolean` return form.
+- [x] Route object effects, buffers, capture, primitive processing, state, and ESSL semantics out.
+- [x] Reject vertex-array, program varying, capture-control, draw, extensions, and registry data.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 
