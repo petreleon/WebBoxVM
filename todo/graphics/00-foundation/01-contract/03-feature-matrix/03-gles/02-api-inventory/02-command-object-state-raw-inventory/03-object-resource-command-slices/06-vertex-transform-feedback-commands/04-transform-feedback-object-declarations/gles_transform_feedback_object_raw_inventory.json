@@ -1,0 +1,74 @@
+{
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "domain_classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "domain_families": [
+    {
+      "id": "transform-feedback",
+      "source_order": 26
+    }
+  ],
+  "grammar_sha256": "7de694c6169331689f8ea48127cfbc80b5dbc96fc8c74e10332267503ee711cf",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "e0e7b5576be6ded9c112d71b3c137bb0e6c3a706c004fdfbe80b454ed55e6347",
+  "kind": "webboxvm-gles32-transform-feedback-object-raw-inventory",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_entries": [
+    ["gles32-transform-feedback-object-01", "GenTransformFeedbacks", "glGenTransformFeedbacks",
+     "void GenTransformFeedbacks( sizei n, uint *ids );",
+     354, "12.2.1", 1],
+    ["gles32-transform-feedback-object-02", "DeleteTransformFeedbacks", "glDeleteTransformFeedbacks",
+     "void DeleteTransformFeedbacks( sizei n, const uint *ids );",
+     355, "12.2.1", 2],
+    ["gles32-transform-feedback-object-03", "IsTransformFeedback", "glIsTransformFeedback",
+     "boolean IsTransformFeedback( uint id );",
+     355, "12.2.1", 3],
+    ["gles32-transform-feedback-object-04", "BindTransformFeedback", "glBindTransformFeedback",
+     "void BindTransformFeedback( enum target, uint id );",
+     356, "12.2.1", 4]
+  ],
+  "raw_entries_sha256": "a5fa8bf34b1f561e795313203a420b189ef7e279e3ff0e58b79e24b6997e13e5",
+  "raw_entry_count": 4,
+  "raw_entry_defaults": {
+    "derivation_class": "literal",
+    "family_id": "transform-feedback",
+    "source_family_order": 26,
+    "source_locator_format": "gles32-pdf-v1:page={physical_page};section={section}"
+  },
+  "raw_entry_fields": [
+    "raw_id",
+    "unprefixed_name",
+    "c_name",
+    "declaration",
+    "physical_page",
+    "section",
+    "source_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "scope_fence": "transform-feedback-object-literals-only",
+  "source": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_decision": {
+    "availability": "available",
+    "blocker": "",
+    "decision": "derivable",
+    "id": "command-state",
+    "permitted_extraction_scope": "GLES 3.2 core commands and state",
+    "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+    "source_role": "normative-root"
+  },
+  "unavailable_ledger_sha256": "560de6a8c6d8102fe83e3009dd57b7558b0e86029f5e137cb8fe467f85677ea9"
+}
