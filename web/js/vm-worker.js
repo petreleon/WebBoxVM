@@ -1,5 +1,5 @@
-import { errorMessage } from "./vm-worker/errors.js?v=20260904-virgl-readback-pool-r1";
-import { handleMessage } from "./vm-worker/messages.js?v=20260904-virgl-readback-pool-r1";
+import { errorMessage } from "./vm-worker/errors.js?v=20260930-resident-lifetime-r1";
+import { handleMessage } from "./vm-worker/messages.js?v=20260930-resident-lifetime-r1";
 
 self.onmessage = (event) => {
   handleMessage(event.data).catch((error) => {

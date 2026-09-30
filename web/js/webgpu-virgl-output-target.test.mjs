@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
+import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260930-resident-lifetime-r1";
 
 function backend(device) { return { device, deviceGeneration: 1, format: "bgra8unorm" }; }
 function frame(sequence, width, height) { return { canvasHeight: height, canvasWidth: width, residentCandidate: true, sequence }; }

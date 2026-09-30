@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { tryRunCachedJitBlock } from "./jit-run.js?v=20260904-virgl-readback-pool-r1";
-import { resetJitState, state } from "./state.js?v=20260904-virgl-readback-pool-r1";
+import { tryRunCachedJitBlock } from "./jit-run.js?v=20260930-resident-lifetime-r1";
+import { resetJitState, state } from "./state.js?v=20260930-resident-lifetime-r1";
 
 afterEach(() => {
   resetJitState();

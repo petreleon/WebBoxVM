@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260904-virgl-readback-pool-r1";
+import { DEFAULT_VM_CORES, VmBooter, jitEnabledForBoot } from "./boot-vm.js?v=20260930-resident-lifetime-r1";
 
 test("browser boots default to two virtual CPUs", () => {
   assert.equal(DEFAULT_VM_CORES, 2);

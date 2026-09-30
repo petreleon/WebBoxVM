@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
-import { VmRunner } from "./runner.js?v=20260904-virgl-readback-pool-r1";
+import { VmRunner } from "./runner.js?v=20260930-resident-lifetime-r1";
 
 const previousDocument = globalThis.document;
 let fakeDocument;

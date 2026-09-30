@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260904-virgl-readback-pool-r1";
+import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260930-resident-lifetime-r1";
 
 test("VirGL texture snapshot cache requires byte-identical content", () => {
   const cache = new VirglTextureSnapshotCache(); const device = fakeDevice(); const retired = [];

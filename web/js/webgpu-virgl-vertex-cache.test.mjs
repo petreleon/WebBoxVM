@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260904-virgl-readback-pool-r1";
+import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260930-resident-lifetime-r1";
 
 test("VirGL vertex uploads require exact bytes and the current GPU buffer", () => {
   const cache = new VirglVertexUploadCache();

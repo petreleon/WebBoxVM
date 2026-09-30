@@ -1,5 +1,5 @@
-import { OpfsDiskStore } from "./persistence-store.js?v=20260904-virgl-readback-pool-r1";
-import { formatBytes } from "./utils.js?v=20260904-virgl-readback-pool-r1";
+import { OpfsDiskStore } from "./persistence-store.js?v=20260930-resident-lifetime-r1";
+import { formatBytes } from "./utils.js?v=20260930-resident-lifetime-r1";
 
 const AUTOSAVE_INTERVAL_MS = 600_000;
 

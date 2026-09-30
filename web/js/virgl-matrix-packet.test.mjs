@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractGpu3dSequence, parseGpu3dPacket } from "./gpu-3d-packet.js?v=20260904-virgl-readback-pool-r1";
-import { virglMatrixPacket, virglMatrixTextureMultiplyPacket, virglMatrixTexturePacket, virglMatrixVertexColorPacket } from "./gpu-test-virgl-matrix.mjs?v=20260904-virgl-readback-pool-r1";
+import { extractGpu3dSequence, parseGpu3dPacket } from "./gpu-3d-packet.js?v=20260930-resident-lifetime-r1";
+import { virglMatrixPacket, virglMatrixTextureMultiplyPacket, virglMatrixTexturePacket, virglMatrixVertexColorPacket } from "./gpu-test-virgl-matrix.mjs?v=20260930-resident-lifetime-r1";
 
 test("VirGL matrix envelope retains raw vertices and validates projected bounds", () => {
   const packet = virglMatrixPacket({ sequence: 91 }); const frame = parseGpu3dPacket(packet);

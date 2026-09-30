@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-readback-pool-r1";
-import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglMaterialBatchPacket } from "./gpu-test-virgl-material-batch.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-readback-pool-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260930-resident-lifetime-r1";
+import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { virglMaterialBatchPacket } from "./gpu-test-virgl-material-batch.mjs?v=20260930-resident-lifetime-r1";
+import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260930-resident-lifetime-r1";
 
 test("opaque solid batches retain and rekey their GPU target without a readback", async () => {
   const fresh = virglSolidBatchPacket({ drawCount: 1, sequence: 106, version: 14, writeMask: 15 });

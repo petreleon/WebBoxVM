@@ -1,5 +1,5 @@
-import { metrics } from "./lifecycle.js?v=20260904-virgl-readback-pool-r1";
-import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260904-virgl-readback-pool-r1";
+import { metrics } from "./lifecycle.js?v=20260930-resident-lifetime-r1";
+import { AUTOSAVE_INTERVAL_MS, AUTOSAVE_POLL_MS, METRICS_INTERVAL_MS, state } from "./state.js?v=20260930-resident-lifetime-r1";
 
 export function maybePostMetrics(now = performance.now(), emulator = state.emulator) {
   if (now - state.lastMetricsAt < METRICS_INTERVAL_MS) {

@@ -1,4 +1,4 @@
-import { initialMetrics } from "./channel-state.js?v=20260904-virgl-readback-pool-r1";
+import { initialMetrics } from "./channel-state.js?v=20260930-resident-lifetime-r1";
 
 export class WorkerChannel {
   #callbacks;

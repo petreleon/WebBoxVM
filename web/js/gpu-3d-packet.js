@@ -6,36 +6,36 @@ import {
   extractVirglClearSequence,
   isVirglClearPacket,
   parseVirglClearPacket,
-} from "./virgl-clear-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-clear-packet.js?v=20260930-resident-lifetime-r1";
 import {
   extractVirglDrawSequence,
   isVirglDrawPacket,
   parseVirglDrawPacket,
-} from "./virgl-draw-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-draw-packet.js?v=20260930-resident-lifetime-r1";
 import {
   extractVirglSolidBatchSequence,
   isVirglSolidBatchPacket,
   parseVirglSolidBatchPacket,
-} from "./virgl-solid-batch-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-solid-batch-packet.js?v=20260930-resident-lifetime-r1";
 import {
   extractVirglMaterialBatchSequence,
   isVirglMaterialBatchPacket,
   parseVirglMaterialBatchPacket,
-} from "./virgl-material-batch-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-material-batch-packet.js?v=20260930-resident-lifetime-r1";
 import {
   extractVirglResidentReadbackSequence,
   isVirglResidentReadbackPacket,
   parseVirglResidentReadbackPacket,
-} from "./virgl-resident-readback-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-resident-readback-packet.js?v=20260930-resident-lifetime-r1";
 import {
   extractVirglResidentCopySequence,
   isVirglResidentCopyPacket,
   parseVirglResidentCopyPacket,
-} from "./virgl-resident-copy-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-resident-copy-packet.js?v=20260930-resident-lifetime-r1";
 import {
   isVirglResidentReleasePacket,
   parseVirglResidentReleasePacket,
-} from "./virgl-resident-release-packet.js?v=20260904-virgl-readback-pool-r1";
+} from "./virgl-resident-release-packet.js?v=20260930-resident-lifetime-r1";
 
 const MAGIC = [0x57, 0x42, 0x47, 0x33]; // WBG3
 const MAX_DIMENSION = 8192;

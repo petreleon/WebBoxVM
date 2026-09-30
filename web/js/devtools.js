@@ -1,4 +1,4 @@
-import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260904-virgl-readback-pool-r1";
+import { DEFAULT_JIT_ENABLED } from "./vm-worker/state.js?v=20260930-resident-lifetime-r1";
 
 export function installWebboxVmDevtools(getEmulator, getRunner) {
   const bridge = installDomBridge(getEmulator);

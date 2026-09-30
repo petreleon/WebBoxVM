@@ -1,4 +1,4 @@
-import { state } from "./state.js?v=20260904-virgl-readback-pool-r1";
+import { state } from "./state.js?v=20260930-resident-lifetime-r1";
 
 const MAX_REJECT_LOG = 16;
 

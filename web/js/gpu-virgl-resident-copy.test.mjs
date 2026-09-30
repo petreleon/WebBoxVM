@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, extractGpu3dSequence, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-readback-pool-r1";
-import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglResidentCopyPacket } from "./gpu-test-virgl-resident-copy.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglResidentReleasePacket } from "./gpu-test-virgl-resident-release.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260904-virgl-readback-pool-r1";
+import { GuestDisplay, extractGpu3dSequence, parseGpu3dPacket } from "./gpu-display.js?v=20260930-resident-lifetime-r1";
+import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { virglResidentCopyPacket } from "./gpu-test-virgl-resident-copy.mjs?v=20260930-resident-lifetime-r1";
+import { virglResidentReleasePacket } from "./gpu-test-virgl-resident-release.mjs?v=20260930-resident-lifetime-r1";
+import { virglSolidBatchPacket } from "./gpu-test-virgl-solid-batch.mjs?v=20260930-resident-lifetime-r1";
 
 test("VirGL resident-copy packets require a bounded VRC1 envelope", () => {
   const packet = virglResidentCopyPacket({ producerSequence: 54, sequence: 55 });

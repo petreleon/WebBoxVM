@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fakeCanvas, fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglMatrixTextureMultiplyPacket } from "./gpu-test-virgl-matrix.mjs?v=20260904-virgl-readback-pool-r1";
-import { parseGpu3dPacket } from "./gpu-3d-packet.js?v=20260904-virgl-readback-pool-r1";
-import { VirglMatrixTextureMultiplyRenderer } from "./webgpu-virgl-matrix-texture-multiply.js?v=20260904-virgl-readback-pool-r1";
+import { fakeCanvas, fakeDevice } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { virglMatrixTextureMultiplyPacket } from "./gpu-test-virgl-matrix.mjs?v=20260930-resident-lifetime-r1";
+import { parseGpu3dPacket } from "./gpu-3d-packet.js?v=20260930-resident-lifetime-r1";
+import { VirglMatrixTextureMultiplyRenderer } from "./webgpu-virgl-matrix-texture-multiply.js?v=20260930-resident-lifetime-r1";
 
 const current = () => true;
 const frame = (options) => parseGpu3dPacket(virglMatrixTextureMultiplyPacket(options));

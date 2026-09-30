@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay } from "./gpu-display.js?v=20260904-virgl-readback-pool-r1";
-import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglMatrixTextureMultiplyPacket } from "./gpu-test-virgl-matrix.mjs?v=20260904-virgl-readback-pool-r1";
+import { GuestDisplay } from "./gpu-display.js?v=20260930-resident-lifetime-r1";
+import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { virglMatrixTextureMultiplyPacket } from "./gpu-test-virgl-matrix.mjs?v=20260930-resident-lifetime-r1";
 
 test("standard VirGL matrix dual textures multiply after GPU DP4 position transforms", async () => {
   const device = fakeDevice(); const status = fakeStatus(); const matrix = [0.5, 0, 0, 0.25, 0, 0.5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];

@@ -1,4 +1,4 @@
-import { installTextProbe } from "./uart-probe.js?v=20260904-virgl-readback-pool-r1";
+import { installTextProbe } from "./uart-probe.js?v=20260930-resident-lifetime-r1";
 
 const RENDER_TAIL_LIMIT = 32768;
 

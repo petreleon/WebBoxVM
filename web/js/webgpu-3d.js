@@ -1,5 +1,5 @@
-import { VirglRouteDispatcher } from "./webgpu-3d-dispatch.js?v=20260904-virgl-readback-pool-r1";
-import { LegacyWbg3Renderer } from "./webgpu-3d-legacy.js?v=20260904-virgl-readback-pool-r1";
+import { VirglRouteDispatcher } from "./webgpu-3d-dispatch.js?v=20260930-resident-lifetime-r1";
+import { LegacyWbg3Renderer } from "./webgpu-3d-legacy.js?v=20260930-resident-lifetime-r1";
 
 /**
  * Public browser-platform facade for guest 3D packets.

@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
+import { fakeDevice } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
 import {
   READBACK_FORMAT_BGRA8,
   READBACK_FORMAT_RGBA8,
   canvasConfiguration,
   submitTextureReadback,
-} from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
+} from "./webgpu-readback.js?v=20260930-resident-lifetime-r1";
 
 test("canvas readback configuration keeps rendering and copy usage", () => {
   const config = canvasConfiguration({ kind: "device" }, "bgra8unorm");

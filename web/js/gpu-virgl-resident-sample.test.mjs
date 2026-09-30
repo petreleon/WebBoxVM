@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-readback-pool-r1";
-import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglMaterialBatchPacket } from "./gpu-test-virgl-material-batch.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglResidentReleasePacket } from "./gpu-test-virgl-resident-release.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglResidentSamplePacket } from "./gpu-test-virgl-resident-sample.mjs?v=20260904-virgl-readback-pool-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260930-resident-lifetime-r1";
+import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { virglMaterialBatchPacket } from "./gpu-test-virgl-material-batch.mjs?v=20260930-resident-lifetime-r1";
+import { virglResidentReleasePacket } from "./gpu-test-virgl-resident-release.mjs?v=20260930-resident-lifetime-r1";
+import { virglResidentSamplePacket } from "./gpu-test-virgl-resident-sample.mjs?v=20260930-resident-lifetime-r1";
 
 test("VirGL resident-sample packets validate a source producer without pixel payload", () => {
   const packet = virglResidentSamplePacket(); const frame = parseGpu3dPacket(packet);

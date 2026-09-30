@@ -1,11 +1,11 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
-import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
-import { virglColorTarget } from "./webgpu-virgl-color-target.js?v=20260904-virgl-readback-pool-r1";
-import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260904-virgl-readback-pool-r1";
-import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260904-virgl-readback-pool-r1";
-import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260904-virgl-readback-pool-r1";
-import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260904-virgl-readback-pool-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260930-resident-lifetime-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260930-resident-lifetime-r1";
+import { submitTextureReadback } from "./webgpu-readback.js?v=20260930-resident-lifetime-r1";
+import { virglColorTarget } from "./webgpu-virgl-color-target.js?v=20260930-resident-lifetime-r1";
+import { SOURCE_OVER, materialShader, materialTextures, materialVertexLayout } from "./webgpu-virgl-material-batch-shaders.js?v=20260930-resident-lifetime-r1";
+import { VirglTextureSnapshotCache } from "./webgpu-virgl-texture-cache.js?v=20260930-resident-lifetime-r1";
+import { VirglResidentOutputTargets } from "./webgpu-virgl-output-target.js?v=20260930-resident-lifetime-r1";
+import { VirglVertexUploadCache } from "./webgpu-virgl-vertex-cache.js?v=20260930-resident-lifetime-r1";
 
 export class VirglMaterialBatchRenderer {
   #bufferUsage; #depthTexture; #generation = 0; #height = 0; #pipelines = new Map(); #revision = 0;

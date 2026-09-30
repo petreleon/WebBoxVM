@@ -1,4 +1,4 @@
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260930-resident-lifetime-r1";
 
 export async function renderVirglClear(session, outputs, backend, frame, isCurrent) {
   const { device } = backend;

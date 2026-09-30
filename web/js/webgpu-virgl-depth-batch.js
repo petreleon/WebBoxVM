@@ -1,7 +1,7 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
-import { submitTextureReadback } from "./webgpu-readback.js?v=20260904-virgl-readback-pool-r1";
-import { virglColorTarget } from "./webgpu-virgl-color-target.js?v=20260904-virgl-readback-pool-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260930-resident-lifetime-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260930-resident-lifetime-r1";
+import { submitTextureReadback } from "./webgpu-readback.js?v=20260930-resident-lifetime-r1";
+import { virglColorTarget } from "./webgpu-virgl-color-target.js?v=20260930-resident-lifetime-r1";
 
 const SHADER = `
 struct Output { @builtin(position) position: vec4f, @location(0) color: vec4f }

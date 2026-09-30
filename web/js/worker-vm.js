@@ -1,7 +1,7 @@
-import { transferableBytes } from "./worker-vm/bytes.js?v=20260904-virgl-readback-pool-r1";
-import { versionedUrl } from "./asset-version.js?v=20260904-virgl-readback-pool-r1";
-import { WorkerChannel } from "./worker-vm/channel.js?v=20260904-virgl-readback-pool-r1";
-import { postGpu3dAck } from "./worker-vm/gpu3d-ack.js?v=20260904-virgl-readback-pool-r1";
+import { transferableBytes } from "./worker-vm/bytes.js?v=20260930-resident-lifetime-r1";
+import { versionedUrl } from "./asset-version.js?v=20260930-resident-lifetime-r1";
+import { WorkerChannel } from "./worker-vm/channel.js?v=20260930-resident-lifetime-r1";
+import { postGpu3dAck } from "./worker-vm/gpu3d-ack.js?v=20260930-resident-lifetime-r1";
 
 function versionedWorkerUrl() {
   return versionedUrl("./vm-worker.js", import.meta.url);

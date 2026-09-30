@@ -1,4 +1,4 @@
-import { transferableBytes } from "./bytes.js?v=20260904-virgl-readback-pool-r1";
+import { transferableBytes } from "./bytes.js?v=20260930-resident-lifetime-r1";
 
 export function postGpu3dAck(channel, sequence, success, readback, resident = false) {
   const payload = { sequence, success: Boolean(success) };

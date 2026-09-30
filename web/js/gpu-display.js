@@ -1,18 +1,19 @@
-import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260904-virgl-readback-pool-r1";
+import { CanvasScanoutRenderer } from "./canvas-scanout.js?v=20260930-resident-lifetime-r1";
 import {
   extractGpu3dSequence,
   parseGpu3dPacket,
-} from "./gpu-3d-packet.js?v=20260904-virgl-readback-pool-r1";
-import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260904-virgl-readback-pool-r1";
-import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
-import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260904-virgl-readback-pool-r1";
-import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260904-virgl-readback-pool-r1";
-import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260904-virgl-readback-pool-r1";
-import { WebGpuSession } from "./webgpu-session.js?v=20260904-virgl-readback-pool-r1";
+} from "./gpu-3d-packet.js?v=20260930-resident-lifetime-r1";
+import { GpuDisplayDiagnostics } from "./gpu-display-diagnostics.js?v=20260930-resident-lifetime-r1";
+import { executeGpu3dCommand } from "./gpu-display-3d-command.js?v=20260930-resident-lifetime-r1";
+import { parseGpuScanoutPacket } from "./gpu-scanout-packet.js?v=20260930-resident-lifetime-r1";
+import { GpuScanoutState } from "./gpu-scanout-state.js?v=20260930-resident-lifetime-r1";
+import { ExperimentalWebGpu3dRenderer } from "./webgpu-3d.js?v=20260930-resident-lifetime-r1";
+import { WebGpuScanoutRenderer } from "./webgpu-scanout.js?v=20260930-resident-lifetime-r1";
+import { WebGpuSession } from "./webgpu-session.js?v=20260930-resident-lifetime-r1";
 export { extractGpu3dSequence, parseGpu3dPacket }
-  from "./gpu-3d-packet.js?v=20260904-virgl-readback-pool-r1";
+  from "./gpu-3d-packet.js?v=20260930-resident-lifetime-r1";
 export { padBgraRows, paddedBytesPerRow, parseGpuScanoutPacket }
-  from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
+  from "./gpu-scanout-packet.js?v=20260930-resident-lifetime-r1";
 
 export class GuestDisplay {
   #canvas2d;
@@ -59,9 +60,9 @@ export class GuestDisplay {
       this.#diagnostics.error3d(error, "Invalid guest 3D frame");
       return Promise.resolve({ sequence: extractGpu3dSequence(packet), success: false });
     }
-    if (frame.protocol === "virgl-resident-release") { this.#gpu3d.release(frame); return Promise.resolve({}); }
-    this.#diagnostics.received3d(frame.sequence);
-    const presenting = !frame.offscreen; const claim = presenting ? ++this.#presentationClaim : this.#presentationClaim;
+    const control = frame.protocol === "virgl-resident-release";
+    if (!control) this.#diagnostics.received3d(frame.sequence);
+    const presenting = !control && !frame.offscreen; const claim = presenting ? ++this.#presentationClaim : this.#presentationClaim;
     if (presenting) this.#presentationMode = "guest-3d-pending";
     const epoch = this.#epoch;
     const previous = this.#gpu3dPromise ?? Promise.resolve();
@@ -144,15 +145,12 @@ export class GuestDisplay {
   }
 
   async #draw3d(frame, epoch) {
-    const backend = await this.#session.acquire();
-    if (epoch !== this.#epoch) return { sequence: frame.sequence, success: false };
-    if (!backend) throw new Error("Experimental guest 3D requires WebGPU; Canvas2D is 2D-only");
-    const rendered = await this.#gpu3d.render(backend, frame, () => epoch === this.#epoch);
-    if (!rendered || epoch !== this.#epoch) {
-      return { sequence: frame.sequence, success: false };
-    }
-    this.#diagnostics.drew3d(frame);
-    return { sequence: frame.sequence, success: true, ...(rendered.readback && { readback: rendered.readback }), ...(rendered.resident && { resident: true }) };
+    const result = await executeGpu3dCommand(
+      this.#gpu3d, frame, () => epoch === this.#epoch, () => this.#session.acquire(),
+    );
+    if (result.success && epoch !== this.#epoch) return { sequence: frame.sequence, success: false };
+    if (result.success) this.#diagnostics.drew3d(frame);
+    return result;
   }
 
   #settle3d(result, claim, presenting) {
@@ -170,6 +168,7 @@ export class GuestDisplay {
   #sessionChanged(info) {
     this.#diagnostics.sessionChanged(info);
     if (info.state !== "recovering") return;
+    this.#epoch += 1;
     this.#presentationClaim += 1;
     this.#presentationMode = "scanout";
     this.#scanout.invalidate();

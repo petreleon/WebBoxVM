@@ -3,9 +3,9 @@ import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260904-virgl-readback-pool-r1";
-import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260904-virgl-readback-pool-r1";
-import { virglMatrixPacket } from "./gpu-test-virgl-matrix.mjs?v=20260904-virgl-readback-pool-r1";
+import { GuestDisplay, parseGpu3dPacket } from "./gpu-display.js?v=20260930-resident-lifetime-r1";
+import { fakeAdapter, fakeCanvas, fakeDevice, fakeGpu, fakeStatus } from "./gpu-test-fakes.mjs?v=20260930-resident-lifetime-r1";
+import { virglMatrixPacket } from "./gpu-test-virgl-matrix.mjs?v=20260930-resident-lifetime-r1";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const RUST_TEST = "devices::virtio_gpu::tests::virgl_matrix_draw::vertex_dp4_matrix_transforms_standard_virgl_vertices";

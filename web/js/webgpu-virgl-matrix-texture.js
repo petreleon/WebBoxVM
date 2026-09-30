@@ -1,7 +1,7 @@
-import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260904-virgl-readback-pool-r1";
-import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260904-virgl-readback-pool-r1";
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
-import { copyTextureIfChanged } from "./webgpu-virgl-texture-upload.js?v=20260904-virgl-readback-pool-r1";
+import { defaultBufferUsage, ensureBuffer } from "./webgpu-3d-resources.js?v=20260930-resident-lifetime-r1";
+import { captureWebGpuErrors } from "./webgpu-errors.js?v=20260930-resident-lifetime-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260930-resident-lifetime-r1";
+import { copyTextureIfChanged } from "./webgpu-virgl-texture-upload.js?v=20260930-resident-lifetime-r1";
 
 const SHADER = `
 struct Scene { matrix: mat4x4<f32> }

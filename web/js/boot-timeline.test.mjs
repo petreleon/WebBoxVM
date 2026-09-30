@@ -4,7 +4,7 @@ import {
   UartBootTimeline,
   formatBootMilestone,
   formatBootPhase,
-} from "./boot-timeline.js?v=20260904-virgl-readback-pool-r1";
+} from "./boot-timeline.js?v=20260930-resident-lifetime-r1";
 
 test("installed boot timeline finds split CPU1 and login milestones once", () => {
   let now = 1000;

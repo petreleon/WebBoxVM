@@ -1,4 +1,4 @@
-import { padBgraRows } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
+import { padBgraRows } from "./gpu-scanout-packet.js?v=20260930-resident-lifetime-r1";
 
 const MAX_BIND_GROUPS = 64;
 const MAX_CACHE_BYTES = 4 * 1024 * 1024;

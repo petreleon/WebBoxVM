@@ -1,4 +1,4 @@
-import { paddedBytesPerRow } from "./gpu-scanout-packet.js?v=20260904-virgl-readback-pool-r1";
+import { paddedBytesPerRow } from "./gpu-scanout-packet.js?v=20260930-resident-lifetime-r1";
 
 export const READBACK_FORMAT_BGRA8 = 1;
 export const READBACK_FORMAT_RGBA8 = 2;
