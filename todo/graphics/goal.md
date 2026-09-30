@@ -8,6 +8,12 @@ dependencies, checklist, verification and evidence requirements. Start with F01,
 then work ready tasks; split oversized tasks into small linked child lists in
 subfolders, recursively when needed.
 
+Keep foundation preparation finite: batch coherent source inventories through
+shared tooling, reuse verified inputs within a checked invocation, and avoid
+duplicated validator infrastructure. Continue ready runtime and real-guest tasks
+in parallel when their prerequisites are met; inventory work must not indefinitely
+defer implementation or the final compatibility and performance gates.
+
 Use standard unmodified Mesa guest drivers and real guest applications. Freeze
 the exact API profiles and mandatory feature inventory through F03/F04; the draft
 final targets are OpenGL 4.6 core, GLES 3.2 and Vulkan 1.4 core. Earlier bring-up

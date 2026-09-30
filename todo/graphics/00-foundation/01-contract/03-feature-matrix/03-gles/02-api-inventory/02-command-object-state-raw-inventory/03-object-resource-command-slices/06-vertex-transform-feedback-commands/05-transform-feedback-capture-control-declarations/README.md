@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3.6.5
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -19,12 +19,12 @@ A bounded raw inventory covers only `BeginTransformFeedback`, `EndTransformFeedb
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, transform-feedback family, route, and grammar identities.
-- [ ] Extract only the four assigned §12.2.2 capture-control literals.
-- [ ] Preserve p.357, section heading, return forms, and source order.
-- [ ] Route capture, primitive processing, buffers, state, output, and ESSL semantics out.
-- [ ] Reject transform-feedback objects, vertex arrays, program varying, draw, extensions, and registry data.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, transform-feedback family, route, and grammar identities.
+- [x] Extract only the four assigned §12.2.2 capture-control literals.
+- [x] Preserve p.357, section heading, return forms, and source order.
+- [x] Route capture, primitive processing, buffers, state, output, and ESSL semantics out.
+- [x] Reject transform-feedback objects, vertex arrays, program varying, draw, extensions, and registry data.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
 ## Verification
 

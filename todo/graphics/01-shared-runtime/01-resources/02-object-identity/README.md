@@ -29,6 +29,10 @@ Contexts, resources and asynchronous jobs cannot refer to reused or foreign obje
 
 ## Verification
 
+The [allocation-retention progress receipt](resource-retention-evidence.md) records a runtime fix
+for resource ID reuse during pending clears, draws and batch GPU readbacks. It does not complete R02: unified
+VM/device handles, all cross-context cases and real-browser lifetime loops remain unverified.
+
 - Lifecycle tests cover destroy-before-completion, reset, ID reuse and allocation rollback.
 - No browser GPU object survives its owning generation or leaks after repeated create/destroy loops.
 

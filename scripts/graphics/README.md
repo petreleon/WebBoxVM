@@ -39,3 +39,27 @@ Hardware names an opt-in environment variable; permission names a relative probe
 and access (`read`, `write`, or `execute`). Missing prerequisites yield `BLOCKED` and
 exit 3, never `PASS`. Invalid catalogs or selections exit 2. A single failing child
 preserves its exit status and standard streams; other runner failures exit 1.
+
+## Automated source inventories
+
+The five vertex/transform-feedback slices use a shared admission/row-validation
+engine and a finite batch manifest. Catalogs retain their exact section boundaries,
+declarations and hostile tests. This replaces repeated validator implementations.
+
+```sh
+make graphics-gles-vertex-inventory-check GRAPHICS_GLES_CACHE=/path/to/verified/cache
+make graphics-gles-vertex-inventory-regenerate GRAPHICS_GLES_CACHE=/path/to/verified/cache
+```
+
+Regeneration writes reviewable JSON into `.artifacts/graphics/vertex-inventory-regenerated`;
+it leaves the checked-in artifacts and roadmap status untouched. Every slice must
+pass before export starts. The batch report includes each inventory hash and count.
+Domain/grammar/ledger proofs are reused only inside that invocation: admitted PDF
+bytes and authority are rechecked for each slice, and all source inputs are hashed
+before and after the batch. Changed inputs abort publication. No cached success
+survives into another invocation.
+
+Use `python3 scripts/graphics_inventory_batch.py --help` for task selection
+and a custom output directory. `make graphics-inventory-automation-test` covers
+batch failure, changed inputs, unsafe destinations and real PDF extraction. These
+are source checks; they do not establish API behavior or graphics performance.

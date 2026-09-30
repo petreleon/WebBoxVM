@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.3
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [receipt](evidence.md)
 
 ## Outcome
 
@@ -24,7 +24,7 @@ anchors while routing state, formats, limits, and unavailable ESSL semantics out
 - [x] [F03.3.2.2.3.3 — Extract program and pipeline commands](03-program-pipeline-commands/README.md)
 - [x] [F03.3.2.2.3.4 — Extract texture and sampler commands](04-texture-sampler-commands/README.md)
 - [x] [F03.3.2.2.3.5 — Extract framebuffer and renderbuffer commands](05-framebuffer-renderbuffer-commands/README.md)
-- [ ] [F03.3.2.2.3.6 — Extract vertex and transform-feedback commands](06-vertex-transform-feedback-commands/README.md)
+- [x] [F03.3.2.2.3.6 — Extract vertex and transform-feedback commands](06-vertex-transform-feedback-commands/README.md)
 
 ## Verification
 

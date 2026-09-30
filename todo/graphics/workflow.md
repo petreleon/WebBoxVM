@@ -16,6 +16,24 @@ checkboxes start empty. Old implementations may be reused after current verifica
 4. Work on one behavior per coherent commit. Different workers may own independent
    ready leaves with disjoint files; agree ownership before editing shared modules.
 
+## Bound the preparation phase
+
+Keep source inventory work finite against the frozen profile and admitted sources.
+Reuse shared extraction, admission, row validation and batch generation instead of
+adding another full validator for each small declaration slice. Group coherent
+source routes and run aggregate verification once after their focused checks pass;
+do not repeatedly run the complete suite for unchanged artifacts.
+
+Report the remaining active foundation leaves from the current checker, and close
+existing parent acceptance gates once their children and aggregate evidence pass.
+Further splitting requires a concrete independent behavior or unresolved decision;
+it must not create administrative tasks that merely repeat proven checks.
+
+Continue ready runtime and real-guest work in parallel when their own prerequisites
+are met. R02 object lifetime and I01 guest-image work can proceed independently of
+F03's complete inventory. Preserve the complete compatibility/performance goal and
+every mandatory dependency; batching changes execution cost, not acceptance scope.
+
 ## Make the task executable
 
 Each leaf provides an outcome, dependencies, starting files, a small checklist and
