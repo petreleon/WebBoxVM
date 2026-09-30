@@ -4,6 +4,13 @@ use crate::devices::virtio_gpu::three_d::{BrowserCompletion, Pending3d};
 use crate::devices::virtio_gpu::{VirtioGpu, MAX_PENDING_3D_BYTES, MAX_PENDING_3D_SUBMITS};
 
 impl VirtioGpu {
+    pub(in crate::devices::virtio_gpu) fn forget_completed_resident(&mut self, id: u32, timeline: FenceTimeline) {
+        self.advance_resident_epoch();
+        if let Some(owner) = self.resident_resources.remove(&id) {
+            self.queue_completed_resident_release(owner.producer_sequence, timeline);
+        }
+    }
+
     pub(in crate::devices::virtio_gpu) fn queue_completed_resident_release(
         &mut self, sequence: u32, timeline: FenceTimeline,
     ) {

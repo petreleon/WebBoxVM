@@ -30,6 +30,7 @@ impl VirtioGpu {
         let owner = self.resident_resources.get(&source.resource_id);
         source.resource_id != resource_id
             && !self.resident_resource_in_flight(source.resource_id)
+            && !self.resident_readback_in_flight(source.resource_id)
             && !self.resident_resources.contains_key(&resource_id)
             && self.resident_target_eligible(resource_id, rect)
             && owner.is_some_and(|owner| {

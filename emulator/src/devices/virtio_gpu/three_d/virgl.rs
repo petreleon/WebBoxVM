@@ -134,7 +134,6 @@ impl VirtioGpu {
     }
 
     pub(in crate::devices::virtio_gpu) fn remove_virgl_resource(&mut self, resource_id: u32) {
-        self.forget_resident(resource_id);
         self.virgl_resources.remove(&resource_id);
         for context in self.virgl_contexts.values_mut() {
             context.remove_resource(resource_id);

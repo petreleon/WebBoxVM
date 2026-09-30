@@ -7,6 +7,9 @@ use crate::memory::PhysicalMemory;
 mod resource_lifetime;
 mod resource_lifetime_readback;
 mod resource_release;
+mod resident_transactions;
+mod resident_readback_lifetime;
+mod resident_dependency;
 
 #[test]
 fn backing_detach_and_resource_unref_are_checked() {

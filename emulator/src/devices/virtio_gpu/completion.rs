@@ -48,7 +48,7 @@ impl VirtioGpu {
         {
             let pending = self.pending_3d.remove(index);
             self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
-            self.release_pending_resources(sequence);
+            self.release_pending_resources(sequence, pending.timeline);
         }
     }
 
@@ -76,10 +76,10 @@ impl VirtioGpu {
                 .is_none_or(|effect| self.with_pending_resources(sequence, |gpu| gpu.apply_3d_effect(effect)));
         if success && !retired_output {
             if let Some(resource_id) = output {
-                self.forget_resident(resource_id);
+                self.forget_completed_resident(resource_id, timeline);
             }
         }
-        self.release_pending_resources(sequence);
+        self.release_pending_resources(sequence, timeline);
         let response_type = if success {
             RESP_OK_NODATA
         } else {

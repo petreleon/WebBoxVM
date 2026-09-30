@@ -62,12 +62,13 @@ impl VirtioGpu {
             Ok(transfer) => transfer,
             Err(response) => return response,
         };
-        if self.resident_resource_in_flight(transfer.resource_id)
+        if self.resident_resource_in_flight(transfer.resource_id) || self.resident_readback_in_flight(transfer.resource_id)
             || (self.resident_resources.contains_key(&transfer.resource_id)
                 && !transfer.texture_rect().is_some_and(|rect| self.resident_overwrite_allowed(transfer.resource_id, rect)))
         {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        if !self.can_forget_resident(transfer.resource_id) { return RESP_ERR_OUT_OF_MEMORY; }
         let transferred = if let Some(resource) = self.resources.get_mut(&transfer.resource_id) {
             if resource.is_texture_2d() {
                 transfer

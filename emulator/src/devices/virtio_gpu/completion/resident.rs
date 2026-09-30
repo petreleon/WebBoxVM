@@ -34,7 +34,7 @@ impl VirtioGpu {
         if (!success || retired_output) && pending.browser_completion == BrowserCompletion::Resident {
             self.queue_completed_resident_release(sequence, timeline);
         }
-        self.release_pending_resources(sequence);
+        self.release_pending_resources(sequence, timeline);
         let response = completion.header.encode(if success { RESP_OK_NODATA } else { RESP_ERR_UNSPEC });
         let written = write_response(mem, &completion.output, &response).unwrap_or(0);
         push_used(mem, completion.used, completion.queue_size, completion.head, written as u32);

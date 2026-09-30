@@ -1,7 +1,7 @@
 use super::super::MAX_TOTAL_RESOURCE_BYTES;
 use super::super::protocol::{
     CTRL_HEADER_LEN, RESP_ERR_INVALID_PARAMETER, RESP_ERR_INVALID_RESOURCE_ID, RESP_ERR_UNSPEC,
-    RESP_OK_NODATA, read_u32,
+    RESP_OK_NODATA, RESP_ERR_OUT_OF_MEMORY, read_u32,
 };
 use crate::constants::VIRTIO_GPU_HOST_VISIBLE_BASE;
 use crate::memory::PhysicalMemory;
@@ -21,6 +21,8 @@ impl super::super::VirtioGpu {
         if self.resident_resource_in_flight(resource_id) {
             return RESP_ERR_INVALID_PARAMETER;
         }
+        if !self.resource_exists(resource_id) { return RESP_ERR_INVALID_RESOURCE_ID; }
+        if !self.can_forget_resident(resource_id) { return RESP_ERR_OUT_OF_MEMORY; }
         let mapped = self
             .blobs
             .get(&resource_id)
@@ -33,6 +35,8 @@ impl super::super::VirtioGpu {
                 return RESP_ERR_UNSPEC;
             }
         }
+        let forgotten = self.forget_resident(resource_id);
+        debug_assert!(forgotten, "unref release capacity checked before mutation");
         let bytes = if let Some(resource) = self.resources.remove(&resource_id) {
             self.retire_resource(resource_id, resource);
             0

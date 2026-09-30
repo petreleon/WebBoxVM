@@ -154,6 +154,7 @@ impl VirtioGpu {
             return RESP_ERR_INVALID_PARAMETER;
         };
         if !self.resident_overwrite_allowed(resource_id, rect) { return RESP_ERR_INVALID_PARAMETER; }
+        if !self.can_forget_resident(resource_id) { return RESP_ERR_OUT_OF_MEMORY; }
         let Some(resource) = self.resources.get_mut(&resource_id) else {
             return RESP_ERR_INVALID_RESOURCE_ID;
         };
@@ -164,7 +165,6 @@ impl VirtioGpu {
         RESP_OK_NODATA
     }
 }
-
 fn immediate(response: Vec<u8>) -> CommandResult {
     CommandResult {
         response,

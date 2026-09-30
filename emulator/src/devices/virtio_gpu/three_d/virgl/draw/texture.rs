@@ -38,7 +38,7 @@ pub(super) fn snapshot(
         return Err(RESP_ERR_INVALID_PARAMETER);
     }
     if let Some(resident) = gpu.resident_resources.get(&resource.resource) {
-        if gpu.resident_resource_in_flight(resource.resource) {
+        if gpu.resident_resource_in_flight(resource.resource) || gpu.resident_readback_in_flight(resource.resource) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }
         return Ok(SampledTexture::Resident(ResidentTexture {

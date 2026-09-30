@@ -93,7 +93,7 @@ fn opaque_resident_texture_sample_preserves_its_write_mask() {
     assert!(gpu.complete_3d_resident(&mut mem, deferred.sequence));
 }
 
-fn prepared_sample() -> (super::super::VirtioGpu, crate::memory::PhysicalMemory) {
+pub(super) fn prepared_sample() -> (super::super::VirtioGpu, crate::memory::PhysicalMemory) {
     prepared_sample_with(virgl_source_over_state(13))
 }
 
@@ -151,7 +151,7 @@ fn opaque_state(handle: u32) -> Vec<u32> {
     words.extend([0; 7]); words.extend([word(2, 1, 1), handle]); words
 }
 
-fn draw_command() -> Vec<u32> {
+pub(super) fn draw_command() -> Vec<u32> {
     let mut command = clear([0.1, 0.2, 0.3, 1.0]);
     command.extend(draw());
     command

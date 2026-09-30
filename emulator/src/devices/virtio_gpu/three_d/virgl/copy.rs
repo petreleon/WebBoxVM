@@ -48,6 +48,8 @@ impl VirtioGpu {
             || !self.is_virgl_resource(copy.dst_resource)
             || self.resident_resource_in_flight(copy.src_resource)
             || self.resident_resource_in_flight(copy.dst_resource)
+            || self.resident_readback_in_flight(copy.src_resource)
+            || self.resident_readback_in_flight(copy.dst_resource)
             || (!self.resident_resources.contains_key(&copy.src_resource)
                 && !self.resident_overwrite_allowed(copy.dst_resource, destination_rect))
             || uses_scanout
@@ -95,6 +97,7 @@ impl VirtioGpu {
     }
 
     pub(super) fn apply_virgl_copy(&mut self, copy: CopyRegion) -> Result<(), u32> {
+        if !self.can_forget_resident(copy.dst_resource) { return Err(RESP_ERR_OUT_OF_MEMORY); }
         if self.resident_resources.contains_key(&copy.src_resource) {
             return Err(RESP_ERR_INVALID_PARAMETER);
         }

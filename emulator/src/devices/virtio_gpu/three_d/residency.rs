@@ -1,5 +1,6 @@
 use crate::devices::virtio_gpu::VirtioGpu;
 use crate::devices::virtio_gpu::protocol::Rect;
+use super::Pending3dEffect;
 
 const MAX_RESIDENT_BYTES: usize = 4 * 1024 * 1024;
 const MAX_RESIDENT_RESOURCES: usize = 16;
@@ -29,7 +30,7 @@ impl VirtioGpu {
         let Some(resource) = self.resources.get(&resource_id) else { return false; };
         let full = rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height;
         let existing = self.resident_resources.contains_key(&resource_id);
-        let room = existing || (self.resident_resources.len() < MAX_RESIDENT_RESOURCES
+        let room = existing || (self.resident_resources.len() + self.resource_lifetimes.retained_residents.len() < MAX_RESIDENT_RESOURCES
             && self.resident_bytes().and_then(|total| total.checked_add(resource.pixels.len()))
                 .is_some_and(|total| total <= MAX_RESIDENT_TOTAL_BYTES));
         full && room && resource.is_texture_2d() && resource.pixels.len() <= MAX_RESIDENT_BYTES
@@ -37,7 +38,7 @@ impl VirtioGpu {
     }
 
     fn resident_bytes(&self) -> Option<usize> {
-        self.resident_resources.keys().try_fold(0usize, |total, resource_id| {
+        self.resident_resources.keys().try_fold(self.retained_resident_bytes()?, |total, resource_id| {
             self.resources.get(resource_id)?.pixels.len().checked_add(total)
         })
     }
@@ -48,6 +49,7 @@ impl VirtioGpu {
         rect: Rect,
     ) -> bool {
         !self.resident_resource_in_flight(resource_id)
+            && !self.resident_readback_in_flight(resource_id)
             && (!self.resident_resources.contains_key(&resource_id) || self.resources.get(&resource_id)
                 .is_some_and(|resource| rect.x == 0 && rect.y == 0 && rect.width == resource.width && rect.height == resource.height))
     }
@@ -56,22 +58,45 @@ impl VirtioGpu {
         self.resident_copy_in_flight(resource_id) || self.resident_sample_in_flight(resource_id)
     }
 
-    pub(in crate::devices::virtio_gpu) fn forget_resident(&mut self, resource_id: u32) {
+    pub(in crate::devices::virtio_gpu) fn resident_readback_in_flight(&self, resource_id: u32) -> bool {
+        self.pending_3d.iter().any(|pending|
+            matches!(pending.effect, Some(Pending3dEffect::VirglResidentReadback { resource_id: id, .. }) if id == resource_id)
+                && self.pending_uses_live_resource(pending.sequence, resource_id))
+    }
+
+    pub(in crate::devices::virtio_gpu) fn can_forget_resident(&self, resource_id: u32) -> bool {
+        !self.resident_resources.contains_key(&resource_id) || self.resident_readback_in_flight(resource_id)
+            || self.resident_releases.len() < MAX_RESIDENT_RELEASES
+    }
+
+    pub(in crate::devices::virtio_gpu) fn forget_resident(&mut self, resource_id: u32) -> bool {
+        if !self.can_forget_resident(resource_id) { return false; }
+        let retain = self.resident_readback_in_flight(resource_id);
         self.advance_resident_epoch();
-        let Some(resident) = self.resident_resources.remove(&resource_id) else { return; };
-        self.queue_resident_release(resident.producer_sequence);
-    }
-
-    pub(in crate::devices::virtio_gpu) fn queue_resident_release(&mut self, producer_sequence: u32) {
-        if self.resident_releases.len() < MAX_RESIDENT_RELEASES {
-            self.resident_releases.push_back(producer_sequence);
+        let Some(resident) = self.resident_resources.remove(&resource_id) else { return true; };
+        if retain { self.retain_resident_owner(resource_id, resident); } else {
+            let queued = self.queue_resident_release(resident.producer_sequence);
+            debug_assert!(queued, "release capacity checked before mutation");
         }
+        true
     }
 
-    pub(in crate::devices::virtio_gpu) fn forget_resident_context(&mut self, context_id: u32) {
+    fn queue_resident_release(&mut self, producer_sequence: u32) -> bool {
+        if self.resident_releases.len() >= MAX_RESIDENT_RELEASES { return false; }
+        self.resident_releases.push_back(producer_sequence);
+        true
+    }
+
+    pub(in crate::devices::virtio_gpu) fn forget_resident_context(&mut self, context_id: u32) -> bool {
         let resources: Vec<u32> = self.resident_resources.iter().filter_map(|(&resource_id, resident)|
             (resident.context_id == context_id).then_some(resource_id)).collect();
-        for resource_id in resources { self.forget_resident(resource_id); }
+        let immediate = resources.iter().filter(|&&id| !self.resident_readback_in_flight(id)).count();
+        if self.resident_releases.len() + immediate > MAX_RESIDENT_RELEASES { return false; }
+        for resource_id in resources {
+            let forgotten = self.forget_resident(resource_id);
+            debug_assert!(forgotten, "all context releases reserved before mutation");
+        }
+        true
     }
 
     fn resident_context_valid(&self, resident: ResidentResource) -> bool {

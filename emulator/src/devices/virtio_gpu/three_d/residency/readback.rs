@@ -10,8 +10,12 @@ impl VirtioGpu {
         &mut self, header: CtrlHeader, resource_id: u32, transfer_rect: Rect, transfer_offset: u64,
     ) -> Result<DeferredSubmit, u32> {
         let resident = *self.resident_resources.get(&resource_id).ok_or(RESP_ERR_INVALID_PARAMETER)?;
-        if self.pending_3d.iter().any(|pending| matches!(pending.effect.as_ref(),
-            Some(Pending3dEffect::VirglResidentReadback { resource_id: pending_id, .. }) if *pending_id == resource_id)) {
+        if self.pending_3d.iter().any(|pending| {
+            let same_target = matches!(pending.effect.as_ref(),
+                Some(Pending3dEffect::VirglResidentReadback { resource_id: id, .. }) if *id == resource_id)
+                || pending.effect.as_ref().and_then(Pending3dEffect::color_target).is_some_and(|(id, _)| id == resource_id);
+            same_target && self.pending_uses_live_resource(pending.sequence, resource_id)
+        }) {
             return Err(RESP_ERR_UNSPEC);
         }
         let resource = self.resources.get(&resource_id).ok_or(RESP_ERR_INVALID_PARAMETER)?;
@@ -46,6 +50,7 @@ impl VirtioGpu {
         let Pending3dEffect::VirglResidentReadback {
             context_id, generation, resource_id, producer_sequence, source_rect, transfer_rect, transfer_offset,
         } = effect else { return false; };
+        if !self.resident_context_valid(ResidentResource { context_id, generation, producer_sequence }) { return false; }
         if self.resident_resources.get(&resource_id).copied()
             != Some(ResidentResource { context_id, generation, producer_sequence }) {
             return false;

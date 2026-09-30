@@ -39,10 +39,10 @@ impl VirtioGpu {
             }));
         if success && !retired_output {
             if let Some(resource_id) = output {
-                self.forget_resident(resource_id);
+                self.forget_completed_resident(resource_id, timeline);
             }
         }
-        self.release_pending_resources(sequence);
+        self.release_pending_resources(sequence, timeline);
         let response = completion.header.encode(if success { RESP_OK_NODATA } else { RESP_ERR_UNSPEC });
         let written = write_response(mem, &completion.output, &response).unwrap_or(0);
         push_used(mem, completion.used, completion.queue_size, completion.head, written as u32);
