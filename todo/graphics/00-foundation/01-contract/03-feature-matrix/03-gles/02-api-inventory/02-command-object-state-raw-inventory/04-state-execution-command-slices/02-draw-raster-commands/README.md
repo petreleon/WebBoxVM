@@ -25,7 +25,7 @@ coverage, fragment, and shader behavior to their distinct semantic or state revi
 - [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
 - [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
-- [ ] Complete final repository integration and record its tested revision in the receipt.
+- [x] Complete final repository integration and record its tested revision in the receipt.
 
 ## Verification
 

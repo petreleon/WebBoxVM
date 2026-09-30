@@ -25,7 +25,7 @@ packing, image layout, readback behavior, and state remain separately reviewed s
 - [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL semantics.
 - [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
-- [ ] Complete final repository integration and record its tested revision in the receipt.
+- [x] Complete final repository integration and record its tested revision in the receipt.
 
 ## Verification
 

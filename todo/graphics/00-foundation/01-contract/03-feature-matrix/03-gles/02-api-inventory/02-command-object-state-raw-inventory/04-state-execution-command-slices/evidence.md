@@ -61,7 +61,7 @@ in the artifact directory above. Timings describe local source validation only.
 Both reports explicitly identify `F03.3.2.2.4.1` as incomplete, no missing selected
 tasks, and `source_coverage.complete: false`. A successful partial-source batch
 cannot complete that leaf or this parent. The three completed formal vocabularies
-are independently usable as source facts while final integration is pending.
+are independently usable as source facts; final local integration is now verified.
 
 Every family fragment and aggregate index is self-hashed, then compared with a
 fresh extraction. Reconstruction must preserve the exact full row array and its

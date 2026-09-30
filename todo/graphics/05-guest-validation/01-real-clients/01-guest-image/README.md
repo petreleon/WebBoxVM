@@ -29,6 +29,9 @@ The guest has pinned unmodified Mesa drivers and tools that can exercise standar
 
 ## Verification
 
+The [input capture receipt](input-capture-evidence.md) verifies the exact full Mesa archive and
+its F02 VirGL/Venus source hashes. No stock-Mesa image or runtime check is complete yet.
+
 - A clean image build reproduces the manifest and guest tool versions.
 - Renderer/ICD reporting identifies software fallback separately; missing drivers are a failure.
 

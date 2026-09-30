@@ -20,9 +20,9 @@ triggering command and table or section anchor, without inferring behavior from 
 ## Checklist
 
 - [ ] [F03.3.2.2.4.1 — Extract context state and lifecycle facts](01-context-state-lifecycle/README.md)
-- [ ] [F03.3.2.2.4.2 — Extract draw and raster commands](02-draw-raster-commands/README.md)
-- [ ] [F03.3.2.2.4.3 — Extract pixel-transfer commands](03-pixel-transfer-commands/README.md)
-- [ ] [F03.3.2.2.4.4 — Extract debug and special query commands](04-debug-special-queries/README.md)
+- [x] [F03.3.2.2.4.2 — Extract draw and raster commands](02-draw-raster-commands/README.md)
+- [x] [F03.3.2.2.4.3 — Extract pixel-transfer commands](03-pixel-transfer-commands/README.md)
+- [x] [F03.3.2.2.4.4 — Extract debug and special query commands](04-debug-special-queries/README.md)
 
 ## Verification
 
@@ -31,7 +31,7 @@ guest/browser execution, support, conformance, certification, or performance.
 
 The finite state batch reproduces 97 facts across the four existing routes: 12 explicit lifecycle
 rules, 55 draw/raster/compute forms, six pixel commands and 24 debug/special/context queries.
-The three declaration routes passed focused checks; their final repository integration is pending.
+The three declaration routes passed focused checks and [full repository integration](../../../../../../../integration-resident-evidence-2026-09-30.md).
 The lifecycle leaf remains open for its pending state/stage/table families, and the batch explicitly
 reports `source_coverage.complete: false`. This parent stays open until every child and aggregate
 acceptance gate is complete. Batching and source-family fragments preserve the original scope.

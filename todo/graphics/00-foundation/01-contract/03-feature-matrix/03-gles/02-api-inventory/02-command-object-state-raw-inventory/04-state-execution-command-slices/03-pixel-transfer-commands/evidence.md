@@ -2,7 +2,7 @@
 
 Revision: `920328321f5c3fafee1bade3d823b1c26458abcb` plus the recorded working-tree source manifest
 Validation: focused positive/negative source checks and finite state batch
-Result: PASS focused; final repository integration and commit/push remain with the parent
+Result: PASS
 Artifacts: `gles_pixel_transfer_command_raw_inventory.json` and its source-family fragments
 Profile: GLES 3.2 raw formal declarations; promotion disabled
 
@@ -69,5 +69,12 @@ Finite batch commands, observations and durable reproduction are in the
 four state tasks / 97 facts; all 20 regenerated files match checked-in bytes. The
 lifecycle slice and parent remain incomplete. No Matrix/CTS/owner/claim field,
 state behavior, ESSL semantics, guest/browser execution, support, conformance,
-certification or performance result is inferred. Final full integration and
-commit/push are not claimed by this receipt.
+certification or performance result is inferred.
+
+Final implementation: `699a59fddf076890f29178b4016779174735e02b`.
+The [full integration receipt](../../../../../../../../integration-resident-evidence-2026-09-30.md)
+binds the final code manifest, corrected snapshot guard and exact tested commits.
+`make -j4 test` passed 498 Python / 1,173 Rust / 342 web tests, with three existing
+Rust ignored cases and no failures. Final state regeneration retained all 20
+byte-identical artifacts and explicit lifecycle incompleteness. This closes the
+assigned raw declaration leaf; its parent, API behavior and performance remain open.

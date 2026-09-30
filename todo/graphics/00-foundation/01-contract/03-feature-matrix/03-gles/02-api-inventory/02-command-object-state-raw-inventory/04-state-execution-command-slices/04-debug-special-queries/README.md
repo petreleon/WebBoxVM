@@ -25,7 +25,7 @@ diagnostics, error behavior, state effects, and external integrations remain sep
 - [x] Reject desktop/lower profiles, registry data, guessed templates, extension paths, and ESSL semantics.
 - [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
 
-- [ ] Complete final repository integration and record its tested revision in the receipt.
+- [x] Complete final repository integration and record its tested revision in the receipt.
 
 ## Verification
 

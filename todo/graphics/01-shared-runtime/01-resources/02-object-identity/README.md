@@ -29,9 +29,11 @@ Contexts, resources and asynchronous jobs cannot refer to reused or foreign obje
 
 ## Verification
 
-The [allocation-retention progress receipt](resource-retention-evidence.md) records a runtime fix
-for resource ID reuse during pending clears, draws and batch GPU readbacks. It does not complete R02: unified
-VM/device handles, all cross-context cases and real-browser lifetime loops remain unverified.
+The [allocation-retention progress receipt](resource-retention-evidence.md) records the earlier fix.
+The [resident-owner integration receipt](../../../integration-resident-evidence-2026-09-30.md) now
+verifies bounded resident-readback retention, transactional release backpressure and real-browser
+resident-texture release/reset/device recovery loops. R02 remains open: unified VM/device handles,
+all cross-context cases and general resident-texture CPU replay remain unfinished.
 
 - Lifecycle tests cover destroy-before-completion, reset, ID reuse and allocation rollback.
 - No browser GPU object survives its owning generation or leaks after repeated create/destroy loops.
