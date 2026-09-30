@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
-import os
 import re
-import subprocess
 from pathlib import Path
+
+PDF_PATH = Path(__file__).resolve().parents[11] / "scripts/graphics/inventories/pdf.py"
+if PDF_PATH.is_symlink() or not PDF_PATH.is_file(): raise ValueError("shared PDF extractor must be a regular file")
+PDF_SPEC = importlib.util.spec_from_file_location("webboxvm_inventory_pdf", PDF_PATH)
+if PDF_SPEC is None or PDF_SPEC.loader is None: raise ValueError("cannot load shared PDF extractor")
+PDF = importlib.util.module_from_spec(PDF_SPEC)
+PDF_SPEC.loader.exec_module(PDF)
 
 PROFILE, PAGES, ROUTE = "gles-3.2", 601, "vertex-transform-feedback-commands"
 FAMILY = ("object-declarations", "vertex-array", ("10.2", "10.3.1-10.3.8", "10.4"), 22,
@@ -40,7 +46,6 @@ DECLARATIONS = (
     (291, "10.3.4", "Disable", "void Disable( enum target );"),
 )
 SEALED_DECLARATIONS_SHA256 = "ef7e7898973d1e00021ccbf11e8a24392d4eb030473b2646b6158303a1d6c067"
-TRUSTED_EXTRACTORS = (Path("/opt/homebrew/bin/pdftotext"), Path("/usr/local/bin/pdftotext"), Path("/usr/bin/pdftotext"))
 SOURCE_PROTOTYPE = re.compile(r"void [A-Z][A-Za-z0-9]*\([^;]*\);")
 PROTOTYPE = re.compile(r"void ([A-Z][A-Za-z0-9]*)\([^;]*\);\Z")
 
@@ -52,28 +57,13 @@ class CatalogError(ValueError):
 def reject(message: str) -> None: raise CatalogError(message)
 
 
-def compact(value: str) -> str: return " ".join(value.replace("\f", " ").split())
-
-
 def sha256(value: object) -> str:
     return hashlib.sha256(json.dumps(value, separators=(",", ":"), ensure_ascii=True).encode("utf-8")).hexdigest()
 
 
-def extractor() -> str:
-    for candidate in TRUSTED_EXTRACTORS:
-        resolved = candidate.resolve()
-        if resolved.is_file() and os.access(resolved, os.X_OK): return str(resolved)
-    reject("fixed PDF text extractor is unavailable")
-
-
 def page_text(raw: bytes, page: int) -> str:
-    try:
-        result = subprocess.run([extractor(), "-f", str(page), "-l", str(page), "-raw", "-", "-"], input=raw, capture_output=True, check=False,
-                                env={"LC_ALL": "C", "PATH": "/usr/bin:/bin"})
-        value = result.stdout.decode("utf-8")
-    except (OSError, UnicodeDecodeError) as error: reject(f"cannot read sealed vertex-array binding page: {error}")
-    if result.returncode != 0: reject("cannot read sealed vertex-array binding page")
-    return compact(value)
+    try: return PDF.sealed_pdf_page(raw, page)
+    except PDF.PdfError as error: reject(str(error))
 
 
 def source_slice(text) -> tuple[tuple[int, str], ...]:
@@ -110,7 +100,9 @@ def facts(raw: bytes, pages: int, family_order: int, normalize) -> list[list[obj
             or SECTION_BOUNDARIES != fixed_boundaries or PRIMITIVE_RESTART_WITNESS != "with target PRIMITIVE_RESTART_FIXED_INDEX."
             or sha256(DECLARATIONS) != SEALED_DECLARATIONS_SHA256): reject("GLES vertex-array source boundary, locations, or order is incomplete")
     texts: dict[int, str] = {}
-    def text(page: int) -> str: texts.setdefault(page, page_text(raw, page)); return texts[page]
+    def text(page: int) -> str:
+        if page not in texts: texts[page] = page_text(raw, page)
+        return texts[page]
     expected = tuple((page, declaration) for page, _, _, declaration in DECLARATIONS)
     if source_slice(text) != expected or PRIMITIVE_RESTART_WITNESS not in text(291):
         reject("vertex-array binding source window is incomplete, rerouted, or out of source order")

@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
-import os
 import re
-import subprocess
 from pathlib import Path
+
+PDF_PATH = Path(__file__).resolve().parents[11] / "scripts/graphics/inventories/pdf.py"
+if PDF_PATH.is_symlink() or not PDF_PATH.is_file(): raise ValueError("shared PDF extractor must be a regular file")
+PDF_SPEC = importlib.util.spec_from_file_location("webboxvm_inventory_pdf", PDF_PATH)
+if PDF_SPEC is None or PDF_SPEC.loader is None: raise ValueError("cannot load shared PDF extractor")
+PDF = importlib.util.module_from_spec(PDF_SPEC)
+PDF_SPEC.loader.exec_module(PDF)
 
 PROFILE, PAGES, ROUTE = "gles-3.2", 601, "vertex-transform-feedback-commands"
 FAMILY = ("object-declarations", "vertex-array", ("10.2", "10.3.1-10.3.8", "10.4"), 22,
@@ -28,7 +34,6 @@ EXPANDED_NAMES = (
 TEMPLATE_ORDERS = (23, 24, 25, 26)
 TEMPLATES = tuple(zip(TEMPLATE_ORDERS, FORMAL_WINDOW, EXPANDED_NAMES))
 SEALED_WINDOW_SHA256 = "2520a6eefaa9ffae4e314c352275da1e85fe3dea0c75947810219407b3c3aeac"
-TRUSTED_EXTRACTORS = (Path("/opt/homebrew/bin/pdftotext"), Path("/usr/local/bin/pdftotext"), Path("/usr/bin/pdftotext"))
 SOURCE_TEMPLATE = re.compile(r"void [A-Z][A-Za-z0-9]*(?:\{[^{}]+\}[A-Za-z0-9]*)+\([^;]*\);")
 NAME = re.compile(r"void ([A-Z][A-Za-z0-9]*(?:\{[^{}]+\}[A-Za-z0-9]*)+)\([^;]*\);\Z")
 
@@ -40,28 +45,13 @@ class CatalogError(ValueError):
 def reject(message: str) -> None: raise CatalogError(message)
 
 
-def compact(value: str) -> str: return " ".join(value.replace("\f", " ").split())
-
-
 def template_sha256(rows: object) -> str:
     return hashlib.sha256(json.dumps(rows, separators=(",", ":"), ensure_ascii=True).encode("utf-8")).hexdigest()
 
 
-def extractor() -> str:
-    for candidate in TRUSTED_EXTRACTORS:
-        resolved = candidate.resolve()
-        if resolved.is_file() and os.access(resolved, os.X_OK): return str(resolved)
-    reject("fixed PDF text extractor is unavailable")
-
-
 def page_text(raw: bytes, page: int) -> str:
-    try:
-        result = subprocess.run([extractor(), "-f", str(page), "-l", str(page), "-raw", "-", "-"], input=raw, capture_output=True, check=False,
-                                env={"LC_ALL": "C", "PATH": "/usr/bin:/bin"})
-        value = result.stdout.decode("utf-8")
-    except (OSError, UnicodeDecodeError) as error: reject(f"cannot read sealed current-vertex-attribute page: {error}")
-    if result.returncode != 0: reject("cannot read sealed current-vertex-attribute page")
-    return compact(value)
+    try: return PDF.sealed_pdf_page(raw, page)
+    except PDF.PdfError as error: reject(str(error))
 
 
 def source_slice(value: str) -> tuple[str, ...]: return tuple(SOURCE_TEMPLATE.findall(value))
