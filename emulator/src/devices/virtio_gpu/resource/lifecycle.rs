@@ -34,7 +34,8 @@ impl super::super::VirtioGpu {
             }
         }
         let bytes = if let Some(resource) = self.resources.remove(&resource_id) {
-            resource.pixels.len()
+            self.retire_resource(resource_id, resource);
+            0
         } else if let Some(mut blob) = self.blobs.remove(&resource_id) {
             let bytes = blob.size;
             blob.backing.clear();

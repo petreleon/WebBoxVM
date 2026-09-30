@@ -28,19 +28,21 @@ impl VirtioGpu {
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");
         let output = pending.effect.as_ref().and_then(|effect| effect.color_target().map(|(id, _)| id));
+        let retired_output = output.is_some_and(|id| self.pending_resource_retired(sequence, id));
         let success = matches!(pending.browser_completion, BrowserCompletion::Readback | BrowserCompletion::Resident)
-            && pending.effect.is_some_and(|effect| {
+            && pending.effect.is_some_and(|effect| self.with_pending_resources(sequence, |gpu| {
                 if matches!(&effect, Pending3dEffect::VirglResidentReadback { .. }) {
-                    self.resolve_resident_readback(mem, effect, format, pixels)
+                    gpu.resolve_resident_readback(mem, effect, format, pixels)
                 } else {
-                    self.apply_3d_readback(effect, format, pixels)
+                    gpu.apply_3d_readback(effect, format, pixels)
                 }
-            });
-        if success {
+            }));
+        if success && !retired_output {
             if let Some(resource_id) = output {
                 self.forget_resident(resource_id);
             }
         }
+        self.release_pending_resources(sequence);
         let response = completion.header.encode(if success { RESP_OK_NODATA } else { RESP_ERR_UNSPEC });
         let written = write_response(mem, &completion.output, &response).unwrap_or(0);
         push_used(mem, completion.used, completion.queue_size, completion.head, written as u32);

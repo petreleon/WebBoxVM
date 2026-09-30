@@ -96,11 +96,15 @@ impl VirtioGpu {
     }
 
     pub fn take_3d_update(&mut self) -> Vec<u8> {
-        self.pending_3d
-            .iter_mut()
-            .find_map(|pending| pending.packet.take())
-            .or_else(|| self.resident_releases.pop_front().map(release_packet))
-            .unwrap_or_default()
+        if let Some(index) = self.pending_3d.iter().position(|pending| pending.packet.is_some()) {
+            if self.pending_3d[index].browser_completion == BrowserCompletion::ResidentRelease {
+                let pending = self.pending_3d.remove(index);
+                self.pending_3d_bytes -= pending.bytes;
+                return pending.packet.expect("release packet retained until delivery");
+            }
+            return self.pending_3d[index].packet.take().expect("packet selected above");
+        }
+        self.resident_releases.pop_front().map(release_packet).unwrap_or_default()
     }
 
     fn allocate_3d_sequence(&mut self) -> Option<u32> {

@@ -129,6 +129,7 @@ impl VirtioGpu {
             effect: Some(effect),
             browser_completion,
         });
+        self.pin_pending_resources(sequence);
         Ok(DeferredSubmit { sequence, header })
     }
 

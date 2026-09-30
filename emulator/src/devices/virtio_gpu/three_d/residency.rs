@@ -11,6 +11,7 @@ mod promotion;
 mod readback;
 mod copy;
 mod sample;
+mod release;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(in crate::devices::virtio_gpu) struct ResidentResource {

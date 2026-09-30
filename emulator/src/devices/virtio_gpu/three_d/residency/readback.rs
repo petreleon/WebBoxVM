@@ -36,6 +36,7 @@ impl VirtioGpu {
             }),
             browser_completion: BrowserCompletion::Readback,
         });
+        self.pin_pending_resources(sequence);
         Ok(DeferredSubmit { sequence, header })
     }
 

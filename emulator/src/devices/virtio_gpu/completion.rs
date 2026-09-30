@@ -48,6 +48,7 @@ impl VirtioGpu {
         {
             let pending = self.pending_3d.remove(index);
             self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
+            self.release_pending_resources(sequence);
         }
     }
 
@@ -68,15 +69,17 @@ impl VirtioGpu {
         self.pending_3d_bytes = self.pending_3d_bytes.saturating_sub(pending.bytes);
         let completion = pending.completion.expect("completion checked above");
         let output = pending.effect.as_ref().and_then(|effect| effect.color_target().map(|(id, _)| id));
+        let retired_output = output.is_some_and(|id| self.pending_resource_retired(sequence, id));
         let success = success
             && pending
                 .effect
-                .is_none_or(|effect| self.apply_3d_effect(effect));
-        if success {
+                .is_none_or(|effect| self.with_pending_resources(sequence, |gpu| gpu.apply_3d_effect(effect)));
+        if success && !retired_output {
             if let Some(resource_id) = output {
                 self.forget_resident(resource_id);
             }
         }
+        self.release_pending_resources(sequence);
         let response_type = if success {
             RESP_OK_NODATA
         } else {

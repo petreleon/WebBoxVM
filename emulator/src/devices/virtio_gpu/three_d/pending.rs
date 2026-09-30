@@ -2,12 +2,14 @@ use super::super::completion::PendingCompletion;
 use super::super::fence::FenceTimeline;
 use super::super::protocol::{CtrlHeader, Rect};
 use super::virgl::{DepthState, DrawMaterial, DrawWork};
+mod resources;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(in crate::devices::virtio_gpu) enum BrowserCompletion {
     Standard,
     Readback,
     Resident,
+    ResidentRelease,
 }
 
 #[derive(Debug, Clone)]

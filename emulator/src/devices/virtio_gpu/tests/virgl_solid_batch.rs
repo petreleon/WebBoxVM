@@ -140,7 +140,7 @@ fn solid_batch_caps_draw_count_without_committing_a_packet() {
     assert!(gpu.take_3d_update().is_empty());
 }
 
-fn configure(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {
+pub(super) fn configure(gpu: &mut super::super::VirtioGpu, mem: &mut crate::memory::PhysicalMemory) {
     let mut state = surface_create(9, TARGET);
     state.extend(framebuffer(9));
     state.extend(shader_create(11, 0, VERT));
@@ -162,7 +162,7 @@ fn attach(gpu: &mut super::super::VirtioGpu, sequence: u32, header: CtrlHeader, 
     }));
 }
 
-fn constants(color: [f32; 4]) -> Vec<u32> {
+pub(super) fn constants(color: [f32; 4]) -> Vec<u32> {
     let mut command = vec![word(12, 0, 6), 1, 0];
     command.extend(color.map(f32::to_bits));
     command

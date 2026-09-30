@@ -11,6 +11,7 @@ mod completion;
 mod fence;
 mod feature;
 mod frame;
+mod lifetime;
 mod mmio;
 mod protocol;
 mod queue;
@@ -25,6 +26,7 @@ mod tests;
 use blob::BlobResource;
 use protocol::{BackingEntry, Rect};
 use resource::GpuResource;
+use lifetime::ResourceLifetimes;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
@@ -81,6 +83,7 @@ pub struct VirtioGpu {
     resources: HashMap<u32, GpuResource>,
     blobs: HashMap<u32, BlobResource>,
     allocated_resource_bytes: usize,
+    resource_lifetimes: ResourceLifetimes,
     scanout: Option<Scanout>,
     pending_damage: Option<Rect>,
     contexts: HashMap<u32, u32>,
@@ -112,6 +115,7 @@ impl VirtioGpu {
             resources: HashMap::new(),
             blobs: HashMap::new(),
             allocated_resource_bytes: 0,
+            resource_lifetimes: ResourceLifetimes::default(),
             scanout: None,
             pending_damage: None,
             contexts: HashMap::new(),
@@ -151,7 +155,7 @@ impl VirtioGpu {
     }
 
     pub(super) fn resource_count(&self) -> usize {
-        self.resources.len() + self.blobs.len()
+        self.resources.len() + self.blobs.len() + self.resource_lifetimes.retired.len()
     }
 
     fn detach_scanout_resource(&mut self, resource_id: u32) {

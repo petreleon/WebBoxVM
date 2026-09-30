@@ -4,6 +4,9 @@ use super::super::{MAX_RESOURCES, SCANOUT_HEIGHT, SCANOUT_WIDTH, VirtioGpu};
 use super::{create_2d, full_scanout, header, response_type};
 use crate::constants::RAM_BASE;
 use crate::memory::PhysicalMemory;
+mod resource_lifetime;
+mod resource_lifetime_readback;
+mod resource_release;
 
 #[test]
 fn backing_detach_and_resource_unref_are_checked() {

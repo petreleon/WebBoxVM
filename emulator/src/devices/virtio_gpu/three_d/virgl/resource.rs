@@ -49,6 +49,7 @@ impl VirtioGpu {
         if !total_resource_limit(self.allocated_resource_bytes, bytes) {
             return RESP_ERR_OUT_OF_MEMORY;
         }
+        if !self.register_resource_identity(id) { return RESP_ERR_OUT_OF_MEMORY; }
         self.allocated_resource_bytes += bytes;
         self.resources.insert(id, resource);
         self.virgl_resources.insert(id);
