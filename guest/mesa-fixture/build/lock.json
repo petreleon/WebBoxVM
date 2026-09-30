@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "architecture": "arm64",
+  "base_image": "debian@sha256:da496358bd6934d2bd6a563a33176a2e50eff5490c54b4ac6fb051b69fef4071",
+  "mesa": {
+    "revision": "06f9e28304d5d3f109c33535c1c25b9df5769af2",
+    "version": "25.3.6",
+    "archive": "mesa-06f9e28304d5d3f109c33535c1c25b9df5769af2.tar.gz",
+    "bytes": 65861256,
+    "sha256": "23fbb4fba5fc84d872ed8461b70edf0dd0da4dd2b19f558e0b7c4b7765975cb9",
+    "source_files": {
+      "src/gallium/drivers/virgl/virgl_screen.c": "e558fa5550e572cffad113581b736696f33b3895e0516950181b8ff93eb38ff0",
+      "src/virtio/vulkan/vn_device.c": "68f06ca4ddc2d5a62bebaa469fc43dc5e66e640eec57d46f38172327d087a4c4"
+    }
+  },
+  "snapshot": "20260901T000000Z",
+  "releases": {
+    "debian": "e89b36ee4d4e03b06573468d52c2a8be91ebdbda754c192f9e1a731ad738652f",
+    "debian-security": "cfb4983a632a4ef0b323a695b0b602ed64120cb9874c639874c2887d6c94bec8"
+  },
+  "packages": [
+    "build-essential",
+    "meson",
+    "ninja-build",
+    "pkg-config",
+    "python3-mako",
+    "python3-packaging",
+    "bison",
+    "flex",
+    "libdrm-dev",
+    "libexpat1-dev",
+    "zlib1g-dev",
+    "libzstd-dev",
+    "libudev-dev",
+    "libvulkan-dev",
+    "mesa-utils-bin",
+    "vulkan-tools",
+    "busybox",
+    "kmod",
+    "xz-utils",
+    "python3-yaml"
+  ],
+  "meson_args": [
+    "--prefix=/opt/mesa-f02",
+    "--libdir=lib",
+    "--buildtype=release",
+    "--wrap-mode=nofallback",
+    "-Dgallium-drivers=virgl",
+    "-Dvulkan-drivers=virtio",
+    "-Dplatforms=[]",
+    "-Dglx=disabled",
+    "-Degl=enabled",
+    "-Dgles1=disabled",
+    "-Dgles2=enabled",
+    "-Dopengl=true",
+    "-Dgbm=enabled",
+    "-Dllvm=disabled",
+    "-Dglvnd=disabled",
+    "-Dgallium-va=disabled",
+    "-Dvideo-codecs=[]",
+    "-Dspirv-tools=disabled",
+    "-Dlibunwind=disabled",
+    "-Dbuild-tests=false",
+    "-Dtools=[]",
+    "-Dallow-fallback-for=[]"
+  ],
+  "runtime_limit_bytes": 251658240
+}

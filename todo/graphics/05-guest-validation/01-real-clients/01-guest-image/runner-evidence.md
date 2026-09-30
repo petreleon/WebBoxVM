@@ -51,6 +51,7 @@ not execute these example tests.
 
 ## Remaining real lane
 
-Run this exact runner against the assembled stock-Mesa fixture, retain UART and
-the first failure/partial effects, and register the task through F05. A clean
-image reproduction and actual renderer/ICD report are still required by I01.
+The [automation receipt](automation-evidence.md) now records this exact runner
+booting the stock-Mesa fixture and running real tools and both API clients.
+F05 captures the actual driver failures. Clean Mesa binary reproduction and
+successful renderer/ICD reporting are still required by I01.

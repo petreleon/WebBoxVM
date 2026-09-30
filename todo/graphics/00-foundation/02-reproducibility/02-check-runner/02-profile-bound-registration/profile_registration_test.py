@@ -49,6 +49,7 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(value["cts_executions"], 0)
         self.assertEqual([item["id"] for item in value["checks"]], [
             "vulkan-registry-inventory-v2", "make-test", "web-pkg-serial", "web-pkg-threaded", "virgl-guest-transport",
+            "i01-stock-mesa-startup",
         ])
         auxiliary = value["checks"][0]
         self.assertEqual((auxiliary["kind"], auxiliary["profile_effect"], auxiliary["source"]["scope"]),

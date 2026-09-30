@@ -21,7 +21,7 @@ ROOT_FIELDS = frozenset(("schema", "kind", "source_contract_sha256", "inventory_
 STATE_FIELDS = frozenset(("profile_implementation_count", "profile_status", "blocker", "api_support", "conformance", "certification", "profile_support", "performance", "guest_api", "browser_execution"))
 CHECK_FIELDS = frozenset(("id", "kind", "profile", "profile_effect", "source", "command", "expected_count", "artifacts", "tools", "prerequisites", "evidence", "lane", "requires_selector_cache"))
 KINDS = frozenset(("implementation", "auxiliary-inventory", "baseline"))
-LANES = frozenset(("make-test", "wasm-serial", "wasm-threaded", "transport-only", "auxiliary-inventory", "implementation"))
+LANES = frozenset(("make-test", "wasm-serial", "wasm-threaded", "transport-only", "guest-fixture", "auxiliary-inventory", "implementation"))
 
 
 def source_maps(contract: dict[str, object]) -> tuple[dict[str, dict[str, object]], dict[str, dict[str, object]], dict[tuple[str, str], dict[str, object]]]:

@@ -14,6 +14,10 @@ Cargo.lock
 # Kernel images (large binaries, download on demand)
 Image
 Image.gz
+# Keep maintained image recipe sources visible on case-insensitive filesystems.
+!guest/mesa-fixture/image/
+!guest/mesa-fixture/image/*.py
+!guest/mesa-fixture/image/init.sh
 rela.dyn
 .artifacts/
 .playwright-cli/

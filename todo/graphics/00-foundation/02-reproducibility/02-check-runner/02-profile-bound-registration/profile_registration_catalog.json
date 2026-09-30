@@ -122,7 +122,56 @@
       "evidence": "todo/graphics/baseline.md#commands-that-already-exist",
       "lane": "transport-only",
       "requires_selector_cache": false
+    },
+    {
+      "id": "i01-stock-mesa-startup",
+      "kind": "baseline",
+      "profile": null,
+      "profile_effect": "none",
+      "source": null,
+      "command": [
+        "python3",
+        "guest/mesa-fixture/run.py",
+        "--mode",
+        "startup"
+      ],
+      "expected_count": 1,
+      "artifacts": [
+        "guest/mesa-fixture/run.py",
+        "guest/mesa-fixture/checks/startup.sh"
+      ],
+      "tools": [
+        [
+          "python3",
+          "--version"
+        ],
+        [
+          "cargo",
+          "--version"
+        ]
+      ],
+      "prerequisites": [
+        {
+          "kind": "asset",
+          "value": ".artifacts/graphics/i01-mesa-image/image/Image"
+        },
+        {
+          "kind": "asset",
+          "value": ".artifacts/graphics/i01-mesa-image/image/initrd.cpio"
+        },
+        {
+          "kind": "asset",
+          "value": ".artifacts/graphics/i01-mesa-image/image/manifest.json"
+        },
+        {
+          "kind": "asset",
+          "value": "target/release/examples/guest_command"
+        }
+      ],
+      "evidence": "guest/mesa-fixture/README.md",
+      "lane": "guest-fixture",
+      "requires_selector_cache": false
     }
   ],
-  "catalog_sha256": "e390118a78145dac3c5c080413317f55659ba202fc536bae377b6c2b81556cf6"
+  "catalog_sha256": "8905685ffdba718aad27130bdb64fcdcf4f37aa0203054cd9bbfe6f9c6ac49cf"
 }

@@ -4,7 +4,7 @@
 
 Task: I01
 Depends: F02, F05
-Evidence: pending
+Evidence: partial — [image automation and real guest receipt](automation-evidence.md)
 
 Prerequisite lists: [F02](../../../00-foundation/01-contract/02-upstream-pins/README.md), [F05](../../../00-foundation/02-reproducibility/02-check-runner/README.md).
 
@@ -22,15 +22,18 @@ The guest has pinned unmodified Mesa drivers and tools that can exercise standar
 
 - [ ] Create a reproducible ARM64 image recipe containing kernel virtio-gpu, Mesa VirGL/Venus,
   EGL/GL and Vulkan tools.
-- [ ] Record package/source hashes, build flags and driver selection; keep installed disk data
+- [x] Record package/source hashes, build flags and driver selection; keep installed disk data
   outside Git.
-- [ ] Add a boot/command runner that captures serial output and exits on timeout or guest failure.
+- [x] Add a boot/command runner that captures serial output and exits on timeout or guest failure.
 - [ ] Run the verification below, review the result, and attach the completed evidence receipt.
 
 ## Verification
 
 The [input capture receipt](input-capture-evidence.md) verifies the exact full Mesa archive and
-its F02 VirGL/Venus source hashes. No stock-Mesa image or runtime check is complete yet.
+its F02 VirGL/Venus source hashes. The [automation receipt](automation-evidence.md)
+records a built stock-Mesa image, successful kernel/GPU/tool command execution,
+and actual GLES/Vulkan startup failures. Clean Mesa binary reproduction and
+successful renderer/ICD reporting remain unverified; I01 stays open.
 
 - A clean image build reproduces the manifest and guest tool versions.
 - Renderer/ICD reporting identifies software fallback separately; missing drivers are a failure.
