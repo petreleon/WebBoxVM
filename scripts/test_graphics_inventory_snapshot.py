@@ -80,6 +80,41 @@ class SnapshotTests(unittest.TestCase):
             with self.assertRaises(InventoryError):
                 SourceSnapshot(root, link)
 
+    def test_cache_under_python_cache_named_directory_stays_sealed(self):
+        for location in ("__pycache__", "__pycache__/normative", "cache/__pycache__"):
+            with tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                _, cache = self.fixture(root)
+                destination = root / "external" / location
+                destination.parent.mkdir(parents=True)
+                cache.rename(destination)
+                snapshot = SourceSnapshot(root, destination)
+                (destination / "source.pdf").write_bytes(b"changed after final source read")
+                with self.subTest(location=location), self.assertRaises(InventoryError):
+                    snapshot.finish()
+
+    def test_repository_ancestor_name_does_not_hide_authority_changes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "__pycache__" / "repo"
+            catalog, cache = self.fixture(root)
+            snapshot = SourceSnapshot(root, cache)
+            catalog.write_text('{"source": "changed after proof"}')
+            with self.assertRaises(InventoryError):
+                snapshot.finish()
+
+    def test_only_code_bytecode_is_excluded_from_fingerprints(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            catalog, cache = self.fixture(root)
+            bytecode = catalog.parent / "__pycache__"
+            bytecode.mkdir()
+            snapshot = SourceSnapshot(root, cache)
+            (bytecode / "catalog.cpython-314.pyc").write_bytes(b"transient bytecode")
+            snapshot.finish()
+            (bytecode / "catalog.json").write_text('{"source": "new normative input"}')
+            with self.assertRaises(InventoryError):
+                snapshot.finish()
+
 
 if __name__ == "__main__":
     unittest.main()

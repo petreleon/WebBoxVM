@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.4
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [partial aggregate receipt](evidence.md)
 
 ## Outcome
 
@@ -28,3 +28,10 @@ triggering command and table or section anchor, without inferring behavior from 
 
 Every child remains raw-only and `matrix-incomplete`; it does not prove state behavior, ordering,
 guest/browser execution, support, conformance, certification, or performance.
+
+The finite state batch reproduces 97 facts across the four existing routes: 12 explicit lifecycle
+rules, 55 draw/raster/compute forms, six pixel commands and 24 debug/special/context queries.
+The three declaration routes passed focused checks; their final repository integration is pending.
+The lifecycle leaf remains open for its pending state/stage/table families, and the batch explicitly
+reports `source_coverage.complete: false`. This parent stays open until every child and aggregate
+acceptance gate is complete. Batching and source-family fragments preserve the original scope.

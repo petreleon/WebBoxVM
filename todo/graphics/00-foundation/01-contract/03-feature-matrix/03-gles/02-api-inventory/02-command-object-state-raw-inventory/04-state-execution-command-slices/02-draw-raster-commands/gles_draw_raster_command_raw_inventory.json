@@ -1,0 +1,156 @@
+{
+  "aggregate_inventory_sha256": "193b8810b8eb288f802363f5cb5d5b5f0769e7b3804e2ad9bc773d78e606b244",
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "domain_classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "domain_families": [
+    {"id": "draw", "source_order": 23},
+    {"id": "indirect-draw", "source_order": 24},
+    {"id": "raster-and-framebuffer", "source_order": 28},
+    {"id": "compute", "source_order": 30}
+  ],
+  "grammar_sha256": "7de694c6169331689f8ea48127cfbc80b5dbc96fc8c74e10332267503ee711cf",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "dd5700ca5e0d3ac5bad44e7ea523a5b8825605fa73a73b03d87e34329185bd89",
+  "kind": "webboxvm-gles32-draw-raster-raw-inventory",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_entries_sha256": "e3340eb95021fd7fb7d7775f2ce2d1138298ec34f7acd9b42595c659620224b4",
+  "raw_entry_count": 55,
+  "raw_entry_defaults": {
+    "derivation_class": "formal-declaration",
+    "source_locator_format": "gles32-pdf-v1:page={physical_page};section={section}"
+  },
+  "raw_entry_fields": [
+    "raw_id",
+    "unprefixed_name",
+    "c_name",
+    "declaration",
+    "physical_page",
+    "section",
+    "source_order",
+    "family_id",
+    "source_family_order"
+  ],
+  "raw_entry_fragments": [
+    {
+      "family_id": "draw",
+      "filename": "gles_draw_raster_command_raw_inventory_draw.json",
+      "fragment_sha256": "f131678dafd7eebfc85921e5f74d46490506e709faa146ddf61bc9124d1e799d",
+      "raw_entry_count": 10
+    },
+    {
+      "family_id": "indirect-draw",
+      "filename": "gles_draw_raster_command_raw_inventory_indirect-draw.json",
+      "fragment_sha256": "279a5b9f90ef9da1479decffeb72ad3260ce1ea6e6fcdf0d6b57879970284e5c",
+      "raw_entry_count": 0
+    },
+    {
+      "family_id": "raster-and-framebuffer",
+      "filename": "gles_draw_raster_command_raw_inventory_raster-and-framebuffer.json",
+      "fragment_sha256": "bd9ab6c7bc730b7e0e32729f89e9b14f905355c21e2b05a10293b55e36c09795",
+      "raw_entry_count": 43
+    },
+    {
+      "family_id": "compute",
+      "filename": "gles_draw_raster_command_raw_inventory_compute.json",
+      "fragment_sha256": "7f81c2430db88c0d4df3c537a12be85d8a17999e40cdb5a5405a165c9ba6337f",
+      "raw_entry_count": 2
+    }
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "scope_fence": "formal-declarations-only-semantic-routes-excluded",
+  "source": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_coverage": {
+    "complete": true,
+    "excluded_non_commands": [
+      [295, "DrawArraysOneInstance", 296, "does not exist in the GL"],
+      [298, "DrawElementsOneInstance", 298, "does not exist in the GL, but is used to describe functionality"]
+    ],
+    "families": [
+      {"id": "draw", "source_order": 23},
+      {"id": "indirect-draw", "source_order": 24},
+      {"id": "raster-and-framebuffer", "source_order": 28},
+      {"id": "compute", "source_order": 30}
+    ],
+    "index_crosscheck": {
+      "physical_page_range": [571, 601],
+      "role": "omission-crosscheck-only",
+      "witness_count": 53,
+      "witnesses_sha256": "a4550eb382d858e5ac6e86908a6854e37b1e0e607fde4ab7340593a143f48930"
+    },
+    "routed_declarations": [],
+    "semantic_routes": ["primitive-and-raster-behavior", "state", "limits", "formats", "essl-unavailable"],
+    "source_windows": [
+      {
+        "declarations_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "end": "10.4 Vertex Array Objects",
+        "family_id": "indirect-draw",
+        "first_physical_page": 293,
+        "formal_declaration_count": 0,
+        "last_physical_page": 294,
+        "start": "10.3.9 Indirect Commands in Buffer Objects"
+      },
+      {
+        "declarations_sha256": "e6c5c4a1580da857ed61bc15a9a48ae063f400078f5ab3bb147a19354e03e37f",
+        "end": "10.6 Vertex Array and Vertex Array Object Queries",
+        "family_id": "draw",
+        "first_physical_page": 295,
+        "formal_declaration_count": 10,
+        "last_physical_page": 302,
+        "start": "10.5 Drawing Commands Using Vertex Arrays"
+      },
+      {
+        "declarations_sha256": "41bc913998ebb0160e5a9fae02b577adb0bbac808a2ab64e2642bb7fa526a262",
+        "end": "Chapter 14",
+        "family_id": "raster-and-framebuffer",
+        "first_physical_page": 368,
+        "formal_declaration_count": 10,
+        "last_physical_page": 389,
+        "start": "Chapter 13"
+      },
+      {
+        "declarations_sha256": "6a32486830d13aa0f56fafcf02710daf0645991cfc461834deae76f0cd173c69",
+        "end": "Chapter 16",
+        "family_id": "raster-and-framebuffer",
+        "first_physical_page": 397,
+        "formal_declaration_count": 31,
+        "last_physical_page": 424,
+        "start": "Chapter 15"
+      },
+      {
+        "declarations_sha256": "74841d3ae30972937b1871b323a06b51d754107643552875138277a02aa30e44",
+        "end": "Chapter 18",
+        "family_id": "compute",
+        "first_physical_page": 439,
+        "formal_declaration_count": 2,
+        "last_physical_page": 442,
+        "start": "Chapter 17"
+      }
+    ],
+    "typographic_spellings": []
+  },
+  "source_decision": {
+    "availability": "available",
+    "blocker": "",
+    "decision": "derivable",
+    "id": "command-state",
+    "permitted_extraction_scope": "GLES 3.2 core commands and state",
+    "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+    "source_role": "normative-root"
+  },
+  "unavailable_ledger_sha256": "560de6a8c6d8102fe83e3009dd57b7558b0e86029f5e137cb8fe467f85677ea9"
+}

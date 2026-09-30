@@ -1,0 +1,132 @@
+{
+  "aggregate_inventory_sha256": "78a1ae0d7e9ac05ca669dea6871bac19158d86de7c20fbd41d74ff6396868149",
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "domain_classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "domain_families": [
+    {"id": "fundamentals", "source_order": 6},
+    {"id": "context-and-lifecycle", "source_order": 9},
+    {"id": "object-taxonomy", "source_order": 10},
+    {"id": "vertex-remaining-state", "source_order": 21},
+    {"id": "programmable-vertex-stage", "source_order": 25},
+    {"id": "post-vertex-state", "source_order": 27},
+    {"id": "programmable-fragment-stage", "source_order": 29},
+    {"id": "state-tables", "source_order": 34}
+  ],
+  "grammar_sha256": "7de694c6169331689f8ea48127cfbc80b5dbc96fc8c74e10332267503ee711cf",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "f674df5c68ddfce9eb0b7f5a3108fcc6d0f0a25a92e8e518a09b996ee070c7a4",
+  "kind": "webboxvm-gles32-context-state-lifecycle-raw-inventory",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_entries_sha256": "d3d6d96c8d3cccd04a6bc24f6fb734698255896d4d3bd8bee2504ccc470e2ab5",
+  "raw_entry_count": 12,
+  "raw_entry_defaults": {
+    "derivation_class": "explicit-triggered-rule",
+    "source_locator_format": "gles32-pdf-v1:page={physical_page};section={section}"
+  },
+  "raw_entry_fields": [
+    "raw_id",
+    "family_id",
+    "source_family_order",
+    "triggering_commands",
+    "c_names",
+    "rule_text_parts",
+    "physical_page",
+    "section",
+    "source_order"
+  ],
+  "raw_entry_fragments": [
+    {
+      "family_id": "fundamentals",
+      "filename": "gles_context_state_lifecycle_raw_inventory_fundamentals.json",
+      "fragment_sha256": "cb616f96899fa52af26aa8b96835d48d794de51fc30ca833c1913df3b2ab33d6",
+      "raw_entry_count": 0
+    },
+    {
+      "family_id": "context-and-lifecycle",
+      "filename": "gles_context_state_lifecycle_raw_inventory_context-and-lifecycle.json",
+      "fragment_sha256": "29dab773aa70faec841498e7589d3a704961876197173f30de1456ac833eeaae",
+      "raw_entry_count": 8
+    },
+    {
+      "family_id": "object-taxonomy",
+      "filename": "gles_context_state_lifecycle_raw_inventory_object-taxonomy.json",
+      "fragment_sha256": "20e5da7cce0b6898be880e2904b1939df03b93d8a2f1cf3ef0b455525eb91ec6",
+      "raw_entry_count": 4
+    },
+    {
+      "family_id": "vertex-remaining-state",
+      "filename": "gles_context_state_lifecycle_raw_inventory_vertex-remaining-state.json",
+      "fragment_sha256": "3aeba08051790bd4be3fc19b8c7b84c9dcbee1b74bfa7ad3fdcf12ad956557b8",
+      "raw_entry_count": 0
+    },
+    {
+      "family_id": "programmable-vertex-stage",
+      "filename": "gles_context_state_lifecycle_raw_inventory_programmable-vertex-stage.json",
+      "fragment_sha256": "5888cd53b8556f72c74983a0cc40cfbfabd38840dc943aee079a2d3c6096e471",
+      "raw_entry_count": 0
+    },
+    {
+      "family_id": "post-vertex-state",
+      "filename": "gles_context_state_lifecycle_raw_inventory_post-vertex-state.json",
+      "fragment_sha256": "56aab3cd5f9a5a19bb8eda3a1ec2be39ffa569b992678dea275d04ea6f645a94",
+      "raw_entry_count": 0
+    },
+    {
+      "family_id": "programmable-fragment-stage",
+      "filename": "gles_context_state_lifecycle_raw_inventory_programmable-fragment-stage.json",
+      "fragment_sha256": "595e9a170873f4448218aa8d9241c5c188b94e27aa8f931d373f55d365c523ec",
+      "raw_entry_count": 0
+    },
+    {
+      "family_id": "state-tables",
+      "filename": "gles_context_state_lifecycle_raw_inventory_state-tables.json",
+      "fragment_sha256": "bdcd10c04cc9436a110cea987afa02e694d0c41b34cbd5d706fd0f3c087fa22b",
+      "raw_entry_count": 0
+    }
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "scope_fence": "context-state-lifecycle-triggered-rules-only",
+  "source": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_coverage": {
+    "complete": false,
+    "contract": "object-model-and-shared-object-literal-triggers-v1",
+    "pending_family_count": 5,
+    "raw_positive_rules": 12,
+    "route_fields": ["family_id", "status", "reviewed_scope", "pending_scope", "reason"],
+    "routes": [
+      ["fundamentals", "no-eligible-rule", ["2.1"], [], "no-literal-trigger"],
+      ["context-and-lifecycle", "covered-trigger-class", ["2.4-2.5", "5"], [], "quoted-literal-trigger-only"],
+      ["object-taxonomy", "covered-trigger-class", ["2.6"], [], "quoted-literal-trigger-only"],
+      ["vertex-remaining-state", "pending", [], ["10.1", "10.6-10.7"], "state-command-and-table-extraction-pending"],
+      ["programmable-vertex-stage", "pending", [], ["11"], "state-command-and-table-extraction-pending"],
+      ["post-vertex-state", "pending", [], ["12.1", "12.3-12.6"], "state-command-and-table-extraction-pending"],
+      ["programmable-fragment-stage", "pending", [], ["14"], "state-command-and-table-extraction-pending"],
+      ["state-tables", "pending", [], ["21.1-21.39"], "state-command-and-table-extraction-pending"]
+    ]
+  },
+  "source_decision": {
+    "availability": "available",
+    "blocker": "",
+    "decision": "derivable",
+    "id": "command-state",
+    "permitted_extraction_scope": "GLES 3.2 core commands and state",
+    "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+    "source_role": "normative-root"
+  },
+  "unavailable_ledger_sha256": "560de6a8c6d8102fe83e3009dd57b7558b0e86029f5e137cb8fe467f85677ea9"
+}

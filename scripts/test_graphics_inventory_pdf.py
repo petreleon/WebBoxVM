@@ -123,4 +123,20 @@ class PdfTests(unittest.TestCase):
                 with self.assertRaisesRegex(catalog.CatalogError, "fixture failure"): catalog.page_text(b"fixture", 1)
 
 
+    def test_physical_range_preserves_heading_lines_and_page_identity(self):
+        result = subprocess.CompletedProcess([], 0, b"First\nheading\n\fSecond\nheading\n\f", b"")
+        with patch.object(pdf, "extractor", return_value="/fixed/tool"), patch.object(pdf.subprocess, "run", return_value=result):
+            self.assertEqual(pdf.sealed_pdf_pages(b"sealed bytes", 40, 41), {40: "First\nheading\n", 41: "Second\nheading\n"})
+
+    def test_truncated_empty_and_invalid_physical_ranges_fail(self):
+        for output in (b"one page\f", b"one\f\f", b"one\ftwo\fthree\f"):
+            result = subprocess.CompletedProcess([], 0, output, b"")
+            with patch.object(pdf, "extractor", return_value="/fixed/tool"), patch.object(pdf.subprocess, "run", return_value=result):
+                with self.assertRaises(pdf.PdfError): pdf.sealed_pdf_pages(b"sealed bytes", 40, 41)
+        with patch.object(pdf.subprocess, "run") as launch:
+            for first, last in ((0, 1), (2, 1), (True, 1), (1, "2")):
+                with self.assertRaises(pdf.PdfError): pdf.sealed_pdf_pages(b"sealed bytes", first, last)
+            launch.assert_not_called()
+
+
 if __name__ == "__main__": unittest.main()

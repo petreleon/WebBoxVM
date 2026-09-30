@@ -15,6 +15,7 @@ WASM_BINDGEN_THREADS ?= $(WASM_BINDGEN_THREADS_ROOT)/bin/wasm-bindgen
 
 include make/graphics-source-inventories.mk
 include make/graphics-inventory-automation.mk
+include make/graphics-state-inventories.mk
 
 .PHONY: busybox iso-debian-arm64 iso-info terminal-image terminal-debian-arm64 terminal-iso wasm-bindgen-memory64-threads web-pkg web-pkg-serial web-pkg-threaded web web-benchmark web-debian-arm64 graphics-roadmap-test graphics-runner-test graphics-source-role-test graphics-normative-root-test graphics-vulkan-definition-test graphics-source-admission-test graphics-full-suite-root-test graphics-gl-flat-ledger-test graphics-gles-full-closure-ledger-test graphics-gl-gles-ledger-receipt-test graphics-vulkan-ledger-taxonomy-test graphics-vulkan-cache-replay-test graphics-vulkan-full-suite-receipt-test graphics-vulkan-local-shard-receipt-test graphics-role-aware-source-contract-test graphics-profile-source-gate-test graphics-opengl-source-authority-test graphics-opengl-normative-pdf-cache-test graphics-gles-source-authority-test graphics-gles-unavailable-ledger-test graphics-vulkan-registry-inventory-test graphics-vulkan-source-channel-boundary-test graphics-vulkan-full-suite-diagnostics-test graphics-f05-source-adapter-test graphics-profile-registration-test test
 

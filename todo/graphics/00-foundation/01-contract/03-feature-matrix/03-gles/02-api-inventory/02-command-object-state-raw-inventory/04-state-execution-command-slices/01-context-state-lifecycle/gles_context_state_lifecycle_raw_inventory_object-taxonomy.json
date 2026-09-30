@@ -1,0 +1,57 @@
+{
+  "domain_family": {"id": "object-taxonomy", "source_order": 10},
+  "fragment_sha256": "20e5da7cce0b6898be880e2904b1939df03b93d8a2f1cf3ef0b455525eb91ec6",
+  "kind": "webboxvm-gles32-context-state-lifecycle-raw-inventory-source-family",
+  "promotion_allowed": false,
+  "raw_entries": [
+    ["gles32-context-state-lifecycle-01", "object-taxonomy", 10,
+     ["GenBuffers"], ["glGenBuffers"], [
+       "Names of most types of objects are created by generating unused names us- ing commands starting",
+       "with Gen followed by the object type. For example, the command GenBuffers returns one or more",
+       "previously unused buffer object names. Generated names are marked by the GL as used, for the",
+       "purpose of name gener- ation only. Object names marked in this fashion will not be returned by",
+       "additional calls to generate names of the same type until the names are marked unused again by",
+       "deleting them (see below)."
+     ], 43, "2.6.1.1", 1],
+    ["gles32-context-state-lifecycle-02", "object-taxonomy", 10,
+     ["BindBuffer", "GenBuffers", "BindSampler"], ["glBindBuffer", "glGenBuffers", "glBindSampler"], [
+       "Generated names do not initially correspond to an instance of an object. Ob- jects with",
+       "generated names are created by binding a generated name to the context. For example, a buffer",
+       "object is created by calling the command BindBuffer with a name returned by GenBuffers, which",
+       "allocates resources for the buffer object and its state, and associate the name with that",
+       "object. Sampler objects may also be created by commands in addition to BindSampler, as described",
+       "in section 8.2."
+     ], 44, "2.6.1.1", 2],
+    ["gles32-context-state-lifecycle-03", "object-taxonomy", 10,
+     ["CreateProgram", "FenceSync"], ["glCreateProgram", "glFenceSync"], [
+       "A few types of objects are created by commands which return the name of the new object at the",
+       "same time they create the object. Examples include CreatePro- gram for program objects and",
+       "FenceSync for fence sync objects."
+     ], 44, "2.6.1.1", 3],
+    ["gles32-context-state-lifecycle-04", "object-taxonomy", 10,
+     ["DeleteBuffers"], ["glDeleteBuffers"], [
+       "Objects are deleted by calling deletion commands specific to that object type. For example, the",
+       "command DeleteBuffers is passed an array of buffer object names to delete. After an object is",
+       "deleted it has no contents, and its name is once again marked unused for the purpose of name",
+       "generation. If names are deleted that do not correspond to an object, but have been marked for",
+       "the purpose of name generation, suchnamesaremarkedasunusedagain.",
+       "Ifunusedandunmarkednamesaredeleted they are silently ignored, as is the name zero."
+     ], 44, "2.6.1.2", 4]
+  ],
+  "raw_entries_sha256": "09e585492032d7ceafd900d4bca4524409a7d2eef7ef3335fffdcac25a3f15af",
+  "raw_entry_count": 4,
+  "raw_entry_fields": [
+    "raw_id",
+    "family_id",
+    "source_family_order",
+    "triggering_commands",
+    "c_names",
+    "rule_text_parts",
+    "physical_page",
+    "section",
+    "source_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "source_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+}

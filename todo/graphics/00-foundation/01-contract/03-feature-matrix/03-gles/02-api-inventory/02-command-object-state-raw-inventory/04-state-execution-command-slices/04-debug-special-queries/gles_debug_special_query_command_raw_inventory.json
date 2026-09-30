@@ -1,0 +1,142 @@
+{
+  "aggregate_inventory_sha256": "cdab7a42c9aee8be8ef50bbf97e2708c774d35fc4e23ad4126866d28aa93e6ec",
+  "cache_boundary_sha256": "c32574099c24c6d6b78b43ef82cf88869853353cdac619ca9f0b8b58100b5f79",
+  "domain_classification_sha256": "17c73d25c7b4eaa125bda373bd4603df6bdb7f61f3c8c07f09c2eb65038facab",
+  "domain_families": [
+    {"id": "debug", "source_order": 31},
+    {"id": "special", "source_order": 32},
+    {"id": "context-queries", "source_order": 33}
+  ],
+  "grammar_sha256": "7de694c6169331689f8ea48127cfbc80b5dbc96fc8c74e10332267503ee711cf",
+  "inventory_lock_sha256": "44a0f280e0ed854091a33e458122bd8cd9a0f9fc2e4c51a7a5be92bf48d8c6f4",
+  "inventory_sha256": "9bab0a601bcffaf498ba952df9df0f2239e6fde2c07aad88b3b81bfd663e9ab5",
+  "kind": "webboxvm-gles32-debug-special-query-raw-inventory",
+  "physical_pdf_pages": 601,
+  "profile": "gles-3.2",
+  "promotion_allowed": false,
+  "raw_entries_sha256": "95b292a6fe62a99a7f7fd7d29788626bde335ce923dd82b8a9550a8472e7957e",
+  "raw_entry_count": 24,
+  "raw_entry_defaults": {
+    "derivation_class": "formal-declaration",
+    "source_locator_format": "gles32-pdf-v1:page={physical_page};section={section}"
+  },
+  "raw_entry_fields": [
+    "raw_id",
+    "unprefixed_name",
+    "c_name",
+    "declaration",
+    "physical_page",
+    "section",
+    "source_order",
+    "family_id",
+    "source_family_order"
+  ],
+  "raw_entry_fragments": [
+    {
+      "family_id": "debug",
+      "filename": "gles_debug_special_query_command_raw_inventory_debug.json",
+      "fragment_sha256": "de74ab14a3a18433bb7a077518f872375906349e0cec60aea09136d2b1aeea37",
+      "raw_entry_count": 10
+    },
+    {
+      "family_id": "special",
+      "filename": "gles_debug_special_query_command_raw_inventory_special.json",
+      "fragment_sha256": "f83271de2f34a92e34dd31329d227ebaba3e20938d50a8c1adb082070ca90906",
+      "raw_entry_count": 1
+    },
+    {
+      "family_id": "context-queries",
+      "filename": "gles_debug_special_query_command_raw_inventory_context-queries.json",
+      "fragment_sha256": "b0a474539658cedcf60be650bde6179d4c8f557552e990c46e43e69a96f4fb48",
+      "raw_entry_count": 13
+    }
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "scope_fence": "formal-declarations-only-semantic-routes-excluded",
+  "source": {
+    "bytes": 2198754,
+    "profile": "gles-3.2",
+    "record_id": "gles-32-spec",
+    "record_kind": "upstream-source",
+    "revision": "1cdd228e34966dd6b95bd203e9f84faba0f371a1",
+    "role": "normative-root",
+    "scope": "normative-source",
+    "sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+  },
+  "source_authority_sha256": "0e7ee3270ca2c527ffafb366f216839a8d180dfc3777d2ef2b2a2a532023c7ae",
+  "source_class": "command-state",
+  "source_contract_sha256": "d2be08ced8a806f001543e9218b6758a0a4b89825b0c4c940b9ced7c119f1ac3",
+  "source_coverage": {
+    "complete": true,
+    "excluded_non_commands": [],
+    "families": [
+      {"id": "debug", "source_order": 31},
+      {"id": "special", "source_order": 32},
+      {"id": "context-queries", "source_order": 33}
+    ],
+    "index_crosscheck": {
+      "physical_page_range": [571, 601],
+      "role": "omission-crosscheck-only",
+      "witness_count": 24,
+      "witnesses_sha256": "ead158d24c5959180edf34b39b56fac07e6360164ee8db33a893df4841798351"
+    },
+    "routed_declarations": [
+      [
+        "03-object-resource-command-slices/01-generic-sync-query/gles_generic_sync_query_raw_inventory.json",
+        "5c48f04b81f414e4d703465bc3ab33fe46bc178849d64819a2773edaf9df3cfa",
+        "F03.3.2.2.3.1",
+        "ca43e662ada91a2c72a0265e500f2055dbec09da30defcd432ec3ced04815013",
+        "glGetGraphicsResetStatus",
+        "enum GetGraphicsResetStatus( void );",
+        34,
+        "2.3"
+      ]
+    ],
+    "semantic_routes": ["primitive-and-raster-behavior", "state", "limits", "formats", "essl-unavailable"],
+    "source_windows": [
+      {
+        "declarations_sha256": "24258bf4599017dfb215fc2252d5e4ca48530454efe72122192294079d968d4f",
+        "end": "Chapter 19",
+        "family_id": "debug",
+        "first_physical_page": 442,
+        "formal_declaration_count": 10,
+        "last_physical_page": 455,
+        "start": "Chapter 18"
+      },
+      {
+        "declarations_sha256": "454db383943b0abfac0ed9b5fdaa86dbbadfa327a03ef9332357aa785a1f18cc",
+        "end": "Chapter 20",
+        "family_id": "special",
+        "first_physical_page": 455,
+        "formal_declaration_count": 1,
+        "last_physical_page": 457,
+        "start": "Chapter 19"
+      },
+      {
+        "declarations_sha256": "6eb126460ebb4b2be374891d89381780e03e644845d945bc8012088a91d6a4c6",
+        "end": "Chapter 21",
+        "family_id": "context-queries",
+        "first_physical_page": 457,
+        "formal_declaration_count": 13,
+        "last_physical_page": 464,
+        "start": "Chapter 20"
+      }
+    ],
+    "typographic_spellings": [
+      [458, "20.1", "GetBooleani v", "GetBooleani_v"],
+      [458, "20.1", "GetIntegeri v", "GetIntegeri_v"],
+      [458, "20.1", "GetInteger64i v", "GetInteger64i_v"]
+    ]
+  },
+  "source_decision": {
+    "availability": "available",
+    "blocker": "",
+    "decision": "derivable",
+    "id": "command-state",
+    "permitted_extraction_scope": "GLES 3.2 core commands and state",
+    "source_locator_syntax": "gles32-pdf-v1:page=<positive-decimal>;section=<section-path>",
+    "source_role": "normative-root"
+  },
+  "unavailable_ledger_sha256": "560de6a8c6d8102fe83e3009dd57b7558b0e86029f5e137cb8fe467f85677ea9"
+}

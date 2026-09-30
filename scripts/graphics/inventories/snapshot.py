@@ -22,12 +22,13 @@ class SourceSnapshot:
             if root.is_symlink():
                 reject("source proof root must not be a symlink")
             for path in sorted(root.rglob("*")):
-                if "__pycache__" in path.parts:
-                    continue
                 if path.is_symlink():
                     reject("source proof input must not be a symlink")
+                relative = path.relative_to(root)
+                if index != 2 and "__pycache__" in relative.parts[:-1] and path.suffix in (".pyc", ".pyo"):
+                    continue
                 if path.is_file():
-                    entries.append((index, str(path.relative_to(root)), hashlib.sha256(path.read_bytes()).hexdigest()))
+                    entries.append((index, str(relative), hashlib.sha256(path.read_bytes()).hexdigest()))
         return tuple(entries)
 
     def remember(self, source, raw, domain, grammar, ledger):

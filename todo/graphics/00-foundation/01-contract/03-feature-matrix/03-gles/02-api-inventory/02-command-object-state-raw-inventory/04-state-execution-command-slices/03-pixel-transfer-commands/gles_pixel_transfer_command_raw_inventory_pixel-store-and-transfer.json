@@ -1,0 +1,42 @@
+{
+  "domain_family": {"id": "pixel-store-and-transfer", "source_order": 19},
+  "fragment_sha256": "c69e71aa96352b81dd0adefcfd71055a86f2ca69dd88d8a5123097559547d9e5",
+  "kind": "webboxvm-gles32-pixel-transfer-raw-inventory-source-family",
+  "promotion_allowed": false,
+  "raw_entries": [
+    ["gles32-pixel-transfer-01", "PixelStorei", "glPixelStorei",
+     "void PixelStorei( enum pname, int param );",
+     163, "8.4.1", 1, "pixel-store-and-transfer", 19],
+    ["gles32-pixel-transfer-02", "ReadBuffer", "glReadBuffer",
+     "void ReadBuffer( enum src );",
+     424, "16.1.1", 2, "pixel-store-and-transfer", 19],
+    ["gles32-pixel-transfer-03", "ReadPixels", "glReadPixels",
+     "void ReadPixels( int x, int y, sizei width, sizei height, enum format, enum type, void *data );",
+     426, "16.1.2", 3, "pixel-store-and-transfer", 19],
+    ["gles32-pixel-transfer-04", "ReadnPixels", "glReadnPixels",
+     "void ReadnPixels( int x, int y, sizei width, sizei height, enum format, enum type, sizei bufSize, void *data );",
+     426, "16.1.2", 4, "pixel-store-and-transfer", 19],
+    ["gles32-pixel-transfer-05", "BlitFramebuffer", "glBlitFramebuffer",
+     "void BlitFramebuffer( int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, bitfield mask, enum filter );",
+     430, "16.2.1", 5, "pixel-store-and-transfer", 19],
+    ["gles32-pixel-transfer-06", "CopyImageSubData", "glCopyImageSubData",
+     "void CopyImageSubData( uint srcName, enum srcTarget, int srcLevel, int srcX, int srcY, int srcZ, uint dstName, enum dstTarget, int dstLevel, int dstX, int dstY, int dstZ, sizei srcWidth, sizei srcHeight, sizei srcDepth );",
+     433, "16.2.2", 6, "pixel-store-and-transfer", 19]
+  ],
+  "raw_entries_sha256": "423750c212b7072eda737721df2fbad0186901c8f599ea64802c8163bd2ad603",
+  "raw_entry_count": 6,
+  "raw_entry_fields": [
+    "raw_id",
+    "unprefixed_name",
+    "c_name",
+    "declaration",
+    "physical_page",
+    "section",
+    "source_order",
+    "family_id",
+    "source_family_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "source_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+}

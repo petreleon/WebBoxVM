@@ -1,0 +1,30 @@
+{
+  "domain_family": {"id": "compute", "source_order": 30},
+  "fragment_sha256": "7f81c2430db88c0d4df3c537a12be85d8a17999e40cdb5a5405a165c9ba6337f",
+  "kind": "webboxvm-gles32-draw-raster-raw-inventory-source-family",
+  "promotion_allowed": false,
+  "raw_entries": [
+    ["gles32-draw-raster-54", "DispatchCompute", "glDispatchCompute",
+     "void DispatchCompute( uint num groups x, uint num groups y, uint num groups z );",
+     439, "17", 54, "compute", 30],
+    ["gles32-draw-raster-55", "DispatchComputeIndirect", "glDispatchComputeIndirect",
+     "void DispatchComputeIndirect( intptr indirect );",
+     440, "17", 55, "compute", 30]
+  ],
+  "raw_entries_sha256": "2183ef7bb527d1c241944a3bafa0b5b42693bbc1a11ee9e53182cafa92eab37e",
+  "raw_entry_count": 2,
+  "raw_entry_fields": [
+    "raw_id",
+    "unprefixed_name",
+    "c_name",
+    "declaration",
+    "physical_page",
+    "section",
+    "source_order",
+    "family_id",
+    "source_family_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "source_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+}

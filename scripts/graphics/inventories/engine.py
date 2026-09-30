@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .json_output import pretty_json
 from .source import InventoryError, SourceContext, reject
+from . import storage
 
 ENTRY_FIELDS = ("raw_id", "unprefixed_name", "c_name", "declaration", "physical_page", "section", "source_order")
 DEFAULT_FIELDS = frozenset(("family_id", "source_family_order", "derivation_class", "source_locator_format"))
@@ -18,22 +19,29 @@ DEFAULT_FIELDS = frozenset(("family_id", "source_family_order", "derivation_clas
 class InventoryEngine(SourceContext):
     def __init__(self, here: Path, catalog_filename: str, task_key: str, kind: str,
                  family_id: str, scope_fence: str, derivation_class: str = "literal",
-                 inventory_filename: str | None = None):
-        super().__init__(here, catalog_filename, task_key)
+                 inventory_filename: str | None = None, raw_root: Path | None = None):
+        super().__init__(here, catalog_filename, task_key, raw_root)
         self.kind, self.family_id, self.scope_fence = kind, family_id, scope_fence
         self.derivation_class = derivation_class
         self.INVENTORY = here / (inventory_filename or catalog_filename.replace("_catalog.py", "_raw_inventory.json"))
 
     def records(self, value: dict[str, object]) -> list[dict[str, object]]:
-        if value.get("raw_entry_fields") != list(ENTRY_FIELDS) or set(value.get("raw_entry_defaults", {})) != DEFAULT_FIELDS:
+        if hasattr(self.CATALOG, "records"):
+            try:
+                return self.CATALOG.records(value)
+            except (self.CATALOG.CatalogError, ValueError, KeyError, TypeError) as error:
+                reject(str(error))
+        fields = getattr(self.CATALOG, "ENTRY_FIELDS", ENTRY_FIELDS)
+        default_fields = getattr(self.CATALOG, "DEFAULT_FIELDS", DEFAULT_FIELDS)
+        if value.get("raw_entry_fields") != list(fields) or set(value.get("raw_entry_defaults", {})) != default_fields:
             reject("raw inventory compact-row schema is incomplete or promoted")
         defaults, rows, names, result = value["raw_entry_defaults"], value.get("raw_entries"), set(), []
         if not isinstance(rows, list):
             reject("raw inventory entries are not a list")
         for row in rows:
-            if not isinstance(row, list) or len(row) != len(ENTRY_FIELDS):
+            if not isinstance(row, list) or len(row) != len(fields):
                 reject("raw inventory compact-row shape is malformed")
-            item = dict(zip(ENTRY_FIELDS, row))
+            item = dict(zip(fields, row))
             name = item["unprefixed_name"]
             if not isinstance(name, str) or name in names:
                 reject("raw inventory name is duplicate or malformed")
@@ -48,7 +56,7 @@ class InventoryEngine(SourceContext):
     def rendered(self, cache_root: Path) -> dict[str, object]:
         source, authority, decision, manifest, domain, grammar, ledger, family_order, raw = self.source_input(cache_root)
         try:
-            if self.derivation_class == "template-expansion":
+            if self.derivation_class == "template-expansion" or getattr(self.CATALOG, "USES_GRAMMAR_DOCUMENT", False):
                 facts = self.CATALOG.facts(raw, self.CATALOG.PAGES, family_order, grammar, self.GRAMMAR.normalize)
             else:
                 facts = self.CATALOG.facts(raw, self.CATALOG.PAGES, family_order, self.GRAMMAR.normalize)
@@ -57,6 +65,9 @@ class InventoryEngine(SourceContext):
         defaults = {"family_id": self.family_id, "source_family_order": family_order,
                     "derivation_class": self.derivation_class,
                     "source_locator_format": "gles32-pdf-v1:page={physical_page};section={section}"}
+        if hasattr(self.CATALOG, "raw_defaults"):
+            defaults = self.CATALOG.raw_defaults(family_order)
+        families = family_order if isinstance(family_order, list) else [{"id": self.family_id, "source_order": family_order}]
         body = {
             "schema": 1, "kind": self.kind, "profile": self.CATALOG.PROFILE,
             "source": source, "source_class": "command-state", "source_decision": decision,
@@ -68,23 +79,24 @@ class InventoryEngine(SourceContext):
             "domain_classification_sha256": domain["classification_sha256"],
             "grammar_sha256": grammar["grammar_sha256"],
             "unavailable_ledger_sha256": ledger["ledger_sha256"],
-            "domain_families": [{"id": self.family_id, "source_order": family_order}],
-            "raw_entry_fields": list(ENTRY_FIELDS), "raw_entry_defaults": defaults,
+            "domain_families": families,
+            "raw_entry_fields": list(getattr(self.CATALOG, "ENTRY_FIELDS", ENTRY_FIELDS)), "raw_entry_defaults": defaults,
             "raw_entries": facts, "raw_entry_count": len(facts),
             "raw_entries_sha256": hashlib.sha256(self.canonical(facts)).hexdigest(),
             "raw_only": True, "promotion_allowed": False, "scope_fence": self.scope_fence,
         }
+        if hasattr(self.CATALOG, "coverage"):
+            body["source_coverage"] = self.CATALOG.coverage(family_order)
         return {**body, "inventory_sha256": hashlib.sha256(self.canonical(body)).hexdigest()}
 
     def validate(self, cache_root: Path, inventory_file: Path | None = None) -> dict[str, object]:
         expected = self.rendered(cache_root)
-        actual = self.artifact(self.ARTIFACT.document, inventory_file or self.INVENTORY)
-        self.artifact(self.ARTIFACT.self_hashed, actual, "inventory_sha256")
-        self.artifact(self.ARTIFACT.forbidden, actual)
-        if not self.exact(actual, expected):
-            reject("inventory is stale, incomplete, rerouted, or promoted")
-        self.records(actual)
-        return copy.deepcopy(actual)
+        storage.validate(self, expected, inventory_file or self.INVENTORY)
+        self.records(expected)
+        return copy.deepcopy(expected)
+
+    def generated(self, value):
+        return storage.generated(self, value)
 
     def main(self) -> None:
         parser = argparse.ArgumentParser(description=__doc__)

@@ -41,8 +41,8 @@ def private(item_file: Path, name: str):
 
 
 class SourceContext:
-    def __init__(self, here: Path, catalog_filename: str, task_key: str):
-        raw = here.parents[2]
+    def __init__(self, here: Path, catalog_filename: str, task_key: str, raw_root: Path | None = None):
+        raw = raw_root or here.parents[2]
         dependencies = {
             "CATALOG": here / catalog_filename,
             "ARTIFACT": raw / "01-command-domain-classification/gles_command_domain_artifact.py",

@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.4.2
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [focused receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,13 @@ coverage, fragment, and shader behavior to their distinct semantic or state revi
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, domain map, grammar, and unavailable-source ledger identities.
-- [ ] Extract only formal declarations with physical page, section, and source-order anchors.
-- [ ] Route primitive/raster behavior, state, limits, formats, and ESSL semantics out of command facts.
-- [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, domain map, grammar, and unavailable-source ledger identities.
+- [x] Extract only formal declarations with physical page, section, and source-order anchors.
+- [x] Route primitive/raster behavior, state, limits, formats, and ESSL semantics out of command facts.
+- [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL-source imports.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+
+- [ ] Complete final repository integration and record its tested revision in the receipt.
 
 ## Verification
 

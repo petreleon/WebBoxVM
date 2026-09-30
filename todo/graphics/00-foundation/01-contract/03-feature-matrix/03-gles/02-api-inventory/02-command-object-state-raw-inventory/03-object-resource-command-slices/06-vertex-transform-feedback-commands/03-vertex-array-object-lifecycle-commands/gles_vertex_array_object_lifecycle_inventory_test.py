@@ -29,6 +29,15 @@ MAP = load()
 
 
 class VertexArrayObjectLifecycleTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # One checked proof per suite; admission/bytes/catalog/artifacts stay live.
+        snapshot = MAP.API.SourceSnapshot(MAP.PACKAGE.parents[2], CACHE)
+        previous = MAP.ENGINE.batch_snapshot
+        MAP.ENGINE.batch_snapshot = snapshot
+        cls.addClassCleanup(snapshot.finish)
+        cls.addClassCleanup(setattr, MAP.ENGINE, "batch_snapshot", previous)
+
     def live(self) -> Path:
         if not MAP.CACHE.cache_file(CACHE, MAP.CACHE.SOURCE).is_file(): self.fail("retained external F03.3.2.1 cache is unavailable")
         return CACHE

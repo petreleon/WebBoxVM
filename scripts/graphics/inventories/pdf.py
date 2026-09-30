@@ -32,14 +32,14 @@ def extractor() -> str:
     raise PdfError("fixed PDF text extractor is unavailable")
 
 
-def sealed_pdf_page(raw: bytes, page: int) -> str:
+def _extract(raw: bytes, first: int, last: int) -> str:
     if not isinstance(raw, bytes) or not raw:
         raise PdfError("PDF input must be nonempty bytes")
-    if type(page) is not int or page < 1:
-        raise PdfError("physical PDF page must be a positive integer")
+    if type(first) is not int or type(last) is not int or first < 1 or last < first:
+        raise PdfError("physical PDF page range must be positive and ordered")
     try:
         result = subprocess.run(
-            [extractor(), "-f", str(page), "-l", str(page), "-raw", "-", "-"],
+            [extractor(), "-f", str(first), "-l", str(last), "-raw", "-", "-"],
             input=raw,
             capture_output=True,
             check=False,
@@ -48,6 +48,20 @@ def sealed_pdf_page(raw: bytes, page: int) -> str:
         )
         if result.returncode != 0:
             raise PdfError(f"PDF text extraction failed with exit {result.returncode}")
-        return compact(result.stdout.decode("utf-8"))
+        return result.stdout.decode("utf-8")
     except (OSError, UnicodeDecodeError, subprocess.TimeoutExpired) as error:
         raise PdfError(f"cannot read sealed PDF page: {error}") from error
+
+
+def sealed_pdf_page(raw: bytes, page: int) -> str:
+    return compact(_extract(raw, page, page))
+
+
+def sealed_pdf_pages(raw: bytes, first: int, last: int) -> dict[int, str]:
+    """Preserve physical-page breaks and headings for finite declaration windows."""
+    pages = _extract(raw, first, last).split("\f")
+    if pages[-1].strip() == "":
+        pages.pop()
+    if len(pages) != last - first + 1 or any(not page.strip() for page in pages):
+        raise PdfError("PDF page range is empty, truncated, or lacks physical breaks")
+    return {first + offset: page for offset, page in enumerate(pages)}

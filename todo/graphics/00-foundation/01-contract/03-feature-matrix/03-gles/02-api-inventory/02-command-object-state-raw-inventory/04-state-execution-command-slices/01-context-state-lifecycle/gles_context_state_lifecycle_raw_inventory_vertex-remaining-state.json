@@ -1,0 +1,24 @@
+{
+  "domain_family": {"id": "vertex-remaining-state", "source_order": 21},
+  "fragment_sha256": "3aeba08051790bd4be3fc19b8c7b84c9dcbee1b74bfa7ad3fdcf12ad956557b8",
+  "kind": "webboxvm-gles32-context-state-lifecycle-raw-inventory-source-family",
+  "promotion_allowed": false,
+  "raw_entries": [
+  ],
+  "raw_entries_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "raw_entry_count": 0,
+  "raw_entry_fields": [
+    "raw_id",
+    "family_id",
+    "source_family_order",
+    "triggering_commands",
+    "c_names",
+    "rule_text_parts",
+    "physical_page",
+    "section",
+    "source_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "source_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+}

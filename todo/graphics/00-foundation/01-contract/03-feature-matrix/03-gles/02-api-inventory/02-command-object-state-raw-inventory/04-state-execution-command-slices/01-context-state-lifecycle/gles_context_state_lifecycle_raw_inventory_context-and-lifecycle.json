@@ -1,0 +1,77 @@
+{
+  "domain_family": {"id": "context-and-lifecycle", "source_order": 9},
+  "fragment_sha256": "29dab773aa70faec841498e7589d3a704961876197173f30de1456ac833eeaae",
+  "kind": "webboxvm-gles32-context-state-lifecycle-raw-inventory-source-family",
+  "promotion_allowed": false,
+  "raw_entries": [
+    ["gles32-context-state-lifecycle-05", "context-and-lifecycle", 9,
+     ["DeleteBuffers", "DeleteTextures", "DeleteTransformFeedbacks", "DeleteRenderbuffers"], ["glDeleteBuffers", "glDeleteTextures", "glDeleteTransformFeedbacks", "glDeleteRenderbuffers"], [
+       "When a buffer, texture, transform feedback or renderbuffer object is successfully deleted, it is",
+       "unbound from any bind points it is bound to in the current context, and detached from any",
+       "attachments of container objects that are bound to the current context, as described for",
+       "DeleteBuffers, DeleteTextures, DeleteTransformFeed- backs and DeleteRenderbuffers. If the object",
+       "binding was established with other",
+       "relatedstate(suchasabufferrangeinBindBufferRangeorselectedlevelandlayer information in",
+       "FramebufferTexture or BindImageTexture), all such related state are restored to default values",
+       "by the automatic unbind. Bind points in other con- texts are not affected. Attachments to",
+       "unbound container objects, such as deletion of a buffer attached to a vertex array object which",
+       "is not bound to the context, are not affected and continue to act as references on the deleted",
+       "object, as described in the following section."
+     ], 63, "5.1.2", 5],
+    ["gles32-context-state-lifecycle-06", "context-and-lifecycle", 9,
+     ["ClientWaitSync", "WaitSync"], ["glClientWaitSync", "glWaitSync"], [
+       "A sync object is in use while there is a corresponding fence command which has not yet completed",
+       "and signaled the sync object, or while there are any GL clients and/or servers blocked on the",
+       "sync object as a result of ClientWaitSync or WaitSync commands."
+     ], 63, "5.1.3", 6],
+    ["gles32-context-state-lifecycle-07", "context-and-lifecycle", 9,
+     ["BufferSubData"], ["glBufferSubData"], [
+       "Data-setting commands, such as TexSubImage* or BufferSubData."
+     ], 65, "5.3", 7],
+    ["gles32-context-state-lifecycle-08", "context-and-lifecycle", 9,
+     ["EndTransformFeedback"], ["glEndTransformFeedback"], [
+       "Data-setting through transform feedback operations followed by an End- TransformFeedback",
+       "command."
+     ], 65, "5.3", 8],
+    ["gles32-context-state-lifecycle-09", "context-and-lifecycle", 9,
+     ["BufferData"], ["glBufferData"], [
+       "Commands that affect both state and data, such as TexImage* and Buffer- Data."
+     ], 65, "5.3", 9],
+    ["gles32-context-state-lifecycle-10", "context-and-lifecycle", 9,
+     ["UnmapBuffer", "FlushMappedBufferRange"], ["glUnmapBuffer", "glFlushMappedBufferRange"], [
+       "Changes to mapped buffer data followed by a command such as Unmap- Buffer or",
+       "FlushMappedBufferRange."
+     ], 65, "5.3", 10],
+    ["gles32-context-state-lifecycle-11", "context-and-lifecycle", 9,
+     ["Finish", "FenceSync", "WaitSync"], ["glFinish", "glFenceSync", "glWaitSync"], [
+       "The contents of an object T are considered to have been changed once a command such as described",
+       "in section 5.3 has completed. Completion of a command1 may be determined either by calling",
+       "Finish, or by calling FenceSync and executing a WaitSync command on the associated sync object.",
+       "The second method does not require a round trip to the GL server and may be more efficient,",
+       "particularly when changes to T in one context must be known to have completed before executing",
+       "commands dependent on those changes in another context."
+     ], 65, "5.3.1", 11],
+    ["gles32-context-state-lifecycle-12", "context-and-lifecycle", 9,
+     ["EndTransformFeedback"], ["glEndTransformFeedback"], [
+       "Note: \u201cUpdates\u201d via rendering or transform feedback are treated consistently with update via GL",
+       "commands. Once EndTransformFeedback has been issued, any subsequent command in the same context",
+       "that uses the results of the trans- form feedback operation will see the results."
+     ], 66, "5.3.3", 12]
+  ],
+  "raw_entries_sha256": "45f53d0c7206486c6cbf6211244555cd2c531870c3757effc7fbb37190067fc6",
+  "raw_entry_count": 8,
+  "raw_entry_fields": [
+    "raw_id",
+    "family_id",
+    "source_family_order",
+    "triggering_commands",
+    "c_names",
+    "rule_text_parts",
+    "physical_page",
+    "section",
+    "source_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "source_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+}

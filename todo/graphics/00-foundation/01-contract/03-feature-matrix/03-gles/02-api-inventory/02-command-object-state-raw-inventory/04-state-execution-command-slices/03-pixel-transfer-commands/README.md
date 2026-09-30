@@ -4,7 +4,7 @@
 
 Task: F03.3.2.2.4.3
 Depends: F03.3.2.2.1, F03.3.2.2.2
-Evidence: pending
+Evidence: [focused receipt](evidence.md)
 
 ## Outcome
 
@@ -19,11 +19,13 @@ packing, image layout, readback behavior, and state remain separately reviewed s
 
 ## Checklist
 
-- [ ] Bind exact authority, cache, domain map, and declaration grammar identities.
-- [ ] Extract only formal declarations with physical page, section, and source-order anchors.
-- [ ] Route format conversion, packing, layout, state, limits, and readback semantics out of command facts.
-- [ ] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL semantics.
-- [ ] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+- [x] Bind exact authority, cache, domain map, and declaration grammar identities.
+- [x] Extract only formal declarations with physical page, section, and source-order anchors.
+- [x] Route format conversion, packing, layout, state, limits, and readback semantics out of command facts.
+- [x] Reject extensions, desktop/lower profiles, registry data, guessed templates, and ESSL semantics.
+- [x] Self-hash raw facts with zero Matrix/CTS/owner/claim fields and attach a receipt.
+
+- [ ] Complete final repository integration and record its tested revision in the receipt.
 
 ## Verification
 

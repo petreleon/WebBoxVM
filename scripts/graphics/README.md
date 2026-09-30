@@ -42,16 +42,18 @@ preserves its exit status and standard streams; other runner failures exit 1.
 
 ## Automated source inventories
 
-The five vertex/transform-feedback slices use a shared admission/row-validation
-engine and a finite batch manifest. Catalogs retain their exact section boundaries,
-declarations and hostile tests. This replaces repeated validator implementations.
+The five vertex/transform-feedback slices and four state/execution routes use a
+shared admission/row-validation engine and finite batch manifests. Catalogs retain
+their exact section boundaries, declarations and hostile tests.
 
 ```sh
 make graphics-gles-vertex-inventory-check GRAPHICS_GLES_CACHE=/path/to/verified/cache
 make graphics-gles-vertex-inventory-regenerate GRAPHICS_GLES_CACHE=/path/to/verified/cache
+make graphics-gles-state-inventory-check GRAPHICS_GLES_CACHE=/path/to/verified/cache
+make graphics-gles-state-inventory-regenerate GRAPHICS_GLES_CACHE=/path/to/verified/cache
 ```
 
-Regeneration writes reviewable JSON into `.artifacts/graphics/vertex-inventory-regenerated`;
+Vertex regeneration writes JSON into `.artifacts/graphics/vertex-inventory-regenerated`;
 it leaves the checked-in artifacts and roadmap status untouched. Every slice must
 pass before export starts. The batch report includes each inventory hash and count.
 Domain/grammar/ledger proofs are reused only inside that invocation: admitted PDF
@@ -60,6 +62,25 @@ before and after the batch. Changed inputs abort publication. No cached success
 survives into another invocation.
 
 Use `python3 scripts/graphics_inventory_batch.py --help` for task selection
-and a custom output directory. `make graphics-inventory-automation-test` covers
-batch failure, changed inputs, unsafe destinations and real PDF extraction. These
-are source checks; they do not establish API behavior or graphics performance.
+and a custom output directory. The default group remains `vertex`; `--group state`
+selects exactly the four existing state/execution routes. A state batch reports
+each slice's completeness and missing/incomplete tasks. The lifecycle slice has
+12 explicit object/name/shared-context rules and still has pending state routes;
+successful extraction does not complete that leaf or its parent.
+
+The other state routes contain 55 draw/raster/compute declarations, six pixel
+commands and 24 debug/special/context-query declarations. Readable, self-hashed
+source-family fragments preserve every row and its global source order under a
+small aggregate index. Empty fragments explicitly cover inspected source windows
+with no formal declarations. Reset declarations already assigned to the generic
+route retain their exact existing receipt and are rechecked against the same PDF.
+
+Formal extraction uses physical-page ranges, section fences, sealed declaration
+signatures and an independent command-name index crosscheck. Pseudo-commands are
+excluded only with explicit normative reasons. PDF typographic spellings retain
+their exact quoted declarations and visually confirmed C names.
+
+`make graphics-inventory-automation-test` covers batch failure, changed inputs,
+unsafe destinations, real PDF extraction and stale/missing/substituted family
+fragments. These are source checks; they do not establish API behavior or graphics
+performance.

@@ -1,0 +1,19 @@
+{
+  "scripts/graphics/inventories/__init__.py": "b5e31eda0dd3318624a9536d78e7e337db4d32ad33e2a57cd284de233d4e9142",
+  "scripts/graphics/inventories/bootstrap.py": "14b17029cf6402fcb7a2f7590964d62bb60fc20e60e24e612f869f58e90c5a25",
+  "scripts/graphics/inventories/crosscheck.py": "1974780d0c93f02e2d5e750953291430ba5634c39fbc10dc8adfc3224e618343",
+  "scripts/graphics/inventories/declarations.py": "2508f1dacceb82640880d40db986aec967bf63e3593384578c8ba54399448cf7",
+  "scripts/graphics/inventories/engine.py": "d7a4a09ea29b248d0f1cc0988732255d57a9e04161424864d77659590f954e3d",
+  "scripts/graphics/inventories/json_output.py": "5e512d34337dcc532bdaa837ba719c4c94d25be3c1d7ebf3b1d8ba8fff54e4a0",
+  "scripts/graphics/inventories/pdf.py": "ed4a8a5bd65de50e3e5eba6087bb80cdfe540c9b76632e1283fb043db702bfcf",
+  "scripts/graphics/inventories/snapshot.py": "8b1d4f01edb2d4c1c0131dd8c6a8db75d41626d32aee9d6cdf3793182cb60823",
+  "scripts/graphics/inventories/source.py": "6a4354c66572a832444086419fdb0243d808670eea4e43bf6e44b80c38a73552",
+  "scripts/graphics/inventories/storage.py": "61bf5f1802cadc7d41bd68140af13edc4940d8f172be64b6206c50096621c932",
+  "scripts/graphics/inventories/vertex_batch.py": "e81a831981e42c0165167e6df4eecfd03526acf0e90f8d279af9b2b4054ca9fe",
+  "scripts/graphics_inventory_batch.py": "4e7af48382df5732b3c4c132ad1a8aa33e15b417c27a4c6d1e67315d83687ded",
+  "todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/04-state-execution-command-slices/01-context-state-lifecycle/gles_context_state_lifecycle_catalog.py": "5c1af6f89c77a7f43893daecdacfaa616c89ccdf65002ae71850377fb1296901",
+  "todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/04-state-execution-command-slices/01-context-state-lifecycle/gles_context_state_lifecycle_inventory.py": "36e9b2a0120003e19bbb2ece680284d15295563be95307a85204a7a2d533ae23",
+  "todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/04-state-execution-command-slices/01-context-state-lifecycle/gles_context_state_lifecycle_inventory_test.py": "7761fa10b9876bffdb371bb3990b57c6c40f1e1f5aa7dc476566ddc20c99a23b",
+  "todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/04-state-execution-command-slices/01-context-state-lifecycle/gles_context_state_lifecycle_rules.py": "0ef2e8b0b75499afbddc5d8ea02c5b978e437a76671309a94f015a8ec8293205",
+  "todo/graphics/00-foundation/01-contract/03-feature-matrix/03-gles/02-api-inventory/02-command-object-state-raw-inventory/04-state-execution-command-slices/01-context-state-lifecycle/gles_context_state_lifecycle_schema.py": "edb4895dea2bf5e0cdd6d99f235288b62aa4c40ccf20a61f8cd445907ca64752"
+}

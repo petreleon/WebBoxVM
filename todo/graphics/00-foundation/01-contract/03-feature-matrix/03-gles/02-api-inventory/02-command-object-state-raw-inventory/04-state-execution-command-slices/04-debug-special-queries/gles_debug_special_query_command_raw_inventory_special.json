@@ -1,0 +1,27 @@
+{
+  "domain_family": {"id": "special", "source_order": 32},
+  "fragment_sha256": "f83271de2f34a92e34dd31329d227ebaba3e20938d50a8c1adb082070ca90906",
+  "kind": "webboxvm-gles32-debug-special-query-raw-inventory-source-family",
+  "promotion_allowed": false,
+  "raw_entries": [
+    ["gles32-debug-special-query-11", "Hint", "glHint",
+     "void Hint( enum target, enum hint );",
+     455, "19.1", 11, "special", 32]
+  ],
+  "raw_entries_sha256": "648ad813671898628e34cc461141c3cfeb5222d3211f17600890cf8fa22c3208",
+  "raw_entry_count": 1,
+  "raw_entry_fields": [
+    "raw_id",
+    "unprefixed_name",
+    "c_name",
+    "declaration",
+    "physical_page",
+    "section",
+    "source_order",
+    "family_id",
+    "source_family_order"
+  ],
+  "raw_only": true,
+  "schema": 1,
+  "source_sha256": "5028bd55b9ed7072757944f117a682ff3a0d09ab7b7a9a09cd144b7928db661c"
+}
