@@ -1,6 +1,7 @@
 # I01 bounded native command runner checkpoint
 
 Baseline: `d643e6106034df498bb26a54c30fed19808b09c6`.
+Implementation: `8b9bb4af` (all 12 per-file digests match the tested frozen runner).
 Scope: host command framing, finite VM execution and raw UART capture.
 I01 remains open; this checkpoint does not certify a stock-Mesa image or startup.
 
@@ -38,8 +39,12 @@ No host GPU completion, CPU pixel oracle or stock-Mesa success is synthesized.
 Full log: `.artifacts/graphics/i01-mesa-image/integration-full-test-2026-09-30.log`.
 SHA256: `779bc6f89f0e602396c1f5eac73c961f5ff1df5fa7cc59978ef3d7272a19d330`.
 
-The 12 runner files have sorted path+NUL+per-file-SHA256+LF fingerprint
-`d9ffce4f5c3710a36b806ccd9ea924eb2d939bebaddaa72cb4ec13fff5ea8870`.
+The 12 runner files have sorted repository-relative UTF-8 path+NUL+ASCII
+per-file-SHA256+LF fingerprint
+`35f03d4000a170bb11586bf2d30f8f525ef71b3d02561a1d853d871c7fd85cfc`.
+The initial aggregate supplied by the worker did not reproduce under this
+explicit serialization; every individual source digest matched, and the
+aggregate was recalculated directly before publication.
 The largest file is 171 physical lines. Dedicated example tests are wired into
 the fixture test target being prepared; ordinary Cargo package tests alone do
 not execute these example tests.
